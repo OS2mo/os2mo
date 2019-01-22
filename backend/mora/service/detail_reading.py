@@ -55,56 +55,6 @@ DETAIL_TYPES = {
 }
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
-@util.restrictargs()
-def list_details(type, id):
-    '''List the available 'detail' types under this entry.
-
-    .. :quickref: Detail; List
-
-    **Example response**:
-
-    .. sourcecode:: json
-
-      {
-        "address": false,
-        "association": false,
-        "engagement": true,
-        "it": false,
-        "leave": true,
-        "manager": false,
-        "role": false
-      }
-
-    The value above informs you that at least one entry exists for each of
-    'engagement' and 'leave' either in the past, present or future.
-    '''
-
-    c = common.get_connector(virkningfra='-infinity',
-                             virkningtil='infinity')
-
-    info = DETAIL_TYPES[type]
-    search = {
-        info.search: id,
-    }
-    scope = getattr(c, info.scope)
-
-    r = {
-        functype: bool(
-            c.organisationfunktion(funktionsnavn=funcname, **search),
-        )
-        for functype, funcname in handlers.FUNCTION_KEYS.items()
-    }
-
-    reg = scope.get(id)
-
-    for relname, cls in handlers.HANDLERS_BY_ROLE_TYPE.items():
-        if issubclass(cls, handlers.ReadingRequestHandler):
-            r[relname] = bool(cls.has(scope, reg))
-
-    return flask.jsonify(r)
-
-
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
@@ -439,12 +389,11 @@ def get_detail(type, id, function):
     search = {
         info.search: id,
     }
-    scope = getattr(c, info.scope)
 
     cls = handlers.get_handler_for_role_type(function)
 
     if issubclass(cls, handlers.ReadingRequestHandler):
-        return cls.get(scope, id)
+        return cls.get(c, type, id)
 
     # ensure that we report an error correctly
     if function not in handlers.FUNCTION_KEYS:
@@ -544,9 +493,6 @@ def get_detail(type, id, function):
             mapping.ADDRESS: (
                 function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
             ),
-            mapping.ADDRESS_TYPE: (
-                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
-            ),
         },
         'role': {
             mapping.PERSON: (
@@ -584,10 +530,7 @@ def get_detail(type, id, function):
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
             mapping.ADDRESS: (
-                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
-            ),
-            mapping.ADDRESS_TYPE: (
-                address_type_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
+                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, True,
             ),
         },
         'it': {
@@ -664,12 +607,6 @@ def get_detail(type, id, function):
         c.organisationfunktion.get_all(uuid=function_cache)
     )
 
-    function_cache.update({
-        funcid: address.get_one_address(addrrel)
-        for funcid, funcobj in address_functions.items()
-        for addrrel in mapping.SINGLE_ADDRESS_FIELD(funcobj)
-    })
-
     # extract address type ids from address functions
     class_cache.update({
         typerel['uuid']: None
@@ -681,6 +618,16 @@ def get_detail(type, id, function):
     class_cache.update({
         classid: facet.get_one_class(c, classid, classobj)
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
+    })
+
+    function_cache.update({
+        funcid: {
+            mapping.UUID: funcid,
+            mapping.ADDRESS: address.get_one_address(funcobj),
+            mapping.ADDRESS_TYPE: class_cache.get(
+                mapping.ADDRESS_TYPE_FIELD(funcobj)[0]['uuid'])
+        }
+        for funcid, funcobj in address_functions.items()
     })
 
     # inject the classes back into the address type cache

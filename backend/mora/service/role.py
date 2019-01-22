@@ -32,8 +32,9 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
 
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=True)
+        org_unit_uuid = util.get_uuid(org_unit, required=True)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
@@ -41,13 +42,15 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         valid_from, valid_to = util.get_validities(req)
 
         # Validation
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
         validator.is_date_range_in_employee_range(employee, valid_from,
                                                   valid_to)
 
-        org_unit = c.organisationenhed.get(org_unit_uuid)
-        org_uuid = util.get_obj_uuid(org_unit, mapping.BELONGS_TO_FIELD.path)
+        org_uuid = (
+            c.organisationenhed.get(org_unit_uuid)
+            ['relationer']['tilhoerer'][0]['uuid']
+        )
 
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
                                                required=True)
@@ -82,6 +85,9 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
 
         validator.is_edit_from_date_before_today(new_from)
 
+        # Get org unit uuid for validation purposes
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
+
         payload = dict()
         payload['note'] = 'Rediger rolle'
 
@@ -109,16 +115,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             ))
 
         if mapping.ORG_UNIT in data:
-            org_unit_uuid = util.get_mapping_uuid(data, mapping.ORG_UNIT)
             update_fields.append((
                 mapping.ASSOCIATED_ORG_UNIT_FIELD,
-                {'uuid': org_unit_uuid},
+                {'uuid': (util.get_mapping_uuid(data, mapping.ORG_UNIT))},
             ))
-        else:
-            org_unit_uuid = util.get_obj_uuid(
-                original,
-                mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
-            )
 
         if mapping.PERSON in data:
             employee = data.get(mapping.PERSON)
@@ -141,7 +141,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+        validator.is_date_range_in_org_unit_range(org_unit, new_from,
                                                   new_to)
         validator.is_date_range_in_employee_range(employee, new_from,
                                                   new_to)

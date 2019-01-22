@@ -198,16 +198,12 @@ API
 '''
 
 import collections
-import json
 import re
 
 import flask
 import requests
 
-from . import employee
-from . import facet
 from . import handlers
-from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -215,6 +211,11 @@ from .. import mapping
 from .. import settings
 from .. import util
 from .. import validator
+from . import facet
+from . import employee
+from . import orgunit
+
+from .addresses import base
 
 session = requests.Session()
 session.headers = {
@@ -228,206 +229,32 @@ URN_PREFIXES = {
     'WWW': 'urn:magenta.dk:www:',
     'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
     'TEXT': 'urn:text:',
+    'DAR': 'urn:dar:'
 }
-
-HREF_PREFIXES = {
-    'EMAIL': 'mailto:',
-    'PHONE': 'tel:',
-    'WWW': '',
-}
-
-DEFAULT_ERROR = 'Fejl'
-NOT_FOUND = 'Ukendt'
 
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
+
+SEARCH_FIELDS = {
+    'e': 'tilknyttedebrugere',
+    'ou': 'tilknyttedeenheder'
+}
 
 blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def _address_string_chunks(addr):
-    # loosely inspired by 'adressebetegnelse' in apiSpecification/util.js from
-    # https://github.com/DanmarksAdresser/Dawa/
-
-    yield addr['vejnavn']
-
-    if addr.get('husnr') is not None:
-        yield ' '
-        yield addr['husnr']
-
-    if addr.get('etage') is not None or addr.get('dør') is not None:
-        yield ','
-
-    if addr.get('etage') is not None:
-        yield ' '
-        yield addr['etage']
-        yield '.'
-
-    if addr.get('dør') is not None:
-        yield ' '
-        yield addr['dør']
-
-    yield ', '
-
-    if addr.get('supplerendebynavn') is not None:
-        yield addr['supplerendebynavn']
-        yield ', '
-
-    yield addr['postnr']
-    yield ' '
-    yield addr['postnrnavn']
-
-
-def stringify(addr):
-    '''Return a string representation of the given DAWA address object'''
-    return ''.join(_address_string_chunks(addr))
-
-
-def fetch_from_dar(addrid):
-    for addrtype in ('adresser', 'adgangsadresser',
-                     'historik/adresser', 'historik/adgangsadresser'):
-        r = session.get(
-            'https://dawa.aws.dk/' + addrtype,
-            # use a list to work around unordered dicts in Python < 3.6
-            params=[
-                ('id', addrid),
-                ('noformat', '1'),
-                ('struktur', 'mini'),
-            ],
-        )
-
-        addrobjs = r.json()
-
-        r.raise_for_status()
-
-        if addrobjs:
-            # found, escape loop!
-            break
-
-    else:
-        raise LookupError('no such address {!r}'.format(addrid))
-
-    return addrobjs.pop()
-
-
-def get_one_address(rel):
-    scope = rel.get('objekttype', 'DAR')
-
-    if scope == 'DAR':
-        addrid = rel['uuid']
-
-        try:
-            addrobj = fetch_from_dar(addrid)
-        except Exception as exc:
-            # the exception above is overly broad for a) safety and b)
-            # testing -- specifically, the exception raised by
-            # requests_mock does not descend from RequestException :(
-            flask.current_app.logger.exception(
-                'ADDRESS LOOKUP FAILED in {!r}'.format(
-                    flask.request.url,
-                ),
-            )
-
-            return {
-                mapping.NAME: NOT_FOUND,
-                mapping.HREF: None,
-                mapping.UUID: addrid,
-                mapping.ERROR: str(exc),
-            }
-
-        return {
-            mapping.HREF: (
-                # link to the location on OSM; historical addresses
-                # may lack coordinates
-                'https://www.openstreetmap.org/'
-                '?mlon={x}&mlat={y}&zoom=16'.format(**addrobj)
-                if 'x' in addrobj and 'y' in addrobj else None
-            ),
-
-            mapping.NAME: stringify(addrobj),
-            mapping.UUID: addrid,
-        }
-
-    elif scope in URN_PREFIXES:
-        prefix = URN_PREFIXES[scope]
-
-        urn = rel['urn']
-
-        if not urn.startswith(prefix):
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                'invalid urn {!r}'.format(rel['urn']),
-            )
-
-        name = urn[len(prefix):]
-        href = (
-            HREF_PREFIXES[scope] + name
-            if scope in HREF_PREFIXES
-            else None
-        )
-
-        if scope == 'PHONE':
-            name = re.sub(r'^(\+45)(\d{8})$', r'\2', name)
-        elif scope == 'TEXT':
-            name = util.urnunquote(name)
-
-        return {
-            mapping.HREF: href,
-
-            mapping.NAME: name,
-            mapping.URN: urn,
-        }
-
-    else:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            'invalid address scope {!r}'.format(scope),
-        )
-
-
-def get_id_and_type(req: dict):
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON)
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT)
-
-    # this is logical xor, negated
-    if (employee_uuid is not None) == (org_unit_uuid is not None):
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            'must specify only one of {} and {}!'.format(
-                mapping.PERSON,
-                mapping.ORG_UNIT,
-            ),
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid,
-            obj=req,
-        )
-
-    if employee_uuid is not None:
-        return employee_uuid, 'e'
-    else:
-        assert org_unit_uuid is not None
-        return org_unit_uuid, 'ou'
-
-
-def get_scope_and_original(obj_uuid, obj_type):
+def get_address_type(effect):
     c = lora.Connector()
+    address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
+    return facet.get_one_class(c, address_type_uuid)
 
-    if obj_type == 'e':
-        scope = c.bruger
-    else:
-        assert obj_type == 'ou'
-        scope = c.organisationenhed
 
-    obj = scope.get(
-        uuid=obj_uuid,
-        virkningfra='-infinity',
-        virkningtil='infinity',
-    )
+def get_one_address(effect):
+    address_type = get_address_type(effect)
+    scope = address_type.get('scope')
+    handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-    if not obj:
-        if obj_type == 'e':
-            exceptions.ErrorCodes.E_USER_NOT_FOUND(uuid=obj_uuid)
-        else:
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(uuid=obj_uuid)
-
-    return scope, obj
+    return handler.get_mo_address()
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
@@ -537,98 +364,237 @@ def address_autocomplete(orgid):
     ])
 
 
-class AddressRequestHandler(handlers.OrgFunkRequestHandler):
+class AddressRequestHandler(handlers.OrgFunkRequestHandler,
+                            handlers.ReadingRequestHandler):
+
     __slots__ = ()
 
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
 
-    def prepare_create(self, req):
-        c = lora.Connector()
+    @classmethod
+    def get(cls, c, type, objid):
 
+        search = {
+            SEARCH_FIELDS[type]: objid
+        }
+
+        function_effects = [
+            cls.get_one_mo_object(effect, start, end, funcid)
+            for funcid, funcobj in c.organisationfunktion.get_all(
+                funktionsnavn=cls.function_key,
+                **search,
+            )
+            for start, end, effect in c.organisationfunktion.get_effects(
+                funcobj,
+                {
+                    'relationer': (
+                        'opgaver',
+                        'adresser',
+                        'organisatoriskfunktionstype',
+                        'tilknyttedeenheder',
+                        'tilknyttedebrugere',
+                    ),
+                    'tilstande': (
+                        'organisationfunktiongyldighed',
+                    ),
+                },
+                {
+                    'attributter': (
+                        'organisationfunktionegenskaber',
+                    ),
+                    'relationer': (
+                        'tilhoerer',
+                        'tilknyttedeorganisationer',
+                        'tilknyttedeitsystemer',
+                    ),
+                },
+            )
+            if util.is_reg_valid(effect)
+        ]
+
+        return flask.jsonify(function_effects)
+
+    @classmethod
+    def get_one_mo_object(cls, effect, start, end, funcid):
+        c = common.get_connector()
+        address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
+        address_type = facet.get_one_class(c, address_type_uuid)
+
+        handler = base.get_handler_for_scope(
+            address_type.get('scope')).from_effect(effect)
+
+        person = mapping.USER_FIELD(effect)
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(effect)
+
+        func = {
+            mapping.ADDRESS_TYPE: address_type,
+            mapping.ADDRESS: handler.get_mo_address(),
+            mapping.VALIDITY: {
+                mapping.FROM: util.to_iso_date(start),
+                mapping.TO: util.to_iso_date(
+                    end, is_end=True)
+            },
+            mapping.PERSON: employee.get_one_employee(
+                c, person[0]['uuid']) if person else None,
+            mapping.ORG_UNIT: orgunit.get_one_orgunit(
+                c, org_unit[0]['uuid'],
+                details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
+            mapping.UUID: funcid,
+            **handler.get_mo_properties()
+        }
+
+        return func
+
+    @classmethod
+    def has(cls, scope, objid):
+        pass
+
+    def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                               required=False)
 
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
                                               required=False)
 
+        manager_uuid = util.get_mapping_uuid(req, mapping.MANAGER,
+                                             required=False)
+
         valid_from, valid_to = util.get_validities(req)
+
+        orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
         # Validation
         if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range(org_unit_uuid,
+            validator.is_date_range_in_org_unit_range(req[mapping.ORG_UNIT],
                                                       valid_from,
                                                       valid_to)
-
-            unitobj = c.organisationenhed.get(org_unit_uuid)
-            orgid = mapping.BELONGS_TO_FIELD(unitobj)[0]['uuid']
 
         if employee_uuid:
             validator.is_date_range_in_employee_range(req[mapping.PERSON],
                                                       valid_from,
                                                       valid_to)
 
-            employeeobj = c.bruger.get(employee_uuid)
-            orgid = mapping.BELONGS_TO_FIELD(employeeobj)[0]['uuid']
-
-        # TODO: validate that the date range is in
-        # the validity of the IT system!
-
-        addrobj = util.checked_get(req, mapping.ADDRESS, {})
         typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
         function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                               required=True)
 
         scope = util.checked_get(typeobj, 'scope', '', required=True)
 
-        if scope == 'DAR':
-            addresses = [
-                {
-                    'objekttype': scope,
-                    'uuid': util.get_uuid(addrobj),
-                },
-            ]
-
-            bvn = stringify(fetch_from_dar(util.get_uuid(addrobj)))
-
-        elif scope in URN_PREFIXES:
-            bvn = urn = util.checked_get(addrobj, mapping.VALUE, '',
-                                         required=True)
-            prefix = URN_PREFIXES[scope]
-
-            if scope == 'PHONE':
-                urn = re.sub(r'\s+', '', urn)
-
-                if not urn.startswith('+'):
-                    urn = '+45' + urn
-            elif scope == 'TEXT':
-                # make sure that we roundtrip uppercase letters properly!
-                urn = util.urnquote(urn)
-
-            if not util.is_urn(urn):
-                urn = prefix + urn
-
-            addresses = [
-                {
-                    'objekttype': scope,
-                    'urn': urn,
-                },
-            ]
+        handler = base.get_handler_for_scope(scope).from_request(req)
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ADDRESS_KEY,
             valid_from=valid_from,
             valid_to=valid_to,
-            brugervendtnoegle=bvn,
+            brugervendtnoegle=handler.get_pretty_value(),
             funktionstype=function_type,
-            adresser=addresses,
+            adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[orgid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
+            tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
+            opgaver=handler.get_lora_properties()
         )
 
         self.payload = func
         self.uuid = util.get_uuid(req, required=False)
 
     def prepare_edit(self, req: dict):
-        pass
+        function_uuid = util.get_uuid(req)
+
+        # Get the current org-funktion which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = c.organisationfunktion.get(uuid=function_uuid)
+
+        if not original:
+            exceptions.ErrorCodes.E_NOT_FOUND()
+
+        data = req.get('data')
+        new_from, new_to = util.get_validities(data)
+
+        validator.is_edit_from_date_before_today(new_from)
+
+        payload = {
+            'note': 'Rediger Adresse',
+        }
+
+        original_data = req.get('original')
+        if original_data:
+            # We are performing an update
+            old_from, old_to = util.get_validities(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'organisationfunktiongyldighed')
+            )
+
+        update_fields = [
+            # Always update gyldighed
+            (
+                mapping.ORG_FUNK_GYLDIGHED_FIELD,
+                {'gyldighed': "Aktiv"}
+            ),
+        ]
+
+        if mapping.PERSON in data:
+            update_fields.append((
+                mapping.USER_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.PERSON),
+                },
+            ))
+
+        if mapping.ORG_UNIT in data:
+            update_fields.append((
+                mapping.ASSOCIATED_ORG_UNIT_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.ORG_UNIT),
+                },
+            ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {
+                    'brugervendtnoegle':
+                        util.checked_get(data, mapping.USER_KEY, ''),
+                },
+            ))
+
+        if mapping.ADDRESS in data:
+
+            address_type = util.checked_get(
+                data, mapping.ADDRESS_TYPE, {}, required=True)
+            scope = util.checked_get(address_type, 'scope', '', required=True)
+            type_uuid = util.get_uuid(address_type)
+
+            handler = base.get_handler_for_scope(scope).from_request(data)
+
+            update_fields.append((
+                mapping.SINGLE_ADDRESS_FIELD,
+                handler.get_lora_address(),
+            ))
+
+            update_fields.append((
+                mapping.ADDRESS_TYPE_FIELD,
+                {
+                    'uuid': type_uuid
+                }
+            ))
+
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original,
+                                        payload)
+
+        bounds_fields = list(mapping.ADDRESS_FIELDS.difference(
+            {x[0] for x in update_fields},
+        ))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original,
+                                       payload)
+
+        self.payload = payload
+        self.uuid = function_uuid
+
