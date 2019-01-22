@@ -171,11 +171,13 @@ class Tests(util.LoRATestCase):
                             '10.19938084&mlat=56.17102843&zoom=16',
                     'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                     'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
-                'address_type': {'example': '<UUID>',
-                                 'name': 'Adresse',
-                                 'scope': 'DAR',
-                                 'user_key': 'AdressePost',
-                                 'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
             },
             'association_type': {

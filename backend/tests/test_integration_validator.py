@@ -366,4 +366,3 @@ class TestIsContainedInRange(TestHelper):
             empl_from, empl_to,
             valid_from, valid_to,
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
-

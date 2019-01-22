@@ -476,7 +476,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
-
         typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
         function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                               required=True)
@@ -637,4 +636,3 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         self.payload = payload
         self.uuid = function_uuid
-
