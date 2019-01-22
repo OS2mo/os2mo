@@ -32,7 +32,7 @@
 
 import { mapFields } from 'vuex-map-fields'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
+import { MoLeaveEntry } from '@/components/MoEntry'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'

@@ -16,7 +16,7 @@
       />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="disabledDates"
@@ -29,44 +29,18 @@
  * A role entry component.
  */
 
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEntryBase from './MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
+  name: 'MoRoleEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
-  },
-
-  props: {
-    /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
-     * This boolean property hides the validity.
-     */
-    validityHidden: Boolean,
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
-  },
-
-  data () {
-    return {
-      /**
-       * The entry component value.
-       * Used to detect changes and restore the value.
-       */
-      entry: {
-        validity: {}
-      }
-    }
   },
 
   watch: {
@@ -80,14 +54,6 @@ export default {
       },
       deep: true
     }
-  },
-
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry to value.
-     */
-    this.entry = this.value
   }
 }
 </script>

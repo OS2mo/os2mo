@@ -3,6 +3,7 @@
     <div class="form-row">
       <mo-facet-picker
         v-show="noPreselectedType"
+        class="col"
         :facet="facet"
         v-model="entry.address_type"
         :preselected-user-key="preselectedType"
@@ -11,11 +12,17 @@
 
       <div class="form-group col">
         <div v-if="entry.address_type">
-          <mo-address-search v-if="entry.address_type.scope=='DAR'" :label="entry.address_type.name" v-model="address"/>
-          <label :for="nameId" v-if="entry.address_type.scope!='DAR'">{{entry.address_type.name}}</label>
+          <mo-address-search
+            v-if="isDarAddress"
+            :label="entry.address_type.name"
+            v-model="address"
+            required
+          />
+          <label :for="identifier" v-if="!isDarAddress">{{entry.address_type.name}}</label>
           <input
-            :name="nameId"
-            v-if="entry.address_type.scope!='DAR'"
+            :name="identifier"
+            :id="identifier"
+            v-if="!isDarAddress"
             :data-vv-as="entry.address_type.name"
             v-model.trim="contactInfo"
             type="text"
@@ -23,12 +30,13 @@
             v-validate="validityRules"
           >
         </div>
-        <span v-show="errors.has(nameId)" class="text-danger">
-          {{ errors.first(nameId) }}
+        <span v-show="errors.has(identifier)" class="text-danger">
+          {{ errors.first(identifier) }}
         </span>
       </div>
     </div>
-    <mo-date-picker-range
+
+    <mo-input-date-range
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
@@ -42,11 +50,13 @@
  * A address entry component.
  */
 
-import MoAddressSearch from '@/components/MoAddressSearch/MoAddressSearch'
+import MoAddressSearch from '@/components/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
+import MoEntryBase from './MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
   name: 'MoAddressEntry',
 
   /**
@@ -59,47 +69,36 @@ export default {
   components: {
     MoAddressSearch,
     MoFacetPicker,
-    MoDatePickerRange
+    MoInputDateRange
   },
 
   props: {
     /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
-     * This boolean property hides the validity dates.
-     */
-    validityHidden: Boolean,
-
-    /**
      * This boolean property requires a selected address type.
+     * @type {Boolean}
      */
     required: Boolean,
 
     /**
      * Defines a label.
+     * @type {String}
      */
     label: String,
 
     /**
      * Defines a preselectedType.
+     * @type {String}
      */
     preselectedType: String,
 
     /**
      * Defines a preselectedType.
+     * @type {String}
      */
     facet: {
       type: String,
       required: true
-    },
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
+    }
   },
 
   data () {
@@ -109,12 +108,7 @@ export default {
        * Used to detect changes and restore the value.
        */
       contactInfo: '',
-      entry: {
-        validity: {},
-        address_type: {},
-        uuid: null,
-        value: null
-      },
+      entry: {},
       address: null,
       addressScope: null
     }
@@ -123,6 +117,7 @@ export default {
   computed: {
     /**
      * If the address is a DAR.
+     * @type {Boolean}
      */
     isDarAddress () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
@@ -130,24 +125,11 @@ export default {
     },
 
     /**
-     * Disable address type.
-     */
-    isDisabled () {
-      return this.entry.address_type == null
-    },
-
-    /**
      * If it has not a preselectedType.
+     * @type {Boolean}
      */
     noPreselectedType () {
       return this.preselectedType == null
-    },
-
-    /**
-     * Get name `scope-type`.
-     */
-    nameId () {
-      return 'scope-type-' + this._uid
     },
 
     /**

@@ -41,7 +41,7 @@
       />
 
       <div class="form-row">
-        <mo-date-picker
+        <mo-input-date
           class="moveDate"
           :label="$t('input_fields.move_date')"
           v-model="move.data.validity.from"
@@ -67,7 +67,7 @@
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
@@ -78,7 +78,7 @@ export default {
 
   components: {
     MoOrganisationUnitPicker,
-    MoDatePicker,
+    MoInputDate,
     ButtonSubmit
   },
 

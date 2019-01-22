@@ -51,7 +51,7 @@
       small-buttons
     />
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="disabledDates"
@@ -64,16 +64,19 @@
  * A manager entry component.
  */
 
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoManagerAddressEntry from '@/components/MoEntry/MoManagerAddressEntry'
+import { MoManagerAddressEntry } from '@/components/MoEntry'
+import MoEntryBase from './MoEntryBase.js'
 
 export default {
+  extends: MoEntryBase,
+  name: 'MoManagerEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
     MoAddMany,
@@ -82,16 +85,6 @@ export default {
 
   props: {
     /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
-     * This boolean property hides validity.
-     */
-    validityHidden: Boolean,
-
-    /**
      * This boolean property hide the org picker.
      */
     hideOrgPicker: Boolean,
@@ -99,32 +92,10 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean,
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
-  },
-
-  data () {
-    return {
-      /**
-       * The entry component value.
-       * Used to detect changes and restore the value.
-       */
-      entry: {}
-    }
+    hideEmployeePicker: Boolean
   },
 
   computed: {
-    /**
-     * Hides the validity.
-     */
-    datePickerHidden () {
-      return this.validity != null
-    },
-
     /**
      * Adds the facetPicker template to the add many component.
      */
@@ -189,14 +160,6 @@ export default {
       },
       deep: true
     }
-  },
-
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry to value.
-     */
-    this.entry = this.value
   }
 }
 </script>

@@ -75,14 +75,9 @@ import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr/MoCpr'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
-import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
-import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
-import MoEmployeeAddressEntry from '@/components/MoEntry/MoEmployeeAddressEntry'
+import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
 
 export default {
   mixins: [ValidateForm, ModalBase],

@@ -93,13 +93,7 @@
  * A employee detail tabs component.
  */
 
-import MoEngagementEntry from '@/components/MoEntry/MoEngagementEntry'
-import MoEmployeeAddressEntry from '@/components/MoEntry/MoEmployeeAddressEntry'
-import MoRoleEntry from '@/components/MoEntry/MoRoleEntry'
-import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-import MoAssociationEntry from '@/components/MoEntry/MoAssociationEntry'
-import MoLeaveEntry from '@/components/MoEntry/MoLeaveEntry'
-import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import { MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'

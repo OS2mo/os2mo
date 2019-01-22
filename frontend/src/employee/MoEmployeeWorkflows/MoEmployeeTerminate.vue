@@ -17,7 +17,7 @@
           required
         />
 
-        <mo-date-picker
+        <mo-input-date
           v-model="endDate"
           :label="$t('input_fields.end_date')"
           class="from-date"
@@ -54,7 +54,7 @@
 import { mapFields } from 'vuex-map-fields'
 import { mapGetters } from 'vuex'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
@@ -65,7 +65,7 @@ export default {
 
   components: {
     MoEmployeePicker,
-    MoDatePicker,
+    MoInputDate,
     ButtonSubmit,
     EmployeeDetailTabs
   },

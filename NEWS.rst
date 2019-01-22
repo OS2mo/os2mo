@@ -17,6 +17,7 @@ Internal changes
 
 * #25577: Implemented more facets for address types and job functions.
   Updated handling of facets throughout.
+  #26070: input fields now inherit from a common base.
 
 Bug fixes
 ---------

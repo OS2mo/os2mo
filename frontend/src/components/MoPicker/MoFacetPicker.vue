@@ -1,10 +1,10 @@
 <template>
-  <mo-select
-    v-model="selected"
-    :label="$t('input_fields.'+facetData.user_key)"
+  <mo-input-select
+    class="col"
+    v-model="internalValue"
+    :label="labelText"
     :options="sortedOptions"
     :required="required"
-    :disabled="isDisabled"
   />
 </template>
 
@@ -14,25 +14,28 @@
  */
 
 import sortBy from 'lodash.sortby'
-import MoSelect from '@/components/atoms/MoSelect'
+import { MoInputSelect } from '@/components/MoInput'
 
 export default {
   name: 'MoFacetPicker',
 
   components: {
-    MoSelect
+    MoInputSelect
   },
 
   props: {
     value: Object,
     facet: { type: String, required: true },
     required: Boolean,
-    preselectedUserKey: String
+    preselectedUserKey: {
+      type: String,
+      default: null
+    }
   },
 
   data () {
     return {
-      selected: null
+      internalValue: null
     }
   },
 
@@ -41,11 +44,25 @@ export default {
       return this.$store.getters['facet/GET_FACET'](this.facet)
     },
     sortedOptions () {
-      let data = this.$store.getters['facet/GET_FACET'](this.facet)
-      return sortBy(data.classes, 'name')
+      return sortBy(this.facetData.classes, 'name')
     },
     isDisabled () {
       return this.preselectedUserKey !== undefined
+    },
+    labelText () {
+      return this.facetData.user_key ? this.$t(`input_fields.${this.facetData.user_key}`) : ''
+    },
+    preselected () {
+      let preselected = null
+      if (!this.facetData.classes) return preselected
+
+      this.facetData.classes.filter(data => {
+        if (data.user_key === this.preselectedUserKey) {
+          preselected = data
+        }
+      })
+
+      return preselected
     }
   },
 
@@ -53,12 +70,12 @@ export default {
     /**
      * Whenever selected change, update val.
      */
-    selected (val) {
+    internalValue (val) {
       this.$emit('input', val)
     },
 
     facetData (val) {
-      this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
+      this.setInternalValue()
     }
   },
 
@@ -67,19 +84,18 @@ export default {
   },
 
   mounted () {
-    this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
+    this.setInternalValue()
 
     if (this.value && this.preselectedUserKey == null) {
-      this.selected = this.value
+      this.internalValue = this.value
     }
   },
 
   methods: {
-    setPreselected () {
-      if (!this.facetData.classes) return [undefined]
-      return this.facetData.classes.filter(data => {
-        return data.user_key === this.preselectedUserKey
-      })
+    setInternalValue () {
+      if (this.preselected) {
+        this.internalValue = this.preselected
+      }
     }
   }
 }

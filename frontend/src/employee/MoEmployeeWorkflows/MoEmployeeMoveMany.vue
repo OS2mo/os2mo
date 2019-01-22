@@ -11,7 +11,7 @@
   >
     <form @submit.stop.prevent="moveMany">
       <div class="form-row">
-        <mo-date-picker
+        <mo-input-date
           class="col"
           :label="$t('input_fields.move_date')"
           v-model="moveDate"
@@ -68,7 +68,7 @@
  * A employee move many component.
  */
 
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoTable from '@/components/MoTable/MoTable'
 import ButtonSubmit from '@/components/ButtonSubmit'
@@ -81,7 +81,7 @@ export default {
   mixins: [ValidateForm, ModalBase],
 
   components: {
-    MoDatePicker,
+    MoInputDate,
     MoOrganisationUnitPicker,
     MoTable,
     ButtonSubmit

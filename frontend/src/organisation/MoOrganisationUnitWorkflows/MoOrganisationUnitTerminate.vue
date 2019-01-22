@@ -18,7 +18,7 @@
           required
         />
 
-        <mo-date-picker
+        <mo-input-date
           class="from-date"
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
@@ -52,7 +52,7 @@
  */
 
 import OrganisationUnit from '@/api/OrganisationUnit'
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
@@ -63,7 +63,7 @@ export default {
   mixins: [ValidateForm, ModalBase],
 
   components: {
-    MoDatePicker,
+    MoInputDate,
     MoOrganisationUnitPicker,
     ButtonSubmit,
     MoOrganisationDetailTabs

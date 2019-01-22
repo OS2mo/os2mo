@@ -6,8 +6,8 @@
       </a>
     </span>
 
-    <mo-date-picker
-      class="from-date"
+    <mo-input-date
+      class="from-date col"
       :label="$t('input_fields.start_date')"
       v-model="validFrom"
       v-if="!hidden"
@@ -16,8 +16,8 @@
       required
     />
 
-    <mo-date-picker
-      class="to-date"
+    <mo-input-date
+      class="to-date col"
       :label="$t('input_fields.end_date')"
       v-model="validTo"
       v-if="!hidden"
@@ -33,11 +33,12 @@
  * A date picker range component.
  */
 
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import MoInputDate from './MoInputDate'
 
 export default {
+  name: 'MoInputDateRange',
   components: {
-    MoDatePicker
+    MoInputDate
   },
 
   props: {

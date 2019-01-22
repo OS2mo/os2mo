@@ -102,10 +102,7 @@
  * A organisation detail tabs component.
  */
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
-import MoOrganisationUnitEntry from '@/components/MoEntry/MoOrganisationUnitEntry'
-import MoOrgUnitAddressEntry from '@/components/MoEntry/MoOrgUnitAddressEntry'
-import MoItSystemEntry from '@/components/MoEntry/MoItSystemEntry'
-import MoManagerEntry from '@/components/MoEntry/MoManagerEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 

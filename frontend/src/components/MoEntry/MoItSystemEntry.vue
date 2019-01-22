@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :id="identifier">
     <div class="form-row">
       <mo-it-system-picker
         class="select-itSystem"
@@ -7,7 +7,7 @@
         :preselected="entry.itsystem && entry.itsystem.uuid"
       />
 
-      <mo-input
+      <mo-input-text
         class="input-itSystem"
         v-model="entry.user_key"
         :label="$t('input_fields.account_name')"
@@ -15,7 +15,7 @@
         />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="disabledDates"
@@ -27,45 +27,17 @@
 /**
  * A it system entry component.
  */
-
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
 import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
-import MoInput from '@/components/atoms/MoInput'
+import { MoInputText, MoInputDateRange } from '@/components/MoInput'
+import MoEntryBase from './MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
+  name: 'MoItSystemEntry',
   components: {
-    MoInput,
-    MoDatePickerRange,
+    MoInputText,
+    MoInputDateRange,
     MoItSystemPicker
-  },
-
-  props: {
-    /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
-     * This boolean property hides validity.
-     */
-    validityHidden: Boolean,
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
-  },
-
-  data () {
-    return {
-      /**
-       * The entry component value.
-       * Used to detect changes and restore the value.
-       */
-      entry: {
-        validity: {}
-      }
-    }
   },
 
   watch: {
@@ -79,20 +51,6 @@ export default {
       },
       deep: true
     }
-  },
-
-  computed: {
-    nameId () {
-      return 'mo-itsystem-' + this._uid
-    }
-  },
-
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry to value.
-     */
-    this.entry = this.value
   }
 }
 </script>

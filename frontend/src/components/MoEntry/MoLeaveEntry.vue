@@ -8,7 +8,7 @@
       />
     </div>
 
-    <mo-date-picker-range
+    <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
       :disabled-dates="disabledDates"
@@ -21,42 +21,23 @@
  * A leave entry component.
  */
 
-import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
+import { MoInputDateRange } from '@/components/MoInput'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEntryBase from './MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
+  name: 'MoLeaveEntry',
   components: {
-    MoDatePickerRange,
+    MoInputDateRange,
     MoFacetPicker
   },
 
   props: {
     /**
-     * Create two-way data bindings with the component.
-     */
-    value: Object,
-
-    /**
      * Defines the validity.
      */
-    validity: Object,
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates: Object
-  },
-
-  data () {
-    return {
-      /**
-       * The entry component value.
-       * Used to detect changes and restore the value.
-       */
-      entry: {
-        validity: {}
-      }
-    }
+    validity: Object
   },
 
   computed: {
@@ -86,14 +67,6 @@ export default {
     validity (newVal) {
       this.entry.validity = newVal
     }
-  },
-
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry to value.
-     */
-    this.entry = this.value
   }
 }
 </script>

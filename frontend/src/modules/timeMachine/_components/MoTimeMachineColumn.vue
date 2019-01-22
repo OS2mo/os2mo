@@ -2,7 +2,7 @@
   <div>
     <div class="card">
       <div class="form-row">
-        <mo-date-picker v-model="date"/>
+        <mo-input-date v-model="date"/>
       </div>
 
       <mo-tree-view v-model="unitUuid" :at-date="date"
@@ -28,14 +28,14 @@
  * A timemachine column component.
  */
 
-import MoDatePicker from '@/components/atoms/MoDatePicker'
+import { MoInputDate } from '@/components/MoInput'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
 import orgUnitStore from '@/store/modules/organisationUnit'
 
 export default {
   components: {
-    MoDatePicker,
+    MoInputDate,
     MoTreeView,
     OrganisationDetailTabs
   },

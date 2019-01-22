@@ -1,11 +1,17 @@
 <template>
   <div
     class="input-group alert"
-    :class="errors.has('cpr-result') ? 'alert-warning' : 'alert-success'"
+    :class="errors.has(identifier) ? 'alert-warning' : 'alert-success'"
     v-show="showAlert"
   >
 
-    <input data-vv-as="checkbox" :name="nameId" type="checkbox" v-validate="'required'" v-model="cprApproved">
+    <input
+      v-model="cprApproved"
+      data-vv-as="checkbox"
+      :name="identifier"
+      type="checkbox"
+      v-validate="'required'"
+    />
     <h5>{{value.name}}</h5>
   </div>
 </template>
@@ -43,14 +49,14 @@ export default {
   },
 
   mounted () {
-    this.$validator.validate(this.nameId)
+    this.$validator.validate(this.identifier)
   },
 
   computed: {
     /**
      * Get name `cpr-result`.
      */
-    nameId () {
+    identifier () {
       return 'cpr-result'
     },
 
@@ -68,7 +74,7 @@ export default {
      */
     value () {
       this.cprApproved = false
-      this.$validator.validate(this.nameId)
+      this.$validator.validate(this.identifier)
     }
   }
 }
