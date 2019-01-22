@@ -54,21 +54,6 @@ i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
 LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 
-MO betjener sig af tilretninger af datamodellen i LoRa. Før Lora kan anvendes sammen 
-med MO skal disse tilretninger afspejles i databasen. 
-
-MO-tilretninger af datamodellen i LoRa
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For at få datamodellen i LoRa til at afspejle datamodellen i MO skal
-LoRAs konfiguration justeres så den anvender en anden
-databaseopsætning::
-
-  DB_STRUCTURES=mora.db_structures
-
-Dette skal gøres inden databasen oprettes og ``recreatedb.sh`` eller
-``initdb.sh`` afvikles.
-
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
@@ -240,10 +225,6 @@ test case, så testene effektivt set køres isoleret. For at anvende denne test
 feature kræver det følgende afhængigheder::
 
   $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
-
-For at få datamodellen i LoRas testinstans til at afspejle datamodellen i MO 
-vil MOs ``os2mo/setup/db_structure.py`` overskrive oio_rests ``oio_common/db_structure.py``
-i det aktuelle pythonmiljø.
 
 Testsuiten kan køres med kommandoen::
 
