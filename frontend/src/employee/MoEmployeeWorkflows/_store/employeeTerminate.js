@@ -3,13 +3,17 @@ import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus } from '@/EventBus'
 
-const state = {
-  employee: {},
-  endDate: '',
-  details: {},
-  isLoading: false,
-  backendValidationError: null
+const defaultState = () => {
+  return {
+    employee: {},
+    endDate: '',
+    details: {},
+    isLoading: false,
+    backendValidationError: null
+  }
 }
+
+const state = defaultState
 
 const actions = {
   terminateEmployee ({ state, commit }) {
@@ -71,11 +75,7 @@ const mutations = {
   },
 
   resetFields (state) {
-    state.employee = {}
-    state.endDate = ''
-    state.details = {}
-    state.isLoading = false
-    state.backendValidationError = null
+    Object.assign(state, defaultState())
   },
 
   // todo: copy paste from employee module. need to be refactored
@@ -89,7 +89,7 @@ const mutations = {
 
 const getters = {
   getField,
-  getDetails: (state) => state.details || {}
+  getDetails: (state) => state.details
 }
 
 export default {

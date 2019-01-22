@@ -38,9 +38,9 @@ import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import 'vue-awesome/icons/map-signs'
 import { mapGetters } from 'vuex'
 import store from './_store'
-import main_store from '@/store'
+import mainStore from '@/store'
 
-main_store.registerModule('organisationMapper', store)
+mainStore.registerModule('organisationMapper', store)
 
 export default {
   name: 'OrganisationMapperModule',
@@ -72,14 +72,14 @@ export default {
     },
 
     ...mapGetters({
-      original_destination: 'organisationMapper/original_destination',
+      original_destination: 'organisationMapper/original_destination'
     })
   },
 
   watch: {
     origin (newVal) {
       this.$store.dispatch('organisationMapper/GET_ORGANISATION_MAPPINGS')
-    },
+    }
   },
 
   methods: {

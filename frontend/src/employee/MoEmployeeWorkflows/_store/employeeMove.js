@@ -2,22 +2,26 @@ import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus } from '@/EventBus'
 
-const state = {
-  original: null,
-  move: {
-    type: 'engagement',
-    data: {
-      person: {},
-      validity: {
-        from: ''
+const defaultState = () => {
+  return {
+    original: null,
+    move: {
+      type: 'engagement',
+      data: {
+        person: {},
+        validity: {
+          from: ''
+        }
       }
-    }
-  },
-  backendValidationError: null
+    },
+    backendValidationError: null
+  }
 }
 
+const state = defaultState
+
 const actions = {
-  MOVE_EMPLOYEE ({ commit }) {
+  MOVE_EMPLOYEE ({ commit, state }) {
     state.move.uuid = state.original.uuid
 
     return Service.post('/details/edit', [state.move])
@@ -41,10 +45,7 @@ const mutations = {
   updateField,
 
   resetFields (state) {
-    state.move.data.person = {}
-    state.move.data.org_unit = {}
-    state.move.data.validity = {}
-    state.backendValidationError = null
+    Object.assign(state, defaultState())
   }
 }
 

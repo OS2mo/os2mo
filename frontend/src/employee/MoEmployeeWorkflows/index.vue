@@ -45,15 +45,70 @@
     </mo-workflow>
 
     <!-- Modal Components -->
-    <mo-employee-create/>
+    <b-modal
+      id="employeeCreate"
+      size="lg"
+      :title="$t('workflows.employee.new_employee')"
+      ref="employeeCreate"
+      hide-footer
+      no-close-on-backdrop
+      lazy
+      v-model="showCreate"
+    >
+      <mo-employee-create :show="showCreate" @submitted="$refs.employeeCreate.hide()"/>
+    </b-modal>
 
-    <mo-employee-leave/>
+    <b-modal
+      id="employeeLeave"
+      size="lg"
+      :title="$t('workflows.employee.leave')"
+      ref="employeeLeave"
+      hide-footer
+      lazy
+      no-close-on-backdrop
+      v-model="showLeave"
+    >
+      <mo-employee-leave :show="showLeave" @submitted="$refs.employeeLeave.hide()"/>
+    </b-modal>
 
-    <mo-employee-move/>
+    <b-modal
+      id="employeeMove"
+      size="lg"
+      :title="$t('workflows.employee.move_engagement')"
+      ref="employeeMove"
+      hide-footer
+      lazy
+      no-close-on-backdrop
+      v-model="showMove"
+    >
+      <mo-employee-move :show="showMove" @submitted="$refs.employeeMove.hide()"/>
+    </b-modal>
 
-    <mo-employee-move-many/>
+    <b-modal
+      id="employeeMoveMany"
+      size="lg"
+      :title="$t('workflows.employee.move_many_engagements')"
+      ref="employeeMoveMany"
+      hide-footer
+      lazy
+      no-close-on-backdrop
+      v-model="showMoveMany"
+    >
+      <mo-employee-move-many :show="showMoveMany" @submitted="$refs.employeeMoveMany.hide()"/>
+    </b-modal>
 
-    <mo-employee-terminate/>
+    <b-modal
+      id="employeeTerminate"
+      size="lg"
+      :title="$t('workflows.employee.terminate_employee')"
+      ref="employeeTerminate"
+      hide-footer
+      lazy
+      no-close-on-backdrop
+      v-model="showTerminate"
+    >
+      <mo-employee-terminate :show="showTerminate" @submitted="$refs.employeeTerminate.hide()"/>
+    </b-modal>
   </div>
 </template>
 
@@ -70,6 +125,7 @@ import MoEmployeeMove from './MoEmployeeMove'
 import MoEmployeeMoveMany from './MoEmployeeMoveMany'
 import MoEmployeeTerminate from './MoEmployeeTerminate'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import bModal from 'bootstrap-vue/es/components/modal/modal'
 
 export default {
   components: {
@@ -79,10 +135,21 @@ export default {
     MoEmployeeLeave,
     MoEmployeeMove,
     MoEmployeeMoveMany,
-    MoEmployeeTerminate
+    MoEmployeeTerminate,
+    'b-modal': bModal
   },
   directives: {
     'b-modal': bModalDirective
+  },
+
+  data () {
+    return {
+      showCreate: false,
+      showLeave: false,
+      showMove: false,
+      showMoveMany: false,
+      showTerminate: false
+    }
   },
 
   methods: {

@@ -1,66 +1,55 @@
 <template>
-  <b-modal
-    id="employeeMove"
-    size="lg"
-    :title="$t('workflows.employee.move_engagement')"
-    ref="employeeMove"
-    hide-footer
-    lazy
-    no-close-on-backdrop
-    @hidden="$store.dispatch('employeeMove/resetFields')"
-  >
-    <form @submit.stop.prevent="moveEmployee">
-      <mo-employee-picker
-        class="search-employee"
-        v-model="person"
+  <form @submit.stop.prevent="moveEmployee">
+    <mo-employee-picker
+      class="search-employee"
+      v-model="person"
+      required
+    />
+
+    <div class="form-row">
+      <mo-engagement-picker
+        class="mt-3"
+        v-model="original"
+        :employee="person"
         required
       />
+    </div>
 
-      <div class="form-row">
-        <mo-engagement-picker
-          class="mt-3"
-          v-model="original"
-          :employee="person"
-          required
-        />
-      </div>
-
-      <div class="form-row">
-        <mo-organisation-unit-picker
-          :label="$t('input_fields.move_to')"
-          class="col"
-          v-model="org_unit"
-          required
-        />
-      </div>
-
-      <div class="form-row">
-        <mo-input-date
-          class="col from-date"
-          :label="$t('input_fields.move_date')"
-          v-model="from"
-          :valid-dates="validDates"
-          required
-        />
-      </div>
-
-      <mo-confirm-checkbox
-        :entry-date="from"
-        :entry-name="original.engagement_type.name"
-        :entry-org-name="original.org_unit.name"
-        v-if="dateConflict"
+    <div class="form-row">
+      <mo-organisation-unit-picker
+        :label="$t('input_fields.move_to')"
+        class="col"
+        v-model="org_unit"
         required
       />
+    </div>
 
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
-      </div>
+    <div class="form-row">
+      <mo-input-date
+        class="col from-date"
+        :label="$t('input_fields.move_date')"
+        v-model="from"
+        :valid-dates="validDates"
+        required
+      />
+    </div>
 
-      <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
-      </div>
-    </form>
-  </b-modal>
+    <mo-confirm-checkbox
+      :entry-date="from"
+      :entry-name="original.engagement_type.name"
+      :entry-org-name="original.org_unit.name"
+      v-if="dateConflict"
+      required
+    />
+
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
+
+    <div class="float-right">
+      <button-submit :is-loading="isLoading"/>
+    </div>
+  </form>
 </template>
 
 <script>
@@ -75,11 +64,13 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
 import { mapFields } from 'vuex-map-fields'
+import store from './_store/employeeMove.js'
+
+const STORE_KEY = '$_employeeMove'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [ValidateForm],
 
   components: {
     MoInputDate,
@@ -91,20 +82,10 @@ export default {
   },
 
   props: {
-    /**
-     * Defines a engagement type name.
-     */
-    entryName: String,
-
-    /**
-     * Defines a from date.
-     */
-    entryDate: Date,
-
-    /**
-     * Defines a orgName.
-     */
-    entryOrgName: String
+    show: {
+      type: Boolean,
+      default: false
+    }
   },
 
   data () {
@@ -121,7 +102,7 @@ export default {
     /**
      * Get mapFields from vuex store.
      */
-    ...mapFields('employeeMove', [
+    ...mapFields(STORE_KEY, [
       'move',
       'move.data.person',
       'move.data.org_unit',
@@ -150,6 +131,22 @@ export default {
       return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
     }
   },
+  beforeCreate () {
+    if (!(STORE_KEY in this.$store._modules.root._children)) {
+      this.$store.registerModule(STORE_KEY, store)
+    }
+  },
+  beforeDestroy () {
+    this.$store.unregisterModule(STORE_KEY)
+  },
+
+  watch: {
+    show (val) {
+      if (!val) {
+        this.onHidden()
+      }
+    }
+  },
 
   methods: {
     /**
@@ -162,18 +159,22 @@ export default {
         let vm = this
         vm.isLoading = true
 
-        this.$store.dispatch('employeeMove/MOVE_EMPLOYEE')
+        this.$store.dispatch(`${STORE_KEY}/MOVE_EMPLOYEE`)
           .then(response => {
             vm.isLoading = false
             if (response.error) {
               vm.backendValidationError = response.error_key
             } else {
-              vm.$refs.employeeMove.hide()
+              vm.$emit('submitted')
             }
           })
       } else {
         this.$validator.validateAll()
       }
+    },
+
+    onHidden () {
+      this.$store.dispatch(`${STORE_KEY}/resetFields`)
     }
   }
 }

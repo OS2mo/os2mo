@@ -1,16 +1,20 @@
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 
-const state = {
-  employee: {},
-  engagement: {},
-  address: [],
-  association: [],
-  role: [],
-  itSystem: [],
-  manager: [],
-  backendValidationError: null
+const defaultState = () => {
+  return {
+    employee: {},
+    engagement: {},
+    address: [],
+    association: [],
+    role: [],
+    itSystem: [],
+    manager: [],
+    backendValidationError: null
+  }
 }
+
+const state = defaultState
 
 const actions = {
   CREATE_EMPLOYEE ({ commit, state }) {
@@ -64,14 +68,7 @@ const mutations = {
   },
 
   resetFields (state) {
-    state.employee = {}
-    state.engagement = {}
-    state.address = []
-    state.association = []
-    state.role = []
-    state.itSystem = []
-    state.manager = []
-    state.backendValidationError = null
+    Object.assign(state, defaultState())
   }
 }
 
