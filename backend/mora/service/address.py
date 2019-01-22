@@ -250,8 +250,7 @@ def get_address_type(effect):
 
 
 def get_one_address(effect):
-    address_type = get_address_type(effect)
-    scope = address_type.get('scope')
+    scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
     handler = base.get_handler_for_scope(scope).from_effect(effect)
 
     return handler.get_mo_address()
@@ -418,11 +417,16 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
     @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
         c = common.get_connector()
-        address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-        address_type = facet.get_one_class(c, address_type_uuid)
 
-        handler = base.get_handler_for_scope(
-            address_type.get('scope')).from_effect(effect)
+        address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
+
+        try:
+            address_type = facet.get_one_class(c, address_type_uuid)
+        except exceptions.HTTPException:
+            address_type = None
+
+        scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
+        handler = base.get_handler_for_scope(scope).from_effect(effect)
 
         person = mapping.USER_FIELD(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(effect)
@@ -460,9 +464,26 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         manager_uuid = util.get_mapping_uuid(req, mapping.MANAGER,
                                              required=False)
 
+        number_of_uuids = len(
+            list(filter(None, [org_unit_uuid, employee_uuid, manager_uuid])))
+
+        if number_of_uuids is not 1:
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                'Must supply exactly one org unit UUID, '
+                'employee UUID or manager UUID', obj=req)
+
         valid_from, valid_to = util.get_validities(req)
 
         orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+
+
+        typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
+        function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
+                                              required=True)
+
+        scope = util.checked_get(typeobj, 'scope', '', required=True)
+
+        handler = base.get_handler_for_scope(scope).from_request(req)
 
         # Validation
         if org_unit_uuid:
@@ -474,14 +495,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             validator.is_date_range_in_employee_range(req[mapping.PERSON],
                                                       valid_from,
                                                       valid_to)
-
-        typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
-        function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
-                                              required=True)
-
-        scope = util.checked_get(typeobj, 'scope', '', required=True)
-
-        handler = base.get_handler_for_scope(scope).from_request(req)
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ADDRESS_KEY,
@@ -519,6 +532,18 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             'note': 'Rediger Adresse',
         }
 
+        number_of_uuids = len(
+            list(filter(None, [
+                data.get(mapping.PERSON),
+                data.get(mapping.ORG_UNIT),
+                data.get(mapping.MANAGER),
+            ])))
+
+        if number_of_uuids > 1:
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                'Must supply at most one org unit UUID, '
+                'employee UUID or manager UUID', obj=req)
+
         original_data = req.get('original')
         if original_data:
             # We are performing an update
@@ -554,6 +579,15 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 },
             ))
 
+        if mapping.MANAGER in data:
+            update_fields.append((
+                mapping.ASSOCIATED_FUNCTION_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.MANAGER),
+                },
+            ))
+
         if mapping.USER_KEY in data:
             update_fields.append((
                 mapping.ORG_FUNK_EGENSKABER_FIELD,
@@ -583,6 +617,12 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                     'uuid': type_uuid
                 }
             ))
+
+            for prop in handler.get_lora_properties():
+                update_fields.append((
+                    mapping.VISIBILITY_FIELD,
+                    prop
+                ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,

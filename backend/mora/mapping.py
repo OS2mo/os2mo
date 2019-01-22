@@ -184,6 +184,11 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_FUNCTION_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ZERO_TO_MANY,
@@ -372,4 +377,6 @@ ADDRESS_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     ADDRESS_TYPE_FIELD,
+    # Hard-coded here for now
+    VISIBILITY_FIELD
 }

@@ -1,4 +1,5 @@
 import requests
+import flask
 from . import base
 from ... import mapping
 
@@ -20,9 +21,16 @@ class DARAddressHandler(base.AddressHandler):
             self.address_object = {
                 mapping.NAME: NOT_FOUND,
                 mapping.HREF: None,
-                mapping.UUID: value,
+                mapping.VALUE: value,
                 mapping.ERROR: str(exc),
             }
+
+            flask.current_app.logger.warn(
+                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                    flask.request.url,
+                    value,
+                ),
+            )
 
     def get_pretty_value(self):
         return ''.join(self._address_string_chunks(self.address_object))

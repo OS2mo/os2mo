@@ -60,7 +60,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         return None
 
     def get_lora_properties(self):
-        return None
+        return []
 
     def get_lora_address(self):
         return {
@@ -82,5 +82,6 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 def get_handler_for_scope(scope: str) -> AddressHandler:
     handler = ADDRESS_HANDLERS.get(scope)
     if not handler:
-        raise exceptions.ErrorCodes.E_NOT_FOUND()
+        raise exceptions.ErrorCodes.E_INVALID_INPUT(
+            'Invalid address scope type {}'.format(scope))
     return handler

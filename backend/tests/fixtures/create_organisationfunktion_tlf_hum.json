@@ -43,6 +43,18 @@
         }
       }
     ],
+    "opgaver": [
+      {
+        "objekttype": "synlighed",
+        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+        "virkning": {
+          "from": "2016-01-01T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
     "tilknyttedeorganisationer": [
       {
         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",

@@ -34,7 +34,7 @@
     "adresser": [
       {
         "objekttype": "DAR",
-        "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622",
+        "urn": "urn:dar:b1f1817d-5f02-4331-b8b3-97330a5d3197",
         "virkning": {
           "from": "1932-05-12T00:00:00+01:00",
           "from_included": true,

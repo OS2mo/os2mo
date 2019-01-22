@@ -94,7 +94,7 @@ class DarAddressHandlerTests(util.TestCase):
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()
@@ -192,7 +192,7 @@ class EANAddressHandlerTests(util.TestCase):
         value = '123456'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()
@@ -291,7 +291,7 @@ class EmailAddressHandlerTests(util.TestCase):
         value = 'mail@mail.dk'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()
@@ -513,7 +513,7 @@ class PNumberAddressHandlerTests(util.TestCase):
         value = '123456'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()
@@ -611,7 +611,7 @@ class TextAddressHandlerTests(util.TestCase):
         value = 'Test text whatever'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()
@@ -709,7 +709,7 @@ class WWWAddressHandlerTests(util.TestCase):
         value = 'http://www.test.org/'
         address_handler = self.handler(value)
 
-        expected = None
+        expected = []
 
         # Act
         actual = address_handler.get_lora_properties()

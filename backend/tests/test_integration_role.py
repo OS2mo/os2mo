@@ -39,7 +39,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -122,9 +122,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-        )
+        actual_role = c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -261,7 +259,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -344,9 +342,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-        )
+        actual_role = c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 

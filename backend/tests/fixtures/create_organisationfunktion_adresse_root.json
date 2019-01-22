@@ -34,7 +34,7 @@
     "adresser": [
       {
         "objekttype": "DAR",
-        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "urn": "urn:dar:b1f1817d-5f02-4331-b8b3-97330a5d3197",
         "virkning": {
           "from": "2016-01-01T00:00:00+01:00",
           "from_included": true,
