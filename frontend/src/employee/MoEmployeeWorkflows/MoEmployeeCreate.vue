@@ -1,69 +1,58 @@
 <template>
-  <b-modal
-    id="employeeCreate"
-    size="lg"
-    :title="$t('workflows.employee.new_employee')"
-    ref="employeeCreate"
-    @hidden="$store.dispatch('employeeCreate/resetFields')"
-    hide-footer
-    no-close-on-backdrop
-    lazy
-  >
-    <form @submit.stop.prevent="createEmployee">
-      <mo-cpr v-model="employee"/>
+  <form @submit.stop.prevent="createEmployee">
+    <mo-cpr v-model="employee"/>
 
-      <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
-      <mo-engagement-entry v-model="engagement"/>
+    <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
+    <mo-engagement-entry v-model="engagement"/>
 
-      <mo-add-many
-        class="btn-address mt-3"
-        v-model="address"
-        :entry-component="entry.address"
-        :label="$tc('workflows.employee.labels.address', 2)"
-        validity-hidden
-      />
+    <mo-add-many
+      class="btn-address mt-3"
+      v-model="address"
+      :entry-component="entry.address"
+      :label="$tc('workflows.employee.labels.address', 2)"
+      validity-hidden
+    />
 
-      <mo-add-many
-        class="btn-association mt-3"
-        v-model="association"
-        :entry-component="entry.association"
-        :label="$tc('workflows.employee.labels.association', 2)"
-        validity-hidden
-      />
+    <mo-add-many
+      class="btn-association mt-3"
+      v-model="association"
+      :entry-component="entry.association"
+      :label="$tc('workflows.employee.labels.association', 2)"
+      validity-hidden
+    />
 
-      <mo-add-many
-        class="btn-role mt-3"
-        v-model="role"
-        :entry-component="entry.role"
-        :label="$tc('workflows.employee.labels.role', 2)"
-        validity-hidden
-      />
+    <mo-add-many
+      class="btn-role mt-3"
+      v-model="role"
+      :entry-component="entry.role"
+      :label="$tc('workflows.employee.labels.role', 2)"
+      validity-hidden
+    />
 
-      <mo-add-many
-        class="btn-itSystem mt-3"
-        v-model="itSystem"
-        :entry-component="entry.it"
-        :label="$tc('workflows.employee.labels.it_system', 2)"
-        validity-hidden
-      />
+    <mo-add-many
+      class="btn-itSystem mt-3"
+      v-model="itSystem"
+      :entry-component="entry.it"
+      :label="$tc('workflows.employee.labels.it_system', 2)"
+      validity-hidden
+    />
 
-      <mo-add-many
-        class="btn-manager mt-3"
-        v-model="manager"
-        :entry-component="entry.manager"
-        :label="$tc('workflows.employee.labels.manager')"
-        validity-hidden
-      />
+    <mo-add-many
+      class="btn-manager mt-3"
+      v-model="manager"
+      :entry-component="entry.manager"
+      :label="$tc('workflows.employee.labels.manager')"
+      validity-hidden
+    />
 
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
-      </div>
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
 
-      <div class="float-right">
-        <button-submit :is-loading="isLoading" />
-      </div>
-    </form>
-  </b-modal>
+    <div class="float-right">
+      <button-submit :is-loading="isLoading" />
+    </div>
+  </form>
 </template>
 
 <script>
@@ -73,20 +62,28 @@
 
 import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import MoCpr from '@/components/MoCpr/MoCpr'
+import MoCpr from '@/components/MoCpr'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
 import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
+import store from './_store/employeeCreate.js'
+
+const STORE_KEY = '$_employeeCreate'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [ValidateForm],
 
   components: {
     ButtonSubmit,
     MoCpr,
     MoAddMany,
     MoEngagementEntry
+  },
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    }
   },
 
   data () {
@@ -116,7 +113,7 @@ export default {
     /**
      * Get mapFields from vuex store.
      */
-    ...mapFields('employeeCreate', [
+    ...mapFields(STORE_KEY, [
       'employee',
       'engagement',
       'address',
@@ -126,6 +123,22 @@ export default {
       'manager',
       'backendValidationError'
     ])
+  },
+  beforeCreate () {
+    if (!(STORE_KEY in this.$store._modules.root._children)) {
+      this.$store.registerModule(STORE_KEY, store)
+    }
+  },
+  beforeDestroy () {
+    this.$store.unregisterModule(STORE_KEY)
+  },
+
+  watch: {
+    show (val) {
+      if (!val) {
+        this.onHidden()
+      }
+    }
   },
 
   methods: {
@@ -139,20 +152,23 @@ export default {
         let vm = this
         this.isLoading = true
 
-        this.$store.dispatch('employeeCreate/CREATE_EMPLOYEE')
+        this.$store.dispatch(`${STORE_KEY}/CREATE_EMPLOYEE`)
           .then(employeeUuid => {
+            vm.isLoading = false
             if (employeeUuid.error) {
-              vm.isLoading = false
               vm.backendValidationError = employeeUuid.error_key
             } else {
-              vm.$refs.employeeCreate.hide()
+              vm.$emit('submitted')
               vm.$router.push({ name: 'EmployeeDetail', params: { uuid: employeeUuid } })
-              vm.isLoading = false
             }
           })
       } else {
         this.$validator.validateAll()
       }
+    },
+
+    onHidden () {
+      this.$store.dispatch(`${STORE_KEY}/resetFields`)
     }
   }
 }

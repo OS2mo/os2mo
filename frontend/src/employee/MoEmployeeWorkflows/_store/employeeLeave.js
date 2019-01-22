@@ -2,12 +2,16 @@ import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus } from '@/EventBus'
 
-const state = {
-  employee: {},
-  leave: {},
-  isLoading: false,
-  backendValidationError: null
+const defaultState = () => {
+  return {
+    employee: {},
+    leave: {},
+    isLoading: false,
+    backendValidationError: null
+  }
 }
+
+const state = defaultState
 
 const actions = {
   leaveEmployee ({ commit, state }) {
@@ -57,9 +61,7 @@ const mutations = {
   },
 
   resetFields (state) {
-    state.employee = {}
-    state.leave = {}
-    state.backendValidationError = null
+    Object.assign(state, defaultState())
   }
 }
 

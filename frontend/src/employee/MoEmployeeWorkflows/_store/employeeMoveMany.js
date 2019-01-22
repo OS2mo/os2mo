@@ -3,23 +3,27 @@ import Service from '@/api/HttpCommon'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import { EventBus } from '@/EventBus'
 
-const state = {
-  employees: [],
-  selected: [],
-  moveDate: null,
-  orgUnitSource: null,
-  orgUnitDestination: null,
-  backendValidationError: null,
-  isLoading: false,
-  columns: [
-    { label: 'person', data: 'person' },
-    { label: 'engagement_type', data: 'engagement_type' },
-    { label: 'job_function', data: 'job_function' }
-  ]
+const defaultState = () => {
+  return {
+    employees: [],
+    selected: [],
+    moveDate: null,
+    orgUnitSource: null,
+    orgUnitDestination: null,
+    backendValidationError: null,
+    isLoading: false,
+    columns: [
+      { label: 'person', data: 'person' },
+      { label: 'engagement_type', data: 'engagement_type' },
+      { label: 'job_function', data: 'job_function' }
+    ]
+  }
 }
 
+const state = defaultState
+
 const actions = {
-  moveManyEmployees ({ commit }) {
+  moveManyEmployees ({ commit, state }) {
     let moves = state.selected.map(engagement => {
       return {
         type: 'engagement',
@@ -86,20 +90,15 @@ const mutations = {
   },
 
   resetFields (state) {
-    state.employees = []
-    state.selected = []
-    state.moveDate = null
-    state.orgUnitSource = null
-    state.orgUnitDestination = null
-    state.backendValidationError = null
-    state.isLoading = false
+    Object.assign(state, defaultState())
   }
 }
 
 const getters = {
   getField,
 
-  employees: state => state.employees
+  employees: state => state.employees,
+  GET_SELECTED: state => state.selected
 }
 
 export default {

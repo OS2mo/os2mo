@@ -15,7 +15,7 @@
  * A employee component.
  */
 import { mapState } from 'vuex'
-import MoEmployeeWorkflows from './MoEmployeeWorkflows/MoEmployeeWorkflows'
+import MoEmployeeWorkflows from './MoEmployeeWorkflows'
 import MoLog from '@/components/MoLog/MoLog'
 
 export default {

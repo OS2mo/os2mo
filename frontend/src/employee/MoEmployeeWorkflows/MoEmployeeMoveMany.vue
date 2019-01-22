@@ -1,66 +1,55 @@
 <template>
-  <b-modal
-    id="employeeMoveMany"
-    size="lg"
-    :title="$t('workflows.employee.move_many_engagements')"
-    ref="employeeMoveMany"
-    hide-footer
-    lazy
-    no-close-on-backdrop
-    @hidden="$store.dispatch(`employeeMoveMany/resetFields`)"
-  >
-    <form @submit.stop.prevent="moveMany">
-      <div class="form-row">
-        <mo-input-date
-          class="col"
-          :label="$t('input_fields.move_date')"
-          v-model="moveDate"
-          required
-        />
-
-        <mo-organisation-unit-picker
-          :is-disabled="dateSelected"
-          :label="$t('input_fields.move_from')"
-          v-model="orgUnitSource"
-          class="col from-unit"
-          required
-        />
-
-        <mo-organisation-unit-picker
-          :is-disabled="dateSelected"
-          :label="$t('input_fields.move_to')"
-          v-model="orgUnitDestination"
-          class="col to-unit"
-          required
-        />
-      </div>
-
-      <mo-table
-        v-model="selected"
-        v-if="orgUnitSource"
-        :content="employees"
-        :columns="columns"
-        type="EMPLOYEE"
-        multi-select
+  <form @submit.stop.prevent="moveMany">
+    <div class="form-row">
+      <mo-input-date
+        class="col"
+        :label="$t('input_fields.move_date')"
+        v-model="moveDate"
+        required
       />
 
-      <input
-        type="hidden"
-        v-if="orgUnitSource"
-        name="selected-employees-count"
-        :value="selected.length"
-        v-validate="{min_value: 1, required: true}"
-      >
+      <mo-organisation-unit-picker
+        :is-disabled="dateSelected"
+        :label="$t('input_fields.move_from')"
+        v-model="orgUnitSource"
+        class="col from-unit"
+        required
+      />
 
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
-      </div>
+      <mo-organisation-unit-picker
+        :is-disabled="dateSelected"
+        :label="$t('input_fields.move_to')"
+        v-model="orgUnitDestination"
+        class="col to-unit"
+        required
+      />
+    </div>
 
-      <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
-      </div>
-    </form>
-  </b-modal>
+    <mo-table
+      v-model="selected"
+      v-if="orgUnitSource"
+      :content="employees"
+      :columns="columns"
+      type="EMPLOYEE"
+      multi-select
+    />
+
+    <input
+      type="hidden"
+      v-if="orgUnitSource"
+      name="selected-employees-count"
+      :value="selected.length"
+      v-validate="{min_value: 1, required: true}"
+    >
+
+    <div class="alert alert-danger" v-if="backendValidationError">
+      {{$t('alerts.error.' + backendValidationError)}}
+    </div>
+
+    <div class="float-right">
+      <button-submit :is-loading="isLoading"/>
+    </div>
+  </form>
 </template>
 
 <script>
@@ -73,12 +62,14 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoTable from '@/components/MoTable/MoTable'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
 import { mapFields } from 'vuex-map-fields'
 import { mapGetters } from 'vuex'
+import store from './_store/employeeMoveMany.js'
+
+const STORE_KEY = '$_employeeMoveMany'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [ValidateForm],
 
   components: {
     MoInputDate,
@@ -86,7 +77,12 @@ export default {
     MoTable,
     ButtonSubmit
   },
-
+  props: {
+    show: {
+      type: Boolean,
+      default: false
+    }
+  },
   data () {
     return {
       orgUnitSource: undefined
@@ -97,7 +93,7 @@ export default {
     /**
      * generate getter/setters from store
      */
-    ...mapFields('employeeMoveMany', [
+    ...mapFields(STORE_KEY, [
       'selected',
       'moveDate',
       'orgUnitDestination',
@@ -106,16 +102,24 @@ export default {
       'isLoading'
     ]),
 
-    ...mapGetters('employeeMoveMany', [
+    ...mapGetters(STORE_KEY, [
       'employees'
     ]),
 
     /**
-     * Set dateSelected to disable if moveDate is selected.
+     * Set dateSelected to disabled if moveDate is selected.
      */
     dateSelected () {
       return !this.moveDate
     }
+  },
+  beforeCreate () {
+    if (!(STORE_KEY in this.$store._modules.root._children)) {
+      this.$store.registerModule(STORE_KEY, store)
+    }
+  },
+  beforeDestroy () {
+    this.$store.unregisterModule(STORE_KEY)
   },
 
   watch: {
@@ -125,8 +129,8 @@ export default {
      */
     orgUnitSource: {
       handler (newVal) {
-        this.$store.commit(`employeeMoveMany/updateOrgUnitSource`, newVal)
-        this.$store.dispatch(`employeeMoveMany/getEmployees`)
+        this.$store.commit(`${STORE_KEY}/updateOrgUnitSource`, newVal)
+        this.$store.dispatch(`${STORE_KEY}/getEmployees`)
       },
       deep: true
     },
@@ -134,6 +138,12 @@ export default {
     selected (val) {
       if (this.fields['selected-employees-count']) {
         this.$validator.validate('selected-employees-count', val.length)
+      }
+    },
+
+    show (val) {
+      if (!val) {
+        this.onHidden()
       }
     }
   },
@@ -146,14 +156,18 @@ export default {
     moveMany () {
       let vm = this
       if (this.formValid) {
-        this.$store.dispatch(`employeeMoveMany/moveManyEmployees`)
+        this.$store.dispatch(`${STORE_KEY}/moveManyEmployees`)
           .then(() => {
             vm.orgUnitSource = undefined
-            vm.$refs.employeeMoveMany.hide()
+            vm.$emit('submitted')
           })
       } else {
         this.$validator.validateAll()
       }
+    },
+
+    onHidden () {
+      this.$store.dispatch(`${STORE_KEY}/resetFields`)
     }
   }
 }
