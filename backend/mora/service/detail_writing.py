@@ -25,6 +25,7 @@ import flask
 
 from . import handlers
 from .. import exceptions
+from .. import util
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
@@ -51,10 +52,13 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
+@util.restrictargs('force')
 def create():
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 
@@ -409,10 +413,13 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
+@util.restrictargs('force')
 def edit():
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: The edit succeeded.
 

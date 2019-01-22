@@ -521,6 +521,12 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse('/service/ou/create', expected,
                                    json=payload, status_code=400)
 
+        self.assertRequestResponse('/service/ou/create?force=0', expected,
+                                   json=payload, status_code=400)
+
+        self.assertRequest('/service/ou/create?force=1',
+                           json=payload)
+
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
 
@@ -1282,6 +1288,14 @@ class Tests(util.LoRATestCase):
             },
             json=req,
             status_code=400)
+
+        self.assertRequestResponse(
+            '/service/details/edit?force=1',
+            [
+                org_unit_uuid,
+            ],
+            json=req,
+        )
 
     def test_create_missing_parent(self):
         self.load_sample_structures()

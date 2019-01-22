@@ -39,3 +39,15 @@ class Tests(util.TestCase):
             status_code=500,
             drop_keys=['stacktrace'],
         )
+
+    def test_restrictargs_everywhere(self):
+        unfiltered = {
+            viewname
+            for viewname, viewfunc in self.app.view_functions.items()
+            if '.' in viewname and not getattr(viewfunc, 'restricts_args')
+        }
+
+        print('\n'.join(sorted(unfiltered)))
+
+        self.assertFalse(unfiltered,
+                         'no blueprints may have unrestricted arguments!')

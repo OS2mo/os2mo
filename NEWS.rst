@@ -11,6 +11,8 @@ New features
 * #25100: It is now possible to optionally also terminate associated manager
   roles when terminating an employee.
 * #24702: Allow marking organisational units as related to each other.
+* #26368: Add support for using ``?validate=0`` as a query parameter
+  for disabling certain validations.
 
 Internal changes
 ----------------
@@ -28,6 +30,8 @@ Bug fixes
   in the tree view at the left.
 * #25186: Hidden person input for create employee manager.
 * #25690: Ignore spacing in address type input field.
+* #26368: Validation no longer prevents adding an association if it
+  duplicates another *inactive* association.
 
 Version 0.13.0, 2018-11-30
 ==========================

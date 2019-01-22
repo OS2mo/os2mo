@@ -20,6 +20,8 @@ import flask
 
 import flask_saml_sso
 
+from .. import util
+
 __all__ = (
     'get_user',
 )
@@ -31,6 +33,7 @@ blueprint = flask.Blueprint('authentication', __name__,
 
 
 @blueprint.route('/user', methods=['GET'])
+@util.restrictargs()
 def get_user():
     '''Get the currently logged in user
 

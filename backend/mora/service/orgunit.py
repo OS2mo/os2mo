@@ -823,10 +823,13 @@ def list_orgunit_tree(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
+@util.restrictargs('force')
 def create_org_unit():
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 
@@ -889,11 +892,13 @@ def create_org_unit():
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
-@util.restrictargs()
+@util.restrictargs('force')
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 
     .. :quickref: Unit; Terminate
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: The termination succeeded.
     :statuscode 404: No such unit found.
@@ -987,6 +992,7 @@ def terminate_org_unit(unitid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+@util.restrictargs()
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit
