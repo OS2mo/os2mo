@@ -1,16 +1,13 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import employeeRouter from '@/employee/router'
-import organisationRouter from '@/organisation/router'
-import timeMachineRouter from '@/modules/timeMachine/router'
-import organisationMapperRouter from '@/modules/organisationMapper/router'
+import employeeRouter from '@/views/employee/router'
+import organisationRouter from '@/views/organisation/router'
+import moduleRouters from '@/modules/router'
 
-const LoginPage = () => import(/* webpackChunkName: "login" */ '@/login/LoginPage')
-const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/landing/LandingPage')
 const MoBase = () => import('@/MoBase')
-const PageNotFound = () => import('@/components/PageNotFound')
-const TheHelp = () => import(/* webpackChunkName: "Help" */ '@/help/TheHelp')
-const QueryList = () => import(/* webpackChunkName: "queryList" */ '@/modules/query/QueryList')
+const LoginPage = () => import(/* webpackChunkName: "login" */ '@/views/login')
+const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/views/frontpage')
+const PageNotFound = () => import('@/views/PageNotFound')
 
 Vue.use(Router)
 
@@ -27,23 +24,20 @@ const GlobalRouter = [
   }
 ]
 
-const BaseRouter = {
+let BaseRouter = {
   path: '/',
   name: 'Base',
   component: MoBase,
   children: [
-    {
-      path: '/hjaelp',
-      name: 'Help',
-      component: TheHelp
-    },
-    {
-      path: '/forespoergsler',
-      name: 'QueryList',
-      component: QueryList
-    }
+    employeeRouter,
+    organisationRouter
   ]
 }
+
+/**
+ * Add all routers from modules
+ */
+BaseRouter.children = BaseRouter.children.concat(moduleRouters)
 
 const PageNotFoundRouter = {
   path: '*',
@@ -51,11 +45,9 @@ const PageNotFoundRouter = {
   component: PageNotFound
 }
 
-BaseRouter.children.push(employeeRouter)
-BaseRouter.children.push(organisationRouter)
-BaseRouter.children.push(timeMachineRouter)
-BaseRouter.children.push(organisationMapperRouter)
-// important page not found is last otherwise it overwrites all other routes
+/**
+ * IMPORTANT! Page not found is last otherwise it overwrites ALL other routes
+ */
 BaseRouter.children.push(PageNotFoundRouter)
 
 const routes = GlobalRouter.concat([BaseRouter])

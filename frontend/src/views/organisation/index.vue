@@ -29,10 +29,10 @@
 /**
  * A organisation component.
  */
-import MoOrganisationUnitWorkflows from '@/organisation/MoOrganisationUnitWorkflows/MoOrganisationUnitWorkflows'
+import MoOrganisationUnitWorkflows from '@/views/organisation/workflows'
 import MoLog from '@/components/MoLog/MoLog'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 export default {
   components: {

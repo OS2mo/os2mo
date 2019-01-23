@@ -30,7 +30,7 @@
 
 import { MoInputDate } from '@/components/MoInput'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import OrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
 import orgUnitStore from '@/store/modules/organisationUnit'
 
 export default {

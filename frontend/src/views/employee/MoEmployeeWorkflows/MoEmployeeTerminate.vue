@@ -46,7 +46,7 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
-import EmployeeDetailTabs from '@/employee/EmployeeDetailTabs'
+import EmployeeDetailTabs from '../EmployeeDetailTabs'
 import store from './_store/employeeTerminate.js'
 
 const STORE_KEY = '$_employeeTerminate'

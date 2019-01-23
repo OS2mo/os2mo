@@ -55,7 +55,7 @@ import OrganisationUnit from '@/api/OrganisationUnit'
 import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import MoOrganisationDetailTabs from '@/organisation/OrganisationDetailTabs'
+import MoOrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 
