@@ -276,6 +276,10 @@ export default {
     margin-top: 0;
   }
 
+  td {
+    max-width: 25vh;
+  }
+
   .scroll {
     max-height: 55vh;
     overflow-x: hidden;
