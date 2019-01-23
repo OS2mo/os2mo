@@ -35,6 +35,7 @@ Bug fixes
 * #26368: Validation no longer prevents adding an association if it
   duplicates another *inactive* association.
 * #25704 Added max-width to table columns.
+* #25696: Added remove button for dates.
 
 Version 0.13.0, 2018-11-30
 ==========================

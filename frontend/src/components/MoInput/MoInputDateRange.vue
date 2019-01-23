@@ -25,6 +25,12 @@
       :disabled="disableToDate"
       @input="updateDate()"
     />
+
+    <div class="col-1" v-if="!hidden && initiallyHidden">
+      <button class="btn btn-sm btn-outline-danger" @click="hidden=true">
+        <icon name="minus"/>
+      </button>
+    </div>
   </div>
 </template>
 
