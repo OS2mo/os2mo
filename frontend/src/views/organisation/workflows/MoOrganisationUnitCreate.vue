@@ -20,7 +20,8 @@
         class="mt-3"
         v-model="postAddress"
         preselected-type="AdressePost"
-        validity-hidden required
+        validity-hidden
+        required
       />
 
       <mo-org-unit-address-entry
