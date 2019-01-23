@@ -356,10 +356,11 @@ class TestCaseMixin(object):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         :return: The result of the request, as a string or object, if
@@ -411,10 +412,11 @@ class TestCaseMixin(object):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         '''
@@ -429,10 +431,11 @@ class TestCaseMixin(object):
     def assertRequestFails(self, path, code, message=None, **kwargs):
         '''Issue a request and assert that it fails with the given status.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         '''

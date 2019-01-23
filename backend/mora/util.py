@@ -154,7 +154,7 @@ def to_iso_time(s):
 
 
 def to_iso_date(s, is_end: bool=False):
-    '''Return an ISO 8601 string representing date given by `s`.
+    '''Return an ISO 8601 string representing date given by ``s``.
 
     We round times up or down, depending on whether ``is_end`` is set.
     Since the dates are *inclusive*, we round *down* for start
@@ -176,7 +176,7 @@ def to_iso_date(s, is_end: bool=False):
         Traceback (most recent call last):
         ...
         mora.exceptions.HTTPException: 400 Bad Request: \
-cannot parse '2000-20-20'
+        cannot parse '2000-20-20'
 
     '''
     dt = parsedatetime(s)
@@ -631,7 +631,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
       >>> get_valid_from({'validity': {'from': '2000-01-01'}})
       datetime.datetime(2000, 1, 1, 0, 0, \
-tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
 
       >>> get_valid_from({})
       Traceback (most recent call last):
@@ -641,7 +641,7 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
       Traceback (most recent call last):
       ...
       mora.exceptions.HTTPException: \
-400 Bad Request: '2000-01-01T13:00:00+01:00' is not at midnight!
+      400 Bad Request: '2000-01-01T13:00:00+01:00' is not at midnight!
 
     '''
     sentinel = object()
@@ -687,7 +687,7 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
 
       >>> get_valid_to({'validity': {'to': '1999-12-31'}})
       datetime.datetime(2000, 1, 1, 0, 0, \
-tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
+      tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
       >>> get_valid_to({}) == POSITIVE_INFINITY
       True
 
@@ -695,7 +695,7 @@ tzinfo=tzfile('/usr/share/zoneinfo/Europe/Copenhagen'))
       Traceback (most recent call last):
       ...
       mora.exceptions.HTTPException: \
-400 Bad Request: '1999-12-31T13:00:00+01:00' is not at midnight!
+      400 Bad Request: '1999-12-31T13:00:00+01:00' is not at midnight!
 
     '''
     sentinel = object()

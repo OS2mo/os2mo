@@ -106,10 +106,12 @@ source_parsers = {
 #
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+    'flask': ('http://flask.pocoo.org/docs/', None),
 #    'LoRa': ('https://mox.readthedocs.org/', None),
 }
 
-primary_domain = 'http'
+# primary_domain = 'http'
 
 
 # The master toctree document.
