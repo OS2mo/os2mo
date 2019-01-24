@@ -24,7 +24,7 @@
           :key="a.uuid"
           :value="a"
         >
-          ({{a.address_type.name}}) {{a.name}}
+          ({{a.address_type.name}}) {{a.address.name}}
         </option>
       </select>
     </div>

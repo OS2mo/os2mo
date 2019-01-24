@@ -153,6 +153,8 @@ export default {
 
       this.isLoading = true
 
+      this.entry.org = this.$store.getters['organisation/get']
+
       switch (this.type) {
         case 'EMPLOYEE':
           this.entry.person = { uuid: this.uuid }

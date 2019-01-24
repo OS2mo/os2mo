@@ -623,9 +623,9 @@ def get_detail(type, id, function):
     function_cache.update({
         funcid: {
             mapping.UUID: funcid,
-            mapping.ADDRESS: address.get_one_address(funcobj),
             mapping.ADDRESS_TYPE: class_cache.get(
-                mapping.ADDRESS_TYPE_FIELD(funcobj)[0]['uuid'])
+                mapping.ADDRESS_TYPE_FIELD(funcobj)[0]['uuid']),
+            **address.get_one_address(funcobj),
         }
         for funcid, funcobj in address_functions.items()
     })

@@ -47,6 +47,9 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
+        # TODO: Figure out what to do with this
+        valid_from, valid_to = util.get_validities(req)
+
         org_uuid = (
             c.organisationenhed.get(org_unit_uuid)
             ['relationer']['tilhoerer'][0]['uuid']
@@ -80,6 +83,9 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 'uuid': func_id
             }
             address_obj['uuid'] = addr_id
+            if not address_obj.get('validity'):
+                address_obj['validity'] = util.checked_get(
+                    req, mapping.VALIDITY, {})
 
             self.addresses.append(
                 address.AddressRequestHandler(
@@ -93,10 +99,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 'objekttype': 'lederniveau',
                 'uuid': manager_level_uuid
             })
-
-        # TODO: Figure out what to do with this
-        # location_uuid = req.get(mapping.LOCATION).get('uuid')
-        valid_from, valid_to = util.get_validities(req)
 
         bvn = str(uuid.uuid4())
 
