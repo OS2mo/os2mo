@@ -1,4 +1,5 @@
 import MoNavbar from '@/api/MoNavbar.js'
+import 'vue-awesome/icons/exchange-alt'
 
 const ShortcutButton = () => import('./ShortcutButton.vue')
 

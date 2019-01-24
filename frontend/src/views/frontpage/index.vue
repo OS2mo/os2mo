@@ -8,25 +8,8 @@
     </nav>
 
     <div id="login-wrapper">
-      <div class="col">
-        <button class="btn btn-primary btn-employee" @click="setDestination('Employee')">
-          <icon name="user" scale="2"/>
-          <span class="btn-text">{{$tc('shared.employee', 1)}}</span>
-        </button>
-      </div>
-
-      <div class="col">
-        <button class="btn btn-success btn-org mt-3" @click="setDestination('Organisation')">
-          <icon name="share-alt" scale="2"/>
-          <span class="btn-text">{{$tc('shared.organisation', 1)}}</span>
-        </button>
-      </div>
-
-      <div class="col">
-        <button class="btn btn-success btn-mapper mt-3" @click="setDestination('OrganisationMapper')">
-          <icon name="share-alt" scale="2"/>
-          <span class="btn-text">{{$t('shared.organisation_mapping')}}</span>
-        </button>
+      <div v-for="(m, index) in menu" :key="index" class="col">
+        <component :is="m.template"/>
       </div>
     </div>
   </div>
@@ -36,8 +19,19 @@
 /**
  * A landing page component.
  */
+import Frontpage from '@/api/Frontpage'
 
 export default {
+  data () {
+    return {
+      menu: []
+    }
+  },
+
+  created () {
+    this.menu = Frontpage.getMenu()
+  },
+
   methods: {
     /**
      * Push route to destination.
@@ -55,26 +49,6 @@ export default {
   #login-wrapper {
     text-align: center;
     margin-top: 10em;
-  }
-
-  .btn-text {
-    margin-left: 1em;
-    font-size: 1.2em;
-  }
-
-  .btn-employee {
-    background-color: #4a5a79;
-    cursor: pointer;
-    max-width: 12em;
-  }
-
-  .btn-org {
-    cursor: pointer;
-    max-width: 12em;
-  }
-
-  .btn-employee:hover{
-    background-color: #002f5d;
   }
 
   h1,h4 {
