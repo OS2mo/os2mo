@@ -20,6 +20,8 @@ import 'bootstrap/dist/css/bootstrap.css'
 import './assets/css/global.css'
 import 'moment/locale/da'
 
+import '@/modules/install'
+
 sync(store, router)
 
 Vue.config.productionTip = false
