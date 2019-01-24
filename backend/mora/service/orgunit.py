@@ -989,16 +989,24 @@ def terminate_org_unit(unitid):
         limit=5,
     )
 
-    roles = c.organisationfunktion(
+    roles = set(c.organisationfunktion(
         tilknyttedeenheder=unitid,
         gyldighed='Aktiv',
-    )
+    ))
 
-    if children['total'] or roles:
+    addresses = set(c.organisationfunktion(
+        tilknyttedeenheder=unitid,
+        funktionsnavn=mapping.ADDRESS_KEY,
+        gyldighed='Aktiv',
+    ))
+
+    relevant = roles - addresses
+
+    if children['total'] or relevant:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
             child_units=children['items'],
             child_count=children['total'],
-            role_count=len(roles),
+            role_count=len(relevant),
         )
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
