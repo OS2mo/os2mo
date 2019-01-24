@@ -10,7 +10,6 @@
 
         <button @click="onSubmit" class="btn btn-primary btn-submit"
                 :disabled="!valid">
-          <icon name="map-signs"/>
           {{$t('buttons.save')}}
         </button>
       </div>
@@ -35,7 +34,6 @@
 <script>
 import isEqualTo from 'lodash.isequal'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import 'vue-awesome/icons/map-signs'
 import { mapGetters } from 'vuex'
 import store from './_store'
 import mainStore from '@/store'

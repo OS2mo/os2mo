@@ -62,7 +62,7 @@ export default Vue.extend({
 
   computed: {
     /**
-     * Provide a uniqe identifier
+     * Provide a unique identifier
      * @type {String}
      */
     identifier () {

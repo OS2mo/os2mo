@@ -22,6 +22,7 @@ Internal changes
   #26070: Input fields now inherit from a common base.
   #26531: Employee workflow stores are now only loaded when they are needed.
   #26551: Restructured how frontend files are organised.
+  #26604: Menu items and shortcuts can now be added via an internal API.
 
 Bug fixes
 ---------
