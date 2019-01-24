@@ -166,11 +166,6 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
@@ -178,7 +173,11 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
+                'href': 'https://www.openstreetmap.org/?mlon='
+                        '10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -365,18 +364,19 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'},
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -555,6 +555,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'Telefon',
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
+                        'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80",
                         'value': '33369696',
                     },
                     "validity": {
@@ -694,18 +695,19 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'},
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
+                'href': 'https://www.openstreetmap.org/?mlon='
+                        '10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -979,18 +981,18 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -2405,16 +2407,17 @@ class AddressTests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'address': {'href': 'tel:+4587150000',
-                            'name': '+4587150000',
-                            'value': '87150000'},
                 'address_type': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
                     'scope': 'PHONE',
                     'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                },
+                'href': 'tel:+4587150000',
+                'name': '+4587150000',
                 'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
+                'value': '87150000'
             },
             'association_type': {
                 'example': None,

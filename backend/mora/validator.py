@@ -200,6 +200,7 @@ def is_date_range_in_employee_range(employee_obj: dict,
                 **_get_active_validity(employee),
             )
 
+
 @forceable
 def is_contained_in_range(candidate_from, candidate_to, valid_from, valid_to,
                           exception):

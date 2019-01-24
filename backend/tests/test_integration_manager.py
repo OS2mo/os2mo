@@ -235,20 +235,18 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': [{
-                    'address': {
-                        'href': 'https://www.openstreetmap.org/'
-                                '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'name': 'Åbogade 15, 8200 Aarhus N'
-                    },
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
                         'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
                     'uuid': '11111111-1111-1111-1111-111111111112',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd'
                 }],
                 'manager_level': {
                     'example': 'test@example.com',
@@ -1279,11 +1277,6 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [{
                 'address': [{
-                    'address': {
-                        'href': 'https://www.openstreetmap.org/?mlon='
-                                '10.19938084&mlat=56.17102843&zoom=16',
-                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
@@ -1291,7 +1284,12 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'}],
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',
@@ -1339,11 +1337,6 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': [{
-                    'address': {
-                        'href': 'https://www.openstreetmap.org/'
-                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
@@ -1351,7 +1344,12 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'}
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                }
                 ],
                 'manager_level': {
                     'example': '20304060',
@@ -1642,18 +1640,20 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': [
-                    {'address': {
+                    {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'AdressePost',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
                         'href': 'https://www.openstreetmap.org/'
                                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
-                     'address_type': {'example': '<UUID>',
-                                      'name': 'Adresse',
-                                      'scope': 'DAR',
-                                      'user_key': 'AdressePost',
-                                      'uuid': '4e337d8e-1fd2-4449-'
-                                              '8110-e0c8a22958ed'},
-                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'},
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                    },
                 ],
                 'manager_level': {
                     'example': '20304060',
@@ -2007,18 +2007,19 @@ class Tests(util.LoRATestCase):
 
         expected = {
             'address': [{
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'}],
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            }],
             'manager_level': {
                 'example': None,
                 'name': 'Institut',
@@ -2196,11 +2197,6 @@ class Tests(util.LoRATestCase):
 
         expected_mora = [{
             'address': [{
-                'address': {
-                    'href': 'https://www.openstreetmap.org/?mlon='
-                            '10.19938084&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
@@ -2208,7 +2204,12 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'}],
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            }],
             'manager_level': {'example': None,
                               'name': 'Institut',
                               'scope': None,
@@ -2432,11 +2433,6 @@ class Tests(util.LoRATestCase):
             [
                 {
                     'address': [{
-                        'address': {
-                            'href': 'https://www.openstreetmap.org/?mlon='
-                                    '10.19938084&mlat=56.17102843&zoom=16',
-                            'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                            'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'},
                         'address_type': {
                             'example': '<UUID>',
                             'name': 'Adresse',
@@ -2444,7 +2440,12 @@ class Tests(util.LoRATestCase):
                             'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                         },
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'}],
+                        'href': 'https://www.openstreetmap.org/'
+                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                    }],
                     'manager_level': {
                         'example': None,
                         'name': 'Institut',
