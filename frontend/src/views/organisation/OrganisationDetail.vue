@@ -2,7 +2,7 @@
   <div class="card orgunit">
     <div class="card-body" v-if="orgUnit">
       <h4 class="card-title">
-        <icon name="users" />
+        <icon class="mr-1" name="users" />
         <span class="orgunit-name">{{orgUnit.name}}</span>
       </h4>
 
