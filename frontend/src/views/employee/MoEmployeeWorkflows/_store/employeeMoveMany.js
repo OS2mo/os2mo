@@ -97,8 +97,7 @@ const mutations = {
 const getters = {
   getField,
 
-  employees: state => state.employees,
-  GET_SELECTED: state => state.selected
+  employees: state => state.employees
 }
 
 export default {
