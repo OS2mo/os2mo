@@ -869,43 +869,13 @@ def edit():
     :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object org: the UUID of the associated organisation
     :<jsonarr object org_unit: the UUID of the associated unit, if any
     :<jsonarr object person: the UUID of the associated employee, if any
+    :<jsonarr object manager: the UUID of the associated manager, if any
     :<jsonarr object validity: A validity object
 
     See :ref:`Adresses <address>` for more information.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "original": {
-            "value": "0101501234",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "data": {
-            "value": "123456789",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "type": "address",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
     """
 
     reqs = flask.request.get_json()

@@ -71,9 +71,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "person": {'uuid': userid},
                 'address': [{
-                    'address': {
-                        'value': '44c532e1-f617-4174-b144-d37ce9fda2bd'
-                    },
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',

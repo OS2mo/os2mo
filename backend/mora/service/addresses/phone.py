@@ -39,9 +39,7 @@ class PhoneAddressHandler(base.AddressHandler):
 
     @classmethod
     def from_request(cls, request):
-        addrobj = util.checked_get(
-            request, mapping.ADDRESS, {}, required=True)
-        value = util.checked_get(addrobj, mapping.VALUE, "", required=True)
+        value = util.checked_get(request, mapping.VALUE, "", required=True)
         visibility = util.get_mapping_uuid(request, mapping.VISIBILITY)
 
         return cls(value, visibility)

@@ -5,197 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-'''Addresses
----------
-.. _address:
-
-Within the context of MO, we have two forms of addresses, `DAR`_ and
-everything else. **DAR** is short for *Danmarks Adresseregister* or
-the *Address Register of Denmark*, and constitutes a UUID representing a
-DAWA address or access address. We represent other addresses merely
-through their textual value.
-
-.. tip::
-
-  See also the `official documentation
-  <http://dawa.aws.dk/dok/adresser>`_ — in Danish — on DAR addresses.
-
-Before writing a DAR address, a UI or client should convert the
-address string to a UUID using either their API or the
-:http:get:`/service/o/(uuid:orgid)/address_autocomplete/` endpoint.
-
-Each installation supports different types of addresses. To obtain
-that list, query the :http:get:`/service/o/(uuid:orgid)/f/(facet)/`
-endpoint::
-
-   $ curl http://$SERVER_NAME:5000/service/o/$ORGID/f/address_type
-
-An example result:
-
-.. sourcecode:: json
-
-  {
-    "data": {
-      "items": [
-        {
-          "example": "20304060",
-          "name": "Telefonnummer",
-          "scope": "PHONE",
-          "user_key": "Telefon",
-          "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
-        },
-        {
-          "example": "<UUID>",
-          "name": "Adresse",
-          "scope": "DAR",
-          "user_key": "Adresse",
-          "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-        },
-        {
-          "example": "test@example.com",
-          "name": "Emailadresse",
-          "scope": "EMAIL",
-          "user_key": "Email",
-          "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-        },
-        {
-          "example": "5712345000014",
-          "name": "EAN",
-          "scope": "EAN",
-          "user_key": "EAN",
-          "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-        }
-      ],
-      "offset": 0,
-      "total": 4
-    },
-    "name": "address_type",
-    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/",
-    "user_key": "Adressetype",
-    "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
-  }
-
-The following scopes are available:
-
-DAR
-      UUID of a `DAR`_, as found through the API. Please
-      note that this requires performing separate calls to convert
-      this value to and from human-readable strings.
-
-EMAIL
-      An email address, as specified by :rfc:`5322#section-3.4`.
-
-PHONE
-      A phone number.
-
-WWW
-      An HTTP or HTTPS URL, as specified by :rfc:`1738`.
-
-EAN
-      Number for identification for accounting purposes.
-
-PNUMBER
-      A production unit number, as registered with the Danish CVR.
-
-
-Reading
-^^^^^^^
-
-An example of reading the main two different types of addresses:
-
-.. sourcecode:: json
-
-  [
-    {
-      "address_type": {
-        "example": "20304060",
-        "name": "Telefonnummer",
-        "scope": "PHONE",
-        "user_key": "Telefon",
-        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
-      },
-      "href": "tel:+4587150000",
-      "name": "8715 0000",
-      "urn": "urn:magenta.dk:telefon:+4587150000",
-      "validity": {
-        "from": "2016-01-01",
-        "to": null
-      }
-    },
-    {
-      "address_type": {
-        "example": "<UUID>",
-        "name": "Adresse",
-        "scope": "DAR",
-        "user_key": "Adresse",
-        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-      },
-      "href": "https://www.openstreetmap.org/?mlon=10.199&mlat=56.171&zoom=16",
-      "name": "Nordre Ringgade 1, 8000 Aarhus C",
-      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-      "validity": {
-        "from": "2016-01-01",
-        "to": null
-      }
-    }
-  ]
-
-* ``name`` is a human-readable value for displaying the address
-* ``href`` should be used as a hyperlink target, if applicable
-* ``urn`` and ``uuid`` are used for uniquely representing the address
-  value for editing, which is detailed below.
-* ``validity`` is a validity object.
-* ``address_type`` is an address type object, equal to one of the types from
-  the facet endpoint detailed above.
-
-Writing
-^^^^^^^
-
-An example of objects for writing the two main types of addresses:
-
-.. sourcecode:: json
-
-  [
-    {
-      "value": "0101501234",
-      "address_type": {
-        "example": "5712345000014",
-        "name": "EAN",
-        "scope": "EAN",
-        "user_key": "EAN",
-        "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-      }
-    },
-    {
-      "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-      "address_type": {
-        "example": "<UUID>",
-        "name": "Adresse",
-        "scope": "DAR",
-        "user_key": "Adresse",
-        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-      }
-    }
-  ]
-
-* ``value`` the value of the address, if **not** a DAR address. This should be
-  provided in human-readable format, as the backend takes care of correctly
-  formatting the value into a URN
-* ``uuid``: the uuid of the address, if the type **is** a DAR address.
-* ``address_type`` is an address type object, equal to one of the types from
-  the facet endpoint detailed above.
-
-More information regarding creating and editing addresses can be found in the
-sections on creating and editing relations for employees and organisational
-units.
-
-.. _DAR: https://dawa.aws.dk/dok/api/adresse
-
-
-API
-^^^
-
-'''
 
 import collections
 import re
@@ -433,7 +242,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         func = {
             mapping.ADDRESS_TYPE: address_type,
-            mapping.ADDRESS: handler.get_mo_address(),
             mapping.VALIDITY: {
                 mapping.FROM: util.to_iso_date(start),
                 mapping.TO: util.to_iso_date(
@@ -445,7 +253,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 c, org_unit[0]['uuid'],
                 details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
             mapping.UUID: funcid,
-            **handler.get_mo_properties()
+            **handler.get_mo_properties(),
+            **handler.get_mo_address()
         }
 
         return func
@@ -596,7 +405,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 },
             ))
 
-        if mapping.ADDRESS in data:
+        if mapping.VALUE in data:
 
             address_type = util.checked_get(
                 data, mapping.ADDRESS_TYPE, {}, required=True)

@@ -39,9 +39,7 @@ class DarAddressHandlerTests(util.TestCase):
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 
@@ -138,9 +136,7 @@ class EANAddressHandlerTests(util.TestCase):
         value = '123456'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 
@@ -236,9 +232,7 @@ class EmailAddressHandlerTests(util.TestCase):
         value = 'mail@mail.dk'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 
@@ -340,9 +334,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         # Arrange
         visibility = '0261fdd3-4aa3-4c9b-9542-8163a1184738'
         request = {
-            'address': {
-                'value': '12345678',
-            },
+            'value': '12345678',
             'visibility': {
                 'uuid': visibility
             }
@@ -458,9 +450,7 @@ class PNumberAddressHandlerTests(util.TestCase):
         value = '123456'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 
@@ -556,9 +546,7 @@ class TextAddressHandlerTests(util.TestCase):
         value = 'Test text whatever'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 
@@ -654,9 +642,7 @@ class WWWAddressHandlerTests(util.TestCase):
         value = 'http://www.test.org/'
 
         request = {
-            'address': {
-                'value': value
-            }
+            'value': value
         }
         address_handler = self.handler.from_request(request)
 

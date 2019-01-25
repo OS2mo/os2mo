@@ -49,9 +49,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     @classmethod
     def from_request(cls, request):
         """Initialize handler from MO object"""
-        addrobj = util.checked_get(
-            request, mapping.ADDRESS, {}, required=True)
-        value = util.checked_get(addrobj, mapping.VALUE, "", required=True)
+        value = util.checked_get(request, mapping.VALUE, "", required=True)
         return cls(value)
 
     def get_urn(self):

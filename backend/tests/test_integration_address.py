@@ -67,9 +67,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": ean_class,
-                    "address": {
-                        "value": '1234567890'
-                    },
+                    "value": '1234567890',
                     "org": {
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     },
@@ -99,9 +97,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "address_type": ean_class,
-                    "address": {
-                        "value": '1234567890',
-                    },
+                    "value": '1234567890',
                     "person": {
                         'uuid': userid,
                     },
@@ -154,8 +150,8 @@ class Writing(util.LoRATestCase):
                 {
                     'error': True,
                     'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': "Missing address",
-                    'key': 'address',
+                    'description': "Missing value",
+                    'key': 'value',
                     'status': 400,
                     'obj': req[0],
                 },
@@ -169,9 +165,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     # NB: no type!
                     "address_type": None,
-                    "address": {
-                        "value": "hallo@exmaple.com",
-                    },
+                    "value": "hallo@exmaple.com",
                     "org": {
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     },
@@ -205,9 +199,7 @@ class Writing(util.LoRATestCase):
             req = [{
                 "type": "address",
                 "address_type": address_class,
-                "address": {
-                    "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                },
+                "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "org_unit": {"uuid": nothingid},
                 "org": {
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
@@ -235,9 +227,7 @@ class Writing(util.LoRATestCase):
             req = [{
                 "type": "address",
                 "address_type": address_class,
-                "address": {
-                    "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                },
+                "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "person": {"uuid": nothingid},
                 "org": {
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
@@ -288,7 +278,6 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     "data": {
-                        "address": orig_address,
                         "person": {"uuid": userid},
                         "org_unit": {"uuid": unitid},
                         "address_type": phone_class,
@@ -316,37 +305,6 @@ class Writing(util.LoRATestCase):
                 json=req,
             )
 
-        with self.subTest('missing edit value'):
-            req = [
-                {
-                    "type": "address",
-                    "data": {
-                        "address": {},
-                        "person": {"uuid": userid},
-                        "address_type": phone_class,
-                        "validity": {
-                            "from": "2017-01-01",
-                            "to": "2018-12-31",
-                        },
-                    },
-                    "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887"
-                },
-            ]
-
-            self.assertRequestResponse(
-                '/service/details/edit',
-                {
-                    'error': True,
-                    'error_key': 'V_MISSING_REQUIRED_VALUE',
-                    'description': 'Missing value',
-                    'key': 'value',
-                    'status': 400,
-                    'obj': {},
-                },
-                status_code=400,
-                json=req,
-            )
-
     def test_add_org_unit_address(self, mock):
         self.load_sample_structures()
 
@@ -363,9 +321,7 @@ class Writing(util.LoRATestCase):
                         'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                    'address': {
-                        'value': 'root@example.com',
-                    },
+                    'value': 'root@example.com',
                     "org_unit": {
                         "uuid": unitid
                     },
@@ -472,9 +428,7 @@ class Writing(util.LoRATestCase):
                         'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                    'address': {
-                        'value': 'root@example.com',
-                    },
+                    'value': 'root@example.com',
                     "person": {
                         "uuid": employee_id
                     },
@@ -585,9 +539,7 @@ class Writing(util.LoRATestCase):
                             'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
-                        'address': {
-                            'value': 'root@example.com',
-                        },
+                        'value': 'root@example.com',
                         "validity": {
                             "from": "2017-01-02",
                         },
@@ -716,9 +668,7 @@ class Writing(util.LoRATestCase):
                         'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
-                    'address': {
-                        'value': 'root@example.com',
-                    },
+                    'value': 'root@example.com',
                     "validity": {
                         "from": "2017-01-02",
                     },
@@ -836,9 +786,7 @@ class Writing(util.LoRATestCase):
                             'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
-                        'address': {
-                            'value': 'root@example.com',
-                        },
+                        'value': 'root@example.com',
                         "validity": {
                             "from": "2017-01-02",
                         },
@@ -949,9 +897,7 @@ class Writing(util.LoRATestCase):
                             'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
-                        'address': {
-                            'value': 'root@example.com',
-                        },
+                        'value': 'root@example.com',
                         "validity": {
                             "from": "2017-01-02",
                         },
@@ -1087,11 +1033,9 @@ class Reading(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             '/details/address',
             [{
-                'address': {
-                    'href': 'mailto:bruger@example.com',
-                    'name': 'bruger@example.com',
-                    'value': 'bruger@example.com'
-                },
+                'href': 'mailto:bruger@example.com',
+                'name': 'bruger@example.com',
+                'value': 'bruger@example.com',
                 'address_type': None,
                 'org_unit': None,
                 'person': {
@@ -1120,11 +1064,9 @@ class Reading(util.LoRATestCase):
                             'user_key': 'Email',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
-                        'address': {
-                            'href': 'mailto:goofy@example.com',
-                            'name': 'goofy@example.com',
-                            'value': 'goofy@example.com',
-                        },
+                        'href': 'mailto:goofy@example.com',
+                        'name': 'goofy@example.com',
+                        'value': 'goofy@example.com',
                         'person': {
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -1144,12 +1086,10 @@ class Reading(util.LoRATestCase):
                             'user_key': 'AdressePost',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
-                        'address': {
-                            'href': 'https://www.openstreetmap.org/?mlon='
-                                    '10.19938084&mlat=56.17102843&zoom=16',
-                            'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                            'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        },
+                        'href': 'https://www.openstreetmap.org/?mlon='
+                                '10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'person': {
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -1177,11 +1117,9 @@ class Reading(util.LoRATestCase):
                             'user_key': 'Email',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
-                        'address': {
-                            'href': 'mailto:bruger@example.com',
-                            'name': 'bruger@example.com',
-                            'value': 'bruger@example.com',
-                        },
+                        'href': 'mailto:bruger@example.com',
+                        'name': 'bruger@example.com',
+                        'value': 'bruger@example.com',
                         'person': {
                             'name': 'Anders And',
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
@@ -1201,12 +1139,10 @@ class Reading(util.LoRATestCase):
                 '/details/address?validity=present',
                 [
                     {
-                        "address": {
-                            "href": "https://www.openstreetmap.org/"
-                            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
-                            "name": "Nordre Ringgade 1, 8000 Aarhus C",
-                            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
-                        },
+                        "href": "https://www.openstreetmap.org/"
+                        "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                        "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
                             "name": "Adresse",
@@ -1239,11 +1175,9 @@ class Reading(util.LoRATestCase):
                 '/details/address?validity=present',
                 [
                     {
-                        "address": {
-                            "href": "tel:+4587150000",
-                            "name": "+4587150000",
-                            "value": "87150000"
-                        },
+                        "href": "tel:+4587150000",
+                        "name": "+4587150000",
+                        "value": "87150000",
                         "address_type": {
                             "example": "20304060",
                             "name": "Telefonnummer",
@@ -1271,11 +1205,9 @@ class Reading(util.LoRATestCase):
                         },
                     },
                     {
-                        "address": {
-                            "href": None,
-                            "name": "5798000420526",
-                            "value": "5798000420526"
-                        },
+                        "href": None,
+                        "name": "5798000420526",
+                        "value": "5798000420526",
                         "address_type": {
                             "example": "5712345000014",
                             "name": "EAN",
@@ -1300,12 +1232,10 @@ class Reading(util.LoRATestCase):
                         }
                     },
                     {
-                        "address": {
-                            "href": "https://www.openstreetmap.org/"
-                            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
-                            "name": "Nordre Ringgade 1, 8000 Aarhus C",
-                            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197"
-                        },
+                        "href": "https://www.openstreetmap.org/"
+                        "?mlon=10.19938084&mlat=56.17102843&zoom=16",
+                        "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
                             "name": "Adresse",
@@ -1487,12 +1417,10 @@ class Reading(util.LoRATestCase):
             '/service/ou/{}/details/address'.format(unitid),
             [{
                 'address_type': address_class,
-                'address': {
-                    'name': 'Ukendt',
-                    'value': addrid,
-                    'error': 'no such address {!r}'.format(addrid),
-                    'href': None,
-                },
+                'name': 'Ukendt',
+                'value': addrid,
+                'error': 'no such address {!r}'.format(addrid),
+                'href': None,
                 'org_unit': {
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
@@ -1550,14 +1478,12 @@ class Reading(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/address'.format(unitid),
                 [{
-                    'address': {
-                        'error': '500 Server Error: None for url: '
-                        'https://dawa.aws.dk/adresser'
-                        '?id={}&noformat=1&struktur=mini'.format(addrid),
-                        'href': None,
-                        'name': 'Ukendt',
-                        'value': addrid,
-                    },
+                    'error': '500 Server Error: None for url: '
+                    'https://dawa.aws.dk/adresser'
+                    '?id={}&noformat=1&struktur=mini'.format(addrid),
+                    'href': None,
+                    'name': 'Ukendt',
+                    'value': addrid,
                     'address_type': address_class,
                     'org_unit': {
                         'name': 'Overordnet Enhed',

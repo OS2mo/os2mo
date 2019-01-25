@@ -178,9 +178,9 @@ export default {
       handler (val) {
         if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
-          this.entry.address = { value: val.location.uuid }
+          this.entry.value = val.location.uuid
         } else {
-          this.entry.address = { value: val }
+          this.entry.value = val
         }
       },
       deep: true
@@ -195,13 +195,13 @@ export default {
     if (this.value.uuid) {
       this.address = {
         location: {
-          name: this.value.address.name,
-          uuid: this.value.address.value
+          name: this.value.name,
+          uuid: this.value.value
         }
       }
     }
     this.entry = this.value
-    this.contactInfo = this.value.address.value
+    this.contactInfo = this.value.value
   }
 }
 </script>
