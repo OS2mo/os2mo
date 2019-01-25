@@ -176,8 +176,7 @@ export default {
         { label: 'address', data: 'address' }
       ],
       related_unit: [
-        { label: 'org_unit', data: 'org_unit', index: 0 },
-        { label: 'org_unit', data: 'org_unit', index: 1 }
+        { label: 'related_org_unit', data: 'org_unit', index: 0 }
       ],
 
       /**
