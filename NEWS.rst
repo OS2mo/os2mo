@@ -19,9 +19,11 @@ Internal changes
 
 * #25577: Implemented more facets for address types and job functions.
   Updated handling of facets throughout.
-  #26070: Input fields now inherit from a common base.
-  #26531: Employee workflow stores are now only loaded when they are needed.
-  #26551: Restructured how frontend files are organised.
+* #26070: Input fields now inherit from a common base.
+* #26531: Employee workflow stores are now only loaded when they are needed.
+* #26551: Restructured how frontend files are organised.
+* #26600: Some styling issues.
+
 
 Bug fixes
 ---------
