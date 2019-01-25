@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>{{$t('shared.organisation_mapping')}}</h1>
+    <h3>{{$t('shared.organisation_mapping')}}</h3>
 
     <div class="row">
       <div class="col">
@@ -8,8 +8,11 @@
           <mo-tree-view class="card-body origin" v-model="origin"/>
         </div>
 
-        <button @click="onSubmit" class="btn btn-primary btn-submit"
-                :disabled="!valid">
+        <button
+          @click="onSubmit"
+          class="mt-2 btn btn-primary btn-submit"
+          :disabled="!valid"
+        >
           <icon name="map-signs"/>
           {{$t('buttons.save')}}
         </button>
@@ -17,8 +20,13 @@
 
       <div class="col">
         <div class="card">
-          <mo-tree-view multiple v-model="destination" :disabled-unit="origin"
-                        class="card-body destination" v-if="origin"/>
+          <mo-tree-view
+            multiple
+            v-model="destination"
+            :disabled-unit="origin"
+            class="card-body destination"
+            v-if="origin"
+          />
           <div class="card-body" v-else>
             <p class="card-text">
               Vælg en enhed til venstre for at vise og ændre hvilke

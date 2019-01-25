@@ -416,7 +416,7 @@ export default {
      increase the specificity of the selectors  -->
 <style>
   .orgunit-tree .tree > .tree-root, .tree-content {
-     padding: 0;
+     padding: 0.2vh;
    }
 
    .orgunit-tree .tree-children {
