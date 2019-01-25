@@ -13,6 +13,8 @@ New features
 * #24702: Allow marking organisational units as related to each other.
 * #26368: Add support for using ``?validate=0`` as a query parameter
   for disabling certain validations.
+* #25409: Added backend support for specifying visibility for phone number
+  address objects.
 
 Internal changes
 ----------------
@@ -26,6 +28,8 @@ Internal changes
 * #26604: Menu items and shortcuts can now be added via an internal API.
 * #26675: Moved i18n and validation import into seperate files.
 * #26658: Added constant names to global store.
+* #25053: Addresses are now modeled using ``organisationfunktion``, in order
+  to further streamline and unify the modeling of relations.
 * #26686: Added documentation to frontend.
 
 Bug fixes

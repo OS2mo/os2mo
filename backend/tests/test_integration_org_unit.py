@@ -2443,7 +2443,7 @@ class Tests(util.LoRATestCase):
                         },
                         "parent": {
                             "name": "Overordnet Enhed",
-                            "user_key": "root",
+                            "user_ky": "root",
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {
                                 "from": "2016-01-01",
