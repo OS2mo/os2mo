@@ -10,7 +10,7 @@ fixture('MoOrganisationUnitMapper')
 const mapperButton = Selector('button.btn-mapper')
 const saveButton = Selector('button.btn-submit')
 
-const headerText = Selector('h1').withText('Organisationssammenkobling')
+const headerText = Selector('h3').withText('Organisationssammenkobling')
 
 const trees = VueSelector('mo-tree-view')
 const leftTree = trees.filter('.origin')
