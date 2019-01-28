@@ -32,7 +32,7 @@
 
 import sortBy from 'lodash.sortby'
 import Facet from '@/api/Facet'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 
 export default {
   name: 'MoItSystemPicker',
@@ -84,7 +84,7 @@ export default {
     /**
      * Whenever organisation change update.
      */
-    EventBus.$on('organisation-changed', () => {
+    EventBus.$on(Events.ORGANISATION_CHANGED, () => {
       this.getItSystems()
     })
   },
@@ -102,7 +102,7 @@ export default {
     /**
      * Stops receiving update event.
      */
-    EventBus.$off(['organisation-changed'])
+    EventBus.$off([Events.ORGANISATION_CHANGED])
   },
 
   methods: {

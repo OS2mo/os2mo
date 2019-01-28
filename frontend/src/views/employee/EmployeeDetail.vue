@@ -31,7 +31,7 @@
  */
 
 import '@/filters/CPRNumber'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import EmployeeDetailTabs from './EmployeeDetailTabs'
 import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
@@ -69,7 +69,7 @@ export default {
     this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
   },
   mounted () {
-    EventBus.$on('employee-changed', () => {
+    EventBus.$on(Events.EMPLOYEE_CHANGED, () => {
       this.loadContent(this.latestEvent)
     })
   },

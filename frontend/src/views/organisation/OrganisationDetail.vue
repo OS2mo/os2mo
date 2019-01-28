@@ -41,7 +41,7 @@
  */
 
 import { mapGetters, mapState } from 'vuex'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
@@ -73,7 +73,7 @@ export default {
     this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
   },
   mounted () {
-    EventBus.$on('organisation-unit-changed', () => {
+    EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, () => {
       this.loadContent(this.latestEvent)
     })
   },

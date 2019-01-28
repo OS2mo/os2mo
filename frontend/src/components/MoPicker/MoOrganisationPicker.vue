@@ -25,7 +25,7 @@
 
 import sortBy from 'lodash.sortby'
 import Organisation from '@/api/Organisation'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import { mapGetters, mapState } from 'vuex'
 
 export default {
@@ -91,7 +91,7 @@ export default {
      * Whenever organisation change update.
      */
     this.getAll()
-    EventBus.$on('organisation-changed', newOrg => {
+    EventBus.$on(Events.ORGANISATION_CHANGED, newOrg => {
       if (!this.ignoreEvent) this.selectedOrganisation = newOrg
     })
   },

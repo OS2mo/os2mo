@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import { mapGetters } from 'vuex'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
@@ -168,7 +168,7 @@ export default {
   mounted () {
     const vm = this
 
-    EventBus.$on('update-tree-view', () => {
+    EventBus.$on(Events.UPDATE_TREE_VIEW, () => {
       vm.updateTree(true)
     })
 

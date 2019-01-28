@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
@@ -27,7 +27,7 @@ const actions = {
 
     return Service.post(`/e/${state.employee.uuid}/terminate`, payload)
       .then(response => {
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data }, { root: true })
         commit('resetFields')
         return response.data
