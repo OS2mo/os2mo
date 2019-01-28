@@ -16,4 +16,4 @@ testing.postgresql>=1.3.0
 flask-shell-ipython
 python-dotenv
 watchdog
--e git+https://github.com/magenta-aps/mox@development#egg=oio-rest&subdirectory=oio_rest
+oio_rest @ https://github.com/magenta-aps/mox/archive/development.tar.gz#egg=oio-rest&subdirectory=oio_rest&branch=development
