@@ -57,6 +57,7 @@ import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
+import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -92,7 +93,7 @@ export default {
      * Get organisation unit
      */
     ...mapGetters({
-      orgUnit: 'organisationUnit/GET_ORG_UNIT'
+      orgUnit: OrgUnit.getters.GET_ORG_UNIT
     }),
 
     /**

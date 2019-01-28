@@ -6,17 +6,21 @@ import log from './modules/log'
 import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
 import facet from './modules/facet'
-
+import { Employee } from './actions/employee'
+import { OrganisationUnit } from './actions/organisationUnit'
+import { Facet } from './actions/facet'
+import { Organisation } from './actions/organisation'
+import { Auth } from './actions/auth'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   // strict: true,
   modules: {
-    auth: auth,
-    employee: employee,
+    [Auth.NAMESPACE]: auth,
+    [Employee.NAMESPACE]: employee,
     log: log,
-    organisation: organisation,
-    organisationUnit: organisationUnit,
-    facet: facet
+    [Organisation.NAMESPACE]: organisation,
+    [OrganisationUnit.NAMESPACE]: organisationUnit,
+    [Facet.NAMESPACE]: facet
   }
 })

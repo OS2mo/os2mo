@@ -33,6 +33,7 @@
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import { mapGetters } from 'vuex'
+import { Organisation } from '@/store/actions/organisation'
 
 export default {
   name: 'MoOrganisationUnitPicker',
@@ -87,7 +88,7 @@ export default {
      * Get organisation uuid.
      */
     ...mapGetters({
-      orgUuid: 'organisation/getUuid'
+      orgUuid: Organisation.getters.GET_UUID
     }),
 
     /**

@@ -18,7 +18,7 @@
 
       <employee-detail-tabs
         :uuid="route.params.uuid"
-        :content="$store.getters['employee/GET_DETAILS']"
+        :content="employeeDetails"
         @show="loadContent($event)"
       />
     </div>
@@ -35,7 +35,8 @@ import { EventBus } from '@/EventBus'
 import EmployeeDetailTabs from './EmployeeDetailTabs'
 import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
+import { Employee } from '@/store/actions/employee'
 
 export default {
   components: {
@@ -60,13 +61,14 @@ export default {
       route: 'route'
     }),
 
-    employee () {
-      return this.$store.getters['employee/GET_EMPLOYEE']
-    }
+    ...mapGetters({
+      employee: Employee.getters.GET_EMPLOYEE,
+      employeeDetails: Employee.getters.GET_DETAILS
+    })
   },
 
   created () {
-    this.$store.dispatch('employee/SET_EMPLOYEE', this.$route.params.uuid)
+    this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
   },
   mounted () {
     EventBus.$on('employee-changed', () => {
@@ -76,11 +78,11 @@ export default {
   methods: {
     loadContent (event) {
       this.latestEvent = event
-      this.$store.dispatch('employee/SET_DETAIL', event)
+      this.$store.dispatch(Employee.actions.SET_DETAIL, event)
     }
   },
   beforeRouteLeave (to, from, next) {
-    this.$store.commit('employee/RESET_EMPLOYEE')
+    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
     next()
   }
 

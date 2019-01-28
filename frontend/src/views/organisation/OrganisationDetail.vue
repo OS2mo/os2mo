@@ -26,7 +26,7 @@
       <organisation-detail-tabs
         :uuid="route.params.uuid"
         :org-unit-info="orgUnit"
-        :content="$store.getters['organisationUnit/GET_DETAILS']"
+        :content="$orgUnitDetails"
         @show="loadContent($event)"/>
     </div>
     <div class="card-body" v-show="!orgUnit">
@@ -45,6 +45,7 @@ import { EventBus } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
+import { OrganisationUnit } from '@/store/actions/organisationUnit'
 
 export default {
   components: {
@@ -62,7 +63,8 @@ export default {
      * Get organisation uuid.
      */
     ...mapGetters({
-      orgUnit: 'organisationUnit/GET_ORG_UNIT'
+      orgUnit: OrganisationUnit.getters.GET_ORG_UNIT,
+      orgUnitDetails: OrganisationUnit.getters.GET_DETAILS
     }),
 
     ...mapState({
@@ -70,7 +72,7 @@ export default {
     })
   },
   created () {
-    this.$store.dispatch('organisationUnit/SET_ORG_UNIT', this.route.params.uuid)
+    this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
   },
   mounted () {
     EventBus.$on('organisation-unit-changed', () => {
@@ -81,13 +83,12 @@ export default {
     loadContent (event) {
       this.latestEvent = event
 
-      this.$store.dispatch('organisationUnit/SET_ORG_UNIT',
-        this.route.params.uuid)
-      this.$store.dispatch('organisationUnit/SET_DETAIL', event)
+      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
+      this.$store.dispatch(OrganisationUnit.actions.SET_DETAIL, event)
     }
   },
   beforeRouteLeave (to, from, next) {
-    this.$store.commit('organisationUnit/RESET_ORG_UNIT')
+    this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
     next()
   }
 }
