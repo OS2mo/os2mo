@@ -307,7 +307,7 @@ def full_run(simple):
     from oio_rest import app as lora_app
     from oio_rest.utils import test_support
     from oio_rest import db
-    import settings as lora_settings
+    from oio_rest import settings as lora_settings
 
     from mora import app
     from tests import util as test_util
@@ -333,9 +333,11 @@ def full_run(simple):
 
     with \
             test_support.psql() as psql, \
-            mock.patch('settings.LOG_AMQP_SERVER', None), \
-            mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
-            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
+            mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
+            mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
+                       create=True), \
+            mock.patch('oio_rest.settings.DB_PORT', psql.dsn()['port'],
+                       create=True), \
             mock.patch('oio_rest.db.pool',
                        psycopg2.pool.PersistentConnectionPool(
                            0, 100,

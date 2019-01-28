@@ -10,6 +10,7 @@
   "manager_level": "@:shared.manager_level",
   "manager_type": "@:shared.manager_type",
   "org_unit": "Enhed",
+  "related_org_unit": "Relateret enhed",
   "org_unit_type": "@:shared.org_unit_type",
   "parent": "Overenhed",
   "person": "Navn",
