@@ -22,21 +22,20 @@ class _AddressHandlerMeta(abc.ABCMeta):
     def __new__(mcls, name, bases, namespace):
         cls = super().__new__(mcls, name, bases, namespace)
 
-        if not inspect.isabstract(cls):
-            cls._register()
+        cls._register()
 
         return cls
 
 
 class AddressHandler(metaclass=_AddressHandlerMeta):
-    __slots__ = 'scope', 'prefix', 'value'
+    __slots__ = 'scope', 'prefix', '_value'
 
     @classmethod
     def _register(cls):
         ADDRESS_HANDLERS[cls.scope] = cls
 
     def __init__(self, value):
-        self.value = value
+        self._value = value
 
     @classmethod
     def from_effect(cls, effect):
@@ -52,35 +51,87 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         value = util.checked_get(request, mapping.VALUE, "", required=True)
         return cls(value)
 
-    def get_urn(self):
-        return self.prefix + self.value
+    @property
+    def urn(self):
+        """The value plus URN prefix"""
+        return self.prefix + self._value
 
-    def get_value(self):
-        return self.value
+    @property
+    def value(self):
+        """The editable value"""
+        return self._value
 
-    def get_pretty_value(self):
-        return self.value
+    @property
+    def name(self):
+        """The pretty human-readable value"""
+        return self._value
 
-    def get_href(self):
+    @property
+    def href(self):
+        """A hyperlink based on the value, if any"""
         return None
 
     def get_lora_properties(self):
+        """
+        Get a LoRa object fragment for the properties.
+
+        The properties are used to further describe the individual
+        address subtypes. E.g. visibility.
+
+        Example:
+        [{
+            'objekttype': 'synlighed',
+            'uuid': 'd99b500c-34b4-4771-9381-5c989eede969'
+        }]
+        """
         return []
 
     def get_lora_address(self):
+        """
+        Get a LoRa object fragment for the address
+
+        Example
+        {
+            'objekttype': 'PHONE',
+            'urn': 'urn:magenta.dk:telefon:+4512345678'
+        }
+        """
         return {
             'objekttype': self.scope,
-            'urn': self.get_urn(),
+            'urn': self.urn,
         }
 
     def get_mo_properties(self):
+        """
+        Get a MO object fragment for the properties.
+
+        The properties are used to further describe the individual
+        address subtypes. E.g. visibility.
+
+        Example:
+        {
+            'visibility': {
+                'uuid': visibility
+            }
+        }
+        """
         return {}
 
     def get_mo_address(self):
+        """
+        Get a MO object fragment for the address
+
+        E.g.
+        {
+            'href': 'tel:+4512345678',
+            'name': '+4512345678',
+            'value': '12345678'
+        }
+        """
         return {
-            mapping.HREF: self.get_href(),
-            mapping.NAME: self.get_pretty_value(),
-            mapping.VALUE: self.get_value()
+            mapping.HREF: self.href,
+            mapping.NAME: self.name,
+            mapping.VALUE: self.value
         }
 
 

@@ -5,12 +5,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import requests
 import flask
+import requests
+
 from . import base
 from ... import mapping
 
 session = requests.Session()
+session.headers = {
+    'User-Agent': 'MORA',
+}
 
 NOT_FOUND = "Ukendt"
 
@@ -39,10 +43,12 @@ class DARAddressHandler(base.AddressHandler):
                 ),
             )
 
-    def get_pretty_value(self):
+    @property
+    def name(self):
         return ''.join(self._address_string_chunks(self.address_object))
 
-    def get_href(self):
+    @property
+    def href(self):
         href = (
             'https://www.openstreetmap.org/'
             '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)

@@ -12,5 +12,6 @@ class EmailAddressHandler(base.AddressHandler):
     scope = 'EMAIL'
     prefix = 'urn:mailto:'
 
-    def get_href(self):
+    @property
+    def href(self):
         return "mailto:{}".format(self.value)

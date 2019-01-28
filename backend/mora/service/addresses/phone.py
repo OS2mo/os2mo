@@ -44,11 +44,13 @@ class PhoneAddressHandler(base.AddressHandler):
 
         return cls(value, visibility)
 
-    def get_value(self):
-        return self.value[3:]
+    @property
+    def value(self):
+        return self._value[3:]
 
-    def get_href(self):
-        return 'tel:{}'.format(self.get_pretty_value())
+    @property
+    def href(self):
+        return 'tel:{}'.format(self._value)
 
     def get_lora_properties(self):
         if self.visibility:

@@ -14,7 +14,8 @@ class TextAddressHandler(base.AddressHandler):
     scope = 'TEXT'
     prefix = 'urn:text:'
 
-    def get_urn(self):
+    @property
+    def urn(self):
         return self.prefix + util.urnquote(self.value)
 
     @classmethod

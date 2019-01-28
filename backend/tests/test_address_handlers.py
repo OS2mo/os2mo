@@ -323,7 +323,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         address_handler = self.handler.from_effect(effect)
 
         # Act
-        actual_value = address_handler.value
+        actual_value = address_handler._value
         actual_visibility = address_handler.visibility
 
         # Assert
@@ -344,7 +344,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         expected_value = '+4512345678'
 
         # Act
-        actual_value = address_handler.value
+        actual_value = address_handler._value
         actual_visibility = address_handler.visibility
 
         # Assert
