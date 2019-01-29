@@ -169,10 +169,8 @@ export default {
   editEntry (edit) {
     return Service.post('/details/edit', edit)
       .then(response => {
-        console.log(response)
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
-        console.log(response)
         return response
       })
       .catch(error => {
@@ -214,7 +212,6 @@ export default {
   move (edit) {
     return this.editEntry(edit)
       .then(response => {
-        console.log(response)
         if (response.data.error) {
           return response.data
         }
