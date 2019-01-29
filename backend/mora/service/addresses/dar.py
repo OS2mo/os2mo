@@ -58,11 +58,11 @@ class DARAddressHandler(base.AddressHandler):
 
         return href
 
-    def get_mo_address(self):
+    def get_mo_address_and_properties(self):
         if self.address_object.get(mapping.ERROR):
             return self.address_object
         else:
-            return super().get_mo_address()
+            return super().get_mo_address_and_properties()
 
     @staticmethod
     def _fetch_from_dar(addrid):

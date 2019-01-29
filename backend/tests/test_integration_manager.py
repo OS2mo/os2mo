@@ -123,10 +123,9 @@ class Tests(util.LoRATestCase):
             },
             "note": "Oprettet i MO",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
                         'uuid': '11111111-1111-1111-1111-111111111112',
-                        'objekttype': 'organisationfunktion',
                         'virkning': {
                             'from': '2017-12-01 00:00:00+01',
                             'from_included': True,
@@ -1100,9 +1099,8 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'organisationfunktion',
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
@@ -1458,8 +1456,7 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
-                'adresser': [{
-                    'objekttype': 'organisationfunktion',
+                'tilknyttedefunktioner': [{
                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                     'virkning': {
                         'from': '2017-01-01 00:00:00+01',
@@ -1468,7 +1465,6 @@ class Tests(util.LoRATestCase):
                         'to_included': False
                     }
                 }, {
-                    'objekttype': 'organisationfunktion',
                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                     'virkning': {
                         'from': '2018-04-01 00:00:00+02',
@@ -1879,9 +1875,8 @@ class Tests(util.LoRATestCase):
         expected = {
             "note": "Afslut medarbejder",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'organisationfunktion',
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
@@ -2083,9 +2078,8 @@ class Tests(util.LoRATestCase):
         expected_lora = {
             "note": "Automatisk indlæsning",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'organisationfunktion',
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
@@ -2289,7 +2283,7 @@ class Tests(util.LoRATestCase):
 
         for g, f in (
                 ('attributter', 'organisationfunktionegenskaber'),
-                ('relationer', 'adresser'),
+                ('relationer', 'tilknyttedefunktioner'),
                 ('relationer', 'opgaver'),
                 ('relationer', 'organisatoriskfunktionstype'),
                 ('relationer', 'tilknyttedebrugere'),

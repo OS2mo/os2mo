@@ -123,7 +123,7 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
                         "virkning": {
                             "to_included": False,
@@ -131,7 +131,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        'objekttype': 'organisationfunktion',
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
                     }
                 ],
@@ -328,9 +327,9 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "adresser": [
-                    {'objekttype': 'organisationfunktion',
-                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                "tilknyttedefunktioner": [
+                    {
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                      'virkning': {'from': '2017-12-01 00:00:00+01',
                                   'from_included': True,
                                   'to': '2017-12-02 00:00:00+01',
@@ -656,9 +655,9 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
-                    {'objekttype': 'organisationfunktion',
-                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                "tilknyttedefunktioner": [
+                    {
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                      'virkning': {'from': '2017-12-01 00:00:00+01',
                                   'from_included': True,
                                   'to': '2017-12-02 00:00:00+01',
@@ -942,9 +941,9 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
-                    {'objekttype': 'organisationfunktion',
-                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                "tilknyttedefunktioner": [
+                    {
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                      'virkning': {'from': '2017-12-01 00:00:00+01',
                                   'from_included': True,
                                   'to': 'infinity',
@@ -2414,6 +2413,7 @@ class AddressTests(util.LoRATestCase):
                     'user_key': 'Telefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                 },
+                'visibility': {'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                 'href': 'tel:+4587150000',
                 'name': '+4587150000',
                 'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
@@ -2516,9 +2516,9 @@ class AddressTests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {'objekttype': 'organisationfunktion',
-                     'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
+                "tilknyttedefunktioner": [
+                    {
+                        'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
                      'virkning': {'from': '2017-01-01 00:00:00+01',
                                   'from_included': True,
                                   'to': 'infinity',

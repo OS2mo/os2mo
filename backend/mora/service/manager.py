@@ -124,10 +124,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
-            adresser=[{
-                'uuid': addr_id,
-                'objekttype': 'organisationfunktion'
-            } for addr_id in addr_ids],
+            tilknyttedefunktioner=addr_ids,
         )
 
         self.payload = manager
@@ -219,9 +216,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         self.addresses = []
         for address_obj in util.checked_get(data, mapping.ADDRESS, []):
             update_fields.append((
-                mapping.SINGLE_ADDRESS_FIELD,
+                mapping.ASSOCIATED_FUNCTION_FIELD,
                 {
-                    'objekttype': 'organisationfunktion',
                     'uuid': address_obj.get(mapping.UUID),
                 },
             ))

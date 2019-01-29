@@ -101,7 +101,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             'urn': self.urn,
         }
 
-    def get_mo_properties(self):
+    def _get_mo_properties(self):
         """
         Get a MO object fragment for the properties.
 
@@ -117,21 +117,26 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         """
         return {}
 
-    def get_mo_address(self):
+    def get_mo_address_and_properties(self):
         """
-        Get a MO object fragment for the address
+        Get a MO object fragment for the address, including any eventual
+        properties
 
         E.g.
         {
             'href': 'tel:+4512345678',
             'name': '+4512345678',
-            'value': '12345678'
+            'value': '12345678',
+            'visibility': {
+                'uuid': visibility
+            }
         }
         """
         return {
             mapping.HREF: self.href,
             mapping.NAME: self.name,
-            mapping.VALUE: self.value
+            mapping.VALUE: self.value,
+            **self._get_mo_properties()
         }
 
 

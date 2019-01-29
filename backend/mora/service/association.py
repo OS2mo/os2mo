@@ -80,10 +80,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=association_type_uuid,
             opgaver=[
                 {'uuid': job_function_uuid}] if job_function_uuid else None,
-            adresser=[{
-                'uuid': addr_id,
-                'objekttype': 'organisationfunktion'
-            }],
+            tilknyttedefunktioner=[addr_id],
         )
 
         self.payload = association
@@ -162,9 +159,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             address_obj = util.checked_get(data, mapping.ADDRESS, {})
 
             update_fields.append((
-                mapping.SINGLE_ADDRESS_FIELD,
+                mapping.ASSOCIATED_FUNCTION_FIELD,
                 {
-                    'objekttype': 'organisationfunktion',
                     'uuid': address_obj.get(mapping.UUID),
                 },
             ))

@@ -62,21 +62,10 @@ class DarAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self, mock):
-        # Arrange
-        value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self, mock):
         # Arrange
@@ -158,21 +147,10 @@ class EANAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = '123456'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self):
         # Arrange
@@ -254,21 +232,10 @@ class EmailAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = 'mail@mail.dk'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self):
         # Arrange
@@ -360,29 +327,14 @@ class PhoneAddressHandlerTests(util.TestCase):
         expected = {
             'href': 'tel:+4512345678',
             'name': '+4512345678',
-            'value': '12345678'
-        }
-
-        # Act
-        actual = address_handler.get_mo_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = '12345678'
-        visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
-        address_handler = phone.PhoneAddressHandler(value, visibility)
-
-        expected = {
+            'value': '12345678',
             'visibility': {
                 'uuid': visibility
             }
         }
 
         # Act
-        actual = address_handler.get_mo_properties()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
@@ -472,21 +424,10 @@ class PNumberAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = '123456'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self):
         # Arrange
@@ -568,21 +509,10 @@ class TextAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = 'Test text whatever'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self):
         # Arrange
@@ -664,21 +594,10 @@ class WWWAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
-
-    def test_get_mo_properties(self):
-        # Arrange
-        value = 'http://www.test.org/'
-        address_handler = self.handler(value)
-
-        # Act
-        actual = address_handler.get_mo_properties()
-
-        # Assert
-        self.assertEqual({}, actual)
 
     def test_get_lora_address(self):
         # Arrange

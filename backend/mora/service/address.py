@@ -62,7 +62,7 @@ def get_one_address(effect):
     scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
     handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-    return handler.get_mo_address()
+    return handler.get_mo_address_and_properties()
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
@@ -253,8 +253,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 c, org_unit[0]['uuid'],
                 details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
             mapping.UUID: funcid,
-            **handler.get_mo_properties(),
-            **handler.get_mo_address()
+            **handler.get_mo_address_and_properties()
         }
 
         return func

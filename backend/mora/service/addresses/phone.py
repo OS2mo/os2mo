@@ -53,22 +53,22 @@ class PhoneAddressHandler(base.AddressHandler):
         return 'tel:{}'.format(self._value)
 
     def get_lora_properties(self):
+        properties = super().get_lora_properties()
         if self.visibility:
-            return [
+            properties.append(
                 {
                     'objekttype': 'synlighed',
                     'uuid': self.visibility
                 }
-            ]
-        else:
-            return super().get_lora_properties()
+            )
+        return properties
 
-    def get_mo_properties(self):
+    def _get_mo_properties(self):
+        properties = super()._get_mo_properties()
         if self.visibility:
-            return {
+            properties.update({
                 mapping.VISIBILITY: {
                     'uuid': self.visibility
                 }
-            }
-        else:
-            return super().get_mo_properties()
+            })
+        return properties

@@ -240,9 +240,8 @@ SINGLE_ADDRESS_FIELD = FieldTuple(
 )
 
 FUNCTION_ADDRESS_FIELD = FieldTuple(
-    path=('relationer', 'adresser'),
+    path=('relationer', 'tilknyttedefunktioner'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'organisationfunktion'
 )
 
 ADDRESS_TYPE_FIELD = FieldTuple(

@@ -22,9 +22,8 @@
         }
       }
     ],
-    "adresser": [
+    "tilknyttedefunktioner": [
       {
-        "objekttype": "organisationfunktion",
         "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
         "virkning": {
           "from": "2017-01-01 00:00:00+01:00",

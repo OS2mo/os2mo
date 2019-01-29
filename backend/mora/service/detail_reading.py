@@ -444,20 +444,6 @@ def get_detail(type, id, function):
     # return them as a list rather than a single object; otherwise, we
     # just return the first hit
     converters = {
-        'address': {
-            mapping.PERSON: (
-                user_cache, mapping.USER_FIELD, None, False,
-            ),
-            mapping.ORG_UNIT: (
-                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
-            ),
-            mapping.ADDRESS_TYPE: (
-                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
-            ),
-            mapping.ADDRESS: (
-                None, get_address, None, False,
-            ),
-        },
         'engagement': {
             mapping.PERSON: (
                 user_cache, mapping.USER_FIELD, None, False,
@@ -559,6 +545,7 @@ def get_detail(type, id, function):
                 'relationer': (
                     'opgaver',
                     'adresser',
+                    'tilknyttedefunktioner',
                     'organisatoriskfunktionstype',
                     'tilknyttedeenheder',
                     'tilknyttedebrugere',
@@ -586,10 +573,7 @@ def get_detail(type, id, function):
             return
 
         for v in vs:
-            if isinstance(v, str):
-                yield v
-            else:
-                yield v.get('uuid', None)
+            yield v.get('uuid', None)
 
     # extract all object IDs
     for cache, getter, cachegetter, aslist in converters[function].values():
