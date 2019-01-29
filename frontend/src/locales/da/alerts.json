@@ -31,6 +31,8 @@
     "V_ORG_UNIT_MOVE_TO_CHILD": "Organisationsenheden kan ikke flyttes under dens egen underenheder",
     "V_ORIGINAL_REQUIRED": "Original er påkrævet",
     "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller",
+    "V_CHANGING_THE_PAST": "Kan ikke foretage ændringer før dags dato",
+    "E_INVALID_INPUT": "Ugyldigt input",
     "E_UNKNOWN": "Ugyldig"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
