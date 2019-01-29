@@ -150,7 +150,7 @@ export default {
   createEntry (create) {
     return Service.post('/details/create', create)
       .then(response => {
-        EventBus.$emit(Events.ORGAISATION_UNIT_CHANGED)
+        EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
@@ -231,7 +231,7 @@ export default {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
-        EventBus.$emit(Events.ORGAISATION_UNIT_CHANGED)
+        EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE', value: response.data })
         return response.data
       })
