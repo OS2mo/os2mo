@@ -6,7 +6,7 @@
 
 import Vue from 'vue'
 import { Validator, install as VeeValidate } from 'vee-validate/dist/vee-validate.minimal.esm.js'
-import { required, url, digits, email, min, numeric, max_value } from 'vee-validate/dist/rules.esm.js' // eslint-disable-line
+import { required, url, digits, email, min, max, numeric, max_value } from 'vee-validate/dist/rules.esm.js' // eslint-disable-line
 import veeDa from 'vee-validate/dist/locale/da'
 import DateInRange from './validators/DateInRange'
 
@@ -29,8 +29,8 @@ Validator.extend('min_value', max_value)
 Validator.extend('email', email)
 Validator.extend('url', url)
 Validator.extend('numeric', numeric)
-Validator.extend('date_in_range', DateInRange)
-
 Validator.extend('min', min)
+Validator.extend('max', max)
+Validator.extend('date_in_range', DateInRange)
 
 Vue.use(VeeValidate, veeConfig)
