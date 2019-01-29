@@ -7,7 +7,7 @@
         aria-expanded="true"
         :aria-controls="nameId"
       >
-        <icon :name="open ? 'caret-down' : 'caret-right'"/>
+        <icon class="mr-1" :name="open ? 'caret-down' : 'caret-right'"/>
         <strong>{{title}}</strong>
       </div>
     </div>

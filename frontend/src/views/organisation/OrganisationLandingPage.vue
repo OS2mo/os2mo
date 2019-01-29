@@ -63,6 +63,7 @@ import Organisation from '@/api/Organisation'
 import InfoBox from '@/components/InfoBox'
 import MoLoader from '@/components/atoms/MoLoader'
 import { mapGetters } from 'vuex'
+import { Organisation as OrgStore } from '@/store/actions/organisation'
 
 export default {
   components: {
@@ -86,7 +87,7 @@ export default {
      * Get organisation.
      */
     ...mapGetters({
-      org: 'organisation/get'
+      org: OrgStore.getters.GET_ORGANISATION
     })
   },
 

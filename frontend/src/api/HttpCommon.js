@@ -1,5 +1,6 @@
 import axios from 'axios'
 import store from '@/store'
+import { Auth } from '@/store/actions/auth'
 
 /**
  * Defines the base url and headers for http calls
@@ -23,7 +24,7 @@ export default {
         console.warn('request failed', err)
 
         if (err.response.status === 401) {
-          return store.dispatch('AUTH_REQUEST')
+          return store.dispatch(Auth.actions.AUTH_REQUEST)
         }
 
         return new Promise(function (resolve, reject) {

@@ -28,6 +28,7 @@ import { mapGetters } from 'vuex'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import LiquorTree from 'liquor-tree'
+import { Organisation as OrgStore } from '@/store/actions/organisation'
 
 export default {
   components: {
@@ -70,7 +71,7 @@ export default {
        * for that organisation, and also ensure that we reset the view
        * whenever it changes.
        */
-      orgUuid: 'organisation/getUuid'
+      orgUuid: OrgStore.getters.GET_UUID
     }),
 
     /**
@@ -416,7 +417,7 @@ export default {
      increase the specificity of the selectors  -->
 <style>
   .orgunit-tree .tree > .tree-root, .tree-content {
-     padding: 0;
+     padding: 0.2vh;
    }
 
    .orgunit-tree .tree-children {
