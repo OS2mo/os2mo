@@ -1,5 +1,5 @@
 import Service from '@/api/HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import { _organisation } from '../actions/organisation'
 
 const state = {
@@ -10,11 +10,10 @@ const state = {
 
 const actions = {
   [_organisation.actions.SET_ORGANISATION] ({ commit }, payload) {
-    console.log(payload)
     return Service.get(`/o/${payload}/`)
       .then(response => {
         commit(_organisation.mutations.SET_ORGANISATION, response.data)
-        EventBus.$emit('organisation-changed', response.data)
+        EventBus.$emit(Events.ORGANISATION_CHANGED, response.data)
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })

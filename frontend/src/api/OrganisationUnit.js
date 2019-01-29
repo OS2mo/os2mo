@@ -1,5 +1,5 @@
 import Service from './HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 import URLSearchParams from '@ungap/url-search-params'
 
@@ -13,7 +13,7 @@ export default {
   get (uuid) {
     return Service.get(`/ou/${uuid}/`)
       .then(response => {
-        EventBus.$emit('organisation-changed', response.data.org)
+        EventBus.$emit(Events.ORGANISATION_CHANGED, response.data.org)
         return response.data
       })
       .catch(error => {
@@ -130,7 +130,7 @@ export default {
   create (create) {
     return Service.post('/ou/create', create)
       .then(response => {
-        EventBus.$emit('update-tree-view')
+        EventBus.$emit(Events.UPDATE_TREE_VIEW)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
@@ -150,7 +150,7 @@ export default {
   createEntry (create) {
     return Service.post('/details/create', create)
       .then(response => {
-        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
@@ -169,8 +169,8 @@ export default {
   editEntry (edit) {
     return Service.post('/details/edit', edit)
       .then(response => {
-        EventBus.$emit('update-tree-view')
-        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit(Events.UPDATE_TREE_VIEW)
+        EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         return response
       })
       .catch(error => {
@@ -215,7 +215,7 @@ export default {
         if (response.data.error) {
           return response.data
         }
-        EventBus.$emit('update-tree-view')
+        EventBus.$emit(Events.UPDATE_TREE_VIEW)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE', value: response.data })
         return response.data
       })
@@ -230,8 +230,8 @@ export default {
   terminate (uuid, terminate) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
-        EventBus.$emit('update-tree-view')
-        EventBus.$emit('organisation-unit-changed')
+        EventBus.$emit(Events.UPDATE_TREE_VIEW)
+        EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE', value: response.data })
         return response.data
       })
