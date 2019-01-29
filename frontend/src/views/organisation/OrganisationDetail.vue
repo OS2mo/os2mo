@@ -26,7 +26,7 @@
       <organisation-detail-tabs
         :uuid="route.params.uuid"
         :org-unit-info="orgUnit"
-        :content="$orgUnitDetails"
+        :content="orgUnitDetails"
         @show="loadContent($event)"/>
     </div>
     <div class="card-body" v-show="!orgUnit">
