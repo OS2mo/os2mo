@@ -7,7 +7,9 @@
 #
 from . import util
 
-from mora.service.address_handler import dar, ean, email, phone, pnumber, text, www
+from mora.service.address_handler import (dar, ean, email, phone, pnumber,
+                                          text,
+                                          www)
 
 
 @util.mock('dawa-addresses.json')

@@ -330,10 +330,13 @@ class Tests(util.LoRATestCase):
                 "tilknyttedefunktioner": [
                     {
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                     'virkning': {'from': '2017-12-01 00:00:00+01',
-                                  'from_included': True,
-                                  'to': '2017-12-02 00:00:00+01',
-                                  'to_included': False}}
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False
+                        }
+                    }
                 ],
             },
             "attributter": {
@@ -658,10 +661,13 @@ class Tests(util.LoRATestCase):
                 "tilknyttedefunktioner": [
                     {
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                     'virkning': {'from': '2017-12-01 00:00:00+01',
-                                  'from_included': True,
-                                  'to': '2017-12-02 00:00:00+01',
-                                  'to_included': False}}
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False
+                        }
+                    }
                 ],
             },
             "attributter": {
@@ -944,10 +950,13 @@ class Tests(util.LoRATestCase):
                 "tilknyttedefunktioner": [
                     {
                         'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                     'virkning': {'from': '2017-12-01 00:00:00+01',
-                                  'from_included': True,
-                                  'to': 'infinity',
-                                  'to_included': False}}
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
                 ],
             },
             "attributter": {
@@ -2519,10 +2528,13 @@ class AddressTests(util.LoRATestCase):
                 "tilknyttedefunktioner": [
                     {
                         'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
-                     'virkning': {'from': '2017-01-01 00:00:00+01',
-                                  'from_included': True,
-                                  'to': 'infinity',
-                                  'to_included': False}}
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
                 ]
             },
             "livscykluskode": "Rettet",
