@@ -7,7 +7,7 @@
 #
 
 from . import address
-from . import addresses
+from . import address_handler
 from . import association  # noqa
 from . import cpr
 from . import detail_reading

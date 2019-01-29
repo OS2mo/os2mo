@@ -24,7 +24,7 @@ from . import facet
 from . import employee
 from . import orgunit
 
-from .addresses import base
+from .address_handler import base
 
 session = requests.Session()
 session.headers = {
