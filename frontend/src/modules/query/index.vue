@@ -7,7 +7,7 @@
       </h4>
       <span v-for="(q, index) in queries" :key="index">
         <icon name="download"/>
-      <a href="#" @click="$store.dispatch('$_queryList/downloadFile', q)">{{q}}</a>
+      <a href="#" @click="downloadFile(q)">{{q}}</a>
       </span>
     </div>
   </div>
@@ -17,20 +17,24 @@
 import store from './_store'
 import { mapGetters } from 'vuex'
 
+const STORE_KEY = '$_queryList'
+
 export default {
   computed: {
-    ...mapGetters({
-      queries: '$_queryList/getQueries'
+    ...mapGetters(STORE_KEY, {
+      queries: 'getQueries'
     })
   },
   created () {
-    const STORE_KEY = '$_queryList'
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)
     }
+    this.$store.dispatch(`${STORE_KEY}/getQueries`)
   },
-  mounted () {
-    this.$store.dispatch('$_queryList/getQueries')
+  methods: {
+    download (file) {
+      this.$store.dispatch(`${STORE_KEY}/downloadFile`, file)
+    }
   }
 }
 </script>
