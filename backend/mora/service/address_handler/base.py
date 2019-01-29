@@ -28,7 +28,9 @@ class _AddressHandlerMeta(abc.ABCMeta):
 
 
 class AddressHandler(metaclass=_AddressHandlerMeta):
-    __slots__ = 'scope', 'prefix', '_value'
+    scope = None
+    prefix = None
+    _value = None
 
     @classmethod
     def _register(cls):
