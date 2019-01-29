@@ -15,6 +15,7 @@
 
 import sortBy from 'lodash.sortby'
 import { MoInputSelect } from '@/components/MoInput'
+import { Facet } from '@/store/actions/facet'
 
 export default {
   name: 'MoFacetPicker',
@@ -41,7 +42,7 @@ export default {
 
   computed: {
     facetData () {
-      return this.$store.getters['facet/GET_FACET'](this.facet)
+      return this.$store.getters[Facet.getters.GET_FACET](this.facet)
     },
     sortedOptions () {
       return sortBy(this.facetData.classes, 'name')
@@ -80,7 +81,7 @@ export default {
   },
 
   created () {
-    this.$store.dispatch('facet/SET_FACET', this.facet)
+    this.$store.dispatch(Facet.actions.SET_FACET, this.facet)
   },
 
   mounted () {
