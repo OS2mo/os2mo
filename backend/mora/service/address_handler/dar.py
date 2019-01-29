@@ -29,7 +29,7 @@ class DARAddressHandler(base.AddressHandler):
         try:
             self.address_object = self._fetch_from_dar(value)
         except Exception as exc:
-            self.address_object = {
+            self.error = {
                 mapping.NAME: NOT_FOUND,
                 mapping.HREF: None,
                 mapping.VALUE: value,
@@ -59,8 +59,8 @@ class DARAddressHandler(base.AddressHandler):
         return href
 
     def get_mo_address_and_properties(self):
-        if self.address_object.get(mapping.ERROR):
-            return self.address_object
+        if hasattr(self, 'error'):
+            return self.error
         else:
             return super().get_mo_address_and_properties()
 
