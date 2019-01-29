@@ -165,7 +165,7 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'address'
-        newVal.org = this.$store.getters['organisation/get']
+        newVal.org = this.$store.getters['organisation/GET_ORGANISATION']
         this.$emit('input', newVal)
       },
       deep: true
