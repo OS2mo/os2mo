@@ -24,6 +24,7 @@ Internal changes
 * #26551: Restructured how frontend files are organised.
 * #26600: Some styling issues.
 * #26604: Menu items and shortcuts can now be added via an internal API.
+* #26675: Moved i18n and validation import into seperate files.
 
 Bug fixes
 ---------
