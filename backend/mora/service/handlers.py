@@ -75,7 +75,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request, request_type: RequestType):
+    def __init__(self, request: dict, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
 
