@@ -53,7 +53,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                                       mapping.ASSOCIATION_TYPE,
                                                       required=True)
 
-        addr_id = util.get_mapping_uuid(req, mapping.ADDRESS)
+        addr_func_id = util.get_mapping_uuid(req, mapping.ADDRESS)
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -80,7 +80,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=association_type_uuid,
             opgaver=[
                 {'uuid': job_function_uuid}] if job_function_uuid else None,
-            tilknyttedefunktioner=[addr_id],
+            tilknyttedefunktioner=[addr_func_id],
         )
 
         self.payload = association
