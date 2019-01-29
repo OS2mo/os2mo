@@ -71,7 +71,6 @@ import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
-import '@/filters/GetProperty'
 
 export default {
   mixins: [ValidateForm, ModalBase],

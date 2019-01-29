@@ -87,7 +87,6 @@
  * A table component.
  */
 
-import '@/filters/GetProperty'
 import '@/filters/Date'
 import MoLoader from '@/components/atoms/MoLoader'
 import MoEntryEditModal from '@/components/MoEntryEditModal'
