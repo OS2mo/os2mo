@@ -25,6 +25,7 @@ Internal changes
 * #26600: Some styling issues.
 * #26604: Menu items and shortcuts can now be added via an internal API.
 * #26658: Added constant names to global store.
+* #26686: Added documentation to frontend.
 
 Bug fixes
 ---------
