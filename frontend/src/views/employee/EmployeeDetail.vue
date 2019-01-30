@@ -9,7 +9,13 @@
       </h4>
 
       <div class="row">
-        <div class="col"></div>
+        <div class="col">
+          <h5 class="ml-4 col-margin">
+            <span class="nickname">
+              <icon name="edit" class="icons"/>
+            </span>
+          </h5>
+        </div>
 
         <div class="mr-3">
           <mo-history :uuid="route.params.uuid" type="EMPLOYEE"/>
@@ -89,6 +95,16 @@ export default {
 
 <style scoped>
   .cpr {
-    color: #aaa
+    color: #aaa;
+  }
+  .col-margin {
+    margin-top: -1vh;
+  }
+  .nickname {
+    color: #aaa;
+  }
+  .icons :hover{
+    color: #007bff;
+    cursor: pointer;
   }
 </style>
