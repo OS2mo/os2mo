@@ -47,8 +47,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         if not system:
             exceptions.ErrorCodes.E_NOT_FOUND()
 
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=False)
+        # Get org unit uuid for validation purposes
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=False)
+        org_unit_uuid = util.get_uuid(org_unit, required=False)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
@@ -60,8 +62,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, '', required=True)
 
         # Validation
-        if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range(org_unit_uuid,
+        if org_unit:
+            validator.is_date_range_in_org_unit_range(org_unit,
                                                       valid_from,
                                                       valid_to)
 

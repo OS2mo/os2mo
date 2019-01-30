@@ -514,23 +514,26 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner = [{
-            'urn': 'urn:dk:cpr:person:1205320000',
-            'virkning': {
-                'from': '1932-05-12 00:00:00+01',
-                'from_included': True,
-                'to': '2017-01-01 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'urn': 'urn:dk:cpr:person:0202020202',
-            'virkning': {
-                'from': '2017-01-01 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }]
+        expected_tilknyttedepersoner = [
+            {
+                'urn': 'urn:dk:cpr:person:0202020202',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:dk:cpr:person:1205320000',
+                'virkning': {
+                    'from': '1932-05-12 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+        ]
 
         # but looking at the validity of the original that was sent along
         # the period from that fromdate up to the this fromdate has been
@@ -647,23 +650,26 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner = [{
-            'urn': 'urn:dk:cpr:person:1205320000',
-            'virkning': {
-                'from': '1932-05-12 00:00:00+01',
-                'from_included': True,
-                'to': '2017-02-02 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'urn': 'urn:dk:cpr:person:0101010101',
-            'virkning': {
-                'from': '2017-02-02 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }]
+        expected_tilknyttedepersoner = [
+            {
+                'urn': 'urn:dk:cpr:person:0101010101',
+                'virkning': {
+                    'from': '2017-02-02 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:dk:cpr:person:1205320000',
+                'virkning': {
+                    'from': '1932-05-12 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-02-02 00:00:00+01',
+                    'to_included': False
+                }
+            },
+        ]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.bruger.get(userid)

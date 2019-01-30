@@ -115,8 +115,14 @@ export default {
         let vm = this
         this.isLoading = true
 
-        this.addresses.push(this.postAddress, this.phone)
-        this.entry.addresses = this.addresses
+        this.addresses = [this.postAddress, this.phone]
+        this.addresses.forEach(a => {
+          if (!a.validity) {
+            a.validity = this.entry.validity
+          }
+          a.org = this.$store.getters['organisation/GET_ORGANISATION']
+        })
+        this.entry.details = this.addresses
 
         OrganisationUnit.create(this.entry)
           .then(response => {

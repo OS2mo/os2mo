@@ -39,6 +39,17 @@ OPGAVER_COLUMNS = {
 }
 
 
+URN_PREFIXES = {
+    'EMAIL': 'urn:mailto:',
+    'PHONE': 'urn:magenta.dk:telefon:',
+    'EAN': 'urn:magenta.dk:ean:',
+    'WWW': 'urn:magenta.dk:www:',
+    'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
+    'TEXT': 'urn:text:',
+    'DAR': 'urn:dar:'
+}
+
+
 def nolower(s: str) -> str:
     return s if not s or not s.islower() else s.capitalize()
 
@@ -95,7 +106,7 @@ def _make_addresses_relation(obj):
                     if not v.startswith('+45'):
                         v = '+45' + v.zfill(8)
 
-                v = address.URN_PREFIXES[scope] + str(v)
+                v = URN_PREFIXES[scope] + str(v)
 
             r.append({
                 'urn': v,

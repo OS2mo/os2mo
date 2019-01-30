@@ -39,14 +39,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "address": {
-                    'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'value': '33369696',
+                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -130,7 +123,7 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
                         "virkning": {
                             "to_included": False,
@@ -138,8 +131,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        'urn': 'urn:magenta.dk:telefon:+4533369696',
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
                     }
                 ],
             },
@@ -162,7 +154,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        associations = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
@@ -172,16 +165,18 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'href': 'tel:+4533369696',
-                'name': '33369696',
-                'urn': 'urn:magenta.dk:telefon:+4533369696',
                 'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'href': 'https://www.openstreetmap.org/?mlon='
+                        '10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -245,14 +240,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "address": {
-                    'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'value': '33369696',
+                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -339,16 +327,15 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        'urn': 'urn:magenta.dk:telefon:+4533369696',
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False
+                        }
                     }
                 ],
             },
@@ -379,16 +366,18 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'href': 'tel:+4533369696',
-                'name': '33369696',
-                'urn': 'urn:magenta.dk:telefon:+4533369696',
                 'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -494,14 +483,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "address": {
-                    'address_type': {
-                        'example': '20304060',
-                        'name': 'Telefonnummer',
-                        'scope': 'PHONE',
-                        'user_key': 'Telefon',
-                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    },
-                    'value': '33369696',
+                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -575,6 +557,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'Telefon',
                             'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                         },
+                        'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80",
                         'value': '33369696',
                     },
                     "validity": {
@@ -603,14 +586,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "address": {
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -682,16 +658,15 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018"
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': '2017-12-02 00:00:00+01',
+                            'to_included': False
+                        }
                     }
                 ],
             },
@@ -714,7 +689,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        associations = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
@@ -724,17 +700,18 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'href': 'https://www.openstreetmap.org/'
-                '?mlon=12.57924839&mlat=55.68113676&zoom=16',
-                'name': 'Pilestræde 43, 3., 1112 København K',
-                'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'href': 'https://www.openstreetmap.org/?mlon='
+                        '10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -888,14 +865,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "address": {
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -977,16 +947,15 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018"
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'virkning': {
+                            'from': '2017-12-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
                     }
                 ],
             },
@@ -1009,7 +978,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        associations = c.organisationfunktion.fetch(tilknyttedebrugere=userid)
+        associations = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
@@ -1019,17 +989,18 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'href': 'https://www.openstreetmap.org/'
-                '?mlon=12.57924839&mlat=55.68113676&zoom=16',
-                'name': 'Pilestræde 43, 3., 1112 København K',
-                'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
                 'address_type': {
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
                     'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             },
             'association_type': {
                 'example': None,
@@ -1485,14 +1456,7 @@ class Tests(util.LoRATestCase):
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
             },
             "address": {
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                },
-                'value': '33369696',
+                'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
             },
             "validity": {
                 "from": "2017-12-01",
@@ -2435,14 +2399,7 @@ class AddressTests(util.LoRATestCase):
             "uuid": association_uuid,
             "data": {
                 "address": {
-                    "value": "user@example.com",
-                    "address_type": {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                    },
+                    'uuid': "55848eca-4e9e-4f30-954b-78d55eec0473"
                 },
                 "validity": {
                     "from": "2017-01-01",
@@ -2458,16 +2415,18 @@ class AddressTests(util.LoRATestCase):
 
         expected = [{
             'address': {
-                'href': 'mailto:user@example.com',
-                'name': 'user@example.com',
-                'urn': 'urn:mailto:user@example.com',
                 'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                 },
+                'visibility': {'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
+                'href': 'tel:+4587150000',
+                'name': '+4587150000',
+                'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
+                'value': '87150000'
             },
             'association_type': {
                 'example': None,
@@ -2502,46 +2461,6 @@ class AddressTests(util.LoRATestCase):
                 'to': None,
             },
         }]
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/association'.format(userid),
-            expected,
-        )
-
-        expected[0].update(
-            validity={
-                'from': '2017-01-01',
-                'to': '2018-03-31',
-            },
-        )
-
-        req = [{
-            "type": "association",
-            "uuid": association_uuid,
-            "data": {
-                "address": {
-                    "address_type": {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                },
-                "validity": {
-                    "from": "2017-06-01",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [association_uuid],
-            json=req,
-        )
-
-        expected[0]['validity']['to'] = "2017-05-31"
 
         self.assertRequestResponse(
             '/service/e/{}/details/association'.format(userid),
@@ -2606,25 +2525,14 @@ class AddressTests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
+                "tilknyttedefunktioner": [
                     {
-                        "urn": "urn:mailto:user@example.com",
-                        "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2017-06-01 00:00:00+02",
-                        }
-                    },
-                    {
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-06-01 00:00:00+02",
-                            "to": "infinity"
+                        'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
                         }
                     }
                 ]
@@ -2638,15 +2546,6 @@ class AddressTests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2017-06-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-06-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -2672,29 +2571,3 @@ class AddressTests(util.LoRATestCase):
         actual_association = c.organisationfunktion.get(association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
-
-        expected[0].update(
-            address={
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                },
-                'href': 'https://www.openstreetmap.org/'
-                '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                'name': 'Åbogade 15, 8200 Aarhus N',
-                'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-            },
-            validity={
-                'from': '2017-06-01',
-                'to': None,
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/association'
-            '?validity=future'.format(userid),
-            expected,
-        )

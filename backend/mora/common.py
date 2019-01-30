@@ -140,6 +140,7 @@ def update_payload(
     obj: dict,
     payload: dict,
 ):
+    relevant_fields = copy.deepcopy(relevant_fields)
     combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
 
     for field_tuple, vals in combined_fields.lists():
@@ -298,10 +299,11 @@ def create_organisationsfunktion_payload(
     tilknyttedebrugere: typing.List[str],
     tilknyttedeorganisationer: typing.List[str],
     tilknyttedeenheder: typing.List[str] = None,
+    tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[str] = None
+    adresser: typing.List[dict] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -344,6 +346,11 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['tilknyttedeenheder'] = [{
             'uuid': uuid
         } for uuid in tilknyttedeenheder]
+
+    if tilknyttedefunktioner:
+        org_funk['relationer']['tilknyttedefunktioner'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedefunktioner]
 
     if tilknyttedeitsystemer:
         org_funk['relationer']['tilknyttedeitsystemer'] = [{

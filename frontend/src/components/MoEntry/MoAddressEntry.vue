@@ -154,6 +154,7 @@ export default {
       handler (newValue) {
         this.entry.type = 'address'
         this.entry.value = newValue
+        this.entry.address = { value: newValue }
         this.$emit('input', this.entry)
       }
     },
@@ -164,6 +165,7 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'address'
+        newVal.org = this.$store.getters['organisation/GET_ORGANISATION']
         this.$emit('input', newVal)
       },
       deep: true
@@ -176,7 +178,7 @@ export default {
       handler (val) {
         if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
-          this.entry.uuid = val.location.uuid
+          this.entry.value = val.location.uuid
         } else {
           this.entry.value = val
         }
@@ -199,7 +201,7 @@ export default {
       }
     }
     this.entry = this.value
-    this.contactInfo = this.value.name
+    this.contactInfo = this.value.value
   }
 }
 </script>

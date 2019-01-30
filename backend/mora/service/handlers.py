@@ -146,7 +146,7 @@ class ReadingRequestHandler(RequestHandler):
 
     @classmethod
     @abc.abstractmethod
-    def get(cls, scope, objid):
+    def get(cls, c, type, objid):
         pass
 
 

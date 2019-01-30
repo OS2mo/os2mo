@@ -1,81 +1,71 @@
 {
-    "attributter": {
-        "organisationenhedegenskaber": [
-            {
-                "brugervendtnoegle": "frem",
-                "enhedsnavn": "Afdeling for Fremtidshistorik",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2017-01-01 00:00:00+01:00"
-                }
-            },
-            {
-                "brugervendtnoegle": "frem",
-                "enhedsnavn": "Afdeling for Samtidshistorik",
-                "virkning": {
-                    "from": "2017-01-01 00:00:00+01:00",
-                    "to": "2018-01-01 00:00:00+01:00"
-                }
-            },
-            {
-                "brugervendtnoegle": "frem",
-                "enhedsnavn": "Afdeling for Fortidshistorik",
-                "virkning": {
-                    "from": "2018-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ]
-    },
-    "tilstande": {
-        "organisationenhedgyldighed": [
-            {
-                "gyldighed": "Aktiv",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ]
-    },
-    "relationer": {
-        "tilhoerer": [
-            {
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ],
-        "overordnet": [
-            {
-                "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ],
-        "enhedstype": [
-            {
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ],
-        "adresser": [
-            {
-                "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01:00",
-                    "to": "2019-01-01 00:00:00+01:00"
-                }
-            }
-        ]
-    },
-    "note": "Automatisk indl\u00e6sning"
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "frem",
+        "enhedsnavn": "Afdeling for Fremtidshistorik",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "2017-01-01 00:00:00+01:00"
+        }
+      },
+      {
+        "brugervendtnoegle": "frem",
+        "enhedsnavn": "Afdeling for Samtidshistorik",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "2018-01-01 00:00:00+01:00"
+        }
+      },
+      {
+        "brugervendtnoegle": "frem",
+        "enhedsnavn": "Afdeling for Fortidshistorik",
+        "virkning": {
+          "from": "2018-01-01 00:00:00+01:00",
+          "to": "2019-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "2019-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "tilhoerer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "2019-01-01 00:00:00+01:00"
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "2019-01-01 00:00:00+01:00"
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+        "virkning": {
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "2019-01-01 00:00:00+01:00"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning"
 }

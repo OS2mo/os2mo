@@ -39,6 +39,7 @@ INTEGRATION_DATA = 'integration_data'
 # Address
 ADDRESS_KEY = 'Adresse'
 ADDRESS_TYPE = 'address_type'
+VISIBILITY = 'visibility'
 
 # Employee
 CPR_NO = 'cpr_no'
@@ -65,6 +66,7 @@ LEAVE_TYPE = 'leave_type'
 
 # Manager
 MANAGER_KEY = 'Leder'
+MANAGER = 'manager'
 MANAGER_TYPE = 'manager_type'
 MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
@@ -182,6 +184,11 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_FUNCTION_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ZERO_TO_MANY,
@@ -232,6 +239,16 @@ SINGLE_ADDRESS_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+FUNCTION_ADDRESS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+ADDRESS_TYPE_FIELD = FieldTuple(
+    path=('relationer', 'organisatoriskfunktionstype'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 MANAGER_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -247,6 +264,12 @@ MANAGER_LEVEL_FIELD = FieldTuple(
     path=('relationer', 'opgaver'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
     filter_fn=lambda x: x['objekttype'] == 'lederniveau'
+)
+
+VISIBILITY_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'synlighed'
 )
 
 SINGLE_ITSYSTEM_FIELD = FieldTuple(
@@ -343,4 +366,16 @@ ITSYSTEM_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     SINGLE_ITSYSTEM_FIELD,
+}
+
+ADDRESS_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    SINGLE_ADDRESS_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    ADDRESS_TYPE_FIELD,
+    # Hard-coded here for now
+    VISIBILITY_FIELD
 }

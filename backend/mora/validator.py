@@ -118,7 +118,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
 
 
 @forceable
-def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
+def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
     # query for the full range of effects; otherwise,
     # _get_active_validity() won't return any useful data for time
     # intervals predating the creation of the unit
@@ -127,21 +127,30 @@ def is_date_range_in_org_unit_range(org_unit_uuid, valid_from, valid_to):
         virkningtil=util.to_lora_time(util.POSITIVE_INFINITY)
     ).organisationenhed
 
-    org_unit = scope.get(org_unit_uuid)
+    if org_unit_obj.get('allow_nonexistent'):
+        org_unit_valid_from = org_unit_obj.get(mapping.VALID_FROM)
+        org_unit_valid_to = org_unit_obj.get(mapping.VALID_TO)
+        is_contained_in_range(
+            org_unit_valid_from, org_unit_valid_to,
+            valid_from, valid_to,
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE)
+    else:
+        org_unit_uuid = org_unit_obj.get(mapping.UUID)
+        org_unit = scope.get(org_unit_uuid)
+        if not org_unit:
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
+                org_unit_uuid=org_unit_uuid)
 
-    if not org_unit:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=org_unit_uuid)
+        gyldighed_key = "organisationenhedgyldighed"
 
-    gyldighed_key = "organisationenhedgyldighed"
-
-    if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
-                                gyldighed_key):
-        exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
-            org_unit_uuid=org_unit_uuid,
-            wanted_valid_from=util.to_iso_date(valid_from),
-            wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
-            **_get_active_validity(org_unit),
-        )
+        if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
+                                    gyldighed_key):
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
+                org_unit_uuid=org_unit_uuid,
+                wanted_valid_from=util.to_iso_date(valid_from),
+                wanted_valid_to=util.to_iso_date(valid_to, is_end=True),
+                **_get_active_validity(org_unit),
+            )
 
 
 @forceable
@@ -172,8 +181,9 @@ def is_date_range_in_employee_range(employee_obj: dict,
     if employee_obj.get('allow_nonexistent'):
         employee_valid_from = employee_obj.get(mapping.VALID_FROM)
         employee_valid_to = employee_obj.get(mapping.VALID_TO)
-        is_contained_in_employee_range(employee_valid_from, employee_valid_to,
-                                       valid_from, valid_to)
+        is_contained_in_range(employee_valid_from, employee_valid_to,
+                              valid_from, valid_to,
+                              exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
     else:
         employee_uuid = employee_obj.get(mapping.UUID)
         employee = scope.get(employee_uuid)
@@ -192,11 +202,12 @@ def is_date_range_in_employee_range(employee_obj: dict,
 
 
 @forceable
-def is_contained_in_employee_range(empl_from, empl_to, valid_from, valid_to):
-    if valid_from < empl_from or empl_to < valid_to:
-        exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
-            valid_from=util.to_iso_date(empl_from),
-            valid_to=util.to_iso_date(empl_to),
+def is_contained_in_range(candidate_from, candidate_to, valid_from, valid_to,
+                          exception):
+    if valid_from < candidate_from or candidate_to < valid_to:
+        exception(
+            valid_from=util.to_iso_date(candidate_from),
+            valid_to=util.to_iso_date(candidate_to),
             wanted_valid_from=util.to_iso_date(valid_from),
             wanted_valid_to=util.to_iso_date(valid_to)
         )

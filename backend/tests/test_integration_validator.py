@@ -53,7 +53,9 @@ class TestValidator(TestHelper):
         enddate = '01-06-2017'
 
         validator.is_date_range_in_org_unit_range(
-            self.PARENT,
+            {
+                'uuid': self.PARENT
+            },
             mora_util.parsedatetime(startdate),
             mora_util.parsedatetime(enddate)
         )
@@ -69,7 +71,9 @@ class TestValidator(TestHelper):
         enddate = '01-06-2017'
 
         validator.is_date_range_in_org_unit_range(
-            self.PARENT,
+            {
+                'uuid': self.PARENT
+            },
             mora_util.parsedatetime(startdate),
             mora_util.parsedatetime(enddate)
         )
@@ -85,7 +89,9 @@ class TestValidator(TestHelper):
         enddate = '01-01-2018'
 
         validator.is_date_range_in_org_unit_range(
-            self.PARENT,
+            {
+                'uuid': self.PARENT
+            },
             mora_util.parsedatetime(startdate),
             mora_util.parsedatetime(enddate)
         )
@@ -102,7 +108,9 @@ class TestValidator(TestHelper):
 
         with self.assertRaises(exceptions.HTTPException):
             validator.is_date_range_in_org_unit_range(
-                self.PARENT,
+                {
+                    'uuid': self.PARENT
+                },
                 mora_util.parsedatetime(startdate),
                 mora_util.parsedatetime(enddate)
             )
@@ -119,7 +127,9 @@ class TestValidator(TestHelper):
 
         with self.assertRaises(exceptions.HTTPException):
             validator.is_date_range_in_org_unit_range(
-                self.PARENT,
+                {
+                    'uuid': self.PARENT
+                },
                 mora_util.parsedatetime(startdate),
                 mora_util.parsedatetime(enddate)
             )
@@ -136,7 +146,9 @@ class TestValidator(TestHelper):
 
         with self.assertRaises(exceptions.HTTPException):
             validator.is_date_range_in_org_unit_range(
-                self.PARENT,
+                {
+                    'uuid': self.PARENT
+                },
                 mora_util.parsedatetime(startdate),
                 mora_util.parsedatetime(enddate)
             )
@@ -314,7 +326,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
             )
 
 
-class TestIsContainedInEmployeeRange(TestHelper):
+class TestIsContainedInRange(TestHelper):
 
     def test_raises_when_outside_range_upper(self):
         empl_from = datetime.date(2010, 1, 1)
@@ -324,8 +336,10 @@ class TestIsContainedInEmployeeRange(TestHelper):
         valid_to = datetime.date(2020, 1, 1)
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_contained_in_employee_range(empl_from, empl_to,
-                                                     valid_from, valid_to)
+            validator.is_contained_in_range(
+                empl_from, empl_to,
+                valid_from, valid_to,
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
 
     def test_raises_when_outside_range_lower(self):
         empl_from = datetime.date(2010, 1, 1)
@@ -335,8 +349,10 @@ class TestIsContainedInEmployeeRange(TestHelper):
         valid_to = datetime.date(2016, 1, 1)
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_contained_in_employee_range(empl_from, empl_to,
-                                                     valid_from, valid_to)
+            validator.is_contained_in_range(
+                empl_from, empl_to,
+                valid_from, valid_to,
+                exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
 
     def test_passes_when_inside_range(self):
         empl_from = datetime.date(2010, 1, 1)
@@ -346,5 +362,7 @@ class TestIsContainedInEmployeeRange(TestHelper):
         valid_to = datetime.date(2018, 1, 1)
 
         # Should not raise an exception
-        validator.is_contained_in_employee_range(empl_from, empl_to,
-                                                 valid_from, valid_to)
+        validator.is_contained_in_range(
+            empl_from, empl_to,
+            valid_from, valid_to,
+            exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)

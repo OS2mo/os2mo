@@ -29,7 +29,7 @@ class Tests(util.TestCase):
         p.side_effect = ValueError('go away')
 
         self.assertRequestResponse(
-            '/service/ou/00000000-0000-0000-0000-000000000000/details/',
+            '/service/ou/00000000-0000-0000-0000-000000000000/',
             {
                 'error': True,
                 'error_key': 'E_UNKNOWN',
