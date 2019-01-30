@@ -2,6 +2,13 @@
   <form @submit.stop.prevent="createEmployee">
     <mo-cpr v-model="employee"/>
 
+    <div class="form-row mt-3">
+      <mo-input-text
+        class="col-8"
+        :label="$t('input_fields.nickname')"
+      />
+    </div>
+
     <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
     <mo-engagement-entry v-model="engagement"/>
 
@@ -65,6 +72,7 @@ import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
+import { MoInputText } from '@/components/MoInput'
 import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
 import store from './_store/employeeCreate.js'
 
@@ -76,6 +84,7 @@ export default {
   components: {
     ButtonSubmit,
     MoCpr,
+    MoInputText,
     MoAddMany,
     MoEngagementEntry
   },
