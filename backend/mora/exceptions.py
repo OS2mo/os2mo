@@ -43,6 +43,16 @@ class ErrorCodes(Enum):
         '''Raise an :py:class:`HTTPException` for this error code'''
         raise HTTPException(self, *args, **kwargs)
 
+    @classmethod
+    def fromcode(cls, code: int):
+        codemap = {
+            400: cls.E_INVALID_INPUT,
+            401: cls.E_UNAUTHORIZED,
+            403: cls.E_FORBIDDEN,
+        }
+
+        return codemap.get(code, cls.E_UNKNOWN)
+
     # Validation errors
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
     V_INVALID_VALIDITY = 400, "Invalid validity."

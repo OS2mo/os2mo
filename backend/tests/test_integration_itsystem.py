@@ -156,6 +156,11 @@ class Writing(util.LoRATestCase):
                 'description': 'invalid input syntax for uuid: "None"',
                 'error': True,
                 'error_key': 'E_INVALID_INPUT',
+                "reason": "BAD REQUEST",
+                "path": '/organisation/itsystem'
+                '?virkningfra=2017-01-01T01%3A00%3A00%2B01%3A00'
+                '&virkningtil=2017-01-01T01%3A00%3A00.000001%2B01%3A00'
+                '&uuid=None',
                 'status': 400,
             },
             json=[

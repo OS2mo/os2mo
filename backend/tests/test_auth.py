@@ -33,6 +33,11 @@ class MockTests(util.TestCase):
                 'error': True,
                 'error_key': 'E_UNAUTHORIZED',
                 'description': 'No Authorization header present',
+                'path': '/organisation/organisation'
+                '?virkningfra=2001-01-01T00%3A00%3A00%2B01%3A00'
+                '&virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
+                '&bvn=%25&maximalantalresultater=2000&foersteresultat=0',
+                'reason': None,
                 'status': 401,
             },
             status_code=401,

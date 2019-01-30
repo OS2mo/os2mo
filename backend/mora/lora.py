@@ -146,21 +146,27 @@ ALL_RELATION_NAMES = {
 
 def _check_response(r):
     if not r.ok:
-        try:
-            cause = r.json()
-            msg = cause['message']
-        except (ValueError, KeyError):
-            cause = None
-            msg = r.text
+        kwargs = {
+            'reason': r.reason,
+            'path': r.request.path_url,
+        }
 
-        if r.status_code == 400:
-            exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
-        elif r.status_code == 401:
-            exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
-        elif r.status_code == 403:
-            exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
-        else:
-            exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
+        try:
+            kwargs['cause'] = r.json()
+        except (ValueError, KeyError):
+            kwargs['cause'] = None
+
+        if kwargs['cause']:
+            kwargs['message'] = (
+                kwargs['cause'].get('message') or
+                kwargs['cause'].get('text')
+            )
+
+        if not kwargs.get('message'):
+            kwargs['message'] = r.text or r.reason
+
+        errcode = exceptions.ErrorCodes.fromcode(r.status_code)
+        errcode(**kwargs)
 
     return r
 

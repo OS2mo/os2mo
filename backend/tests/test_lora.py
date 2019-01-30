@@ -299,6 +299,8 @@ class Tests(util.TestCase):
                         'error': True,
                         'status': status_out,
                         'error_key': error_key,
+                        'path': '/organisation/organisationenhed?uuid=42',
+                        'reason': None,
                         'description': 'go away',
                     },
                     ctxt.exception.response.json,
@@ -320,6 +322,8 @@ class Tests(util.TestCase):
                         'status': status_out,
                         'error_key': error_key,
                         'description': 'I hate you',
+                        'path': '/organisation/organisationenhed?uuid=42',
+                        'reason': None,
                     },
                     ctxt.exception.response.json,
                 )
@@ -344,6 +348,8 @@ class Tests(util.TestCase):
                 'status': 500,
                 'error_key': 'E_UNKNOWN',
                 'description': 'go away',
+                'path': '/organisation/organisationenhed?uuid=42',
+                'reason': None,
                 'context': {
                     'message': 'go away',
                     'something': 'other',
