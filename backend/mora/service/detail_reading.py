@@ -55,6 +55,49 @@ DETAIL_TYPES = {
 }
 
 
+@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
+@util.restrictargs()
+def list_details(type, id):
+    '''List the available 'detail' types under this entry.
+    .. :quickref: Detail; List
+    **Example response**:
+    .. sourcecode:: json
+      {
+        "address": false,
+        "association": false,
+        "engagement": true,
+        "it": false,
+        "leave": true,
+        "manager": false,
+        "role": false
+      }
+    The value above informs you that at least one entry exists for each of
+    'engagement' and 'leave' either in the past, present or future.
+    '''
+
+    c = common.get_connector(virkningfra='-infinity',
+                             virkningtil='infinity')
+
+    info = DETAIL_TYPES[type]
+    search = {
+        info.search: id,
+    }
+    scope = getattr(c, info.scope)
+
+    r = {
+        functype: bool(
+            c.organisationfunktion(funktionsnavn=funcname, **search),
+        )
+        for functype, funcname in handlers.FUNCTION_KEYS.items()
+    }
+
+    reg = scope.get(id)
+
+    r['org_unit'] = bool(orgunit.OrgUnitRequestHandler.has(scope, reg))
+
+    return flask.jsonify(r)
+
+
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
