@@ -215,24 +215,42 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.addresses = []
         for address_obj in util.checked_get(data, mapping.ADDRESS, []):
+
+            addr_uuid = address_obj.get(mapping.UUID)
+
+            # if UUID, perform update
+            if addr_uuid:
+                addr_handler = address.AddressRequestHandler(
+                    {
+                        'data': {
+                            **address_obj,
+                            'validity': data.get(mapping.VALIDITY)
+                        },
+                        'uuid': address_obj.get(mapping.UUID)
+                    },
+                    handlers.RequestType.EDIT
+                )
+            else:
+                addr_uuid = uuid.uuid4()
+                addr_handler = address.AddressRequestHandler(
+                    {
+                        'uuid': addr_uuid,
+                        'manager': {
+                            'uuid': manager_uuid
+                        },
+                        'validity': data.get(mapping.VALIDITY),
+                        **address_obj,
+                    },
+                    handlers.RequestType.CREATE
+                )
+
             update_fields.append((
-                mapping.ASSOCIATED_FUNCTION_FIELD,
+                mapping.ASSOCIATED_MANAGER_ADDRESSES_FIELD,
                 {
-                    'uuid': address_obj.get(mapping.UUID),
+                    'uuid': addr_uuid
                 },
             ))
 
-            # Create an edit request to update the address object
-            addr_handler = address.AddressRequestHandler(
-                {
-                    'data': {
-                        **address_obj,
-                        'validity': data.get(mapping.VALIDITY)
-                    },
-                    'uuid': address_obj.get(mapping.UUID)
-                },
-                handlers.RequestType.EDIT
-            )
             self.addresses.append(addr_handler)
 
         payload = common.update_payload(new_from, new_to, update_fields,

@@ -1388,6 +1388,239 @@ class Tests(util.LoRATestCase):
         )
 
     @util.mock('dawa-addresses.json', allow_mox=True)
+    def test_edit_manager_create_new_address(self, m):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = [{
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "address": [
+                    {
+                        "address_type": {
+                            'scope': 'PHONE',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        },
+                        "org": {
+                            'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "value": "12341234"
+                    },
+                ],
+                "validity": {
+                    "from": "2018-04-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
+
+        expected_manager = {
+            'attributter': {
+                'organisationfunktionegenskaber': [
+                    {
+                        'brugervendtnoegle': 'be736ee5-5c44-4ed9-'
+                                             'b4a4-15ffa19e2848',
+                        'funktionsnavn': 'Leder',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
+                ]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger leder',
+            'relationer': {
+                'opgaver': [
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'objekttype': 'lederniveau',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedebrugere': [{
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedefunktioner': [{
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'virkning': {
+                        'from': '2018-04-01 '
+                                '00:00:00+02',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                },
+                    {
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': '2018-04-01 '
+                                  '00:00:00+02',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2018-04-01 '
+                                    '00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': [{
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                    },
+                    'href': 'tel:+4512341234',
+                    'name': '+4512341234',
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'value': '12341234'
+                },
+                    {
+                        'address_type': {
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'AdressePost',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        },
+                        'href': 'https://www.openstreetmap.org/'
+                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                    }],
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                },
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                }],
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {'from': '2018-04-01', 'to': None}
+            }]
+        )
+
+    @util.mock('dawa-addresses.json', allow_mox=True)
     def test_edit_manager_overwrite(self, m):
         self.load_sample_structures()
 
@@ -1420,18 +1653,6 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
-                "address": [
-                    {
-                        "address_type": {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        },
-                        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
-                    },
-                ],
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
@@ -1460,14 +1681,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                     'virkning': {
                         'from': '2017-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': '2018-04-01 00:00:00+02',
-                        'to_included': False
-                    }
-                }, {
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                    'virkning': {
-                        'from': '2018-04-01 00:00:00+02',
                         'from_included': True,
                         'to': 'infinity',
                         'to_included': False
