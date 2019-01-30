@@ -31,16 +31,6 @@ session.headers = {
     'User-Agent': 'MORA/0.1',
 }
 
-URN_PREFIXES = {
-    'EMAIL': 'urn:mailto:',
-    'PHONE': 'urn:magenta.dk:telefon:',
-    'EAN': 'urn:magenta.dk:ean:',
-    'WWW': 'urn:magenta.dk:www:',
-    'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
-    'TEXT': 'urn:text:',
-    'DAR': 'urn:dar:'
-}
-
 MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
 
 SEARCH_FIELDS = {
