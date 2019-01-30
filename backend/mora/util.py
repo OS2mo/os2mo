@@ -339,22 +339,31 @@ def uniqueify(xs):
 
 
 def log_exception(msg=''):
+    exc_type, exc_value, exc_traceback = sys.exc_info()
     data = flask.request.get_json()
+
+    info = []
 
     if data:
         if 'password' in data:
             data['password'] = 'X' * 8
 
-        data_str = '\n' + json.dumps(data, indent=2)
+        info += [
+            'body:',
+            json.dumps(data, indent=2),
+        ]
 
-    else:
-        data_str = ''
+    if exc_type and issubclass(exc_type, exceptions.HTTPException):
+        info += [
+            'exception info:',
+            json.dumps(exc_value.body, indent=2)
+        ]
 
     flask.current_app.logger.exception(
         'AN ERROR OCCURRED in {!r}: {}\n{}'.format(
             flask.request.url,
             msg,
-            data_str,
+            '\n'.join(info),
         )
     )
 
