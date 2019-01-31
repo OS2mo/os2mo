@@ -41,6 +41,7 @@ Reading configuration options
 
 Currently activce settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The currently active settings for a unit can be read directly from the API call
 for the particular OU: ::
 
@@ -61,10 +62,11 @@ inherited or global.
 
 OU specific settings
 ^^^^^^^^^^^^^^^^^^^^
+
 The actual configuration options set directly on the OU, can be read from the
 dedicated configuration api: ::
 
-  curl http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/get_configuration
+  curl http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/configuration
 
 The reply could be: ::
   {
@@ -77,9 +79,10 @@ inherited or read from global scope.
 
 Global settings
 ^^^^^^^^^^^^^^^
+
 The current global settings can also be read from the configuration api: ::
 
-  curl http://localhost/service/o/get_configuration
+  curl http://localhost/service/o/configuration
 
 With the reply: ::
   {
@@ -104,16 +107,19 @@ The payload for updating global or OU-specific settings are identical:
   '''
 
 Currently, there are only settings for org units and thus the outer key
-will always be ''org_units''. It is possible to update more than one key pr
+will always be ``"org_units"``. It is possible to update more than one key pr
 request.
   
 Global settings
 ^^^^^^^^^^^^^^^
-The update a global setting: ::
 
-  curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/o/set_configuration
+To update a global setting: ::
+
+  curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/o/configuration
 
 OU specific settings
 ^^^^^^^^^^^^^^^
+
 To update or create a setting for a specific OU: ::
-  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_user_keys": "False"}}' http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/set_configuration
+  
+  curl -X POST -H "Content-Type: application/json" --data '{org_units": {"show_user_keys": "False"}}' http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/configuration

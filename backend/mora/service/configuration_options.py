@@ -5,17 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
-'''
-Organisational units
---------------------
-
-This section describes how to interact with organisational units.
-
-For more information regarding reading relations involving organisational
-units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
-
-'''
 import sqlite3
 import flask
 from .. import settings
@@ -24,7 +13,7 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-@blueprint.route('/ou/<uuid:unitid>/set_configuration', methods=['POST'])
+@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
 
@@ -40,7 +29,7 @@ def set_org_unit_configuration(unitid):
     .. sourcecode:: json
 
       {
-        "configuration": {
+        "org_units": {
           "show_location": "True"
         }
       }
@@ -59,7 +48,7 @@ def set_org_unit_configuration(unitid):
                      "AND object=?")
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
-            if len(rows) == 0:
+            if not rows:
                 query = ("INSERT INTO orgunit_settings (object, setting, " +
                          "value) values (?, ?, ?)")
                 cur.execute(query, (unitid, key, value))
@@ -71,7 +60,7 @@ def set_org_unit_configuration(unitid):
     return flask.jsonify(True)
 
 
-@blueprint.route('/ou/<uuid:unitid>/get_configuration', methods=['GET'])
+@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['GET'])
 def get_org_unit_configuration(unitid):
     """Read configuration settings for an ou.
 
@@ -98,7 +87,7 @@ def get_org_unit_configuration(unitid):
     return flask.jsonify(return_dict)
 
 
-@blueprint.route('/o/set_configuration', methods=['POST'])
+@blueprint.route('/o/configuration', methods=['POST'])
 def set_global_configuration():
     """Set or modify a gloal configuration setting.
 
@@ -111,7 +100,7 @@ def set_global_configuration():
     .. sourcecode:: json
 
       {
-        "configuration": {
+        "org_units": {
           "show_roles": "False"
         }
       }
@@ -142,7 +131,7 @@ def set_global_configuration():
     return flask.jsonify(True)
 
 
-@blueprint.route('/o/get_configuration', methods=['GET'])
+@blueprint.route('/o/configuration', methods=['GET'])
 def get_global_configuration():
     """Read configuration settings for an ou.
 

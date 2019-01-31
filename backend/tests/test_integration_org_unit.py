@@ -2698,7 +2698,10 @@ class Tests(util.LoRATestCase):
         import sqlite3
         import mora.settings as settings
         import os
-        os.remove(settings.USER_SETTINGS_DB_FILE)
+        try:
+            os.remove(settings.USER_SETTINGS_DB_FILE)
+        except FileNotFoundError:
+            pass
 
         defaults = {'show_roles': 'True',
                     'show_user_key': 'False',
@@ -2722,7 +2725,7 @@ class Tests(util.LoRATestCase):
 
     def test_global_user_settings_read(self):
         self._create_conf_data()
-        url = '/service/o/get_configuration'
+        url = '/service/o/configuration'
 
         user_settings = self.assertRequest(url)
         print(user_settings)
@@ -2732,18 +2735,17 @@ class Tests(util.LoRATestCase):
         self.assertTrue(user_settings['show_location'] == 'True')
 
     def test_global_user_settings_write(self):
-        postgres_url = self._create_conf_data()
-        set_url = '/service/o/set_configuration'
-        get_url = '/service/o/get_configuration'
+        self._create_conf_data()
+        url = '/service/o/configuration'
 
         payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest(set_url.format(postgres_url), json=payload)
-        user_settings = self.assertRequest(get_url)
+        self.assertRequest(url, json=payload)
+        user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] == 'False')
 
         payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest(set_url.format(postgres_url), json=payload)
-        user_settings = self.assertRequest(get_url)
+        self.assertRequest(url, json=payload)
+        user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] == 'True')
 
     def test_ou_user_settings(self):
@@ -2752,9 +2754,8 @@ class Tests(util.LoRATestCase):
         uuid = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
 
         payload = {"org_units": {"show_user_key": "False"}}
-        url = '/service/ou/{}/set_configuration'.format(uuid)
+        url = '/service/ou/{}/configuration'.format(uuid)
         self.assertRequest(url, json=payload)
 
-        url = '/service/ou/{}/get_configuration'.format(uuid)
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_user_key'] == 'False')
