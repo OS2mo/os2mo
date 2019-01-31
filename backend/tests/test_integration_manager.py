@@ -2109,13 +2109,14 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
-    def test_terminate_manager(self):
+    def test_terminate_manager_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
         payload = {
             "validity": {
@@ -2127,7 +2128,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 'tilknyttedefunktioner': [
                     {
@@ -2246,8 +2247,6 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
-
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected, actual_manager)
@@ -2322,6 +2321,79 @@ class Tests(util.LoRATestCase):
                 'validity': {'from': '2017-12-01', 'to': None},
             }],
         )
+
+    def test_terminate_manager_directly(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        original_manager = self.assertRequest(
+            '/service/e/{}/details/manager'.format(userid),
+        )
+
+        original = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRequestResponse('/service/details/terminate',
+                                   manager_uuid,
+                                   json={
+                                       "type": "manager",
+                                       "uuid": manager_uuid,
+                                       "validity": {
+                                           "to": "2017-11-30"
+                                       }
+                                   })
+
+        expected = copy.deepcopy(original)
+        expected.update(
+            livscykluskode="Rettet",
+            note="Afsluttet",
+            tilstande={
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+        )
+
+        actual = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+        with self.subTest('current'):
+            current = copy.deepcopy(original_manager)
+            current[0]['validity']['to'] = '2017-11-30'
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager'.format(userid),
+                current,
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager'
+                '?validity=future'.format(userid),
+                [],
+            )
 
     def test_edit_manager_minimal(self):
         self.load_sample_structures()

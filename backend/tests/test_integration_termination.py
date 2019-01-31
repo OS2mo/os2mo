@@ -41,7 +41,7 @@ class Tests(util.LoRATestCase):
 
             o.update(
                 livscykluskode='Rettet',
-                note='Afslut medarbejder',
+                note='Afsluttet',
             )
 
             if is_manager:
@@ -135,7 +135,7 @@ class Tests(util.LoRATestCase):
 
             o.update(
                 livscykluskode='Rettet',
-                note='Afslut medarbejder',
+                note='Afsluttet',
             )
 
             v = o['tilstande']['organisationfunktiongyldighed']
@@ -152,3 +152,55 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager,
                                       actual_manager)
+
+    @freezegun.freeze_time('2018-01-01')
+    def test_validation_missing_validity(self):
+        self.load_sample_structures()
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        for req in (
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                },
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                    "validity": {},
+                },
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                    "validity": {
+                        "from": "2000-12-01",
+                    },
+                },
+        ):
+            with self.subTest(req):
+                self.assertRequestResponse(
+                    '/service/details/terminate',
+                    {
+                        'description': 'Missing validity',
+                        'error': True,
+                        'error_key': 'V_MISSING_REQUIRED_VALUE',
+                        'key': 'validity',
+                        'obj': req,
+                        'status': 400,
+                    },
+                    status_code=400,
+                    json=req,
+                )
+
+        with self.subTest('invalid type'):
+            self.assertRequestFails(
+                '/service/details/terminate',
+                404,
+                json={
+                    "type": "association",
+                    "uuid": manager_uuid,
+                    "validity": {
+                        "to": "2018-01-01",
+                    },
+                },
+            )

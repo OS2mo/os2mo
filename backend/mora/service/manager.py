@@ -30,8 +30,15 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.MANAGER_KEY
 
     def __init__(self, request, request_type):
-        self.termination_field = mapping.USER_FIELD
-        self.termination_value = {}
+        # indirect requests are usually triggered from the employee;
+        # in this case we want to merely mark the manager role as
+        # vacant
+        if request.get('indirect'):
+            self.termination_field = mapping.USER_FIELD
+            self.termination_value = {}
+        else:
+            self.termination_field = super().termination_field
+            self.termination_value = super().termination_value
 
         super().__init__(request, request_type)
 
@@ -274,13 +281,3 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = manager_uuid
-
-    def prepare_terminate(self, request: dict):
-        # If we want to terminate the managers as well
-        if request.get('request').get('terminate_all'):
-            self.termination_value = \
-                handlers.OrgFunkRequestHandler.termination_value
-            self.termination_field = \
-                handlers.OrgFunkRequestHandler.termination_field
-
-        super().prepare_terminate(request)

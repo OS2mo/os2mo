@@ -191,21 +191,40 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
-        self.uuid = request['uuid']
-        date = request['date']
-        original = request['original']
-
-        validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+        self.uuid = util.get_uuid(request)
+        date = util.get_valid_to(request, required=True)
+        original = request.get('original')
 
         validator.is_edit_from_date_before_today(date)
 
+        if original is None:
+            original = (
+                lora.Connector(effective_date=date)
+                .organisationfunktion.get(self.uuid)
+            )
+
+        validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+
+        if (
+            original is None or
+            not util.is_reg_valid(original) or
+            get_key_for_function(original) != self.function_key
+        ):
+            exceptions.ErrorCodes.E_NOT_FOUND(
+                uuid=self.uuid,
+                original=original,
+            )
+
         self.payload = common.update_payload(
-            max(date, util.get_effect_from(validity[0])),
+            date,
             util.POSITIVE_INFINITY,
-            [(self.termination_field, self.termination_value)],
+            [(
+                self.termination_field,
+                self.termination_value,
+            )],
             original,
             {
-                'note': "Afslut medarbejder",
+                'note': "Afsluttet",
             },
         )
 
@@ -218,8 +237,8 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.update(self.payload, self.uuid)
 
 
-def get_handler_for_function(obj: dict):
-    '''Obtain the handler class corresponding to the given LoRA object'''
+def get_key_for_function(obj: dict) -> str:
+    '''Obtain the function key class corresponding to the given LoRA object'''
 
     # use unpacking to ensure that the set contains just one element
     (key,) = {
@@ -227,7 +246,13 @@ def get_handler_for_function(obj: dict):
         for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
     }
 
-    return HANDLERS_BY_FUNCTION_KEY[key]
+    return key
+
+
+def get_handler_for_function(obj: dict):
+    '''Obtain the handler class corresponding to the given LoRA object'''
+
+    return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
 
 
 def get_handler_for_role_type(role_type: str):

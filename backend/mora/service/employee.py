@@ -105,6 +105,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             handlers.RequestType.CREATE
         )
 
+        print(self.details_requests)
         self.payload = user
         self.uuid = userid
 
@@ -384,15 +385,25 @@ def terminate_employee(employee_uuid):
     request = flask.request.get_json()
     date = util.get_valid_to(request)
 
-    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+    validator.is_edit_from_date_before_today(date)
+
+    c = lora.Connector(effective_date=date, virkningtil='infinity')
 
     request_handlers = [
         handlers.get_handler_for_function(obj)(
             {
-                'date': date,
+                "type": handlers.get_key_for_function(obj),
                 'uuid': objid,
                 'original': obj,
-                'request': request
+                'indirect': not request.get('terminate_all'),
+                'validity': {
+                    'to': util.to_iso_date(
+                        # we also want to handle _future_ relations
+                        max(date, min(map(util.get_effect_from,
+                                          util.get_states(obj)))),
+                        is_end=True,
+                    ),
+                },
             },
             handlers.RequestType.TERMINATE,
         )
