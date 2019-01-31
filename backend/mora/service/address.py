@@ -228,7 +228,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
         person = mapping.USER_FIELD(effect)
+        person_uuid = person[0].get('uuid') if person else None
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(effect)
+        org_unit_uuid = org_unit[0].get('uuid') if org_unit else None
 
         func = {
             mapping.ADDRESS_TYPE: address_type,
@@ -237,14 +239,16 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 mapping.TO: util.to_iso_date(
                     end, is_end=True)
             },
-            mapping.PERSON: employee.get_one_employee(
-                c, person[0]['uuid']) if person else None,
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit[0]['uuid'],
-                details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
             mapping.UUID: funcid,
             **handler.get_mo_address_and_properties()
         }
+        if person_uuid:
+            func[mapping.PERSON] = employee.get_one_employee(
+                c, person_uuid)
+        if org_unit_uuid:
+            func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
+                c, org_unit_uuid,
+                details=orgunit.UnitDetails.MINIMAL)
 
         return func
 
