@@ -9,12 +9,10 @@ configuration module.
 
 Setup
 -----
-To use the configuration module, suitable credentials must be set in the MO
-configuration file, these will default to:
-* USER_SETTINGS_DB_NAME: mora
-* USER_SETTINGS_DB_USER: mora
-* USER_SETTINGS_DB_PASSWORD: mora
-* USER_SETTINGS_DB_HOST: localhost
+To use the configuration module, suitable configuration must be set in the MO
+configuration file, this will default to:
+* USER_SETTINGS_DB_FILE: /tmp/usersettings.db
+
 
 Available settings
 ------------------
