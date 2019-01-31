@@ -1500,17 +1500,7 @@ class Tests(util.LoRATestCase):
                         'to': 'infinity',
                         'to_included': False
                     }
-                },
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-01-01 '
-                                    '00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }],
+                }],
                 'tilknyttedeorganisationer': [{
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     'virkning': {
@@ -1569,21 +1559,7 @@ class Tests(util.LoRATestCase):
                     'name': '+4512341234',
                     'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
                     'value': '12341234'
-                },
-                    {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                        },
-                        'href': 'https://www.openstreetmap.org/'
-                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-                    }],
+                }],
                 'manager_level': {
                     'example': None,
                     'name': 'Institut',

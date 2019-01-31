@@ -156,7 +156,7 @@ def update_payload(
             updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
-            updated_props = props + vals
+            updated_props = vals
         else:
             # Zero-to-one relation - LoRa does the merging for us,
             # so disregard existing props

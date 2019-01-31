@@ -1037,7 +1037,6 @@ class Reading(util.LoRATestCase):
                 'name': 'bruger@example.com',
                 'value': 'bruger@example.com',
                 'address_type': None,
-                'org_unit': None,
                 'person': {
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
@@ -1071,7 +1070,6 @@ class Reading(util.LoRATestCase):
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
-                        'org_unit': None,
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -1094,7 +1092,6 @@ class Reading(util.LoRATestCase):
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
-                        'org_unit': None,
                         'validity': {
                             'from': '1932-05-12',
                             'to': None,
@@ -1124,7 +1121,6 @@ class Reading(util.LoRATestCase):
                             'name': 'Anders And',
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                         },
-                        'org_unit': None,
                         'validity': {
                             'from': '1934-06-09',
                             'to': None,
@@ -1159,7 +1155,6 @@ class Reading(util.LoRATestCase):
                                 "to": None
                             }
                         },
-                        "person": None,
                         "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
                         "validity": {
                             "from": "2016-01-01",
@@ -1197,7 +1192,6 @@ class Reading(util.LoRATestCase):
                                 "to": None
                             }
                         },
-                        "person": None,
                         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
                         "validity": {
                             "from": "2016-01-01",
@@ -1224,7 +1218,6 @@ class Reading(util.LoRATestCase):
                                 "to": None
                             }
                         },
-                        "person": None,
                         "uuid": "a0fe7d43-1e0d-4232-a220-87098024b34d",
                         "validity": {
                             "from": "2016-01-01",
@@ -1252,7 +1245,6 @@ class Reading(util.LoRATestCase):
                                 "to": None
                             }
                         },
-                        "person": None,
                         "uuid": "e1a9cede-8c9b-4367-b628-113834361871",
                         "validity": {
                             "from": "2016-01-01",
@@ -1429,7 +1421,6 @@ class Reading(util.LoRATestCase):
                         'from': '2016-01-01', 'to': None,
                     },
                 },
-                'person': None,
                 'uuid': functionid,
                 'validity': {
                     'from': '2016-01-01', 'to': '2019-12-31',
@@ -1493,7 +1484,6 @@ class Reading(util.LoRATestCase):
                             'from': '2016-01-01', 'to': None,
                         },
                     },
-                    'person': None,
                     'uuid': functionid,
                     'validity': {
                         'from': '2016-01-01', 'to': '2019-12-31',

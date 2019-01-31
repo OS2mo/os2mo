@@ -231,7 +231,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                     handlers.RequestType.EDIT
                 )
             else:
-                addr_uuid = uuid.uuid4()
+                addr_uuid = str(uuid.uuid4())
                 addr_handler = address.AddressRequestHandler(
                     {
                         'uuid': addr_uuid,
