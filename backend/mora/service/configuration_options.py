@@ -50,10 +50,10 @@ def set_org_unit_configuration(unitid):
             rows = cur.fetchall()
             if not rows:
                 query = ("INSERT INTO orgunit_settings (object, setting, " +
-                         "value) values (?, ?, ?)")
+                         "value) VALUES (?, ?, ?)")
                 cur.execute(query, (unitid, key, value))
             elif len(rows) == 1:
-                query = "UPDATE orgunit_settings set value=? where id=?"
+                query = "UPDATE orgunit_settings SET value=? WHERE id=?"
                 cur.execute(query, (value, rows[0][0]))
             else:
                 raise Exception('Non-consistent settings for {}'.format(unitid))
@@ -115,16 +115,16 @@ def set_global_configuration():
 
         for key, value in orgunit_conf.items():
             query = ("SELECT id FROM orgunit_settings WHERE setting = ? " +
-                     "AND object is Null")
+                     "AND object IS NULL")
             cur.execute(query, (key,))
             rows = cur.fetchall()
 
             if len(rows) == 0:
                 query = ("INSERT INTO orgunit_settings (object, setting, " +
-                         "value) values (Null, '?', '?')")
+                         "value) values (NULL, '?', '?')")
                 cur.execute(query, (key, value))
             elif len(rows) == 1:
-                query = "UPDATE orgunit_settings set value=? where id=?"
+                query = "UPDATE orgunit_settings SET value=? WHERE id=?"
                 cur.execute(query, (value, rows[0][0]))
             else:
                 raise Exception('Non-consistent global settings')
@@ -148,7 +148,7 @@ def get_global_configuration():
                          check_same_thread=False) as conn:
         cur = conn.cursor()
         query = ("SELECT setting, value FROM " +
-                 "orgunit_settings WHERE object is Null")
+                 "orgunit_settings WHERE object IS NULL")
         cur.execute(query)
         rows = cur.fetchall()
         for row in rows:
