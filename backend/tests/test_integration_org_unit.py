@@ -2694,7 +2694,7 @@ class Tests(util.LoRATestCase):
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
 
-    def _create_conf_data(self):
+    def _create_conf_data(self, inconsistent=False):        
         import sqlite3
         import mora.settings as settings
         import os
@@ -2721,6 +2721,11 @@ class Tests(util.LoRATestCase):
                      'VALUES (Null, ?, ?);')
             for setting, value in defaults.items():
                 cur.execute(query, (setting, value))
+
+            if inconsistent:
+                # Insert once more, thus making an invalid configuration set
+                for setting, value in defaults.items():
+                    cur.execute(query, (setting, value))
         return True
 
     def test_global_user_settings_read(self):
@@ -2734,6 +2739,17 @@ class Tests(util.LoRATestCase):
         self.assertTrue('show_roles' in user_settings)
         self.assertTrue(user_settings['show_location'] == 'True')
 
+    def test_inconsistent_settings(self):
+        self._create_conf_data(inconsistent=True)
+        url = '/service/o/configuration'
+        payload = {"org_units": {"show_roles": "False"}}
+        assertion_raised = False
+        try:
+            self.assertRequest(url, json=payload)
+        except Exception:
+            assertion_raised = True
+        self.assertTrue(assertion_raised)
+        
     def test_global_user_settings_write(self):
         self._create_conf_data()
         url = '/service/o/configuration'

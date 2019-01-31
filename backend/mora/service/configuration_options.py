@@ -56,7 +56,7 @@ def set_org_unit_configuration(unitid):
                 query = "UPDATE orgunit_settings set value=? where id=?"
                 cur.execute(query, (value, rows[0][0]))
             else:
-                raise('Non-consistent settings for {}'.format(unitid))
+                raise Exception('Non-consistent settings for {}'.format(unitid))
     return flask.jsonify(True)
 
 
@@ -127,7 +127,7 @@ def set_global_configuration():
                 query = "UPDATE orgunit_settings set value=? where id=?"
                 cur.execute(query, (value, rows[0][0]))
             else:
-                raise('Non-consistent global settings')
+                raise Exception('Non-consistent global settings')
     return flask.jsonify(True)
 
 
