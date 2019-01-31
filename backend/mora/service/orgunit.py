@@ -386,13 +386,13 @@ def get_one_orgunit(c, unitid, unit=None,
 
             settings = {}
             local_settings = _read_local_settings(unitid)
-            for setting, value in local_settings.items():
-                settings[setting] = value
+
+            settings.update(local_settings)
             if parent:
                 parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
                 for setting, value in parent_settings.items():
-                    if setting not in settings:
-                        settings[setting] = value
+                    settings.setdefault(setting, value)
+
             global_settings = _read_local_settings()
             for setting, value in global_settings.items():
                 if setting not in settings:
