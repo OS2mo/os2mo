@@ -16,7 +16,7 @@ configuration file, this will default to:
 
 Available settings
 ------------------
-Currently, it os only possible to configure settings for OUs. The currently
+Currently, it is only possible to configure settings for OUs. The currently
 available options are:
 
 * ``show_location`` Indicates whether the location of units should be visible
@@ -26,9 +26,9 @@ available options are:
 * ``show_roles`` Indicates whether the column ``Roller`` should be shown in
   the OU overview
 
-If a settings is identicated for a given OU, this will be used. If the setting
+If a setting is identicated for a given unit, this will be used. If the setting
 is not available, it will inherit the value from the nearest parent in the
-tree with the value set. If no parents has a value for the particular setting,
+tree with the value set. If no parent has a value for the particular setting,
 a global value will be used.
 
 Setting configuration options
@@ -43,9 +43,11 @@ Currently activce settings
 The currently active settings for a unit can be read directly from the API call
 for the particular OU: ::
 
-  curl http://localhost/service/ou/.....
+  curl http://localhost/service/ou/799aeaa4-129b-4f47-8632-1ee6ce987b21
 
-Included in the response will be the settings: ::
+Included in the response will be the settings:
+
+ .. code-block:: json
 
   user_settings: {
       orgunit: {
@@ -66,7 +68,10 @@ dedicated configuration api: ::
 
   curl http://localhost/service/ou/cc238af7-f00f-422f-a415-6fba0f96febd/configuration
 
-The reply could be: ::
+The reply could be:
+
+.. code-block:: json
+
   {
       "show_user_key":"False"
   }
@@ -82,7 +87,9 @@ The current global settings can also be read from the configuration api: ::
 
   curl http://localhost/service/o/configuration
 
-With the reply: ::
+With the reply:
+ .. code-block:: json
+
   {
      show_location: "True",
      show_roles: "True",
@@ -96,13 +103,15 @@ Writing configuration options
 -----------------------------
 
 The payload for updating global or OU-specific settings are identical:
-  '''
+
+ .. code-block:: json
+  
   {
     "org_units":{
        "show_roles": "False"
        }
   }
-  '''
+
 
 Currently, there are only settings for org units and thus the outer key
 will always be ``"org_units"``. It is possible to update more than one key pr
