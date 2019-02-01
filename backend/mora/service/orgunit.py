@@ -395,8 +395,8 @@ def get_one_orgunit(c, unitid, unit=None,
 
             global_settings = _read_local_settings()
             for setting, value in global_settings.items():
-                if setting not in settings:
-                    settings[setting] = value
+                settings.setdefault(setting, value)
+
             r[mapping.USER_SETTINGS] = {'orgunit': settings}
 
         r[mapping.PARENT] = parent
