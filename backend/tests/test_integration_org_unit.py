@@ -5,6 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import os
+import sqlite3
 import unittest
 from unittest.mock import patch
 
@@ -2694,8 +2696,9 @@ class Tests(util.LoRATestCase):
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
 
+    confdb = os.path.abspath(os.path.dirname(__file__)) + 'db.db'
+    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def _create_conf_data(self, inconsistent=False):        
-        import sqlite3
         import mora.settings as settings
         import os
         try:
@@ -2730,6 +2733,7 @@ class Tests(util.LoRATestCase):
                     cur.execute(query, (setting, value))
         return True
 
+    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_global_user_settings_read(self):
         self._create_conf_data()
         url = '/service/o/configuration'
@@ -2741,6 +2745,7 @@ class Tests(util.LoRATestCase):
         self.assertTrue('show_roles' in user_settings)
         self.assertTrue(user_settings['show_location'] == 'True')
 
+    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_inconsistent_settings(self):
         self._create_conf_data(inconsistent=True)
         url = '/service/o/configuration'
@@ -2752,6 +2757,7 @@ class Tests(util.LoRATestCase):
             assertion_raised = True
         self.assertTrue(assertion_raised)
         
+    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_global_user_settings_write(self):
         self._create_conf_data()
         url = '/service/o/configuration'
@@ -2766,6 +2772,7 @@ class Tests(util.LoRATestCase):
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] == 'True')
 
+    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_ou_user_settings(self):
         self._create_conf_data()
         self.load_sample_structures()
