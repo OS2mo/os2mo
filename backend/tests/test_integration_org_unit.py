@@ -2711,14 +2711,16 @@ class Tests(util.LoRATestCase):
                              check_same_thread=False) as conn:
             cur = conn.cursor()
 
-            create_query = ('CREATE TABLE orgunit_settings ' +
-                            '(id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
-                            'object UUID, setting varchar(255) NOT NULL, '
-                            'value varchar(255) NOT NULL);')
-            cur.execute(create_query)
+            cur.execute("""
+            CREATE TABLE orgunit_settings (id INTEGER PRIMARY KEY AUTOINCREMENT,  
+            object UUID, setting varchar(255) NOT NULL,
+            value varchar(255) NOT NULL);
+            """)
 
-            query = ('INSERT INTO orgunit_settings (object, setting, value) ' +
-                     'VALUES (Null, ?, ?);')
+            query = """
+            INSERT INTO orgunit_settings (object, setting, value)
+            VALUES (NULL, ?, ?);
+            """
             for setting, value in defaults.items():
                 cur.execute(query, (setting, value))
 
