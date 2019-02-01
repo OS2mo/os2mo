@@ -17,7 +17,7 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
-import sqlite3
+import psycopg2
 import collections
 import copy
 import enum
@@ -47,36 +47,43 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+try:
+    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                            dbname=settings.USER_SETTINGS_DB_NAME,
+                            host=settings.USER_SETTINGS_DB_HOST,
+                            password=settings.USER_SETTINGS_DB_PASSWORD)
+    cur = conn.cursor()
+except:
+    cur = None
+
+
 def _read_local_settings(unitid=None):
-    """ Read a set of settings from the database
+    """ Read a set of settings from the database. The values are pr default
+    arbitrary strings, but we do reerve the words 'True' and 'False' for the
+    logic values True and False.
     :param query: The query
     """
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
-    with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
-                         check_same_thread=False) as conn:
-        cur = conn.cursor()
+    if unitid is None:
+        query = query_start + "is Null"
+        cur.execute(query)
+    else:
+        query = query_start + "= %s"
+        cur.execute(query, (unitid,))
 
-        if unitid is None:
-            query = query_start + "is Null"
-            cur.execute(query)
+    user_settings = {}
+
+    rows = cur.fetchall()
+    for row in rows:
+        setting = row[0]
+        if row[1] == 'True':
+            value = True
+        elif row[1] == 'False':
+            value = False
         else:
-            query = query_start + "= ?"
-            cur.execute(query, (unitid,))
-
-        user_settings = {}
-
-        rows = cur.fetchall()
-        for row in rows:
-            setting = row[0]
-            if row[1] == 'True':
-                value = True
-            elif row[1] == 'False':
-                value = False
-            else:
-                value = row[1]
-            user_settings[setting] = value
+            value = row[1]
+        user_settings[setting] = value
     return user_settings
-
 
 @enum.unique
 class UnitDetails(enum.Enum):
