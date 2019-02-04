@@ -20,6 +20,7 @@ def _get_connection():
     conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
                             dbname=settings.USER_SETTINGS_DB_NAME,
                             host=settings.USER_SETTINGS_DB_HOST,
+                            port=settings.USER_SETTINGS_DB_PORT,
                             password=settings.USER_SETTINGS_DB_PASSWORD)
     return conn
 
@@ -65,8 +66,9 @@ def set_org_unit_configuration(unitid):
             query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
             cur.execute(query, (value, rows[0][0]))
         else:
-            exceptions.ErrorCodes('Inconsistent settings for unit', org_unit_uuid=unitid)
-            #raise Exception('Non-consistent settings for {}'.format(unitid))
+            exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
+                'Inconsistent settings for {}'.format(unitid)
+            )
         conn.commit()
     return flask.jsonify(True)
 
@@ -137,8 +139,9 @@ def set_global_configuration():
             query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
             cur.execute(query, (value, rows[0][0]))
         else:
-            exceptions.ErrorCodes('Inconsistent settings for unit', org_unit_uuid=unitid)
-            #raise Exception('Non-consistent global settings')
+            exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
+                'Inconsistent global settings'
+            )
         conn.commit()
     return flask.jsonify(True)
 

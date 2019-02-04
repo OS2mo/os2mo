@@ -93,6 +93,7 @@ class ErrorCodes(Enum):
     E_TOO_MANY_RESULTS = 400, "Amount of results exceeds limit."
 
     # Misc
+    E_INCONSISTENT_SETTINGS = 400, "Inconsistent global settings."
     E_INVALID_INPUT = 400, "Invalid input."
     E_UNAUTHORIZED = 401, "Unauthorized."
     E_FORBIDDEN = 403, "Forbidden."

@@ -2705,7 +2705,8 @@ class Tests(util.LoRATestCase):
                     'show_user_key': 'False',
                     'show_location': 'True'}
 
-        p_url = test_support.psql().url()      
+        p_url = test_support.psql().url()
+        p_port = p_url[p_url.rfind(':')+1:p_url.rfind('/')]
         with psycopg2.connect(p_url) as conn:
             conn.autocommit = True
             with conn.cursor() as curs:
@@ -2722,13 +2723,21 @@ class Tests(util.LoRATestCase):
                     "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
                         settings.USER_SETTINGS_DB_NAME,
                         settings.USER_SETTINGS_DB_USER
-                    ))
+                ))
+
+        with psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                              dbname=settings.USER_SETTINGS_DB_NAME,
+                              host=settings.USER_SETTINGS_DB_HOST,
+                              port=p_port,
+                              password=settings.USER_SETTINGS_DB_PASSWORD) as conn:
+            conn.autocommit = True
+            with conn.cursor() as curs:
+
                 curs.execute("""
                 CREATE TABLE orgunit_settings(id serial PRIMARY KEY,
                 object UUID, setting varchar(255) NOT NULL,
                 value varchar(255) NOT NULL);
                 """)
-
 
                 query = """
                 INSERT INTO orgunit_settings (object, setting, value)
@@ -2742,53 +2751,54 @@ class Tests(util.LoRATestCase):
                     # Insert once more, making an invalid configuration set
                     for setting, value in defaults.items():
                         curs.execute(query, (setting, value))
-        return p_url
+        return p_port
 
-    # @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_global_user_settings_read(self):
-        self._create_conf_data()
+        p_port = self._create_conf_data()
         url = '/service/o/configuration'
-
-        user_settings = self.assertRequest(url)
-        print(user_settings)
-        self.assertTrue('show_location' in user_settings)
-        self.assertTrue('show_user_key' in user_settings)
-        self.assertTrue('show_roles' in user_settings)
-        self.assertTrue(user_settings['show_location'] == 'True')
+        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+            user_settings = self.assertRequest(url)
+            self.assertTrue('show_location' in user_settings)
+            self.assertTrue('show_user_key' in user_settings)
+            self.assertTrue('show_roles' in user_settings)
+            self.assertTrue(user_settings['show_location'] == 'True')
 
     def test_inconsistent_settings(self):
-        self._create_conf_data(inconsistent=True)
+        p_port = self._create_conf_data(inconsistent=True)
         url = '/service/o/configuration'
         payload = {"org_units": {"show_roles": "False"}}
         assertion_raised = False
-        try:
-            self.assertRequest(url, json=payload)
-        except Exception:
-            assertion_raised = True
+        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+            try:
+                self.assertRequest(url, json=payload)
+            except Exception:
+                assertion_raised = True
         self.assertTrue(assertion_raised)
         
     def test_global_user_settings_write(self):
-        self._create_conf_data()
+        p_port = self._create_conf_data()
         url = '/service/o/configuration'
 
-        payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest(url, json=payload)
-        user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_roles'] == 'False')
+        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+            payload = {"org_units": {"show_roles": "False"}}
+            self.assertRequest(url, json=payload)
+            user_settings = self.assertRequest(url)
+            self.assertTrue(user_settings['show_roles'] == 'False')
 
-        payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest(url, json=payload)
-        user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_roles'] == 'True')
+            payload = {"org_units": {"show_roles": "True"}}
+            self.assertRequest(url, json=payload)
+            user_settings = self.assertRequest(url)
+            self.assertTrue(user_settings['show_roles'] == 'True')
 
     def test_ou_user_settings(self):
-        self._create_conf_data()
+        p_port = self._create_conf_data()
         self.load_sample_structures()
         uuid = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
 
-        payload = {"org_units": {"show_user_key": "False"}}
-        url = '/service/ou/{}/configuration'.format(uuid)
-        self.assertRequest(url, json=payload)
+        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+            payload = {"org_units": {"show_user_key": "False"}}
+            url = '/service/ou/{}/configuration'.format(uuid)
+            self.assertRequest(url, json=payload)
 
-        user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_user_key'] == 'False')
+            user_settings = self.assertRequest(url)
+            self.assertTrue(user_settings['show_user_key'] == 'False')
