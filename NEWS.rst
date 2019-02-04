@@ -45,7 +45,7 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704 Added max-width to table columns.
 * #25696: Added remove button for dates.
-* #25694: Table layout is now fixed.
+* #25694: Changed table columns layout to align between table future, present and past.
 
 Version 0.13.0, 2018-11-30
 ==========================
