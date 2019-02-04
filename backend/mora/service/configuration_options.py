@@ -24,6 +24,7 @@ def _get_connection():
                             password=settings.USER_SETTINGS_DB_PASSWORD)
     return conn
 
+
 @blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
@@ -46,10 +47,10 @@ def set_org_unit_configuration(unitid):
       }
 
     :returns: True
-    """ 
+    """
     conn = _get_connection()
     cur = conn.cursor()
-   
+
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
 
@@ -121,7 +122,7 @@ def set_global_configuration():
     """
     conn = _get_connection()
     cur = conn.cursor()
- 
+
     configuration = flask.request.get_json()
     orgunit_conf = configuration['org_units']
 
