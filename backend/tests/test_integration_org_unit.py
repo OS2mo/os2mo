@@ -2696,44 +2696,55 @@ class Tests(util.LoRATestCase):
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
 
-    confdb = os.path.abspath(os.path.dirname(__file__)) + 'db.db'
-    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
-    def _create_conf_data(self, inconsistent=False):        
+    def _create_conf_data(self, inconsistent=False):
+        import psycopg2
+        from oio_rest.utils import test_support
         import mora.settings as settings
-        import os
-        try:
-            os.remove(settings.USER_SETTINGS_DB_FILE)
-        except FileNotFoundError:
-            pass
 
         defaults = {'show_roles': 'True',
                     'show_user_key': 'False',
                     'show_location': 'True'}
 
-        with sqlite3.connect(settings.USER_SETTINGS_DB_FILE,
-                             check_same_thread=False) as conn:
-            cur = conn.cursor()
+        p_url = test_support.psql().url()      
+        with psycopg2.connect(p_url) as conn:
+            conn.autocommit = True
+            with conn.cursor() as curs:
+                curs.execute(
+                    "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
+                        settings.USER_SETTINGS_DB_USER,
+                        settings.USER_SETTINGS_DB_PASSWORD
+                    ))
+                curs.execute("CREATE DATABASE {} OWNER {};".format(
+                    settings.USER_SETTINGS_DB_NAME,
+                    settings.USER_SETTINGS_DB_USER
+                ))
+                curs.execute(
+                    "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
+                        settings.USER_SETTINGS_DB_NAME,
+                        settings.USER_SETTINGS_DB_USER
+                    ))
+                curs.execute("""
+                CREATE TABLE orgunit_settings(id serial PRIMARY KEY,
+                object UUID, setting varchar(255) NOT NULL,
+                value varchar(255) NOT NULL);
+                """)
 
-            cur.execute("""
-            CREATE TABLE orgunit_settings (id INTEGER PRIMARY KEY AUTOINCREMENT,  
-            object UUID, setting varchar(255) NOT NULL,
-            value varchar(255) NOT NULL);
-            """)
 
-            query = """
-            INSERT INTO orgunit_settings (object, setting, value)
-            VALUES (NULL, ?, ?);
-            """
-            for setting, value in defaults.items():
-                cur.execute(query, (setting, value))
+                query = """
+                INSERT INTO orgunit_settings (object, setting, value)
+                VALUES (NULL, %s, %s);
+                """
 
-            if inconsistent:
-                # Insert once more, thus making an invalid configuration set
                 for setting, value in defaults.items():
-                    cur.execute(query, (setting, value))
-        return True
+                    curs.execute(query, (setting, value))
 
-    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
+                if inconsistent:
+                    # Insert once more, making an invalid configuration set
+                    for setting, value in defaults.items():
+                        curs.execute(query, (setting, value))
+        return p_url
+
+    # @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_global_user_settings_read(self):
         self._create_conf_data()
         url = '/service/o/configuration'
@@ -2745,7 +2756,6 @@ class Tests(util.LoRATestCase):
         self.assertTrue('show_roles' in user_settings)
         self.assertTrue(user_settings['show_location'] == 'True')
 
-    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_inconsistent_settings(self):
         self._create_conf_data(inconsistent=True)
         url = '/service/o/configuration'
@@ -2757,7 +2767,6 @@ class Tests(util.LoRATestCase):
             assertion_raised = True
         self.assertTrue(assertion_raised)
         
-    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_global_user_settings_write(self):
         self._create_conf_data()
         url = '/service/o/configuration'
@@ -2772,7 +2781,6 @@ class Tests(util.LoRATestCase):
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] == 'True')
 
-    @util.override_settings(USER_SETTINGS_DB_FILE = confdb)
     def test_ou_user_settings(self):
         self._create_conf_data()
         self.load_sample_structures()
