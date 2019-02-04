@@ -38,10 +38,11 @@
 
     <div class="form-row">
       <mo-facet-picker
+        v-if="isPhone"
         v-show="noPreselectedType"
         class="col-6"
         facet="address_property"
-        v-model="entry.address_property"
+        v-model="entry.visibility"
         :preselected-user-key="preselectedType"
         required
       />
@@ -132,6 +133,15 @@ export default {
      */
     isDarAddress () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
+      return false
+    },
+
+    /**
+     * If the address is a PHONE.
+     * @type {Boolean}
+     */
+    isPhone () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
       return false
     },
 
