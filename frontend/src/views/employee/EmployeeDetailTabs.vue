@@ -154,10 +154,12 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: 'address' }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: null }
       ],
 
