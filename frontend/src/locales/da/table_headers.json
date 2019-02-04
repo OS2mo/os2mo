@@ -1,5 +1,6 @@
 {
   "address": "Adresse",
+  "address_property": "Synlighed",
   "address_type": "@:shared.address_type",
   "association_type": "@:shared.association_type",
   "end_date": "Slutdato",
