@@ -47,7 +47,7 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
 
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database. The values are pr default
-    arbitrary strings, but we do reerve the words 'True' and 'False' for the
+    arbitrary strings, but we do reserve the words 'True' and 'False' for the
     logic values True and False.
     :param query: The query
     """

@@ -36,7 +36,7 @@ def set_org_unit_configuration(unitid):
     :statuscode 201: Setting created.
     :statuscode 404: No such unit found.
 
-    :param unitid: The UUID of the organisational unit to be terminated.
+    :param unitid: The UUID of the organisational unit to be configured.
 
     :<json object conf: Configuration option
 
@@ -86,7 +86,7 @@ def get_org_unit_configuration(unitid):
     :statuscode 200: Setting returned.
     :statuscode 404: No such unit found.
 
-    :param unitid: The UUID of the organisational unit to be terminated.
+    :param unitid: The UUID of the organisational unit.
 
     :returns: Configuration settings for unit
     """

@@ -11,7 +11,12 @@ Setup
 -----
 To use the configuration module, suitable configuration must be set in the MO
 configuration file, this will default to:
-* USER_SETTINGS_DB_FILE: /tmp/usersettings.db
+
+ * ``USER_SETTINGS_DB_NAME``: mora
+ * ``USER_SETTINGS_DB_USER``: mora
+ * ``USER_SETTINGS_DB_PASSWORD``: mora
+ * ``USER_SETTINGS_DB_HOST``: localhost
+ * ``USER_SETTINGS_DB_PORT``: 5432
 
 
 Available settings
@@ -31,8 +36,6 @@ is not available, it will inherit the value from the nearest parent in the
 tree with the value set. If no parent has a value for the particular setting,
 a global value will be used.
 
-Setting configuration options
------------------------------
 
 Reading configuration options
 -----------------------------
@@ -70,7 +73,7 @@ dedicated configuration api: ::
 
 The reply could be:
 
-.. code-block:: json
+ .. code-block:: json
 
   {
       "show_user_key":"False"
@@ -125,7 +128,7 @@ To update a global setting: ::
   curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/o/configuration
 
 OU specific settings
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 To update or create a setting for a specific OU: ::
   
