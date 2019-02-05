@@ -10,6 +10,7 @@ import psycopg2
 import flask
 from mora import exceptions
 from .. import settings
+from .. import util
 
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
@@ -26,6 +27,7 @@ def _get_connection():
 
 
 @blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
+@util.restrictargs()
 def set_org_unit_configuration(unitid):
     """Set a configuration setting for an ou.
 
@@ -75,6 +77,7 @@ def set_org_unit_configuration(unitid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/configuration', methods=['GET'])
+@util.restrictargs()
 def get_org_unit_configuration(unitid):
     """Read configuration settings for an ou.
 
@@ -101,6 +104,7 @@ def get_org_unit_configuration(unitid):
 
 
 @blueprint.route('/o/configuration', methods=['POST'])
+@util.restrictargs('at')
 def set_global_configuration():
     """Set or modify a gloal configuration setting.
 
@@ -148,6 +152,7 @@ def set_global_configuration():
 
 
 @blueprint.route('/o/configuration', methods=['GET'])
+@util.restrictargs('at')
 def get_global_configuration():
     """Read configuration settings for an ou.
 
