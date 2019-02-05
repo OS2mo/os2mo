@@ -34,19 +34,17 @@
           {{ errors.first(identifier) }}
         </span>
       </div>
-    </div>
 
-    <div class="form-row">
       <mo-facet-picker
         v-if="isPhone"
         v-show="noPreselectedType"
-        class="col-6"
         facet="address_property"
         v-model="entry.visibility"
         :preselected-user-key="preselectedType"
         required
       />
     </div>
+
 
     <mo-input-date-range
       class="address-date"
