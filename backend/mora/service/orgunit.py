@@ -47,22 +47,20 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-try:
-    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                            dbname=settings.USER_SETTINGS_DB_NAME,
-                            host=settings.USER_SETTINGS_DB_HOST,
-                            password=settings.USER_SETTINGS_DB_PASSWORD)
-    cur = conn.cursor()
-except:
-    cur = None
-
-
 def _read_local_settings(unitid=None):
     """ Read a set of settings from the database. The values are pr default
     arbitrary strings, but we do reerve the words 'True' and 'False' for the
     logic values True and False.
     :param query: The query
     """
+    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                            dbname=settings.USER_SETTINGS_DB_NAME,
+                            host=settings.USER_SETTINGS_DB_HOST,
+                            port=settings.USER_SETTINGS_DB_PORT,
+                            password=settings.USER_SETTINGS_DB_PASSWORD)
+    cur = conn.cursor()
+
+
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
     if unitid is None:
         query = query_start + "is Null"
