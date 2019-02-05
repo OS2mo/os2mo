@@ -8,7 +8,6 @@
 
 """Run all end-to-end tests, and report the status."""
 
-import functools
 import json
 import os
 import platform
@@ -42,8 +41,6 @@ TEST_FILES = sorted(
         not file_name.startswith('.') and
         file_name not in SKIP_FILES)
 )
-
-
 
 
 class TestCafeTests(util.LiveLoRATestCase):
@@ -116,7 +113,6 @@ class TestCafeTests(util.LiveLoRATestCase):
                         curs.execute(query, (setting, value))
         return p_port
 
-    
     @unittest.skipUnless(
         util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
         'frontend sources & TestCafé command required!',
@@ -154,20 +150,20 @@ class TestCafeTests(util.LiveLoRATestCase):
 
         with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
             process = subprocess.run(
-                    [
-                        TESTCAFE_COMMAND,
-                        "'{} --no-sandbox'".format(browser),
-                        test_file,
-                        "-r", ','.join(["spec",
-                                        "xunit:" + xml_report_file,
-                                        "json:" + json_report_file]),
-                    ],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    cwd=util.BASE_DIR,
-                    env=env,
-                )
+                [
+                    TESTCAFE_COMMAND,
+                    "'{} --no-sandbox'".format(browser),
+                    test_file,
+                    "-r", ','.join(["spec",
+                                    "xunit:" + xml_report_file,
+                                    "json:" + json_report_file]),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL,
+                cwd=util.BASE_DIR,
+                env=env,
+            )
 
         print(process.stdout.decode(), end='')
 
