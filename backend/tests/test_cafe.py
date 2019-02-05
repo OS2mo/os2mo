@@ -127,7 +127,7 @@ class TestCafeTests(util.LiveLoRATestCase):
     )
     def _test_with_testcafe(self, test_file, test_name):
         self.load_sql_fixture()
-        self._create_conf_data()
+        p_port = self._create_conf_data()
 
         # Start the testing process
         print("----------------------")
@@ -152,21 +152,22 @@ class TestCafeTests(util.LiveLoRATestCase):
         json_report_file = os.path.join(util.REPORTS_DIR,
                                         test_name + ".json")
 
-        process = subprocess.run(
-            [
-                TESTCAFE_COMMAND,
-                "'{} --no-sandbox'".format(browser),
-                test_file,
-                "-r", ','.join(["spec",
-                                "xunit:" + xml_report_file,
-                                "json:" + json_report_file]),
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
-            cwd=util.BASE_DIR,
-            env=env,
-        )
+        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+            process = subprocess.run(
+                    [
+                        TESTCAFE_COMMAND,
+                        "'{} --no-sandbox'".format(browser),
+                        test_file,
+                        "-r", ','.join(["spec",
+                                        "xunit:" + xml_report_file,
+                                        "json:" + json_report_file]),
+                    ],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    cwd=util.BASE_DIR,
+                    env=env,
+                )
 
         print(process.stdout.decode(), end='')
 
