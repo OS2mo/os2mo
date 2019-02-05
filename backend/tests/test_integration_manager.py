@@ -851,6 +851,72 @@ class Tests(util.LoRATestCase):
             }],
         )
 
+    @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
+                          auto_increment=True)
+    def test_create_manager_with_future_address(self):
+        """Ensure that reading works when address is in the future"""
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": None,
+                },
+                "address": [{
+                    "type": "address",
+                    'address_type': {
+                        'scope': 'EMAIL',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'value': 'root@example.com',
+                    "validity": {
+                        "from": "2018-01-01",
+                    },
+                    "org": {
+                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                }],
+            }
+        ]
+
+        self.assertRequest('/service/details/create',
+                                        json=payload)
+
+        # Check that we have no address in present (and that we don't fail)
+        present = self.assertRequest(
+            '/service/e/{}/details/manager'.format(userid),
+        )[-1]
+
+        self.assertEqual([None], present.get('address'))
+
+        # Ensure that the address exists when we go far enough into the future
+        future = self.assertRequest(
+            '/service/e/{}/details/manager?at=2018-01-01'.format(userid),
+        )[-1]
+
+        expected_future_address = [{
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+            },
+            'href': 'mailto:root@example.com',
+            'name': 'root@example.com',
+            'uuid': '11111111-1111-1111-1111-111111111112',
+            'value': 'root@example.com'
+        }]
+        self.assertEqual(expected_future_address, future.get('address'))
+
     @util.mock('aabogade.json', allow_mox=True)
     def test_create_manager_multiple_responsibilities(self, m):
         '''Can we create a manager with more than one responsibility?'''

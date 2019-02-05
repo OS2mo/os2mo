@@ -647,6 +647,13 @@ def get_detail(type, id, function):
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
     })
 
+    def is_empty_lora_object(obj):
+        empty = not (obj.get('relationer') or
+                     obj.get('attributter') or
+                     obj.get('tilstande'))
+
+        return bool(empty)
+
     function_cache.update({
         funcid: {
             mapping.UUID: funcid,
@@ -655,6 +662,7 @@ def get_detail(type, id, function):
             **address.get_one_address(funcobj),
         }
         for funcid, funcobj in address_functions.items()
+        if not is_empty_lora_object(funcobj)
     })
 
     # inject the classes back into the address type cache
