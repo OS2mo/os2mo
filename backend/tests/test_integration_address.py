@@ -1181,6 +1181,10 @@ class Reading(util.LoRATestCase):
                             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                         },
                         "visibility": {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
                             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                         },
                         "org_unit": {
