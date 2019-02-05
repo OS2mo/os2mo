@@ -22,13 +22,11 @@ import collections
 import copy
 import enum
 import functools
-import itertools
 import locale
 import operator
 import uuid
 import json
 
-import werkzeug
 import flask
 
 from . import address
@@ -60,7 +58,6 @@ def _read_local_settings(unitid=None):
                             password=settings.USER_SETTINGS_DB_PASSWORD)
     cur = conn.cursor()
 
-
     query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
     if unitid is None:
         query = query_start + "is Null"
@@ -82,6 +79,7 @@ def _read_local_settings(unitid=None):
             value = row[1]
         user_settings[setting] = value
     return user_settings
+
 
 @enum.unique
 class UnitDetails(enum.Enum):

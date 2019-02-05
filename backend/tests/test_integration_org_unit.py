@@ -764,8 +764,6 @@ class Tests(util.LoRATestCase):
     def test_edit_missing_org_unit(self):
         self.load_sample_structures()
 
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
-
         req = [{
             "type": "org_unit",
             "data": {

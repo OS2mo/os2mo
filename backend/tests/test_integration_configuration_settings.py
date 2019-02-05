@@ -8,7 +8,6 @@
 import psycopg2
 import mora.settings as settings
 from oio_rest.utils import test_support
-from unittest.mock import patch
 from . import util
 
 
@@ -39,7 +38,7 @@ class Tests(util.LoRATestCase):
                             settings.USER_SETTINGS_DB_NAME,
                         )
                     )
-                    
+
                 curs.execute(
                     "CREATE DATABASE {} OWNER {};".format(
                         settings.USER_SETTINGS_DB_NAME,
@@ -100,7 +99,7 @@ class Tests(util.LoRATestCase):
         Test that the conf module will raise in exception if the configuration
         settings are inconsistent.
         """
-        
+
         p_port = self._create_conf_data(inconsistent=True)
         url = '/service/o/configuration'
         payload = {"org_units": {"show_roles": "False"}}
@@ -169,5 +168,5 @@ class Tests(util.LoRATestCase):
             response = self.assertRequest(service_url)
             user_settings = response['user_settings']['orgunit']
             print(user_settings)
-            self.assertTrue(user_settings['show_user_key'] == True)
-            self.assertTrue(user_settings['show_location'] == False)
+            self.assertTrue(user_settings['show_user_key'])
+            self.assertFalse(user_settings['show_location'])
