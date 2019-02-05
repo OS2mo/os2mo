@@ -46,7 +46,7 @@ TEST_FILES = sorted(
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
 
-    def _create_conf_data(self, inconsistent=False):
+    def _create_conf_data(self):
 
         defaults = {'show_roles': 'True',
                     'show_user_key': 'False',
@@ -106,11 +106,6 @@ class TestCafeTests(util.LiveLoRATestCase):
 
                 for setting, value in defaults.items():
                     curs.execute(query, (setting, value))
-
-                if inconsistent:
-                    # Insert once more, making an invalid configuration set
-                    for setting, value in defaults.items():
-                        curs.execute(query, (setting, value))
         return p_port
 
     @unittest.skipUnless(
