@@ -17,8 +17,10 @@ import traceback
 import unittest
 
 import psycopg2
+import mora.settings as settings
 
 from mora import util as mora_util
+from oio_rest.utils import test_support
 
 from . import util
 
@@ -42,9 +44,79 @@ TEST_FILES = sorted(
 )
 
 
+
+
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
 
+    def _create_conf_data(self, inconsistent=False):
+
+        defaults = {'show_roles': 'True',
+                    'show_user_key': 'False',
+                    'show_location': 'True'}
+
+        p_url = test_support.psql().url()
+        p_port = p_url[p_url.rfind(':') + 1:p_url.rfind('/')]
+
+        with psycopg2.connect(p_url) as conn:
+            conn.autocommit = True
+            with conn.cursor() as curs:
+                try:
+                    curs.execute(
+                        "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
+                            settings.USER_SETTINGS_DB_USER,
+                            settings.USER_SETTINGS_DB_PASSWORD
+                        )
+                    )
+                except psycopg2.ProgrammingError:
+                    curs.execute(
+                        "DROP DATABASE {};".format(
+                            settings.USER_SETTINGS_DB_NAME,
+                        )
+                    )
+
+                curs.execute(
+                    "CREATE DATABASE {} OWNER {};".format(
+                        settings.USER_SETTINGS_DB_NAME,
+                        settings.USER_SETTINGS_DB_USER
+                    )
+                )
+                curs.execute(
+                    "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
+                        settings.USER_SETTINGS_DB_NAME,
+                        settings.USER_SETTINGS_DB_USER
+                    )
+                )
+
+        with psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                              dbname=settings.USER_SETTINGS_DB_NAME,
+                              host=settings.USER_SETTINGS_DB_HOST,
+                              password=settings.USER_SETTINGS_DB_PASSWORD,
+                              port=p_port) as conn:
+            conn.autocommit = True
+            with conn.cursor() as curs:
+
+                curs.execute("""
+                CREATE TABLE orgunit_settings(id serial PRIMARY KEY,
+                object UUID, setting varchar(255) NOT NULL,
+                value varchar(255) NOT NULL);
+                """)
+
+                query = """
+                INSERT INTO orgunit_settings (object, setting, value)
+                VALUES (NULL, %s, %s);
+                """
+
+                for setting, value in defaults.items():
+                    curs.execute(query, (setting, value))
+
+                if inconsistent:
+                    # Insert once more, making an invalid configuration set
+                    for setting, value in defaults.items():
+                        curs.execute(query, (setting, value))
+        return p_port
+
+    
     @unittest.skipUnless(
         util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
         'frontend sources & TestCafé command required!',
@@ -55,6 +127,7 @@ class TestCafeTests(util.LiveLoRATestCase):
     )
     def _test_with_testcafe(self, test_file, test_name):
         self.load_sql_fixture()
+        self._create_conf_data()
 
         # Start the testing process
         print("----------------------")
