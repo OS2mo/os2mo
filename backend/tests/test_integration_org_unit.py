@@ -5,8 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import os
-import sqlite3
 import unittest
 from unittest.mock import patch
 
@@ -22,6 +20,7 @@ mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('mora.service.orgunit.uuid.uuid4', new=lambda: mock_uuid)
+@patch('mora.service.orgunit._read_local_settings', new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -421,13 +420,7 @@ class Tests(util.LoRATestCase):
                     },
                     "parent": None,
                     "user_key": "root",
-                    "user_settings": {
-                        "orgunit": {
-                            "show_location": True,
-                            "show_roles": True,
-                            "show_user_key": False
-                        }
-                    },
+                    "user_settings": {"orgunit": {}},
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "validity": {
                         "from": "2016-01-01",
@@ -435,13 +428,7 @@ class Tests(util.LoRATestCase):
                     }
                 },
                 "user_key": "Fake Corp f494ad89-039d-478e-91f2-a63566554bd6",
-                "user_settings": {
-                    "orgunit": {
-                        "show_location": True,
-                        "show_roles": True,
-                        "show_user_key": False
-                    }
-                },
+                "user_settings": {"orgunit": {}},
                 "uuid": unitid,
                 "validity": {
                     "from": "2016-02-04",
@@ -662,9 +649,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
-                'user_settings': {'orgunit': {'show_user_key': False,
-                                              'show_location': True,
-                                              'show_roles': True}},
+                'user_settings': {'orgunit': {}},
                 "parent": None,
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -743,13 +728,7 @@ class Tests(util.LoRATestCase):
                             },
                             "parent": None,
                             "user_key": "root",
-                            "user_settings": {
-                                "orgunit": {
-                                    "show_location": True,
-                                    "show_roles": True,
-                                    "show_user_key": False
-                                }
-                            },
+                            'user_settings': {'orgunit': {}},
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {
                                 "from": "2016-01-01",
@@ -757,13 +736,7 @@ class Tests(util.LoRATestCase):
                             }
                         },
                         "user_key": "hum",
-                        "user_settings": {
-                            "orgunit": {
-                                "show_location": True,
-                                "show_roles": True,
-                                "show_user_key": False
-                            }
-                        },
+                        "user_settings": {"orgunit": {}},
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                         "validity": {
                             "from": "2016-01-01",
@@ -771,13 +744,7 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     "user_key": "hist",
-                    "user_settings": {
-                        "orgunit": {
-                            "show_location": True,
-                            "show_roles": True,
-                            "show_user_key": False
-                        }
-                    },
+                    "user_settings": {"orgunit": {}},
                     "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
                     "validity": {
                         "from": "2016-01-01",
@@ -785,13 +752,7 @@ class Tests(util.LoRATestCase):
                     }
                 },
                 "user_key": "frem",
-                "user_settings": {
-                    "orgunit": {
-                        "show_location": True,
-                        "show_roles": True,
-                        "show_user_key": False
-                    }
-                },
+                "user_settings": {"orgunit": {}},
                 "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                 "validity": {
                     "from": "2016-01-01",
@@ -1309,9 +1270,7 @@ class Tests(util.LoRATestCase):
                 "from": "2017-01-01",
                 "to": "2018-01-01"
             },
-            'user_settings': {'orgunit': {'show_user_key': False,
-                                          'show_location': True,
-                                          'show_roles': True}},
+            "user_settings": {"orgunit": {}}
         })
 
         roots.insert(0, {
@@ -2695,110 +2654,3 @@ class Tests(util.LoRATestCase):
         for path, expected in util.get_fixture('test_trees.json').items():
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
-
-    def _create_conf_data(self, inconsistent=False):
-        import psycopg2
-        from oio_rest.utils import test_support
-        import mora.settings as settings
-
-        defaults = {'show_roles': 'True',
-                    'show_user_key': 'False',
-                    'show_location': 'True'}
-
-        p_url = test_support.psql().url()
-        p_port = p_url[p_url.rfind(':')+1:p_url.rfind('/')]
-        with psycopg2.connect(p_url) as conn:
-            conn.autocommit = True
-            with conn.cursor() as curs:
-                curs.execute(
-                    "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
-                        settings.USER_SETTINGS_DB_USER,
-                        settings.USER_SETTINGS_DB_PASSWORD
-                    ))
-                curs.execute("CREATE DATABASE {} OWNER {};".format(
-                    settings.USER_SETTINGS_DB_NAME,
-                    settings.USER_SETTINGS_DB_USER
-                ))
-                curs.execute(
-                    "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
-                        settings.USER_SETTINGS_DB_NAME,
-                        settings.USER_SETTINGS_DB_USER
-                ))
-
-        with psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                              dbname=settings.USER_SETTINGS_DB_NAME,
-                              host=settings.USER_SETTINGS_DB_HOST,
-                              port=p_port,
-                              password=settings.USER_SETTINGS_DB_PASSWORD) as conn:
-            conn.autocommit = True
-            with conn.cursor() as curs:
-
-                curs.execute("""
-                CREATE TABLE orgunit_settings(id serial PRIMARY KEY,
-                object UUID, setting varchar(255) NOT NULL,
-                value varchar(255) NOT NULL);
-                """)
-
-                query = """
-                INSERT INTO orgunit_settings (object, setting, value)
-                VALUES (NULL, %s, %s);
-                """
-
-                for setting, value in defaults.items():
-                    curs.execute(query, (setting, value))
-
-                if inconsistent:
-                    # Insert once more, making an invalid configuration set
-                    for setting, value in defaults.items():
-                        curs.execute(query, (setting, value))
-        return p_port
-
-    def test_global_user_settings_read(self):
-        p_port = self._create_conf_data()
-        url = '/service/o/configuration'
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
-            user_settings = self.assertRequest(url)
-            self.assertTrue('show_location' in user_settings)
-            self.assertTrue('show_user_key' in user_settings)
-            self.assertTrue('show_roles' in user_settings)
-            self.assertTrue(user_settings['show_location'] == 'True')
-
-    def test_inconsistent_settings(self):
-        p_port = self._create_conf_data(inconsistent=True)
-        url = '/service/o/configuration'
-        payload = {"org_units": {"show_roles": "False"}}
-        assertion_raised = False
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
-            try:
-                self.assertRequest(url, json=payload)
-            except Exception:
-                assertion_raised = True
-        self.assertTrue(assertion_raised)
-        
-    def test_global_user_settings_write(self):
-        p_port = self._create_conf_data()
-        url = '/service/o/configuration'
-
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
-            payload = {"org_units": {"show_roles": "False"}}
-            self.assertRequest(url, json=payload)
-            user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_roles'] == 'False')
-
-            payload = {"org_units": {"show_roles": "True"}}
-            self.assertRequest(url, json=payload)
-            user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_roles'] == 'True')
-
-    def test_ou_user_settings(self):
-        p_port = self._create_conf_data()
-        self.load_sample_structures()
-        uuid = 'da77153e-30f3-4dc2-a611-ee912a28d8aa'
-
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
-            payload = {"org_units": {"show_user_key": "False"}}
-            url = '/service/ou/{}/configuration'.format(uuid)
-            self.assertRequest(url, json=payload)
-
-            user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_user_key'] == 'False')
