@@ -2592,7 +2592,13 @@ class AddressTests(util.LoRATestCase):
                     'user_key': 'Telefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                 },
-                'visibility': {'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
+                'visibility': {
+                    'example': '20304060',
+                    'name': 'Telefonnummer',
+                    'scope': 'PHONE',
+                    'user_key': 'Telefon',
+                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                },
                 'href': 'tel:+4587150000',
                 'name': '+4587150000',
                 'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',

@@ -887,8 +887,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create',
-                                        json=payload)
+        self.assertRequest('/service/details/create', json=payload)
 
         # Check that we have no address in present (and that we don't fail)
         present = self.assertRequest(
