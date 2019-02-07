@@ -129,7 +129,7 @@ export default {
         let vm = this
         this.isLoading = true
 
-        this.addresses = [this.postAddress, this.phone]
+        this.addresses.push(this.postAddress, this.phone)
         this.addresses.forEach(a => {
           if (!a.validity) {
             a.validity = this.entry.validity

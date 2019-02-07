@@ -18,7 +18,7 @@ then
     ssh -l mora 192.168.122.113 /srv/update-mora.py "$GIT_COMMIT"
 elif [[ "$BRANCH_NAME" = release/* ]]
 then
-    echo "TODO: Cannot handle release branches, yet!"
+    ssh -l mora 192.168.122.113 /srv/update-mora.py "$GIT_COMMIT"
 else
     echo "Nothing to deploy for $BRANCH_NAME!"
 fi

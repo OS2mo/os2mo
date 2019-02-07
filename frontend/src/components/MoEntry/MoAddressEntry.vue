@@ -196,8 +196,6 @@ export default {
         if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
           this.entry.value = val.location.uuid
-        } else {
-          this.entry.value = val
         }
       },
       deep: true
@@ -209,16 +207,16 @@ export default {
      * Called synchronously after the instance is created.
      * Set entry and contactInfo to value.
      */
-    if (this.value.uuid) {
+    if (this.value.value) {
       this.address = {
         location: {
           name: this.value.name,
           uuid: this.value.value
         }
       }
+      this.contactInfo = this.value.value
     }
     this.entry = this.value
-    this.contactInfo = this.value.value
   }
 }
 </script>
