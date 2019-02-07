@@ -4,6 +4,8 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
+const ROOTID = '97337de5-6096-41f9-921e-5bed7a140d85'
+
 const dialog = Selector('#employeeCreate')
 
 // CPR Number
@@ -71,6 +73,8 @@ const levelManagerOption = levelManagerSelect.find('option')
 const responsibilityManagerSelect = dialog.find('.responsibility-manager select[data-vv-as="Lederansvar"]')
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
+const treeNodes = Selector('.tree-node .tree-content')
+
 fixture('MoEmployeeCreate')
   .page(`${baseURL}/medarbejder/liste`)
 
@@ -93,6 +97,8 @@ test('Workflow: create employee', async t => {
 
     // Engagement
     .click(parentEngagementInput)
+    .expect(dialog.find('span.tree-anchor').exists)
+    .ok()
     .click(dialog.find('span.tree-anchor'))
 
     .click(jobFunctionEngagementSelect)
@@ -253,4 +259,84 @@ test('Workflow: create employee with role only', async t => {
     .click(VueSelector('bTabButtonHelper').withText('Roller'))
     .expect(Selector('ul.role_type-name').textContent)
     .match(/Tillidsrepræsentant/)
+})
+
+test('Workflow: create employee with association to unit lacking address', async t => {
+  let today = moment()
+
+  await t
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
+    .click('.btn-employee-create')
+
+    .expect(dialog.exists).ok('Opened dialog')
+
+    // CPR Number
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920010')
+    .click(dialog.find('.btn-outline-primary'))
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
+
+    // Engagement
+    .click(parentEngagementInput)
+    .expect(dialog.find('span.tree-anchor').exists)
+    .ok()
+    .click(dialog.find('span.tree-anchor'))
+
+    .click(jobFunctionEngagementSelect)
+    .click(jobFunctionEngagementOption.withText('Skolepsykolog'))
+
+    .click(engagementTypeSelect)
+    .click(engagementTypeOption.withText('Ansat'))
+
+    .click(fromInput)
+    .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .click(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    // Association
+    .click(dialog.find('.btn-association .btn-outline-success'))
+
+    .click(parentAssociationInput)
+    .expect(dialog.find('.unit-association .tree-arrow').exists)
+    .ok()
+    .click(dialog.find('.unit-association .tree-arrow'), {offsetX: 0, offsetY: 0})
+    .expect(dialog.find('.unit-association .tree-node .tree-content')
+            .withText('Social og sundhed').exists)
+    .ok()
+    .click(dialog.find('.unit-association .tree-node .tree-content')
+            .withText('Social og sundhed'))
+
+    .expect(addressAssociationSelect.visible)
+    .notOk()
+
+    .expect(dialog.find('p.no-address').exists)
+    .ok()
+
+    .click(jobFunctionAssociationSelect)
+    .click(jobFunctionAssociationOption.withText('Konsulent'))
+
+    .click(associationTypeSelect)
+    .click(associationTypeOption.withText('Konsulent'))
+
+    // Submit button
+    .click(dialog.find('.btn-primary'))
+
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
+    .match(
+      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+    )
+
+    // verify whom we created
+    .expect(Selector('.card-title').textContent)
+    .match(/Sarah Mortensen \(200392-0010\)/)
+
+    // and the association
+    .click(VueSelector('bTabButtonHelper').withText('Tilknytninger'))
+    .expect(Selector('ul.association_type-name').textContent)
+    .match(/Konsulent/)
 })
