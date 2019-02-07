@@ -189,6 +189,11 @@ ASSOCIATED_FUNCTION_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ZERO_TO_MANY
+)
+
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ZERO_TO_MANY,
@@ -347,7 +352,7 @@ MANAGER_FIELDS = {
     USER_FIELD,
     RESPONSIBILITY_FIELD,
     MANAGER_LEVEL_FIELD,
-    SINGLE_ADDRESS_FIELD,
+    ASSOCIATED_MANAGER_ADDRESSES_FIELD,
 }
 
 ORG_UNIT_FIELDS = {

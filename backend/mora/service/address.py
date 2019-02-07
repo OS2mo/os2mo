@@ -227,8 +227,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-        person = mapping.USER_FIELD(effect)
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(effect)
+        person = list(mapping.USER_FIELD.get_uuids(effect))
+        org_unit = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
 
         func = {
             mapping.ADDRESS_TYPE: address_type,
@@ -237,14 +237,16 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 mapping.TO: util.to_iso_date(
                     end, is_end=True)
             },
-            mapping.PERSON: employee.get_one_employee(
-                c, person[0]['uuid']) if person else None,
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit[0]['uuid'],
-                details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
             mapping.UUID: funcid,
             **handler.get_mo_address_and_properties()
         }
+        if person:
+            func[mapping.PERSON] = employee.get_one_employee(
+                c, person[0])
+        if org_unit:
+            func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
+                c, org_unit[0],
+                details=orgunit.UnitDetails.MINIMAL)
 
         return func
 
@@ -274,11 +276,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
-        typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
-        function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
-                                              required=True)
+        address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
+                                                  required=True)
 
-        scope = util.checked_get(typeobj, 'scope', '', required=True)
+        c = lora.Connector()
+        type_obj = facet.get_one_class(c, address_type_uuid)
+
+        scope = util.checked_get(type_obj, 'scope', '', required=True)
 
         handler = base.get_handler_for_scope(scope).from_request(req)
 
@@ -298,7 +302,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=handler.name,
-            funktionstype=function_type,
+            funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[orgid],
@@ -396,10 +400,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         if mapping.VALUE in data:
 
-            address_type = util.checked_get(
-                data, mapping.ADDRESS_TYPE, {}, required=True)
-            scope = util.checked_get(address_type, 'scope', '', required=True)
-            type_uuid = util.get_uuid(address_type)
+            address_type_uuid = util.get_mapping_uuid(
+                data, mapping.ADDRESS_TYPE, required=True)
+            type_obj = facet.get_one_class(c, address_type_uuid)
+            scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
 
@@ -411,7 +415,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             update_fields.append((
                 mapping.ADDRESS_TYPE_FIELD,
                 {
-                    'uuid': type_uuid
+                    'uuid': address_type_uuid
                 }
             ))
 
