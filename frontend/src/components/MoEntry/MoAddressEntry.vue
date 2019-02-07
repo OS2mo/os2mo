@@ -35,16 +35,14 @@
         </span>
       </div>
 
-      <mo-facet-picker
-        v-if="isPhone"
-        v-show="noPreselectedType"
-        facet="address_property"
-        v-model="entry.visibility"
-        :preselected-user-key="preselectedType"
-        required
-      />
+        <mo-facet-picker
+          v-if="isPhone"
+          v-show="noPreselectedType"
+          facet="address_property"
+          v-model="entry.visibility"
+          :preselected-user-key="preselectedType"
+        />
     </div>
-
 
     <mo-input-date-range
       class="address-date"
