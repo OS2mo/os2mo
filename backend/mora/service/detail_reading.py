@@ -451,12 +451,6 @@ def get_detail(type, id, function):
 
     # TODO: the logic encoded in the functions below belong in the
     # 'mapping' module, as part of e.g. FieldTuples
-    def get_address(effect):
-        return [
-            address.get_one_address(addr)
-            for addr in mapping.SINGLE_ADDRESS_FIELD(effect)
-        ]
-
     def get_user_key(effect):
         return [
             prop['brugervendtnoegle']
@@ -647,13 +641,6 @@ def get_detail(type, id, function):
         for classid, classobj in c.klasse.get_all(uuid=class_cache)
     })
 
-    def is_empty_lora_object(obj):
-        empty = not (obj.get('relationer') or
-                     obj.get('attributter') or
-                     obj.get('tilstande'))
-
-        return bool(empty)
-
     function_cache.update({
         funcid: {
             mapping.UUID: funcid,
@@ -662,7 +649,7 @@ def get_detail(type, id, function):
             **address.get_one_address(funcobj),
         }
         for funcid, funcobj in address_functions.items()
-        if not is_empty_lora_object(funcobj)
+        if util.is_reg_valid(funcobj)
     })
 
     # inject the classes back into the address type cache
