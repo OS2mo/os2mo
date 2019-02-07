@@ -45,6 +45,8 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704 Added max-width to table columns.
 * #25696: Added remove button for dates.
+* #26890: Fixed regression that broke viewing the details of a unit in
+  the termination dialog.
 
 Version 0.13.0, 2018-11-30
 ==========================
