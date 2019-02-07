@@ -276,11 +276,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
-        typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
-        function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
-                                              required=True)
+        address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
+                                                  required=True)
 
-        scope = util.checked_get(typeobj, 'scope', '', required=True)
+        c = lora.Connector()
+        type_obj = facet.get_one_class(c, address_type_uuid)
+
+        scope = util.checked_get(type_obj, 'scope', '', required=True)
 
         handler = base.get_handler_for_scope(scope).from_request(req)
 
@@ -300,7 +302,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=handler.name,
-            funktionstype=function_type,
+            funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[orgid],
@@ -398,10 +400,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         if mapping.VALUE in data:
 
-            address_type = util.checked_get(
-                data, mapping.ADDRESS_TYPE, {}, required=True)
-            scope = util.checked_get(address_type, 'scope', '', required=True)
-            type_uuid = util.get_uuid(address_type)
+            address_type_uuid = util.get_mapping_uuid(
+                data, mapping.ADDRESS_TYPE, required=True)
+            type_obj = facet.get_one_class(c, address_type_uuid)
+            scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
 
@@ -413,7 +415,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             update_fields.append((
                 mapping.ADDRESS_TYPE_FIELD,
                 {
-                    'uuid': type_uuid
+                    'uuid': address_type_uuid
                 }
             ))
 

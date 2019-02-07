@@ -318,7 +318,6 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     'address_type': {
-                        'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'value': 'root@example.com',
@@ -425,7 +424,6 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "address",
                     'address_type': {
-                        'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'value': 'root@example.com',
@@ -536,7 +534,6 @@ class Writing(util.LoRATestCase):
                     {
                         "type": "address",
                         'address_type': {
-                            'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'value': 'root@example.com',
@@ -665,7 +662,6 @@ class Writing(util.LoRATestCase):
                 "address": [{
                     "type": "address",
                     'address_type': {
-                        'scope': 'EMAIL',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                     },
                     'value': 'root@example.com',
@@ -783,7 +779,6 @@ class Writing(util.LoRATestCase):
                     {
                         "type": "address",
                         'address_type': {
-                            'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'value': 'root@example.com',
@@ -894,7 +889,6 @@ class Writing(util.LoRATestCase):
                     "uuid": addr_id,
                     "data": {
                         'address_type': {
-                            'scope': 'EMAIL',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'value': 'root@example.com',
@@ -1181,6 +1175,10 @@ class Reading(util.LoRATestCase):
                             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                         },
                         "visibility": {
+                            'example': '20304060',
+                            'name': 'Telefonnummer',
+                            'scope': 'PHONE',
+                            'user_key': 'Telefon',
                             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
                         },
                         "org_unit": {

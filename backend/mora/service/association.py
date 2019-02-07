@@ -80,7 +80,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=association_type_uuid,
             opgaver=[
                 {'uuid': job_function_uuid}] if job_function_uuid else None,
-            tilknyttedefunktioner=[addr_func_id],
+            tilknyttedefunktioner=[addr_func_id] if addr_func_id else None,
         )
 
         self.payload = association

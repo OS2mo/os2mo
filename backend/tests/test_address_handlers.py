@@ -5,6 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+from unittest.mock import patch
+
 from . import util
 
 from mora.service.address_handler import (dar, ean, email, phone, pnumber,
@@ -336,7 +339,11 @@ class PhoneAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address_and_properties()
+        with patch(
+            'mora.service.address_handler.phone.facet.get_one_class',
+            new=lambda x, y: {'uuid': y}
+        ):
+            actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
