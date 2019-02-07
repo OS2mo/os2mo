@@ -47,6 +47,8 @@ Bug fixes
 * #25696: Added remove button for dates.
 * #26890: Fixed regression that broke viewing the details of a unit in
   the termination dialog.
+* #26898: Ensure that detail view for organisation mapper shows all
+  related units.
 
 Version 0.13.0, 2018-11-30
 ==========================
