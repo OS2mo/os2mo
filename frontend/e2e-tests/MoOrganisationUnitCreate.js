@@ -50,7 +50,6 @@ test('Workflow: create unit', async t => {
   // fail, rather than merely failing at form submit.
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-unit-create')
 

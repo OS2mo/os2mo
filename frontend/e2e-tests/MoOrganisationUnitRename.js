@@ -17,7 +17,6 @@ test('Workflow: rename unit', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
