@@ -147,11 +147,11 @@ export default {
      * Create a employee and check if the data fields are valid.
      * Then throw a error if not.
      */
-    setOrganisation () {
-      this.organisation = this.$store.getters['organisation/get']
+    updateOrganisation () {
+      this.organisation = this.$store.getters['organisation/GET_ORGANISATION']
     },
     createEmployee (evt) {
-      this.setOrganisation()
+      this.updateOrganisation()
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
