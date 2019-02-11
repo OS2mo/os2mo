@@ -35,7 +35,7 @@
     "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller",
     "V_CHANGING_THE_PAST": "Kan ikke foretage ændringer før dags dato",
     "E_INVALID_INPUT": "Ugyldigt input",
-    "E_UNKNOWN": "Ugyldig"
+    "E_UNKNOWN": "Uspecificeret fejl"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",
