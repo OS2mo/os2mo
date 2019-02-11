@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from mock import patch
+from mock import patch, MagicMock
 
 from mora import util as mora_util
 from . import util
@@ -29,7 +29,7 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/org-unit/', json=payload)
+        self.client.post('/service/validate/org-unit/', json=payload)
 
         mock.assert_called_with(
             org_unit_uuid,
@@ -52,7 +52,7 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/employee/', json=payload)
+        self.client.post('/service/validate/employee/', json=payload)
 
         mock.assert_called_with(
             person,
@@ -78,7 +78,7 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/cpr/', json=payload)
+        self.client.post('/service/validate/cpr/', json=payload)
 
         mock.assert_called_with(
             cpr_no,
@@ -103,7 +103,7 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/active-engagements/', json=payload)
+        self.client.post('/service/validate/active-engagements/', json=payload)
 
         mock.assert_called_with(
             person_uuid,
@@ -131,7 +131,8 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/existing-associations/', json=payload)
+        self.client.post('/service/validate/existing-associations/',
+                         json=payload)
 
         mock.assert_called_with(
             person_uuid,
@@ -159,10 +160,35 @@ class TestValidateAPI(util.TestCase):
             }
         }
 
-        self.client.post('/validate/candidate-parent-org-unit/', json=payload)
+        self.client.post('/service/validate/candidate-parent-org-unit/',
+                         json=payload)
 
         mock.assert_called_with(
             org_unit_uuid,
             parent_uuid,
             mora_util.parsedatetime(from_date)
         )
+
+    @patch('mora.service.address_handler.base.get_handler_for_scope')
+    @patch('mora.service.facet.get_one_class')
+    def test_address(self, get_one_class, get_handler_for_scope):
+        value = "12341234"
+        scope = 'SCOPE'
+
+        payload = {
+            "address_type": {
+                "uuid": "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
+            },
+            "value": value
+        }
+
+        get_one_class.return_value = {
+            'scope': scope
+        }
+
+        get_handler_for_scope.return_value = handler = MagicMock()
+
+        self.client.post('/service/validate/address/', json=payload)
+
+        get_handler_for_scope.assert_called_with(scope)
+        handler.validate_value.assert_called_with(value)
