@@ -49,6 +49,7 @@ Bug fixes
   the termination dialog.
 * #26898: Ensure that detail view for organisation mapper shows all
   related units.
+* #26788: Fixed the manager edit popup to submit with a blank employee picker field.
 
 Version 0.13.0, 2018-11-30
 ==========================
