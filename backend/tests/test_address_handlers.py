@@ -8,11 +8,10 @@
 
 from unittest.mock import patch
 
+from mora import exceptions
+from mora.service.address_handler import (
+    dar, ean, email, phone, pnumber, text, www)
 from . import util
-
-from mora.service.address_handler import (dar, ean, email, phone, pnumber,
-                                          text,
-                                          www)
 
 
 @util.mock('dawa-addresses.json')
@@ -101,13 +100,21 @@ class DarAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
+    def test_fails_on_invalid_value(self, mock):
+        # Arrange
+        value = '1234'  # Not a valid DAR UUID
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value)
+
 
 class EANAddressHandlerTests(util.TestCase):
     handler = ean.EANAddressHandler
 
     def test_from_effect(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
 
         effect = {
             'relationer': {
@@ -127,7 +134,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
 
         request = {
             'value': value
@@ -142,7 +149,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_mo_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = {
@@ -159,7 +166,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = {
@@ -175,7 +182,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_lora_properties(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = []
@@ -185,6 +192,14 @@ class EANAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = '1234'  # Not a valid EAN
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value)
 
 
 class EmailAddressHandlerTests(util.TestCase):
@@ -270,6 +285,14 @@ class EmailAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = 'asdasd'  # Not a valid email address
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value)
 
 
 class PhoneAddressHandlerTests(util.TestCase):
@@ -382,13 +405,21 @@ class PhoneAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = 'asdasd'  # Not a valid phone number
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value, '')
+
 
 class PNumberAddressHandlerTests(util.TestCase):
     handler = pnumber.PNumberAddressHandler
 
     def test_from_effect(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
 
         effect = {
             'relationer': {
@@ -408,7 +439,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
 
         request = {
             'value': value
@@ -423,7 +454,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_mo_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = {
@@ -440,7 +471,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = {
@@ -456,7 +487,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_lora_properties(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = []
@@ -466,6 +497,14 @@ class PNumberAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = '1234'  # Not a valid P-number
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value)
 
 
 class TextAddressHandlerTests(util.TestCase):
@@ -563,7 +602,7 @@ class WWWAddressHandlerTests(util.TestCase):
         effect = {
             'relationer': {
                 'adresser': [{
-                    'urn': 'urn:magenta.dk:www:http://www.test.org/'
+                    'urn': 'urn:magenta.dk:www:{}'.format(value)
                 }]
             }
         }
@@ -636,3 +675,11 @@ class WWWAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = '@$@#$@#$'  # Not a valid URL
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler(value)

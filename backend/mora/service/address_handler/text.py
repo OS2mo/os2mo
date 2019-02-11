@@ -26,3 +26,8 @@ class TextAddressHandler(base.AddressHandler):
         quoted_value = urn[len(cls.prefix):]
         value = util.urnunquote(quoted_value)
         return cls(value)
+
+    @classmethod
+    def validate_value(cls, value):
+        """Text value can be whatever"""
+        pass

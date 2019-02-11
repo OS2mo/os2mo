@@ -7,8 +7,10 @@
 #
 import flask
 import requests
+import uuid
 
 from . import base
+from ... import exceptions
 from ... import mapping
 
 session = requests.Session()
@@ -125,3 +127,13 @@ class DARAddressHandler(base.AddressHandler):
         yield addr['postnr']
         yield ' '
         yield addr['postnrnavn']
+
+    @classmethod
+    def validate_value(cls, value):
+        """Values should be UUID in DAR"""
+        try:
+            uuid.UUID(value)
+        except ValueError:
+            exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(
+                value=value
+            )
