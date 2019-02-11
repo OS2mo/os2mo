@@ -42,7 +42,8 @@
               <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
-          <th></th>
+          <th class="table-actions" v-if="editComponent"></th>
+          <th class="table-actions" v-if="isDeletable"></th>
         </tr>
       </thead>
 
@@ -65,14 +66,20 @@
           </td>
           <td>{{c.validity.from | date}}</td>
           <td>{{c.validity.to | date}}</td>
-          <td>
+          <td v-if="editComponent">
             <mo-entry-edit-modal
               :type="type"
               :uuid="editUuid"
               :entry-component="editComponent"
               :content="c"
               :content-type="contentType"
-            />
+              />
+          </td>
+          <td v-if="isDeletable">
+            <mo-entry-terminate-modal
+              :type="contentType"
+              :content="c"
+              />
           </td>
         </tr>
       </tbody>
@@ -90,6 +97,7 @@
 import '@/filters/Date'
 import MoLoader from '@/components/atoms/MoLoader'
 import MoEntryEditModal from '@/components/MoEntryEditModal'
+import MoEntryTerminateModal from '@/components/MoEntryTerminateModal'
 import MoLink from '@/components/MoLink'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
@@ -99,6 +107,7 @@ export default {
     MoLoader,
     MoLink,
     MoEntryEditModal,
+    MoEntryTerminateModal,
     'b-form-checkbox': bFormCheckbox,
     'b-form-checkbox-group': bFormCheckboxGroup
   },
@@ -124,7 +133,7 @@ export default {
     columns: Array,
 
     /**
-     * This boolean property defines the loading.
+     * True during rendering or loading of the component.
      */
     isLoading: Boolean,
 
@@ -134,7 +143,7 @@ export default {
     editComponent: Object,
 
     /**
-     * Defines the editUuid.
+     * Defines the UUID of the owning element, i.e. user or unit.
      */
     editUuid: String,
 
@@ -171,7 +180,19 @@ export default {
      */
     contentAvailable () {
       return this.content ? this.content.length > 0 : false
-    }
+    },
+
+    isDeletable () {
+      switch (this.contentType) {
+      case 'org_unit':
+      case 'employee':
+      case 'related':
+      case 'engagement':
+        return false
+      default:
+        return true
+      }
+    },
   },
 
   watch: {
