@@ -1,3 +1,12 @@
+Version 0.15.0, in development
+==============================
+
+Bug fixes
+---------
+
+* #25671: Organisation is now properly set when creating new employee
+
+
 Version 0.14.0, 2019-01-30
 ==========================
 
@@ -34,7 +43,7 @@ Internal changes
 
 Bug fixes
 ---------
-* #25405: Submit button for create new and edit modals for organisation 
+* #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
 * #25028: Timeachine is working again.
 * #25579: Address race condition when quickly switching between units
