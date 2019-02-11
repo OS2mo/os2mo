@@ -73,12 +73,14 @@
               :entry-component="editComponent"
               :content="c"
               :content-type="contentType"
+              @submit="$emit('update')"
               />
           </td>
           <td v-if="isDeletable">
             <mo-entry-terminate-modal
               :type="contentType"
               :content="c"
+              @submit="$emit('update')"
               />
           </td>
         </tr>

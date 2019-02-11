@@ -12,6 +12,7 @@
         :edit-component="entryComponent"
         :edit-uuid="uuid"
         :type="type"
+        @update="$emit('show', 'future')"
       />
     </mo-collapse>
 
@@ -27,6 +28,7 @@
         :edit-component="entryComponent"
         :edit-uuid="uuid"
         :type="type"
+        @update="$emit('show', 'present')"
       />
     </mo-collapse>
 
@@ -41,6 +43,7 @@
         :edit-component="entryComponent"
         :edit-uuid="uuid"
         :type="type"
+        @update="$emit('show', 'past')"
       />
     </mo-collapse>
 
