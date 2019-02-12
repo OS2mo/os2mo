@@ -5,6 +5,7 @@
   </button>
 
   <b-modal
+    class="mo-terminate-entry-dialog"
     :id="nameId"
     ref="functionTerminate"
     size="sm"

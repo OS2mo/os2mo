@@ -56,7 +56,8 @@
               :value="c"
             />
           </td>
-          <td v-for="(col, index) in columns" :key="index">
+          <td v-for="(col, index) in columns" :key="index"
+              :class="'column-' + col.data">
             <mo-link
               :value="c"
               :column="col.data"
@@ -64,10 +65,11 @@
               :index="col.index"
             />
           </td>
-          <td>{{c.validity.from | date}}</td>
-          <td>{{c.validity.to | date}}</td>
+          <td class="column-from">{{c.validity.from | date}}</td>
+          <td class="column-to">{{c.validity.to | date}}</td>
           <td v-if="editComponent">
             <mo-entry-edit-modal
+              class="edit-entry"
               :type="type"
               :uuid="editUuid"
               :entry-component="editComponent"
@@ -78,6 +80,7 @@
           </td>
           <td v-if="isDeletable">
             <mo-entry-terminate-modal
+              class="terminate-entry"
               :type="contentType"
               :content="c"
               @submit="$emit('update')"
