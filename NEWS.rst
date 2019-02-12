@@ -1,6 +1,12 @@
 Version 0.15.0, in development
 ==============================
 
+New features
+------------
+
+* #26459: Add support for terminating relations, such as associations,
+addresses, etc., using a separate dialog.
+
 Bug fixes
 ---------
 
