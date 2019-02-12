@@ -102,14 +102,14 @@ test('Workflow: move unit', async t => {
     .eql('Social og sundhed')
     .expect(Selector('.orgunit-location').textContent, { timeout: 1500 })
     .eql('Hjørring/Borgmesterens Afdeling')
-    .expect(Selector('.detail-present ul.parent-name').textContent)
+    .expect(Selector('.detail-present .parent-name').textContent)
     .match(/Borgmesterens Afdeling/)
 
     .click(Selector('.detail-past .card-header'))
-    .expect(Selector('.detail-past ul.parent-name').textContent)
+    .expect(Selector('.detail-past .parent-name').textContent)
     .match(/Hjørring/)
 
     .click(Selector('.detail-future .card-header'))
-    .expect(Selector('.detail-past ul.parent-name').textContent)
+    .expect(Selector('.detail-past .parent-name').textContent)
     .match(/Hjørring/)
 })

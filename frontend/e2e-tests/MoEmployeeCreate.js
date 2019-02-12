@@ -258,7 +258,7 @@ test('Workflow: create employee with role only', async t => {
     .expect(Selector('.card-title').textContent)
     .match(/Oliver Jensen \(200392-0009\)/)
     .click(VueSelector('bTabButtonHelper').withText('Roller'))
-    .expect(Selector('ul.role_type-name').textContent)
+    .expect(Selector('.role_type-name').textContent)
     .match(/Tillidsrepræsentant/)
 })
 

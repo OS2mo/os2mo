@@ -1,5 +1,22 @@
 <template>
-  <ul :class="classes">
+  <div :class="classes" v-if="!parts || !parts.length" />
+
+  <div :class="classes" v-else-if="parts.length === 1">
+    <a v-if="parts[0].href" v-bind:href="parts[0].href"
+         target="_blank"
+         link="noopener noreferrer nofollow">
+        {{ parts[0].text }}
+    </a>
+
+    <router-link v-else-if="parts[0].target" class="link-color" :to="parts[0].target">
+      {{ parts[0].text }}
+    </router-link>
+    <span v-else>
+      {{ parts[0].text }}
+    </span>
+  </div>
+
+  <ul :class="classes" v-else>
     <li v-for="(part, index) in parts" :key="index">
       <a v-if="part.href" v-bind:href="part.href"
          target="_blank"
