@@ -473,7 +473,7 @@ def get_unit_ancestor_tree():
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ the given units in the UI.
+    *up to and including* the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
