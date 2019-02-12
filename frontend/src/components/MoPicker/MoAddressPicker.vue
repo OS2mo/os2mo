@@ -158,6 +158,7 @@ export default {
 <style scoped>
  .no-address {
     margin-top: 2.5rem;
-    color: #ff0000;
+    opacity: 0.5;
+    font-style: italic;
   }
 </style>
