@@ -176,6 +176,11 @@ export default {
         { label: 'address', data: 'address' }
       ],
       related_unit: [
+        // NB: the backend always returns both units in a mapping,
+        // ordered by uuid; one of these is always _this_ unit, but we
+        // don't have an easy way to suppress that one, yet, so just
+        // display both :(
+        { label: 'related_org_unit', data: 'org_unit', index: 0 },
         { label: 'related_org_unit', data: 'org_unit', index: 1 }
       ],
 
