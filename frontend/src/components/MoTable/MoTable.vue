@@ -76,7 +76,7 @@
               :content="c"
               :content-type="contentType"
               @submit="$emit('update')"
-              />
+            />
           </td>
           <td v-if="isDeletable">
             <mo-entry-terminate-modal
@@ -84,7 +84,7 @@
               :type="contentType"
               :content="c"
               @submit="$emit('update')"
-              />
+            />
           </td>
         </tr>
       </tbody>
@@ -189,15 +189,15 @@ export default {
 
     isDeletable () {
       switch (this.contentType) {
-      case 'org_unit':
-      case 'employee':
-      case 'related':
-      case 'engagement':
-        return false
-      default:
-        return true
+        case 'org_unit':
+        case 'employee':
+        case 'related':
+        case 'engagement':
+          return false
+        default:
+          return true
       }
-    },
+    }
   },
 
   watch: {

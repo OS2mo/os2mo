@@ -8,13 +8,13 @@
     class="mo-terminate-entry-dialog"
     :id="nameId"
     ref="functionTerminate"
-    size="sm"
+    size="md"
     :title="title"
     @hidden="onHidden"
     hide-footer
     lazy
     no-close-on-backdrop
-    >
+  >
     <form @submit.stop.prevent="terminate">
       <mo-input-date
         class="from-date"
@@ -22,7 +22,7 @@
         :valid-dates="validDates"
         v-model="validity.to"
         required
-        />
+      />
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError.error_key)}}
@@ -54,7 +54,7 @@ export default {
 
   components: {
     MoInputDate,
-    ButtonSubmit,
+    ButtonSubmit
   },
 
   directives: {
@@ -95,7 +95,7 @@ export default {
       return {
         type: this.type,
         uuid: this.content.uuid,
-        validity: this.validity,
+        validity: this.validity
       }
     },
 
@@ -128,19 +128,18 @@ export default {
             this.$emit('submit')
 
             this.$store.commit('log/newWorkLog',
-                               { type: 'FUNCTION_TERMINATE',
-                                 value: {
-                                   type: this.$tc(`shared.${this.type}`, 1),
-                                   uuid: this.payload.uuid,
-                                   date: this.payload.validity.to
-                                 }
-                               },
-                               { root: true })
+              { type: 'FUNCTION_TERMINATE',
+                value: {
+                  type: this.$tc(`shared.${this.type}`, 1),
+                  uuid: this.payload.uuid,
+                  date: this.payload.validity.to
+                }
+              },
+              { root: true })
           })
           .catch(err => {
             this.backendValidationError = err.response.data
           })
-
       } else {
         this.$validator.validateAll()
       }
@@ -148,9 +147,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-  modal-dialog {
-    width: 20em;
-  }
-</style>

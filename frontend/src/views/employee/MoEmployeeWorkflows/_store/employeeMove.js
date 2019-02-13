@@ -28,8 +28,8 @@ const actions = {
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('log/newWorkLog',
-               { type: 'EMPLOYEE_MOVE', value: response.data },
-               { root: true })
+          { type: 'EMPLOYEE_MOVE', value: response.data },
+          { root: true })
         return response.data
       })
       .catch(error => {

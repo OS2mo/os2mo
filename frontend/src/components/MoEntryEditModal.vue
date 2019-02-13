@@ -259,13 +259,13 @@ export default {
         this.$emit('submit')
 
         this.$store.commit('log/newWorkLog',
-                           { type: 'FUNCTION_EDIT',
-                             value: {
-                               contentType: this.contentType,
-                               uuid: this.uuid
-                             }
-                           },
-                           { root: true })
+          { type: 'FUNCTION_EDIT',
+            value: {
+              contentType: this.contentType,
+              uuid: this.uuid
+            }
+          },
+          { root: true })
       }
     }
   }

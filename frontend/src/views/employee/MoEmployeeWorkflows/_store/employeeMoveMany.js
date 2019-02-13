@@ -45,8 +45,8 @@ const actions = {
         commit('resetFields')
         for (const uuid of response.data) {
           commit('log/newWorkLog',
-                 { type: 'EMPLOYEE_MOVE', value: uuid },
-                 { root: true })
+            { type: 'EMPLOYEE_MOVE', value: uuid },
+            { root: true })
         }
         return response
       })
