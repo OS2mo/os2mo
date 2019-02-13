@@ -5,6 +5,7 @@ Bug fixes
 ---------
 
 * #25671: Organisation is now properly set when creating new employee
+* #25694: Changed table columns layout to align between table future, present and past.
 
 
 Version 0.14.0, 2019-01-30
@@ -54,7 +55,13 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704 Added max-width to table columns.
 * #25696: Added remove button for dates.
-* #25694: Changed table columns layout to align between table future, present and past.
+* #26890: Fixed regression that broke viewing the details of a unit in
+  the termination dialog.
+* #26898: Ensure that detail view for organisation mapper shows all
+  related units.
+* #26788: Fixed the manager edit popup to submit with a blank employee picker field.
+* #26801: Adjust styling of missing address note for associations such
+  that it no longer appears as an error.
 
 Version 0.13.0, 2018-11-30
 ==========================
