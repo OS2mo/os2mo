@@ -52,6 +52,7 @@ Bug fixes
 * #26788: Fixed the manager edit popup to submit with a blank employee picker field.
 * #26801: Adjust styling of missing address note for associations such
   that it no longer appears as an error.
+* #26787: Added check for org unit valid dates in the datepicker. 
 
 Version 0.13.0, 2018-11-30
 ==========================
