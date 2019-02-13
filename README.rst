@@ -259,7 +259,7 @@ Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/d
 Licens og Copyright
 -------------------
 
-Copyright (c) 2017-2018, Magenta ApS.
+Copyright (c) 2017-2019, Magenta ApS.
 
 Dette værk er frigivet under `Mozilla Public License, version 2.0 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. 
 Dette er et OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.
