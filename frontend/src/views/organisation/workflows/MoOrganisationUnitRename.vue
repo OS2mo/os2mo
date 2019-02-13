@@ -31,6 +31,7 @@
         <mo-input-date-range
           class="col"
           v-model="rename.data.validity"
+          :disabled-dates="{orgUnitValidity, disabledDates}"
         />
       </div>
 
@@ -58,8 +59,11 @@ import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
 import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
+import MoEntryBase from '@/components/MoEntry/MoEntryBase'
 
 export default {
+  extends: MoEntryBase,
+
   mixins: [ValidateForm, ModalBase],
 
   components: {
@@ -106,6 +110,28 @@ export default {
         if (this.rename.data.name === this.original.name) return true
       }
       return false
+    },
+
+    /**
+     * Valid dates for orgUnit.
+     */
+    orgUnitValidity () {
+      if (this.original && this.rename.data) {
+        if (this.original.validity < this.rename.data.validity) {
+          return this.original.validity
+        }
+        return this.disabledToTodaysDate
+      }
+      return this.rename.data.validity
+    },
+
+    /**
+     * Disabled dates to todays date for the date picker.
+     */
+    disabledToTodaysDate () {
+      return {
+        'from': new Date().toISOString().substring(0, 10)
+      }
     }
   },
 

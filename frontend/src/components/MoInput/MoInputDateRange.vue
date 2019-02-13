@@ -86,11 +86,8 @@ export default {
      * Disable the dates before the choosen start date.
      */
     validStartDateRange () {
-      let range = {
-        from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
-        to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
-      }
-      if (this.validTo && (!range.to || Date(this.validTo) < range.to)) {
+      let range = this.getRanges(this.disabledDates)
+      if (this.validTo && (!range.to || new Date(this.validTo) < range.to)) {
         range.to = new Date(this.validTo)
       }
       return range
@@ -100,10 +97,7 @@ export default {
      * Disable the dates after the choosen end date.
      */
     validEndDateRange () {
-      let range = {
-        from: this.disabledDates && this.disabledDates.from ? new Date(this.disabledDates.from) : null,
-        to: this.disabledDates && this.disabledDates.to ? new Date(this.disabledDates.to) : null
-      }
+      let range = this.getRanges(this.disabledDates)
       if (this.validFrom && new Date(this.validFrom) > range.from) {
         range.from = new Date(this.validFrom)
       }
@@ -139,6 +133,33 @@ export default {
   },
 
   methods: {
+    /**
+     * Valid from and to dates in the date picker for orgUnitValidity and disabledDates.
+     */
+    getRanges (disabledDates) {
+      let range = {
+        from: null,
+        to: null
+      }
+      let toFrom = [
+        disabledDates['orgUnitValidity'] && disabledDates['orgUnitValidity'].to ? new Date(disabledDates['orgUnitValidity'].to) : null,
+        disabledDates['orgUnitValidity'] && disabledDates['orgUnitValidity'].from ? new Date(disabledDates['orgUnitValidity'].from) : null,
+        disabledDates['disabledDates'] && disabledDates['disabledDates'].to ? new Date(disabledDates['disabledDates'].to) : null,
+        disabledDates['disabledDates'] && disabledDates['disabledDates'].from ? new Date(disabledDates['disabledDates'].from) : null
+      ]
+      if (toFrom[0] > toFrom[2]) {
+        range.to = toFrom[2]
+      } else {
+        range.to = toFrom[0]
+      }
+      if (toFrom[1] > toFrom[3]) {
+        range.from = toFrom[1]
+      } else {
+        range.from = toFrom[3]
+      }
+      return range
+    },
+
     /**
      * Update the from and to date.
      */
