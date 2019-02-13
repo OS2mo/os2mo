@@ -19,7 +19,8 @@ class VersionTest(unittest.TestCase):
     @property
     def readme_version(self):
         with open(os.path.join(util.TOP_DIR, 'NEWS.rst')) as fp:
-            all_versions = re.findall(r'^Version ([^,]*),', fp.read(),
+            all_versions = re.findall(r'^Version ([^,]*), [-\d]+$',
+                                      fp.read(),
                                       re.MULTILINE)
 
         return all_versions[0]
