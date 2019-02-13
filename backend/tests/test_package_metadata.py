@@ -17,14 +17,6 @@ from . import util
 
 class VersionTest(unittest.TestCase):
     @property
-    def readme_version(self):
-        with open(os.path.join(util.TOP_DIR, 'NEWS.rst')) as fp:
-            all_versions = re.findall(r'^Version ([^,]*),', fp.read(),
-                                      re.MULTILINE)
-
-        return all_versions[0]
-
-    @property
     def package_version(self):
         main_version = subprocess.check_output(
             [
@@ -45,5 +37,4 @@ class VersionTest(unittest.TestCase):
         return frontend_info['version']
 
     def test_versions(self):
-        self.assertEqual(self.readme_version, self.package_version)
-        self.assertEqual(self.readme_version, self.frontend_version)
+        self.assertEqual(self.package_version, self.frontend_version)
