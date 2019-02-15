@@ -116,9 +116,7 @@ export default {
      * Valid dates for orgUnit.
      */
     orgUnitValidity () {
-      if (this.original && this.rename.data) {
-        return this.disabledToTodaysDate
-      }
+      return this.disabledToTodaysDate
     },
 
     /**

@@ -62,7 +62,6 @@ import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
-import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
 import orgUnitStore from '@/store/modules/organisationUnit'
 
 const STORE_KEY = '_organisationUnitTerminate'

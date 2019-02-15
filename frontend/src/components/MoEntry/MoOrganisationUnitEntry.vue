@@ -68,6 +68,7 @@ export default {
       if (this.entry.parent) {
         return this.entry.parent.validity
       }
+      return this.disabledDates
     }
   },
 
