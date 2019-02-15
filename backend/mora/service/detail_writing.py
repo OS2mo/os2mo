@@ -896,6 +896,9 @@ def terminate():
               :http:post:`/service/details/create` and
               :http:post:`/service/details/edit`.
     :<jsonarr str uuid: The UUID of the related to terminate.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
     :<jsonarr object validity: A validity object; but only the ``to`` is
               used.
 

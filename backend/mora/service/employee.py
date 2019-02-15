@@ -367,8 +367,9 @@ def terminate_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
-    :<json boolean terminate_all: *Optional* - perform full termination, i.e.
-        terminate the associated manager functions as well.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
 
     **Example Request**:
 
@@ -391,10 +392,8 @@ def terminate_employee(employee_uuid):
     request_handlers = [
         handlers.get_handler_for_function(obj)(
             {
-                "type": handlers.get_key_for_function(obj),
                 'uuid': objid,
-                'original': obj,
-                'indirect': not request.get('terminate_all'),
+                'vacate': util.checked_get(request, 'vacate', False),
                 'validity': {
                     'to': util.to_iso_date(
                         # we also want to handle _future_ relations

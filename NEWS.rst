@@ -1,11 +1,22 @@
 Version 0.15.0, in development
 ==============================
 
+API changes
+-----------
+
+``/service/e/(uuid:employee_uuid)/terminate``:
+
+The defaults for employee termination changed, and now affect managers
+similarly to any other functions. To achieve the previous behaviour of
+merely marking manager functions as *vacant*, set ``"vacant": true``
+in the JSON request. Please note that this is the inverse of the
+previous ``terminate_all`` parameter, which no longer has any affect.
+
 New features
 ------------
 
 * #26459: Add support for terminating relations, such as associations,
-addresses, etc., using a separate dialog.
+  addresses, etc., using a separate dialog.
 
 Bug fixes
 ---------

@@ -2119,6 +2119,7 @@ class Tests(util.LoRATestCase):
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
         payload = {
+            "vacate": True,
             "validity": {
                 "to": "2017-11-30"
             }

@@ -22,6 +22,7 @@ class Tests(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         payload = {
+            "vacate": True,
             "validity": {
                 "to": "2000-12-01"
             }
@@ -125,7 +126,7 @@ class Tests(util.LoRATestCase):
             "validity": {
                 "to": "2000-12-01"
             },
-            "terminate_all": True
+            "vacate": False,
         }
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'

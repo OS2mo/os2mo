@@ -193,17 +193,13 @@ class OrgFunkRequestHandler(RequestHandler):
     def prepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
         date = util.get_valid_to(request, required=True)
-        original = request.get('original')
 
         validator.is_edit_from_date_before_today(date)
 
-        if original is None:
-            original = (
-                lora.Connector(effective_date=date)
-                .organisationfunktion.get(self.uuid)
-            )
-
-        validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+        original = (
+            lora.Connector(effective_date=date)
+            .organisationfunktion.get(self.uuid)
+        )
 
         if (
             original is None or
