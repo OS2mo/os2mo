@@ -24,7 +24,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
-      :disabled-dates="orgUnitValidity"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -38,10 +38,15 @@ import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoEngagementEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
@@ -61,20 +66,6 @@ export default {
      */
     datePickerHidden () {
       return this.validity != null
-    },
-
-    /**
-     * Disabled organisation dates.
-     */
-    orgUnitValidity () {
-      if (this.entry.org_unit) {
-        let validityCopy = Object.assign({}, this.entry.org_unit.validity)
-        if (validityCopy.from < this.disabledDates.from) {
-          validityCopy.from = this.disabledDates.from
-        }
-        return validityCopy
-      }
-      return this.disabledDates
     }
   },
 

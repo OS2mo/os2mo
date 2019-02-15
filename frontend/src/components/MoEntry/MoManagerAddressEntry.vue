@@ -6,7 +6,7 @@
     :required="required"
     :label="label"
     :preselectedType="preselectedType"
-    :disabled-dates="disabledDates"
+    :disabled-dates="{disabledDates}"
   />
 </template>
 
