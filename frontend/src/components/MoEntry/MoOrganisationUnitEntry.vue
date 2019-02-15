@@ -66,12 +66,8 @@ export default {
   computed: {
     orgUnitValidity () {
       if (this.entry.parent) {
-        if (this.entry.parent.validity < this.entry.validity) {
-          return this.entry.parent.validity
-        }
         return this.entry.parent.validity
       }
-      return this.entry.validity
     }
   },
 

@@ -117,12 +117,8 @@ export default {
      */
     orgUnitValidity () {
       if (this.original && this.rename.data) {
-        if (this.original.validity < this.rename.data.validity) {
-          return this.original.validity
-        }
         return this.disabledToTodaysDate
       }
-      return this.rename.data.validity
     },
 
     /**
