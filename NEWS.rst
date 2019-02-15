@@ -53,6 +53,7 @@ Bug fixes
 * #26801: Adjust styling of missing address note for associations such
   that it no longer appears as an error.
 * #26787: Added check for org unit valid dates in the datepicker. 
+* #26874: Added scrollbar overflow-x for table.
 
 Version 0.13.0, 2018-11-30
 ==========================
