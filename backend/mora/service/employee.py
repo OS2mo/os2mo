@@ -105,7 +105,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             handlers.RequestType.CREATE
         )
 
-        print(self.details_requests)
         self.payload = user
         self.uuid = userid
 
