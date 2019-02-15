@@ -101,7 +101,7 @@ export default {
     },
 
     ...mapGetters({
-      orgUnitDetails: STORE_KEY + '/GET_DETAILS',
+      orgUnitDetails: STORE_KEY + '/GET_DETAILS'
     })
   },
 
