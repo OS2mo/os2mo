@@ -276,7 +276,7 @@ export default {
   }
 
   td {
-    max-width: 25vh;
+    max-width: 5vh;
   }
 
   .scroll {

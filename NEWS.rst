@@ -45,6 +45,7 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704 Added max-width to table columns.
 * #25696: Added remove button for dates.
+* #25694: Changed table columns layout to align between table future, present and past.
 * #26890: Fixed regression that broke viewing the details of a unit in
   the termination dialog.
 * #26898: Ensure that detail view for organisation mapper shows all
