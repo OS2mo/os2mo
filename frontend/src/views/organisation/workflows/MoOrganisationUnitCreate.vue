@@ -19,7 +19,7 @@
       <mo-org-unit-address-entry
         class="mt-3"
         v-model="postAddress"
-        preselected-type="AdressePost"
+        preselected-type="AddressMailUnit"
         validity-hidden
         required
       />
@@ -27,7 +27,7 @@
       <mo-org-unit-address-entry
         class="mt-3"
         v-model="phone"
-        preselected-type="Telefon"
+        preselected-type="PhoneUnit"
         validity-hidden
         required
       />
