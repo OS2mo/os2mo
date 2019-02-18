@@ -15,7 +15,7 @@ New features
   for disabling certain validations.
 * #25409: Added backend support for specifying visibility for phone number
   address objects.
-* #25706: Added more meaningful error message when editing Address
+* #25706: Added more meaningful error message when editing addresses.
 * #25406: All text has been moved into a translation file
 * #25404: A validation ensures that a person (cpr) cannot be created twice in the database
 
@@ -39,14 +39,14 @@ Bug fixes
 ---------
 * #25405: Submit button for create new and edit modals for organisation 
   units and employees is no longer disabled if the form is invalid
-* #25028: Timemachine is working again.
+* #25028: Time machine is working again.
 * #25579: Address race condition when quickly switching between units
   in the tree view at the left.
 * #25186: Hidden person input for create employee manager.
 * #25690: Ignore spacing in address type input field.
 * #26368: Validation no longer prevents adding an association if it
   duplicates another *inactive* association.
-* #25704: Added max-width to table columns.
+* #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
 * #25696: Added remove button for dates.
 * #25694: Changed table columns layout to align between table future, present and past.
 * #26890: Fixed regression that broke viewing the details of a unit in
