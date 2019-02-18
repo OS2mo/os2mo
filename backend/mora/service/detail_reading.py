@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -53,6 +53,49 @@ DETAIL_TYPES = {
     'e': DetailType('tilknyttedebrugere', 'bruger'),
     'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
 }
+
+
+@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
+@util.restrictargs()
+def list_details(type, id):
+    '''List the available 'detail' types under this entry.
+    .. :quickref: Detail; List
+    **Example response**:
+    .. sourcecode:: json
+      {
+        "address": false,
+        "association": false,
+        "engagement": true,
+        "it": false,
+        "leave": true,
+        "manager": false,
+        "role": false
+      }
+    The value above informs you that at least one entry exists for each of
+    'engagement' and 'leave' either in the past, present or future.
+    '''
+
+    c = common.get_connector(virkningfra='-infinity',
+                             virkningtil='infinity')
+
+    info = DETAIL_TYPES[type]
+    search = {
+        info.search: id,
+    }
+    scope = getattr(c, info.scope)
+
+    r = {
+        functype: bool(
+            c.organisationfunktion(funktionsnavn=funcname, **search),
+        )
+        for functype, funcname in handlers.FUNCTION_KEYS.items()
+    }
+
+    reg = scope.get(id)
+
+    r['org_unit'] = bool(orgunit.OrgUnitRequestHandler.has(scope, reg))
+
+    return flask.jsonify(r)
 
 
 @blueprint.route(
@@ -408,12 +451,6 @@ def get_detail(type, id, function):
 
     # TODO: the logic encoded in the functions below belong in the
     # 'mapping' module, as part of e.g. FieldTuples
-    def get_address(effect):
-        return [
-            address.get_one_address(addr)
-            for addr in mapping.SINGLE_ADDRESS_FIELD(effect)
-        ]
-
     def get_user_key(effect):
         return [
             prop['brugervendtnoegle']
@@ -612,6 +649,7 @@ def get_detail(type, id, function):
             **address.get_one_address(funcobj),
         }
         for funcid, funcobj in address_functions.items()
+        if util.is_reg_valid(funcobj)
     })
 
     # inject the classes back into the address type cache

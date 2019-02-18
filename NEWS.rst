@@ -1,5 +1,5 @@
-Version 0.14.0, in development
-=============================
+Version 0.14.0, 2019-01-30
+==========================
 
 New features
 ------------
@@ -46,6 +46,15 @@ Bug fixes
 * #25704 Added max-width to table columns.
 * #25696: Added remove button for dates.
 * #25694: Changed table columns layout to align between table future, present and past.
+* #26890: Fixed regression that broke viewing the details of a unit in
+  the termination dialog.
+* #26898: Ensure that detail view for organisation mapper shows all
+  related units.
+* #26788: Fixed the manager edit popup to submit with a blank employee picker field.
+* #26801: Adjust styling of missing address note for associations such
+  that it no longer appears as an error.
+* #26787: Added check for org unit valid dates in the datepicker. 
+* #26874: Added scrollbar overflow-x for table.
 
 Version 0.13.0, 2018-11-30
 ==========================

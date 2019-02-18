@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,6 +8,8 @@
 import re
 
 from . import base
+from .. import facet
+from ... import lora
 from ... import mapping
 from ... import util
 
@@ -66,9 +68,8 @@ class PhoneAddressHandler(base.AddressHandler):
     def _get_mo_properties(self):
         properties = super()._get_mo_properties()
         if self.visibility:
+            c = lora.Connector()
             properties.update({
-                mapping.VISIBILITY: {
-                    'uuid': self.visibility
-                }
+                mapping.VISIBILITY: facet.get_one_class(c, self.visibility)
             })
         return properties

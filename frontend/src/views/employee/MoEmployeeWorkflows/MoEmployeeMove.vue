@@ -29,7 +29,7 @@
         class="col from-date"
         :label="$t('input_fields.move_date')"
         v-model="from"
-        :valid-dates="validDates"
+        :valid-dates="currentDateValidity"
         required
       />
     </div>
@@ -64,13 +64,14 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 import ValidateForm from '@/mixins/ValidateForm'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import { mapFields } from 'vuex-map-fields'
 import store from './_store/employeeMove.js'
 
 const STORE_KEY = '$_employeeMove'
 
 export default {
-  mixins: [ValidateForm],
+  mixins: [ValidateForm, CurrentDateValidity],
 
   components: {
     MoInputDate,
@@ -122,13 +123,6 @@ export default {
         if (newFrom <= originalTo) return true
       }
       return false
-    },
-
-    /**
-     * Check if the organisation date are valid.
-     */
-    validDates () {
-      return this.move.data.org_unit ? this.move.data.org_unit.validity : {}
     }
   },
   beforeCreate () {

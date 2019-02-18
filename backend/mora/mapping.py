@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -189,6 +189,11 @@ ASSOCIATED_FUNCTION_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ZERO_TO_MANY
+)
+
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ZERO_TO_MANY,
@@ -347,7 +352,7 @@ MANAGER_FIELDS = {
     USER_FIELD,
     RESPONSIBILITY_FIELD,
     MANAGER_LEVEL_FIELD,
-    SINGLE_ADDRESS_FIELD,
+    ASSOCIATED_MANAGER_ADDRESSES_FIELD,
 }
 
 ORG_UNIT_FIELDS = {

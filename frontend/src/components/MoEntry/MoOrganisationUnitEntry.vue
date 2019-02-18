@@ -23,7 +23,7 @@
       <mo-input-date-range
         v-model="entry.validity"
         :disable-to-date="!creatingDate"
-        :disabled-dates="disabledDates"
+        :disabled-dates="{orgUnitValidity, disabledDates}"
       />
   </div>
 </template>
@@ -39,7 +39,9 @@ import MoEntryBase from './MoEntryBase'
 
 export default {
   extends: MoEntryBase,
+
   name: 'MoOrganisationUnitEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
@@ -59,6 +61,15 @@ export default {
      * This boolean property able the date in create organisation component.
      */
     creatingDate: Boolean
+  },
+
+  computed: {
+    orgUnitValidity () {
+      if (this.entry.parent) {
+        return this.entry.parent.validity
+      }
+      return this.disabledDates
+    }
   },
 
   watch: {

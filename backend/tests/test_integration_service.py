@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1479,3 +1479,125 @@ class Tests(util.LoRATestCase):
             sorted(expected, key=sorter),
             sorted(actual, key=sorter)
         )
+
+    def test_detail_list(self):
+        self.load_sample_structures()
+
+        with self.subTest('fedtmule'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('anders'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': True,
+                    'leave': True,
+                    'manager': True,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('hum'):
+            self.assertRequestResponse(
+                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': False,
+                    'manager': True,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('samf'):
+            self.assertRequestResponse(
+                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('fil'):
+            self.assertRequestResponse(
+                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('hist'):
+            self.assertRequestResponse(
+                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('frem'):
+            self.assertRequestResponse(
+                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': True,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )

@@ -19,7 +19,7 @@
       <mo-org-unit-address-entry
         class="mt-3"
         v-model="postAddress"
-        preselected-type="AdressePost"
+        preselected-type="AddressMailUnit"
         validity-hidden
         required
       />
@@ -27,7 +27,7 @@
       <mo-org-unit-address-entry
         class="mt-3"
         v-model="phone"
-        preselected-type="Telefon"
+        preselected-type="PhoneUnit"
         validity-hidden
         required
       />
@@ -115,7 +115,7 @@ export default {
         let vm = this
         this.isLoading = true
 
-        this.addresses = [this.postAddress, this.phone]
+        this.addresses.push(this.postAddress, this.phone)
         this.addresses.forEach(a => {
           if (!a.validity) {
             a.validity = this.entry.validity

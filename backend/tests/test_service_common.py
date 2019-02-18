@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -132,13 +132,6 @@ class TestClass(util.TestCase):
                     }
                 ],
                 'prop2': [
-                    {
-                        'uuid': 'eb936cf5-e72b-4aa9-9bd2-f773c462fa50',
-                        'virkning': {
-                            'from': '2016-01-01T00:00:00+01:00',
-                            'to': '2020-01-01T00:00:00+01:00'
-                        }
-                    },
                     {
                         'uuid': '6995b5db-5e66-4479-82d8-67045663eb79',
                         'virkning': {
