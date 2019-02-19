@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -283,7 +283,7 @@ class Connector:
         if self.validity == 'present':
             return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
-            return start >= self.start and end <= self.end
+            return start > self.start and end <= self.end
 
     def get_date_chunks(self, dates):
         a, b = itertools.tee(sorted(dates))
@@ -342,7 +342,7 @@ class Scope:
         params['foersteresultat'] = start
 
         if 'uuid' in params:
-            uuids = util.uniqueify(params.pop('uuid'))
+            uuids = util.uniqueify(params.pop('uuid'))[start:start + limit]
         else:
             uuids = self.fetch(**params)
 

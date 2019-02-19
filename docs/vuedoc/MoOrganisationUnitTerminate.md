@@ -31,12 +31,6 @@ A organisation unit terminate component.
 
    **dependencies:** `org_unit`, `org_unit` 
 
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
 
 ## methods 
 

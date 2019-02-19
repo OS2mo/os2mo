@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,32 +33,35 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
 
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=True)
+        org_unit_uuid = util.get_uuid(org_unit, required=True)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_unit = c.organisationenhed.get(org_unit_uuid)
+        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
 
-        if not org_unit:
+        if not org_unit_obj:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
                 org_unit_uuid=org_unit_uuid,
             )
 
-        org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
         association_type_uuid = util.get_mapping_uuid(req,
                                                       mapping.ASSOCIATION_TYPE,
                                                       required=True)
-        address_obj = util.checked_get(req, mapping.ADDRESS, {})
+
+        addr_func_id = util.get_mapping_uuid(req, mapping.ADDRESS)
+
         valid_from, valid_to = util.get_validities(req)
 
         bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
                                 mapping.ASSOCIATION_KEY)
 
         # Validation
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
         validator.is_date_range_in_employee_range(employee, valid_from,
                                                   valid_to)
@@ -77,9 +80,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=association_type_uuid,
             opgaver=[
                 {'uuid': job_function_uuid}] if job_function_uuid else None,
-            adresser=[
-                address.get_relation_for(address_obj),
-            ] if address_obj else None,
+            tilknyttedefunktioner=[addr_func_id] if addr_func_id else None,
         )
 
         self.payload = association
@@ -93,6 +94,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
+
+        validator.is_edit_from_date_before_today(new_from)
+
+        # Get org unit uuid for validation purposes
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
 
         payload = dict()
         payload['note'] = 'Rediger tilknytning'
@@ -150,13 +156,13 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             employee_uuid = util.get_uuid(employee)
 
         if data.get(mapping.ADDRESS):
-            address_obj = (
-                data.get(mapping.ADDRESS) or original_data[mapping.ADDRESS]
-            )
+            address_obj = util.checked_get(data, mapping.ADDRESS, {})
 
             update_fields.append((
-                mapping.SINGLE_ADDRESS_FIELD,
-                address.get_relation_for(address_obj),
+                mapping.ASSOCIATED_FUNCTION_FIELD,
+                {
+                    'uuid': address_obj.get(mapping.UUID),
+                },
             ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
@@ -169,7 +175,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+        validator.is_date_range_in_org_unit_range(org_unit, new_from,
                                                   new_to)
         validator.is_date_range_in_employee_range(employee, new_from,
                                                   new_to)

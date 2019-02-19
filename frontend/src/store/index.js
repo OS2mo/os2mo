@@ -5,28 +5,22 @@ import employee from './modules/employee'
 import log from './modules/log'
 import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
-import employeeCreate from './modules/employeeCreate'
-import employeeLeave from './modules/employeeLeave'
-import employeeMove from './modules/employeeMove'
-import employeeMoveMany from './modules/employeeMoveMany'
-import employeeTerminate from './modules/employeeTerminate'
 import facet from './modules/facet'
-
+import { Employee } from './actions/employee'
+import { OrganisationUnit } from './actions/organisationUnit'
+import { Facet } from './actions/facet'
+import { Organisation } from './actions/organisation'
+import { Auth } from './actions/auth'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   // strict: true,
   modules: {
-    auth: auth,
-    employee: employee,
+    [Auth.NAMESPACE]: auth,
+    [Employee.NAMESPACE]: employee,
     log: log,
-    organisation: organisation,
-    organisationUnit: organisationUnit,
-    employeeCreate: employeeCreate,
-    employeeLeave: employeeLeave,
-    employeeMove: employeeMove,
-    employeeMoveMany: employeeMoveMany,
-    employeeTerminate: employeeTerminate,
-    facet: facet
+    [Organisation.NAMESPACE]: organisation,
+    [OrganisationUnit.NAMESPACE]: organisationUnit,
+    [Facet.NAMESPACE]: facet
   }
 })

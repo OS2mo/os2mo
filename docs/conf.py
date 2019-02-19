@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -106,10 +106,12 @@ source_parsers = {
 #
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+    'flask': ('http://flask.pocoo.org/docs/', None),
 #    'LoRa': ('https://mox.readthedocs.org/', None),
 }
 
-primary_domain = 'http'
+# primary_domain = 'http'
 
 
 # The master toctree document.

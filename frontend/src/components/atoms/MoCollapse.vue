@@ -7,7 +7,7 @@
         aria-expanded="true"
         :aria-controls="nameId"
       >
-        <icon :name="open ? 'caret-down' : 'caret-right'"/>
+        <icon class="mr-1" :name="open ? 'caret-down' : 'caret-right'"/>
         <strong>{{title}}</strong>
       </div>
     </div>
@@ -50,10 +50,10 @@ export default {
 
   data () {
     return {
-    /**
-      * The open component value.
-      * Used to detect changes and restore the value.
-      */
+      /**
+       * The open component value.
+       * Used to detect changes and restore the value.
+       */
       open: false
     }
   },

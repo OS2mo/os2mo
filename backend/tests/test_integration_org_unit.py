@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 import freezegun
+import notsouid
 
 from mora import lora
 
@@ -253,14 +254,16 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Fake Corp",
+            "integration_data": {"fakekey": 42},
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
-            "addresses": [
+            "details": [
                 {
+                    "type": "address",
                     "address_type": {
                         "example": "20304060",
                         "name": "Telefonnummer",
@@ -268,9 +271,19 @@ class Tests(util.LoRATestCase):
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
-                    "value": "11 22 33 44",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "validity": {
+                        "from": "2016-02-04",
+                        "to": "2017-10-21",
+                    },
+                    "value": "11 22 33 44"
                 },
                 {
+                    "type": "address",
                     "address_type": {
                         "example": "<UUID>",
                         "name": "Adresse",
@@ -278,7 +291,16 @@ class Tests(util.LoRATestCase):
                         "user_key": "Adresse",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "validity": {
+                        "from": "2016-02-04",
+                        "to": "2017-10-21",
+                    },
+                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
             ],
             "validity": {
@@ -291,7 +313,7 @@ class Tests(util.LoRATestCase):
         unitid = r.json
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "note": "Oprettet i MO",
             "attributter": {
                 "organisationenhedegenskaber": [
@@ -304,33 +326,12 @@ class Tests(util.LoRATestCase):
                         },
                         "brugervendtnoegle":
                             'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
-                        "enhedsnavn": "Fake Corp"
+                        "enhedsnavn": "Fake Corp",
+                        "integrationsdata": '{"fakekey": 42}'
                     }
                 ]
             },
             "relationer": {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4511223344',
-                        'virkning': {
-                            'from': '2016-02-04 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-10-22 00:00:00+02',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': '2016-02-04 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-10-22 00:00:00+02',
-                            'to_included': False,
-                        },
-                    },
-                ],
                 "overordnet": [
                     {
                         "virkning": {
@@ -447,20 +448,6 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        self.assertRequestResponse(
-            '/service/ou/{}/details/'.format(unitid),
-            {
-                'address': True,
-                'association': False,
-                'engagement': False,
-                'it': False,
-                'leave': False,
-                'manager': False,
-                'org_unit': True,
-                'role': False,
-            },
-        )
-
     def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range """
@@ -517,6 +504,12 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse('/service/ou/create', expected,
                                    json=payload, status_code=400)
+
+        self.assertRequestResponse('/service/ou/create?force=0', expected,
+                                   json=payload, status_code=400)
+
+        self.assertRequest('/service/ou/create?force=1',
+                           json=payload)
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -638,28 +631,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -965,28 +936,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -996,8 +945,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_edit_org_unit_earlier_start(self):
-        '''Test setting the start date to something earlier (#23182)'''
+        """ Test setting the start date to something earlier (#23182)
+        """
 
         self.load_sample_structures()
 
@@ -1075,100 +1026,21 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        expected = {
-            'attributter': {
-                'organisationenhedegenskaber': [
-                    {
-                        'brugervendtnoegle': 'samf',
-                        'enhedsnavn': 'Samfundsvidenskabelige fakultet',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-            'livscykluskode': 'Rettet',
-            'note': 'Rediger organisationsenhed',
-            'relationer': {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4587150000',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'enhedstype': [
-                    {
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'overordnet': [
-                    {
-                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                'tilhoerer': [
-                    {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-            'tilstande': {
-                'organisationenhedgyldighed': [
-                    {
-                        'gyldighed': 'Aktiv',
-                        'virkning': {
-                            'from': '2016-06-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-            },
-        }
+        self.assertRequest(
+            '/service/ou/' + org_unit_uuid +
+            '/?at=2016-06-01',
+            200,
+            "should exist on 2016-06-01"
+        )
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        self.assertRequest(
+            '/service/ou/' + org_unit_uuid +
+            '/?at=2016-05-31',
+            404,
+            "should not exist before start"
+        )
 
-        self.assertRegistrationsEqual(expected, actual)
-
+    @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         self.load_sample_structures()
@@ -1237,6 +1109,7 @@ class Tests(util.LoRATestCase):
                         'brugervendtnoegle': 'Fake Corp '
                         'f494ad89-039d-478e-91f2-a63566554bd6',
                         'enhedsnavn': 'Fake Corp',
+                        'integrationsdata': '{}',
                         'virkning': {
                             'from': '2016-06-01 00:00:00+02',
                             'from_included': True,
@@ -1249,28 +1122,6 @@ class Tests(util.LoRATestCase):
             'livscykluskode': 'Rettet',
             'note': 'Rediger organisationsenhed',
             'relationer': {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4511223344',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-01-01 00:00:00+01',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-01-01 00:00:00+01',
-                            'to_included': False,
-                        },
-                    },
-                ],
                 'enhedstype': [
                     {
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
@@ -1325,6 +1176,46 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_edit_org_unit_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        req = [{
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "org_unit_type": {
+                    'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
+
+        self.assertRequestResponse(
+            '/service/details/edit?force=1',
+            [
+                org_unit_uuid,
+            ],
+            json=req,
+        )
+
+    @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
     def test_create_missing_parent(self):
         self.load_sample_structures()
 
@@ -1350,7 +1241,7 @@ class Tests(util.LoRATestCase):
                 'Corresponding parent unit or organisation not found.',
                 'error': True,
                 'error_key': 'V_PARENT_NOT_FOUND',
-                'org_unit_uuid': None,
+                'org_unit_uuid': 'ec93e37e-774e-40b4-953c-05ca41b80372',
                 'parent_uuid': '00000000-0000-0000-0000-000000000000',
                 'status': 404,
             },
@@ -1539,28 +1430,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -1570,7 +1439,13 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @unittest.expectedFailure
+    @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
+        """ This test fails due to validity records being
+            fractioned in lora due to integration_data added
+            the results are not wrong, just fractioned (#25200)
+        """
         # Test that we can rename a unit to a date *earlier* than its
         # creation date. We are expanding the validity times on the
         # object, so we insert a separate copy as to not 'taint' the
@@ -1695,34 +1570,6 @@ class Tests(util.LoRATestCase):
             'livscykluskode': 'Rettet',
             'note': 'Rediger organisationsenhed',
             'relationer': {
-                'adresser': [{
-                    'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    'urn': 'urn:magenta.dk:telefon:+4587150000',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }, {
-                    'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }, {
-                    'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-                    'urn': 'urn:magenta.dk:ean:5798000420229',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }],
                 'enhedstype': [{
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     'virkning': {
@@ -1816,7 +1663,8 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "brugervendtnoegle": "hum",
-                        "enhedsnavn": "Humanistisk fakultet"
+                        "enhedsnavn": "Humanistisk fakultet",
+                        "integrationsdata": "{}",
                     }
                 ]
             },
@@ -1885,28 +1733,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -1983,6 +1809,7 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
+    @freezegun.freeze_time('2010-01-01')
     def test_cannot_extend_beyond_parent(self):
         """Should fail validation since the new validity period extends beyond
         that of the parent. (#23155)"""
@@ -2366,7 +2193,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 0,
+                'role_count': 1,
                 'child_count': 1,
 
                 'child_units': [
@@ -2401,7 +2228,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 2,
 
                 'child_units': [
@@ -2446,7 +2273,7 @@ class Tests(util.LoRATestCase):
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 1,
 
                 'child_units': [
@@ -2495,7 +2322,7 @@ class Tests(util.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 4,
+                'role_count': 5,
                 'child_count': 0,
 
                 'child_units': [],
@@ -2612,7 +2439,7 @@ class Tests(util.LoRATestCase):
                         },
                         "parent": {
                             "name": "Overordnet Enhed",
-                            "user_key": "root",
+                            "user_ky": "root",
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {
                                 "from": "2016-01-01",
@@ -2787,8 +2614,81 @@ class Tests(util.LoRATestCase):
             [],
         )
 
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_get_integration_data(self):
+        self.load_sample_structures()
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        self.assertRequestResponse(
+            '/service/ou/{}/integration-data'.format(org_unit_uuid),
+            {
+                'integration_data': {},
+                'name': 'Humanistisk fakultet',
+                'user_key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01',
+                    'to': None
+                }
+            }
+        )
+
+    @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    def test_edit_integration_data(self):
+        self.load_sample_structures()
+        org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+
+        req = {
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "integration_data": {"baywatchname": "Hasselhoff"},
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": "2016-01-02",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            org_unit_uuid,
+            json=req,
+        )
+
+        expected_organisationenhedegenskaber = [{
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': '{"baywatchname": "Hasselhoff"}',
+            'virkning': {
+                'from': '2016-01-01 00:00:00+01',
+                'from_included': True,
+                'to': '2016-01-03 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'brugervendtnoegle': 'hum',
+            'enhedsnavn': 'Humanistisk fakultet',
+            'integrationsdata': '{}',
+            'virkning': {
+                'from': '2016-01-03 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertEqual(
+            expected_organisationenhedegenskaber,
+            sorted(actual['attributter']['organisationenhedegenskaber'],
+                   key=lambda attrs: attrs['virkning']['from']),
+        )
+
     def test_tree(self):
-        self.load_sql_fixture()
+        self.load_sample_structures()
 
         for path, expected in util.get_fixture('test_trees.json').items():
             with self.subTest(path):

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -417,7 +417,7 @@ class Writing(util.LoRATestCase):
                             "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                         },
                         "validity": {
-                            "from": "2017-06-01",
+                            "from": "2018-01-01",
                             "to": "2018-06-01",
                         }
                     }
@@ -436,7 +436,7 @@ class Writing(util.LoRATestCase):
                 'validity': {'from': '2010-01-01', 'to': None},
             },
             validity={
-                "from": "2017-06-01",
+                "from": "2018-01-01",
                 "to": "2018-06-01",
             },
         )
@@ -599,7 +599,7 @@ class Writing(util.LoRATestCase):
                             "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
                         },
                         "validity": {
-                            "from": "2017-06-01",
+                            "from": "2017-06-22",
                             "to": "2018-06-01",
                         }
                     }
@@ -618,12 +618,12 @@ class Writing(util.LoRATestCase):
                 'validity': {'from': '2010-01-01', 'to': None},
             },
             validity={
-                "from": "2017-06-01",
+                "from": "2017-06-22",
                 "to": "2018-06-01",
             },
         )
 
-        original['validity']['to'] = '2017-05-31'
+        original['validity']['to'] = '2017-06-21'
         original['org_unit']['name'] = 'Afdeling for Fremtidshistorik'
 
         self.assertRequestResponse(
@@ -640,6 +640,37 @@ class Writing(util.LoRATestCase):
             '/service/ou/{}/details/it?validity=future'.format(unitid),
             [],
         )
+
+    def test_edit_itsystem_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        function_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
+
+        req = {
+            "type": "it",
+            "uuid": function_id,
+            "data": {
+                "itsystem": {
+                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                }
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
 
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
     def test_edit_move_itsystem(self):
@@ -698,7 +729,7 @@ class Writing(util.LoRATestCase):
                         },
                         "user_key": "wooble",
                         "validity": {
-                            "from": "2017-06-01",
+                            "from": "2017-06-22",
                             "to": "2018-06-01",
                         },
                     },
@@ -720,7 +751,7 @@ class Writing(util.LoRATestCase):
                 'uuid': new_userid,
             },
             validity={
-                "from": "2017-06-01",
+                "from": "2017-06-22",
                 "to": "2018-06-01",
             },
         )

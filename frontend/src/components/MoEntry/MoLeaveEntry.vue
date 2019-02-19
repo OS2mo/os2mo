@@ -1,93 +1,72 @@
 <template>
   <div>
     <div class="form-row">
-      <mo-facet-picker 
-        facet="leave_type" 
-        v-model="entry.leave_type" 
+      <mo-facet-picker
+        facet="leave_type"
+        v-model="entry.leave_type"
         required
       />
     </div>
 
-    <mo-date-picker-range 
-      v-model="entry.validity" 
+    <mo-input-date-range
+      v-model="entry.validity"
       :initially-hidden="datePickerHidden"
+      :disabled-dates="{disabledDates}"
     />
   </div>
 </template>
 
 <script>
-  /**
-   * A leave entry component.
-   */
+/**
+ * A leave entry component.
+ */
 
-  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import { MoInputDateRange } from '@/components/MoInput'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEntryBase from './MoEntryBase'
 
-  export default {
-    components: {
-      MoDatePickerRange,
-      MoFacetPicker
-    },
+export default {
+  extends: MoEntryBase,
+  name: 'MoLeaveEntry',
+  components: {
+    MoInputDateRange,
+    MoFacetPicker
+  },
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
+  props: {
+    /**
+     * Defines the validity.
+     */
+    validity: Object
+  },
 
-      /**
-       * Defines the validity.
-       */
-      validity: Object
-    },
+  computed: {
+    /**
+     * Hides the validity.
+     */
+    datePickerHidden () {
+      return this.validity != null
+    }
+  },
 
-    data () {
-      return {
-      /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
-        entry: {
-          validity: {}
-        }
-      }
-    },
-
-    computed: {
-      /**
-       * Hides the validity.
-       */
-      datePickerHidden () {
-        return this.validity != null
-      }
-    },
-
-    watch: {
-      /**
-       * Whenever entry change, update newVal.
-       */
-      entry: {
-        handler (newVal) {
-          newVal.type = 'leave'
-          this.$emit('input', newVal)
-        },
-        deep: true
+  watch: {
+    /**
+     * Whenever entry change, update newVal.
+     */
+    entry: {
+      handler (newVal) {
+        newVal.type = 'leave'
+        this.$emit('input', newVal)
       },
-
-      /**
-       * When validity change, update newVal.
-       */
-      validity (newVal) {
-        this.entry.validity = newVal
-      }
+      deep: true
     },
 
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
-      this.entry = this.value
+    /**
+     * When validity change, update newVal.
+     */
+    validity (newVal) {
+      this.entry.validity = newVal
     }
   }
+}
 </script>

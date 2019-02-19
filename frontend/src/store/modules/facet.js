@@ -1,11 +1,15 @@
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
+import { _facet } from '../actions/facet'
 
 const state = {
-  address_type: undefined,
+  org_unit_address_type: undefined,
+  employee_address_type: undefined,
+  manager_address_type: undefined,
   association_type: undefined,
   engagement_type: undefined,
-  job_function: undefined,
+  engagement_job_function: undefined,
+  association_job_function: undefined,
   leave_type: undefined,
   manager_level: undefined,
   manager_type: undefined,
@@ -15,13 +19,13 @@ const state = {
 }
 
 const actions = {
-  SET_FACET ({ state, rootState, commit }, payload) {
+  [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
     if (state[payload.facet]) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
       .then(response => {
         response.data.classes = response.data.data.items
         delete response.data.data.items
-        commit('SET_FACET', response.data)
+        commit(_facet.mutations.SET_FACET, response.data)
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
@@ -30,13 +34,13 @@ const actions = {
 }
 
 const mutations = {
-  SET_FACET (state, payload) {
-    Vue.set(state, payload.name, payload)
+  [_facet.mutations.SET_FACET] (state, payload) {
+    Vue.set(state, payload.user_key, payload)
   }
 }
 
 const getters = {
-  GET_FACET: (state) => (id) => state[id] || {}
+  [_facet.getters.GET_FACET]: (state) => (id) => state[id] || {}
 }
 
 export default {

@@ -1,3 +1,68 @@
+Version 0.14.0, 2019-01-30
+==========================
+
+New features
+------------
+
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+* #25394: It is now no longer possible to perform edits taking effect before
+  the current date.
+* #25100: It is now possible to optionally also terminate associated manager
+  roles when terminating an employee.
+* #24702: Allow marking organisational units as related to each other.
+* #26368: Add support for using ``?validate=0`` as a query parameter
+  for disabling certain validations.
+* #25409: Added backend support for specifying visibility for phone number
+  address objects.
+* #25706: Added more meaningful error message when editing addresses.
+* #25406: All text has been moved into a translation file
+* #25404: A validation ensures that a person (cpr) cannot be created twice in the database
+
+Internal changes
+----------------
+
+* #25577: Implemented more facets for address types and job functions.
+  Updated handling of facets throughout.
+* #26070: Input fields now inherit from a common base.
+* #26531: Employee workflow stores are now only loaded when they are needed.
+* #26551: Restructured how frontend files are organised.
+* #26600: Some styling issues.
+* #26604: Menu items and shortcuts can now be added via an internal API.
+* #26675: Moved i18n and validation import into seperate files.
+* #26658: Added constant names to global store.
+* #25053: Addresses are now modeled using ``organisationfunktion``, in order
+  to further streamline and unify the modeling of relations.
+* #26686: Added documentation to frontend.
+
+Bug fixes
+---------
+* #25405: Submit button for create new and edit modals for organisation 
+  units and employees is no longer disabled if the form is invalid
+* #25028: Time machine is working again.
+* #25579: Address race condition when quickly switching between units
+  in the tree view at the left.
+* #25186: Hidden person input for create employee manager.
+* #25690: Ignore spacing in address type input field.
+* #26368: Validation no longer prevents adding an association if it
+  duplicates another *inactive* association.
+* #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
+* #25696: Added remove button for dates.
+* #25694: Changed table columns layout to align between table future, present and past.
+* #26890: Fixed regression that broke viewing the details of a unit in
+  the termination dialog.
+* #26898: Ensure that detail view for organisation mapper shows all
+  related units.
+* #26788: Fixed the manager edit popup to submit with a blank employee picker field.
+* #26801: Adjust styling of missing address note for associations such
+  that it no longer appears as an error.
+* #26787: Added check for org unit valid dates in the datepicker. 
+* #26874: Added scrollbar overflow-x for table.
+* #25697: Added scrollbars to the dropdown menu when choosing Unit in Create Employee
+* #24493: Added indication of where a value is missing in Create Unit
+* #24492: Name change was not reflected before the page was updated manually
+* #24933: Internet Explorer stopped validating input fields. Works again now.
+
 Version 0.13.0, 2018-11-30
 ==========================
 
@@ -13,9 +78,11 @@ New features
 
 Internal changes
 ----------------
+* #21966 Implemented use of vuex for employee workflows.
 
 * #23779: Added custom UUID url converter, stringifying UUID parameters in
   order to standardise our use of UUIDs internally.
+* #24797: Integration data added to employee and organisational unit.
 * #25136: Refactored front end code.
 * #24700: Backend ready for the Phonebook
 

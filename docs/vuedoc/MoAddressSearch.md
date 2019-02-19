@@ -4,9 +4,7 @@ A address search component.
 
 ## props 
 
-- `value` ***Object*** (*optional*) 
-
-  Create two-way data bindings with the component. 
+- `v-model` ***Object*** (*optional*) 
 
 - `label` ***String*** (*optional*) 
 

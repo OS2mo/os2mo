@@ -1,0 +1,24 @@
+{
+  "employee": {
+    "engagements": "Engagementer",
+    "addresses": "Adresser",
+    "roles": "Roller",
+    "it": "IT",
+    "association": "@:shared.association",
+    "leave": "Orlov",
+    "manager": "Leder"
+  },
+  "organisation": {
+    "unit": "Enhed",
+    "addresses": "Adresser",
+    "engagements": "Engagementer",
+    "it": "IT",
+    "association": "@:shared.association",
+    "roles": "Roller",
+    "related": "Relateret",
+    "managers": "Ledere"
+  },
+  "log": {
+    "worklog": "Arbejdslog"
+  }
+}

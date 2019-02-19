@@ -1,5 +1,5 @@
 import Service from './HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 
 export default {
@@ -65,11 +65,11 @@ export default {
   createEntry (create) {
     return Service.post('/details/create', create)
       .then(response => {
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response
       })
       .catch(error => {
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         store.commit('log/newError', { type: 'ERROR', value: error.response })
         return error.response
       })
@@ -95,7 +95,7 @@ export default {
   edit (edit) {
     return Service.post('/details/edit', edit)
       .then(response => {
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         store.commit('log/newWorkLog', { type: 'EMPLOYEE_EDIT', value: response.data })
         return response.data
       })

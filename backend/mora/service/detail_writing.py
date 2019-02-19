@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,7 @@ import flask
 
 from . import handlers
 from .. import exceptions
+from .. import util
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
@@ -51,10 +52,13 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
+@util.restrictargs('force')
 def create():
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 
@@ -79,6 +83,7 @@ def create():
     :<json string name: The name of the employee
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
+    :<json dict integration_data: **optional** dictionary of integration data
     :<json object org: The organisation with which the empl. is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
@@ -408,10 +413,13 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
+@util.restrictargs('force')
 def edit():
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: The edit succeeded.
 
@@ -861,43 +869,13 @@ def edit():
     :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object org: the UUID of the associated organisation
     :<jsonarr object org_unit: the UUID of the associated unit, if any
     :<jsonarr object person: the UUID of the associated employee, if any
+    :<jsonarr object manager: the UUID of the associated manager, if any
     :<jsonarr object validity: A validity object
 
     See :ref:`Adresses <address>` for more information.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "original": {
-            "value": "0101501234",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "data": {
-            "value": "123456789",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "type": "address",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
     """
 
     reqs = flask.request.get_json()

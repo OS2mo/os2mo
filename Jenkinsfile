@@ -53,7 +53,7 @@ pipeline {
 
     stage('Tests') {
       steps {
-        timeout(12) {
+        timeout(15) {
           ansiColor('xterm') {
             dir("backend") {
               sh './.jenkins/3-tests.sh'

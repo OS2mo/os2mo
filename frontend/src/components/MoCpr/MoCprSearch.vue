@@ -1,23 +1,23 @@
 <template>
   <div>
     <label v-if="!noLabel">{{label}}</label>
-    
+
     <div class="input-group">
-      <input 
-        :name="nameId" 
+      <input
+        :name="nameId"
         :data-vv-as="label"
-        v-model="cprNo" 
-        class="form-control" 
-        type="text" 
+        v-model="cprNo"
+        class="form-control"
+        type="text"
         maxlength="10"
-        v-validate="{digits: 10, required}" 
+        v-validate="{digits: 10, required}"
       />
 
-      <button 
-        type="button" 
-        class="btn btn-outline-primary" 
-        @click="cprLookup()" 
-        :disabled="errors.has(nameId) || !cprNo" 
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        @click="cprLookup()"
+        :disabled="errors.has(nameId) || !cprNo"
         v-show="!isLoading">
         <icon name="search"/>
       </button>
@@ -36,85 +36,85 @@
 </template>
 
 <script>
+/**
+ * cpr search component.
+ */
+
+import Search from '@/api/Search'
+import MoLoader from '@/components/atoms/MoLoader'
+
+export default {
+  name: 'MoCprSearch',
+
   /**
-   * cpr search component.
+   * Validator scope, sharing all errors and validation state.
    */
+  inject: {
+    $validator: '$validator'
+  },
 
-  import Search from '@/api/Search'
-  import MoLoader from '@/components/atoms/MoLoader'
+  components: {
+    MoLoader
+  },
 
-  export default {
-    name: 'MoCprSearch',
+  props: {
+    /**
+     * This boolean property defines a label if it does not have one.
+     */
+    noLabel: Boolean,
 
+    /**
+     * Defines a default label name.
+     */
+    label: { type: String, default: 'CPR nummer' },
+
+    /**
+     * This boolean property requires a valid cpr number.
+     */
+    required: Boolean
+  },
+
+  data () {
+    return {
       /**
-       * Validator scope, sharing all errors and validation state.
+       * The nameId, cprNo, isloading, backendValidationError component value.
+       * Used to detect changes and restore the value.
        */
-    inject: {
-      $validator: '$validator'
-    },
+      nameId: 'cpr-search',
+      cprNo: '',
+      isLoading: false,
+      backendValidationError: null
+    }
+  },
 
-    components: {
-      MoLoader
-    },
+  watch: {
+    /**
+     * Whenever cprNo change update.
+     */
+    cprNo () {
+      this.$emit('input', {})
+    }
+  },
 
-    props: {
-      /**
-       * This boolean property defines a label if it does not have one.
-       */
-      noLabel: Boolean,
-
-      /**
-       * Defines a default label name.
-       */
-      label: {type: String, default: 'CPR nummer'},
-
-      /**
-       * This boolean property requires a valid cpr number.
-       */
-      required: Boolean
-    },
-
-    data () {
-      return {
-      /**
-        * The nameId, cprNo, isloading, backendValidationError component value.
-        * Used to detect changes and restore the value.
-        */
-        nameId: 'cpr-search',
-        cprNo: '',
-        isLoading: false,
-        backendValidationError: null
-      }
-    },
-
-    watch: {
-      /**
-       * Whenever cprNo change update.
-       */
-      cprNo () {
-        this.$emit('input', {})
-      }
-    },
-
-    methods: {
-      /**
-       * Lookup cpr number and check if the data fields are valid.
-       * Then throw a error if not.
-       */
-      cprLookup () {
-        let vm = this
-        vm.isLoading = true
-        return Search.cprLookup(this.cprNo)
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response.error_key
-            } else {
-              vm.backendValidationError = null
-              this.$emit('input', response)
-            }
-          })
-      }
+  methods: {
+    /**
+     * Lookup cpr number and check if the data fields are valid.
+     * Then throw a error if not.
+     */
+    cprLookup () {
+      let vm = this
+      vm.isLoading = true
+      return Search.cprLookup(this.cprNo)
+        .then(response => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response.error_key
+          } else {
+            vm.backendValidationError = null
+            this.$emit('input', response)
+          }
+        })
     }
   }
+}
 </script>

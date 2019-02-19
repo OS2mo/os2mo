@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,11 +18,14 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 '''
 
 import collections
+import copy
 import enum
 import functools
+import itertools
 import locale
 import operator
 import uuid
+import json
 
 import werkzeug
 import flask
@@ -57,6 +60,9 @@ class UnitDetails(enum.Enum):
     # same as above, but with all parents
     FULL = 3
 
+    # minimal and integration_data
+    INTEGRATION = 4
+
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ()
@@ -68,11 +74,11 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         return scope.path == 'organisation/organisationenhed' and reg
 
     @classmethod
-    def get(cls, scope, objid):
-        if scope.path != 'organisation/organisationenhed':
+    def get(cls, c, type, objid):
+        if type != 'ou':
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        c = scope.connector
+        scope = c.organisationenhed
 
         return flask.jsonify([
             get_one_orgunit(
@@ -111,7 +117,16 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
+        integration_data = util.checked_get(
+            req,
+            mapping.INTEGRATION_DATA,
+            {},
+            required=False
+        )
+
         unitid = util.get_uuid(req, required=False)
+        if not unitid:
+            unitid = str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY,
                                "{} {}".format(name, uuid.uuid4()))
 
@@ -135,10 +150,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
 
-        addresses = [
-            address.get_relation_for(addr)
-            for addr in util.checked_get(req, mapping.ADDRESSES, [])
-        ]
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -150,12 +161,21 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             tilhoerer=org_uuid,
             enhedstype=org_unit_type_uuid,
             overordnet=parent_uuid,
-            adresser=addresses,
+            integration_data=integration_data,
         )
 
         if org_uuid != parent_uuid:
-            validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                                      valid_to)
+            validator.is_date_range_in_org_unit_range(
+                {'uuid': parent_uuid}, valid_from, valid_to)
+
+        details = util.checked_get(req, 'details', [])
+        details_with_org_units = _inject_org_units(details, unitid, valid_from,
+                                                   valid_to)
+
+        self.details_requests = handlers.generate_requests(
+            details_with_org_units,
+            handlers.RequestType.CREATE
+        )
 
         self.payload = org_unit
         self.uuid = unitid
@@ -174,6 +194,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
+
+        validator.is_edit_from_date_before_today(new_from)
 
         # Get org unit uuid for validation purposes
         parent = util.get_obj_value(
@@ -209,9 +231,16 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data:
+        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
             attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.NAME in data:
+                attrs['enhedsnavn'] = data[mapping.NAME]
+
+            if mapping.INTEGRATION_DATA in data:
+                attrs['integrationsdata'] = json.dumps(
+                    data[mapping.INTEGRATION_DATA]
+                )
 
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
@@ -243,7 +272,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         # TODO: Check if we're inside the validity range of the organisation
         if org_uuid != parent_uuid:
-            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+            validator.is_date_range_in_org_unit_range(parent, new_from,
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
@@ -252,9 +281,28 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
-            return c.organisationenhed.create(self.payload, self.uuid)
+            result = c.organisationenhed.create(self.payload, self.uuid)
+
+            if self.details_requests:
+                for r in self.details_requests:
+                    r.submit()
+
+            return result
         else:
             return c.organisationenhed.update(self.payload, self.uuid)
+
+
+def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
+    decorated = copy.deepcopy(details)
+    for detail in decorated:
+        detail['org_unit'] = {
+            mapping.UUID: org_unit_uuid,
+            mapping.VALID_FROM: valid_from,
+            mapping.VALID_TO: valid_to,
+            'allow_nonexistent': True
+        }
+
+    return decorated
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -327,8 +375,12 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, unittype) if unittype else None
         )
 
+    elif details is UnitDetails.MINIMAL:
+        pass  # already done
+    elif details is UnitDetails.INTEGRATION:
+        r["integration_data"] = attrs.get("integrationsdata")
     else:
-        assert details is UnitDetails.MINIMAL, 'enum is {}!?'.format(details)
+        assert False, 'enum is {}!?'.format(details)
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
@@ -413,22 +465,22 @@ def get_children(type, parentid):
     return flask.jsonify(children)
 
 
-@blueprint.route('/ou/<uuid:unitid>/ancestor-tree')
-@util.restrictargs('at')
-def get_unit_ancestor_tree(unitid):
-    '''Obtain the tree of ancestors for a given unit.
+@blueprint.route('/ou/ancestor-tree')
+@util.restrictargs('at', 'uuid')
+def get_unit_ancestor_tree():
+    '''Obtain the tree of ancestors for the given units.
 
     The tree includes siblings of ancestors, with their child counts:
 
-    * Every ancestor of the unit.
+    * Every ancestor of each unit.
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ a given unit in a UI.
+    _up to and including_ the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
-    :param unitid: The UUID of the organisational unit.
+    :queryparam unitid: The UUID of the organisational unit.
 
     :see: http:get:`/service/ou/(uuid:unitid)/`.
 
@@ -436,7 +488,7 @@ def get_unit_ancestor_tree(unitid):
 
     .. sourcecode:: json
 
-     {
+     [{
         "children": [
           {
             "child_count": 2,
@@ -466,72 +518,17 @@ def get_unit_ancestor_tree(unitid):
           "from": "2016-01-01",
           "to": null
         }
-      }
+      }]
 
     '''
+
     c = common.get_connector()
+    unitids = flask.request.args.getlist('uuid')
 
-    def get_parent(objid):
-        return mapping.PARENT_FIELD(unitcache[objid])[0]['uuid']
-
-    unitcache = common.cache(c.organisationenhed.get)
-    id_path = collections.deque([unitid])
-
-    try:
-        orgid = mapping.BELONGS_TO_FIELD(unitcache[unitid])[0]['uuid']
-    except LookupError:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND.raise_with(
-            org_unit_uuid=unitid,
-        )
-
-    # first, get the path to the unit
-    while get_parent(id_path[0]) != orgid:
-        id_path.appendleft(get_parent(id_path[0]))
-
-    # bail if we're the root unit; that's simpler than handling it in
-    # the other logic
-    if len(id_path) == 1:
-        return flask.jsonify(get_one_orgunit(c, unitid, unitcache[unitid],
-                                             details=UnitDetails.NCHILDREN))
-
-    # then, fetch all the ancestors
-    ancestors = {
-        ancestorid: get_one_orgunit(c, ancestorid, unitcache[ancestorid],
-                                    details=UnitDetails.MINIMAL)
-        for ancestorid in id_path
-        if ancestorid != unitid
-    }
-
-    # now, inject the children, and link them up
-    for ancestor in ancestors.values():
-        if ancestor is None:
-            continue
-
-        # please note that the code below actually re-fetches the
-        # ancestor itself -- however, that's unlikely to be what makes
-        # this function slow
-        ancestor['children'] = sorted(
-            (
-                (
-                    get_one_orgunit(c, siblingid, sibling,
-                                    details=UnitDetails.NCHILDREN)
-                    if siblingid not in ancestors
-                    else
-                    ancestors[siblingid]
-                )
-                for siblingid, sibling in c.organisationenhed.get_all(
-                    overordnet=ancestor[mapping.UUID],
-                    gyldighed='Aktiv',
-                )
-            ),
-            key=lambda u: locale.strxfrm(u[mapping.NAME]),
-        )
-
-    # finally, return the root unit
-    return flask.jsonify(ancestors[id_path[0]])
+    return flask.jsonify(get_unit_tree(c, unitids, with_siblings=True))
 
 
-def get_unit_tree(c, orgid, unitids):
+def get_unit_tree(c, unitids, with_siblings=False):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -539,18 +536,25 @@ def get_unit_tree(c, orgid, unitids):
     '''
 
     def get_parent(unitid):
-        try:
-            return mapping.PARENT_FIELD(units[unitid])[0]['uuid']
-        except LookupError:
-            return None
+        for parentid in mapping.PARENT_FIELD.get_uuids(units[unitid]):
+            return parentid
+
+    def get_org(unitid):
+        for orgid in mapping.BELONGS_TO_FIELD.get_uuids(units[unitid]):
+            return orgid
 
     def get_unit(unitid):
         r = get_one_orgunit(
-            c, unitid, units[unitid], details=UnitDetails.MINIMAL,
+            c, unitid, units[unitid],
+            details=(
+                UnitDetails.NCHILDREN
+                if with_siblings and unitid not in children
+                else UnitDetails.MINIMAL
+            ),
         )
 
         if unitid in children:
-            r['children'] = get_units(children.getlist(unitid))
+            r['children'] = get_units(children[unitid])
 
         return r
 
@@ -562,21 +566,53 @@ def get_unit_tree(c, orgid, unitids):
 
         return r
 
+    orgs = set()
     units = {}
-    children = werkzeug.datastructures.MultiDict()
+    children = collections.defaultdict(set)
 
     leaves = set(unitids)
 
-    while any(leaves):
-        units.update(c.organisationenhed.get_all(uuid=leaves))
+    while leaves:
+        leafobjs = dict(c.organisationenhed.get_all(uuid=leaves))
 
-        parentids = {leaf: get_parent(leaf) for leaf in leaves}
+        units.update(leafobjs)
+        orgs.update(map(get_org, leafobjs.keys()))
 
-        children.update(zip(parentids.values(), parentids.keys()))
+        missing = leaves - orgs - leafobjs.keys()
 
-        leaves = set(parentids.values()) - units.keys()
+        if missing:
+            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
+                org_unit_uuid=sorted(missing),
+            )
 
-    return get_units(children.getlist(orgid))
+        for leafid in leaves:
+            parentid = get_parent(leafid)
+
+            if with_siblings:
+                siblings = dict(c.organisationenhed.get_all(
+                    overordnet=parentid,
+                    tilhoerer=get_org(leafid),
+                    gyldighed='Aktiv'
+                ))
+
+                units.update(siblings)
+                children[parentid].update(siblings.keys())
+            else:
+                children[parentid].add(leafid)
+
+        leaves = (
+            set(filter(None, map(get_parent, leaves))) -
+            units.keys() - orgs
+        )
+
+    if not orgs:
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitids)
+
+    return get_units(
+        child
+        for org in orgs
+        for child in children[org]
+    )
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
@@ -709,12 +745,9 @@ def list_orgunits(orgid):
 
     args = flask.request.args
 
-    limits = dict(
+    kwargs = dict(
         limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
-    )
-
-    kwargs = dict(
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
@@ -725,17 +758,104 @@ def list_orgunits(orgid):
     return flask.jsonify(
         c.organisationenhed.paged_get(
             functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
-            **limits,
             **kwargs,
         )
     )
 
 
+@blueprint.route('/o/<uuid:orgid>/ou/tree')
+@util.restrictargs('at', 'query', 'uuid')
+def list_orgunit_tree(orgid):
+    '''Query organisational units in an organisation.
+
+    .. :quickref: Unit; Tree
+
+    :param uuid orgid: UUID of the organisation to search.
+
+    :queryparam date at: Show the units valid at this point in time,
+        in ISO-8601 format.
+    :queryparam int start: Index of first unit for paging.
+    :queryparam int limit: Maximum items
+    :queryparam string query: Filter by units matching this string.
+    :queryparam uuid uuid: Yield the given units; please note that
+                           this overrides any query parameter.
+
+    :status 200: Always.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "children": [
+            {
+              "name": "Humanistisk fakultet",
+              "user_key": "hum",
+              "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+              "validity": {
+                "from": "2016-01-01",
+                "to": null
+              }
+            },
+            {
+              "name": "Samfundsvidenskabelige fakultet",
+              "user_key": "samf",
+              "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+              "validity": {
+                "from": "2017-01-01",
+                "to": null
+              }
+            }
+          ],
+          "name": "Overordnet Enhed",
+          "user_key": "root",
+          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+          "validity": {
+            "from": "2016-01-01",
+            "to": null
+          }
+        }
+      ]
+
+    '''
+    c = common.get_connector()
+
+    args = flask.request.args
+
+    kwargs = dict(
+        tilhoerer=orgid,
+        gyldighed='Aktiv',
+    )
+
+    if 'query' in args:
+        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+
+    unitids = (
+        args.getlist('uuid')
+        if 'uuid' in args
+        else c.organisationenhed(**kwargs)
+    )
+
+    if len(unitids) > settings.TREE_SEARCH_LIMIT:
+        raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
+            found=len(unitids),
+            limit=settings.TREE_SEARCH_LIMIT,
+        )
+
+    return flask.jsonify(
+        get_unit_tree(c, unitids),
+    )
+
+
 @blueprint.route('/ou/create', methods=['POST'])
+@util.restrictargs('force')
 def create_org_unit():
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 
@@ -798,10 +918,13 @@ def create_org_unit():
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
+@util.restrictargs('force')
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 
     .. :quickref: Unit; Terminate
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: The termination succeeded.
     :statuscode 404: No such unit found.
@@ -856,7 +979,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
-        unitid, date - util.MINIMAL_INTERVAL, date,
+        {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
     )
 
     children = c.organisationenhed.paged_get(
@@ -866,16 +989,24 @@ def terminate_org_unit(unitid):
         limit=5,
     )
 
-    roles = c.organisationfunktion(
+    roles = set(c.organisationfunktion(
         tilknyttedeenheder=unitid,
         gyldighed='Aktiv',
-    )
+    ))
 
-    if children['total'] or roles:
+    addresses = set(c.organisationfunktion(
+        tilknyttedeenheder=unitid,
+        funktionsnavn=mapping.ADDRESS_KEY,
+        gyldighed='Aktiv',
+    ))
+
+    relevant = roles - addresses
+
+    if children['total'] or relevant:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
             child_units=children['items'],
             child_count=children['total'],
-            role_count=len(roles),
+            role_count=len(relevant),
         )
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
@@ -895,6 +1026,7 @@ def terminate_org_unit(unitid):
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
+@util.restrictargs()
 def get_org_unit_history(unitid):
     """
     Get the history of an org unit

@@ -2,12 +2,9 @@
 
 A log component. 
 
-## data 
+## methods 
 
-- `label` 
+- `reverse(array)` 
 
-  The label component value.
-  Used to set a default value. 
-
-**initial value:** `'Arbejdslog'` 
+  Reverse message. 
 

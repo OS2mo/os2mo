@@ -5,18 +5,25 @@
 </template>
 
 <script>
-  /**
-   * A address search template.
-   */
+/**
+ * A address search template.
+ */
 
-  export default {
-    props: {
-      /**
-       * Defines a item location name, which is required.
-       */
-      item: {
-        required: true
-      }
+export default {
+  props: {
+    /**
+     * Item to display
+     * @type {Object}
+     */
+    item: {
+      type: Object,
+      default: () => {
+        return {
+          location: {}
+        }
+      },
+      required: true
     }
   }
+}
 </script>

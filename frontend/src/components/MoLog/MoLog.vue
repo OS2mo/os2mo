@@ -3,10 +3,10 @@
     <div class="card-body">
       <h5>{{$t('common.work_log')}}</h5>
       <div class="wrapper">
-        <div 
-          class="alert alert-success mt-2" 
-          v-for="(log, index) in reverse(worklogs)" 
-          :key="index" 
+        <div
+          class="alert alert-success mt-2"
+          v-for="(log, index) in reverse(worklogs)"
+          :key="index"
           role="alert"
         >
           {{$t('alerts.success.' + log.type, {uuid: log.value})}}
@@ -17,32 +17,32 @@
 </template>
 
 <script>
-  /**
-   * A log component.
-   */
-  import { mapGetters } from 'vuex'
+/**
+ * A log component.
+ */
+import { mapGetters } from 'vuex'
 
-  export default {
-    name: 'MoLog',
+export default {
+  name: 'MoLog',
 
-    computed: {
-      /**
-       * Get worklog message.
-       */
-      ...mapGetters({
-        worklogs: 'log/getWorkLog'
-      })
-    },
+  computed: {
+    /**
+     * Get worklog message.
+     */
+    ...mapGetters({
+      worklogs: 'log/getWorkLog'
+    })
+  },
 
-    methods: {
-      /**
-       * Reverse message.
-       */
-      reverse (array) {
-        return array.length ? array.slice().reverse() : array
-      }
+  methods: {
+    /**
+     * Reverse message.
+     */
+    reverse (array) {
+      return array.length ? array.slice().reverse() : array
     }
   }
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,6 +21,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from .. import validator
 
 
 @enum.unique
@@ -140,12 +141,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 class ReadingRequestHandler(RequestHandler):
     @classmethod
     @abc.abstractmethod
-    def has(self, scope, registration):
+    def has(cls, scope, registration):
         pass
 
     @classmethod
     @abc.abstractmethod
-    def get(self, scope, objid):
+    def get(cls, c, type, objid):
         pass
 
 
@@ -195,6 +196,8 @@ class OrgFunkRequestHandler(RequestHandler):
         original = request['original']
 
         validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+
+        validator.is_edit_from_date_before_today(date)
 
         self.payload = common.update_payload(
             max(date, util.get_effect_from(validity[0])),

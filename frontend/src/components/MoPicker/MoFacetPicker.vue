@@ -1,86 +1,103 @@
 <template>
-  <mo-select 
-    v-model="selected" 
-    :label="facetData.user_key" 
-    :options="sortedOptions" 
-    :required="required" 
-    :disabled="isDisabled"
+  <mo-input-select
+    class="col"
+    v-model="internalValue"
+    :label="labelText"
+    :options="sortedOptions"
+    :required="required"
   />
 </template>
 
 <script>
-  /**
-   * A facet picker component.
-   */
+/**
+ * A facet picker component.
+ */
 
-  import sortBy from 'lodash.sortby'
-  import MoSelect from '@/components/atoms/MoSelect'
+import sortBy from 'lodash.sortby'
+import { MoInputSelect } from '@/components/MoInput'
+import { Facet } from '@/store/actions/facet'
 
-  export default {
-    name: 'MoFacetPicker',
+export default {
+  name: 'MoFacetPicker',
 
-    components: {
-      MoSelect
+  components: {
+    MoInputSelect
+  },
+
+  props: {
+    value: Object,
+    facet: { type: String, required: true },
+    required: Boolean,
+    preselectedUserKey: {
+      type: String,
+      default: null
+    }
+  },
+
+  data () {
+    return {
+      internalValue: null
+    }
+  },
+
+  computed: {
+    facetData () {
+      return this.$store.getters[Facet.getters.GET_FACET](this.facet)
+    },
+    sortedOptions () {
+      return sortBy(this.facetData.classes, 'name')
+    },
+    isDisabled () {
+      return this.preselectedUserKey !== undefined
+    },
+    labelText () {
+      return this.facetData.user_key ? this.$t(`input_fields.${this.facetData.user_key}`) : ''
+    },
+    preselected () {
+      let preselected = null
+      if (!this.facetData.classes) return preselected
+
+      this.facetData.classes.filter(data => {
+        if (data.user_key === this.preselectedUserKey) {
+          preselected = data
+        }
+      })
+
+      return preselected
+    }
+  },
+
+  watch: {
+    /**
+     * Whenever selected change, update val.
+     */
+    internalValue (val) {
+      this.$emit('input', val)
     },
 
-    props: {
-      value: Object,
-      facet: {type: String, required: true},
-      required: Boolean,
-      preselectedUserKey: String
-    },
+    facetData (val) {
+      this.setInternalValue()
+    }
+  },
 
-    data () {
-      return {
-        selected: null
-      }
-    },
+  created () {
+    this.$store.dispatch(Facet.actions.SET_FACET, this.facet)
+  },
 
-    computed: {
-      facetData () {
-        return this.$store.getters['facet/GET_FACET'](this.facet)
-      },
-      sortedOptions () {
-        let data = this.$store.getters['facet/GET_FACET'](this.facet)
-        return sortBy(data.classes, 'name')
-      },
-      isDisabled () {
-        return this.preselectedUserKey !== undefined
-      }
-    },
+  mounted () {
+    this.setInternalValue()
 
-    watch: {
-      /**
-       * Whenever selected change, update val.
-       */
-      selected (val) {
-        this.$emit('input', val)
-      },
+    if (this.value && this.preselectedUserKey == null) {
+      this.internalValue = this.value
+    }
+  },
 
-      facetData (val) {
-        this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
-      }
-    },
-
-    created () {
-      this.$store.dispatch('facet/SET_FACET', this.facet)
-    },
-
-    mounted () {
-      this.selected = this.preselectedUserKey ? this.setPreselected()[0] : this.selected
-
-      if (this.value && this.preselectedUserKey == null) {
-        this.selected = this.value
-      }
-    },
-
-    methods: {
-      setPreselected () {
-        if (!this.facetData.classes) return [undefined]
-        return this.facetData.classes.filter(data => {
-          return data.user_key === this.preselectedUserKey
-        })
+  methods: {
+    setInternalValue () {
+      if (this.preselected) {
+        this.internalValue = this.preselected
       }
     }
   }
+}
 </script>

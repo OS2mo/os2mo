@@ -13,23 +13,9 @@
             }
         ]
     },
-    "note": null,
     "relationer": {
-        "adresser": [
-            {
-                "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                "urn": "urn:mailto:bruger@example.com",
-                "virkning": {
-                    "from": "1934-06-09T00:00:00+01:00",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
-                }
-            }
-        ],
         "brugertyper": [
             {
-                "objekttype": null,
                 "urn": "urn:email",
                 "virkning": {
                     "from": "1934-06-09T00:00:00+01:00",
@@ -41,7 +27,6 @@
         ],
         "tilhoerer": [
             {
-                "objekttype": null,
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 "virkning": {
                     "from": "1934-06-09T00:00:00+01:00",
@@ -53,7 +38,6 @@
         ],
         "tilknyttedepersoner": [
             {
-                "objekttype": null,
                 "urn": "urn:dk:cpr:person:0906340000",
                 "virkning": {
                     "from": "1934-06-09T00:00:00+01:00",

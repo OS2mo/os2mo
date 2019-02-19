@@ -8,7 +8,7 @@ A organisation unit picker component.
 
   Create two-way data bindings with the component. 
 
-- `label` ***String*** (*optional*) `default: 'Angiv overenhed'` 
+- `label` ***String*** (*optional*) 
 
   Defines a default label name. 
 
@@ -22,9 +22,9 @@ A organisation unit picker component.
 
 ## data 
 
-- `selectedSuperUnit` 
+- `selectedSuperUnitUuid` 
 
-  The selectedSuperUnit, showTree, orgName component value.
+  The selectedSuperUnitUuid, showTree, orgName component value.
   Used to detect changes and restore the value. 
 
 **initial value:** `null` 

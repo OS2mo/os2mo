@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -75,6 +75,8 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
+
+        validator.is_edit_from_date_before_today(new_from)
 
         payload = dict()
         payload['note'] = 'Rediger orlov'

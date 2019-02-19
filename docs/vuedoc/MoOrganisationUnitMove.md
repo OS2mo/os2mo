@@ -27,15 +27,6 @@ A organisation unit move component.
 
 **initial value:** `null` 
 
-## computed properties 
-
-- `formValid` 
-
-  Loop over all contents of the fields object and check if they exist and valid. 
-
-   **dependencies:** `fields`, `fields`, `fields` 
-
-
 ## methods 
 
 - `resetData()` 

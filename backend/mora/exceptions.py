@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -76,6 +76,8 @@ class ErrorCodes(Enum):
         404, "Corresponding parent unit or organisation not found."
     V_DUPLICATED_RESPONSIBILITY = \
         400, "Manager has the same responsibility more than once."
+    V_CHANGING_THE_PAST = \
+        400, "Cannot perform changes before current date"
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."

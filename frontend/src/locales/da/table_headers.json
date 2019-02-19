@@ -1,0 +1,23 @@
+{
+  "address": "Adresse",
+  "address_type": "@:shared.address_type",
+  "association_type": "@:shared.association_type",
+  "end_date": "Slutdato",
+  "engagement_type": "@:shared.engagement_type",
+  "it_system": "IT system",
+  "job_function": "@:shared.job_function",
+  "leave_type": "@:shared.leave_type",
+  "manager_level": "@:shared.manager_level",
+  "manager_type": "@:shared.manager_type",
+  "org_unit": "Enhed",
+  "related_org_unit": "Relateret enhed",
+  "org_unit_type": "@:shared.org_unit_type",
+  "parent": "Overenhed",
+  "person": "Navn",
+  "responsibility": "@:shared.manager_responsibility",
+  "role_type": "@:shared.role_type",
+  "start_date": "Startdato",
+  "user_key": "Kontonavn",
+  "user_name": "Brugernavn",
+  "value": "Værdi"
+}

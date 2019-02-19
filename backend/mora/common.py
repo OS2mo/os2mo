@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,6 +22,7 @@ import datetime
 import functools
 import typing
 import uuid
+import json
 
 import flask
 import werkzeug
@@ -139,6 +140,7 @@ def update_payload(
     obj: dict,
     payload: dict,
 ):
+    relevant_fields = copy.deepcopy(relevant_fields)
     combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
 
     for field_tuple, vals in combined_fields.lists():
@@ -154,7 +156,7 @@ def update_payload(
             updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
-            updated_props = props + vals
+            updated_props = vals
         else:
             # Zero-to-one relation - LoRa does the merging for us,
             # so disregard existing props
@@ -297,10 +299,11 @@ def create_organisationsfunktion_payload(
     tilknyttedebrugere: typing.List[str],
     tilknyttedeorganisationer: typing.List[str],
     tilknyttedeenheder: typing.List[str] = None,
+    tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[str] = None
+    adresser: typing.List[dict] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -344,6 +347,11 @@ def create_organisationsfunktion_payload(
             'uuid': uuid
         } for uuid in tilknyttedeenheder]
 
+    if tilknyttedefunktioner:
+        org_funk['relationer']['tilknyttedefunktioner'] = [{
+            'uuid': uuid
+        } for uuid in tilknyttedefunktioner]
+
     if tilknyttedeitsystemer:
         org_funk['relationer']['tilknyttedeitsystemer'] = [{
             'uuid': uuid
@@ -374,6 +382,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     adresser: typing.List[dict] = None,
+    integration_data: dict = {}
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -383,7 +392,8 @@ def create_organisationsenhed_payload(
             'organisationenhedegenskaber': [
                 {
                     'enhedsnavn': enhedsnavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -427,7 +437,8 @@ def create_bruger_payload(
     brugernavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
-    cpr: str
+    cpr: str,
+    integration_data: dict = {},
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -437,7 +448,8 @@ def create_bruger_payload(
             'brugeregenskaber': [
                 {
                     'brugernavn': brugernavn,
-                    'brugervendtnoegle': brugervendtnoegle
+                    'brugervendtnoegle': brugervendtnoegle,
+                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },

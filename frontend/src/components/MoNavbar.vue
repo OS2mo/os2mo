@@ -29,29 +29,11 @@
 
       <mo-search-bar class="ml-auto mr-auto"/>
 
-      <router-link :to="{ name: 'QueryList'}">
-        <button type="button" aria-label="Foresørgsler" class="btn btn-link text-white">
-          <icon name="exchange-alt"/>
-        </button>
-      </router-link>
-
-      <router-link :to="{ name: 'Timemachine'}">
-        <button type="button" :aria-label="$tc('common.time_machine', 1)" class="btn btn-link text-white">
-          <icon name="history"/>
-        </button>
-      </router-link>
-
-      <router-link :to="{ name: 'Help'}">
-        <button
-          type="button"
-          :aria-label="$t('common.help')"
-          class="btn btn-link text-white"
-          v-shortkey.once="['h']"
-          @shortkey="$router.push({name: 'Help'})"
-        >
-          <icon name="question-circle"/>
-        </button>
-      </router-link>
+      <component
+        v-for="(shortcut, index) in shortcuts"
+        :key="index"
+        :is="shortcut.template"
+      />
 
       <b-dropdown id="ddown1" variant="primary">
         <template slot="button-content">
@@ -67,47 +49,52 @@
 </template>
 
 <script>
-  import MoSearchBar from './MoSearchBar/MoSearchBar'
-  import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
-  import Service from '@/api/HttpCommon'
-  import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
-  import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
+import MoNavbar from '@/api/MoNavbar'
+import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
+import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
+import Service from '@/api/HttpCommon'
+import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
+import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
+import { Auth } from '@/store/actions/auth'
 
-  export default {
-    components: {
-      MoSearchBar,
-      MoOrganisationPicker,
-      'b-dropdown': bDropdown,
-      'b-dropdown-item': bDropdownItem
-    },
+export default {
+  components: {
+    MoSearchBar,
+    MoOrganisationPicker,
+    'b-dropdown': bDropdown,
+    'b-dropdown-item': bDropdownItem
+  },
 
-    data () {
-      return {
-        user: {},
-        username: 'N/A'
-      }
-    },
+  data () {
+    return {
+      user: {},
+      username: 'N/A',
+      shortcuts: []
+    }
+  },
 
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Get user and then response data.
-       */
-      Service.get('/user').then(response => {
-        this.username = response.data || 'N/A'
-      })
-    },
+  created () {
+    /**
+     * Called synchronously after the instance is created.
+     * Get user and then response data.
+     */
+    Service.get('/user').then(response => {
+      this.username = response.data || 'N/A'
+    })
 
-    methods: {
-      /**
-       * Get the logout and redirect.
-       */
-      logout () {
-        let vm = this
-        this.$store.dispatch('AUTH_LOGOUT', vm.user)
-      }
+    this.shortcuts = MoNavbar.getShortcuts()
+  },
+
+  methods: {
+    /**
+     * Get the logout and redirect.
+     */
+    logout () {
+      let vm = this
+      this.$store.dispatch(Auth.actions.AUTH_LOGOUT, vm.user)
     }
   }
+}
 </script>
 
 <style lang="scss" scoped>

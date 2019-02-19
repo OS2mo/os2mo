@@ -12,6 +12,10 @@ A it system entry component.
 
   This boolean property hides validity. 
 
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `entry` 

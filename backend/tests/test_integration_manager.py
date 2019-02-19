@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,6 +12,7 @@ import unittest
 from unittest.mock import patch
 
 import freezegun
+import notsouid
 
 from mora import lora
 from mora import util as mora_util
@@ -54,6 +55,8 @@ class Tests(util.LoRATestCase):
         )
 
     @util.mock('aabogade.json', allow_mox=True)
+    @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
+                          auto_increment=True)
     def test_create_manager(self, m):
         self.load_sample_structures()
 
@@ -68,16 +71,20 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "person": {'uuid': userid},
                 'address': [{
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
                         'user_key': 'AdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                    },
+                    "org": {
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    "validity": {
+                        "from": "2017-12-01",
+                        "to": "2017-12-01",
                     },
                 }],
                 "responsibility": [{
@@ -100,7 +107,7 @@ class Tests(util.LoRATestCase):
                                         json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -116,10 +123,9 @@ class Tests(util.LoRATestCase):
             },
             "note": "Oprettet i MO",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
+                        'uuid': '11111111-1111-1111-1111-111111111112',
                         'virkning': {
                             'from': '2017-12-01 00:00:00+01',
                             'from_included': True,
@@ -204,7 +210,8 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": '11111111-1111-1111-'
+                                             '1111-111111111113',
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -225,17 +232,18 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': [{
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'address_type': {
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
                         'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.18779751&mlat=56.17233057&zoom=16',
+                    'name': 'Åbogade 15, 8200 Aarhus N',
+                    'uuid': '11111111-1111-1111-1111-111111111112',
+                    'value': '44c532e1-f617-4174-b144-d37ce9fda2bd'
                 }],
                 'manager_level': {
                     'example': 'test@example.com',
@@ -555,7 +563,7 @@ class Tests(util.LoRATestCase):
                                         json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -733,7 +741,7 @@ class Tests(util.LoRATestCase):
                                         json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -843,6 +851,71 @@ class Tests(util.LoRATestCase):
             }],
         )
 
+    @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
+                          auto_increment=True)
+    def test_create_manager_with_future_address(self):
+        """Ensure that reading works when address is in the future"""
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": None,
+                },
+                "address": [{
+                    "type": "address",
+                    'address_type': {
+                        'scope': 'EMAIL',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'value': 'root@example.com',
+                    "validity": {
+                        "from": "2018-01-01",
+                    },
+                    "org": {
+                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                }],
+            }
+        ]
+
+        self.assertRequest('/service/details/create', json=payload)
+
+        # Check that we have no address in present (and that we don't fail)
+        present = self.assertRequest(
+            '/service/e/{}/details/manager'.format(userid),
+        )[-1]
+
+        self.assertEqual([None], present.get('address'))
+
+        # Ensure that the address exists when we go far enough into the future
+        future = self.assertRequest(
+            '/service/e/{}/details/manager?at=2018-01-01'.format(userid),
+        )[-1]
+
+        expected_future_address = [{
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+            },
+            'href': 'mailto:root@example.com',
+            'name': 'root@example.com',
+            'uuid': '11111111-1111-1111-1111-111111111112',
+            'value': 'root@example.com'
+        }]
+        self.assertEqual(expected_future_address, future.get('address'))
+
     @util.mock('aabogade.json', allow_mox=True)
     def test_create_manager_multiple_responsibilities(self, m):
         '''Can we create a manager with more than one responsibility?'''
@@ -858,19 +931,6 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "person": {'uuid': userid},
-                'address': [{
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                }],
                 "responsibility": [
                     {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                     {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"},
@@ -892,7 +952,7 @@ class Tests(util.LoRATestCase):
                                         json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -908,18 +968,6 @@ class Tests(util.LoRATestCase):
             },
             "note": "Oprettet i MO",
             "relationer": {
-                'adresser': [
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-12-02 00:00:00+01',
-                            'to_included': False,
-                        },
-                    },
-                ],
                 "tilknyttedeorganisationer": [
                     {
                         "virkning": {
@@ -1026,19 +1074,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=future'.format(userid),
             [{
-                'address': [{
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                }],
+                'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
@@ -1069,17 +1105,17 @@ class Tests(util.LoRATestCase):
                 'responsibility': [
                     {
                         'example': None,
-                        'name': 'Fakultet',
-                        'scope': None,
-                        'user_key': 'fak',
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                    },
-                    {
-                        'example': None,
                         'name': 'Institut',
                         'scope': None,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
+                    {
+                        'example': None,
+                        'name': 'Fakultet',
+                        'scope': None,
+                        'user_key': 'fak',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                     },
                 ],
                 'uuid': managerid,
@@ -1128,10 +1164,9 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        'urn': 'urn:mailto:ceo@example.com',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
                             'from_included': True,
@@ -1303,16 +1338,18 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [{
                 'address': [{
-                    'href': 'mailto:ceo@example.com',
-                    'name': 'ceo@example.com',
-                    'urn': 'urn:mailto:ceo@example.com',
                     'address_type': {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
                 }],
                 'manager_level': {
                     'example': None,
@@ -1361,17 +1398,20 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [{
                 'address': [{
-                    'href': 'mailto:ceo@example.com',
-                    'name': 'ceo@example.com',
-                    'urn': 'urn:mailto:ceo@example.com',
                     'address_type': {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
-                }],
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+                }
+                ],
                 'manager_level': {
                     'example': '20304060',
                     'name': 'Telefonnummer',
@@ -1413,6 +1453,215 @@ class Tests(util.LoRATestCase):
         )
 
     @util.mock('dawa-addresses.json', allow_mox=True)
+    def test_edit_manager_create_new_address(self, m):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = [{
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "address": [
+                    {
+                        "address_type": {
+                            'scope': 'PHONE',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        },
+                        "org": {
+                            'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "value": "12341234"
+                    },
+                ],
+                "validity": {
+                    "from": "2018-04-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
+
+        expected_manager = {
+            'attributter': {
+                'organisationfunktionegenskaber': [
+                    {
+                        'brugervendtnoegle': 'be736ee5-5c44-4ed9-'
+                                             'b4a4-15ffa19e2848',
+                        'funktionsnavn': 'Leder',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
+                ]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger leder',
+            'relationer': {
+                'opgaver': [
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'objekttype': 'lederniveau',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedebrugere': [{
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedefunktioner': [{
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'virkning': {
+                        'from': '2018-04-01 '
+                                '00:00:00+02',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': '2018-04-01 '
+                                  '00:00:00+02',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2018-04-01 '
+                                    '00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': [{
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                    },
+                    'href': 'tel:+4512341234',
+                    'name': '+4512341234',
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'value': '12341234'
+                }],
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                },
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                }],
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'validity': {'from': '2018-04-01', 'to': None}
+            }]
+        )
+
+    @util.mock('dawa-addresses.json', allow_mox=True)
     def test_edit_manager_overwrite(self, m):
         self.load_sample_structures()
 
@@ -1445,28 +1694,6 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
-                "address": [
-                    {
-                        "address_type": {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        },
-                        "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                    },
-                    {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        },
-                        'uuid': '606cf42e-9dc2-4477-bf70-594830fcbdec',
-                    },
-                ],
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
@@ -1491,37 +1718,15 @@ class Tests(util.LoRATestCase):
         expected_manager = {
             "note": "Rediger leder",
             "relationer": {
-                'adresser': [
-                    {
-                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        'urn': 'urn:mailto:ceo@example.com',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': "2018-04-01 00:00:00+02",
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '606cf42e-9dc2-4477-bf70-594830fcbdec',
-                        'virkning': {
-                            'from': '2018-04-01 00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': "2018-04-01 00:00:00+02",
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
+                'tilknyttedefunktioner': [{
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'virkning': {
+                        'from': '2017-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                },
                 ],
                 "opgaver": [
                     {
@@ -1684,30 +1889,18 @@ class Tests(util.LoRATestCase):
             [{
                 'address': [
                     {
-                        'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'name': 'Åbogade 15, 8200 Aarhus N',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                         'address_type': {
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
                             'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        },
-                    },
-                    {
-                        'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                         },
                         'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                        'name': 'Åbogade 15, 1., 8200 Aarhus N',
-                        'uuid': '606cf42e-9dc2-4477-bf70-594830fcbdec',
+                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
                     },
                 ],
                 'manager_level': {
@@ -1936,10 +2129,9 @@ class Tests(util.LoRATestCase):
         expected = {
             "note": "Afslut medarbejder",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        'urn': 'urn:mailto:ceo@example.com',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
                             'from_included': True,
@@ -2062,16 +2254,18 @@ class Tests(util.LoRATestCase):
 
         expected = {
             'address': [{
-                'href': 'mailto:ceo@example.com',
-                'name': 'ceo@example.com',
-                'urn': 'urn:mailto:ceo@example.com',
                 'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
             }],
             'manager_level': {
                 'example': None,
@@ -2138,10 +2332,9 @@ class Tests(util.LoRATestCase):
         expected_lora = {
             "note": "Automatisk indlæsning",
             "relationer": {
-                'adresser': [
+                'tilknyttedefunktioner': [
                     {
-                        'objekttype': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        'urn': 'urn:mailto:ceo@example.com',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                         'virkning': {
                             'from': '2017-01-01 00:00:00+01',
                             'from_included': True,
@@ -2251,15 +2444,18 @@ class Tests(util.LoRATestCase):
         expected_mora = [{
             'address': [{
                 'address_type': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
-                'href': 'mailto:ceo@example.com',
-                'name': 'ceo@example.com',
-                'urn': 'urn:mailto:ceo@example.com'}],
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            }],
             'manager_level': {'example': None,
                               'name': 'Institut',
                               'scope': None,
@@ -2322,11 +2518,11 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "uuid": manager_uuid,
                 "data": {
-                    "responsibility": [{
+                    "manager_type": {
                         'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
-                    }],
+                    },
                     "validity": {
-                        "from": "2016-04-01",
+                        "from": "2017-01-01",
                     },
                 },
             },
@@ -2336,12 +2532,12 @@ class Tests(util.LoRATestCase):
         expected_changed_lora = copy.deepcopy(expected_lora)
         expected_changed_lora['note'] = 'Rediger leder'
         expected_changed_lora['livscykluskode'] = 'Rettet'
-        expected_changed_lora['relationer']['opgaver'][0]['uuid'] = \
-            "ca76a441-6226-404f-88a9-31e02e420e52"
+        expected_changed_lora['relationer']['organisatoriskfunktionstype'][0][
+            'uuid'] = "ca76a441-6226-404f-88a9-31e02e420e52"
 
         for g, f in (
                 ('attributter', 'organisationfunktionegenskaber'),
-                ('relationer', 'adresser'),
+                ('relationer', 'tilknyttedefunktioner'),
                 ('relationer', 'opgaver'),
                 ('relationer', 'organisatoriskfunktionstype'),
                 ('relationer', 'tilknyttedebrugere'),
@@ -2350,16 +2546,16 @@ class Tests(util.LoRATestCase):
                 ('tilstande', 'organisationfunktiongyldighed'),
         ):
             for m in expected_changed_lora[g][f]:
-                m['virkning']['from'] = '2016-04-01 00:00:00+02'
+                m['virkning']['from'] = '2017-01-01 00:00:00+01'
 
-        expected_mora[0]['validity']['from'] = '2016-04-01'
-        expected_mora[0]['responsibility'] = [{
+        expected_mora[0]['validity']['from'] = '2017-01-01'
+        expected_mora[0]['manager_type'] = {
             'example': None,
             'name': 'Institut',
             'scope': None,
             'user_key': 'inst',
             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-        }]
+        }
 
         # compare them!
         actual_lora = c.organisationfunktion.get(manager_uuid)
@@ -2384,6 +2580,37 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager?validity=future'.format(userid),
             [],
         )
+
+    def test_edit_manager_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = {
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "manager_type": {
+                    'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                },
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
 
     def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''
@@ -2453,15 +2680,17 @@ class Tests(util.LoRATestCase):
                 {
                     'address': [{
                         'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Emailadresse',
-                            'scope': 'EMAIL',
-                            'user_key': 'Email',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                            'example': '<UUID>',
+                            'name': 'Adresse',
+                            'scope': 'DAR',
+                            'user_key': 'AdressePost',
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                         },
-                        'href': 'mailto:ceo@example.com',
-                        'name': 'ceo@example.com',
-                        'urn': 'urn:mailto:ceo@example.com',
+                        'href': 'https://www.openstreetmap.org/'
+                                '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
                     }],
                     'manager_level': {
                         'example': None,
@@ -2493,17 +2722,17 @@ class Tests(util.LoRATestCase):
                     'responsibility': [
                         {
                             'example': None,
-                            'name': 'Medlem',
-                            'scope': None,
-                            'user_key': 'medl',
-                            'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                        },
-                        {
-                            'example': None,
                             'name': 'Fakultet',
                             'scope': None,
                             'user_key': 'fak',
                             'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        },
+                        {
+                            'example': None,
+                            'name': 'Medlem',
+                            'scope': None,
+                            'user_key': 'medl',
+                            'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                         },
                     ],
                     'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
@@ -2513,112 +2742,4 @@ class Tests(util.LoRATestCase):
                     },
                 },
             ],
-        )
-
-    @util.mock(allow_mox=True)
-    def test_create_manager_offline(self, m):
-        self.load_sample_structures()
-
-        # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        payload = [
-            {
-                "type": "manager",
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {'uuid': userid},
-                'address': [{
-                    'href': 'https://www.openstreetmap.org/'
-                    '?mlon=10.18779751&mlat=56.17233057&zoom=16',
-                    'name': 'Åbogade 15, 8200 Aarhus N',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                }],
-                "responsibility": [{
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-                }],
-                "manager_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "manager_level": {
-                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-                },
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        managerid, = self.assertRequest('/service/details/create',
-                                        json=payload)
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/manager'
-            '?validity=future'.format(userid),
-            [{
-                'address': [{
-                    'href': None,
-                    'name': 'Fejl',
-                    'error': 'No mock address: '
-                    'GET https://dawa.aws.dk/adresser'
-                    '?id=44c532e1-f617-4174-b144-d37ce9fda2bd'
-                    '&noformat=1&struktur=mini',
-                    'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                }],
-                'manager_level': {
-                    'example': 'test@example.com',
-                    'name': 'Emailadresse',
-                    'scope': 'EMAIL',
-                    'user_key': 'Email',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                },
-                'manager_type': {
-                    'example': None,
-                    'name': 'Medlem',
-                    'scope': None,
-                    'user_key': 'medl',
-                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': None,
-                    },
-                },
-                'person': {
-                    'name': 'Fedtmule',
-                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
-                },
-                'responsibility': [{
-                    'example': None,
-                    'name': 'Medlem',
-                    'scope': None,
-                    'user_key': 'medl',
-                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                }],
-                'uuid': managerid,
-                'validity': {
-                    'from': '2017-12-01',
-                    'to': '2017-12-01',
-                },
-            }],
         )

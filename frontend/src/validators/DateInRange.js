@@ -16,8 +16,8 @@ export default {
   validate (value, range) {
     value = new Date(value)
 
-    let aboveMin = range.from ? value > new Date(range.from) : true
-    let belowMax = range.to ? value < new Date(range.to) : true
+    let aboveMin = range.from ? value >= new Date(range.from) : true
+    let belowMax = range.to ? value <= new Date(range.to) : true
 
     return aboveMin && belowMax
   }

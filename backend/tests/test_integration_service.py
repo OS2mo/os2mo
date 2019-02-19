@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1108,16 +1108,18 @@ class Tests(util.LoRATestCase):
         func = [
             {
                 'address': [{
-                    'href': 'mailto:ceo@example.com',
-                    'name': 'ceo@example.com',
-                    'urn': 'urn:mailto:ceo@example.com',
                     'address_type': {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
                 }],
                 'manager_level': {
                     'example': None,
@@ -1212,9 +1214,9 @@ class Tests(util.LoRATestCase):
             [],
         )
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
-            [],
+            404,
         )
 
         self.assertRequestFails(
@@ -1224,14 +1226,14 @@ class Tests(util.LoRATestCase):
 
         self.load_sample_structures()
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/org_unit_type/',
-            [],
+            404,
         )
 
-        self.assertRequestResponse(
+        self.assertRequestFails(
             '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
-            [],
+            404,
         )
 
         self.assertRequestFails(
@@ -1241,20 +1243,17 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
-            [{'name': 'address_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+            [{'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                       '/f/address_type/',
-              'user_key': 'Adressetype',
+              'user_key': 'address_type',
               'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
-             {'name': 'association_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
               '/f/association_type/',
-              'user_key': 'Tilknytningstype',
+              'user_key': 'association_type',
               'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'},
-             {'name': 'org_unit_type',
-              'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                       '/f/org_unit_type/',
-              'user_key': 'Enhedstype',
+              'user_key': 'org_unit_type',
               'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
         )
 
@@ -1279,10 +1278,9 @@ class Tests(util.LoRATestCase):
                      'scope': None,
                      'user_key': 'inst',
                      'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
-                'name': 'org_unit_type',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/org_unit_type/',
-                'user_key': 'Enhedstype',
+                'user_key': 'org_unit_type',
                 'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}
         )
 
@@ -1313,127 +1311,11 @@ class Tests(util.LoRATestCase):
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
-                'name': 'address_type',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/address_type/',
-                'user_key': 'Adressetype',
+                'user_key': 'address_type',
                 'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
         )
-
-    def test_detail_list(self):
-        self.load_sample_structures()
-
-        with self.subTest('fedtmule'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': False,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('anders'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/',
-                {
-                    'address': True,
-                    'association': True,
-                    'engagement': True,
-                    'it': True,
-                    'leave': True,
-                    'manager': True,
-                    'org_unit': False,
-                    'role': True,
-                },
-            )
-
-        with self.subTest('hum'):
-            self.assertRequestResponse(
-                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                '/details/',
-                {
-                    'address': True,
-                    'association': True,
-                    'engagement': True,
-                    'it': False,
-                    'leave': False,
-                    'manager': True,
-                    'org_unit': True,
-                    'role': True,
-                },
-            )
-
-        with self.subTest('samf'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('fil'):
-            self.assertRequestResponse(
-                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('hist'):
-            self.assertRequestResponse(
-                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('frem'):
-            self.assertRequestResponse(
-                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': True,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'role': False,
-                },
-            )
 
     def test_details_multiple(self):
         """Test that multiple details of a single type renders as expected"""
@@ -1597,3 +1479,125 @@ class Tests(util.LoRATestCase):
             sorted(expected, key=sorter),
             sorted(actual, key=sorter)
         )
+
+    def test_detail_list(self):
+        self.load_sample_structures()
+
+        with self.subTest('fedtmule'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('anders'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': True,
+                    'leave': True,
+                    'manager': True,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('hum'):
+            self.assertRequestResponse(
+                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': False,
+                    'manager': True,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('samf'):
+            self.assertRequestResponse(
+                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('fil'):
+            self.assertRequestResponse(
+                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('hist'):
+            self.assertRequestResponse(
+                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('frem'):
+            self.assertRequestResponse(
+                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': True,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )

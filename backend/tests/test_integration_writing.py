@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -99,7 +99,7 @@ class TestWritingIntegration(util.LoRATestCase):
                 "organisationegenskaber": [
                     {
                         "organisationsnavn": "HEST",
-                        "brugervendtnoegle": None,
+                        "brugervendtnoegle": "hest",
                         "virkning": {
                             "from": "2016-01-01 00:00:00+01",
                             "from_included": True,
@@ -167,9 +167,7 @@ class TestWritingIntegration(util.LoRATestCase):
                             "to_included": False,
                             "to": "2016-06-01 01:00:00+02"
                         },
-                        # was "None", so merged...
-                        "brugervendtnoegle": "AU",
-                        # explicitly set...
+                        "brugervendtnoegle": "hest",
                         "organisationsnavn": "HEST"
                     },
                     {

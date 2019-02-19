@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,6 +20,8 @@ import flask
 
 import flask_saml_sso
 
+from .. import util
+
 __all__ = (
     'get_user',
 )
@@ -31,6 +33,7 @@ blueprint = flask.Blueprint('authentication', __name__,
 
 
 @blueprint.route('/user', methods=['GET'])
+@util.restrictargs()
 def get_user():
     '''Get the currently logged in user
 

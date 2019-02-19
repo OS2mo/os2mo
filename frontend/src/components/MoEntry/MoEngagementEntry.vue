@@ -2,116 +2,91 @@
   <div>
     <div class="form-row">
       <mo-organisation-unit-picker
-        class="col" 
-        :label="$t('input_fields.select_unit')" 
+        class="col"
+        :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
         required
       />
 
-      <mo-facet-picker 
-        facet="job_function" 
-        v-model="entry.job_function" 
+      <mo-facet-picker
+        facet="engagement_job_function"
+        v-model="entry.job_function"
         required
       />
 
-      <mo-facet-picker 
-        facet="engagement_type" 
-        v-model="entry.engagement_type" 
+      <mo-facet-picker
+        facet="engagement_type"
+        v-model="entry.engagement_type"
         required
       />
     </div>
 
-    <mo-date-picker-range 
-      v-model="entry.validity" 
+    <mo-input-date-range
+      v-model="entry.validity"
       :initially-hidden="datePickerHidden"
-      :disabled-dates="orgUnitValidity"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
 
 <script>
-  /**
-   * A engagement entry component.
-   */
+/**
+ * A engagement entry component.
+ */
 
-  import MoDatePickerRange from '@/components/MoDatePicker/MoDatePickerRange'
-  import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-  import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import { MoInputDateRange } from '@/components/MoInput'
+import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
-  export default {
-    components: {
-      MoDatePickerRange,
-      MoOrganisationUnitPicker,
-      MoFacetPicker
-    },
+export default {
+  mixins: [OrgUnitValidity],
 
-    props: {
-      /**
-       * Create two-way data bindings with the component.
-       */
-      value: Object,
+  extends: MoEntryBase,
 
-      /**
-       * Defines the validity.
-       */
-      validity: Object
-    },
+  name: 'MoEngagementEntry',
 
-    data () {
-      return {
-      /**
-        * The entry component value.
-        * Used to detect changes and restore the value.
-        */
-        entry: {}
-      }
-    },
+  components: {
+    MoInputDateRange,
+    MoOrganisationUnitPicker,
+    MoFacetPicker
+  },
 
-    computed: {
-      /**
-       * Hide the dates.
-       */
-      datePickerHidden () {
-        return this.validity != null
+  props: {
+    /**
+     * Defines the validity.
+     */
+    validity: Object
+  },
+
+  computed: {
+    /**
+     * Hide the dates.
+     */
+    datePickerHidden () {
+      return this.validity != null
+    }
+  },
+
+  watch: {
+    /**
+     * Whenever entry change update.
+     */
+    entry: {
+      handler (newVal) {
+        newVal.type = 'engagement'
+        this.$emit('input', newVal)
       },
-
-      /**
-       * Disabled organisation dates.
-       */
-      orgUnitValidity () {
-        if (this.entry.org_unit) {
-          return this.entry.org_unit.validity
-        }
-        return {}
-      }
+      deep: true
     },
 
-    watch: {
-      /**
-       * Whenever entry change update.
-       */
-      entry: {
-        handler (newVal) {
-          newVal.type = 'engagement'
-          this.$emit('input', newVal)
-        },
-        deep: true
-      },
-
-      /**
-       * When validity change update newVal.
-       */
-      validity (newVal) {
-        this.entry.validity = newVal
-      }
-    },
-
-    created () {
-      /**
-       * Called synchronously after the instance is created.
-       * Set entry to value.
-       */
-      this.entry = this.value
+    /**
+     * When validity change update newVal.
+     */
+    validity (newVal) {
+      this.entry.validity = newVal
     }
   }
+}
 </script>

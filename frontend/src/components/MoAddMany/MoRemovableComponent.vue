@@ -51,10 +51,10 @@ export default {
 
   data () {
     return {
-    /**
-      * The entryValue, removed component value.
-      * Used to detect changes and restore the value.
-      */
+      /**
+       * The entryValue, removed component value.
+       * Used to detect changes and restore the value.
+       */
       entryValue: {},
       removed: false
     }

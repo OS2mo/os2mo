@@ -20,6 +20,10 @@ A manager entry component.
 
   This boolean property hide the employee picker. 
 
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `entry` 
@@ -41,12 +45,12 @@ A manager entry component.
 
   Adds the facetPicker template to the add many component. 
 
-   **dependencies:** `$emit`, `val`, `value` 
+   **dependencies:** `value`, `$emit` 
 
-- `managerAddressPicker` 
+- `managerAddressEntry` 
 
-  Adds the managerAddressPicker template to the add many component. 
+  Adds the managerAddressEntry template to the add many component. 
 
-   **dependencies:** `value`, `val`, `value`, `value`, `value`, `$emit`, `val`, `value` 
+   **dependencies:** `value` 
 
 

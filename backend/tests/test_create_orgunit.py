@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,6 +20,7 @@ class TestCreateOrgFunk(unittest.TestCase):
                 'organisationenhedegenskaber': [{
                     'enhedsnavn': 'enhedsnavn',
                     'brugervendtnoegle': 'brugervendtnoegle',
+                    'integrationsdata': '{}',
                     'virkning': {
                         'from': '2016-01-01T00:00:00+01:00',
                         'to': '2018-01-01T00:00:00+01:00'

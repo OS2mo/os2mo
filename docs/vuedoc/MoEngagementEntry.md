@@ -12,6 +12,10 @@ A engagement entry component.
 
   Defines the validity. 
 
+- `disabled-dates` ***Object*** (*optional*) 
+
+  The valid dates for the entry component date pickers 
+
 ## data 
 
 - `entry` 
@@ -33,6 +37,6 @@ A engagement entry component.
 
   Disabled organisation dates. 
 
-   **dependencies:** `entry`, `entry` 
+   **dependencies:** `entry`, `entry`, `disabledDates`, `disabledDates`, `disabledDates` 
 
 

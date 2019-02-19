@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -122,9 +122,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-        )
+        actual_role = c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -261,7 +259,7 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -344,9 +342,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-        )
+        actual_role = c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -854,6 +850,34 @@ class Tests(util.LoRATestCase):
         actual_role = c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
+
+    def test_edit_role_in_the_past_fails(self):
+        """It shouldn't be possible to perform an edit in the past"""
+        self.load_sample_structures()
+
+        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+
+        req = [{
+            "type": "role",
+            "uuid": role_uuid,
+            "data": {
+                "validity": {
+                    "from": "2000-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                'description': 'Cannot perform changes before current date',
+                'error': True,
+                'error_key': 'V_CHANGING_THE_PAST',
+                'date': '2000-01-01T00:00:00+01:00',
+                'status': 400
+            },
+            json=req,
+            status_code=400)
 
     def test_terminate_role(self):
         self.load_sample_structures()

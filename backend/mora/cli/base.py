@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,7 +50,10 @@ topdir = os.path.dirname(backenddir)
 docsdir = os.path.join(topdir, 'docs')
 frontenddir = os.path.join(topdir, 'frontend')
 
-cli = flask.cli.FlaskGroup(help=__doc__)
+
+cli = flask.cli.FlaskGroup(help=__doc__, context_settings={
+    'help_option_names': ['-h', '--help'],
+})
 
 
 class Exit(click.ClickException):
@@ -189,7 +192,12 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
             module_file = getattr(module, '__file__', None)
 
             if module_file and module_file.startswith(basedir):
-                suite.addTests(doctest.DocTestSuite(module))
+                suite.addTests(doctest.DocTestSuite(
+                    module,
+                    optionflags=(
+                        doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+                    ),
+                ))
 
     def expand_suite(suite):
         for member in suite:
@@ -243,8 +251,52 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
 
 @cli.command()
-def full_run(**kwargs):
-    '''Runs a development server with a one-off LoRA.
+@click.option('--simple', is_flag=True, help='Run with the simple fixtures.')
+def full_run(simple):
+    '''Command for running a one-off server for frontend development.
+
+    This server consists of a the following:
+
+        1. An embedded PostgreSQL server.
+
+        2. An embedded LoRA/OIO REST WSGI server, loaded with either
+           the somewhat expansive *“Hjørring”* fixture, or with
+           ``--simple``, the *“Aarhus Universitet”* dummy fixture.
+
+        3. An embedded MO REST WSGI server.
+
+        4. A node process serving the frontend code in development
+           mode using ``vue-cli-service``.
+
+    Please note that neither OIO REST nor the MO API are served with
+    reloading; as such, any changes to the Python code requires a
+    restart.
+
+    The command prints out how to access each server at load. The
+    ports are normally allocated as follows:
+
+        1. PostgreSQL uses a random available port.
+
+        2. OIO REST uses the first available port starting from port
+           6000.
+
+        3. MO uses the first available port starting
+           from port 5000.
+
+        4. ``vue-cli-service`` uses the first available port starting
+           from port 8080.
+
+    Normally, this server is run using the ``flask.sh`` script. If
+    something goes wrong, such as a missing or outdated dependency,
+    simply delete the Python virtual environment and re-run the
+    command::
+
+       $ pwd
+       /path/to/os2mo/backend
+       $ rm -rf ./venv
+       $ ./flask.sh full-run
+       Creating virtual environment!
+       [...]
 
     '''
 
@@ -255,9 +307,10 @@ def full_run(**kwargs):
     from oio_rest import app as lora_app
     from oio_rest.utils import test_support
     from oio_rest import db
-    import settings as lora_settings
+    from oio_rest import settings as lora_settings
 
     from mora import app
+    from tests import util as test_util
 
     def make_server(app, startport=5000):
         '''create a server at the first available port after startport'''
@@ -280,9 +333,11 @@ def full_run(**kwargs):
 
     with \
             test_support.psql() as psql, \
-            mock.patch('settings.LOG_AMQP_SERVER', None), \
-            mock.patch('settings.DB_HOST', psql.dsn()['host'], create=True), \
-            mock.patch('settings.DB_PORT', psql.dsn()['port'], create=True), \
+            mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
+            mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
+                       create=True), \
+            mock.patch('oio_rest.settings.DB_PORT', psql.dsn()['port'],
+                       create=True), \
             mock.patch('oio_rest.db.pool',
                        psycopg2.pool.PersistentConnectionPool(
                            0, 100,
@@ -290,6 +345,11 @@ def full_run(**kwargs):
                        )), \
             mock.patch('mora.settings.LORA_URL',
                        'http://localhost:{}/'.format(lora_port)):
+
+        print(' * PostgreSQL running at {}'.format(psql.url(
+            database=lora_settings.DATABASE,
+        )))
+
         test_support._initdb()
 
         threading.Thread(
@@ -302,15 +362,18 @@ def full_run(**kwargs):
 
         conn = db.get_connection()
 
-        try:
-            with \
-                    conn.cursor() as curs, \
-                    open(os.path.join(backenddir, 'tests', 'fixtures',
-                                      'dummy.sql')) as fp:
-                curs.execute(fp.read())
+        if simple:
+            test_util.load_sample_structures()
+        else:
+            try:
+                with \
+                        conn.cursor() as curs, \
+                        open(os.path.join(backenddir, 'tests', 'fixtures',
+                                          'dummy.sql')) as fp:
+                    curs.execute(fp.read())
 
-        finally:
-            db.pool.putconn(conn)
+            finally:
+                db.pool.putconn(conn)
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 

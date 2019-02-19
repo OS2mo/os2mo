@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,6 +7,7 @@
 #
 
 from . import address
+from . import address_handler
 from . import association  # noqa
 from . import cpr
 from . import detail_reading
@@ -20,17 +21,21 @@ from . import leave  # noqa
 from . import manager  # noqa
 from . import org
 from . import orgunit
+from . import related  # noqa
 from . import role  # noqa
+from . import integration_data
 
 blueprints = (
     address.blueprint,
     cpr.blueprint,
-    employee.blueprint,
     detail_reading.blueprint,
     detail_writing.blueprint,
+    employee.blueprint,
+    exports.blueprint,
     facet.blueprint,
+    integration_data.blueprint,
     itsystem.blueprint,
     org.blueprint,
     orgunit.blueprint,
-    exports.blueprint,
+    related.blueprint,
 )

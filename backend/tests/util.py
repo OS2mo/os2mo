@@ -1,10 +1,11 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
 
 import contextlib
 import json
@@ -30,6 +31,7 @@ from oio_rest.utils import test_support
 
 from mora import app, lora, settings
 from mora.importing import spreadsheets
+
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -162,6 +164,8 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
         'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
+        'tilknyttetenhed_hist': 'daa77a4d-6500-483d-b099-2c2eb7fa7a76',
+        'tilknyttetenhed_hum': '5c68402c-2a8d-4776-9237-16349fc72648',
     }
 
     users = {
@@ -191,6 +195,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
             'adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
             'ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
+        })
+
+        functions.update({
+            'email_andersand': 'fba61e38-b553-47cc-94bf-8c7c3c2a6887',
+            'email_fedtmule': '64ea02e2-8469-4c54-a523-3d46729e86a7',
+            'adresse_fedtmule': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
+            'adresse_root': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+            'adresse_hum': 'e1a9cede-8c9b-4367-b628-113834361871',
+            'tlf_hum': '55848eca-4e9e-4f30-954b-78d55eec0473',
+            'ean_hum': 'a0fe7d43-1e0d-4232-a220-87098024b34d',
         })
 
     for facetkey, facetid in facets.items():
@@ -352,10 +366,11 @@ class TestCaseMixin(object):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         :return: The result of the request, as a string or object, if
@@ -407,10 +422,11 @@ class TestCaseMixin(object):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         '''
@@ -425,10 +441,11 @@ class TestCaseMixin(object):
     def assertRequestFails(self, path, code, message=None, **kwargs):
         '''Issue a request and assert that it fails with the given status.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        ``**kwargs`` is passed directly to the test client -- see the
+        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
+        details.
 
-        One addition is that we support a 'json' argument that
+        One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
         '''
@@ -528,6 +545,7 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
+            patch('oio_rest.validate.SCHEMA', None),
             patch('mora.importing.processors._fetch.cache', {}),
             patch('mora.importing.processors._fetch.cache_file',
                   os.devnull),

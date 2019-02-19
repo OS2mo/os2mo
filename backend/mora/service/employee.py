@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,8 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import uuid
+import enum
+import json
 
 import flask
 
@@ -30,9 +32,22 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from .. import validator
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+@enum.unique
+class EmployeeDetails(enum.Enum):
+    # name & userkey only
+    MINIMAL = 0
+
+    # with everything except child count
+    FULL = 1
+
+    # minimal and integration_data
+    INTEGRATION = 2
 
 
 class EmployeeRequestHandler(handlers.RequestHandler):
@@ -42,6 +57,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
         name = util.checked_get(req, mapping.NAME, "", required=True)
+        integration_data = util.checked_get(
+            req,
+            mapping.INTEGRATION_DATA,
+            {},
+            required=False
+        )
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False)
@@ -72,6 +93,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
+            integration_data=integration_data,
         )
 
         details = util.checked_get(req, 'details', [])
@@ -98,6 +120,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         original = c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
+        validator.is_edit_from_date_before_today(new_from)
+
         payload = dict()
         if original_data:
             # We are performing an update
@@ -123,9 +147,16 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data:
+        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
             attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
-            attrs['brugernavn'] = data[mapping.NAME]
+
+            if mapping.NAME in data:
+                attrs['brugernavn'] = data[mapping.NAME]
+
+            if mapping.INTEGRATION_DATA in data:
+                attrs['integrationsdata'] = json.dumps(
+                    data[mapping.INTEGRATION_DATA]
+                )
 
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
@@ -166,7 +197,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return result
 
 
-def get_one_employee(c, userid, user=None, full=False):
+def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     if not user:
         user = c.bruger.get(userid)
 
@@ -180,7 +211,7 @@ def get_one_employee(c, userid, user=None, full=False):
         mapping.UUID: userid,
     }
 
-    if full:
+    if details is EmployeeDetails.FULL:
         rels = user['relationer']
         orgid = rels['tilhoerer'][0]['uuid']
 
@@ -191,7 +222,10 @@ def get_one_employee(c, userid, user=None, full=False):
 
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.USER_KEY] = props['brugervendtnoegle']
-
+    elif details is EmployeeDetails.MINIMAL:
+        pass  # already done
+    elif details is EmployeeDetails.INTEGRATION:
+        r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
     return r
 
 
@@ -309,7 +343,7 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    r = get_one_employee(c, id, full=True)
+    r = get_one_employee(c, id, user=None, details=EmployeeDetails.FULL)
 
     if r:
         return flask.jsonify(r)
@@ -318,6 +352,7 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
+@util.restrictargs('force')
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -325,11 +360,15 @@ def terminate_employee(employee_uuid):
 
     .. :quickref: Employee; Terminate
 
+    :query boolean force: When ``true``, bypass validations.
+
     :statuscode 200: The termination succeeded.
 
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
+    :<json boolean terminate_all: *Optional* - perform full termination, i.e.
+        terminate the associated manager functions as well.
 
     **Example Request**:
 
@@ -342,7 +381,8 @@ def terminate_employee(employee_uuid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json()
+    date = util.get_valid_to(request)
 
     c = lora.Connector(virkningfra=date, virkningtil='infinity')
 
@@ -352,6 +392,7 @@ def terminate_employee(employee_uuid):
                 'date': date,
                 'uuid': objid,
                 'original': obj,
+                'request': request
             },
             handlers.RequestType.TERMINATE,
         )
@@ -372,6 +413,7 @@ def terminate_employee(employee_uuid):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
+@util.restrictargs()
 def get_employee_history(employee_uuid):
     """
     Get the history of an employee
@@ -431,10 +473,13 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
+@util.restrictargs('force')
 def create_employee():
     """Create a new employee
 
     .. :quickref: Employee; Create
+
+    :query boolean force: When ``true``, bypass validations.
 
     :statuscode 200: Creation succeeded.
 

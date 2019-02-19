@@ -4,7 +4,7 @@
       class="detail-future"
       :title="$t('common.future')"
       @show="$emit('show', 'future')">
-      <mo-table 
+      <mo-table
         class="detail-future"
         :columns="columns"
         :content="contentStore.future"
@@ -34,7 +34,7 @@
       class="detail-past"
       :title="$t('common.past')"
       @show="$emit('show', 'past')">
-      <mo-table 
+      <mo-table
         :columns="columns"
         :content="contentStore.past"
         :content-type="contentType"
@@ -44,10 +44,10 @@
       />
     </mo-collapse>
 
-    <mo-entry-create-modal 
+    <mo-entry-create-modal
       :type="type"
       class="mt-3"
-      :uuid="uuid" 
+      :uuid="uuid"
       :entry-component="entryComponent"
       v-if="!hideCreate"
     />
@@ -55,69 +55,69 @@
 </template>
 
 <script>
-  /**
-   * A employeedetail component.
-   */
+/**
+ * A employeedetail component.
+ */
 
-  import MoTable from '@/components/MoTable/MoTable'
-  import MoCollapse from '@/components/atoms/MoCollapse'
-  import MoEntryCreateModal from '@/components/MoEntryCreateModal'
+import MoTable from '@/components/MoTable/MoTable'
+import MoCollapse from '@/components/atoms/MoCollapse'
+import MoEntryCreateModal from '@/components/MoEntryCreateModal'
 
-  export default {
-    components: {
-      MoTable,
-      MoCollapse,
-      MoEntryCreateModal
+export default {
+  components: {
+    MoTable,
+    MoCollapse,
+    MoEntryCreateModal
+  },
+
+  props: {
+    /**
+     * Defines columns.
+     */
+    columns: Array,
+
+    /**
+     * Defines the loading.
+     */
+    loading: Object,
+
+    /**
+     * Defines the editComponent.
+     */
+    entryComponent: Object,
+
+    /**
+     * Defines the content.
+     */
+    content: Object,
+
+    /**
+     * Defines the contentType.
+     */
+    contentType: String,
+
+    /**
+     * Defines a required uuid.
+     */
+    uuid: {
+      type: String,
+      required: true
     },
 
-    props: {
-      /**
-       * Defines columns.
-       */
-      columns: Array,
-
-      /**
-       * Defines the loading.
-       */
-      loading: Object,
-
-      /**
-       * Defines the editComponent.
-       */
-      entryComponent: Object,
-
-      /**
-       * Defines the content.
-       */
-      content: Object,
-
-      /**
-       * Defines the contentType.
-       */
-      contentType: String,
-
-      /**
-       * Defines a required uuid.
-       */
-      uuid: {
-        type: String,
-        required: true
-      },
-
-      /**
-       * Defines a required type.
-       */
-      type: {
-        type: String,
-        required: true
-      },
-
-      hideCreate: Boolean
+    /**
+     * Defines a required type.
+     */
+    type: {
+      type: String,
+      required: true
     },
-    computed: {
-      contentStore () {
-        return this.content || {}
-      }
+
+    hideCreate: Boolean
+  },
+  computed: {
+    contentStore () {
+      return this.content || {}
     }
   }
+}
 </script>
