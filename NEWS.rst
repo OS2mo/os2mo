@@ -1,3 +1,13 @@
+Version 0.15.0, in development
+==============================
+
+Bug fixes
+---------
+
+* #25671: Organisation is now properly set when creating new employee
+* #25694: Changed table columns layout to align between table future, present and past.
+
+
 Version 0.14.0, 2019-01-30
 ==========================
 
@@ -37,7 +47,7 @@ Internal changes
 
 Bug fixes
 ---------
-* #25405: Submit button for create new and edit modals for organisation 
+* #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
 * #25028: Time machine is working again.
 * #25579: Address race condition when quickly switching between units
@@ -48,7 +58,6 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
 * #25696: Added remove button for dates.
-* #25694: Changed table columns layout to align between table future, present and past.
 * #26890: Fixed regression that broke viewing the details of a unit in
   the termination dialog.
 * #26898: Ensure that detail view for organisation mapper shows all

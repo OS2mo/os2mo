@@ -75,6 +75,10 @@ const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
 const treeNodes = Selector('.tree-node .tree-content')
 
+// Search field
+const searchField = Selector('.search-bar')
+const searchFieldItem = searchField.find('.v-autocomplete-list-item')
+
 fixture('MoEmployeeCreate')
   .page(`${baseURL}/medarbejder/liste`)
 
@@ -201,6 +205,10 @@ test('Workflow: create employee', async t => {
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
+    // Verify that we can search for the newly created employee
+    .click(searchField)
+    .typeText(searchField.find('input'), 'sig')
+    .expect(searchFieldItem.withText('Signe Kristensen').visible).ok()
 })
 
 test('Workflow: create employee with role only', async t => {
