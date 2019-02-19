@@ -11,6 +11,7 @@
         v-model="endDate"
         :label="$t('input_fields.end_date')"
         class="from-date"
+        :valid-dates="currentDateValidity"
         required
       />
     </div>
@@ -46,13 +47,14 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import EmployeeDetailTabs from '../EmployeeDetailTabs'
 import store from './_store/employeeTerminate.js'
 
 const STORE_KEY = '$_employeeTerminate'
 
 export default {
-  mixins: [ValidateForm],
+  mixins: [ValidateForm, CurrentDateValidity],
 
   components: {
     MoEmployeePicker,
@@ -85,6 +87,7 @@ export default {
       details: `${STORE_KEY}/getDetails`
     })
   },
+
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)

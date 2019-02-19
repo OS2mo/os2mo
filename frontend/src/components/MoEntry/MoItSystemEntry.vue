@@ -18,7 +18,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{disabledDates}"
     />
   </div>
 </template>

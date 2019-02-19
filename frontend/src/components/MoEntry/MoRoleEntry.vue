@@ -19,7 +19,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -33,10 +33,15 @@ import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoRoleEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
