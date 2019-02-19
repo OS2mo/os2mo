@@ -135,12 +135,6 @@ export default {
       deep: true
     },
 
-    // selected (val) {
-    //   if (this.fields['selected-employees-count']) {
-    //     this.$validator.validate('selected-employees-count', val.length)
-    //   }
-    // },
-
     show (val) {
       if (!val) {
         this.onHidden()
@@ -165,8 +159,8 @@ export default {
             if (response.error) {
               vm.backendValidationError = response.error_key
             } else {
-            vm.orgUnitSource = undefined
-            vm.$emit('submitted')
+              vm.orgUnitSource = undefined
+              vm.$emit('submitted')
             }
           })
       } else {
