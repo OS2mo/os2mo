@@ -102,7 +102,7 @@ def check_cpr():
     .. sourcecode:: json
 
       {
-        "cpr": "1212121212",
+        "cpr_no": "1212121212",
         "org": {
           "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
         },
@@ -115,11 +115,10 @@ def check_cpr():
     req = flask.request.get_json()
 
     cpr = util.checked_get(req, mapping.CPR_NO, "", required=True)
-    valid_from, valid_to = util.get_validities(req)
     org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
     validator.does_employee_with_cpr_already_exist(
-        cpr, valid_from, valid_to, org_uuid)
+        cpr, '-infinity', 'infinity', org_uuid)
 
     return flask.jsonify(success=True)
 
