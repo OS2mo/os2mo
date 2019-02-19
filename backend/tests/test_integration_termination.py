@@ -254,7 +254,7 @@ class Tests(util.LoRATestCase):
                     "to": "infinity"
                 }
             }
-                ]
+        ]
 
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
