@@ -20,7 +20,6 @@ import pyexcel
 from . import processors
 from .. import util
 from .. import lora
-from ..service import address
 
 
 # TODO: don't hardcode these, look into the imported data instead?

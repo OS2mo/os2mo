@@ -10,7 +10,6 @@ from unittest.mock import patch
 import freezegun
 
 from mora import lora
-from mora import mapping
 from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
@@ -284,8 +283,6 @@ class Tests(util.LoRATestCase):
     def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
@@ -405,8 +402,6 @@ class Tests(util.LoRATestCase):
     def test_edit_leave_minimal(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
         req = [{
@@ -513,8 +508,6 @@ class Tests(util.LoRATestCase):
 
     def test_edit_leave_overwrite(self):
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 

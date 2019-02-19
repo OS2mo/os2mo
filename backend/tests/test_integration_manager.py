@@ -1952,8 +1952,6 @@ class Tests(util.LoRATestCase):
         fields are updated"""
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
         req = [{

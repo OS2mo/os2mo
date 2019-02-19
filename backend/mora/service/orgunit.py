@@ -21,16 +21,13 @@ import collections
 import copy
 import enum
 import functools
-import itertools
 import locale
 import operator
 import uuid
 import json
 
-import werkzeug
 import flask
 
-from . import address
 from . import facet
 from . import handlers
 from . import org

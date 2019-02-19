@@ -12,9 +12,7 @@ import json
 import os
 import pprint
 import re
-import shutil
 import sys
-import tempfile
 import threading
 from unittest.mock import patch
 

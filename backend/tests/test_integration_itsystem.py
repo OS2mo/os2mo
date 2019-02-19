@@ -29,8 +29,6 @@ class Writing(util.LoRATestCase):
     def test_errors(self):
         self.load_sample_structures(minimal=True)
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         self.assertRequestResponse(
             '/service/details/create',
             {

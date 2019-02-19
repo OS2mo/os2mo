@@ -8,7 +8,6 @@
 
 """Run all end-to-end tests, and report the status."""
 
-import functools
 import json
 import os
 import platform
@@ -16,7 +15,6 @@ import subprocess
 import traceback
 import unittest
 
-import psycopg2
 
 from mora import util as mora_util
 

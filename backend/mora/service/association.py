@@ -14,7 +14,6 @@ This section describes how to interact with employee associations.
 
 '''
 
-from . import address
 from . import handlers
 from .. import common
 from .. import exceptions

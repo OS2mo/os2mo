@@ -5,12 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import unittest
-from unittest.mock import patch
 
 import freezegun
 
-from mora import lora
 from mora import util as mora_util
 
 from . import util

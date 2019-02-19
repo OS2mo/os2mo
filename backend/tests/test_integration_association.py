@@ -2800,7 +2800,6 @@ class AddressTests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         self.assertRequestFails(

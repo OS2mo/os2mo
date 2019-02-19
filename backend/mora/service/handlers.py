@@ -105,7 +105,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        pass
 
     @abc.abstractmethod
     def prepare_edit(self, request: dict):
@@ -115,7 +114,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        pass
 
     def prepare_terminate(self, request: dict):
         """
@@ -135,7 +133,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         request to LoRa, typically a UUID.
 
         """
-        pass
 
 
 class ReadingRequestHandler(RequestHandler):

@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import abc
-import inspect
 
 from ... import exceptions
 from ... import mapping
