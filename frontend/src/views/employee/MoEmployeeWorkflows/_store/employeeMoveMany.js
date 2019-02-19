@@ -11,7 +11,6 @@ const defaultState = () => {
     orgUnitSource: null,
     orgUnitDestination: null,
     backendValidationError: null,
-    isLoading: false,
     columns: [
       { label: 'person', data: 'person' },
       { label: 'engagement_type', data: 'engagement_type' },
@@ -44,13 +43,13 @@ const actions = {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('resetFields')
         commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
-        return response
+        return response.data
       })
       .catch(error => {
         commit('updateError', error.response.data)
         commit('updateIsLoading', false)
         commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
-        return error
+        return error.response.data
       })
   },
 
