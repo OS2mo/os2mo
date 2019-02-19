@@ -883,3 +883,55 @@ def edit():
         flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
         200
     )
+
+
+@blueprint.route('/details/terminate', methods=['POST'])
+@util.restrictargs()
+def terminate():
+    '''Terminate a relation as of a given day.
+
+    .. :quickref: Writing; Terminate relation
+
+    :<jsonarr str type: Same as for
+              :http:post:`/service/details/create` and
+              :http:post:`/service/details/edit`.
+    :<jsonarr str uuid: The UUID of the related to terminate.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
+    :<jsonarr object validity: A validity object; but only the ``to`` is
+              used.
+
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+      POST /service/details/terminate HTTP/1.1
+      Host: example.com
+      Content-Type: application/json
+
+      {
+        "type": "association",
+        "uuid": "be4642c4-ba97-48d6-b19a-fc18ca0740b5",
+        "validity": {
+          "to": "2018-01-01"
+        }
+      }
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
+
+    '''
+
+    reqs = flask.request.get_json()
+    return (
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.TERMINATE)),
+        200
+    )

@@ -9,8 +9,6 @@
 
 import sys
 
-import flask
-
 from mora.cli import base
 
 
