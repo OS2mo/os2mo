@@ -101,6 +101,36 @@ class DarAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
+    def test_failed_lookup(self, mock):
+        """Ensure that failed lookups are handled appropriately"""
+        # Arrange
+
+        # Nonexisting DAR UUID should fail
+        value = '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+        address_handler = self.handler(value)
+
+        expected_name = dar.NOT_FOUND
+        expected_href = None
+        expected_mo_address = {
+            'error': 'No mock address: GET '
+                     'https://dawa.aws.dk/adresser?'
+                     'id=300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+                     '&noformat=1&struktur=mini',
+            'href': None,
+            'name': 'Ukendt',
+            'value': '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+        }
+
+        # Act
+        actual_name = address_handler.name
+        actual_href = address_handler.href
+        actual_mo_address = address_handler.get_mo_address_and_properties()
+
+        # Assert
+        self.assertEqual(expected_name, actual_name)
+        self.assertEqual(expected_href, actual_href)
+        self.assertEqual(expected_mo_address, actual_mo_address)
+
 
 class EANAddressHandlerTests(util.TestCase):
     handler = ean.EANAddressHandler

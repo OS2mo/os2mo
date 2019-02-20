@@ -28,10 +28,21 @@ class DARAddressHandler(base.AddressHandler):
 
         try:
             self.address_object = self._fetch_from_dar(value)
+            self._name = ''.join(
+                self._address_string_chunks(self.address_object))
+            self._href = (
+                'https://www.openstreetmap.org/'
+                '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)
+                if 'x' in self.address_object and 'y' in self.address_object
+                else None
+            )
         except Exception as exc:
+            self._name = NOT_FOUND
+            self._href = None
+
             self.error = {
-                mapping.NAME: NOT_FOUND,
-                mapping.HREF: None,
+                mapping.NAME: self._name,
+                mapping.HREF: self._href,
                 mapping.VALUE: value,
                 mapping.ERROR: str(exc),
             }
@@ -45,18 +56,11 @@ class DARAddressHandler(base.AddressHandler):
 
     @property
     def name(self):
-        return ''.join(self._address_string_chunks(self.address_object))
+        return self._name
 
     @property
     def href(self):
-        href = (
-            'https://www.openstreetmap.org/'
-            '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)
-            if 'x' in self.address_object and 'y' in self.address_object
-            else None
-        )
-
-        return href
+        return self._href
 
     def get_mo_address_and_properties(self):
         if hasattr(self, 'error'):
