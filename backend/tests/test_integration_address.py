@@ -1,15 +1,12 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import copy
 import logging
-import re
-import unittest.mock
 
 import freezegun
 
@@ -258,8 +255,6 @@ class Writing(util.LoRATestCase):
                                          'create_bruger_fætterguf.json')
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-
-        nothingid = "00000000-0000-0000-0000-000000000000"
 
         orig_address = {
             "href": "https://www.openstreetmap.org/"

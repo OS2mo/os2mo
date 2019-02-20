@@ -9,7 +9,7 @@
           :key="index"
           role="alert"
         >
-          {{$t('alerts.success.' + log.type, {uuid: log.value})}}
+          {{toLogString(log)}}
         </div>
       </div>
     </div>
@@ -35,6 +35,12 @@ export default {
   },
 
   methods: {
+    toLogString (log) {
+      let arg = typeof log.value === 'string' ? { uuid: log.value } : log.value
+
+      return this.$t(`alerts.success.${log.type}`, arg)
+    },
+
     /**
      * Reverse message.
      */

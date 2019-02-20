@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,8 +28,6 @@ class Writing(util.LoRATestCase):
 
     def test_errors(self):
         self.load_sample_structures(minimal=True)
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
             '/service/details/create',

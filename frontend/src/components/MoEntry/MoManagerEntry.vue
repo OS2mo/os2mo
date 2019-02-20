@@ -54,7 +54,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -71,10 +71,15 @@ import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoManagerAddressEntry } from '@/components/MoEntry'
 import MoEntryBase from './MoEntryBase.js'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoManagerEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,

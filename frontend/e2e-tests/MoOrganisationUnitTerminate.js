@@ -84,6 +84,10 @@ test('Workflow: terminate org unit', async t => {
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
+    // verify that the details render as expected
+    .expect(dialog.find('.detail-present ul.name').withText('VM 2018').exists)
+    .ok()
+
     .click(dialog.find('.btn-primary'))
 
     .expect(dialog.exists).notOk()

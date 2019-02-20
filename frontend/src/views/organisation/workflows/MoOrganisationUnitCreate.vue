@@ -19,16 +19,16 @@
       <mo-org-unit-address-entry
         class="mt-3"
         v-model="postAddress"
-        preselected-type="AdressePost"
+        preselected-type="AddressMailUnit"
         validity-hidden
         required
       />
 
       <div class="mt-3 form-row">
-        <mo-org-unit-address-entry
-          class="col"
+         <mo-org-unit-address-entry
+          class="mt-3"
           v-model="phone"
-          preselected-type="Telefon"
+          preselected-type="PhoneUnit"
           validity-hidden
           required
         />

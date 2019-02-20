@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,9 +12,7 @@ import json
 import os
 import pprint
 import re
-import shutil
 import sys
-import tempfile
 import threading
 from unittest.mock import patch
 

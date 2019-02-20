@@ -22,7 +22,7 @@
   "role_type": "@:shared.role_type",
   "search_for_employee": "Søg efter medarbejder",
   "search_entire_country": "Søg i hele landet",
-  "no_addresses_associated_to_org_unit": "Ingen adresser er tilknyttet til enheden",
+  "no_addresses_associated_to_org_unit": "Ingen adresser",
   "select_new_super_unit": "Angiv ny overenhed",
   "start_date": "@:shared.date.start_date",
   "super_unit": "Overenhed",

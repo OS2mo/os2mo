@@ -22,6 +22,9 @@ const rightNodes = rightTree.find('.tree-node .tree-content')
 const reload = ClientFunction(() => window.location.reload())
 const getPagePath = ClientFunction(() => window.location.pathname);
 
+const tabs = VueSelector('organisation-detail-tabs bTabButtonHelper')
+const links = VueSelector('mo-table-detail mo-link')
+
 test('View no mapping', async t => {
   await t
     .click(mapperButton)
@@ -117,13 +120,14 @@ test('Writing mapping', async t => {
 
     .click(rightNodes.withText('Kantine').nth(0))
     .click(rightNodes.withText('Kantine').nth(1))
+    .click(rightNodes.withText('Social og sundhed'))
 
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql({
       "~~~ Hjørring ~~~": [
         "> Borgmesterens Afdeling",
         "> Skole og Børn",
-        "Social og sundhed",
+        "\u2713 Social og sundhed",
         {
           "Teknik og Miljø": [
             {
@@ -171,7 +175,7 @@ test('Writing mapping', async t => {
       "~~~ Hjørring ~~~": [
         "> Borgmesterens Afdeling",
         "> Skole og Børn",
-        "Social og sundhed",
+        "\u2713 Social og sundhed",
         {
           "Teknik og Miljø": [
             {
@@ -191,4 +195,25 @@ test('Writing mapping', async t => {
         }
       ]
     })
+
+    // now verify that we can actually render these units
+    .navigateTo('/organisation/97337de5-6096-41f9-921e-5bed7a140d85')
+    .expect(tabs.withText('Relateret').exists)
+    .ok()
+    .click(tabs.withText('Relateret'))
+
+    .expect(links.exists)
+    .ok()
+
+    // this one is currently in the first colum
+    .expect(links.withText('Social og sundhed').count)
+    .eql(1)
+
+    // these are currently in the second column
+    .expect(links.withText('Kantine').count)
+    .eql(2)
+
+    // not the case at the moment :(
+    //.expect(links.withText('Hjørring').exists)
+    //.notOk()
 })

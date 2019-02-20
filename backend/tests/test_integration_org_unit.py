@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -800,8 +800,6 @@ class Tests(util.LoRATestCase):
 
     def test_edit_missing_org_unit(self):
         self.load_sample_structures()
-
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
         req = [{
             "type": "org_unit",

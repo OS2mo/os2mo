@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -349,8 +349,6 @@ class Tests(util.LoRATestCase):
     def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
         req = [{
@@ -485,8 +483,6 @@ class Tests(util.LoRATestCase):
     def test_edit_role_minimal(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
         req = [{
@@ -597,8 +593,6 @@ class Tests(util.LoRATestCase):
     def test_edit_role_minimal_on_unit(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
         req = [{
@@ -708,8 +702,6 @@ class Tests(util.LoRATestCase):
 
     def test_edit_role_overwrite(self):
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -897,7 +889,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected_role = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {

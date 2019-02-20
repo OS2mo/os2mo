@@ -4,7 +4,7 @@
     "leave": "Orlov",
     "move_engagement": "Flyt engagement",
     "move_many_engagements": "Flyt mange engagementer",
-    "terminate_employee": "Afslut medarbejder",
+    "terminate_employee": "Opsig medarbejder",
     "labels": {
       "address": "@:shared.address",
       "association": "@:shared.association",

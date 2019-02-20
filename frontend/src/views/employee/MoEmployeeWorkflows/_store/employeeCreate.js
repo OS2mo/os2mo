@@ -10,6 +10,7 @@ const defaultState = () => {
     role: [],
     itSystem: [],
     manager: [],
+    organisation: {},
     backendValidationError: null
   }
 }
@@ -29,7 +30,7 @@ const actions = {
     let newEmployee = {
       name: state.employee.name,
       cpr_no: state.employee.cpr_no,
-      org: state.engagement.org_unit,
+      org: state.organisation,
       details: create
     }
 

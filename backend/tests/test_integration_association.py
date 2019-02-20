@@ -1,10 +1,12 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import copy
 
 import freezegun
 
@@ -519,22 +521,18 @@ class Tests(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        # we can't do this using the API, yet
-        c.organisationfunktion.update(
-            {
-                'tilstande': {
-                    'organisationfunktiongyldighed': [
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                "from": '2018-01-01T00:00:00+01:00',
-                                'to': 'infinity',
-                            },
-                        },
-                    ],
+        self.assertRequestResponse(
+            '/service/details/terminate',
+            [association_uuid],
+            json=[
+                {
+                    "type": "association",
+                    "uuid": association_uuid,
+                    "validity": {
+                        "to": "2017-02-01"
+                    },
                 },
-            },
-            association_uuid,
+            ],
         )
 
         self.assertRequest(
@@ -2414,7 +2412,7 @@ class Tests(util.LoRATestCase):
             json=req,
             status_code=400)
 
-    def test_terminate_association(self):
+    def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -2432,7 +2430,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 "opgaver": [
                     {
@@ -2747,3 +2745,70 @@ class AddressTests(util.LoRATestCase):
         actual_association = c.organisationfunktion.get(association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
+
+    def test_terminate_association_directly(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        payload = {
+            "type": "association",
+            "uuid": associationid,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
+
+        orig = self.assertRequest(
+            '/service/e/{}/details/association'
+            '?validity=present'.format(userid),
+        )
+
+        expected = copy.deepcopy(orig)
+        expected[0]['validity']['to'] = '2017-11-30'
+
+        self.assertRequestResponse('/service/details/terminate',
+                                   associationid,
+                                   json=payload)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=present'.format(userid),
+            expected,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future'.format(userid),
+            [],
+        )
+
+    @freezegun.freeze_time('2018-01-01', tz_offset=1)
+    def test_terminate_association_in_the_past(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        self.assertRequestFails(
+            '/service/details/terminate', 400,
+            json={
+                "type": "association",
+                "uuid": associationid,
+                "validity": {
+                    "to": "2017-11-30"
+                }
+            },
+        )
