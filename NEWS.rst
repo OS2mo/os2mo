@@ -1,6 +1,23 @@
 Version 0.15.0, in development
 ==============================
 
+API changes
+-----------
+
+``/service/e/(uuid:employee_uuid)/terminate``:
+
+The defaults for employee termination changed, and now affect managers
+similarly to any other functions. To achieve the previous behaviour of
+merely marking manager functions as *vacant*, set ``"vacant": true``
+in the JSON request. Please note that this is the inverse of the
+previous ``terminate_all`` parameter, which no longer has any affect.
+
+New features
+------------
+
+* #26459: Add support for terminating relations, such as associations,
+  addresses, etc., using a separate dialog.
+
 Bug fixes
 ---------
 
@@ -25,6 +42,9 @@ New features
   for disabling certain validations.
 * #25409: Added backend support for specifying visibility for phone number
   address objects.
+* #25706: Added more meaningful error message when editing addresses.
+* #25406: All text has been moved into a translation file
+* #25404: A validation ensures that a person (cpr) cannot be created twice in the database
 
 Internal changes
 ----------------
@@ -46,14 +66,14 @@ Bug fixes
 ---------
 * #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
-* #25028: Timeachine is working again.
+* #25028: Time machine is working again.
 * #25579: Address race condition when quickly switching between units
   in the tree view at the left.
 * #25186: Hidden person input for create employee manager.
 * #25690: Ignore spacing in address type input field.
 * #26368: Validation no longer prevents adding an association if it
   duplicates another *inactive* association.
-* #25704 Added max-width to table columns.
+* #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
 * #25696: Added remove button for dates.
 * #26890: Fixed regression that broke viewing the details of a unit in
   the termination dialog.
@@ -62,6 +82,12 @@ Bug fixes
 * #26788: Fixed the manager edit popup to submit with a blank employee picker field.
 * #26801: Adjust styling of missing address note for associations such
   that it no longer appears as an error.
+* #26787: Added check for org unit valid dates in the datepicker. 
+* #26874: Added scrollbar overflow-x for table.
+* #25697: Added scrollbars to the dropdown menu when choosing Unit in Create Employee
+* #24493: Added indication of where a value is missing in Create Unit
+* #24492: Name change was not reflected before the page was updated manually
+* #24933: Internet Explorer stopped validating input fields. Works again now.
 
 Version 0.13.0, 2018-11-30
 ==========================

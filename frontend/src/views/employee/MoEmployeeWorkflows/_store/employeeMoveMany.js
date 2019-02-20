@@ -42,7 +42,11 @@ const actions = {
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('resetFields')
-        commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
+        for (const uuid of response.data) {
+          commit('log/newWorkLog',
+            { type: 'EMPLOYEE_MOVE', value: uuid },
+            { root: true })
+        }
         return response.data
       })
       .catch(error => {

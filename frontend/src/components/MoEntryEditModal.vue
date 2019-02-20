@@ -48,6 +48,7 @@ import ButtonSubmit from './ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+
 export default {
   mixins: [ValidateForm, ModalBase],
 
@@ -256,6 +257,16 @@ export default {
         }
       } else {
         this.$refs[this.nameId].hide()
+        this.$emit('submit')
+
+        this.$store.commit('log/newWorkLog',
+          { type: 'FUNCTION_EDIT',
+            value: {
+              contentType: this.contentType,
+              uuid: this.uuid
+            }
+          },
+          { root: true })
       }
     }
   }

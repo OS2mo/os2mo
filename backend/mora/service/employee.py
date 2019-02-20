@@ -367,8 +367,9 @@ def terminate_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
-    :<json boolean terminate_all: *Optional* - perform full termination, i.e.
-        terminate the associated manager functions as well.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
 
     **Example Request**:
 
@@ -384,15 +385,23 @@ def terminate_employee(employee_uuid):
     request = flask.request.get_json()
     date = util.get_valid_to(request)
 
-    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+    validator.is_edit_from_date_before_today(date)
+
+    c = lora.Connector(effective_date=date, virkningtil='infinity')
 
     request_handlers = [
         handlers.get_handler_for_function(obj)(
             {
-                'date': date,
                 'uuid': objid,
-                'original': obj,
-                'request': request
+                'vacate': util.checked_get(request, 'vacate', False),
+                'validity': {
+                    'to': util.to_iso_date(
+                        # we also want to handle _future_ relations
+                        max(date, min(map(util.get_effect_from,
+                                          util.get_states(obj)))),
+                        is_end=True,
+                    ),
+                },
             },
             handlers.RequestType.TERMINATE,
         )

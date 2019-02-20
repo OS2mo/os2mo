@@ -9,7 +9,6 @@
 import freezegun
 
 from mora import exceptions
-from mora import lora
 from mora.service import address
 
 from tests import util

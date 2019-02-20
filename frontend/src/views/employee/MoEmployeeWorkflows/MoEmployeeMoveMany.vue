@@ -5,6 +5,7 @@
         class="col"
         :label="$t('input_fields.move_date')"
         v-model="moveDate"
+        :valid-dates="currentDateValidity"
         required
       />
 
@@ -62,6 +63,7 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoTable from '@/components/MoTable/MoTable'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import { mapFields } from 'vuex-map-fields'
 import { mapGetters } from 'vuex'
 import store from './_store/employeeMoveMany.js'
@@ -69,7 +71,7 @@ import store from './_store/employeeMoveMany.js'
 const STORE_KEY = '$_employeeMoveMany'
 
 export default {
-  mixins: [ValidateForm],
+  mixins: [ValidateForm, CurrentDateValidity],
 
   components: {
     MoInputDate,
