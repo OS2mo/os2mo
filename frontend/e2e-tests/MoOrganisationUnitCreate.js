@@ -15,17 +15,17 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
+const addressVisibility = dialog.find('.form-row .phone select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
 
 const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-const addressTypeSelect = dialog.find('select[data-vv-as="Adressetype"]')
+const addressTypeSelect = dialog.find('.address select[data-vv-as="Adressetype"]')
 const addressTypeOption = addressTypeSelect.find('option')
 
-const addressTlfInput = dialog.find('input[data-vv-as="Tlf"]')
+const addressEmailInput = dialog.find('input[data-vv-as="Email"]')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -56,7 +56,7 @@ test('Workflow: create unit', async t => {
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
 
     .click(unitSelect)
     .click(unitOption.withText('Fagligt center'))
@@ -81,15 +81,15 @@ test('Workflow: create unit', async t => {
     .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
 
     .click(addressVisibility)
-    .click(addressVisibilityOption.nth(2))
+    .click(addressVisibilityOption.nth(1))
 
     .click(dialog.find('.btn-outline-success'))
 
     .click(addressTypeSelect)
     .click(addressTypeOption.nth(2))
 
-    .click(addressTlfInput)
-    .typeText(addressTlfInput, 'magenta@gmail.dk')
+    .click(addressEmailInput)
+    .typeText(addressEmailInput, 'magenta@gmail.dk')
 
     .click(dialog.find('.btn-primary'))
 
