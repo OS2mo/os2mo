@@ -143,6 +143,7 @@ export default {
         { label: 'job_function', data: 'job_function' },
         { label: 'association_type', data: 'association_type' },
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: 'address' }
       ],
       leave: [
