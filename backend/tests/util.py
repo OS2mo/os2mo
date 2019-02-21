@@ -542,7 +542,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
             patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
                 self.lora_port,
             )),
-            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
         ]
 
         # apply patches, then start the server -- so they're active
