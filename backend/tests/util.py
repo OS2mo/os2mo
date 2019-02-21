@@ -259,14 +259,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
 
 @contextlib.contextmanager
 def override_settings(**overrides):
-    orig_settings = {k: getattr(settings, k) for k in overrides}
-    settings.__dict__.update(overrides)
-    yield
-    settings.__dict__.update(orig_settings)
+    stack = contextlib.ExitStack()
+    with stack:
+        for k, v in overrides.items():
+            stack.enter_context(patch('mora.settings.{}'.format(k), v))
+
+        yield
 
 
 def override_lora_url(lora_url='http://mox/'):
-    return override_settings(LORA_URL=lora_url)
+    return patch('mora.settings.LORA_URL', lora_url)
 
 
 @contextlib.contextmanager
@@ -538,16 +540,11 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
-        patches = [
-            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
-                self.lora_port,
-            )),
-        ]
-
         # apply patches, then start the server -- so they're active
         # while it's running
-        for p in patches:
-            p.start()
+        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
+        p.start()
+        self.addCleanup(p.stop)
 
         threading.Thread(
             target=lora_server.serve_forever,
@@ -556,9 +553,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
         # likewise, stop it, and *then* pop the patches
         self.addCleanup(lora_server.shutdown)
-
-        for p in patches:
-            self.addCleanup(p.stop)
 
         super().setUp()
 
