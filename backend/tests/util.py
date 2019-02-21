@@ -543,10 +543,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
                 self.lora_port,
             )),
             patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.validate.SCHEMA', None),
-            patch('mora.importing.processors._fetch.cache', {}),
-            patch('mora.importing.processors._fetch.cache_file',
-                  os.devnull),
         ]
 
         # apply patches, then start the server -- so they're active
