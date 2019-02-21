@@ -26,7 +26,7 @@
 
       <div class="mt-3 form-row">
          <mo-org-unit-address-entry
-          class="mt-3"
+          class="col"
           v-model="phone"
           preselected-type="PhoneUnit"
           validity-hidden
@@ -34,7 +34,7 @@
         />
 
         <mo-facet-picker
-          class="col"
+          class="col phone"
           facet="address_property"
           v-model="phone.visibility"
           preselectedType
@@ -43,7 +43,7 @@
       </div>
 
       <mo-add-many
-        class="mt-3"
+        class="mt-3 address"
         :entry-component="addressEntry"
         :label="$tc('workflows.employee.labels.other_addresses')"
         v-model="addresses"
