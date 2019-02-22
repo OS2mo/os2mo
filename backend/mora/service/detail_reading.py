@@ -507,9 +507,6 @@ def get_detail(type, id, function):
             mapping.ORG_UNIT: (
                 unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
             ),
-            mapping.JOB_FUNCTION: (
-                class_cache, mapping.JOB_FUNCTION_FIELD, None, False,
-            ),
             mapping.ASSOCIATION_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
