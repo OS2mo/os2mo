@@ -115,16 +115,14 @@ export default {
         let vm = this
         this.isLoading = true
 
-        if (!vm.backendValidationError) {
-          this.addresses.push(this.postAddress, this.phone)
-          this.addresses.forEach(a => {
-            if (!a.validity) {
-              a.validity = this.entry.validity
-            }
-            a.org = this.$store.getters['organisation/GET_ORGANISATION']
-          })
-          this.entry.details = this.addresses
-        }
+        let details = [this.postAddress, this.phone, ...this.addresses]
+        details.forEach(a => {
+          if (!a.validity) {
+            a.validity = this.entry.validity
+          }
+          a.org = this.$store.getters['organisation/GET_ORGANISATION']
+        })
+        this.entry.details = details
 
         OrganisationUnit.create(this.entry)
           .then(response => {
