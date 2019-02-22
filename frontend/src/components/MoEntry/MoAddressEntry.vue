@@ -34,6 +34,14 @@
           {{ errors.first(identifier) }}
         </span>
       </div>
+
+        <mo-facet-picker
+          v-if="isPhone"
+          v-show="noPreselectedType"
+          facet="address_property"
+          v-model="entry.visibility"
+          :preselected-user-key="preselectedType"
+        />
     </div>
 
     <mo-input-date-range
@@ -121,6 +129,15 @@ export default {
      */
     isDarAddress () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
+      return false
+    },
+
+    /**
+     * If the address is a PHONE.
+     * @type {Boolean}
+     */
+    isPhone () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
       return false
     },
 

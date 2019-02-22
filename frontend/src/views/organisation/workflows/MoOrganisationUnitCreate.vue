@@ -24,16 +24,26 @@
         required
       />
 
-      <mo-org-unit-address-entry
-        class="mt-3"
-        v-model="phone"
-        preselected-type="PhoneUnit"
-        validity-hidden
-        required
-      />
+      <div class="mt-3 form-row">
+         <mo-org-unit-address-entry
+          class="col"
+          v-model="phone"
+          preselected-type="PhoneUnit"
+          validity-hidden
+          required
+        />
+
+        <mo-facet-picker
+          class="col phone"
+          facet="address_property"
+          v-model="phone.visibility"
+          preselectedType
+          required
+        />
+      </div>
 
       <mo-add-many
-        class="mt-3"
+        class="mt-3 address"
         :entry-component="addressEntry"
         :label="$tc('workflows.employee.labels.other_addresses')"
         v-model="addresses"
@@ -59,6 +69,7 @@
 import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry } from '@/components/MoEntry'
+import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
@@ -71,6 +82,7 @@ export default {
     ButtonSubmit,
     MoOrganisationUnitEntry,
     MoOrgUnitAddressEntry,
+    MoFacetPicker,
     MoAddMany
   },
 
@@ -85,7 +97,9 @@ export default {
       },
       addresses: [],
       postAddress: {},
-      phone: {},
+      phone: {
+        visibility: {}
+      },
       isLoading: false,
       backendValidationError: null,
 

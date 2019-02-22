@@ -102,6 +102,18 @@ export default {
         }
       }
 
+      if (this.column === 'visibility' && this.value) {
+        let address = this.value['address']
+
+        if (address instanceof Array) {
+          contents = address.map(a => a['visibility'])
+        } else if (address && address[this.column]) {
+          contents = address[this.column]
+        } else {
+          contents = this.value['visibility']
+        }
+      }
+
       if (!contents) {
         contents = []
       } else if (!(contents instanceof Array)) {
