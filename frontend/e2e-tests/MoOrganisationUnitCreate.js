@@ -86,7 +86,7 @@ test('Workflow: create unit', async t => {
     .click(dialog.find('.btn-outline-success'))
 
     .click(addressTypeSelect)
-    .click(addressTypeOption.nth(2))
+    .click(addressTypeOption.withText('Email'))
 
     .click(addressEmailInput)
     .typeText(addressEmailInput, 'magenta@gmail.dk')

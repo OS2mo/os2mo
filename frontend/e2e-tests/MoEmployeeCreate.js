@@ -124,7 +124,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-address .btn-outline-success'))
 
     .click(addressTypeSelect)
-    .click(addressTypeOption.nth(6))
+    .click(addressTypeOption.withText('Tlf'))
 
     .click(addressInput)
     .typeText(addressInput, '35502010')
