@@ -24,8 +24,10 @@ New features
 Bug fixes
 ---------
 
-* #25671: Organisation is now properly set when creating new employee
+* #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
+* #26886: Fixed duplicate for addresses in create organisation unit and 
+employee move many workflow now works again.
 
 
 Version 0.14.0, 2019-01-30
