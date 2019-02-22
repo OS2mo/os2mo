@@ -116,7 +116,7 @@ export default {
         this.isLoading = true
 
         let details = [this.postAddress, this.phone, ...this.addresses]
-        details.foreach(a => {
+        details.forEach(a => {
           if (!a.validity) {
             a.validity = this.entry.validity
           }
