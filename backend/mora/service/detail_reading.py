@@ -214,13 +214,6 @@ def get_detail(type, id, function):
             "user_key": "medl",
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
-          "job_function": {
-            "example": null,
-            "name": "Hund",
-            "scope": null,
-            "user_key": "hund",
-            "uuid": "c2b23c43-87c6-48bb-a99c-53396bfa99fb"
-          },
           "org_unit": {
             "name": "Humanistisk fakultet",
             "user_key": "hum",

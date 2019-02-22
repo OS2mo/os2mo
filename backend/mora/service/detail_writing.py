@@ -170,7 +170,6 @@ def create():
     :<jsonarr string type: **"association"**
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
-    :<jsonarr object job_function: The job function of the association
     :<jsonarr object association_type: The association type
     :<jsonarr object address: The associated address.
     :<jsonarr object validity: The validities of the created object.
@@ -190,9 +189,6 @@ def create():
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
-          },
-          "job_function": {
-            "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
           "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
