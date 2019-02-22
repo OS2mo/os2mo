@@ -140,7 +140,6 @@ export default {
       ],
       association: [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'job_function', data: 'job_function' },
         { label: 'association_type', data: 'association_type' },
         { label: 'address_type', data: 'address_type' },
         { label: 'address', data: 'address' }

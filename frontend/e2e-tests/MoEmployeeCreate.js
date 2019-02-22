@@ -34,10 +34,7 @@ const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="
 
 const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
 
-const jobFunctionAssociationSelect = dialog.find('.select-association select[data-vv-as="Stillingsbetegnelse"]')
-const jobFunctionAssociationOption = jobFunctionAssociationSelect.find('option')
-
-const associationTypeSelect = dialog.find('.select-association select[data-vv-as="Tilknytningstype"]')
+const associationTypeSelect = dialog.find('.select-association select[data-vv-as="Tilknytningsrolle"]')
 const associationTypeOption = associationTypeSelect.find('option')
 
 // Role
@@ -135,9 +132,6 @@ test('Workflow: create employee', async t => {
 
     .click(addressAssociationSelect)
     .pressKey('down enter')
-
-    .click(jobFunctionAssociationSelect)
-    .click(jobFunctionAssociationOption.withText('Konsulent'))
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))
@@ -313,9 +307,6 @@ test('Workflow: create employee with association to unit lacking address', async
 
     .expect(dialog.find('p.no-address').exists)
     .ok()
-
-    .click(jobFunctionAssociationSelect)
-    .click(jobFunctionAssociationOption.withText('Konsulent'))
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))

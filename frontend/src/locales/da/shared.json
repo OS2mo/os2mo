@@ -3,7 +3,7 @@
   "welcome_tagline": "Medarbejder | Organisation",
   "address": "Adresse | Adresser",
   "association": "Tilknytning | Tilknytninger",
-  "association_type": "Tilknytningstype",
+  "association_type": "Tilknytningsrolle",
   "address_type": "Adressetype",
   "date": {
     "date": "Dato",
