@@ -19,6 +19,7 @@ New features
   addresses, etc., using a separate dialog.
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -
   address, association and manager for employee and organisation.
+* #25407: Added checkbox message alert validation for workflow employee terminate.
 
 
 Bug fixes
