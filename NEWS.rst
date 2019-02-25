@@ -29,6 +29,13 @@ Bug fixes
 * #26886: Fixed duplicate for addresses in create organisation unit and 
 employee move many workflow now works again.
 
+Version 0.14.1, 2019-02-22
+==========================
+
+New features
+------------
+
+* #27244: Associations no longer have job functions. 'Tilknytningstype' renamed to 'Tilknytningsrolle'.
 
 Version 0.14.0, 2019-01-30
 ==========================

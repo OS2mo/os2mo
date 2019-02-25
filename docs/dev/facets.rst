@@ -36,8 +36,6 @@ The system currently works with the following facets:
 +------------------------------+-----------------------------------------------------------+
 | ``engagement_job_function``  | Job functions applicable to engagements                   |
 +------------------------------+-----------------------------------------------------------+
-| ``association_job_function`` | Job functions applicable to associations                  |
-+------------------------------+-----------------------------------------------------------+
 | ``org_unit_type``            | Types of organisational units                             |
 +------------------------------+-----------------------------------------------------------+
 | ``engagement_type``          | Types of engagements                                      |

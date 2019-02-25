@@ -35,8 +35,6 @@ class Tests(util.LoRATestCase):
                 "uuid": association_uuid,
                 "org_unit": {'uuid': unitid},
                 'person': {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -90,17 +88,6 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": userid
-                    }
-                ],
-                "opgaver": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -187,7 +174,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'medl',
                 'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
             },
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -236,8 +222,6 @@ class Tests(util.LoRATestCase):
                 "uuid": association_uuid,
                 "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -294,17 +278,6 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": userid
-                    }
-                ],
-                "opgaver": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -388,7 +361,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'medl',
                 'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
             },
-            'job_function': None,
             'org_unit': {
                 'name': 'Samfundsvidenskabelige fakultet',
                 'user_key': 'samf',
@@ -429,8 +401,6 @@ class Tests(util.LoRATestCase):
                 "type": "association",
                 "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -479,8 +449,6 @@ class Tests(util.LoRATestCase):
                 "type": "association",
                 "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -542,8 +510,6 @@ class Tests(util.LoRATestCase):
                     "type": "association",
                     "org_unit": {'uuid': unitid},
                     "person": {'uuid': userid},
-                    "job_function": {
-                        'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                     "association_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                     },
@@ -718,7 +684,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'medl',
                 'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
             },
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -857,8 +822,6 @@ class Tests(util.LoRATestCase):
                 "type": "association",
                 "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -910,17 +873,6 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
-                    }
-                ],
-                "opgaver": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -1007,7 +959,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'medl',
                 'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
             },
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -1054,8 +1005,6 @@ class Tests(util.LoRATestCase):
                 "type": "association",
                 "org_unit": {'uuid': unitid},
                 "person": {'uuid': userid},
-                "job_function": {
-                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -1104,17 +1053,6 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
-                    }
-                ],
-                "opgaver": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                     }
                 ],
                 "organisatoriskfunktionstype": [
@@ -1177,7 +1115,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'medl',
                 'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
             },
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -1245,8 +1182,6 @@ class Tests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "job_function": {
-                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -1265,27 +1200,6 @@ class Tests(util.LoRATestCase):
         expected_association = {
             "note": "Rediger tilknytning",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
@@ -1414,13 +1328,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'afd',
                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
             },
-            'job_function': {
-                'example': None,
-                'name': 'Fakultet',
-                'scope': None,
-                'user_key': 'fak',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-            },
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -1468,7 +1375,6 @@ class Tests(util.LoRATestCase):
         expected = [{
             'address': None,
             'association_type': None,
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -1522,13 +1428,6 @@ class Tests(util.LoRATestCase):
                         'user_key': 'afd',
                         'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     },
-                    'job_function': {
-                        'example': None,
-                        'name': 'Fakultet',
-                        'scope': None,
-                        'user_key': 'fak',
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                    },
                     'org_unit': {
                         'name': 'Humanistisk fakultet',
                         'user_key': 'hum',
@@ -1548,8 +1447,6 @@ class Tests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "job_function": {
-                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -1575,13 +1472,6 @@ class Tests(util.LoRATestCase):
                     'scope': None,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                },
-                'job_function': {
-                    'example': None,
-                    'name': 'Fakultet',
-                    'scope': None,
-                    'user_key': 'fak',
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
                 'org_unit': {
                     'name': 'Humanistisk fakultet',
@@ -1618,8 +1508,6 @@ class Tests(util.LoRATestCase):
             "type": "association",
             "org_unit": {'uuid': unitid},
             "person": {'uuid': userid},
-            "job_function": {
-                'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
             "association_type": {
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
             },
@@ -1713,16 +1601,12 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "org_unit": {'uuid': unitid},
-                "job_function": {
-                    'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                 "association_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
                 "location": {'uuid': "0a3f50a0-23c9-32b8-e044-0003ba298018"}
             },
             "data": {
-                "job_function": {
-                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                 "validity": {
@@ -1738,26 +1622,6 @@ class Tests(util.LoRATestCase):
         expected_association = {
             "note": "Rediger tilknytning",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "uuid": "cac9c6a8-b432-4e50-b33e-e96f742d4d56",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
@@ -1880,7 +1744,6 @@ class Tests(util.LoRATestCase):
         expected = [{
             'address': None,
             'association_type': None,
-            'job_function': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -1940,17 +1803,6 @@ class Tests(util.LoRATestCase):
         expected_association = {
             "note": "Rediger tilknytning",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
@@ -2086,13 +1938,6 @@ class Tests(util.LoRATestCase):
                 'scope': None,
                 'user_key': 'afd',
                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-            },
-            'job_function': {
-                'example': None,
-                'name': 'Fakultet',
-                'scope': None,
-                'user_key': 'fak',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             },
             'org_unit': {
                 'name': 'Humanistisk fakultet',
@@ -2196,17 +2041,6 @@ class Tests(util.LoRATestCase):
         expected_association = {
             "note": "Rediger tilknytning",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
@@ -2325,13 +2159,6 @@ class Tests(util.LoRATestCase):
                 'user_key': 'afd',
                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
             },
-            'job_function': {
-                'example': None,
-                'name': 'Fakultet',
-                'scope': None,
-                'user_key': 'fak',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-            },
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -2389,8 +2216,6 @@ class Tests(util.LoRATestCase):
             "type": "association",
             "uuid": association_uuid,
             "data": {
-                "job_function": {
-                    'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -2432,17 +2257,6 @@ class Tests(util.LoRATestCase):
         expected = {
             "note": "Afsluttet",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
@@ -2609,13 +2423,6 @@ class AddressTests(util.LoRATestCase):
                 'user_key': 'afd',
                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
             },
-            'job_function': {
-                'example': None,
-                'name': 'Fakultet',
-                'scope': None,
-                'user_key': 'fak',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-            },
             'org_unit': {
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
@@ -2644,17 +2451,6 @@ class AddressTests(util.LoRATestCase):
         expected_association = {
             "note": "Rediger tilknytning",
             "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
                 "organisatoriskfunktionstype": [
                     {
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",

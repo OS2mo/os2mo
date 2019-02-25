@@ -8,7 +8,6 @@
   "end_date": "@:shared.date.end_date",
   "engagement_type": "@:shared.engagement_type",
   "engagement_job_function": "@:shared.job_function",
-  "association_job_function": "@:shared.job_function",
   "leave_type": "@:shared.leave_type",
   "manager_level": "@:shared.manager_level",
   "manager_type": "@:shared.manager_type",
