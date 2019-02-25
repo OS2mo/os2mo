@@ -87,6 +87,7 @@ export default {
   },
   data () {
     return {
+      isLoading: false,
       orgUnitSource: undefined
     }
   },
@@ -100,8 +101,7 @@ export default {
       'moveDate',
       'orgUnitDestination',
       'columns',
-      'backendValidationError',
-      'isLoading'
+      'backendValidationError'
     ]),
 
     ...mapGetters(STORE_KEY, [
@@ -137,12 +137,6 @@ export default {
       deep: true
     },
 
-    selected (val) {
-      if (this.fields['selected-employees-count']) {
-        this.$validator.validate('selected-employees-count', val.length)
-      }
-    },
-
     show (val) {
       if (!val) {
         this.onHidden()
@@ -155,13 +149,21 @@ export default {
      * Check if fields are valid, and move employees if they are.
      * Otherwise validate the fields.
      */
-    moveMany () {
-      let vm = this
+    moveMany (evt) {
+      evt.preventDefault()
       if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+
         this.$store.dispatch(`${STORE_KEY}/moveManyEmployees`)
-          .then(() => {
-            vm.orgUnitSource = undefined
-            vm.$emit('submitted')
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.orgUnitSource = undefined
+              vm.$emit('submitted')
+            }
           })
       } else {
         this.$validator.validateAll()

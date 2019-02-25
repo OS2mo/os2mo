@@ -26,8 +26,10 @@ const fromInput = dialog.find('.from-date input.form-control')
 const addressTypeSelect = dialog.find('select[data-vv-as="Adressetype"]')
 const addressTypeOption = addressTypeSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
-const addressItem = addressInput.find('.v-autocomplete-list-item label')
+const addressInput = dialog.find('input[data-vv-as="Tlf"]')
+
+const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
+const addressVisibilityOption = addressVisibility.find('option')
 
 // Association
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
@@ -72,6 +74,10 @@ const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
 const treeNodes = Selector('.tree-node .tree-content')
 
+// Search field
+const searchField = Selector('.search-bar')
+const searchFieldItem = searchField.find('.v-autocomplete-list-item')
+
 fixture('MoEmployeeCreate')
   .page(`${baseURL}/medarbejder/liste`)
 
@@ -115,14 +121,13 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-address .btn-outline-success'))
 
     .click(addressTypeSelect)
-    .click(addressTypeOption.nth(1))
+    .click(addressTypeOption.withText('Tlf'))
 
     .click(addressInput)
-    .typeText(addressInput.find('input'), 'baa')
-    .expect(addressItem.withText('Bål').visible).ok()
-    .click(addressItem.withText('Bålvej'))
-    .expect(addressInput.find('input').value)
-    .eql('Bålvej 1, 9800 Hjørring')
+    .typeText(addressInput, '35502010')
+
+    .click(addressVisibility)
+    .click(addressVisibilityOption.nth(1))
 
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
@@ -195,6 +200,10 @@ test('Workflow: create employee', async t => {
     .match(
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
+    // Verify that we can search for the newly created employee
+    .click(searchField)
+    .typeText(searchField.find('input'), 'sig')
+    .expect(searchFieldItem.withText('Signe Kristensen').visible).ok()
 })
 
 test('Workflow: create employee with role only', async t => {

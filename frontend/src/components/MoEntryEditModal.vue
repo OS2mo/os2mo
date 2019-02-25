@@ -257,6 +257,16 @@ export default {
         }
       } else {
         this.$refs[this.nameId].hide()
+        this.$emit('submit')
+
+        this.$store.commit('log/newWorkLog',
+          { type: 'FUNCTION_EDIT',
+            value: {
+              contentType: this.contentType,
+              uuid: this.uuid
+            }
+          },
+          { root: true })
       }
     }
   }

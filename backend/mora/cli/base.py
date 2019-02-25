@@ -31,7 +31,6 @@ import doctest
 import json
 import os
 import random
-import socket
 import subprocess
 import sys
 import threading
