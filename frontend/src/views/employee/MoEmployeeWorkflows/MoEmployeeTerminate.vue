@@ -26,6 +26,13 @@
       />
     </div>
 
+    <mo-confirm-checkbox
+      :entry-date="endDate"
+      :employee-name="employee.name"
+      v-if="employee && endDate"
+      required
+    />
+
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}
     </div>
@@ -47,6 +54,7 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import EmployeeDetailTabs from '../EmployeeDetailTabs'
 import store from './_store/employeeTerminate.js'
@@ -60,7 +68,8 @@ export default {
     MoEmployeePicker,
     MoInputDate,
     ButtonSubmit,
-    EmployeeDetailTabs
+    EmployeeDetailTabs,
+    MoConfirmCheckbox
   },
   props: {
     show: {

@@ -36,7 +36,7 @@
 
     <mo-confirm-checkbox
       :entry-date="from"
-      :entry-name="original.engagement_type.name"
+      :engagement-name="original.engagement_type.name"
       :entry-org-name="original.org_unit.name"
       v-if="dateConflict"
       required

@@ -16,6 +16,7 @@
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
     "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
+    "CONFIRM_EMPLOYEE_TERMINATE": "Jeg bekræfter at medarbejderen {employeeName}, opsiges pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
     "E_FORBIDDEN": "Du har ikke rettigheder til at foretage denne operation",
     "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
