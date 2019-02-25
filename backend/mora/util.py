@@ -286,16 +286,18 @@ def update_config(mapping, config_path, allow_environment=True):
         print('Unable to read config {}'.format(config_path))
 
     if allow_environment:
+        prefix = 'OS2MO_'
+
         overrides = {
-            k[5:]: v
+            k[len(prefix):]: v
             for k, v in os.environ.items()
-            if k.startswith('OS2MO_')
+            if k.startswith(prefix)
         }
 
         for key in overrides.keys():
-            print(
-                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
-                file=sys.stderr)
+            print(' * Using override {}{}={!r}'.format(prefix, key,
+                                                       overrides[key]),
+                  file=sys.stderr)
             mapping[key] = overrides[key]
 
 
