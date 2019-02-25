@@ -1,3 +1,11 @@
+Version 0.14.1, 2019-02-22
+==========================
+
+New features
+------------
+
+* #27244: Associations no longer have job functions. 'Tilknytningstype' renamed to 'Tilknytningsrolle'.
+
 Version 0.14.0, 2019-01-30
 ==========================
 
