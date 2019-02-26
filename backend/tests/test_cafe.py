@@ -40,17 +40,16 @@ TEST_FILES = sorted(
 )
 
 
+@unittest.skipUnless(
+    util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
+    'frontend sources & TestCafé command required!',
+)
+@unittest.skipIf(
+    'SKIP_TESTCAFE' in os.environ,
+    'TestCafé disabled by $SKIP_TESTCAFE!',
+)
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
-
-    @unittest.skipUnless(
-        util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
-        'frontend sources & TestCafé command required!',
-    )
-    @unittest.skipIf(
-        'SKIP_TESTCAFE' in os.environ,
-        'TestCafé disabled by $SKIP_TESTCAFE!',
-    )
     def _test_with_testcafe(self, test_file, test_name):
         self.load_sql_fixture()
 
