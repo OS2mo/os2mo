@@ -78,8 +78,9 @@
               @submit="$emit('update')"
             />
           </td>
-          <td v-if="isDeletable">
+          <td>
             <mo-entry-terminate-modal
+              v-if="isDeletable && editComponent"
               class="terminate-entry"
               :type="contentType"
               :content="c"
@@ -189,11 +190,9 @@ export default {
 
     isDeletable () {
       switch (this.contentType) {
-        case 'org_unit':
-        case 'employee':
-        case 'related':
-        case 'engagement':
-          return false
+        case 'org_unit': return false
+        case 'employee': return false
+        case 'related': return false
         default:
           return true
       }
