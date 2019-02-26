@@ -27,7 +27,9 @@ Bug fixes
 * #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
 * #26886: Fixed duplicate for addresses in create organisation unit and 
-employee move many workflow now works again.
+  employee move many workflow now works again.
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+  employeeMoveMany.
 
 Version 0.14.1, 2019-02-22
 ==========================
