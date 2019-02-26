@@ -248,6 +248,44 @@ class Writing(util.LoRATestCase):
                 json=req,
             )
 
+    def test_create_dar_address_fails_correctly(self, mock):
+        """Ensure that we fail when creating a DAR address when lookup fails"""
+        self.load_sample_structures()
+
+        expected_msg = {
+            'description': 'DAR Address lookup failed',
+            'error': True,
+            'error_key': 'E_INVALID_INPUT',
+            'e': 'No mock address: GET https://dawa.aws.dk/adresser?'
+                 'id=4dbf94f1-350f-4f52-bf0f-050b6b1072c0'
+                 '&noformat=1&struktur=mini',
+            'status': 400
+        }
+
+        msg = self.assertRequest(
+            '/service/details/create',
+            status_code=400,
+            json=[
+                {
+                    "type": "address",
+                    'address_type': {
+                        # Unknown DAR UUID
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                    },
+                    'value': '4dbf94f1-350f-4f52-bf0f-050b6b1072c0',
+                    "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+                    "validity": {
+                        "from": "2017-01-02",
+                    },
+                    "org": {
+                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                }
+            ]
+        )
+
+        self.assertEqual(expected_msg, msg)
+
     def test_edit_errors(self, mock):
         self.load_sample_structures()
 
@@ -1401,23 +1439,24 @@ class Reading(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/address'.format(unitid),
             [{
-                'address_type': address_class,
-                'name': 'Ukendt',
-                'value': addrid,
-                'error': 'no such address {!r}'.format(addrid),
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
                 'href': None,
+                'name': 'Ukendt',
                 'org_unit': {
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'validity': {
-                        'from': '2016-01-01', 'to': None,
-                    },
+                    'validity': {'from': '2016-01-01', 'to': None}
                 },
-                'uuid': functionid,
-                'validity': {
-                    'from': '2016-01-01', 'to': '2019-12-31',
-                },
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
             }],
         )
 
@@ -1462,25 +1501,24 @@ class Reading(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/address'.format(unitid),
                 [{
-                    'error': '500 Server Error: None for url: '
-                    'https://dawa.aws.dk/adresser'
-                    '?id={}&noformat=1&struktur=mini'.format(addrid),
+                    'address_type': {
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                    },
                     'href': None,
                     'name': 'Ukendt',
-                    'value': addrid,
-                    'address_type': address_class,
                     'org_unit': {
                         'name': 'Overordnet Enhed',
                         'user_key': 'root',
                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'validity': {
-                            'from': '2016-01-01', 'to': None,
-                        },
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
-                    'uuid': functionid,
-                    'validity': {
-                        'from': '2016-01-01', 'to': '2019-12-31',
-                    },
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                    'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
                 }],
             )
 

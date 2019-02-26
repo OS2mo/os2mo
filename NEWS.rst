@@ -30,6 +30,7 @@ Bug fixes
   employee move many workflow now works again.
 * #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
   employeeMoveMany.
+* #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 
 Version 0.14.1, 2019-02-22
 ==========================
