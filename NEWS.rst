@@ -26,8 +26,9 @@ Bug fixes
 
 * #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
-* #26886: Fixed duplicate for addresses in create organisation unit and 
+* #26886: Fixed duplicate for addresses in create organisation unit and
 employee move many workflow now works again.
+* #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 
 Version 0.14.1, 2019-02-22
 ==========================
