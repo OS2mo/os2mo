@@ -249,8 +249,6 @@ class TestAddressLookup(util.TestCase):
     def test_many_addresses(self, m):
         addresses = {
             '00000000-0000-0000-0000-000000000000': {
-                'error': "no such address "
-                         "'00000000-0000-0000-0000-000000000000'",
                 'href': None,
                 'name': 'Ukendt',
                 'value': '00000000-0000-0000-0000-000000000000',

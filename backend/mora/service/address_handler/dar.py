@@ -8,8 +8,10 @@
 import flask
 import requests
 
-from . import base
 from ... import mapping
+from ... import util
+from ... import exceptions
+from . import base
 
 session = requests.Session()
 session.headers = {
@@ -23,9 +25,7 @@ class DARAddressHandler(base.AddressHandler):
     scope = 'DAR'
     prefix = 'urn:dar:'
 
-    def __init__(self, value):
-        super().__init__(value)
-
+    def _fetch_and_initialize(self, value):
         try:
             self.address_object = self._fetch_from_dar(value)
             self._name = ''.join(
@@ -36,23 +36,52 @@ class DARAddressHandler(base.AddressHandler):
                 if 'x' in self.address_object and 'y' in self.address_object
                 else None
             )
-        except Exception as exc:
-            self._name = NOT_FOUND
-            self._href = None
-
-            self.error = {
-                mapping.NAME: self._name,
-                mapping.HREF: self._href,
-                mapping.VALUE: value,
-                mapping.ERROR: str(exc),
-            }
-
-            flask.current_app.logger.warn(
+        except Exception as e:
+            flask.current_app.logger.warning(
                 'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
                     flask.request.url,
                     value,
                 ),
             )
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                "DAR Address lookup failed",
+                e=str(e),
+            )
+
+    @classmethod
+    def from_effect(cls, effect):
+        """
+        Initialize handler from LoRa object
+
+        If the saved address fails lookup in DAR for whatever reason, handle
+        gracefully and return _some_ kind of result
+        """
+        # Cut off the prefix
+        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
+        value = urn[len(cls.prefix):]
+        handler = cls(value)
+
+        try:
+            handler._fetch_and_initialize(value)
+        except exceptions.HTTPException:
+            handler.address_object = {}
+            handler._name = NOT_FOUND
+            handler._href = None
+
+        return handler
+
+    @classmethod
+    def from_request(cls, request):
+        """
+        Initialize handler from MO object
+
+        If lookup in DAR fails, this will raise an exception as we do not want
+        to save a partial object to LoRa
+        """
+        value = util.checked_get(request, mapping.VALUE, "", required=True)
+        handler = cls(value)
+        handler._fetch_and_initialize(value)
+        return handler
 
     @property
     def name(self):
@@ -61,12 +90,6 @@ class DARAddressHandler(base.AddressHandler):
     @property
     def href(self):
         return self._href
-
-    def get_mo_address_and_properties(self):
-        if hasattr(self, 'error'):
-            return self.error
-        else:
-            return super().get_mo_address_and_properties()
 
     @staticmethod
     def _fetch_from_dar(addrid):
