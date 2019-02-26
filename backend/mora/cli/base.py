@@ -302,8 +302,6 @@ def full_run(simple):
 
     from unittest import mock
 
-    import psycopg2
-
     from oio_rest import app as lora_app
     from oio_rest.utils import test_support
     from oio_rest import db
@@ -325,8 +323,8 @@ def full_run(simple):
                     ),
                     port,
                 )
-            except OSError as exc:
-                last_exc = exc
+            except OSError as _exc:
+                exc = _exc
 
         if last_exc is not None:
             raise last_exc
