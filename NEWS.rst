@@ -32,6 +32,7 @@ Bug fixes
 * #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
   employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
+* #27155: Ensure that we show all unit roots when reloading a unit page.
 
 Version 0.14.1, 2019-02-22
 ==========================
