@@ -369,7 +369,7 @@ def full_run(simple):
         print(' * LoRA running at {}'.format(settings.LORA_URL))
 
         if simple:
-            test_util.load_sample_structures()
+            test_util.load_sample_structures(extra=True)
         else:
             with db.get_connection() as conn, \
                     conn.cursor() as curs, \

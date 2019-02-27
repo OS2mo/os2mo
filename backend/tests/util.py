@@ -109,7 +109,7 @@ def import_fixture(fixture_name):
 
 
 def load_sample_structures(*, verbose=False, minimal=False, check=False,
-                           delete=False):
+                           delete=False, extra=False):
     '''Inject our test data into LoRA.
 
     '''
@@ -204,6 +204,12 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
             'adresse_hum': 'e1a9cede-8c9b-4367-b628-113834361871',
             'tlf_hum': '55848eca-4e9e-4f30-954b-78d55eec0473',
             'ean_hum': 'a0fe7d43-1e0d-4232-a220-87098024b34d',
+        })
+
+    if extra:
+        users.update({
+            'andersine': '7f64384b-c006-477e-ad7c-f9b7b867a0c8',
+            'fætterguf': '4f9a3e96-f0dd-4679-ad08-555193b28764',
         })
 
     for facetkey, facetid in facets.items():
