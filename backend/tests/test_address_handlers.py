@@ -8,6 +8,7 @@
 
 from unittest.mock import patch
 
+from mora import exceptions
 from . import util
 
 from mora.service.address_handler import (dar, ean, email, phone, pnumber,
@@ -57,7 +58,10 @@ class DarAddressHandlerTests(util.TestCase):
     def test_get_mo_address(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
-        address_handler = self.handler(value)
+        request = {
+            'value': value
+        }
+        address_handler = self.handler.from_request(request)
 
         expected = {
             'href': 'https://www.openstreetmap.org/?mlon=12.57924839'
@@ -100,6 +104,44 @@ class DarAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_failed_lookup_from_request(self, mock):
+        """Ensure that failed request lookups are handled appropriately"""
+        # Arrange
+        # Nonexisting DAR UUID should fail
+        value = '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+
+        # Act & Assert
+        with self.assertRaisesRegex(exceptions.HTTPException, "DAR Address"):
+            request = {
+                'value': value
+            }
+            self.handler.from_request(request)
+
+    def test_failed_lookup_from_effect(self, mock):
+        """Ensure that failed effect lookups are handled appropriately"""
+        # Arrange
+        # Nonexisting DAR UUID should fail
+        value = '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+
+        expected = {
+            'href': None,
+            'name': 'Ukendt',
+            'value': '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+        }
+
+        # Act
+        effect = {
+            'relationer': {
+                'adresser': [{
+                    'urn': 'urn:dar:{}'.format(value)
+                }]
+            }
+        }
+        address_handler = self.handler.from_effect(effect)
+
+        self.assertEqual(expected,
+                         address_handler.get_mo_address_and_properties())
 
 
 class EANAddressHandlerTests(util.TestCase):

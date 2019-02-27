@@ -10,7 +10,6 @@ const state = {
   association_type: undefined,
   engagement_type: undefined,
   engagement_job_function: undefined,
-  association_job_function: undefined,
   leave_type: undefined,
   manager_level: undefined,
   manager_type: undefined,

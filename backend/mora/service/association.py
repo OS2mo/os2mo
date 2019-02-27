@@ -47,10 +47,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
-        job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
-        association_type_uuid = util.get_mapping_uuid(req,
-                                                      mapping.ASSOCIATION_TYPE,
-                                                      required=True)
+        association_type_uuid = util.get_mapping_uuid(
+            req,
+            mapping.ASSOCIATION_TYPE,
+            required=True)
 
         addr_func_id = util.get_mapping_uuid(req, mapping.ADDRESS)
 
@@ -77,8 +77,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=association_type_uuid,
-            opgaver=[
-                {'uuid': job_function_uuid}] if job_function_uuid else None,
             tilknyttedefunktioner=[addr_func_id] if addr_func_id else None,
         )
 
@@ -118,12 +116,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ORG_FUNK_GYLDIGHED_FIELD,
             {'gyldighed': "Aktiv"}
         ))
-
-        if mapping.JOB_FUNCTION in data:
-            update_fields.append((
-                mapping.JOB_FUNCTION_FIELD,
-                {'uuid': data.get(mapping.JOB_FUNCTION).get('uuid')}
-            ))
 
         if mapping.ASSOCIATION_TYPE in data:
             update_fields.append((
