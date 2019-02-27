@@ -23,6 +23,8 @@ const toField = presentDetails.find('td.column-to')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
+const checkbox = Selector('input[data-vv-as="checkbox"]')
+
 test('Workflow: terminate employee by search', async t => {
   let today = moment()
 
@@ -49,6 +51,9 @@ test('Workflow: terminate employee by search', async t => {
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
 
     .click(dialog.find('.btn-primary'))
 
@@ -97,6 +102,9 @@ test('Workflow: terminate employee from page', async t => {
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
 
     .click(dialog.find('.btn-primary'))
 
