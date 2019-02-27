@@ -27,6 +27,7 @@
     </div>
 
     <mo-confirm-checkbox
+      v-model="confirmCheckbox"
       :entry-date="endDate"
       :employee-name="employee.name"
       v-if="employee && endDate"
@@ -38,7 +39,7 @@
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
     </div>
   </form>
 </template>
@@ -78,6 +79,12 @@ export default {
     }
   },
 
+  data () {
+    return {
+      confirmCheckbox: true
+    }
+  },
+
   computed: {
     /**
      * Get mapFields from vuex store.
@@ -94,7 +101,14 @@ export default {
      */
     ...mapGetters({
       details: `${STORE_KEY}/getDetails`
-    })
+    }),
+
+    isDisabled () {
+      if (this.formValid && this.confirmCheckbox) {
+        return false
+      }
+      return true
+    }
   },
 
   beforeCreate () {

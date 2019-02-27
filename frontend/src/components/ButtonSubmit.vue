@@ -4,6 +4,7 @@
       type="submit"
       class="btn btn-primary"
       v-if="!isLoading"
+      :disabled="disabled"
     >
       <icon name="check"/>
     </button>
@@ -27,7 +28,9 @@ export default {
     /**
      * This boolean property defines the loading.
      */
-    isLoading: Boolean
+    isLoading: Boolean,
+
+    disabled: Boolean
   }
 }
 </script>
