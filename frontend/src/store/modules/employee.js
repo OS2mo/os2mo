@@ -6,6 +6,7 @@ const defaultState = () => {
   return {
     cpr_no: undefined,
     name: undefined,
+    nickname: undefined,
     user_key: undefined,
     uuid: undefined,
     org: undefined,
@@ -48,6 +49,7 @@ const mutations = {
   [_employee.mutations.SET_EMPLOYEE] (state, payload) {
     state.cpr_no = payload.cpr_no
     state.name = payload.name
+    state.nickname = payload.nickname
     state.user_key = payload.user_key
     state.uuid = payload.uuid
     state.org = payload.org

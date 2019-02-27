@@ -9,6 +9,10 @@
       </h4>
 
       <div class="row">
+        <div class="col" v-if="employee.nickname">
+          {{$t('common.nickname')}}:
+          <span class="employee-nickname">{{employee.nickname}}</span>
+        </div>
         <div class="col"></div>
 
         <div class="mr-3">
