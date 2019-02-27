@@ -43,7 +43,7 @@
             </span>
           </th>
           <th class="table-actions" v-if="editComponent"></th>
-          <th class="table-actions" v-if="isDeletable"></th>
+          <th class="table-actions" v-if="isDeletable && editComponent"></th>
         </tr>
       </thead>
 
@@ -78,9 +78,8 @@
               @submit="$emit('update')"
             />
           </td>
-          <td>
+          <td v-if="isDeletable && editComponent">
             <mo-entry-terminate-modal
-              v-if="isDeletable && editComponent"
               class="terminate-entry"
               :type="contentType"
               :content="c"
