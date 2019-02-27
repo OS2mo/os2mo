@@ -439,6 +439,7 @@ def create_bruger_payload(
     tilhoerer: str,
     cpr: str,
     integration_data: dict = {},
+    kaldenavn: str = None,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -473,6 +474,13 @@ def create_bruger_payload(
         user['relationer']['tilknyttedepersoner'] = [
             {
                 'urn': 'urn:dk:cpr:person:{}'.format(cpr),
+            },
+        ]
+
+    if kaldenavn:
+        user['attributter']['brugerudvidelser'] = [
+            {
+                'kaldenavn': kaldenavn,
             },
         ]
 

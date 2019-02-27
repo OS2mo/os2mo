@@ -43,6 +43,7 @@ VISIBILITY = 'visibility'
 
 # Employee
 CPR_NO = 'cpr_no'
+NICKNAME = 'nickname'
 
 
 # Engagement
@@ -289,6 +290,11 @@ EMPLOYEE_PERSON_FIELD = FieldTuple(
 
 EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'brugeregenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+EMPLOYEE_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'brugerudvidelser'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 

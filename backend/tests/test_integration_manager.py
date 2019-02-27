@@ -270,6 +270,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Fedtmule',
+                    'nickname': None,
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [{
@@ -399,6 +400,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'responsibility': [{
@@ -513,6 +515,7 @@ class Tests(util.LoRATestCase):
             far_future = future.copy()
             far_future['person'] = {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             }
             far_future['validity'] = {
@@ -701,6 +704,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Fedtmule',
+                    'nickname': None,
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [{
@@ -840,6 +844,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Fedtmule',
+                    'nickname': None,
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [],
@@ -1100,6 +1105,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Fedtmule',
+                    'nickname': None,
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [
@@ -1376,6 +1382,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -1436,6 +1443,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -1647,6 +1655,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 },
                 'responsibility': [{
@@ -1928,6 +1937,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -2258,6 +2268,7 @@ class Tests(util.LoRATestCase):
                          'validity': {'from': '2016-01-01',
                                       'to': None}},
             'person': {'name': 'Anders And',
+                       'nickname': None,
                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
             'responsibility': [{
                 'example': None,
@@ -2501,6 +2512,7 @@ class Tests(util.LoRATestCase):
                     },
                     'person': {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                     'responsibility': [

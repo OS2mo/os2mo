@@ -1066,6 +1066,7 @@ class Reading(util.LoRATestCase):
                 'address_type': None,
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 },
                 'uuid': functionid,
@@ -1095,6 +1096,7 @@ class Reading(util.LoRATestCase):
                         'value': 'goofy@example.com',
                         'person': {
                             'name': 'Fedtmule',
+                            'nickname': None,
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
@@ -1117,6 +1119,7 @@ class Reading(util.LoRATestCase):
                         'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
                         'person': {
                             'name': 'Fedtmule',
+                            'nickname': None,
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
@@ -1146,6 +1149,7 @@ class Reading(util.LoRATestCase):
                         'value': 'bruger@example.com',
                         'person': {
                             'name': 'Anders And',
+                            'nickname': None,
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                         },
                         'validity': {

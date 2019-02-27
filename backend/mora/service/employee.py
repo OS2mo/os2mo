@@ -66,6 +66,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False)
+        nickname = util.checked_get(req, mapping.NICKNAME, "", required=False)
 
         if not userid:
             userid = str(uuid.uuid4())
@@ -91,6 +92,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             valid_to=valid_to,
             brugernavn=name,
             brugervendtnoegle=bvn,
+            kaldenavn=nickname,
             tilhoerer=org_uuid,
             cpr=cpr,
             integration_data=integration_data,
@@ -163,6 +165,21 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs,
             ))
 
+        if mapping.NICKNAME in data:
+            try:
+                exts = (
+                    mapping.EMPLOYEE_UDVIDELSER_FIELD
+                    .get(original)[-1].copy()
+                )
+            except (TypeError, LookupError):
+                exts = {}
+            exts['kaldenavn'] = data[mapping.NICKNAME]
+
+            update_fields.append((
+                mapping.EMPLOYEE_UDVIDELSER_FIELD,
+                attrs,
+            ))
+
         if mapping.CPR_NO in data:
             attrs = mapping.EMPLOYEE_PERSON_FIELD.get(original)[-1].copy()
             attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
@@ -206,8 +223,19 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
     props = user['attributter']['brugeregenskaber'][0]
 
+    if 'brugerudvidelser' in user['attributter']:
+        exts = user['attributter']['brugerudvidelser'][0]
+    else:
+        exts = {}
+
+    try:
+        extensions = mapping.EMPLOYEE_UDVIDELSER_FIELD(user)[0]
+    except (TypeError, LookupError):
+        extensions = {}
+
     r = {
         mapping.NAME: props['brugernavn'],
+        mapping.NICKNAME: extensions.get('kaldenavn'),
         mapping.UUID: userid,
     }
 
@@ -222,6 +250,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.USER_KEY] = props['brugervendtnoegle']
+        r[mapping.NICKNAME] = exts.get('kaldenavn')
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:

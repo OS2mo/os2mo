@@ -185,6 +185,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': userid,
             },
             'uuid': associationid,
@@ -369,6 +370,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': userid,
             },
             'uuid': associationid,
@@ -695,6 +697,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': userid,
             },
             'uuid': associationid,
@@ -970,6 +973,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'uuid': associationid,
@@ -1126,6 +1130,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'uuid': associationid,
@@ -1339,6 +1344,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
@@ -1386,6 +1392,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': association_uuid,
@@ -1436,6 +1443,7 @@ class Tests(util.LoRATestCase):
                     },
                     'person': {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': userid,
                     },
                     'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
@@ -1484,6 +1492,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
@@ -1755,6 +1764,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': association_uuid,
@@ -1950,6 +1960,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': association_uuid,
@@ -2170,6 +2181,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': association_uuid,
@@ -2434,6 +2446,7 @@ class AddressTests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'uuid': association_uuid,

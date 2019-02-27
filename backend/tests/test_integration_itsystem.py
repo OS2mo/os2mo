@@ -352,6 +352,7 @@ class Writing(util.LoRATestCase):
                     "org_unit": None,
                     "person": {
                         "name": "Fedtmule",
+                        'nickname': None,
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
                     },
                     "user_key": "goofy-moofy",
@@ -386,6 +387,7 @@ class Writing(util.LoRATestCase):
             "org_unit": None,
             "person": {
                 "name": "Anders And",
+                'nickname': None,
                 "uuid": user_id,
             },
             "user_key": "donald",
@@ -746,6 +748,7 @@ class Writing(util.LoRATestCase):
             },
             person={
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': new_userid,
             },
             validity={
@@ -812,6 +815,7 @@ class Reading(util.LoRATestCase):
                     'org_unit': None,
                     'person': {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
                     'user_key': 'donald',
                     'uuid': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
@@ -854,6 +858,7 @@ class Reading(util.LoRATestCase):
                     'org_unit': None,
                     'person': {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                     'user_key': 'donald',
