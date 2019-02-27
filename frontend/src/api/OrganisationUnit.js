@@ -63,7 +63,7 @@ export default {
 
     return Service.get('/ou/ancestor-tree?' + params.toString())
       .then(response => {
-        return response.data[0]
+        return response.data
       })
   },
 
