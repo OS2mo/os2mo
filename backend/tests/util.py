@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-
 import contextlib
 import json
 import os
@@ -30,7 +29,6 @@ from oio_rest.utils import test_support
 
 from mora import app, lora, settings
 from mora.importing import spreadsheets
-
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
