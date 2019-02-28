@@ -38,9 +38,6 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
-                },
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -112,17 +109,6 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -153,20 +139,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/?mlon='
-                        '10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -224,9 +196,6 @@ class Tests(util.LoRATestCase):
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -302,17 +271,6 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-12-02 00:00:00+01',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -340,20 +298,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -549,9 +493,6 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
-                },
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -622,17 +563,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-12-02 00:00:00+01',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -663,20 +593,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/?mlon='
-                        '10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -825,9 +741,6 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
-                },
                 "validity": {
                     "from": "2017-12-01",
                 },
@@ -897,17 +810,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -938,20 +840,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -1107,7 +995,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -1253,27 +1140,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "2018-04-01 00:00:00+02"
-                #         }
-                #     },
-                #     {
-                #         "uuid": "47c51ade-cf1c-401c-afb7-a2f7d3455fcd",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2018-04-01 00:00:00+02",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1320,7 +1186,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -1373,7 +1238,6 @@ class Tests(util.LoRATestCase):
             )
 
         expected = [{
-            'address': None,
             'association_type': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
@@ -1420,7 +1284,6 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/association'.format(unitid),
                 [{
-                    'address': None,
                     'association_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -1465,7 +1328,6 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/association'.format(unitid),
             [{
-                'address': None,
                 'association_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -1510,9 +1372,6 @@ class Tests(util.LoRATestCase):
             "person": {'uuid': userid},
             "association_type": {
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-            },
-            "address": {
-                'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
             },
             "validity": {
                 "from": "2017-12-01",
@@ -1675,17 +1534,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1742,7 +1590,6 @@ class Tests(util.LoRATestCase):
         )
 
         expected = [{
-            'address': None,
             'association_type': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
@@ -1865,17 +1712,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1931,7 +1767,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -2094,17 +1929,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -2151,7 +1975,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -2301,17 +2124,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -2367,180 +2179,6 @@ class Tests(util.LoRATestCase):
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class AddressTests(util.LoRATestCase):
     maxDiff = None
-
-    @util.mock('aabogade.json', allow_mox=True)
-    def test_edit_association_address(self, m):
-        self.load_sample_structures()
-
-        # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
-
-        req = [{
-            "type": "association",
-            "uuid": association_uuid,
-            "data": {
-                "address": {
-                    'uuid': "55848eca-4e9e-4f30-954b-78d55eec0473"
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [association_uuid],
-            json=req,
-        )
-
-        expected = [{
-            'address': {
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                },
-                'visibility': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                },
-                'href': 'tel:+4587150000',
-                'name': '+4587150000',
-                'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
-                'value': '87150000'
-            },
-            'association_type': {
-                'example': None,
-                'name': 'Afdeling',
-                'scope': None,
-                'user_key': 'afd',
-                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-            },
-            'org_unit': {
-                'name': 'Humanistisk fakultet',
-                'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                'validity': {
-                    'from': '2016-01-01',
-                    'to': None,
-                },
-            },
-            'person': {
-                'name': 'Anders And',
-                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-            },
-            'uuid': association_uuid,
-            'validity': {
-                'from': '2017-01-01',
-                'to': None,
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/association'.format(userid),
-            expected,
-        )
-
-        expected_association = {
-            "note": "Rediger tilknytning",
-            "relationer": {
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Tilknytning"
-                    }
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_association = c.organisationfunktion.get(association_uuid)
-
-        self.assertRegistrationsEqual(expected_association, actual_association)
 
     def test_terminate_association_directly(self):
         self.load_sample_structures()
