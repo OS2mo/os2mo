@@ -359,20 +359,14 @@ def full_run(simple):
 
         print(' * LoRA running at {}'.format(settings.LORA_URL))
 
-        conn = db.get_connection()
-
         if simple:
             test_util.load_sample_structures()
         else:
-            try:
-                with \
-                        conn.cursor() as curs, \
-                        open(os.path.join(backenddir, 'tests', 'fixtures',
-                                          'dummy.sql')) as fp:
-                    curs.execute(fp.read())
-
-            finally:
-                db.pool.putconn(conn)
+            with db.get_connection() as conn, \
+                    conn.cursor() as curs, \
+                    open(os.path.join(backenddir, 'tests', 'fixtures',
+                                      'dummy.sql')) as fp:
+                curs.execute(fp.read())
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
