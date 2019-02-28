@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import uuid
+
 import freezegun
 import notsouid
 
@@ -1512,5 +1514,200 @@ class Tests(util.LoRATestCase):
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
+
+        self.assertRegistrationsEqual(actual_engagement, expected)
+
+    def test_create_primary(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "type": "engagement",
+            "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+            "primary": True,
+            "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+            "job_function": {
+                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+            "engagement_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            }
+        }
+
+        with notsouid.freeze_uuid(auto_increment=True):
+            engagementid = self.assertRequest('/service/details/create',
+                                              json=payload)
+
+        expected_validation_error = {
+            "error": True,
+            "description": "Operation conflicts with another active "
+            "and primary function.",
+            "status": 400,
+            "error_key": "V_MORE_THAN_ONE_PRIMARY",
+            "preexisting": [engagementid],
+        }
+
+        with self.subTest('duplicate fails'):
+            self.assertRequestResponse(
+                '/service/details/create',
+                expected_validation_error,
+                status_code=400,
+                json=payload,
+            )
+
+        with self.subTest('also fails to different unit'):
+            self.assertRequestResponse(
+                '/service/details/create',
+                expected_validation_error,
+                status_code=400,
+                json={
+                    **payload,
+                    "org_unit": {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    },
+                },
+            )
+
+        with self.subTest('also fails to different person'):
+            self.assertRequestResponse(
+                '/service/details/create',
+                expected_validation_error,
+                status_code=400,
+                json={
+                    **payload,
+                    "person": {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                },
+            )
+
+        with self.subTest('but succeeds if secondary'):
+            self.assertRequest(
+                '/service/details/create',
+                json={
+                    **payload,
+                    "primary": False,
+                },
+            )
+
+        with self.subTest('or entirely directed elsewhere'):
+            self.assertRequest(
+                '/service/details/create',
+                json={
+                    **payload,
+                    "person": {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "org_unit": {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    },
+                },
+            )
+
+        expected = {
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                    }
+                ],
+                "opgaver": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": str(uuid.UUID(int=1)),
+                        "funktionsnavn": "Engagement"
+                    }
+                ],
+                "organisationfunktionudvidelser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "primær": True,
+                    }
+                ]
+            }
+        }
+
+        actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)

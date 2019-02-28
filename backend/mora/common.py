@@ -302,6 +302,7 @@ def create_organisationsfunktion_payload(
     tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
+    primær: bool=None,
     opgaver: typing.List[dict] = None,
     adresser: typing.List[dict] = None
 ) -> dict:
@@ -367,6 +368,13 @@ def create_organisationsfunktion_payload(
 
     if adresser:
         org_funk['relationer']['adresser'] = adresser
+
+    if primær:
+        org_funk['attributter']['organisationfunktionudvidelser'] = [
+            {
+                'primær': primær,
+            },
+        ]
 
     org_funk = _set_virkning(org_funk, virkning)
 
