@@ -251,11 +251,14 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
 
 @cli.command()
-@click.option('--simple', is_flag=True, help='Run with the simple fixtures.')
+@click.option('--fixture', type=click.Choice(['minimal', 'simple', 'dummy',
+                                              'small', 'normal', 'large']),
+              default='dummy',
+              help='Choose the initial dataset.')
 @click.option('--backend-only', is_flag=True,
               help="Don't run the ``vue-cli-service`` server for frontend "
               "development.")
-def full_run(simple, backend_only):
+def full_run(fixture, backend_only):
     '''Command for running a one-off server for frontend development.
 
     This server consists of a the following:
@@ -371,16 +374,51 @@ def full_run(simple, backend_only):
 
         print(' * LoRA running at {}'.format(settings.LORA_URL))
 
-        if simple:
+        threading.Thread(
+            target=mora_server.serve_forever,
+            args=(),
+            daemon=True,
+        ).start()
+
+        print(' * Backend running at http://localhost:{}/'.format(mora_port))
+
+        if fixture == 'simple':
             test_util.load_sample_structures()
-        else:
+
+        elif fixture == 'minimal':
+            test_util.load_sample_structures(minimal=True)
+
+        elif fixture == 'dummy':
             with db.get_connection() as conn, \
                     conn.cursor() as curs, \
                     open(os.path.join(backenddir, 'tests', 'fixtures',
                                       'dummy.sql')) as fp:
                 curs.execute(fp.read())
 
-        print(' * Backend running at http://localhost:{}/'.format(mora_port))
+        else:
+            from os2mo_data_import import ImportHelper
+            from fixture_generator import populate_mo
+            from fixture_generator import dummy_data_creator
+
+            importer = ImportHelper(
+                create_defaults=True,
+                mox_base=settings.LORA_URL,
+                mora_base='http://localhost:{}/'.format(mora_port),
+                system_name="Artificial import",
+                end_marker="STOP",
+                store_integration_data=True,
+            )
+
+            populate_mo.CreateDummyOrg(
+                importer,
+                '0860',
+                'Hjørring Kommune',
+                scale=1,
+                org_size=getattr(dummy_data_creator.Size, fixture.title()),
+                extra_root=True,
+            )
+
+            importer.import_all()
 
         try:
             if backend_only:
@@ -393,12 +431,13 @@ def full_run(simple, backend_only):
                 ).start()
 
                 with subprocess.Popen(
-                    get_yarn_cmd('dev'),
-                    cwd=frontenddir,
-                    env={
-                        **os.environ,
-                        'BASE_URL': 'http://localhost:{}'.format(mora_port),
-                    },
+                        get_yarn_cmd('dev'),
+                        cwd=frontenddir,
+                        env={
+                            **os.environ,
+                            'BASE_URL':
+                            'http://localhost:{}'.format(mora_port),
+                        },
                 ):
                     pass
 
