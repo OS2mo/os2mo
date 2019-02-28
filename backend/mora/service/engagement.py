@@ -47,6 +47,16 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
+        primary = util.checked_get(req, mapping.PRIMARY, False)
+
+        if primary:
+            validator.does_have_existing_primary_function(
+                self.function_key,
+                valid_from, valid_to,
+                employee_uuid=employee_uuid,
+                org_unit_uuid=org_unit_uuid,
+            )
+
         org_unit_obj = c.organisationenhed.get(org_unit_uuid)
 
         org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
@@ -55,11 +65,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         engagement_type_uuid = util.get_mapping_uuid(req,
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
+        primary = util.checked_get(req, mapping.PRIMARY, False)
 
         bvn = str(uuid.uuid4())
 
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
+            primær=primary,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
@@ -88,6 +100,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         # Get employee uuid for validation purposes
         employee = util.get_obj_value(
             original, mapping.USER_FIELD.path)[-1]
+        employee_uuid = util.get_uuid(employee, required=True)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -131,6 +144,29 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append((
                 mapping.ASSOCIATED_ORG_UNIT_FIELD,
                 {'uuid': org_unit_uuid},
+            ))
+
+        if mapping.PRIMARY in data:
+            try:
+                exts = (
+                    mapping.ORG_FUNK_UDVIDELSER_FIELD(data)
+                    .get(original)[-1].copy()
+                )
+            except (TypeError, LookupError):
+                exts = {}
+            exts['primær'] = data[mapping.PRIMARY]
+
+            if exts['primær']:
+                validator.does_employee_have_existing_primary_function(
+                    self.function_key,
+                    employee_uuid,
+                    new_from, new_to,
+                    engagement_uuid,
+                )
+
+            update_fields.append((
+                mapping.ORG_FUNK_UDVIDELSER_FIELD,
+                exts,
             ))
 
         payload = common.update_payload(new_from, new_to, update_fields,

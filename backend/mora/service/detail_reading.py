@@ -450,6 +450,12 @@ def get_detail(type, id, function):
             for prop in mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
         ]
 
+    def is_primary(effect):
+        return [
+            ext['primaer']
+            for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
+        ]
+
     #
     # all these caches might be overkill when just listing one
     # engagement, but they are frequently helpful when listing all
@@ -487,6 +493,9 @@ def get_detail(type, id, function):
             mapping.ENGAGEMENT_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
+            # mapping.PRIMARY: (
+            #     None, is_primary, None, False,
+            # ),
         },
         'related_unit': {
             mapping.ORG_UNIT: (
