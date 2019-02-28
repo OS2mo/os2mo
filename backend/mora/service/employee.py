@@ -342,6 +342,8 @@ def get_employee(id):
         in ISO-8601 format.
 
     :>json string name: Human-readable name.
+    :>json string user_key: Short, unique key identifying the employee.
+    :>json string nickname: Optional, alternate name in common use.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -360,7 +362,9 @@ def get_employee(id):
 
       {
         "cpr_no": "1011101010",
-        "name": "Hans Bruger",
+        "user_key": "PePr",
+        "name": "Peter Prøvesten",
+        "nickname": "Prøveren",
         "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
         "org": {
           "name": "Magenta ApS",
@@ -523,9 +527,11 @@ def create_employee():
 
     **Example Request**:
 
-    :<json string name: The name of the employee
-    :<json string cpr_no: The CPR no of the employee
-    :<json string user_key: Short, unique key identifying the employee.
+    :<json string name: The name of the employee.
+    :<json string cpr_no: The CPR number of the employee.
+    :>json string user_key: Short, unique key identifying the employee.
+    :>json string nickname: An **optional** parameter; alternate name
+      in common use.
     :<json object org: The organisation with which the employee is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
