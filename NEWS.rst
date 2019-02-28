@@ -27,8 +27,10 @@ Bug fixes
 
 * #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
-* #26886: Fixed duplicate for addresses in create organisation unit and
-employee move many workflow now works again.
+* #26886: Fixed duplicate for addresses in create organisation unit and 
+  employee move many workflow now works again.
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+  employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
 
