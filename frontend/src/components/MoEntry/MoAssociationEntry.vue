@@ -8,6 +8,11 @@
         required
       />
 
+      <mo-address-picker
+        class="col address-association"
+        v-model="entry.address"
+        :org-unit="entry.org_unit"
+      />
     </div>
 
     <div class="form-row select-association">
@@ -33,6 +38,7 @@
 
 import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
+import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
 import OrgUnitValidity from '@/mixins/OrgUnitValidity'
