@@ -52,8 +52,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ASSOCIATION_TYPE,
             required=True)
 
-        addr_func_id = util.get_mapping_uuid(req, mapping.ADDRESS)
-
         valid_from, valid_to = util.get_validities(req)
 
         bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
@@ -77,7 +75,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=association_type_uuid,
-            tilknyttedefunktioner=[addr_func_id] if addr_func_id else None,
         )
 
         self.payload = association
@@ -145,16 +142,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             employee = util.get_obj_value(
                 original, mapping.USER_FIELD.path)[-1]
             employee_uuid = util.get_uuid(employee)
-
-        if data.get(mapping.ADDRESS):
-            address_obj = util.checked_get(data, mapping.ADDRESS, {})
-
-            update_fields.append((
-                mapping.ASSOCIATED_FUNCTION_FIELD,
-                {
-                    'uuid': address_obj.get(mapping.UUID),
-                },
-            ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,

@@ -193,20 +193,6 @@ def get_detail(type, id, function):
     .. sourcecode:: json
 
       [
-        {
-          "address": {
-            "href": "https://www.openstreetmap.org/"
-                    "?mlon=12.57924839&mlat=55.68113676&zoom=16",
-            "name": "Pilestr\u00e6de 43, 3., 1112 K\u00f8benhavn K",
-            "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018"
-          },
-          "address_type": {
-            "example": "<UUID>",
-            "name": "Adresse",
-            "scope": "DAR",
-            "user_key": "Adresse",
-            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-          },
           "association_type": {
             "example": null,
             "name": "Medlem",
@@ -502,9 +488,6 @@ def get_detail(type, id, function):
             ),
             mapping.ASSOCIATION_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
-            ),
-            mapping.ADDRESS: (
-                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, False,
             ),
         },
         'role': {
