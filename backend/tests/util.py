@@ -553,9 +553,12 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
         # apply patches, then start the server -- so they're active
         # while it's running
-        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
-        p.start()
-        self.addCleanup(p.stop)
+        stack = contextlib.ExitStack()
+        self.addCleanup(stack.close)
+
+        stack.enter_context(
+            override_lora_url('http://localhost:{}/'.format(self.lora_port)),
+        )
 
         threading.Thread(
             target=lora_server.serve_forever,
