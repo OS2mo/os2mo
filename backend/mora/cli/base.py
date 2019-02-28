@@ -252,7 +252,10 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
 @cli.command()
 @click.option('--simple', is_flag=True, help='Run with the simple fixtures.')
-def full_run(simple):
+@click.option('--backend-only', is_flag=True,
+              help="Don't run the ``vue-cli-service`` server for frontend "
+              "development.")
+def full_run(simple, backend_only):
     '''Command for running a one-off server for frontend development.
 
     This server consists of a the following:
@@ -379,22 +382,27 @@ def full_run(simple):
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
-        threading.Thread(
-            target=mora_server.serve_forever,
-            args=(),
-            daemon=True,
-        ).start()
+        try:
+            if backend_only:
+                mora_server.serve_forever()
+            else:
+                threading.Thread(
+                    target=mora_server.serve_forever,
+                    args=(),
+                    daemon=True,
+                ).start()
 
-        with subprocess.Popen(
-                get_yarn_cmd('dev'),
-                cwd=frontenddir,
-                env={
-                    **os.environ,
-                    'BASE_URL': 'http://localhost:{}'.format(mora_port),
-                },
-        ):
-            pass
+                with subprocess.Popen(
+                    get_yarn_cmd('dev'),
+                    cwd=frontenddir,
+                    env={
+                        **os.environ,
+                        'BASE_URL': 'http://localhost:{}'.format(mora_port),
+                    },
+                ):
+                    pass
 
-        db.pool.closeall()
-        mora_server.shutdown()
-        lora_server.shutdown()
+        finally:
+            db.pool.closeall()
+            mora_server.shutdown()
+            lora_server.shutdown()
