@@ -35,7 +35,7 @@
 
         <mo-facet-picker
           class="col phone"
-          facet="address_property"
+          facet="visibility"
           v-model="phone.visibility"
           preselectedType
           required
