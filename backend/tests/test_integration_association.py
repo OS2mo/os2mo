@@ -426,8 +426,6 @@ class Tests(util.LoRATestCase):
         unit """
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -636,8 +634,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         payload = [
@@ -682,8 +678,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
         payload = [
@@ -2184,8 +2178,6 @@ class AddressTests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
@@ -2232,8 +2224,6 @@ class AddressTests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         self.assertRequestFails(

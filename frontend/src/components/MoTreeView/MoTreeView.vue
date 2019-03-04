@@ -314,7 +314,7 @@ export default {
     /**
      * Add the given nodes to the tree.
      */
-    addNodes(units) {
+    addNodes (units) {
       for (let unit of units) {
         this.addNode(unit, null)
       }
@@ -369,8 +369,6 @@ export default {
      * Reset and re-fetch the tree.
      */
     updateTree (force) {
-      let vm = this
-
       if (force) {
         this.tree.remove({}, true)
       }
