@@ -12,6 +12,11 @@ merely marking manager functions as *vacant*, set ``"vacant": true``
 in the JSON request. Please note that this is the inverse of the
 previous ``terminate_all`` parameter, which no longer has any affect.
 
+Bug fixes
+=========
+
+* #27488: Fixed 401 not redirecting to login
+
 Internal changes
 ----------------
 
