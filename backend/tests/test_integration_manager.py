@@ -30,8 +30,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = {
             "type": "manager",
             "validity": {
@@ -856,8 +854,6 @@ class Tests(util.LoRATestCase):
     def test_create_manager_with_future_address(self):
         """Ensure that reading works when address is in the future"""
         self.load_sample_structures()
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 

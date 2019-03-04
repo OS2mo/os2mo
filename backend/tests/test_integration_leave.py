@@ -806,8 +806,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"
 

@@ -124,8 +124,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
     def submit(self):
         if hasattr(self, 'addresses'):
-            for address in self.addresses:
-                address.submit()
+            for addr in self.addresses:
+                addr.submit()
         return super().submit()
 
     def prepare_edit(self, req: dict):

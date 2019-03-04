@@ -130,7 +130,7 @@ def _make_opgaver_relation(obj):
 
         r.append({
             'uuid': v,
-            'objekttype': t if t is not 'opgaver' else None,
+            'objekttype': t if t != 'opgaver' else None,
             'virkning': virkning,
         })
 
@@ -278,61 +278,61 @@ def load_data(sheets, exact=False):
             obj['adresse_type'] = None
 
         for k, v in obj.items():
-                val = obj[k]
+            val = obj[k]
 
-                if isinstance(val, str):
-                    val = val.strip()
+            if isinstance(val, str):
+                val = val.strip()
 
-                if (
-                    not val or
-                    val == 'NULL' or
-                    util.is_uuid(val) or
-                    str(val).startswith('urn:')
-                ):
-                    continue
+            if (
+                not val or
+                val == 'NULL' or
+                util.is_uuid(val) or
+                str(val).startswith('urn:')
+            ):
+                continue
 
-                elif k in type_formats:
-                    try:
-                        fmt, fn = type_formats[k]
-                        obj[k] = fmt.format(fn(val if val is not None else i))
-                    except ValueError as exc:
-                        print('Unknown value {!r} for {}: {}'.format(
-                            v, k, exc.args[0],
-                        ))
-
-                elif k not in lora.ALL_RELATION_NAMES:
-                    continue
-
-                elif k == 'tilknyttetenhed':
-                    print(obj)
-
-                    dest['organisationfunktion'].append(dict(
-                        objektid=str(uuid.uuid4()),
-                        tilknyttedeenheder=v,
-                        tilknyttedebrugere=obj['objektid'],
-                        tilknyttedeorganisationer=(
-                            obj['tilknyttedeorganisationer']
-                        ),
-                        funktionsnavn='Tilknytning',
-                        brugervendtnoegle='42',
-                        fra=obj['fra'],
-                        til=obj['til'],
+            elif k in type_formats:
+                try:
+                    fmt, fn = type_formats[k]
+                    obj[k] = fmt.format(fn(val if val is not None else i))
+                except ValueError as exc:
+                    print('Unknown value {!r} for {}: {}'.format(
+                        v, k, exc.args[0],
                     ))
 
-                    del obj[k]
+            elif k not in lora.ALL_RELATION_NAMES:
+                continue
 
-                elif val in uuid_mapping:
-                    obj[k] = uuid_mapping[val]
+            elif k == 'tilknyttetenhed':
+                print(obj)
 
-                elif k in allow_invalid_types:
-                    pass
+                dest['organisationfunktion'].append(dict(
+                    objektid=str(uuid.uuid4()),
+                    tilknyttedeenheder=v,
+                    tilknyttedebrugere=obj['objektid'],
+                    tilknyttedeorganisationer=(
+                        obj['tilknyttedeorganisationer']
+                    ),
+                    funktionsnavn='Tilknytning',
+                    brugervendtnoegle='42',
+                    fra=obj['fra'],
+                    til=obj['til'],
+                ))
 
-                else:
-                    if k not in ignore_invalid_types:
-                        print('BAD VALUE {!r} for {} in {}'.format(
-                            val, k, json.dumps(obj, indent=2, sort_keys=True),
-                        ), file=sys.stderr)
-                    obj[k] = None
+                del obj[k]
+
+            elif val in uuid_mapping:
+                obj[k] = uuid_mapping[val]
+
+            elif k in allow_invalid_types:
+                pass
+
+            else:
+                if k not in ignore_invalid_types:
+                    print('BAD VALUE {!r} for {} in {}'.format(
+                        val, k, json.dumps(obj, indent=2, sort_keys=True),
+                    ), file=sys.stderr)
+                obj[k] = None
 
     return dest
 
@@ -453,53 +453,53 @@ def convert_klassifikation(obj):
 
 
 def convert_organisation(obj):
-        virkning = _make_effect(obj['fra'], obj['til'])
+    virkning = _make_effect(obj['fra'], obj['til'])
 
-        return 'PUT', '/organisation/organisation/' + obj['objektid'], {
-            'note': obj['note'],
-            'attributter': {
-                'organisationegenskaber': [
-                    {
-                        'organisationsnavn': obj['brugervendtnoegle'],
-                        'brugervendtnoegle': obj['brugervendtnoegle'],
-                        'virkning': virkning,
-                    },
-                ],
-            },
-            'tilstande': {
-                'organisationgyldighed': [
-                    {
-                        'gyldighed': nolower(obj['gyldighed']),
-                        'virkning': virkning,
-                    },
-                ],
-            },
-            'relationer': {
-                k: _make_relation(obj, k)
-                for k in (
-                    "adresser",
-                    "ansatte",
-                    "branche",
-                    "myndighed",
-                    "myndighedstype",
-                    "opgaver",
-                    "overordnet",
-                    "produktionsenhed",
-                    "skatteenhed",
-                    "tilhoerer",
-                    "tilknyttedebrugere",
-                    "tilknyttedeenheder",
-                    "tilknyttedefunktioner",
-                    "tilknyttedeinteressefaellesskaber",
-                    "tilknyttedeitsystemer"
-                    "tilknyttedeorganisationer",
-                    "tilknyttedepersoner",
-                    "virksomhed",
-                    "virksomhedstype",
-                )
-                if k in obj
-            },
-        }
+    return 'PUT', '/organisation/organisation/' + obj['objektid'], {
+        'note': obj['note'],
+        'attributter': {
+            'organisationegenskaber': [
+                {
+                    'organisationsnavn': obj['brugervendtnoegle'],
+                    'brugervendtnoegle': obj['brugervendtnoegle'],
+                    'virkning': virkning,
+                },
+            ],
+        },
+        'tilstande': {
+            'organisationgyldighed': [
+                {
+                    'gyldighed': nolower(obj['gyldighed']),
+                    'virkning': virkning,
+                },
+            ],
+        },
+        'relationer': {
+            k: _make_relation(obj, k)
+            for k in (
+                "adresser",
+                "ansatte",
+                "branche",
+                "myndighed",
+                "myndighedstype",
+                "opgaver",
+                "overordnet",
+                "produktionsenhed",
+                "skatteenhed",
+                "tilhoerer",
+                "tilknyttedebrugere",
+                "tilknyttedeenheder",
+                "tilknyttedefunktioner",
+                "tilknyttedeinteressefaellesskaber",
+                "tilknyttedeitsystemer"
+                "tilknyttedeorganisationer",
+                "tilknyttedepersoner",
+                "virksomhed",
+                "virksomhedstype",
+            )
+            if k in obj
+        },
+    }
 
 
 def convert_organisationenhed(obj):

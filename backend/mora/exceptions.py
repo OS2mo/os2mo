@@ -145,6 +145,7 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         try:
             self.body = body
             self.response = flask.jsonify(body)
-            self.response.status_code = self.key.code
+            if self.response:
+                self.response.status_code = self.key.code
         except RuntimeError:
             pass
