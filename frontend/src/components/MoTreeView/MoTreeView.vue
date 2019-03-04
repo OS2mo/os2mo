@@ -23,11 +23,12 @@
 </template>
 
 <script>
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import { mapGetters } from 'vuex'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import LiquorTree from 'liquor-tree'
+import { Organisation as OrgStore } from '@/store/actions/organisation'
 
 export default {
   components: {
@@ -70,7 +71,7 @@ export default {
        * for that organisation, and also ensure that we reset the view
        * whenever it changes.
        */
-      orgUuid: 'organisation/getUuid'
+      orgUuid: OrgStore.getters.GET_UUID
     }),
 
     /**
@@ -168,7 +169,7 @@ export default {
   mounted () {
     const vm = this
 
-    EventBus.$on('update-tree-view', () => {
+    EventBus.$on(Events.UPDATE_TREE_VIEW, () => {
       vm.updateTree(true)
     })
 
@@ -311,6 +312,18 @@ export default {
     },
 
     /**
+     * Add the given nodes to the tree.
+     */
+    addNodes(units) {
+      for (let unit of units) {
+        this.addNode(unit, null)
+      }
+
+      this.tree.sort()
+      this.setSelection(this.value)
+    },
+
+    /**
      * Add the given node to the tree, nested under the parent, specified, or
      * root otherwise.
      */
@@ -364,21 +377,10 @@ export default {
 
       if (this.multiple ? this.value.length > 0 : this.value) {
         OrganisationUnit.getAncestorTree(this.value, this.atDate)
-          .then(response => {
-            vm.addNode(response, null)
-            vm.tree.sort()
-            vm.setSelection(this.value)
-          })
+          .then(this.addNodes)
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
-          .then(response => {
-            for (let unit of response) {
-              vm.addNode(unit, null)
-            }
-
-            vm.tree.sort()
-            vm.setSelection(this.value)
-          })
+          .then(this.addNodes)
       }
     },
 

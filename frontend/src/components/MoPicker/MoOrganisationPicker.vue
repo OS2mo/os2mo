@@ -25,9 +25,11 @@
 
 import sortBy from 'lodash.sortby'
 import Organisation from '@/api/Organisation'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 import { mapGetters, mapState } from 'vuex'
-
+import { Employee } from '@/store/actions/employee'
+import { OrganisationUnit } from '@/store/actions/organisationUnit'
+import { Organisation as OrgStore } from '@/store/actions/organisation'
 export default {
   name: 'MoOrganisationPicker',
 
@@ -73,8 +75,8 @@ export default {
 
   computed: {
     ...mapGetters({
-      currentUnit: 'organisationUnit/GET_ORG_UNIT',
-      currentEmployee: 'employee/GET_EMPLOYEE'
+      currentUnit: OrganisationUnit.getters.GET_ORG_UNIT,
+      currentEmployee: Employee.getters.GET_EMPLOYEE
     }),
 
     ...mapState({
@@ -91,7 +93,7 @@ export default {
      * Whenever organisation change update.
      */
     this.getAll()
-    EventBus.$on('organisation-changed', newOrg => {
+    EventBus.$on(Events.ORGANISATION_CHANGED, newOrg => {
       if (!this.ignoreEvent) this.selectedOrganisation = newOrg
     })
   },
@@ -101,7 +103,7 @@ export default {
      * Whenever selected organisation change, update newVal.
      */
     selectedOrganisation (newVal) {
-      this.$store.commit(`organisation/setOrg`, newVal)
+      this.$store.commit(OrgStore.mutations.SET_ORGANISATION, newVal)
       this.$emit('input', newVal)
     },
 

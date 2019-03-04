@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,7 +20,6 @@ import pyexcel
 from . import processors
 from .. import util
 from .. import lora
-from ..service import address
 
 
 # TODO: don't hardcode these, look into the imported data instead?
@@ -36,6 +35,17 @@ OPGAVER_COLUMNS = {
     'lederniveau',
     'lederansvar',
     'opgaver'
+}
+
+
+URN_PREFIXES = {
+    'EMAIL': 'urn:mailto:',
+    'PHONE': 'urn:magenta.dk:telefon:',
+    'EAN': 'urn:magenta.dk:ean:',
+    'WWW': 'urn:magenta.dk:www:',
+    'PNUMBER': 'urn:dk:cvr:produktionsenhed:',
+    'TEXT': 'urn:text:',
+    'DAR': 'urn:dar:'
 }
 
 
@@ -95,7 +105,7 @@ def _make_addresses_relation(obj):
                     if not v.startswith('+45'):
                         v = '+45' + v.zfill(8)
 
-                v = address.URN_PREFIXES[scope] + str(v)
+                v = URN_PREFIXES[scope] + str(v)
 
             r.append({
                 'urn': v,

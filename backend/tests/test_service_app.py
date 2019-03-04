@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,7 +29,7 @@ class Tests(util.TestCase):
         p.side_effect = ValueError('go away')
 
         self.assertRequestResponse(
-            '/service/ou/00000000-0000-0000-0000-000000000000/details/',
+            '/service/ou/00000000-0000-0000-0000-000000000000/',
             {
                 'error': True,
                 'error_key': 'E_UNKNOWN',

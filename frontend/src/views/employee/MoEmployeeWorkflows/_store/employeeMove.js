@@ -1,6 +1,6 @@
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
@@ -24,10 +24,12 @@ const actions = {
   MOVE_EMPLOYEE ({ commit, state }) {
     state.move.uuid = state.original.uuid
 
-    return Service.post('/details/edit', [state.move])
+    return Service.post('/details/edit', state.move)
       .then(response => {
-        EventBus.$emit('employee-changed')
-        commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
+        commit('log/newWorkLog',
+          { type: 'EMPLOYEE_MOVE', value: response.data },
+          { root: true })
         return response.data
       })
       .catch(error => {

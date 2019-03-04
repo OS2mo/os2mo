@@ -143,6 +143,7 @@ export default {
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: null }
       ],
       engagement: [
@@ -154,8 +155,8 @@ export default {
       association: [
         { label: 'person', data: 'person' },
         { label: 'association_type', data: 'association_type' },
-        { label: 'job_function', data: 'job_function' },
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: 'address' },
         { label: 'org_unit', data: 'org_unit' }
       ],
@@ -173,9 +174,15 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
+        { label: 'address_property', data: 'visibility' },
         { label: 'address', data: 'address' }
       ],
       related_unit: [
+        // NB: the backend always returns both units in a mapping,
+        // ordered by uuid; one of these is always _this_ unit, but we
+        // don't have an easy way to suppress that one, yet, so just
+        // display both :(
+        { label: 'related_org_unit', data: 'org_unit', index: 0 },
         { label: 'related_org_unit', data: 'org_unit', index: 1 }
       ],
 

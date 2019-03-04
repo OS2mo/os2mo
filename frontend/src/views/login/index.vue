@@ -52,6 +52,7 @@ import { mapGetters, mapState } from 'vuex'
 import Service from '@/api/HttpCommon'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormInput from 'bootstrap-vue/es/components/form-input/form-input'
+import { Auth } from '@/store/actions/auth'
 
 export default {
   name: 'login-page',
@@ -85,7 +86,7 @@ export default {
      * Get status.
      */
     ...mapGetters({
-      status: 'status'
+      status: Auth.getters.GET_STATUS
     }),
 
     ...mapState({

@@ -15,12 +15,17 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
+const addressVisibility = dialog.find('.form-row .phone select[data-vv-as="Synlighed"]')
+const addressVisibilityOption = addressVisibility.find('option')
+
 const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-// const newDate = dialog.find('.btn-link')
-// const newDateInput = dialog.find('.address-date input.form-control')
+const addressTypeSelect = dialog.find('.address select[data-vv-as="Adressetype"]')
+const addressTypeOption = addressTypeSelect.find('option')
+
+const addressEmailInput = dialog.find('input[data-vv-as="Email"]')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -51,7 +56,7 @@ test('Workflow: create unit', async t => {
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
 
     .click(unitSelect)
     .click(unitOption.withText('Fagligt center'))
@@ -73,15 +78,18 @@ test('Workflow: create unit', async t => {
     .expect(addressInput.find('input').value)
     .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
 
-    // .click(newDate)
-    // .click(newDateInput)
-    // .hover(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
-    //        .withText(today.date().toString()))
-    // .click(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
-    //        .withText(today.date().toString()))
-    // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
-
     .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
+
+    .click(addressVisibility)
+    .click(addressVisibilityOption.nth(1))
+
+    .click(dialog.find('.btn-outline-success'))
+
+    .click(addressTypeSelect)
+    .click(addressTypeOption.withText('Email'))
+
+    .click(addressEmailInput)
+    .typeText(addressEmailInput, 'magenta@gmail.dk')
 
     .click(dialog.find('.btn-primary'))
 

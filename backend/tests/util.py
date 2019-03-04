@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,11 +10,10 @@
 import contextlib
 import json
 import os
+import pkgutil
 import pprint
 import re
-import shutil
 import sys
-import tempfile
 import threading
 from unittest.mock import patch
 
@@ -197,6 +196,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
         })
 
+        functions.update({
+            'email_andersand': 'fba61e38-b553-47cc-94bf-8c7c3c2a6887',
+            'email_fedtmule': '64ea02e2-8469-4c54-a523-3d46729e86a7',
+            'adresse_fedtmule': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
+            'adresse_root': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+            'adresse_hum': 'e1a9cede-8c9b-4367-b628-113834361871',
+            'tlf_hum': '55848eca-4e9e-4f30-954b-78d55eec0473',
+            'ean_hum': 'a0fe7d43-1e0d-4232-a220-87098024b34d',
+        })
+
     for facetkey, facetid in facets.items():
         fixtures.append((
             'klassifikation/facet',
@@ -251,14 +260,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
 
 @contextlib.contextmanager
 def override_settings(**overrides):
-    orig_settings = {k: getattr(settings, k) for k in overrides}
-    settings.__dict__.update(overrides)
-    yield
-    settings.__dict__.update(orig_settings)
+    stack = contextlib.ExitStack()
+    with stack:
+        for k, v in overrides.items():
+            stack.enter_context(patch('mora.settings.{}'.format(k), v))
+
+        yield
 
 
 def override_lora_url(lora_url='http://mox/'):
-    return override_settings(LORA_URL=lora_url)
+    return patch('mora.settings.LORA_URL', lora_url)
 
 
 @contextlib.contextmanager
@@ -530,21 +541,11 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
-        patches = [
-            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
-                self.lora_port,
-            )),
-            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.validate.SCHEMA', None),
-            patch('mora.importing.processors._fetch.cache', {}),
-            patch('mora.importing.processors._fetch.cache_file',
-                  os.devnull),
-        ]
-
         # apply patches, then start the server -- so they're active
         # while it's running
-        for p in patches:
-            p.start()
+        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
+        p.start()
+        self.addCleanup(p.stop)
 
         threading.Thread(
             target=lora_server.serve_forever,
@@ -554,10 +555,25 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         # likewise, stop it, and *then* pop the patches
         self.addCleanup(lora_server.shutdown)
 
-        for p in patches:
-            self.addCleanup(p.stop)
-
         super().setUp()
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        exts = json.loads(
+            pkgutil.get_data('mora', 'db_extensions.json').decode(),
+        )
+
+        cls.__db_patcher = test_support.extend_db_struct(exts)
+        cls.__db_patcher.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.__db_patcher.__exit__(None, None, None)
+        cls.__db_patcher = None
+
+        super().tearDownClass()
 
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):

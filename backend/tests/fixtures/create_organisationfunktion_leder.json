@@ -22,10 +22,9 @@
         }
       }
     ],
-    "adresser": [
+    "tilknyttedefunktioner": [
       {
-        "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-        "urn": "urn:mailto:ceo@example.com",
+        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
         "virkning": {
           "from": "2017-01-01 00:00:00+01:00",
           "to": "infinity"

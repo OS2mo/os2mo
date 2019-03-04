@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -648,8 +648,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
             {'items': [{'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
                        {'name': 'Fedtmule',
+                        'nickname': None,
                         'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'}],
              'offset': 0,
              'total': 2}
@@ -659,6 +661,7 @@ class Tests(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/',
             {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 'user_key': 'andersand',
                 'cpr_no': '0906340000',
@@ -674,6 +677,7 @@ class Tests(util.LoRATestCase):
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/',
             {
                 'name': 'Fedtmule',
+                'nickname': None,
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 'user_key': 'fedtmule',
                 'cpr_no': '1205320000',
@@ -708,14 +712,17 @@ class Tests(util.LoRATestCase):
                     [
                         {
                             'name': 'Anders And',
+                            'nickname': None,
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                         },
                         {
                             'name': 'Fedtmule',
+                            'nickname': None,
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
                         },
                         {
                             'name': 'Andersine And',
+                            'nickname': 'Pus',
                             'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                         }
                     ],
@@ -731,6 +738,7 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                     }
                 ],
@@ -746,6 +754,7 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Andersine And',
+                        'nickname': 'Pus',
                         'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                     }
                 ],
@@ -761,10 +770,12 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                     {
                         'name': 'Fedtmule',
+                        'nickname': None,
                         'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                     },
                 ],
@@ -780,10 +791,12 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                     {
                         'name': 'Andersine And',
+                        'nickname': 'Pus',
                         'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24',
                     },
                 ],
@@ -799,6 +812,7 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                 ],
@@ -815,6 +829,7 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Anders And',
+                        'nickname': None,
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                 ],
@@ -830,6 +845,7 @@ class Tests(util.LoRATestCase):
                 'items': [
                     {
                         'name': 'Fedtmule',
+                        'nickname': None,
                         'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                     },
                 ],
@@ -893,6 +909,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'engagement_type': {
@@ -971,6 +988,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'role_type': {
@@ -1040,6 +1058,7 @@ class Tests(util.LoRATestCase):
             {
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'leave_type': {
@@ -1108,16 +1127,18 @@ class Tests(util.LoRATestCase):
         func = [
             {
                 'address': [{
-                    'href': 'mailto:ceo@example.com',
-                    'name': 'ceo@example.com',
-                    'urn': 'urn:mailto:ceo@example.com',
                     'address_type': {
-                        'example': 'test@example.com',
-                        'name': 'Emailadresse',
-                        'scope': 'EMAIL',
-                        'user_key': 'Email',
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        'example': '<UUID>',
+                        'name': 'Adresse',
+                        'scope': 'DAR',
+                        'user_key': 'AdressePost',
+                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
+                    'href': 'https://www.openstreetmap.org/'
+                            '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
                 }],
                 'manager_level': {
                     'example': None,
@@ -1128,6 +1149,7 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'nickname': None,
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'org_unit': {
@@ -1315,128 +1337,6 @@ class Tests(util.LoRATestCase):
                 'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
         )
 
-    def test_detail_list(self):
-        self.load_sample_structures()
-
-        with self.subTest('fedtmule'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': False,
-                    'related_unit': False,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('anders'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/',
-                {
-                    'address': True,
-                    'association': True,
-                    'engagement': True,
-                    'it': True,
-                    'leave': True,
-                    'manager': True,
-                    'org_unit': False,
-                    'related_unit': False,
-                    'role': True,
-                },
-            )
-
-        with self.subTest('hum'):
-            self.assertRequestResponse(
-                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                '/details/',
-                {
-                    'address': True,
-                    'association': True,
-                    'engagement': True,
-                    'it': False,
-                    'leave': False,
-                    'manager': True,
-                    'org_unit': True,
-                    'related_unit': True,
-                    'role': True,
-                },
-            )
-
-        with self.subTest('samf'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'related_unit': False,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('fil'):
-            self.assertRequestResponse(
-                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'related_unit': False,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('hist'):
-            self.assertRequestResponse(
-                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': False,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'related_unit': True,
-                    'role': False,
-                },
-            )
-
-        with self.subTest('frem'):
-            self.assertRequestResponse(
-                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/details/',
-                {
-                    'address': True,
-                    'association': False,
-                    'engagement': False,
-                    'it': True,
-                    'leave': False,
-                    'manager': False,
-                    'org_unit': True,
-                    'related_unit': False,
-                    'role': False,
-                },
-            )
-
     def test_details_multiple(self):
         """Test that multiple details of a single type renders as expected"""
         self.load_sample_structures()
@@ -1545,6 +1445,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
@@ -1578,6 +1479,7 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'nickname': None,
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
@@ -1599,3 +1501,125 @@ class Tests(util.LoRATestCase):
             sorted(expected, key=sorter),
             sorted(actual, key=sorter)
         )
+
+    def test_detail_list(self):
+        self.load_sample_structures()
+
+        with self.subTest('fedtmule'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/',
+                {
+                    'address': True,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('anders'):
+            self.assertRequestResponse(
+                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': True,
+                    'leave': True,
+                    'manager': True,
+                    'org_unit': False,
+                    'related_unit': False,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('hum'):
+            self.assertRequestResponse(
+                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+                '/details/',
+                {
+                    'address': True,
+                    'association': True,
+                    'engagement': True,
+                    'it': False,
+                    'leave': False,
+                    'manager': True,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': True,
+                },
+            )
+
+        with self.subTest('samf'):
+            self.assertRequestResponse(
+                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('fil'):
+            self.assertRequestResponse(
+                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('hist'):
+            self.assertRequestResponse(
+                '/service/ou/da77153e-30f3-4dc2-a611-ee912a28d8aa'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': False,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': True,
+                    'role': False,
+                },
+            )
+
+        with self.subTest('frem'):
+            self.assertRequestResponse(
+                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
+                '/details/',
+                {
+                    'address': False,
+                    'association': False,
+                    'engagement': False,
+                    'it': True,
+                    'leave': False,
+                    'manager': False,
+                    'org_unit': True,
+                    'related_unit': False,
+                    'role': False,
+                },
+            )

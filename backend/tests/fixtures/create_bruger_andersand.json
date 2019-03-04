@@ -14,18 +14,6 @@
         ]
     },
     "relationer": {
-        "adresser": [
-            {
-                "objekttype": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                "urn": "urn:mailto:bruger@example.com",
-                "virkning": {
-                    "from": "1934-06-09T00:00:00+01:00",
-                    "from_included": true,
-                    "to": "infinity",
-                    "to_included": false
-                }
-            }
-        ],
         "brugertyper": [
             {
                 "urn": "urn:email",

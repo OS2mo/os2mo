@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 import freezegun
+import notsouid
 
 from mora import lora
 
@@ -260,8 +261,9 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
-            "addresses": [
+            "details": [
                 {
+                    "type": "address",
                     "address_type": {
                         "example": "20304060",
                         "name": "Telefonnummer",
@@ -269,9 +271,19 @@ class Tests(util.LoRATestCase):
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
-                    "value": "11 22 33 44",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "validity": {
+                        "from": "2016-02-04",
+                        "to": "2017-10-21",
+                    },
+                    "value": "11 22 33 44"
                 },
                 {
+                    "type": "address",
                     "address_type": {
                         "example": "<UUID>",
                         "name": "Adresse",
@@ -279,7 +291,16 @@ class Tests(util.LoRATestCase):
                         "user_key": "Adresse",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                    "validity": {
+                        "from": "2016-02-04",
+                        "to": "2017-10-21",
+                    },
+                    "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
                 },
             ],
             "validity": {
@@ -292,7 +313,7 @@ class Tests(util.LoRATestCase):
         unitid = r.json
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "note": "Oprettet i MO",
             "attributter": {
                 "organisationenhedegenskaber": [
@@ -311,28 +332,6 @@ class Tests(util.LoRATestCase):
                 ]
             },
             "relationer": {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4511223344',
-                        'virkning': {
-                            'from': '2016-02-04 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-10-22 00:00:00+02',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': '2016-02-04 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-10-22 00:00:00+02',
-                            'to_included': False,
-                        },
-                    },
-                ],
                 "overordnet": [
                     {
                         "virkning": {
@@ -446,21 +445,6 @@ class Tests(util.LoRATestCase):
                     "from": "2016-02-04",
                     "to": "2017-10-21"
                 }
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/details/'.format(unitid),
-            {
-                'address': True,
-                'association': False,
-                'engagement': False,
-                'it': False,
-                'leave': False,
-                'manager': False,
-                'org_unit': True,
-                'related_unit': False,
-                'role': False,
             },
         )
 
@@ -647,28 +631,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -839,8 +801,6 @@ class Tests(util.LoRATestCase):
     def test_edit_missing_org_unit(self):
         self.load_sample_structures()
 
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
-
         req = [{
             "type": "org_unit",
             "data": {
@@ -974,28 +934,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -1182,28 +1120,6 @@ class Tests(util.LoRATestCase):
             'livscykluskode': 'Rettet',
             'note': 'Rediger organisationsenhed',
             'relationer': {
-                'adresser': [
-                    {
-                        'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                        'urn': 'urn:magenta.dk:telefon:+4511223344',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-01-01 00:00:00+01',
-                            'to_included': False,
-                        },
-                    },
-                    {
-                        'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        'uuid': '44c532e1-f617-4174-b144-d37ce9fda2bd',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-01-01 00:00:00+01',
-                            'to_included': False,
-                        },
-                    },
-                ],
                 'enhedstype': [
                     {
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
@@ -1297,6 +1213,7 @@ class Tests(util.LoRATestCase):
             json=req,
         )
 
+    @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
     def test_create_missing_parent(self):
         self.load_sample_structures()
 
@@ -1322,7 +1239,7 @@ class Tests(util.LoRATestCase):
                 'Corresponding parent unit or organisation not found.',
                 'error': True,
                 'error_key': 'V_PARENT_NOT_FOUND',
-                'org_unit_uuid': None,
+                'org_unit_uuid': 'ec93e37e-774e-40b4-953c-05ca41b80372',
                 'parent_uuid': '00000000-0000-0000-0000-000000000000',
                 'status': 404,
             },
@@ -1511,28 +1428,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -1673,34 +1568,6 @@ class Tests(util.LoRATestCase):
             'livscykluskode': 'Rettet',
             'note': 'Rediger organisationsenhed',
             'relationer': {
-                'adresser': [{
-                    'objekttype': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-                    'urn': 'urn:magenta.dk:telefon:+4587150000',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }, {
-                    'objekttype': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    'uuid': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }, {
-                    'objekttype': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-                    'urn': 'urn:magenta.dk:ean:5798000420229',
-                    'virkning': {
-                        'from': '2016-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }],
                 'enhedstype': [{
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                     'virkning': {
@@ -1864,28 +1731,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                "adresser": [
-                    {
-                        "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "objekttype": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "urn": "urn:magenta.dk:telefon:+4587150000",
-                        "objekttype": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2016-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
             },
             "livscykluskode": "Rettet",
         }
@@ -2592,7 +2437,7 @@ class Tests(util.LoRATestCase):
                         },
                         "parent": {
                             "name": "Overordnet Enhed",
-                            "user_key": "root",
+                            "user_ky": "root",
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {
                                 "from": "2016-01-01",

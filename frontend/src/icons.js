@@ -1,3 +1,10 @@
+/**
+ * imports icon component and globally available icons.
+ * Find more here: https://fontawesome.com/icons?d=gallery
+ */
+import Vue from 'vue'
+import Icon from 'vue-awesome/components/Icon'
+
 import 'vue-awesome/icons/caret-down'
 import 'vue-awesome/icons/caret-right'
 import 'vue-awesome/icons/spinner'
@@ -27,3 +34,5 @@ import 'vue-awesome/icons/user-cog'
 import 'vue-awesome/icons/user-tie'
 import 'vue-awesome/icons/user-lock'
 import 'vue-awesome/icons/building'
+
+Vue.component('icon', Icon)

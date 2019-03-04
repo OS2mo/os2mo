@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -170,7 +170,6 @@ def create():
     :<jsonarr string type: **"association"**
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
-    :<jsonarr object job_function: The job function of the association
     :<jsonarr object association_type: The association type
     :<jsonarr object address: The associated address.
     :<jsonarr object validity: The validities of the created object.
@@ -190,9 +189,6 @@ def create():
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
-          },
-          "job_function": {
-            "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
           },
           "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -869,47 +865,69 @@ def edit():
     :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
+    :<jsonarr object org: the UUID of the associated organisation
     :<jsonarr object org_unit: the UUID of the associated unit, if any
     :<jsonarr object person: the UUID of the associated employee, if any
+    :<jsonarr object manager: the UUID of the associated manager, if any
     :<jsonarr object validity: A validity object
 
     See :ref:`Adresses <address>` for more information.
-
-    .. sourcecode:: json
-
-      [
-        {
-          "original": {
-            "value": "0101501234",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "data": {
-            "value": "123456789",
-            "address_type": {
-              "example": "5712345000014",
-              "name": "EAN",
-              "scope": "EAN",
-              "user_key": "EAN",
-              "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-            },
-          },
-          "type": "address",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
     """
 
     reqs = flask.request.get_json()
     return (
         flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
+        200
+    )
+
+
+@blueprint.route('/details/terminate', methods=['POST'])
+@util.restrictargs()
+def terminate():
+    '''Terminate a relation as of a given day.
+
+    .. :quickref: Writing; Terminate relation
+
+    :<jsonarr str type: Same as for
+              :http:post:`/service/details/create` and
+              :http:post:`/service/details/edit`.
+    :<jsonarr str uuid: The UUID of the related to terminate.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
+    :<jsonarr object validity: A validity object; but only the ``to`` is
+              used.
+
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+      POST /service/details/terminate HTTP/1.1
+      Host: example.com
+      Content-Type: application/json
+
+      {
+        "type": "association",
+        "uuid": "be4642c4-ba97-48d6-b19a-fc18ca0740b5",
+        "validity": {
+          "to": "2018-01-01"
+        }
+      }
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
+
+    '''
+
+    reqs = flask.request.get_json()
+    return (
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.TERMINATE)),
         200
     )

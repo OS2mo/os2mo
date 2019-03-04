@@ -13,7 +13,7 @@
       :auto-select-one-item="false"
       :min-len="2"
       :placeholder="$t('input_fields.search_for_employee')"
-      v-validate="{ required: this.item !== null ? required : this.item }"
+      v-validate="{ required: required }"
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
@@ -64,6 +64,12 @@ export default {
   computed: {
     orderedListOptions () {
       return sortBy(this.items, 'name')
+    }
+  },
+
+  watch: {
+    item (newVal) {
+      this.$emit('input', newVal)
     }
   },
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,34 +24,29 @@ from .. import validator
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ('termination_field', 'termination_value')
-
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
-
-    def __init__(self, request, request_type):
-        self.termination_field = mapping.USER_FIELD
-        self.termination_value = {}
-
-        super().__init__(request, request_type)
 
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid """
         c = lora.Connector()
 
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=True)
+        org_unit_uuid = util.get_uuid(org_unit, required=True)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
+
+        # TODO: Figure out what to do with this
+        valid_from, valid_to = util.get_validities(req)
 
         org_uuid = (
             c.organisationenhed.get(org_unit_uuid)
             ['relationer']['tilhoerer'][0]['uuid']
         )
 
-        address_objs = util.checked_get(req, mapping.ADDRESS, [])
         manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
         manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
 
@@ -65,21 +60,46 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             for responsibility in responsibilities
         ]
 
+        func_id = util.get_uuid(req, required=False)
+        if not func_id:
+            func_id = str(uuid.uuid4())
+
+        self.addresses = []
+        addr_ids = []
+        addresses = util.checked_get(req, mapping.ADDRESS, [])
+        for address_obj in addresses:
+            addr_id = str(uuid.uuid4())
+            addr_ids.append(addr_id)
+
+            address_obj['manager'] = {
+                'uuid': func_id
+            }
+            address_obj['uuid'] = addr_id
+            if not address_obj.get('validity'):
+                address_obj['validity'] = util.checked_get(
+                    req, mapping.VALIDITY, {})
+
+            self.addresses.append(
+                address.AddressRequestHandler(
+                    address_obj,
+                    handlers.RequestType.CREATE
+                )
+            )
+
         if manager_level_uuid:
             opgaver.append({
                 'objekttype': 'lederniveau',
                 'uuid': manager_level_uuid
             })
 
-        # TODO: Figure out what to do with this
-        # location_uuid = req.get(mapping.LOCATION).get('uuid')
-        valid_from, valid_to = util.get_validities(req)
-
         bvn = str(uuid.uuid4())
 
         # Validation
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
-                                                  valid_to)
+        validator.is_date_range_in_org_unit_range(
+            org_unit,
+            valid_from,
+            valid_to
+        )
 
         if employee:
             validator.is_date_range_in_employee_range(employee,
@@ -96,11 +116,17 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
-            adresser=[address.get_relation_for(addr) for addr in address_objs],
+            tilknyttedefunktioner=addr_ids,
         )
 
         self.payload = manager
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
+
+    def submit(self):
+        if hasattr(self, 'addresses'):
+            for address in self.addresses:
+                address.submit()
+        return super().submit()
 
     def prepare_edit(self, req: dict):
         manager_uuid = req.get('uuid')
@@ -114,8 +140,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_edit_from_date_before_today(new_from)
 
         # Get org unit uuid for validation purposes
-        org_unit_uuid = util.get_obj_uuid(
-            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
 
         payload = dict()
         payload['note'] = 'Rediger leder'
@@ -180,11 +205,45 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
+        self.addresses = []
         for address_obj in util.checked_get(data, mapping.ADDRESS, []):
+
+            addr_uuid = address_obj.get(mapping.UUID)
+
+            # if UUID, perform update
+            if addr_uuid:
+                addr_handler = address.AddressRequestHandler(
+                    {
+                        'data': {
+                            **address_obj,
+                            'validity': data.get(mapping.VALIDITY)
+                        },
+                        'uuid': address_obj.get(mapping.UUID)
+                    },
+                    handlers.RequestType.EDIT
+                )
+            else:
+                addr_uuid = str(uuid.uuid4())
+                addr_handler = address.AddressRequestHandler(
+                    {
+                        'uuid': addr_uuid,
+                        'manager': {
+                            'uuid': manager_uuid
+                        },
+                        'validity': data.get(mapping.VALIDITY),
+                        **address_obj,
+                    },
+                    handlers.RequestType.CREATE
+                )
+
             update_fields.append((
-                mapping.SINGLE_ADDRESS_FIELD,
-                address.get_relation_for(address_obj),
+                mapping.ASSOCIATED_MANAGER_ADDRESSES_FIELD,
+                {
+                    'uuid': addr_uuid
+                },
             ))
+
+            self.addresses.append(addr_handler)
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
@@ -196,7 +255,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                                        original,
                                        payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+        validator.is_date_range_in_org_unit_range(org_unit, new_from,
                                                   new_to)
 
         if employee:
@@ -209,11 +268,19 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         self.uuid = manager_uuid
 
     def prepare_terminate(self, request: dict):
-        # If we want to terminate the managers as well
-        if request.get('request').get('terminate_all'):
-            self.termination_value = \
-                handlers.OrgFunkRequestHandler.termination_value
-            self.termination_field = \
-                handlers.OrgFunkRequestHandler.termination_field
+        """Initialize a 'termination' request. Performs validation and all
+        necessary processing
+
+        Unlike the other handlers for ``organisationfunktion``, this
+        one checks for and handles the ``vacate`` field in the
+        request. If this is set, the manager is merely marked as
+        *vacant*, i.e. without an employee or person.
+
+        :param request: A dict containing a request
+
+        """
+        if util.checked_get(request, 'vacate', False):
+            self.termination_field = mapping.USER_FIELD
+            self.termination_value = {}
 
         super().prepare_terminate(request)

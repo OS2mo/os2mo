@@ -55,6 +55,7 @@ import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 import Service from '@/api/HttpCommon'
 import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
 import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
+import { Auth } from '@/store/actions/auth'
 
 export default {
   components: {
@@ -90,7 +91,7 @@ export default {
      */
     logout () {
       let vm = this
-      this.$store.dispatch('AUTH_LOGOUT', vm.user)
+      this.$store.dispatch(Auth.actions.AUTH_LOGOUT, vm.user)
     }
   }
 }

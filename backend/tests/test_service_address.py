@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,6 @@
 import freezegun
 
 from mora import exceptions
-from mora import lora
 from mora.service import address
 
 from tests import util
@@ -250,67 +249,51 @@ class TestAddressLookup(util.TestCase):
     def test_many_addresses(self, m):
         addresses = {
             '00000000-0000-0000-0000-000000000000': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
-                'error': 'Ukendt',
                 'href': None,
                 'name': 'Ukendt',
-                'uuid': '00000000-0000-0000-0000-000000000000',
+                'value': '00000000-0000-0000-0000-000000000000',
             },
             '0a3f507b-6b35-32b8-e044-0003ba298018': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                 'name': 'Hold-An Vej 7, 2750 Ballerup',
-                'uuid': '0a3f507b-6b35-32b8-e044-0003ba298018',
+                'value': '0a3f507b-6b35-32b8-e044-0003ba298018',
             },
             '0a3f5081-75bf-32b8-e044-0003ba298018': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=11.91321841&mlat=55.62985492&zoom=16',
                 'name': 'Brobjergvej 9, Abbetved, 4060 Kirke S\u00e5by',
-                'uuid': '0a3f5081-75bf-32b8-e044-0003ba298018',
+                'value': '0a3f5081-75bf-32b8-e044-0003ba298018',
             },
             '0ead9b4d-c615-442d-8447-b328a73b5b39': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestr\u00e6de 43, 3. th, 1112 K\u00f8benhavn K',
-                'uuid': '0ead9b4d-c615-442d-8447-b328a73b5b39',
+                'value': '0ead9b4d-c615-442d-8447-b328a73b5b39',
             },
             '2ef51a73-ad7d-4ee7-e044-0003ba298018': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
                 'href': 'https://www.openstreetmap.org/'
                 '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                 'name': 'Hold-An Vej 7, 1., 2750 Ballerup',
-                'uuid': '2ef51a73-ad7d-4ee7-e044-0003ba298018',
+                'value': '2ef51a73-ad7d-4ee7-e044-0003ba298018',
             },
             'bd7e5317-4a9e-437b-8923-11156406b117': {
-                'address_type': {
-                    'scope': 'DAR',
-                },
                 'href': None,
                 'name': 'Hold-An Vej 7, 2750 Ballerup',
-                'uuid': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
             },
         }
 
         for addrid, expected in sorted(addresses.items()):
             with self.subTest(addrid):
                 actual = address.get_one_address(
-                    lora.Connector(),
                     {
-                        'objekttype': 'DAR',
-                        'uuid': addrid,
+                        'relationer': {
+                            'adresser': [{
+                                'objekttype': 'DAR',
+                                'urn': "urn:dar:{}".format(addrid),
+                            }]
+                        }
                     },
                 )
 
@@ -319,50 +302,14 @@ class TestAddressLookup(util.TestCase):
     @util.mock()
     def test_bad_scope(self, m):
         with self.assertRaisesRegex(exceptions.HTTPException,
-                                    'invalid address scope'):
+                                    'Invalid address scope type'):
             address.get_one_address(
-                lora.Connector(),
                 {
-                    'objekttype': 'kaflaflibob',
-                    'uuid': '00000000-0000-0000-0000-000000000000',
-                },
-            )
-
-    @util.mock()
-    @freezegun.freeze_time('2010-01-01', tz_offset=1)
-    def test_bad_phone(self, m):
-        m.get(
-            'http://mox/klassifikation/klasse'
-            '?uuid=00000000-0000-0000-0000-000000000000',
-            json={
-                'results': [[{
-                    "id": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                    "registreringer": [{
-                        "attributter": {
-                            "klasseegenskaber": [{
-                                "brugervendtnoegle": "Telefon",
-                                "eksempel": "20304060",
-                                "omfang": "PHONE",
-                                "titel": "Telefonnummer",
-                                "virkning": {
-                                    "from": "2000-01-01 00:00:00+01",
-                                    "from_included": True,
-                                    "to": "infinity",
-                                    "to_included": False
-                                }
-                            }]
-                        },
-                    }],
-                }]],
-            },
-        )
-
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "invalid urn 'kaflaflibob'"):
-            address.get_one_address(
-                lora.Connector(),
-                {
-                    'objekttype': '00000000-0000-0000-0000-000000000000',
-                    'urn': 'kaflaflibob',
+                    'relationer': {
+                        'adresser': [{
+                            'objekttype': 'kaflaflibob',
+                            'uuid': '00000000-0000-0000-0000-000000000000',
+                        }]
+                    }
                 },
             )

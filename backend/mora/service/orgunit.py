@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,18 +18,16 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 '''
 
 import collections
+import copy
 import enum
 import functools
-import itertools
 import locale
 import operator
 import uuid
 import json
 
-import werkzeug
 import flask
 
-from . import address
 from . import facet
 from . import handlers
 from . import org
@@ -73,11 +71,11 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         return scope.path == 'organisation/organisationenhed' and reg
 
     @classmethod
-    def get(cls, scope, objid):
-        if scope.path != 'organisation/organisationenhed':
+    def get(cls, c, type, objid):
+        if type != 'ou':
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        c = scope.connector
+        scope = c.organisationenhed
 
         return flask.jsonify([
             get_one_orgunit(
@@ -124,6 +122,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         )
 
         unitid = util.get_uuid(req, required=False)
+        if not unitid:
+            unitid = str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY,
                                "{} {}".format(name, uuid.uuid4()))
 
@@ -147,10 +147,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
 
-        addresses = [
-            address.get_relation_for(addr)
-            for addr in util.checked_get(req, mapping.ADDRESSES, [])
-        ]
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -162,13 +158,21 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             tilhoerer=org_uuid,
             enhedstype=org_unit_type_uuid,
             overordnet=parent_uuid,
-            adresser=addresses,
             integration_data=integration_data,
         )
 
         if org_uuid != parent_uuid:
-            validator.is_date_range_in_org_unit_range(parent_uuid, valid_from,
-                                                      valid_to)
+            validator.is_date_range_in_org_unit_range(
+                {'uuid': parent_uuid}, valid_from, valid_to)
+
+        details = util.checked_get(req, 'details', [])
+        details_with_org_units = _inject_org_units(details, unitid, valid_from,
+                                                   valid_to)
+
+        self.details_requests = handlers.generate_requests(
+            details_with_org_units,
+            handlers.RequestType.CREATE
+        )
 
         self.payload = org_unit
         self.uuid = unitid
@@ -265,7 +269,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         # TODO: Check if we're inside the validity range of the organisation
         if org_uuid != parent_uuid:
-            validator.is_date_range_in_org_unit_range(parent_uuid, new_from,
+            validator.is_date_range_in_org_unit_range(parent, new_from,
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
@@ -274,9 +278,28 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
-            return c.organisationenhed.create(self.payload, self.uuid)
+            result = c.organisationenhed.create(self.payload, self.uuid)
+
+            if self.details_requests:
+                for r in self.details_requests:
+                    r.submit()
+
+            return result
         else:
             return c.organisationenhed.update(self.payload, self.uuid)
+
+
+def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
+    decorated = copy.deepcopy(details)
+    for detail in decorated:
+        detail['org_unit'] = {
+            mapping.UUID: org_unit_uuid,
+            mapping.VALID_FROM: valid_from,
+            mapping.VALID_TO: valid_to,
+            'allow_nonexistent': True
+        }
+
+    return decorated
 
 
 def get_one_orgunit(c, unitid, unit=None,
@@ -953,7 +976,7 @@ def terminate_org_unit(unitid):
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
     validator.is_date_range_in_org_unit_range(
-        unitid, date - util.MINIMAL_INTERVAL, date,
+        {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
     )
 
     children = c.organisationenhed.paged_get(
@@ -963,16 +986,24 @@ def terminate_org_unit(unitid):
         limit=5,
     )
 
-    roles = c.organisationfunktion(
+    roles = set(c.organisationfunktion(
         tilknyttedeenheder=unitid,
         gyldighed='Aktiv',
-    )
+    ))
 
-    if children['total'] or roles:
+    addresses = set(c.organisationfunktion(
+        tilknyttedeenheder=unitid,
+        funktionsnavn=mapping.ADDRESS_KEY,
+        gyldighed='Aktiv',
+    ))
+
+    relevant = roles - addresses
+
+    if children['total'] or relevant:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
             child_units=children['items'],
             child_count=children['total'],
-            role_count=len(roles),
+            role_count=len(relevant),
         )
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')

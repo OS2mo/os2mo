@@ -1,10 +1,13 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
+import copy
+
 import freezegun
 
 from mora import lora
@@ -22,6 +25,7 @@ class Tests(util.LoRATestCase):
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         payload = {
+            "vacate": True,
             "validity": {
                 "to": "2000-12-01"
             }
@@ -41,7 +45,7 @@ class Tests(util.LoRATestCase):
 
             o.update(
                 livscykluskode='Rettet',
-                note='Afslut medarbejder',
+                note='Afsluttet',
             )
 
             if is_manager:
@@ -125,7 +129,7 @@ class Tests(util.LoRATestCase):
             "validity": {
                 "to": "2000-12-01"
             },
-            "terminate_all": True
+            "vacate": False,
         }
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
@@ -135,7 +139,7 @@ class Tests(util.LoRATestCase):
 
             o.update(
                 livscykluskode='Rettet',
-                note='Afslut medarbejder',
+                note='Afsluttet',
             )
 
             v = o['tilstande']['organisationfunktiongyldighed']
@@ -152,3 +156,306 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager,
                                       actual_manager)
+
+    @freezegun.freeze_time('2018-01-01')
+    def test_validation_missing_validity(self):
+        self.load_sample_structures()
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        for req in (
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                },
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                    "validity": {},
+                },
+                {
+                    "type": "manager",
+                    "uuid": manager_uuid,
+                    "validity": {
+                        "from": "2000-12-01",
+                    },
+                },
+        ):
+            with self.subTest(req):
+                self.assertRequestResponse(
+                    '/service/details/terminate',
+                    {
+                        'description': 'Missing validity',
+                        'error': True,
+                        'error_key': 'V_MISSING_REQUIRED_VALUE',
+                        'key': 'validity',
+                        'obj': req,
+                        'status': 400,
+                    },
+                    status_code=400,
+                    json=req,
+                )
+
+        with self.subTest('invalid type'):
+            self.assertRequestFails(
+                '/service/details/terminate',
+                404,
+                json={
+                    "type": "association",
+                    "uuid": manager_uuid,
+                    "validity": {
+                        "to": "2018-01-01",
+                    },
+                },
+            )
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_manager_via_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        payload = {
+            "vacate": True,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
+
+        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
+                                   userid, json=payload)
+
+        expected_manager = {
+            **c.organisationfunktion.get(manager_uuid),
+
+            "note": "Afsluttet",
+            "livscykluskode": "Rettet",
+        }
+
+        expected_manager['relationer']['tilknyttedebrugere'] = [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2017-01-01 00:00:00+01",
+                    "to": "2017-12-01 00:00:00+01"
+                }
+            },
+            {
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2017-12-01 00:00:00+01",
+                    "to": "infinity"
+                }
+            }
+        ]
+
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+        expected = {
+            'address': [{
+                'address_type': {
+                    'example': '<UUID>',
+                    'name': 'Adresse',
+                    'scope': 'DAR',
+                    'user_key': 'AdressePost',
+                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                },
+                'href': 'https://www.openstreetmap.org/'
+                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
+                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
+            }],
+            'manager_level': {
+                'example': None,
+                'name': 'Institut',
+                'scope': None,
+                'user_key': 'inst',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+            },
+            'manager_type': {
+                'example': None,
+                'name': 'Afdeling',
+                'scope': None,
+                'user_key': 'afd',
+                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+            },
+            'org_unit': {
+                'name': 'Humanistisk fakultet',
+                'user_key': 'hum',
+                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                'validity': {
+                    'from': '2016-01-01',
+                    'to': None,
+                },
+            },
+            'person': {
+                'name': 'Anders And',
+                'nickname': None,
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+            },
+            'responsibility': [{
+                'example': None,
+                'name': 'Fakultet',
+                'scope': None,
+                'user_key': 'fak',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+            }],
+            'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+            'validity': {
+                'from': '2017-01-01',
+                'to': '2017-11-30',
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'.format(userid),
+            [expected],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                **expected,
+                'person': None,
+                'validity': {'from': '2017-12-01', 'to': None},
+            }],
+        )
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_manager_properly_via_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        payload = {
+            "vacate": False,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
+
+        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
+                                   userid, json=payload)
+
+        expected_manager = {
+            **c.organisationfunktion.get(manager_uuid),
+
+            "note": "Afsluttet",
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+
+        }
+
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_manager_directly(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        original_manager = self.assertRequest(
+            '/service/e/{}/details/manager'.format(userid),
+        )
+
+        original = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRequestResponse('/service/details/terminate',
+                                   manager_uuid,
+                                   json={
+                                       "type": "manager",
+                                       "uuid": manager_uuid,
+                                       "validity": {
+                                           "to": "2017-11-30"
+                                       }
+                                   })
+
+        expected = copy.deepcopy(original)
+        expected.update(
+            livscykluskode="Rettet",
+            note="Afsluttet",
+            tilstande={
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+        )
+
+        actual = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+        with self.subTest('current'):
+            current = copy.deepcopy(original_manager)
+            current[0]['validity']['to'] = '2017-11-30'
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager'.format(userid),
+                current,
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/manager'
+                '?validity=future'.format(userid),
+                [],
+            )

@@ -1,12 +1,10 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
-import unittest
 
 import freezegun
 import notsouid
@@ -582,8 +580,6 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
         payload = [
             {
                 "type": "engagement",
@@ -617,7 +613,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
@@ -930,7 +925,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
@@ -1243,7 +1237,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
@@ -1423,7 +1416,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 "opgaver": [
                     {

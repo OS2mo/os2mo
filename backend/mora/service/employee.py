@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -66,6 +66,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False)
+        nickname = util.checked_get(req, mapping.NICKNAME, "", required=False)
 
         if not userid:
             userid = str(uuid.uuid4())
@@ -91,6 +92,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             valid_to=valid_to,
             brugernavn=name,
             brugervendtnoegle=bvn,
+            kaldenavn=nickname,
             tilhoerer=org_uuid,
             cpr=cpr,
             integration_data=integration_data,
@@ -163,6 +165,21 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs,
             ))
 
+        if mapping.NICKNAME in data:
+            try:
+                exts = (
+                    mapping.EMPLOYEE_UDVIDELSER_FIELD
+                    .get(original)[-1].copy()
+                )
+            except (TypeError, LookupError):
+                exts = {}
+            exts['kaldenavn'] = data[mapping.NICKNAME]
+
+            update_fields.append((
+                mapping.EMPLOYEE_UDVIDELSER_FIELD,
+                attrs,
+            ))
+
         if mapping.CPR_NO in data:
             attrs = mapping.EMPLOYEE_PERSON_FIELD.get(original)[-1].copy()
             attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
@@ -206,8 +223,19 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
     props = user['attributter']['brugeregenskaber'][0]
 
+    if 'brugerudvidelser' in user['attributter']:
+        exts = user['attributter']['brugerudvidelser'][0]
+    else:
+        exts = {}
+
+    try:
+        extensions = mapping.EMPLOYEE_UDVIDELSER_FIELD(user)[0]
+    except (TypeError, LookupError):
+        extensions = {}
+
     r = {
         mapping.NAME: props['brugernavn'],
+        mapping.NICKNAME: extensions.get('kaldenavn'),
         mapping.UUID: userid,
     }
 
@@ -222,6 +250,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.USER_KEY] = props['brugervendtnoegle']
+        r[mapping.NICKNAME] = exts.get('kaldenavn')
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
@@ -313,6 +342,8 @@ def get_employee(id):
         in ISO-8601 format.
 
     :>json string name: Human-readable name.
+    :>json string user_key: Short, unique key identifying the employee.
+    :>json string nickname: Optional, alternate name in common use.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -331,7 +362,9 @@ def get_employee(id):
 
       {
         "cpr_no": "1011101010",
-        "name": "Hans Bruger",
+        "user_key": "PePr",
+        "name": "Peter Prøvesten",
+        "nickname": "Prøveren",
         "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
         "org": {
           "name": "Magenta ApS",
@@ -367,8 +400,9 @@ def terminate_employee(employee_uuid):
     :param employee_uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
-    :<json boolean terminate_all: *Optional* - perform full termination, i.e.
-        terminate the associated manager functions as well.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
 
     **Example Request**:
 
@@ -384,15 +418,23 @@ def terminate_employee(employee_uuid):
     request = flask.request.get_json()
     date = util.get_valid_to(request)
 
-    c = lora.Connector(virkningfra=date, virkningtil='infinity')
+    validator.is_edit_from_date_before_today(date)
+
+    c = lora.Connector(effective_date=date, virkningtil='infinity')
 
     request_handlers = [
         handlers.get_handler_for_function(obj)(
             {
-                'date': date,
                 'uuid': objid,
-                'original': obj,
-                'request': request
+                'vacate': util.checked_get(request, 'vacate', False),
+                'validity': {
+                    'to': util.to_iso_date(
+                        # we also want to handle _future_ relations
+                        max(date, min(map(util.get_effect_from,
+                                          util.get_states(obj)))),
+                        is_end=True,
+                    ),
+                },
             },
             handlers.RequestType.TERMINATE,
         )
@@ -485,9 +527,11 @@ def create_employee():
 
     **Example Request**:
 
-    :<json string name: The name of the employee
-    :<json string cpr_no: The CPR no of the employee
-    :<json string user_key: Short, unique key identifying the employee.
+    :<json string name: The name of the employee.
+    :<json string cpr_no: The CPR number of the employee.
+    :>json string user_key: Short, unique key identifying the employee.
+    :>json string nickname: An **optional** parameter; alternate name
+      in common use.
     :<json object org: The organisation with which the employee is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.

@@ -34,6 +34,14 @@
           {{ errors.first(identifier) }}
         </span>
       </div>
+
+        <mo-facet-picker
+          v-if="isPhone"
+          v-show="noPreselectedType"
+          facet="address_property"
+          v-model="entry.visibility"
+          :preselected-user-key="preselectedType"
+        />
     </div>
 
     <mo-input-date-range
@@ -125,6 +133,15 @@ export default {
     },
 
     /**
+     * If the address is a PHONE.
+     * @type {Boolean}
+     */
+    isPhone () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
+      return false
+    },
+
+    /**
      * If it has not a preselectedType.
      * @type {Boolean}
      */
@@ -154,6 +171,7 @@ export default {
       handler (newValue) {
         this.entry.type = 'address'
         this.entry.value = newValue
+        this.entry.address = { value: newValue }
         this.$emit('input', this.entry)
       }
     },
@@ -164,6 +182,7 @@ export default {
     entry: {
       handler (newVal) {
         newVal.type = 'address'
+        newVal.org = this.$store.getters['organisation/GET_ORGANISATION']
         this.$emit('input', newVal)
       },
       deep: true
@@ -176,9 +195,7 @@ export default {
       handler (val) {
         if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
-          this.entry.uuid = val.location.uuid
-        } else {
-          this.entry.value = val
+          this.entry.value = val.location.uuid
         }
       },
       deep: true
@@ -190,16 +207,16 @@ export default {
      * Called synchronously after the instance is created.
      * Set entry and contactInfo to value.
      */
-    if (this.value.uuid) {
+    if (this.value.value) {
       this.address = {
         location: {
           name: this.value.name,
           uuid: this.value.value
         }
       }
+      this.contactInfo = this.value.value
     }
     this.entry = this.value
-    this.contactInfo = this.value.name
   }
 }
 </script>

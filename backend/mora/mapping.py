@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,9 +39,11 @@ INTEGRATION_DATA = 'integration_data'
 # Address
 ADDRESS_KEY = 'Adresse'
 ADDRESS_TYPE = 'address_type'
+VISIBILITY = 'visibility'
 
 # Employee
 CPR_NO = 'cpr_no'
+NICKNAME = 'nickname'
 
 
 # Engagement
@@ -65,6 +67,7 @@ LEAVE_TYPE = 'leave_type'
 
 # Manager
 MANAGER_KEY = 'Leder'
+MANAGER = 'manager'
 MANAGER_TYPE = 'manager_type'
 MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
@@ -182,6 +185,16 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+ASSOCIATED_FUNCTION_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ZERO_TO_MANY
+)
+
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeenheder'),
     type=FieldTypes.ZERO_TO_MANY,
@@ -232,6 +245,16 @@ SINGLE_ADDRESS_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+FUNCTION_ADDRESS_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+ADDRESS_TYPE_FIELD = FieldTuple(
+    path=('relationer', 'organisatoriskfunktionstype'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 MANAGER_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -249,6 +272,12 @@ MANAGER_LEVEL_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'lederniveau'
 )
 
+VISIBILITY_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'synlighed'
+)
+
 SINGLE_ITSYSTEM_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedeitsystemer'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
@@ -261,6 +290,11 @@ EMPLOYEE_PERSON_FIELD = FieldTuple(
 
 EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'brugeregenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+EMPLOYEE_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'brugerudvidelser'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
@@ -324,7 +358,7 @@ MANAGER_FIELDS = {
     USER_FIELD,
     RESPONSIBILITY_FIELD,
     MANAGER_LEVEL_FIELD,
-    SINGLE_ADDRESS_FIELD,
+    ASSOCIATED_MANAGER_ADDRESSES_FIELD,
 }
 
 ORG_UNIT_FIELDS = {
@@ -343,4 +377,16 @@ ITSYSTEM_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     SINGLE_ITSYSTEM_FIELD,
+}
+
+ADDRESS_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    SINGLE_ADDRESS_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    ADDRESS_TYPE_FIELD,
+    # Hard-coded here for now
+    VISIBILITY_FIELD
 }

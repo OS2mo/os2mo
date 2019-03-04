@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,8 +33,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     def prepare_create(self, req):
         c = lora.Connector()
 
-        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
-                                              required=True)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=True)
+        org_unit_uuid = util.get_uuid(org_unit, required=True)
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -43,12 +44,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_employee_range(employee, valid_from,
                                                   valid_to)
 
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, valid_from,
+        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
-        org_unit = c.organisationenhed.get(org_unit_uuid)
+        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
 
-        org_uuid = org_unit['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         job_function_uuid = util.get_mapping_uuid(req,
                                                   mapping.JOB_FUNCTION)
         engagement_type_uuid = util.get_mapping_uuid(req,
@@ -141,7 +142,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit_uuid, new_from,
+        validator.is_date_range_in_org_unit_range(org_unit, new_from,
                                                   new_to)
         validator.is_date_range_in_employee_range(employee, new_from,
                                                   new_to)

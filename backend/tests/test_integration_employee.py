@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -101,6 +101,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/'.format(userid),
             {
                 'name': 'Torkild Testperson',
+                'nickname': None,
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -108,6 +109,115 @@ class Tests(util.LoRATestCase):
                 },
                 'user_key': mock_uuid,
                 'cpr_no': '0101501234',
+                'uuid': userid,
+            },
+        )
+
+    def test_create_employee_with_nickname(self):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+
+        payload = {
+            "name": "Peter Prøvesten",
+            "nickname": "prøveren",
+            "cpr_no": "1111111111",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        with notsouid.freeze_uuid(mock_uuid):
+            r = self.request('/service/e/create', json=payload)
+        userid = r.json
+
+        expected = {
+            "livscykluskode": "Importeret",
+            "note": "Oprettet i MO",
+            "attributter": {
+                "brugeregenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "1911-11-11 00:00:00+01"
+                        },
+                        "brugervendtnoegle": mock_uuid,
+                        "brugernavn": "Peter Prøvesten",
+                        "integrationsdata": "{}"
+                    }
+                ],
+                "brugerudvidelser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "1911-11-11 00:00:00+01"
+                        },
+                        "kaldenavn": "prøveren",
+                    }
+                ]
+            },
+            "relationer": {
+                "tilhoerer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "1911-11-11 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "tilknyttedepersoner": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "1911-11-11 00:00:00+01"
+                        },
+                        "urn": "urn:dk:cpr:person:1111111111"
+                    }
+                ],
+            },
+            "tilstande": {
+                "brugergyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": "1911-11-11 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+        }
+
+        actual = c.bruger.get(userid)
+
+        with self.subTest('LoRA'):
+            self.assertRegistrationsEqual(expected, actual)
+
+        self.assertRequestResponse(
+            '/service/e/{}/'.format(userid),
+            {
+                'name': 'Peter Prøvesten',
+                'nickname': 'prøveren',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                },
+                'user_key': mock_uuid,
+                'cpr_no': '1111111111',
                 'uuid': userid,
             },
         )
@@ -138,6 +248,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/'.format(userid),
             {
                 'name': 'Teodor Testfætter',
+                'nickname': None,
                 'user_key': 'testfætter',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -245,6 +356,7 @@ class Tests(util.LoRATestCase):
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "0101501234",
+            "nickname": "TTp",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
             },
@@ -277,6 +389,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/'.format(employee_uuid),
             {
                 'name': 'Torkild Testperson',
+                "nickname": "TTp",
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -476,6 +589,7 @@ class Tests(util.LoRATestCase):
                 },
                 "cpr_no": "1205320000",
                 "name": "Fedtmule",
+                'nickname': None,
                 "uuid": userid,
             },
             "data": {
@@ -514,23 +628,26 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner = [{
-            'urn': 'urn:dk:cpr:person:1205320000',
-            'virkning': {
-                'from': '1932-05-12 00:00:00+01',
-                'from_included': True,
-                'to': '2017-01-01 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'urn': 'urn:dk:cpr:person:0202020202',
-            'virkning': {
-                'from': '2017-01-01 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }]
+        expected_tilknyttedepersoner = [
+            {
+                'urn': 'urn:dk:cpr:person:0202020202',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:dk:cpr:person:1205320000',
+                'virkning': {
+                    'from': '1932-05-12 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+        ]
 
         # but looking at the validity of the original that was sent along
         # the period from that fromdate up to the this fromdate has been
@@ -647,23 +764,26 @@ class Tests(util.LoRATestCase):
             }
         }]
 
-        expected_tilknyttedepersoner = [{
-            'urn': 'urn:dk:cpr:person:1205320000',
-            'virkning': {
-                'from': '1932-05-12 00:00:00+01',
-                'from_included': True,
-                'to': '2017-02-02 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'urn': 'urn:dk:cpr:person:0101010101',
-            'virkning': {
-                'from': '2017-02-02 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }]
+        expected_tilknyttedepersoner = [
+            {
+                'urn': 'urn:dk:cpr:person:0101010101',
+                'virkning': {
+                    'from': '2017-02-02 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+            {
+                'urn': 'urn:dk:cpr:person:1205320000',
+                'virkning': {
+                    'from': '1932-05-12 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-02-02 00:00:00+01',
+                    'to_included': False
+                }
+            },
+        ]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual = c.bruger.get(userid)
@@ -694,6 +814,7 @@ class Tests(util.LoRATestCase):
             {
                 'integration_data': {"von-and-løn-id": "2468"},
                 'name': 'Andersine And',
+                'nickname': 'Pus',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
         )
@@ -736,6 +857,7 @@ class Tests(util.LoRATestCase):
                     'von-and-løn-id': '2468'
                 },
                 'name': 'Andersine And',
+                'nickname': 'Pus',
                 'uuid': employee_uuid
             }
         )

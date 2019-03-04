@@ -1,6 +1,6 @@
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
-import { EventBus } from '@/EventBus'
+import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
@@ -30,13 +30,13 @@ const actions = {
           commit('updateError', response.data)
           return response.data
         }
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('resetFields')
         commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data }, { root: true })
         return response.data
       })
       .catch(error => {
-        EventBus.$emit('employee-changed')
+        EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('updateIsLoading', false)
         commit('updateError', error.response.data)
         commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })

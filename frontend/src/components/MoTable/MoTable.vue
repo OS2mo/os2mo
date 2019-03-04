@@ -42,7 +42,8 @@
               <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
-          <th></th>
+          <th class="table-actions" v-if="editComponent"></th>
+          <th class="table-actions" v-if="isDeletable && editComponent"></th>
         </tr>
       </thead>
 
@@ -55,7 +56,8 @@
               :value="c"
             />
           </td>
-          <td v-for="(col, index) in columns" :key="index">
+          <td v-for="(col, index) in columns" :key="index"
+              :class="'column-' + col.data">
             <mo-link
               :value="c"
               :column="col.data"
@@ -63,15 +65,25 @@
               :index="col.index"
             />
           </td>
-          <td>{{c.validity.from | date}}</td>
-          <td>{{c.validity.to | date}}</td>
-          <td>
+          <td class="column-from">{{c.validity.from | date}}</td>
+          <td class="column-to">{{c.validity.to | date}}</td>
+          <td v-if="editComponent">
             <mo-entry-edit-modal
+              class="edit-entry"
               :type="type"
               :uuid="editUuid"
               :entry-component="editComponent"
               :content="c"
               :content-type="contentType"
+              @submit="$emit('update')"
+            />
+          </td>
+          <td v-if="isDeletable && editComponent">
+            <mo-entry-terminate-modal
+              class="terminate-entry"
+              :type="contentType"
+              :content="c"
+              @submit="$emit('update')"
             />
           </td>
         </tr>
@@ -87,10 +99,10 @@
  * A table component.
  */
 
-import '@/filters/GetProperty'
 import '@/filters/Date'
 import MoLoader from '@/components/atoms/MoLoader'
 import MoEntryEditModal from '@/components/MoEntryEditModal'
+import MoEntryTerminateModal from '@/components/MoEntryTerminateModal'
 import MoLink from '@/components/MoLink'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
@@ -100,6 +112,7 @@ export default {
     MoLoader,
     MoLink,
     MoEntryEditModal,
+    MoEntryTerminateModal,
     'b-form-checkbox': bFormCheckbox,
     'b-form-checkbox-group': bFormCheckboxGroup
   },
@@ -125,7 +138,7 @@ export default {
     columns: Array,
 
     /**
-     * This boolean property defines the loading.
+     * True during rendering or loading of the component.
      */
     isLoading: Boolean,
 
@@ -135,7 +148,7 @@ export default {
     editComponent: Object,
 
     /**
-     * Defines the editUuid.
+     * Defines the UUID of the owning element, i.e. user or unit.
      */
     editUuid: String,
 
@@ -172,6 +185,16 @@ export default {
      */
     contentAvailable () {
       return this.content ? this.content.length > 0 : false
+    },
+
+    isDeletable () {
+      switch (this.contentType) {
+        case 'org_unit': return false
+        case 'employee': return false
+        case 'related': return false
+        default:
+          return true
+      }
     }
   },
 
@@ -277,12 +300,12 @@ export default {
   }
 
   td {
-    max-width: 25vh;
+    max-width: 5vh;
   }
 
   .scroll {
     max-height: 55vh;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
   }
 

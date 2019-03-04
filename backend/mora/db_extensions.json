@@ -1,0 +1,10 @@
+{
+    "bruger": {
+        "attributter": {
+            "udvidelser": [
+                "kaldenavn",
+                "adresseringsnavn"
+            ]
+        }
+    }
+}

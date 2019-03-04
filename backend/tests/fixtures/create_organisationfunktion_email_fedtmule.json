@@ -1,0 +1,67 @@
+{
+  "attributter": {
+    "organisationfunktionegenskaber": [
+      {
+        "brugervendtnoegle": "bruger@example.comw",
+        "funktionsnavn": "Adresse",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning",
+  "relationer": {
+    "tilknyttedebrugere": [
+      {
+        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "organisatoriskfunktionstype": [
+      {
+        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "adresser": [
+      {
+        "objekttype": "EMAIL",
+        "urn": "urn:mailto:goofy@example.com",
+        "virkning": {
+          "from": "1932-05-12T00:00:00+01:00",
+          "from_included": true,
+          "to": "infinity",
+          "to_included": false
+        }
+      }
+    ],
+    "tilknyttedeorganisationer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationfunktiongyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "1932-05-12 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  }
+}
