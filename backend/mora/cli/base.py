@@ -313,6 +313,8 @@ def full_run(simple):
 
     def make_server(app, startport=5000):
         '''create a server at the first available port after startport'''
+        last_exc = None
+
         for port in range(startport, 65536):
             try:
                 return (
@@ -323,9 +325,10 @@ def full_run(simple):
                     port,
                 )
             except OSError as exc:
-                pass
+                last_exc = exc
 
-        raise exc
+        if last_exc is not None:
+            raise last_exc
 
     lora_server, lora_port = make_server(lora_app.app, 6000)
     mora_server, mora_port = make_server(app.create_app(), 5000)
@@ -383,8 +386,8 @@ def full_run(simple):
                     **os.environ,
                     'BASE_URL': 'http://localhost:{}'.format(mora_port),
                 },
-        ) as frontend:
-                pass
+        ):
+            pass
 
         db.pool.closeall()
         mora_server.shutdown()

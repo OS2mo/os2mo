@@ -31,7 +31,7 @@ session.headers = {
     'User-Agent': 'MORA/0.1',
 }
 
-MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
+MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
 SEARCH_FIELDS = {
     'e': 'tilknyttedebrugere',
@@ -267,7 +267,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         number_of_uuids = len(
             list(filter(None, [org_unit_uuid, employee_uuid, manager_uuid])))
 
-        if number_of_uuids is not 1:
+        if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 'Must supply exactly one org unit UUID, '
                 'employee UUID or manager UUID', obj=req)
