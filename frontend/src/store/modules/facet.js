@@ -6,7 +6,7 @@ const state = {
   org_unit_address_type: undefined,
   employee_address_type: undefined,
   manager_address_type: undefined,
-  address_property: undefined,
+  visibility: undefined,
   association_type: undefined,
   engagement_type: undefined,
   engagement_job_function: undefined,
