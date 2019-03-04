@@ -2,7 +2,7 @@
   "current_super_unit": "Nuværende overenhed",
   "account_name": "Kontonavn",
   "association_type": "@:shared.association_type",
-  "address_property": "Synlighed",
+  "visibility": "Synlighed",
   "employee": "@:shared.employee",
   "employee_optional": "Angiv medarbejder (Valgfri)",
   "end_date": "@:shared.date.end_date",
