@@ -6,4 +6,4 @@
 #
 # check the source code with flake8, but suppress any errors
 #
-exec flake8 --exit-zero
+exec flake8 --exit-zero --config "$TOPDIR/backend/setup.cfg" mora tests
