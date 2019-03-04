@@ -135,9 +135,6 @@ test('Workflow: create employee', async t => {
     .click(parentAssociationInput)
     .click(dialog.find('.unit-association span.tree-anchor'))
 
-    .click(addressAssociationSelect)
-    .pressKey('down enter')
-
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))
 
@@ -310,12 +307,6 @@ test('Workflow: create employee with association to unit lacking address', async
     .ok()
     .click(dialog.find('.unit-association .tree-node .tree-content')
             .withText('Social og sundhed'))
-
-    .expect(addressAssociationSelect.visible)
-    .notOk()
-
-    .expect(dialog.find('p.no-address').exists)
-    .ok()
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))
