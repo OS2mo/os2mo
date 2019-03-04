@@ -155,9 +155,6 @@ export default {
       association: [
         { label: 'person', data: 'person' },
         { label: 'association_type', data: 'association_type' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'visibility', data: 'visibility' },
-        { label: 'address', data: 'address' },
         { label: 'org_unit', data: 'org_unit' }
       ],
       role: [
