@@ -180,6 +180,15 @@ export default {
             vm.backendValidationError = response.error_key
           } else {
             vm.$refs[this.nameId].hide()
+            this.$emit('submit')
+
+            this.$store.commit('log/newWorkLog',
+              {
+                type: 'EMPLOYEE_CREATE',
+                contentType: this.contentType,
+                value: this.uuid
+              },
+              { root: true })
           }
         })
     },
@@ -197,6 +206,15 @@ export default {
             vm.backendValidationError = response.error_key
           } else {
             vm.$refs[this.nameId].hide()
+            this.$emit('submit')
+
+            this.$store.commit('log/newWorkLog',
+              {
+                type: 'ORGANISATION_CREATE',
+                contentType: this.contentType,
+                value: this.uuid
+              },
+              { root: true })
           }
         })
     }
