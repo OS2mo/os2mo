@@ -45,11 +45,11 @@ def org_unit_validity():
     """
     req = flask.request.get_json()
 
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
+    org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     validator.is_date_range_in_org_unit_range(
-        org_unit_uuid, valid_from, valid_to)
+        org_unit, valid_from, valid_to)
 
     return flask.jsonify(success=True)
 

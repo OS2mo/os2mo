@@ -21,6 +21,7 @@
         class="col"
         v-model="org_unit"
         required
+        :validity="validity"
       />
     </div>
 
@@ -123,6 +124,12 @@ export default {
         if (newFrom <= originalTo) return true
       }
       return false
+    },
+
+    validity () {
+      return {
+        'from': this.from
+      }
     }
   },
   beforeCreate () {

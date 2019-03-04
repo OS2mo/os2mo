@@ -17,6 +17,7 @@
             v-model="original"
             :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
+            :validity="validity"
             required
           />
         </div>
@@ -37,6 +38,7 @@
         v-model="move.data.parent"
         :label="$t('input_fields.select_new_super_unit')"
         :date="move.data.validity.from"
+        :validity="validity"
         required
       />
 
@@ -100,6 +102,14 @@ export default {
       },
       isLoading: false,
       backendValidationError: null
+    }
+  },
+
+  computed: {
+    validity () {
+      return {
+        'from': this.move.data.validity.from
+      }
     }
   },
 

@@ -7,6 +7,7 @@
         class="col unit-manager"
         required
         v-if="!hideOrgPicker"
+        :validity="entry.validity"
       />
     </div>
 

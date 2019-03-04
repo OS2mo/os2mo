@@ -12,6 +12,7 @@
         :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
         required
+        :validity="entry.validity"
       />
 
       <mo-facet-picker

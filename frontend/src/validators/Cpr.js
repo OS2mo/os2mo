@@ -5,7 +5,7 @@ export default {
     return Validate.cpr(value, orgUuid)
   },
 
-  getMessage (value, args) {
-    return 'CPR nummeret er allerede i brug'
+  getMessage (value, args, data) {
+    return data
   }
 }

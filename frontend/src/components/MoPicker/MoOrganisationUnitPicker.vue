@@ -12,7 +12,7 @@
       :placeholder="label"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{ required: this.orgName !== null ? required : this.orgName }"
+      v-validate="{ required: this.orgName !== null ? required : this.orgName, orgunit: [validity, this.orgUnitUuid]}"
     >
 
     <div class="mo-input-group" v-show="showTree">
@@ -68,7 +68,12 @@ export default {
     /**
      * This boolean property requires a valid name.
      */
-    required: Boolean
+    required: Boolean,
+
+    /**
+     * An object of the validities, used for validation
+     */
+    validity: Object
   },
 
   data () {
@@ -79,7 +84,8 @@ export default {
        */
       selectedSuperUnitUuid: null,
       showTree: false,
-      orgName: null
+      orgName: null,
+      orgUnitUuid: null
     }
   },
 
@@ -119,6 +125,7 @@ export default {
       let unit = await OrganisationUnit.get(newVal)
 
       this.orgName = unit.name
+      this.orgUnitUuid = unit.uuid
       this.$validator.validate(this.nameId)
       this.$refs[this.nameId].blur()
       this.showTree = false

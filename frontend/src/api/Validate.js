@@ -14,6 +14,13 @@ const Validate = axios.create({
   }
 })
 
+const createErrorPayload = err => {
+  return {
+    valid: false,
+    data: err.response.data.error_key
+  }
+}
+
 export default {
   cpr (cpr, org) {
     const payload = {
@@ -23,11 +30,25 @@ export default {
       }
     }
     return Validate
-      .post('/cpr/', payload).then(r => {
+      .post('/cpr/', payload).then(result => {
         return true
+      }, err => {
+        return createErrorPayload(err)
       })
-      .catch(r => {
-        return false
+  },
+
+  orgUnit (orgUnit, validity) {
+    const payload = {
+      'org_unit': {
+        'uuid': orgUnit
+      },
+      'validity': validity
+    }
+    return Validate
+      .post('/org-unit/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
       })
   }
 }

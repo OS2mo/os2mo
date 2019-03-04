@@ -10,6 +10,7 @@ import { required, url, digits, email, min, max, numeric, max_value } from 'vee-
 import veeDa from 'vee-validate/dist/locale/da'
 import Cpr from './validators/Cpr'
 import DateInRange from './validators/DateInRange'
+import OrgUnit from './validators/OrgUnit'
 
 /**
  * See configuration options here:
@@ -34,5 +35,6 @@ Validator.extend('min', min)
 Validator.extend('max', max)
 Validator.extend('cpr', Cpr)
 Validator.extend('date_in_range', DateInRange)
+Validator.extend('orgunit', OrgUnit)
 
 Vue.use(VeeValidate, veeConfig)
