@@ -38,6 +38,7 @@ Bug fixes
   employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
+* #27153: Fixed the error and success messages for organisation and employee.
 
 Version 0.14.1, 2019-02-22
 ==========================
