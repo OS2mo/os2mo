@@ -48,7 +48,7 @@
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
     </div>
   </form>
 </template>
@@ -113,6 +113,13 @@ export default {
      */
     dateSelected () {
       return !this.moveDate
+    },
+
+    isDisabled () {
+      if (this.formValid && this.selected.length) {
+        return false
+      }
+      return true
     }
   },
   beforeCreate () {
