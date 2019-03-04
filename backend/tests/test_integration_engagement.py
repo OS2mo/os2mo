@@ -543,8 +543,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = [
             {
                 "type": "engagement",
@@ -578,8 +576,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = [
             {
                 "type": "engagement",
