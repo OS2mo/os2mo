@@ -4,6 +4,7 @@
       class="search-employee"
       v-model="person"
       required
+      :validity="validity"
     />
 
     <div class="form-row">
@@ -30,7 +31,6 @@
         class="col from-date"
         :label="$t('input_fields.move_date')"
         v-model="from"
-        :valid-dates="currentDateValidity"
         required
       />
     </div>

@@ -1,6 +1,10 @@
 <template>
   <form @submit.stop.prevent="createLeave">
-    <mo-employee-picker v-model="employee" required/>
+    <mo-employee-picker
+      v-model="employee"
+      required
+      :validity="leave.validity"
+    />
 
     <mo-leave-entry class="mt-3" v-model="leave"/>
 

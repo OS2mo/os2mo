@@ -13,7 +13,7 @@
       :auto-select-one-item="false"
       :min-len="2"
       :placeholder="$t('input_fields.search_for_employee')"
-      v-validate="{ required: required }"
+      v-validate="{ required: required, employee: [validity] }"
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
@@ -50,7 +50,11 @@ export default {
   props: {
     value: Object,
     noLabel: Boolean,
-    required: Boolean
+    required: Boolean,
+    /**
+     * Validities, used for validation
+     */
+    validity: Object
   },
 
   data () {
@@ -69,6 +73,7 @@ export default {
 
   watch: {
     item (newVal) {
+      this.$validator.validate('employee-picker')
       this.$emit('input', newVal)
     }
   },

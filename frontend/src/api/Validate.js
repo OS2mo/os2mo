@@ -50,5 +50,18 @@ export default {
       }, err => {
         return createErrorPayload(err)
       })
+  },
+
+  employee (employee, validity) {
+    const payload = {
+      'person': employee,
+      'validity': validity
+    }
+    return Validate
+      .post('/employee/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
   }
 }

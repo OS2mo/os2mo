@@ -4,6 +4,7 @@ export default {
   validate (value, args) {
     let validity = args[0]
     let orgUuid = args[1]
+
     if (!orgUuid) {
       return true
     }

@@ -17,6 +17,7 @@
         class="search-employee mb-3"
         v-if="!hideEmployeePicker && hideOrgPicker"
         noLabel
+        :validity="entry.validity"
       />
 
       <mo-add-many
