@@ -18,7 +18,4 @@ fi
 export FLASK_ENV=development
 export FLASK_APP=mora.app:app
 
-# change default setting during test
-[ "$1" = "test" ] && export OS2MO_DUMMY_MODE=true
-
 exec "$VENV"/bin/python -m mora.cli "$0" "$@"

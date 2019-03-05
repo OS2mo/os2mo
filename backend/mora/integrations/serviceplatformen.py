@@ -18,7 +18,7 @@ from .. import settings
 from .. import exceptions
 
 
-logger = logging.getLogger("flask.app")
+logger = logging.getLogger(__name__)
 
 
 def check_config(config):
