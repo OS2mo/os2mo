@@ -4,8 +4,9 @@
 
     <div class="form-row mt-3">
       <mo-input-text
+        v-model="employee.nickname"
         class="col-8"
-        :label="$t('input_fields.nickname')"
+        :label="$t('input_fields.nickname_optional')"
       />
     </div>
 
