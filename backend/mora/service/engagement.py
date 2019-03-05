@@ -145,20 +145,18 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         if mapping.PRIMARY in data:
             try:
-                exts = (
-                    mapping.ORG_FUNK_UDVIDELSER_FIELD(data)
-                    .get(original)[-1].copy()
-                )
+                exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(data)[-1].copy()
             except (TypeError, LookupError):
                 exts = {}
+
             exts['primær'] = data[mapping.PRIMARY]
 
             if exts['primær']:
-                validator.does_employee_have_existing_primary_function(
+                validator.does_have_existing_primary_function(
                     self.function_key,
-                    employee_uuid,
                     new_from, new_to,
-                    engagement_uuid,
+                    employee_uuid=employee_uuid,
+                    allowed=engagement_uuid,
                 )
 
             update_fields.append((

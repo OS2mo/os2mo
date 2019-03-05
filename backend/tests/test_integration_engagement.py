@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import copy
 import uuid
 
 import freezegun
@@ -618,6 +619,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
+                "primary": True,
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
@@ -748,7 +750,18 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "bvn",
                         "funktionsnavn": "Engagement"
                     }
-                ]
+                ],
+                "organisationfunktionudvidelser": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "primær": True,
+                    },
+                ],
             },
         }
 
@@ -1073,6 +1086,162 @@ class Tests(util.LoRATestCase):
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
+
+    def test_edit_engagement_primary(self):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        user_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/engagement?validity=future'
+            .format(user_uuid),
+            [],
+        )
+
+        orig = c.organisationfunktion.get(engagement_uuid)
+        req = [{
+            "type": "engagement",
+            "uuid": engagement_uuid,
+            "data": {
+                "primary": True,
+                "validity": {
+                    "from": "2018-04-01",
+                    "to": "2019-03-31",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [engagement_uuid],
+            json=req,
+        )
+
+        with self.subTest('lora'):
+            expected = copy.deepcopy(orig)
+            actual = c.organisationfunktion.get(engagement_uuid)
+
+            expected.update(
+                note='Rediger engagement',
+                livscykluskode='Rettet',
+            )
+
+            expected['tilstande']['organisationfunktiongyldighed'] = [
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2017-01-01 '
+                              '00:00:00+01',
+                              'from_included': True,
+                              'to': '2018-04-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-04-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2019-04-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2019-04-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': 'infinity',
+                              'to_included': False}}
+            ]
+
+            expected['attributter']['organisationfunktionudvidelser'] = [
+                {
+                    'primær': True,
+                    'virkning': {
+                        'from': '2018-04-01 '
+                        '00:00:00+02',
+                        'from_included': True,
+                        'to': '2019-04-01 '
+                        '00:00:00+02',
+                        'to_included': False,
+                    },
+                },
+            ]
+
+            self.assertRegistrationsEqual(expected, actual)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/engagement?validity=future'
+            .format(user_uuid),
+            [
+                {
+                    "engagement_type": {
+                        "example": None,
+                        "name": "Afdeling",
+                        "scope": None,
+                        "user_key": "afd",
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    },
+                    "job_function": {
+                        "example": None,
+                        "name": "Fakultet",
+                        "scope": None,
+                        "user_key": "fak",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                    },
+                    "org_unit": {
+                        "name": "Humanistisk fakultet",
+                        "user_key": "hum",
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "validity": {
+                            "from": "2016-01-01",
+                            "to": None,
+                        },
+                    },
+                    "person": {
+                        "name": "Anders And",
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "validity": {
+                        "from": "2018-04-01",
+                        "to": "2019-03-31",
+                    },
+                },
+                {
+                    "engagement_type": {
+                        "example": None,
+                        "name": "Afdeling",
+                        "scope": None,
+                        "user_key": "afd",
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    },
+                    "job_function": {
+                        "example": None,
+                        "name": "Fakultet",
+                        "scope": None,
+                        "user_key": "fak",
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                    },
+                    "org_unit": {
+                        "name": "Humanistisk fakultet",
+                        "user_key": "hum",
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "validity": {
+                            "from": "2016-01-01",
+                            "to": None,
+                        },
+                    },
+                    "person": {
+                        "name": "Anders And",
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    "validity": {
+                        "from": "2019-04-01",
+                        "to": None,
+                    },
+                },
+            ],
+        )
 
     def test_edit_engagement_move_from_unit(self):
         self.load_sample_structures()

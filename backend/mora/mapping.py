@@ -166,7 +166,7 @@ ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
 )
 
 ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
-    path=('attributter', 'brugerudvidelser'),
+    path=('attributter', 'organisationfunktionudvidelser'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
