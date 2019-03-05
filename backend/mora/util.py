@@ -287,15 +287,23 @@ def update_config(mapping, config_path, allow_environment=True):
 
     if allow_environment:
         overrides = {
-            k[5:]: v
+            k[6:]: v
             for k, v in os.environ.items()
             if k.startswith('OS2MO_')
         }
 
         for key in overrides.keys():
+            if overrides[key] in ['True', 'true']:
+                overrides[key] = True
+            if overrides[key] in ['false', 'False']:
+                overrides[key] = False
             print(
-                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
-                file=sys.stderr)
+                ' * Using configuration override {}={!r}'.format(
+                    key,
+                    overrides[key]
+                ),
+                file=sys.stderr
+            )
             mapping[key] = overrides[key]
 
 

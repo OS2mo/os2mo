@@ -9,18 +9,52 @@
 import random
 
 import service_person_stamdata_udvidet
-
-from requests import HTTPError
+import logging
+import pathlib
+import requests
 
 from .. import util
 from .. import settings
+from .. import exceptions
+
+
+logger = logging.getLogger("flask.app")
+
+
+def check_config(config):
+    DUMMY_MODE = config.get("DUMMY_MODE", False)
+    if DUMMY_MODE:
+        return True
+
+    SP_CERTIFICATE_PATH = config.get("SP_CERTIFICATE_PATH", "")
+    if not SP_CERTIFICATE_PATH:
+        raise ValueError(
+            "Serviceplatformen certificate path must be configured: "
+            "SP_CERTIFICATE_PATH"
+        )
+
+    p = pathlib.Path(config["SP_CERTIFICATE_PATH"])
+    if not p.exists():
+        raise FileNotFoundError(
+            "Serviceplatformen certificate not found: "
+            "SP_CERTIFICATE_PATH"
+        )
+    if not p.stat().st_size:
+        raise ValueError(
+            "Serviceplatformen certificate can not be empty: "
+            "SP_CERTIFICATE_PATH"
+        )
+
+    return True
 
 
 def get_citizen(cpr):
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
-    if settings.PROD_MODE:
+    if settings.DUMMY_MODE:
+        return _get_citizen_stub(cpr)
+    else:
         sp_uuids = {
             'service_agreement': settings.SP_SERVICE_AGREEMENT_UUID,
             'user_system': settings.SP_SYSTEM_UUID,
@@ -31,12 +65,15 @@ def get_citizen(cpr):
         try:
             return service_person_stamdata_udvidet.get_citizen(
                 sp_uuids, certificate, cpr)
-        except HTTPError as e:
+        except requests.HTTPError as e:
             if "PNRNotFound" in e.response.text:
-                raise KeyError('CPR not found')
-            raise e
-    else:
-        return _get_citizen_stub(cpr)
+                raise KeyError("CPR not found")
+            else:
+                logger.exception(e)
+                raise e
+        except requests.exceptions.SSLError as e:
+            logger.exception(e)
+            exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
 MALE_FIRST_NAMES = [

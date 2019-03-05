@@ -50,7 +50,7 @@ SP_MUNICIPALITY_UUID = ""
 SP_SYSTEM_UUID = ""
 SP_CERTIFICATE_PATH = ""
 
-PROD_MODE = False
+DUMMY_MODE = False
 
 USER_SETTINGS = {
     'orgunit': {

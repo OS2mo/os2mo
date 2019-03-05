@@ -11,5 +11,4 @@ omit =
 exclude_lines =
      raise NotImplementedError
      if flask.current_app.debug:
-     if settings.PROD_MODE:
      \bpass\b

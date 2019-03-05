@@ -417,7 +417,7 @@ class Tests(util.LoRATestCase):
         }
 
         # Act
-        with util.override_settings(PROD_MODE=False):
+        with util.override_settings(DUMMY_MODE=True):
             self.assertRequestResponse(
                 '/service/e/cpr_lookup/?q={}'.format(cpr),
                 expected)

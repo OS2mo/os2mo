@@ -17,8 +17,8 @@ from mora import util as mora_util
 class Tests(util.TestCase):
     maxDiff = None
 
-    @util.override_settings(PROD_MODE=False)
-    def test_cpr_lookup_prod_mode_false(self, m):
+    @util.override_settings(DUMMY_MODE=True)
+    def test_cpr_lookup_dummy_mode_true(self, m):
         with self.subTest('found'):
             self.assertRequestResponse(
                 '/service/e/cpr_lookup/?q=0101501234',
