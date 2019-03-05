@@ -2,6 +2,8 @@
 
 set -ex
 
+export OS2MO_DUMMY_MODE=true
+
 TOPDIR=$(cd "$(dirname ${BASH_SOURCE[0]})"/../..; pwd)
 
 if test -z "$VENV"
