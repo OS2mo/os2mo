@@ -98,6 +98,9 @@ test('Workflow: create employee', async t => {
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
+    // Nickname
+    .typeText(dialog.find('input[data-vv-as="Kaldenavn (valgfri)"]'), 'Teddy')
+
     // Engagement
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
