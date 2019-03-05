@@ -1,0 +1,24 @@
+test:
+  image: python:3.5
+
+  services:
+    - postgres:9.6
+
+  variables:
+    POSTGRES_HOST: postgres
+    POSTGRES_DB: mox_test
+    POSTGRES_USER: mox_test
+    POSTGRES_PASSWORD: mox_test
+
+    PYTHONWARNINGS: default
+    FLASK_ENV: testing
+    FLASK_APP: mora.app:app
+
+  script:
+    - apt-get update -qy
+    - apt-get install -qy libxmlsec1-dev python3-dev python3-pip
+    - backend/.jenkins/0-clean.sh
+    - backend/.jenkins/1-build.sh
+    - backend/.jenkins/2-checks.sh
+    - backend/.jenkins/3-tests.sh
+    - backend/.jenkins/4-deploy.sh
