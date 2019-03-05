@@ -1093,11 +1093,10 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-        user_uuid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+        userid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
 
         self.assertRequestResponse(
-            '/service/e/{}/details/engagement?validity=future'
-            .format(user_uuid),
+            '/service/e/{}/details/engagement?validity=future'.format(userid),
             [],
         )
 
@@ -1168,73 +1167,51 @@ class Tests(util.LoRATestCase):
 
             self.assertRegistrationsEqual(expected, actual)
 
+        base = {
+            "engagement_type": {
+                "example": None,
+                "name": "Afdeling",
+                "scope": None,
+                "user_key": "afd",
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+            },
+            "job_function": {
+                "example": None,
+                "name": "Fakultet",
+                "scope": None,
+                "user_key": "fak",
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            },
+            "org_unit": {
+                "name": "Humanistisk fakultet",
+                "user_key": "hum",
+                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+            },
+            "person": {
+                "name": "Anders And",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+        }
+
         self.assertRequestResponse(
-            '/service/e/{}/details/engagement?validity=future'
-            .format(user_uuid),
+            '/service/e/{}/details/engagement?validity=future'.format(userid),
             [
                 {
-                    "engagement_type": {
-                        "example": None,
-                        "name": "Afdeling",
-                        "scope": None,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "job_function": {
-                        "example": None,
-                        "name": "Fakultet",
-                        "scope": None,
-                        "user_key": "fak",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                    },
-                    "org_unit": {
-                        "name": "Humanistisk fakultet",
-                        "user_key": "hum",
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None,
-                        },
-                    },
-                    "person": {
-                        "name": "Anders And",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    **base,
+                    "primary": True,
                     "validity": {
                         "from": "2018-04-01",
                         "to": "2019-03-31",
                     },
                 },
                 {
-                    "engagement_type": {
-                        "example": None,
-                        "name": "Afdeling",
-                        "scope": None,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "job_function": {
-                        "example": None,
-                        "name": "Fakultet",
-                        "scope": None,
-                        "user_key": "fak",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                    },
-                    "org_unit": {
-                        "name": "Humanistisk fakultet",
-                        "user_key": "hum",
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None,
-                        },
-                    },
-                    "person": {
-                        "name": "Anders And",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                    **base,
+                    "primary": None,
                     "validity": {
                         "from": "2019-04-01",
                         "to": None,
@@ -1711,6 +1688,37 @@ class Tests(util.LoRATestCase):
             engagementid = self.assertRequest('/service/details/create',
                                               json=payload)
 
+        with self.subTest('reading'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/engagement?validity=future',
+                [
+                    {
+                        'engagement_type': {
+                            'example': None,
+                            'name': 'Medlem',
+                            'scope': None,
+                            'user_key': 'medl',
+                            'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                        },
+                        'job_function': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
+                        },
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
+                        'primary': True,
+                        'uuid': engagementid,
+                        'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
+                    },
+                ],
+            )
+
         expected_validation_error = {
             "error": True,
             "description": "Employee already has another active "
@@ -1857,6 +1865,7 @@ class Tests(util.LoRATestCase):
                 ]
             },
             "attributter": {
+
                 "organisationfunktionegenskaber": [
                     {
                         "virkning": {

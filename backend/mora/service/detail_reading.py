@@ -438,7 +438,7 @@ def get_detail(type, id, function):
 
     def is_primary(effect):
         return [
-            ext['primaer']
+            ext['primær']
             for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         ]
 
@@ -479,9 +479,9 @@ def get_detail(type, id, function):
             mapping.ENGAGEMENT_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
-            # mapping.PRIMARY: (
-            #     None, is_primary, None, False,
-            # ),
+            mapping.PRIMARY: (
+                None, is_primary, None, False,
+            ),
         },
         'related_unit': {
             mapping.ORG_UNIT: (
@@ -576,6 +576,7 @@ def get_detail(type, id, function):
             {
                 'attributter': (
                     'organisationfunktionegenskaber',
+                    'organisationfunktionudvidelser',
                 ),
                 'relationer': (
                     'tilhoerer',
