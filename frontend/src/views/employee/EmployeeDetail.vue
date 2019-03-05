@@ -9,14 +9,20 @@
       </h4>
 
       <div class="row">
-        <div class="col" v-if="employee.nickname">
+        <div class="employee-nickname ml-3">
           <h5 class="ml-4 col-margin">
-            <span class="employee-nickname">
-              {{$t('common.nickname')}}:
-              {{employee.nickname}}
-              <icon name="edit" class="icons"/>
-            </span>
+            {{employee.nickname}}
           </h5>
+          <span class="nickname-text ml-2">
+            {{$t('common.nickname')}}
+          </span>
+        </div>
+
+        <div class="col col-margin">
+          <mo-entry-edit-nickname-modal
+            :content="employee"
+            @submit="$emit('update')"
+          />
         </div>
 
         <div class="mr-3">
@@ -45,12 +51,14 @@ import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
 import { mapState, mapGetters } from 'vuex'
 import { Employee } from '@/store/actions/employee'
+import MoEntryEditNicknameModal from '@/components/MoEntryEditNicknameModal'
 
 export default {
   components: {
     EmployeeDetailTabs,
     MoHistory,
-    MoLoader
+    MoLoader,
+    MoEntryEditNicknameModal
   },
 
   data () {
@@ -107,8 +115,22 @@ export default {
   .employee-nickname {
     color: #aaa;
   }
-  .icons :hover{
-    color: #007bff;
-    cursor: pointer;
+  .employee-nickname .nickname-text {
+    visibility: hidden;
+    width: 10vh;
+    background-color: #000000;
+    opacity: 0.6;
+    color: #fff;
+    text-align: center;
+    font-size: 1rem;
+    border-radius: 6px;
+    padding: 3px 0;
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+  }
+
+  .employee-nickname:hover .nickname-text {
+    visibility: visible;
   }
 </style>
