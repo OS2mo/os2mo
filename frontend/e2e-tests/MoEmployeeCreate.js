@@ -4,8 +4,6 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-const ROOTID = '97337de5-6096-41f9-921e-5bed7a140d85'
-
 const dialog = Selector('#employeeCreate')
 
 // CPR Number
@@ -33,8 +31,6 @@ const addressVisibilityOption = addressVisibility.find('option')
 
 // Association
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
-
-const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
 
 const associationTypeSelect = dialog.find('.select-association select[data-vv-as="Tilknytningsrolle"]')
 const associationTypeOption = associationTypeSelect.find('option')
@@ -71,8 +67,6 @@ const levelManagerOption = levelManagerSelect.find('option')
 
 const responsibilityManagerSelect = dialog.find('.responsibility-manager select[data-vv-as="Lederansvar"]')
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
-
-const treeNodes = Selector('.tree-node .tree-content')
 
 // Search field
 const searchField = Selector('.search-bar')
@@ -301,12 +295,12 @@ test('Workflow: create employee with association to unit lacking address', async
     .click(parentAssociationInput)
     .expect(dialog.find('.unit-association .tree-arrow').exists)
     .ok()
-    .click(dialog.find('.unit-association .tree-arrow'), {offsetX: 0, offsetY: 0})
+    .click(dialog.find('.unit-association .tree-arrow'), { offsetX: 0, offsetY: 0 })
     .expect(dialog.find('.unit-association .tree-node .tree-content')
-            .withText('Social og sundhed').exists)
+      .withText('Social og sundhed').exists)
     .ok()
     .click(dialog.find('.unit-association .tree-node .tree-content')
-            .withText('Social og sundhed'))
+      .withText('Social og sundhed'))
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))

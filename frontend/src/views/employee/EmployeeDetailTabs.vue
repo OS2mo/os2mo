@@ -140,7 +140,7 @@ export default {
       ],
       association: [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'association_type', data: 'association_type' },
+        { label: 'association_type', data: 'association_type' }
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' }
