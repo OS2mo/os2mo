@@ -104,6 +104,11 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         validator.is_edit_from_date_before_today(new_from)
 
+        try:
+            exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            exts = {}
+
         payload = dict()
         payload['note'] = 'Rediger engagement'
 
@@ -144,25 +149,23 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             ))
 
         if mapping.PRIMARY in data:
-            try:
-                exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(data)[-1].copy()
-            except (TypeError, LookupError):
-                exts = {}
-
-            exts['primær'] = data[mapping.PRIMARY]
-
-            if exts['primær']:
-                validator.does_have_existing_primary_function(
-                    self.function_key,
-                    new_from, new_to,
-                    employee_uuid=employee_uuid,
-                    allowed=engagement_uuid,
-                )
+            primary = util.checked_get(data, mapping.PRIMARY, False)
 
             update_fields.append((
                 mapping.ORG_FUNK_UDVIDELSER_FIELD,
-                exts,
+                {
+                    **exts,
+                    'primær': primary,
+                },
             ))
+        else:
+            primary = exts.get('primær', False)
+
+        if primary:
+            validator.does_employee_have_existing_primary_function(
+                self.function_key, new_from, new_to,
+                employee_uuid, engagement_uuid,
+            )
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)

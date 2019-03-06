@@ -1895,3 +1895,67 @@ class Tests(util.LoRATestCase):
         actual_engagement = c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
+
+    def test_edit_primary_validations(self):
+        self.load_sample_structures()
+
+        origengagementid = 'd000591f-8705-4324-897a-075e3623f37b'
+        newengagementid = '07c98c2f-1ce7-4c0c-8073-0cb724f0e3a4'
+
+        payload = {
+            "type": "engagement",
+            "uuid": newengagementid,
+            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+            "primary": True,
+            "org_unit": {"uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"},
+            "job_function": {
+                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+            "engagement_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            }
+        }
+
+        self.assertRequestResponse('/service/details/create', newengagementid,
+                                   json=payload)
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                "error": True,
+                "description": "Employee already has another active "
+                "and primary function.",
+                "status": 400,
+                "error_key": "V_MORE_THAN_ONE_PRIMARY",
+                "preexisting": [newengagementid],
+            },
+            status_code=400,
+            json={
+                "type": "engagement",
+                "uuid": origengagementid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2017-04-01",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            origengagementid,
+            status_code=200,
+            json={
+                "type": "engagement",
+                "uuid": origengagementid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                    },
+                },
+            },
+        )
