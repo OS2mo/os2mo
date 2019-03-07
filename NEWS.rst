@@ -34,6 +34,7 @@ New features
 * #27336: Remove association addresses.
 * #25174: Add support for marking engagements as “primary”.
 * #27261: We can now read the username from the SAML session NameID
+* #27290: Add support for assigning time planning to organisational units.
 
 Bug fixes
 ---------
