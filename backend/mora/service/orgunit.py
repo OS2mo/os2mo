@@ -861,13 +861,13 @@ def create_org_unit():
     :<json string name: The name of the org unit
     :<json uuid parent: The parent org unit or organisation
     :<json uuid org_unit_type: The type of org unit
-    :<json list addresses: A list of address objects.
+    :<json list details: A list of details, see
+                         :http:get:`'/(any:type)/(uuid:id)/details/'
     :<json object validity: The validity of the created object.
 
     The parameter ``org_unit_type`` should contain
     an UUID obtained from the respective facet endpoint.
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``addresses`` parameter, see :ref:`Adresses <address>`.
 
     Validity objects are defined as such:
 
@@ -888,20 +888,6 @@ def create_org_unit():
           "from": "2016-01-01",
           "to": null
         },
-        "addresses": [{
-          "value": "0101501234",
-          "address_type": {
-            "example": "5712345000014",
-            "name": "EAN",
-            "scope": "EAN",
-            "user_key": "EAN",
-            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-          },
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }]
       }
 
     :returns: UUID of created org unit
