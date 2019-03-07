@@ -771,7 +771,7 @@ class TestUtils(TestCase):
         os.environ["OS2MO_ELEPHANTS_ALLOWED"] = "true"
         util.update_config(config, tf.name, allow_environment=True)
         self.assertEquals(config["MONKEYS_ALLOWED"], False)
-        self.assertEquals(config["ELEPHANTS_ALLOWED"], True)
+        self.assertEquals(config["ELEPHANTS_ALLOWED"], "true")
 
 
 class TestAppUtils(unittest.TestCase):
