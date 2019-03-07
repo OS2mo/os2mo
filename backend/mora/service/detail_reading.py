@@ -59,9 +59,13 @@ DETAIL_TYPES = {
 @util.restrictargs()
 def list_details(type, id):
     '''List the available 'detail' types under this entry.
+
     .. :quickref: Detail; List
+
     **Example response**:
+
     .. sourcecode:: json
+
       {
         "address": false,
         "association": false,
@@ -71,6 +75,7 @@ def list_details(type, id):
         "manager": false,
         "role": false
       }
+
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
     '''
@@ -146,12 +151,16 @@ def get_detail(type, id, function):
 
     :<jsonarr object job_function:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    :<jsonarr object type:
+    :<jsonarr object engagement_type:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object org_unit:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See :http:get:`/service/ou/(uuid:unitid)/`.
+    :<jsonarr object person:
+        See :http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string validity: The validity times of the object.
+    :<jsonarr boolean primary: Whether this is the one and only main
+                               position for the relevant person.
 
     .. sourcecode:: json
 
@@ -180,11 +189,12 @@ def get_detail(type, id, function):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
+                "primary": false,
                 "uuid": "d000591f-8705-4324-897a-075e3623f37b",
                 "validity": {
                     "from": "2017-01-01",
                     "to": null
-                },
+                }
             }
         ]
 
@@ -193,6 +203,7 @@ def get_detail(type, id, function):
     .. sourcecode:: json
 
       [
+        {
           "association_type": {
             "example": null,
             "name": "Medlem",
@@ -436,6 +447,12 @@ def get_detail(type, id, function):
             for prop in mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
         ]
 
+    def is_primary(effect):
+        return [
+            ext['primær']
+            for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
+        ]
+
     #
     # all these caches might be overkill when just listing one
     # engagement, but they are frequently helpful when listing all
@@ -472,6 +489,9 @@ def get_detail(type, id, function):
             ),
             mapping.ENGAGEMENT_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
+            mapping.PRIMARY: (
+                None, is_primary, None, False,
             ),
         },
         'related_unit': {
@@ -567,6 +587,7 @@ def get_detail(type, id, function):
             {
                 'attributter': (
                     'organisationfunktionegenskaber',
+                    'organisationfunktionudvidelser',
                 ),
                 'relationer': (
                     'tilhoerer',

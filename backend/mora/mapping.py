@@ -35,6 +35,7 @@ LOCATION = 'location'
 ERROR = 'error'
 USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
+PRIMARY = 'primary'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -161,6 +162,11 @@ ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
 
 ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'organisationfunktionegenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'organisationfunktionudvidelser'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
@@ -307,6 +313,7 @@ EMPLOYEE_FIELDS = {
 
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_UDVIDELSER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
     JOB_FUNCTION_FIELD,
     ORG_FUNK_TYPE_FIELD,

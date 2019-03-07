@@ -903,6 +903,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
+                'primary': None,
                 "validity": {
                     'from': '2017-01-01',
                     'to': None,
@@ -1428,6 +1429,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
+            'primary': None,
             'validity': {
                 'from': '2017-01-01',
                 'to': None
@@ -1461,6 +1463,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
+            'primary': None,
             'validity': {
                 'from': '2017-01-01',
                 'to': None
