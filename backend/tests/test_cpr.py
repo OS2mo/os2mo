@@ -10,6 +10,8 @@ import freezegun
 
 from . import util
 from mora import util as mora_util
+from mora.integrations import serviceplatformen
+import tempfile
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -98,3 +100,64 @@ class Tests(util.TestCase):
             },
             status_code=400,
         )
+
+
+class TestConfig(util.TestCase):
+    UUID_OK = "12345678-9abc-def1-1111-111111111111"
+    UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
+
+    uuids_good = {
+        "DUMMY_MODE": False,
+        "SP_SERVICE_UUID": UUID_OK,
+        "SP_SERVICE_AGREEMENT_UUID": UUID_OK,
+        "SP_MUNICIPALITY_UUID": UUID_OK,
+        "SP_SYSTEM_UUID": UUID_OK,
+    }
+
+    def test_serviceplatformen_dummy_true(self):
+        "test bad/missing values in config for Serviceplatformen "
+        "are not considered in dummy mode"
+        self.assertTrue(
+            serviceplatformen.check_config({"DUMMY_MODE": True})
+        )
+
+    def test_serviceplatformen_dummy_false(self):
+        "test bad/missing values in config for Serviceplatformen"
+        with self.assertRaisesRegex(
+            ValueError,
+            "Serviceplatformen certificate path must be configured: "
+            "SP_CERTIFICATE_PATH"
+        ):
+            serviceplatformen.check_config(self.uuids_good)
+
+        cfg = dict(self.uuids_good)
+        cfg.update({
+            "SP_SYSTEM_UUID": "some-other-string-with-4dashes",
+            "SP_SERVICE_UUID": self.UUID_EMPTY,
+        })
+        with self.assertRaisesRegex(
+            ValueError,
+            "Serviceplatformen uuids must be valid: "
+            "SP_SERVICE_UUID, SP_SYSTEM_UUID"
+        ):
+            serviceplatformen.check_config(cfg)
+
+        tf = tempfile.NamedTemporaryFile()
+        cfg = dict(self.uuids_good)
+        cfg.update({
+            "SP_CERTIFICATE_PATH": tf.name
+        })
+        with self.assertRaisesRegex(
+            ValueError,
+            "Serviceplatformen certificate can not be empty: "
+            "SP_CERTIFICATE_PATH"
+        ):
+            serviceplatformen.check_config(cfg)
+
+        tf.close()
+        with self.assertRaisesRegex(
+            FileNotFoundError,
+            "Serviceplatformen certificate not found: "
+            "SP_CERTIFICATE_PATH"
+        ):
+            serviceplatformen.check_config(cfg)

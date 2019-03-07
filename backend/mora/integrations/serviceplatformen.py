@@ -18,13 +18,40 @@ from .. import settings
 from .. import exceptions
 
 
-logger = logging.getLogger(__name__)
-
-
 def check_config(config):
+    UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
     DUMMY_MODE = config.get("DUMMY_MODE", False)
+
+    if DUMMY_MODE.lower() in ['true', 'false']:
+        if DUMMY_MODE.lower() == 'true':
+            DUMMY_MODE = True
+        else:
+            DUMMY_MODE = False
+        config["DUMMY_MODE"] = DUMMY_MODE
+
     if DUMMY_MODE:
         return True
+
+    missing = []
+    for uuid in [
+        "SP_SERVICE_UUID",
+        "SP_SERVICE_AGREEMENT_UUID",
+        "SP_MUNICIPALITY_UUID",
+        "SP_SYSTEM_UUID"
+    ]:
+        # check for both 0's and uuid-length
+        if (
+            config.get(uuid, UUID_EMPTY) == UUID_EMPTY or
+            len(config.get(uuid, "")) != len(UUID_EMPTY)
+        ):
+            missing.append(uuid)
+
+    if len(missing):
+        raise ValueError(
+            "Serviceplatformen uuids must be valid: {}".format(
+                ", ".join(missing)
+            )
+        )
 
     SP_CERTIFICATE_PATH = config.get("SP_CERTIFICATE_PATH", "")
     if not SP_CERTIFICATE_PATH:
@@ -33,7 +60,7 @@ def check_config(config):
             "SP_CERTIFICATE_PATH"
         )
 
-    p = pathlib.Path(config["SP_CERTIFICATE_PATH"])
+    p = pathlib.Path(SP_CERTIFICATE_PATH)
     if not p.exists():
         raise FileNotFoundError(
             "Serviceplatformen certificate not found: "
@@ -69,10 +96,10 @@ def get_citizen(cpr):
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
             else:
-                logger.exception(e)
+                logging.getLogger(__name__).exception(e)
                 raise e
         except requests.exceptions.SSLError as e:
-            logger.exception(e)
+            logging.getLogger(__name__).exception(e)
             exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 

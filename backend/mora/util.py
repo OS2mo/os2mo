@@ -295,10 +295,6 @@ def update_config(mapping, config_path, allow_environment=True):
         }
 
         for key in overrides.keys():
-            if overrides[key] in ['True', 'true']:
-                overrides[key] = True
-            if overrides[key] in ['false', 'False']:
-                overrides[key] = False
             logger.warning(
                 ' * Using configuration override {}={!r}'.format(
                     key,
