@@ -21,8 +21,7 @@ from .. import exceptions
 def check_config(config):
     UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
     DUMMY_MODE = config.get("DUMMY_MODE", False)
-
-    if DUMMY_MODE.lower() in ['true', 'false']:
+    if isinstance(DUMMY_MODE, str) and DUMMY_MODE.lower() in ['true', 'false']:
         if DUMMY_MODE.lower() == 'true':
             DUMMY_MODE = True
         else:
