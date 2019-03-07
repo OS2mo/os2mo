@@ -42,11 +42,16 @@ def get_user():
     :return: The username of the user who is currently logged in.
     '''
 
-    username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
-    try:
-        username = flask_saml_sso.get_session_attributes().get(
-            username_attr)[0]
-    except (AttributeError, IndexError):
-        username = None
+    if not flask.current_app.config['SAML_USERNAME_FROM_NAMEID']:
+        username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
+        try:
+            username = flask_saml_sso.get_session_attributes().get(
+                username_attr)[0]
+        except (AttributeError, IndexError, TypeError):
+            flask.current_app.logger.exception(
+                'Unable to get username from session attribute')
+            username = None
+    else:
+        username = flask_saml_sso.get_session_name_id()
 
     return flask.jsonify(username)
