@@ -66,6 +66,8 @@ class ErrorCodes(Enum):
     V_MORE_THAN_ONE_ASSOCIATION = \
         400, "The employee already has an active association with the given " \
              "org unit."
+    V_MORE_THAN_ONE_PRIMARY = \
+        400, "Employee already has another active and primary function."
     V_NO_ACTIVE_ENGAGEMENT = \
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
@@ -146,6 +148,7 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         try:
             self.body = body
             self.response = flask.jsonify(body)
-            self.response.status_code = self.key.code
+            if self.response:
+                self.response.status_code = self.key.code
         except RuntimeError:
             pass

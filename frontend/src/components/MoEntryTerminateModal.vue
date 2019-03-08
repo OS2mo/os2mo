@@ -29,7 +29,7 @@
       </div>
 
       <div class="float-right">
-        <button-submit :disabled="!formValid"/>
+        <button-submit :disabled="!formValid" :is-loading="isLoading"/>
       </div>
     </form>
   </b-modal>
@@ -75,7 +75,8 @@ export default {
   data () {
     return {
       validity: {},
-      backendValidationError: null
+      backendValidationError: null,
+      isLoading: false
     }
   },
 
@@ -122,8 +123,11 @@ export default {
     terminate (evt) {
       evt.preventDefault()
       if (this.formValid) {
+        this.isLoading = true
+
         return Service.post('/details/terminate', this.payload)
           .then(response => {
+            this.isLoading = false
             this.$refs.functionTerminate.hide()
             this.$emit('submit')
 

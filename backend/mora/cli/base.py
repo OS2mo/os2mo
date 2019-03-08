@@ -30,6 +30,7 @@ In addition, we have ``docs`` for building the documentation.
 import doctest
 import json
 import os
+import pkgutil
 import random
 import subprocess
 import sys
@@ -313,6 +314,8 @@ def full_run(simple):
 
     def make_server(app, startport=5000):
         '''create a server at the first available port after startport'''
+        last_exc = None
+
         for port in range(startport, 65536):
             try:
                 return (
@@ -323,15 +326,21 @@ def full_run(simple):
                     port,
                 )
             except OSError as exc:
-                pass
+                last_exc = exc
 
-        raise exc
+        if last_exc is not None:
+            raise last_exc
 
     lora_server, lora_port = make_server(lora_app.app, 6000)
     mora_server, mora_port = make_server(app.create_app(), 5000)
 
+    exts = json.loads(
+        pkgutil.get_data('mora', 'db_extensions.json').decode(),
+    )
+
     with \
             test_support.psql() as psql, \
+            test_support.extend_db_struct(exts), \
             mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
             mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
                        create=True), \
@@ -359,20 +368,14 @@ def full_run(simple):
 
         print(' * LoRA running at {}'.format(settings.LORA_URL))
 
-        conn = db.get_connection()
-
         if simple:
             test_util.load_sample_structures()
         else:
-            try:
-                with \
-                        conn.cursor() as curs, \
-                        open(os.path.join(backenddir, 'tests', 'fixtures',
-                                          'dummy.sql')) as fp:
-                    curs.execute(fp.read())
-
-            finally:
-                db.pool.putconn(conn)
+            with db.get_connection() as conn, \
+                    conn.cursor() as curs, \
+                    open(os.path.join(backenddir, 'tests', 'fixtures',
+                                      'dummy.sql')) as fp:
+                curs.execute(fp.read())
 
         print(' * Backend running at http://localhost:{}/'.format(mora_port))
 
@@ -389,8 +392,8 @@ def full_run(simple):
                     **os.environ,
                     'BASE_URL': 'http://localhost:{}'.format(mora_port),
                 },
-        ) as frontend:
-                pass
+        ):
+            pass
 
         db.pool.closeall()
         mora_server.shutdown()

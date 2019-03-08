@@ -40,7 +40,7 @@ const actions = {
         commit('updateIsLoading', false)
         commit('updateError', error.response.data)
         commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
-        return error
+        return error.response.data
       })
   },
 

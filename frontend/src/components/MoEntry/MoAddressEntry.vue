@@ -38,7 +38,7 @@
         <mo-facet-picker
           v-if="isPhone"
           v-show="noPreselectedType"
-          facet="address_property"
+          facet="visibility"
           v-model="entry.visibility"
           :preselected-user-key="preselectedType"
         />

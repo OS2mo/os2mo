@@ -347,6 +347,32 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
 
 
 @forceable
+def does_employee_have_existing_primary_function(function_key,
+                                                 new_from, new_to,
+                                                 employee_uuid,
+                                                 allowed=None):
+    c = lora.Connector(
+        virkningfra=util.to_lora_time(new_from),
+        virkningtil=util.to_lora_time(new_to)
+    )
+
+    preëxisting = c.organisationfunktion(
+        funktionsnavn=function_key,
+        gyldighed='Aktiv',
+        primær='true',
+        tilknyttedebrugere=employee_uuid,
+    )
+
+    if allowed is not None and allowed in preëxisting:
+        preëxisting.remove(allowed)
+
+    if preëxisting:
+        exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY(
+            preexisting=sorted(preëxisting),
+        )
+
+
+@forceable
 def is_edit_from_date_before_today(from_date: datetime.datetime):
     """Check if a given edit date is before today. If so, raise exception"""
     today = datetime.datetime.combine(

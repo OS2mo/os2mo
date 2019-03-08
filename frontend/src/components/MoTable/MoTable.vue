@@ -43,7 +43,7 @@
             </span>
           </th>
           <th class="table-actions" v-if="editComponent"></th>
-          <th class="table-actions" v-if="isDeletable"></th>
+          <th class="table-actions" v-if="isDeletable && editComponent"></th>
         </tr>
       </thead>
 
@@ -78,7 +78,7 @@
               @submit="$emit('update')"
             />
           </td>
-          <td v-if="isDeletable">
+          <td v-if="isDeletable && editComponent">
             <mo-entry-terminate-modal
               class="terminate-entry"
               :type="contentType"
@@ -189,11 +189,9 @@ export default {
 
     isDeletable () {
       switch (this.contentType) {
-        case 'org_unit':
-        case 'employee':
-        case 'related':
-        case 'engagement':
-          return false
+        case 'org_unit': return false
+        case 'employee': return false
+        case 'related': return false
         default:
           return true
       }

@@ -12,6 +12,16 @@ merely marking manager functions as *vacant*, set ``"vacant": true``
 in the JSON request. Please note that this is the inverse of the
 previous ``terminate_all`` parameter, which no longer has any affect.
 
+Bug fixes
+=========
+
+* #27488: Fixed 401 not redirecting to login
+
+Internal changes
+----------------
+
+* #27431: The ``address_property`` facet is now named ``visibility``.
+
 New features
 ------------
 
@@ -21,16 +31,21 @@ New features
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -
   address, association and manager for employee and organisation.
 * #25407: Added checkbox message alert validation for workflow employee terminate.
-
+* #27336: Remove association addresses.
+* #25174: Add support for marking engagements as “primary”.
 
 Bug fixes
 ---------
 
 * #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
-* #26886: Fixed duplicate for addresses in create organisation unit and
-employee move many workflow now works again.
+* #26886: Fixed duplicate for addresses in create organisation unit and 
+  employee move many workflow now works again.
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+  employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
+* #27155: Ensure that we show all unit roots when reloading a unit page.
+* #27153: Fixed the error and success messages for organisation and employee.
 
 Version 0.14.1, 2019-02-22
 ==========================
