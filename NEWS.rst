@@ -32,6 +32,7 @@ New features
 * #25407: Added checkbox message alert validation for workflow employee terminate.
 * #27336: Remove association addresses.
 * #25174: Add support for marking engagements as “primary”.
+* #27261: We can now read the username from the SAML session NameID
 
 Bug fixes
 ---------
