@@ -57,6 +57,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
                                 mapping.ASSOCIATION_KEY)
 
+        primary = util.checked_get(req, mapping.PRIMARY, False)
+
         # Validation
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
@@ -66,8 +68,14 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                                           org_unit_uuid,
                                                           valid_from)
 
+        if primary:
+            validator.does_employee_have_existing_primary_function(
+                self.function_key, valid_from, valid_to, employee_uuid,
+            )
+
         association = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ASSOCIATION_KEY,
+            primær=primary,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
@@ -143,6 +151,24 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 original, mapping.USER_FIELD.path)[-1]
             employee_uuid = util.get_uuid(employee)
 
+        try:
+            exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            exts = {}
+
+        if mapping.PRIMARY in data:
+            primary = util.checked_get(data, mapping.PRIMARY, False)
+
+            update_fields.append((
+                mapping.ORG_FUNK_UDVIDELSER_FIELD,
+                {
+                    **exts,
+                    'primær': primary,
+                },
+            ))
+        else:
+            primary = exts.get('primær', False)
+
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
                                         payload)
@@ -153,6 +179,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
+        # Validation
         validator.is_date_range_in_org_unit_range(org_unit, new_from,
                                                   new_to)
         validator.is_date_range_in_employee_range(employee, new_from,
@@ -161,6 +188,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                                           org_unit_uuid,
                                                           new_from,
                                                           association_uuid)
+
+        if primary:
+            validator.does_employee_have_existing_primary_function(
+                self.function_key, new_from, new_to, employee_uuid,
+            )
 
         self.payload = payload
         self.uuid = association_uuid

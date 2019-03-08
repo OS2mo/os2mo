@@ -221,6 +221,7 @@ def get_detail(type, id, function):
             "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
           },
           "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
+          "primary": true,
           "validity": {
             "from": "2017-01-01",
             "to": "2017-12-31"
@@ -508,6 +509,9 @@ def get_detail(type, id, function):
             ),
             mapping.ASSOCIATION_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
+            ),
+            mapping.PRIMARY: (
+                None, is_primary, None, False,
             ),
         },
         'role': {
