@@ -12,6 +12,7 @@ import service_person_stamdata_udvidet
 import logging
 import pathlib
 import requests
+import flask
 
 from .. import util
 from .. import settings
@@ -78,7 +79,7 @@ def get_citizen(cpr):
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
-    if settings.DUMMY_MODE:
+    if flask.current_app.config.get('DUMMY_MODE'):
         return _get_citizen_stub(cpr)
     else:
         sp_uuids = {
