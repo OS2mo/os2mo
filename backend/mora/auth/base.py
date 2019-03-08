@@ -45,9 +45,9 @@ def get_user():
     if not flask.current_app.config['SAML_USERNAME_FROM_NAMEID']:
         username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
         try:
-            username = flask_saml_sso.get_session_attributes().get(
-                username_attr)[0]
-        except (AttributeError, IndexError, TypeError):
+            username = flask_saml_sso.get_session_attributes()[
+                username_attr][0]
+        except (AttributeError, LookupError, TypeError):
             flask.current_app.logger.exception(
                 'Unable to get username from session attribute')
             username = None
