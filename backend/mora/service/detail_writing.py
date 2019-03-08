@@ -861,7 +861,7 @@ def edit():
 
 
 @blueprint.route('/details/terminate', methods=['POST'])
-@util.restrictargs()
+@util.restrictargs('force')
 def terminate():
     '''Terminate a relation as of a given day.
 
