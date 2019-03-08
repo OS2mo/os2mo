@@ -22,7 +22,7 @@ ExecStart=/srv/mora/venv-linux-cpython-3.5/bin/gunicorn \
     --worker-class gevent \
     --access-logfile /var/log/mora/access.log \
     --error-logfile /var/log/mora/error.log \
-    mora.app:app
+    mora.app:create_app()
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 #PrivateTmp=true

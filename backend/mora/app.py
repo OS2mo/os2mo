@@ -80,7 +80,3 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     serviceplatformen.check_config(app)
     return app
-
-
-# create a default instance for backwards compatibility
-app = create_app()
