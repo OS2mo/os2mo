@@ -78,7 +78,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return flask.send_file('index.html')
 
-    serviceplatformen.check_config(app.config)
+    serviceplatformen.check_config(app)
     return app
 
 

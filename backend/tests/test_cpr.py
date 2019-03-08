@@ -19,7 +19,6 @@ import tempfile
 class Tests(util.TestCase):
     maxDiff = None
 
-    @util.override_settings(DUMMY_MODE=True)
     def test_cpr_lookup_dummy_mode_true(self, m):
         with self.subTest('found'):
             self.assertRequestResponse(
@@ -103,61 +102,73 @@ class Tests(util.TestCase):
 
 
 class TestConfig(util.TestCase):
-    UUID_OK = "12345678-9abc-def1-1111-111111111111"
-    UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
+    def uuids(self, **overrides):
+        UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
-    uuids_good = {
-        "DUMMY_MODE": False,
-        "SP_SERVICE_UUID": UUID_OK,
-        "SP_SERVICE_AGREEMENT_UUID": UUID_OK,
-        "SP_MUNICIPALITY_UUID": UUID_OK,
-        "SP_SYSTEM_UUID": UUID_OK,
-    }
+        return {
+            "SP_SERVICE_UUID": UUID_OK,
+            "SP_SERVICE_AGREEMENT_UUID": UUID_OK,
+            "SP_MUNICIPALITY_UUID": UUID_OK,
+            "SP_SYSTEM_UUID": UUID_OK,
+            **overrides,
+        }
 
     def test_serviceplatformen_dummy_true(self):
         "test bad/missing values in config for Serviceplatformen "
         "are not considered in dummy mode"
-        self.assertTrue(
-            serviceplatformen.check_config({"DUMMY_MODE": True})
-        )
-
-    def test_serviceplatformen_dummy_false(self):
-        "test bad/missing values in config for Serviceplatformen"
-        with self.assertRaisesRegex(
-            ValueError,
-            "Serviceplatformen certificate path must be configured: "
-            "SP_CERTIFICATE_PATH"
+        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+            ENV='production',
+            DUMMY_MODE=True,
         ):
-            serviceplatformen.check_config(self.uuids_good)
+            self.assertTrue(serviceplatformen.check_config(self.app))
 
-        cfg = dict(self.uuids_good)
-        cfg.update({
-            "SP_SYSTEM_UUID": "some-other-string-with-4dashes",
-            "SP_SERVICE_UUID": self.UUID_EMPTY,
-        })
-        with self.assertRaisesRegex(
-            ValueError,
-            "Serviceplatformen uuids must be valid: "
-            "SP_SERVICE_UUID, SP_SYSTEM_UUID"
-        ):
-            serviceplatformen.check_config(cfg)
+    def test_serviceplatformen_missing_path(self):
+        with util.override_config(ENV='production', DUMMY_MODE=False,
+                                  **self.uuids()):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen certificate path must be configured: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)
 
-        tf = tempfile.NamedTemporaryFile()
-        cfg = dict(self.uuids_good)
-        cfg.update({
-            "SP_CERTIFICATE_PATH": tf.name
-        })
-        with self.assertRaisesRegex(
-            ValueError,
-            "Serviceplatformen certificate can not be empty: "
-            "SP_CERTIFICATE_PATH"
-        ):
-            serviceplatformen.check_config(cfg)
+    def test_serviceplatformen_empty_file(self):
 
-        tf.close()
-        with self.assertRaisesRegex(
-            FileNotFoundError,
-            "Serviceplatformen certificate not found: "
-            "SP_CERTIFICATE_PATH"
+        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+            ENV='production', DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(),
         ):
-            serviceplatformen.check_config(cfg)
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen certificate can not be empty: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)
+
+    def test_serviceplatformen_invalid_values(self):
+        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+            ENV='production', DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(SP_SYSTEM_UUID="some-other-string-with-4dashes",
+                         SP_SERVICE_UUID='asd'),
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen uuids must be valid: "
+                "SP_SERVICE_UUID, SP_SYSTEM_UUID"
+            ):
+                serviceplatformen.check_config(self.app)
+
+        with util.override_config(
+            ENV='production',
+            DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(),
+        ):
+            with self.assertRaisesRegex(
+                FileNotFoundError,
+                "Serviceplatformen certificate not found: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)

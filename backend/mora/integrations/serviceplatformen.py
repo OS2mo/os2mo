@@ -19,34 +19,36 @@ from .. import settings
 from .. import exceptions
 
 
-def check_config(config):
-    UUID_EMPTY = "00000000-0000-0000-0000-000000000000"
-    DUMMY_MODE = config.get("DUMMY_MODE", False)
-    if isinstance(DUMMY_MODE, str) and DUMMY_MODE.lower() in ['true', 'false']:
-        if DUMMY_MODE.lower() == 'true':
-            DUMMY_MODE = True
-        else:
-            DUMMY_MODE = False
-        config["DUMMY_MODE"] = DUMMY_MODE
-
-    if DUMMY_MODE:
+def is_dummy_mode(app):
+    if app.env != 'production':
+        # force dummy during tests and development, and make it
+        # configurable in production
+        #
+        # the underlying logic is that developers know how to edit
+        # source code, wheras that's a big no-no in production
         return True
 
-    missing = []
-    for uuid in [
-        "SP_SERVICE_UUID",
-        "SP_SERVICE_AGREEMENT_UUID",
-        "SP_MUNICIPALITY_UUID",
-        "SP_SYSTEM_UUID"
-    ]:
-        # check for both 0's and uuid-length
-        if (
-            config.get(uuid, UUID_EMPTY) == UUID_EMPTY or
-            len(config.get(uuid, "")) != len(UUID_EMPTY)
-        ):
-            missing.append(uuid)
+    return app.config['DUMMY_MODE']
 
-    if len(missing):
+
+def check_config(app):
+    if is_dummy_mode(app):
+        return True
+
+    config = app.config
+
+    missing = [
+        k
+        for k in (
+            "SP_SERVICE_UUID",
+            "SP_SERVICE_AGREEMENT_UUID",
+            "SP_MUNICIPALITY_UUID",
+            "SP_SYSTEM_UUID",
+        )
+        if not util.is_uuid(config.get(k))
+    ]
+
+    if missing:
         raise ValueError(
             "Serviceplatformen uuids must be valid: {}".format(
                 ", ".join(missing)
@@ -79,7 +81,7 @@ def get_citizen(cpr):
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
-    if flask.current_app.config.get('DUMMY_MODE'):
+    if is_dummy_mode(flask.current_app):
         return _get_citizen_stub(cpr)
     else:
         sp_uuids = {
@@ -96,10 +98,10 @@ def get_citizen(cpr):
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
             else:
-                logging.getLogger(__name__).exception(e)
+                app.logger.exception(e)
                 raise e
         except requests.exceptions.SSLError as e:
-            logging.getLogger(__name__).exception(e)
+            app.logger.exception(e)
             exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
