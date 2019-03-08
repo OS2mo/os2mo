@@ -63,5 +63,18 @@ export default {
       }, err => {
         return createErrorPayload(err)
       })
+  },
+
+  activeEngagements (employee, validity) {
+    const payload = {
+      'person': employee,
+      'validity': validity
+    }
+    return Validate
+      .post('/active-engagements/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
   }
 }
