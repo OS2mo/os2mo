@@ -502,7 +502,7 @@ def get_unit_ancestor_tree():
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ the given units in the UI.
+    *up to and including* the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
@@ -901,7 +901,7 @@ def create_org_unit():
     :<json uuid time_planning: A class identifying the time planning strategy.
     :<json uuid org_unit_type: The type of org unit
     :<json list details: A list of details, see
-                         :http:get:`'/(any:type)/(uuid:id)/details/'
+                         :http:get:`/service/(any:type)/(uuid:id)/details/`
     :<json object validity: The validity of the created object.
 
     The parameter ``org_unit_type`` should contain
