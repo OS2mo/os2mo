@@ -389,7 +389,7 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
-    adresser: typing.List[dict] = None,
+    opgaver: typing.List[dict] = None,
     integration_data: dict = {}
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
@@ -431,8 +431,8 @@ def create_organisationsenhed_payload(
         }
     }
 
-    if adresser:
-        org_unit['relationer']['adresser'] = adresser
+    if opgaver:
+        org_unit['relationer']['opgaver'] = opgaver
 
     org_unit = _set_virkning(org_unit, virkning)
 

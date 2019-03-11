@@ -18,6 +18,7 @@
   "new_name": "Nyt navn",
   "org_unit_type": "@:shared.org_unit_type",
   "primary": "@:shared.primary",
+  "time_planning": "@:shared.time_planning",
   "responsibility": "@:shared.manager_responsibility",
   "role_type": "@:shared.role_type",
   "search_for_employee": "Søg efter medarbejder",
