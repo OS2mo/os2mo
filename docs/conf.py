@@ -31,6 +31,8 @@ FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
 DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 
+os.environ['FLASK_ENV'] = 'docs'
+
 #
 # -- Generated files ------------------------------------------------------
 #
