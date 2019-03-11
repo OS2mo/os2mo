@@ -16,6 +16,7 @@
   "org_unit_type": "@:shared.org_unit_type",
   "parent": "Overenhed",
   "person": "Navn",
+  "primary": "@:shared.primary",
   "responsibility": "@:shared.manager_responsibility",
   "role_type": "@:shared.role_type",
   "start_date": "Startdato",

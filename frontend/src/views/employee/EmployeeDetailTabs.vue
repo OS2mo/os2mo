@@ -128,7 +128,8 @@ export default {
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
         { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' }
+        { label: 'engagement_type', data: 'engagement_type' },
+        { label: 'primary', data: 'primary', field: null }
       ],
       role: [
         { label: 'org_unit', data: 'org_unit' },
@@ -152,7 +153,8 @@ export default {
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
-        { label: 'address', data: 'address' }
+        { label: 'address', data: 'address' },
+        { label: 'primary', data: 'primary', field: null }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },

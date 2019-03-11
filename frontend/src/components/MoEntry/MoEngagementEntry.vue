@@ -21,6 +21,12 @@
       />
     </div>
 
+    <b-form-checkbox
+      data-vv-as="checkbox"
+      v-model="entry.primary">
+      {{$t('input_fields.primary')}}
+    </b-form-checkbox>
+
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
@@ -34,6 +40,7 @@
  * A engagement entry component.
  */
 
+import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -48,6 +55,7 @@ export default {
   name: 'MoEngagementEntry',
 
   components: {
+    bFormCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
