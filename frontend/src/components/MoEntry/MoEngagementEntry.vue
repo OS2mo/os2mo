@@ -1,5 +1,13 @@
 <template>
   <div>
+    <b-form-checkbox
+      class="mb-3 mt-1"
+      data-vv-as="checkbox"
+      v-model="entry.primary"
+    >
+      {{$t('input_fields.primary')}}
+    </b-form-checkbox>
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col"
@@ -21,11 +29,6 @@
       />
     </div>
 
-    <b-form-checkbox
-      data-vv-as="checkbox"
-      v-model="entry.primary">
-      {{$t('input_fields.primary')}}
-    </b-form-checkbox>
 
     <mo-input-date-range
       v-model="entry.validity"

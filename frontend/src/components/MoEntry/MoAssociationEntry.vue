@@ -1,5 +1,12 @@
 <template>
   <div>
+    <b-form-checkbox
+      class="mb-3 mt-1"
+      data-vv-as="checkbox"
+      v-model="entry.primary">
+      {{$t('input_fields.primary')}}
+    </b-form-checkbox>
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col unit-association"
@@ -8,22 +15,12 @@
         required
       />
 
-    </div>
-
-    <div class="form-row select-association">
       <mo-facet-picker
+        class="select-association"
         facet="association_type"
         v-model="entry.association_type"
         required
       />
-    </div>
-
-    <div class="form-row">
-      <b-form-checkbox
-        data-vv-as="checkbox"
-        v-model="entry.primary">
-        {{$t('input_fields.primary')}}
-      </b-form-checkbox>
     </div>
 
     <mo-input-date-range
