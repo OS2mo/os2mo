@@ -34,7 +34,9 @@ the `readme`_ for Flask SAML SSO.
 
 The following additional configuration entries exist for auth in OS2MO.
 
-* ``"SAML_USERNAME_ATTR"``: The name of the attribute in the SAML assertion
-  containing the username.
+* ``"SAML_USERNAME_FROM_NAMEID"``: Whether or not the username should be read
+  from the NameID returned from the IdP. This is the default.
+* ``"SAML_USERNAME_ATTR"``: If username is not read from NameID, the username
+  will be read from an attribute with this name.
 
 .. _readme: https://github.com/magenta-aps/flask_saml_sso/blob/master/README.rst
