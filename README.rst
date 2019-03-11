@@ -43,7 +43,7 @@ Model%E2%80%93view%E2%80%93controller>`_:
 MO (Frontend / View)
 ~~~~~~~~~~~~~~~~~~~~
 MOs frontend er skrevet i Javascript frameworket
-`Vue.js <http://vuejs.org>`_. Frontenden kan opfattes som *View* i
+`Vue.js`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
