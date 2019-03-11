@@ -139,6 +139,7 @@ export default {
       org_unit: [
         { label: 'org_unit', data: null },
         { label: 'org_unit_type', data: 'org_unit_type' },
+        { label: 'time_planning', data: 'time_planning' },
         { label: 'parent', data: 'parent' }
       ],
       address: [

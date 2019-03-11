@@ -75,6 +75,7 @@ MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
+TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
 
@@ -128,6 +129,9 @@ class FieldTuple(object):
                 yield item['uuid']
             except KeyError:
                 pass
+
+    def get_uuid(self, obj):
+        return next(self.get_uuids(obj), None)
 
     @property
     def path(self) -> typing.Tuple[str, str]:
@@ -303,6 +307,12 @@ EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
+)
+
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
     EMPLOYEE_EGENSKABER_FIELD,
@@ -368,6 +378,7 @@ ORG_UNIT_FIELDS = {
     ADDRESSES_FIELD,
     BELONGS_TO_FIELD,
     ORG_UNIT_TYPE_FIELD,
+    ORG_UNIT_TIME_PLANNING_FIELD,
     PARENT_FIELD
 }
 

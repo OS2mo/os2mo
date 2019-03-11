@@ -9,6 +9,9 @@ fixture('MoOrganisationUnitTerminate')
 
 const createDialog = Selector('#orgUnitCreate')
 
+const createTimeSelect = createDialog.find('select[data-vv-as="Tidsregistrering"]')
+const createTimeOption = createTimeSelect.find('option')
+
 const createUnitSelect = createDialog.find('select[data-vv-as="Enhedstype"]')
 const createUnitOption = createUnitSelect.find('option')
 
@@ -38,6 +41,9 @@ test('Workflow: terminate org unit', async t => {
 
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))

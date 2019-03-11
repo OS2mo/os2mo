@@ -12,6 +12,13 @@
           v-model="entry.org_unit_type"
           required
         />
+
+        <mo-facet-picker
+          facet="time_planning"
+          v-model="entry.time_planning"
+          preselectedType
+          required
+        />
       </div>
 
       <mo-organisation-unit-picker
