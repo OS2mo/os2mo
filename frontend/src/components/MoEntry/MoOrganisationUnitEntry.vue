@@ -8,15 +8,15 @@
         />
 
         <mo-facet-picker
-          facet="time_planning"
-          v-model="entry.time_planning"
-          preselectedType
+          facet="org_unit_type"
+          v-model="entry.org_unit_type"
           required
         />
 
         <mo-facet-picker
-          facet="org_unit_type"
-          v-model="entry.org_unit_type"
+          facet="time_planning"
+          v-model="entry.time_planning"
+          preselectedType
           required
         />
       </div>
