@@ -55,7 +55,8 @@ def search_cpr():
         exceptions.ErrorCodes.V_NO_PERSON_FOR_CPR(cpr=cpr)
     except ValueError:
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
-
+    except Exception:
+        exceptions.ErrorCodes.E_UNKNOWN(cpr=cpr)
     return flask.jsonify(format_cpr_response(sp_data, cpr))
 
 

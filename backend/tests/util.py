@@ -350,6 +350,8 @@ class TestCaseMixin(object):
         os.makedirs(BUILD_DIR, exist_ok=True)
 
         return app.create_app({
+            'ENV': 'testing',
+            'DUMMY_MODE': True,
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,

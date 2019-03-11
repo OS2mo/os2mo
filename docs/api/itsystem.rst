@@ -1,11 +1,11 @@
 .. automodule:: mora.service.itsystem
 
 
-.. qrefflask:: mora.app:app
+.. qrefflask:: mora.app:create_app()
    :blueprints: itsystem
    :order: path
 
-.. autoflask:: mora.app:app
+.. autoflask:: mora.app:create_app()
    :include-empty-docstring:
    :order: path
    :blueprints: itsystem

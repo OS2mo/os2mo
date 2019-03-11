@@ -102,6 +102,7 @@ class ErrorCodes(Enum):
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."
+    E_SP_SSL_ERROR = 500, "SSL Error connecting to SP"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):

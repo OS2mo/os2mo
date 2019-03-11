@@ -25,6 +25,7 @@ Internal changes
 New features
 ------------
 
+* #27299: Config check on startup, DUMMY_MODE instead of PROD_MODE,
 * #26459: Add support for terminating relations, such as associations,
   addresses, etc., using a separate dialog.
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -

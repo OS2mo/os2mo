@@ -27,7 +27,6 @@ import json
 import marshal
 import os
 import re
-import sys
 import tempfile
 import typing
 import urllib.parse
@@ -37,6 +36,7 @@ import flask
 import dateutil.parser
 import dateutil.tz
 import werkzeug.routing
+import logging
 
 from . import exceptions
 from . import mapping
@@ -72,6 +72,8 @@ _tzinfos = {
     1 * 60**2: DEFAULT_TIMEZONE,
     2 * 60**2: DEFAULT_TIMEZONE,
 }
+
+logger = logging.getLogger(__name__)
 
 
 def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
@@ -283,19 +285,22 @@ def update_config(mapping, config_path, allow_environment=True):
             mapping[key] = overrides[key]
 
     except IOError:
-        print('Unable to read config {}'.format(config_path))
+        logger.error('Unable to read config {}'.format(config_path))
 
     if allow_environment:
         overrides = {
-            k[5:]: v
+            k[6:]: v
             for k, v in os.environ.items()
             if k.startswith('OS2MO_')
         }
 
         for key in overrides.keys():
-            print(
-                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
-                file=sys.stderr)
+            logger.warning(
+                ' * Using configuration override {}={!r}'.format(
+                    key,
+                    overrides[key]
+                )
+            )
             mapping[key] = overrides[key]
 
 
