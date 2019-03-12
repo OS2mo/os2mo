@@ -13,7 +13,7 @@
           class="mt-2 btn btn-primary btn-submit"
           :disabled="!valid"
         >
-          <icon name="map-signs"/>
+          <icon name="sitemap"/>
           {{$t('buttons.save')}}
         </button>
       </div>
