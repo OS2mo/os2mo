@@ -127,9 +127,9 @@ export default {
        */
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' },
-        { label: 'primary', data: 'primary', field: null }
+        { label: 'engagement_type', data: 'engagement_type' }
       ],
       role: [
         { label: 'org_unit', data: 'org_unit' },
@@ -141,7 +141,8 @@ export default {
       ],
       association: [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'association_type', data: 'association_type' },
+        { label: 'primary', data: 'primary', field: null },
+        { label: 'association_type', data: 'association_type' }
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' }

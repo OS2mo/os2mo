@@ -152,7 +152,7 @@ export default {
         { label: 'engagement_type', data: 'engagement_type' },
         { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
-        { label: 'org_unit', data: 'org_unit' },
+        { label: 'org_unit', data: 'org_unit' }
       ],
       association: [
         { label: 'person', data: 'person' },
