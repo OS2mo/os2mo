@@ -72,13 +72,20 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return error.get_response(flask.request.environ)
 
-    @app.route('/')
-    @app.route('/<path:path>')
-    def root(path=''):
-        if path.split('/', 1)[0] == 'service':
-            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+    if app.env != 'production':
+        @app.route('/')
+        @app.route('/<path:path>')
+        def root(path=''):
+            '''Serve static files.
 
-        return flask.send_file('index.html')
+            Disabled in production since you should configure the
+            proxy to do so.
+
+            '''
+            if path.split('/', 1)[0] == 'service':
+                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
+            return flask.send_file('index.html')
 
     serviceplatformen.check_config(app)
     return app
