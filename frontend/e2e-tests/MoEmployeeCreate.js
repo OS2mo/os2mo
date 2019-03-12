@@ -12,6 +12,8 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
+const addressCheckbox = dialog.find('.container')
+
 const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
@@ -99,6 +101,8 @@ test('Workflow: create employee', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(addressCheckbox)
+
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
