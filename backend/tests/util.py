@@ -29,13 +29,11 @@ import werkzeug.serving
 from oio_rest.utils import test_support
 
 from mora import app, lora, settings
-from mora.importing import spreadsheets
 
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
-IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 TOP_DIR = os.path.dirname(BASE_DIR)
@@ -97,15 +95,6 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     print('creating', path, uuid, file=sys.stderr)
     r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
     return r
-
-
-def import_fixture(fixture_name):
-    path = os.path.join(IMPORTING_DIR, fixture_name)
-    print(fixture_name, path)
-    for method, path, obj in spreadsheets.convert([path]):
-        r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
-                             json=obj)
-        r.raise_for_status()
 
 
 def load_sample_structures(*, verbose=False, minimal=False, check=False,

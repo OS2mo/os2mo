@@ -270,13 +270,7 @@ Værket anvender følgende Open Source software-komponenter:
 
 * `Flask <https://www.palletsprojects.com/p/flask/>`_, BSD License
 * `Flask-Session <https://github.com/fengsp/flask-session>`_, BSD License
-* `gevent <http://www.gevent.org/>`_, MIT License
-* `grequests <https://github.com/kennethreitz/grequests>`_, BSD License
 * `lxml <http://lxml.de/>`_, BSD License
-* `pyexcel <https://github.com/pyexcel/pyexcel>`_, New BSD License
-* `pyexcel-io <https://github.com/pyexcel/pyexcel-io>`_, BSD License
-* `pyexcel-ods <https://github.com/pyexcel/pyexcel-ods>`_, New BSD License
-* `pyexcel-xlsx <https://github.com/pyexcel/pyexcel-xlsx>`_, New BSD License
 * `python-dateutil <https://dateutil.readthedocs.io>`_, BSD License, Apache Software License
 * `python3-saml <https://github.com/onelogin/python3-saml>`_, MIT License
 * `requests <http://python-requests.org>`_, Apache Software License
