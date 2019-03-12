@@ -11,6 +11,7 @@ import veeDa from 'vee-validate/dist/locale/da'
 import ActiveEngagements from './validators/ActiveEngagements'
 import Cpr from './validators/Cpr'
 import Employee from './validators/Employee'
+import ExistingAssociations from './validators/ExistingAssociations'
 import DateInRange from './validators/DateInRange'
 import OrgUnit from './validators/OrgUnit'
 
@@ -39,6 +40,7 @@ Validator.extend('max', max)
 Validator.extend('active_engagements', ActiveEngagements)
 Validator.extend('cpr', Cpr)
 Validator.extend('employee', Employee)
+Validator.extend('existing_associations', ExistingAssociations)
 Validator.extend('date_in_range', DateInRange)
 Validator.extend('orgunit', OrgUnit)
 

@@ -13,6 +13,7 @@
         v-model="entry.org_unit"
         required
         :validity="entry.validity"
+        :extra-validations="validations"
       />
 
       <mo-facet-picker
@@ -43,6 +44,8 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
 import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import { Employee } from '@/store/actions/employee'
+import { mapGetters } from 'vuex'
 
 export default {
   mixins: [OrgUnitValidity],
@@ -50,6 +53,23 @@ export default {
   extends: MoEntryBase,
 
   name: 'MoAssociationEntry',
+
+  computed: {
+    ...mapGetters({
+      currentEmployee: Employee.getters.GET_EMPLOYEE
+    }),
+
+    validations () {
+      return {
+        existing_associations: [
+          this.currentEmployee,
+          this.entry.org_unit,
+          this.entry.validity,
+          this.entry.uuid
+        ]
+      }
+    }
+  },
 
   components: {
     MoInputCheckbox,

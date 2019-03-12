@@ -169,6 +169,8 @@ def employee_existing_associations():
     :<json object person: The associated employee
     :<json object person: The associated org unit
     :<json object validity: The relevant validities to be checked
+    :<json object uuid: The UUID of an existing association to be exempt
+        from validation
 
     .. sourcecode:: json
 
@@ -182,17 +184,19 @@ def employee_existing_associations():
         "validity": {
             "from": "2016-01-01",
             "to": "2017-12-31"
-        }
+        },
+        "uuid": "df995126-e747-4f9f-8e3b-ca38cadbfdb1",
       }
     """
     req = flask.request.get_json()
 
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
-    valid_from, valid_to = util.get_validities(req)
+    association_uuid = util.get_uuid(req, required=False)
+    valid_from = util.get_valid_from(req)
 
     validator.does_employee_have_existing_association(
-        employee_uuid, org_unit_uuid, valid_from, valid_to)
+        employee_uuid, org_unit_uuid, valid_from, association_uuid)
 
     return flask.jsonify(success=True)
 

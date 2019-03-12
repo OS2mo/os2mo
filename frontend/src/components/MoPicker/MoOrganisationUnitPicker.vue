@@ -12,7 +12,7 @@
       :placeholder="label"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{ required: this.orgName !== null ? required : this.orgName, orgunit: [validity, this.orgUnitUuid]}"
+      v-validate="validations"
     >
 
     <div class="mo-input-group" v-show="showTree">
@@ -73,7 +73,12 @@ export default {
     /**
      * An object of the validities, used for validation
      */
-    validity: Object
+    validity: Object,
+
+    /**
+     * An object of additional validations to be performed
+     */
+    extraValidations: Object
   },
 
   data () {
@@ -110,6 +115,17 @@ export default {
     isRequired () {
       if (this.isDisabled) return false
       return this.required
+    },
+
+    validations () {
+      let validations = {
+        required: this.orgName !== null ? this.required : this.orgName,
+        orgunit: [this.validity, this.orgUnitUuid]
+      }
+      if (this.extraValidations) {
+        validations = { ...validations, ...this.extraValidations }
+      }
+      return validations
     }
   },
 
@@ -155,6 +171,11 @@ export default {
      */
     toggleTree () {
       this.showTree = !this.showTree
+    },
+
+    getLabel (item) {
+      console.log(item)
+      return item ? item.name : null
     }
   }
 }

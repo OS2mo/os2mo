@@ -55,6 +55,9 @@ export default {
      * Validities, used for validation
      */
     validity: Object,
+    /**
+     * An object of additional validations to be performed
+     */
     extraValidations: Object
   },
 
