@@ -39,6 +39,7 @@
         :label="$t('input_fields.select_new_super_unit')"
         :date="move.data.validity.from"
         :validity="validity"
+        :extra-validations="parentValidations"
         required
       />
 
@@ -110,7 +111,14 @@ export default {
       return {
         'from': this.move.data.validity.from
       }
+    },
+
+    parentValidations () {
+      return {
+        candidate_parent_org_unit: [this.original, this.move.data.parent, this.validity]
+      }
     }
+
   },
 
   watch: {
