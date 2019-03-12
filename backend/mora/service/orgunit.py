@@ -93,6 +93,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                     ),
                     'relationer': (
                         'enhedstype',
+                        'opgaver',
                         'overordnet',
                         'tilhoerer',
                     ),
@@ -147,6 +148,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
 
+        time_planning_uuid = util.get_mapping_uuid(req, mapping.TIME_PLANNING,
+                                                   required=False)
+
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -157,6 +161,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             enhedstype=org_unit_type_uuid,
+            opgaver=[
+                {
+                    'objekttype': 'tidsregistrering',
+                    'uuid': time_planning_uuid,
+                },
+            ] if time_planning_uuid else [],
             overordnet=parent_uuid,
             integration_data=integration_data,
         )
@@ -250,6 +260,15 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
+        if mapping.TIME_PLANNING in data:
+            update_fields.append((
+                mapping.ORG_UNIT_TIME_PLANNING_FIELD,
+                {
+                    'objekttype': 'tidsregistrering',
+                    'uuid': data[mapping.TIME_PLANNING]['uuid'],
+                }
+            ))
+
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
             validator.is_candidate_parent_valid(unitid,
@@ -318,7 +337,8 @@ def get_one_orgunit(c, unitid, unit=None,
     rels = unit['relationer']
     validities = unit['tilstande']['organisationenhedgyldighed']
 
-    unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+    unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
+    timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     parentid = rels['overordnet'][0]['uuid']
     orgid = rels['tilhoerer'][0]['uuid']
 
@@ -364,12 +384,21 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, unittype) if unittype else None
         )
 
+        r[mapping.TIME_PLANNING] = (
+            facet.get_one_class(c, timeplanning) if timeplanning else None
+        )
+
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.PARENT] = get_one_orgunit(c, parentid,
                                             details=UnitDetails.MINIMAL)
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
+        )
+
+        r[mapping.TIME_PLANNING] = (
+            facet.get_one_class(c, timeplanning) if timeplanning else None
         )
 
     elif details is UnitDetails.MINIMAL:
@@ -473,7 +502,7 @@ def get_unit_ancestor_tree():
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ the given units in the UI.
+    *up to and including* the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
@@ -630,6 +659,8 @@ def get_orgunit(unitid):
     :>json uuid parent: The parent org unit or organisation
     :>json uuid org: The organisation the unit belongs to
     :>json uuid org_unit_type: The type of org unit
+    :>json uuid parent: The parent org unit or organisation
+    :>json uuid time_planning: A class identifying the time planning strategy.
     :>json object validity: The validity of the created object.
 
     :status 200: Whenever the object exists.
@@ -655,6 +686,13 @@ def get_orgunit(unitid):
           "scope": null,
           "user_key": "afd",
           "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+        },
+        "time_planning": {
+          "example": null,
+          "name": "Arbejdstidsplaner",
+          "scope": null,
+          "user_key": "abtp",
+          "uuid": "f81b3921-fed4-4616-a24a-59d68423e1f9"
         },
         "parent": {
           "name": "Historisk Institut",
@@ -860,14 +898,15 @@ def create_org_unit():
 
     :<json string name: The name of the org unit
     :<json uuid parent: The parent org unit or organisation
+    :<json uuid time_planning: A class identifying the time planning strategy.
     :<json uuid org_unit_type: The type of org unit
-    :<json list addresses: A list of address objects.
+    :<json list details: A list of details, see
+                         :http:get:`/service/(any:type)/(uuid:id)/details/`
     :<json object validity: The validity of the created object.
 
     The parameter ``org_unit_type`` should contain
     an UUID obtained from the respective facet endpoint.
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``addresses`` parameter, see :ref:`Adresses <address>`.
 
     Validity objects are defined as such:
 
@@ -888,20 +927,6 @@ def create_org_unit():
           "from": "2016-01-01",
           "to": null
         },
-        "addresses": [{
-          "value": "0101501234",
-          "address_type": {
-            "example": "5712345000014",
-            "name": "EAN",
-            "scope": "EAN",
-            "user_key": "EAN",
-            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-          },
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }]
       }
 
     :returns: UUID of created org unit

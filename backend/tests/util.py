@@ -10,6 +10,7 @@
 import contextlib
 import json
 import os
+import pkgutil
 import pprint
 import re
 import sys
@@ -349,6 +350,8 @@ class TestCaseMixin(object):
         os.makedirs(BUILD_DIR, exist_ok=True)
 
         return app.create_app({
+            'ENV': 'testing',
+            'DUMMY_MODE': True,
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,
@@ -520,6 +523,10 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
+
+    db_structure_extensions = json.loads(
+        pkgutil.get_data('mora', 'db_extensions.json').decode(),
+    )
 
     def load_sample_structures(self, **kwargs):
         load_sample_structures(**kwargs)

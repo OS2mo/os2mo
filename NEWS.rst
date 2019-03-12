@@ -12,11 +12,6 @@ merely marking manager functions as *vacant*, set ``"vacant": true``
 in the JSON request. Please note that this is the inverse of the
 previous ``terminate_all`` parameter, which no longer has any affect.
 
-Bug fixes
-=========
-
-* #27488: Fixed 401 not redirecting to login
-
 Internal changes
 ----------------
 
@@ -25,13 +20,16 @@ Internal changes
 New features
 ------------
 
+* #27299: Config check on startup, DUMMY_MODE instead of PROD_MODE,
 * #26459: Add support for terminating relations, such as associations,
   addresses, etc., using a separate dialog.
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -
   address, association and manager for employee and organisation.
 * #25407: Added checkbox message alert validation for workflow employee terminate.
 * #27336: Remove association addresses.
-
+* #25174: Add support for marking engagements as “primary”.
+* #27261: We can now read the username from the SAML session NameID
+* #27290: Add support for assigning time planning to organisational units.
 
 Bug fixes
 ---------
@@ -45,6 +43,7 @@ Bug fixes
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
 * #27153: Fixed the error and success messages for organisation and employee.
+* #27488: Fixed 401 not redirecting to login
 
 Version 0.14.1, 2019-02-22
 ==========================

@@ -1,11 +1,11 @@
 .. automodule:: mora.service.orgunit
 
 
-.. qrefflask:: mora.app:app
+.. qrefflask:: mora.app:create_app()
    :blueprints: orgunit
    :order: path
 
-.. autoflask:: mora.app:app
+.. autoflask:: mora.app:create_app()
    :include-empty-docstring:
    :order: path
    :blueprints: orgunit

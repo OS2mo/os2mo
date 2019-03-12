@@ -133,6 +133,9 @@ def create():
     :<jsonarr string type: **"engagement"**
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
+    :<jsonarr boolean primary: Mark this one as the “main” engagement
+                               or position of a given employee. There
+                               can only be one.
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the created object.
@@ -573,6 +576,7 @@ def edit():
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
+          },
           "data": {
             "validity": {
                 "from": "2016-01-01",
@@ -857,7 +861,7 @@ def edit():
 
 
 @blueprint.route('/details/terminate', methods=['POST'])
-@util.restrictargs()
+@util.restrictargs('force')
 def terminate():
     '''Terminate a relation as of a given day.
 
@@ -868,7 +872,7 @@ def terminate():
               :http:post:`/service/details/edit`.
     :<jsonarr str uuid: The UUID of the related to terminate.
     :<json boolean vacate: *Optional* - mark applicable — currently
-        only ``manager` -- functions as _vacant_, i.e. simply detach
+        only ``manager`` -- functions as _vacant_, i.e. simply detach
         the employee from them.
     :<jsonarr object validity: A validity object; but only the ``to`` is
               used.

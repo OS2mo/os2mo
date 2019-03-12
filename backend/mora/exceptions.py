@@ -66,6 +66,8 @@ class ErrorCodes(Enum):
     V_MORE_THAN_ONE_ASSOCIATION = \
         400, "The employee already has an active association with the given " \
              "org unit."
+    V_MORE_THAN_ONE_PRIMARY = \
+        400, "Employee already has another active and primary function."
     V_NO_ACTIVE_ENGAGEMENT = \
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
@@ -100,6 +102,7 @@ class ErrorCodes(Enum):
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."
+    E_SP_SSL_ERROR = 500, "SSL Error connecting to SP"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):
