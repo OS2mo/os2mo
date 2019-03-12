@@ -29,6 +29,7 @@
     "V_MISSING_REQUIRED_VALUE": "Manglende værdi er påkrævet",
     "V_MISSING_START_DATE": "Manglende start dato",
     "V_MORE_THAN_ONE_ASSOCIATION": "Medarbejderen har allerede en aktiv tilknytning med organisationsenheden",
+    "V_MORE_THAN_ONE_PRIMARY": "Medarbejderen er allerede blevet tildelt primær",
     "V_NO_ACTIVE_ENGAGEMENT": "Medarbejderen skal have et aktivt engagement",
     "V_NO_PERSON_FOR_CPR": "Ingen personer er fundet med det indtastet CPR nummer",
     "V_ORG_UNIT_MOVE_TO_CHILD": "Organisationsenheden kan ikke flyttes under dens egen underenheder",
