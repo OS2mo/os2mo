@@ -255,10 +255,12 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
                                               'small', 'normal', 'large']),
               default='dummy',
               help='Choose the initial dataset.')
+@click.option('--dump-to', type=click.File(mode='w', lazy=True, atomic=True),
+              help='Dump the database to the given file.')
 @click.option('--backend-only', is_flag=True,
               help="Don't run the ``vue-cli-service`` server for frontend "
               "development.")
-def full_run(fixture, backend_only):
+def full_run(fixture, dump_to, backend_only):
     '''Command for running a one-off server for frontend development.
 
     This server consists of a the following:
@@ -419,6 +421,20 @@ def full_run(fixture, backend_only):
             )
 
             importer.import_all()
+
+        if dump_to:
+            subprocess.check_call(
+                [
+                    'pg_dump',
+                    '--data-only', '--column-inserts',
+                    '--dbname', lora_settings.DATABASE,
+                    '--host', lora_settings.DB_HOST,
+                    '--port', str(lora_settings.DB_PORT),
+                    '--username', lora_settings.DB_USER,
+                ],
+                stdout=dump_to,
+            )
+            return
 
         try:
             if backend_only:
