@@ -130,7 +130,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
-        request to LoRa, typically a UUID.
+                 request to LoRa, typically a UUID.
 
         """
 
