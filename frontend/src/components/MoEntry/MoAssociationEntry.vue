@@ -1,11 +1,8 @@
 <template>
   <div>
-    <b-form-checkbox
-      class="mb-3 mt-1"
-      data-vv-as="checkbox"
-      v-model="entry.primary">
-      {{$t('input_fields.primary')}}
-    </b-form-checkbox>
+    <mo-input-checkbox
+      v-model="entry.primary"
+    />
 
     <div class="form-row">
       <mo-organisation-unit-picker
@@ -36,7 +33,7 @@
  * A association entry component.
  */
 
-import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
+import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -51,7 +48,7 @@ export default {
   name: 'MoAssociationEntry',
 
   components: {
-    bFormCheckbox,
+    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
