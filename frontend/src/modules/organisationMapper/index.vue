@@ -11,7 +11,7 @@
         <button
           @click="onSubmit"
           class="mt-2 btn btn-primary btn-submit"
-          :disabled="!valid"
+          :disabled="!isDirty"
         >
           <icon name="sitemap"/>
           {{$t('buttons.save')}}
@@ -46,7 +46,6 @@
 </template>
 
 <script>
-import isEqualTo from 'lodash.isequal'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import MoLog from '@/components/MoLog/MoLog'
 import { mapGetters } from 'vuex'
@@ -81,12 +80,8 @@ export default {
       }
     },
 
-    valid () {
-      return this.origin && !isEqualTo(this.original_destination, this.destination)
-    },
-
     ...mapGetters({
-      original_destination: 'organisationMapper/original_destination'
+      isDirty: 'organisationMapper/isDirty'
     })
   },
 

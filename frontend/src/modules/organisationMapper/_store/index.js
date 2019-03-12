@@ -1,3 +1,4 @@
+import isEqual from 'lodash.isequal'
 import moment from 'moment'
 import Service from '@/api/HttpCommon'
 
@@ -8,7 +9,7 @@ const state = {
 }
 
 const actions = {
-  MAP_ORGANISATIONS ({ commit, state }) {
+  MAP_ORGANISATIONS ({ commit, dispatch, state }) {
     Service.post(
       `/ou/${state.origin}/map`,
       {
@@ -22,6 +23,8 @@ const actions = {
         commit('log/newWorkLog',
           { type: 'ORGANISATION_EDIT', value: state.origin },
           { root: true })
+
+        dispatch('GET_ORGANISATION_MAPPINGS')
       })
       .catch(error => {
         commit('log/newError',
@@ -61,9 +64,14 @@ const mutations = {
 const getters = {
   origin: state => state.origin,
   destination: state => state.destination,
-  original_destination: state => state.raw_destination.flatMap(
-    func => func.org_unit.map(ou => ou.uuid).filter(id => id !== state.origin)
-  )
+  isDirty: state => {
+    let orig = new Set(
+      state.raw_destination.flatMap(
+        func => func.org_unit.map(ou => ou.uuid).filter(id => id !== state.origin)
+      )
+    )
+    return !isEqual(new Set(state.destination), orig)
+  }
 }
 
 export default {

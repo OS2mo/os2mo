@@ -6,6 +6,8 @@ Bug fixes
 
 * #27228: Clicking the “Save” button in the organisation mapper now
   shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
 
 Version 0.15.0, in development
 ==============================

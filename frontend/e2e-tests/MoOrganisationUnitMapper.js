@@ -160,8 +160,8 @@ test('Writing mapping', async t => {
       /Organisationsenheden med UUID [-0-9a-f]* er blevet redigeret/
     )
 
-  // FIXME: we should disable the button after a save
-    // .expect(saveButton.getAttribute('disabled')).ok()
+  // verify that we disable the button after a save
+    .expect(saveButton.getAttribute('disabled')).ok()
 
   // reload the page
     .expect(reload()).notOk()
