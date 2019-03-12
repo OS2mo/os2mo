@@ -171,11 +171,6 @@ export default {
      */
     toggleTree () {
       this.showTree = !this.showTree
-    },
-
-    getLabel (item) {
-      console.log(item)
-      return item ? item.name : null
     }
   }
 }

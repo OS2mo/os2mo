@@ -27,7 +27,7 @@
             v-model.trim="contactInfo"
             type="text"
             class="form-control"
-            v-validate="validityRules"
+            v-validate="{required: true, address: this.entry.address_type}"
           >
         </div>
         <span v-show="errors.has(identifier)" class="text-danger">
@@ -153,13 +153,10 @@ export default {
      * Every scopes validity rules.
      */
     validityRules () {
-      if (this.entry.address_type.scope === 'PHONE') return { required: true, digits: 8 }
-      if (this.entry.address_type.scope === 'EMAIL') return { required: true, email: true }
-      if (this.entry.address_type.scope === 'EAN') return { required: true, digits: 13 }
-      if (this.entry.address_type.scope === 'TEXT') return { required: true }
-      if (this.entry.address_type.scope === 'WWW') return { required: true, url: true }
-      if (this.entry.address_type.scope === 'PNUMBER') return { required: true, numeric: true, min: 5 }
-      return {}
+      return {
+        required: true,
+        address: this.entry.address_type
+      }
     }
   },
 

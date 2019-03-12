@@ -90,5 +90,19 @@ export default {
       }, err => {
         return createErrorPayload(err)
       })
+  },
+
+  address (value, addressType) {
+    const payload = {
+      'value': value,
+      'address_type': addressType
+    }
+    console.log(payload)
+    return Validate
+      .post('/address/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
   }
 }

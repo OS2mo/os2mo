@@ -448,11 +448,13 @@ class PhoneAddressHandlerTests(util.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = 'asdasd'  # Not a valid phone number
-
+        # Not a valid phone number
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value, '')
+            self.handler('asdasd', '')
+
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler('9999999999999999', '')
 
 
 class PNumberAddressHandlerTests(util.TestCase):
