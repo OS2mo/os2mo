@@ -8,8 +8,9 @@ const state = {
 }
 
 const actions = {
-  MAP_ORGANISATIONS ({ state }) {
-    Service.post(`/ou/${state.origin}/map`,
+  MAP_ORGANISATIONS ({ commit, state }) {
+    Service.post(
+      `/ou/${state.origin}/map`,
       {
         destination: state.destination,
         validity: {
@@ -17,8 +18,16 @@ const actions = {
         }
       }
     )
+      .then(result => {
+        commit('log/newWorkLog',
+          { type: 'ORGANISATION_EDIT', value: state.origin },
+          { root: true })
+      })
       .catch(error => {
-        console.log(error.response)
+        commit('log/newError',
+          { type: 'ERROR', value: error.response },
+          { root: true })
+        return error
       })
   },
 

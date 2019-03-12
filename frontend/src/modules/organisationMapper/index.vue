@@ -37,12 +37,18 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <mo-log class="card"/>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import isEqualTo from 'lodash.isequal'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import MoLog from '@/components/MoLog/MoLog'
 import { mapGetters } from 'vuex'
 import store from './_store'
 import mainStore from '@/store'
@@ -52,6 +58,7 @@ mainStore.registerModule('organisationMapper', store)
 export default {
   name: 'OrganisationMapperModule',
   components: {
+    MoLog,
     MoTreeView
   },
   computed: {

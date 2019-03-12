@@ -1,3 +1,12 @@
+Version 0.16.0, in development
+==============================
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+
 Version 0.15.0, in development
 ==============================
 

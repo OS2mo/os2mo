@@ -25,6 +25,8 @@ const getPagePath = ClientFunction(() => window.location.pathname);
 const tabs = VueSelector('organisation-detail-tabs bTabButtonHelper')
 const links = VueSelector('mo-table-detail mo-link')
 
+const latestLog = VueSelector('MoLog').find('.alert').nth(0)
+
 test('View no mapping', async t => {
   await t
     .click(mapperButton)
@@ -151,6 +153,12 @@ test('Writing mapping', async t => {
     .expect(saveButton.getAttribute('disabled')).notOk()
 
     .click(saveButton)
+
+  // we logged something, right?
+    .expect(latestLog.innerText)
+    .match(
+      /Organisationsenheden med UUID [-0-9a-f]* er blevet redigeret/
+    )
 
   // FIXME: we should disable the button after a save
     // .expect(saveButton.getAttribute('disabled')).ok()
