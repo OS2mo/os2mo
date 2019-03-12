@@ -1101,22 +1101,37 @@ class Tests(util.LoRATestCase):
         )
 
         orig = c.organisationfunktion.get(engagement_uuid)
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "primary": True,
-                "validity": {
-                    "from": "2018-04-01",
-                    "to": "2019-03-31",
-                },
-            },
-        }]
 
         self.assertRequestResponse(
             '/service/details/edit',
-            [engagement_uuid],
-            json=req,
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                        "to": "2019-03-31",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+            },
         )
 
         with self.subTest('lora'):
@@ -1140,6 +1155,20 @@ class Tests(util.LoRATestCase):
                  'virkning': {'from': '2018-04-01 '
                               '00:00:00+02',
                               'from_included': True,
+                              'to': '2018-06-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-06-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2018-08-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-08-01 '
+                              '00:00:00+02',
+                              'from_included': True,
                               'to': '2019-04-01 '
                               '00:00:00+02',
                               'to_included': False}},
@@ -1153,14 +1182,29 @@ class Tests(util.LoRATestCase):
 
             expected['attributter']['organisationfunktionudvidelser'] = [
                 {
-                    'primær': True,
-                    'virkning': {
-                        'from': '2018-04-01 '
-                        '00:00:00+02',
-                        'from_included': True,
-                        'to': '2019-04-01 '
-                        '00:00:00+02',
-                        'to_included': False,
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-04-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-08-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2019-04-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "virkning": {
+                        "from": "2018-06-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-08-01 00:00:00+02",
+                        "to_included": False,
                     },
                 },
             ]
@@ -1206,6 +1250,22 @@ class Tests(util.LoRATestCase):
                     "primary": True,
                     "validity": {
                         "from": "2018-04-01",
+                        "to": "2018-05-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-08-01",
                         "to": "2019-03-31",
                     },
                 },

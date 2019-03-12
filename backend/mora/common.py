@@ -369,7 +369,7 @@ def create_organisationsfunktion_payload(
     if adresser:
         org_funk['relationer']['adresser'] = adresser
 
-    if primær:
+    if primær is not None:
         org_funk['attributter']['organisationfunktionudvidelser'] = [
             {
                 'primær': primær,

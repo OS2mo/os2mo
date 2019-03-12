@@ -450,7 +450,7 @@ def get_detail(type, id, function):
 
     def is_primary(effect):
         return [
-            ext['primær']
+            ext.get('primær', False)
             for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         ]
 

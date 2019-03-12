@@ -57,7 +57,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
                                 mapping.ASSOCIATION_KEY)
 
-        primary = util.checked_get(req, mapping.PRIMARY, False)
+        primary = req.get(mapping.PRIMARY)
 
         # Validation
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
@@ -167,7 +167,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
         else:
-            primary = exts.get('primær', False)
+            primary = exts.get('primær')
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
