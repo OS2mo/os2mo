@@ -138,6 +138,7 @@ def create():
                                can only be one.
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
+    :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``engagement_type`` should contain
@@ -161,6 +162,7 @@ def create():
           "engagement_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
+          "user_key": "1234",
           "validity": {
               "from": "2016-01-01",
               "to": "2017-12-31"
@@ -174,6 +176,7 @@ def create():
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
     :<jsonarr object association_type: The association type
+    :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``association_type`` should contain
@@ -194,6 +197,7 @@ def create():
           "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
+          "user_key": "1234",
           "validity": {
             "from": "2016-01-01",
             "to": "2017-12-31"
@@ -235,6 +239,7 @@ def create():
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
     :<jsonarr object role_type: The role type
+    :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
     The parameter ``role_type`` should contain a UUID obtained from the
@@ -255,6 +260,7 @@ def create():
           "role_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
+          "user_key": "1234",
           "validity": {
               "from": "2016-01-01",
               "to": "2017-12-31"
@@ -271,6 +277,7 @@ def create():
     :<jsonarr array responsibility: The manager responsibilities
     :<jsonarr object manager_level: The manager level
     :<jsonarr array address: The associated address.
+    :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
@@ -313,6 +320,7 @@ def create():
               "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
             }
           },
+          "user_key": "1234",
           "validity": {
             "from": "2016-01-01",
             "to": "2017-12-31"
@@ -325,6 +333,7 @@ def create():
     :<jsonarr string type: **"leave"**
     :<jsonarr object person: The associated employee
     :<jsonarr object leave_type: The leave type
+    :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
     The parameter ``leave_type`` should contain a UUID obtained from the
@@ -342,6 +351,7 @@ def create():
           "leave_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
+          "user_key": "1234",
           "validity": {
               "from": "2016-01-01",
               "to": "2017-12-31"

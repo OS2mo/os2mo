@@ -94,6 +94,7 @@ class Tests(util.LoRATestCase):
                 "manager_level": {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -208,8 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": '11111111-1111-1111-'
-                                             '1111-111111111113',
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Leder"
                     }
                 ]

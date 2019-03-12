@@ -1,6 +1,11 @@
 Version 0.16.0, in development
 ==============================
 
+New features
+------------
+
+* #27687: The various org funk relations now accept a ``user_key`` parameter.
+
 Bug fixes
 ---------
 
