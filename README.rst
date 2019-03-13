@@ -43,7 +43,7 @@ Model%E2%80%93view%E2%80%93controller>`_:
 MO (Frontend / View)
 ~~~~~~~~~~~~~~~~~~~~
 MOs frontend er skrevet i Javascript frameworket
-`Vue.js <http://vuejs.org>`_. Frontenden kan opfattes som *View* i
+`Vue.js`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
@@ -259,7 +259,7 @@ Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/d
 Licens og Copyright
 -------------------
 
-Copyright (c) 2017-2018, Magenta ApS.
+Copyright (c) 2017-2019, Magenta ApS.
 
 Dette værk er frigivet under `Mozilla Public License, version 2.0 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. 
 Dette er et OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.

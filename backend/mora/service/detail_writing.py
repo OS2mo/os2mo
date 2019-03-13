@@ -133,6 +133,9 @@ def create():
     :<jsonarr string type: **"engagement"**
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
+    :<jsonarr boolean primary: Mark this one as the “main” engagement
+                               or position of a given employee. There
+                               can only be one.
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the created object.
@@ -171,13 +174,11 @@ def create():
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
     :<jsonarr object association_type: The association type
-    :<jsonarr object address: The associated address.
     :<jsonarr object validity: The validities of the created object.
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -192,16 +193,6 @@ def create():
           },
           "association_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-          },
-          "address": {
-            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": {
-              "example": "<UUID>",
-              "name": "Adresse",
-              "scope": "DAR",
-              "user_key": "Adresse",
-              "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-            }
           },
           "validity": {
             "from": "2016-01-01",
@@ -556,13 +547,11 @@ def edit():
     :<jsonarr object person: The associated employee
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object association_type: The association type
-    :<jsonarr object address: The associated address object.
     :<jsonarr object validity: The validities of the changes.
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
 
@@ -587,16 +576,6 @@ def edit():
             "org_unit": {
               "uuid": "04f73c63-1e01-4529-af2b-dee36f7c83cb"
             },
-            "address": {
-              "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-              "address_type": {
-                "example": "<UUID>",
-                "name": "Adresse",
-                "scope": "DAR",
-                "user_key": "Adresse",
-                "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
-              }
-            }
           },
           "data": {
             "validity": {
@@ -877,5 +856,57 @@ def edit():
     reqs = flask.request.get_json()
     return (
         flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
+        200
+    )
+
+
+@blueprint.route('/details/terminate', methods=['POST'])
+@util.restrictargs('force')
+def terminate():
+    '''Terminate a relation as of a given day.
+
+    .. :quickref: Writing; Terminate relation
+
+    :<jsonarr str type: Same as for
+              :http:post:`/service/details/create` and
+              :http:post:`/service/details/edit`.
+    :<jsonarr str uuid: The UUID of the related to terminate.
+    :<json boolean vacate: *Optional* - mark applicable — currently
+        only ``manager`` -- functions as _vacant_, i.e. simply detach
+        the employee from them.
+    :<jsonarr object validity: A validity object; but only the ``to`` is
+              used.
+
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+      POST /service/details/terminate HTTP/1.1
+      Host: example.com
+      Content-Type: application/json
+
+      {
+        "type": "association",
+        "uuid": "be4642c4-ba97-48d6-b19a-fc18ca0740b5",
+        "validity": {
+          "to": "2018-01-01"
+        }
+      }
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
+
+    '''
+
+    reqs = flask.request.get_json()
+    return (
+        flask.jsonify(handle_requests(reqs, handlers.RequestType.TERMINATE)),
         200
     )

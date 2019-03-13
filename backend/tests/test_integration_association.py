@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import copy
+
 import freezegun
 
 from mora import lora
@@ -35,9 +37,6 @@ class Tests(util.LoRATestCase):
                 'person': {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -110,17 +109,6 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80'
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -151,20 +139,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/?mlon='
-                        '10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -222,9 +196,6 @@ class Tests(util.LoRATestCase):
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -300,17 +271,6 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-12-02 00:00:00+01',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -338,20 +298,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -480,29 +426,23 @@ class Tests(util.LoRATestCase):
         unit """
         self.load_sample_structures()
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        # we can't do this using the API, yet
-        c.organisationfunktion.update(
-            {
-                'tilstande': {
-                    'organisationfunktiongyldighed': [
-                        {
-                            'gyldighed': 'Inaktiv',
-                            'virkning': {
-                                "from": '2018-01-01T00:00:00+01:00',
-                                'to': 'infinity',
-                            },
-                        },
-                    ],
+        self.assertRequestResponse(
+            '/service/details/terminate',
+            [association_uuid],
+            json=[
+                {
+                    "type": "association",
+                    "uuid": association_uuid,
+                    "validity": {
+                        "to": "2017-02-01"
+                    },
                 },
-            },
-            association_uuid,
+            ],
         )
 
         self.assertRequest(
@@ -550,9 +490,6 @@ class Tests(util.LoRATestCase):
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
                 },
                 "validity": {
                     "from": "2017-12-01",
@@ -624,17 +561,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': '2017-12-02 00:00:00+01',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -665,20 +591,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/?mlon='
-                        '10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -722,8 +634,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         payload = [
@@ -768,8 +678,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
         payload = [
@@ -827,9 +735,6 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
-                "address": {
-                    'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
-                },
                 "validity": {
                     "from": "2017-12-01",
                 },
@@ -899,17 +804,6 @@ class Tests(util.LoRATestCase):
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     }
                 ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-12-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ],
             },
             "attributter": {
                 "organisationfunktionegenskaber": [
@@ -940,20 +834,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': {
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            },
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -1109,7 +989,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(actual_association, expected)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Medlem',
@@ -1255,27 +1134,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "2018-04-01 00:00:00+02"
-                #         }
-                #     },
-                #     {
-                #         "uuid": "47c51ade-cf1c-401c-afb7-a2f7d3455fcd",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2018-04-01 00:00:00+02",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1322,7 +1180,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -1375,7 +1232,6 @@ class Tests(util.LoRATestCase):
             )
 
         expected = [{
-            'address': None,
             'association_type': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
@@ -1422,7 +1278,6 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/association'.format(unitid),
                 [{
-                    'address': None,
                     'association_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -1467,7 +1322,6 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/association'.format(unitid),
             [{
-                'address': None,
                 'association_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -1512,9 +1366,6 @@ class Tests(util.LoRATestCase):
             "person": {'uuid': userid},
             "association_type": {
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-            },
-            "address": {
-                'uuid': "414044e0-fe5f-4f82-be20-1e107ad50e80"
             },
             "validity": {
                 "from": "2017-12-01",
@@ -1677,17 +1528,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1744,7 +1584,6 @@ class Tests(util.LoRATestCase):
         )
 
         expected = [{
-            'address': None,
             'association_type': None,
             'org_unit': {
                 'name': 'Humanistisk fakultet',
@@ -1867,17 +1706,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -1933,7 +1761,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -2096,17 +1923,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -2153,7 +1969,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = [{
-            'address': None,
             'association_type': {
                 'example': None,
                 'name': 'Afdeling',
@@ -2239,7 +2054,7 @@ class Tests(util.LoRATestCase):
             json=req,
             status_code=400)
 
-    def test_terminate_association(self):
+    def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -2257,7 +2072,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
@@ -2303,17 +2118,6 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
-                # "adresser": [
-                #     {
-                #         "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                #         "virkning": {
-                #             "from_included": True,
-                #             "to_included": False,
-                #             "from": "2017-01-01 00:00:00+01",
-                #             "to": "infinity"
-                #         }
-                #     }
-                # ]
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -2370,176 +2174,65 @@ class Tests(util.LoRATestCase):
 class AddressTests(util.LoRATestCase):
     maxDiff = None
 
-    @util.mock('aabogade.json', allow_mox=True)
-    def test_edit_association_address(self, m):
+    def test_terminate_association_directly(self):
         self.load_sample_structures()
 
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+        associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        req = [{
+        payload = {
             "type": "association",
-            "uuid": association_uuid,
-            "data": {
-                "address": {
-                    'uuid': "55848eca-4e9e-4f30-954b-78d55eec0473"
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                },
-            },
-        }]
+            "uuid": associationid,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
 
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [association_uuid],
-            json=req,
+        orig = self.assertRequest(
+            '/service/e/{}/details/association'
+            '?validity=present'.format(userid),
         )
 
-        expected = [{
-            'address': {
-                'address_type': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                },
-                'visibility': {
-                    'example': '20304060',
-                    'name': 'Telefonnummer',
-                    'scope': 'PHONE',
-                    'user_key': 'Telefon',
-                    'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
-                },
-                'href': 'tel:+4587150000',
-                'name': '+4587150000',
-                'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
-                'value': '87150000'
-            },
-            'association_type': {
-                'example': None,
-                'name': 'Afdeling',
-                'scope': None,
-                'user_key': 'afd',
-                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-            },
-            'org_unit': {
-                'name': 'Humanistisk fakultet',
-                'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                'validity': {
-                    'from': '2016-01-01',
-                    'to': None,
-                },
-            },
-            'person': {
-                'name': 'Anders And',
-                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-            },
-            'uuid': association_uuid,
-            'validity': {
-                'from': '2017-01-01',
-                'to': None,
-            },
-        }]
+        expected = copy.deepcopy(orig)
+        expected[0]['validity']['to'] = '2017-11-30'
+
+        self.assertRequestResponse('/service/details/terminate',
+                                   associationid,
+                                   json=payload)
 
         self.assertRequestResponse(
-            '/service/e/{}/details/association'.format(userid),
+            '/service/e/{}/details/association'
+            '?validity=past'.format(userid),
+            [],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=present'.format(userid),
             expected,
         )
 
-        expected_association = {
-            "note": "Rediger tilknytning",
-            "relationer": {
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedefunktioner": [
-                    {
-                        'uuid': '55848eca-4e9e-4f30-954b-78d55eec0473',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Tilknytning"
-                    }
-                ]
-            },
-        }
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future'.format(userid),
+            [],
+        )
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_association = c.organisationfunktion.get(association_uuid)
+    @freezegun.freeze_time('2018-01-01', tz_offset=1)
+    def test_terminate_association_in_the_past(self):
+        self.load_sample_structures()
 
-        self.assertRegistrationsEqual(expected_association, actual_association)
+        # Check the POST request
+        associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        self.assertRequestFails(
+            '/service/details/terminate', 400,
+            json={
+                "type": "association",
+                "uuid": associationid,
+                "validity": {
+                    "to": "2017-11-30"
+                }
+            },
+        )

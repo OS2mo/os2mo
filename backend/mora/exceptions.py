@@ -6,7 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import sys
 import traceback
 import typing
 from enum import Enum
@@ -49,7 +48,6 @@ class ErrorCodes(Enum):
     V_INVALID_VALIDITY = 400, "Invalid validity."
     V_MISSING_START_DATE = 400, "Missing start date."
     V_END_BEFORE_START = 400, "End date is before start date."
-    V_ORIGINAL_REQUIRED = 400, "Original required."
     V_EXISTING_CPR = 409, "Person with CPR number already exists."
     V_NO_PERSON_FOR_CPR = 404, "No person found for given CPR number."
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."
@@ -68,6 +66,8 @@ class ErrorCodes(Enum):
     V_MORE_THAN_ONE_ASSOCIATION = \
         400, "The employee already has an active association with the given " \
              "org unit."
+    V_MORE_THAN_ONE_PRIMARY = \
+        400, "Employee already has another active and primary function."
     V_NO_ACTIVE_ENGAGEMENT = \
         400, "Employee must have an active engagement."
     V_UNIT_OUTSIDE_ORG = \
@@ -102,6 +102,7 @@ class ErrorCodes(Enum):
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."
+    E_SP_SSL_ERROR = 500, "SSL Error connecting to SP"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):
@@ -147,6 +148,7 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         try:
             self.body = body
             self.response = flask.jsonify(body)
-            self.response.status_code = self.key.code
+            if self.response:
+                self.response.status_code = self.key.code
         except RuntimeError:
             pass

@@ -63,7 +63,7 @@ export default {
 
     return Service.get('/ou/ancestor-tree?' + params.toString())
       .then(response => {
-        return response.data[0]
+        return response.data
       })
   },
 
@@ -151,7 +151,6 @@ export default {
     return Service.post('/details/create', create)
       .then(response => {
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
         return response.data
       })
       .catch(error => {
@@ -182,7 +181,6 @@ export default {
   edit (edit) {
     return this.editEntry(edit)
       .then(response => {
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_EDIT', value: response.data })
         return response.data
       })
   },

@@ -1,5 +1,6 @@
 {
   "address": "Adresse",
+  "visibility": "Synlighed",
   "address_type": "@:shared.address_type",
   "association_type": "@:shared.association_type",
   "end_date": "Slutdato",
@@ -11,6 +12,7 @@
   "manager_type": "@:shared.manager_type",
   "org_unit": "Enhed",
   "related_org_unit": "Relateret enhed",
+  "time_planning": "@:shared.time_planning",
   "org_unit_type": "@:shared.org_unit_type",
   "parent": "Overenhed",
   "person": "Navn",

@@ -24,10 +24,12 @@ const actions = {
   MOVE_EMPLOYEE ({ commit, state }) {
     state.move.uuid = state.original.uuid
 
-    return Service.post('/details/edit', [state.move])
+    return Service.post('/details/edit', state.move)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
-        commit('log/newWorkLog', { type: 'EMPLOYEE_MOVE', value: response.data }, { root: true })
+        commit('log/newWorkLog',
+          { type: 'EMPLOYEE_MOVE', value: response.data },
+          { root: true })
         return response.data
       })
       .catch(error => {

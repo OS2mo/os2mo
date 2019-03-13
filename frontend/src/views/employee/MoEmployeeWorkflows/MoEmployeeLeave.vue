@@ -80,8 +80,12 @@ export default {
       let vm = this
       if (this.formValid) {
         this.$store.dispatch(`${STORE_KEY}/leaveEmployee`)
-          .then(() => {
-            vm.$emit('submitted')
+          .then(response => {
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$emit('submitted')
+            }
           })
       } else {
         this.$validator.validateAll()

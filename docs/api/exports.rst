@@ -6,11 +6,11 @@ These files have to be generated separately e.g. though a nightly export job.
 
 .. automodule:: mora.service.exports
 
-.. qrefflask:: mora.app:app
+.. qrefflask:: mora.app:create_app()
    :blueprints: exports
    :order: path
 
-.. autoflask:: mora.app:app
+.. autoflask:: mora.app:create_app()
    :include-empty-docstring:
    :order: path
    :blueprints: exports

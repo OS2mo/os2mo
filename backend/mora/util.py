@@ -27,7 +27,6 @@ import json
 import marshal
 import os
 import re
-import sys
 import tempfile
 import typing
 import urllib.parse
@@ -37,6 +36,7 @@ import flask
 import dateutil.parser
 import dateutil.tz
 import werkzeug.routing
+import logging
 
 from . import exceptions
 from . import mapping
@@ -72,6 +72,8 @@ _tzinfos = {
     1 * 60**2: DEFAULT_TIMEZONE,
     2 * 60**2: DEFAULT_TIMEZONE,
 }
+
+logger = logging.getLogger(__name__)
 
 
 def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
@@ -177,6 +179,8 @@ def to_iso_date(s, is_end: bool=False):
         ...
         mora.exceptions.HTTPException: 400 Bad Request: \
         cannot parse '2000-20-20'
+        >>> to_iso_date(POSITIVE_INFINITY, is_end=True)
+        >>> to_iso_date(NEGATIVE_INFINITY)
 
     '''
     dt = parsedatetime(s)
@@ -281,19 +285,22 @@ def update_config(mapping, config_path, allow_environment=True):
             mapping[key] = overrides[key]
 
     except IOError:
-        print('Unable to read config {}'.format(config_path))
+        logger.error('Unable to read config {}'.format(config_path))
 
     if allow_environment:
         overrides = {
-            k[5:]: v
+            k[6:]: v
             for k, v in os.environ.items()
             if k.startswith('OS2MO_')
         }
 
         for key in overrides.keys():
-            print(
-                ' * Using override OS2MO_{}={!r}'.format(key, overrides[key]),
-                file=sys.stderr)
+            logger.warning(
+                ' * Using configuration override {}={!r}'.format(
+                    key,
+                    overrides[key]
+                )
+            )
             mapping[key] = overrides[key]
 
 
@@ -667,7 +674,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
         exceptions.ErrorCodes.V_MISSING_START_DATE(obj=obj)
 
 
-def get_valid_to(obj, fallback=None) -> datetime.datetime:
+def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
     '''Extract the end of the validity interval in ``obj``, or otherwise
     ``fallback``, and return it as a timestamp delimiting the
     corresponding interval. If neither specifies an end, assume a
@@ -721,9 +728,15 @@ def get_valid_to(obj, fallback=None) -> datetime.datetime:
             return dt + ONE_DAY
 
     if fallback is not None:
-        return get_valid_to(fallback)
-    else:
+        return get_valid_to(fallback, required=required)
+    elif not required:
         return POSITIVE_INFINITY
+    else:
+        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            message='Missing {}'.format(mapping.VALIDITY),
+            key=mapping.VALIDITY,
+            obj=obj,
+        )
 
 
 def get_validities(obj, fallback=None) -> typing.Tuple[

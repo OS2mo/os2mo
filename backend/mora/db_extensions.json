@@ -1,0 +1,16 @@
+{
+  "organisationfunktion": {
+    "attributter": {
+      "udvidelser": [
+        "primær"
+      ]
+    },
+    "attributter_metadata": {
+      "udvidelser": {
+        "primær": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

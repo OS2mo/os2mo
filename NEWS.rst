@@ -1,3 +1,50 @@
+Version 0.15.0, 2019-03-11
+==========================
+
+API changes
+-----------
+
+``/service/e/(uuid:employee_uuid)/terminate``:
+
+The defaults for employee termination changed, and now affect managers
+similarly to any other functions. To achieve the previous behaviour of
+merely marking manager functions as *vacant*, set ``"vacant": true``
+in the JSON request. Please note that this is the inverse of the
+previous ``terminate_all`` parameter, which no longer has any affect.
+
+Internal changes
+----------------
+
+* #27431: The ``address_property`` facet is now named ``visibility``.
+
+New features
+------------
+
+* #27299: Config check on startup, DUMMY_MODE instead of PROD_MODE,
+* #26459: Add support for terminating relations, such as associations,
+  addresses, etc., using a separate dialog.
+* #25575: Added visibility for addresses with a phone number and exposed them in columns -
+  address, association and manager for employee and organisation.
+* #25407: Added checkbox message alert validation for workflow employee terminate.
+* #27336: Remove association addresses.
+* #25174: Add support for marking engagements as “primary”.
+* #27261: We can now read the username from the SAML session NameID
+* #27290: Add support for assigning time planning to organisational units.
+
+Bug fixes
+---------
+
+* #25671: Organisation is now properly set when creating new employee.
+* #25694: Changed table columns layout to align between table future, present and past.
+* #26886: Fixed duplicate for addresses in create organisation unit and 
+  employee move many workflow now works again.
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+  employeeMoveMany.
+* #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
+* #27155: Ensure that we show all unit roots when reloading a unit page.
+* #27153: Fixed the error and success messages for organisation and employee.
+* #27488: Fixed 401 not redirecting to login
+
 Version 0.14.1, 2019-02-22
 ==========================
 
@@ -45,7 +92,7 @@ Internal changes
 
 Bug fixes
 ---------
-* #25405: Submit button for create new and edit modals for organisation 
+* #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
 * #25028: Time machine is working again.
 * #25579: Address race condition when quickly switching between units
@@ -56,7 +103,6 @@ Bug fixes
   duplicates another *inactive* association.
 * #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
 * #25696: Added remove button for dates.
-* #25694: Changed table columns layout to align between table future, present and past.
 * #26890: Fixed regression that broke viewing the details of a unit in
   the termination dialog.
 * #26898: Ensure that detail view for organisation mapper shows all

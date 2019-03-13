@@ -45,8 +45,8 @@ def wash_address(addrstring, postalcode, postaldistrict):
 
     q = addrstring.strip()
 
-    if re.search('\s*-\s*\d+\Z', q):
-        q = re.sub('-\d+\Z', '', q)
+    if re.search(r'\s*-\s*\d+\Z', q):
+        q = re.sub(r'-\d+\Z', '', q)
 
     if q in ('Rådhuspladsen', 'Rådhuset') and str(postalcode) == '8000':
         q = 'Rådhuspladsen 2'
@@ -74,7 +74,7 @@ def wash_address(addrstring, postalcode, postaldistrict):
         return v
 
     if ' - ' in q:
-        for p in re.split('\s+-\s+', q):
+        for p in re.split(r'\s+-\s+', q):
             v = _fetch('{}, {} {}'.format(
                 p, postalcode, postaldistrict
             ))

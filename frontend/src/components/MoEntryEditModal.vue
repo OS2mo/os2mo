@@ -257,6 +257,27 @@ export default {
         }
       } else {
         this.$refs[this.nameId].hide()
+        this.$emit('submit')
+
+        if (this.type === 'EMPLOYEE') {
+          this.$store.commit('log/newWorkLog',
+            {
+              type: 'EMPLOYEE_EDIT',
+              contentType: this.contentType,
+              value: this.uuid
+            },
+            { root: true })
+        }
+
+        if (this.type === 'ORG_UNIT') {
+          this.$store.commit('log/newWorkLog',
+            {
+              type: 'ORGANISATION_EDIT',
+              contentType: this.contentType,
+              value: this.uuid
+            },
+            { root: true })
+        }
       }
     }
   }

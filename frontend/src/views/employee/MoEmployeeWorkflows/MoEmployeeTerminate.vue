@@ -26,12 +26,20 @@
       />
     </div>
 
+    <mo-confirm-checkbox
+      v-model="confirmCheckbox"
+      :entry-date="endDate"
+      :employee-name="employee.name"
+      v-if="employee && endDate"
+      required
+    />
+
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
     </div>
   </form>
 </template>
@@ -47,6 +55,7 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import EmployeeDetailTabs from '../EmployeeDetailTabs'
 import store from './_store/employeeTerminate.js'
@@ -60,12 +69,19 @@ export default {
     MoEmployeePicker,
     MoInputDate,
     ButtonSubmit,
-    EmployeeDetailTabs
+    EmployeeDetailTabs,
+    MoConfirmCheckbox
   },
   props: {
     show: {
       type: Boolean,
       default: false
+    }
+  },
+
+  data () {
+    return {
+      confirmCheckbox: true
     }
   },
 
@@ -85,7 +101,14 @@ export default {
      */
     ...mapGetters({
       details: `${STORE_KEY}/getDetails`
-    })
+    }),
+
+    isDisabled () {
+      if (this.formValid && this.confirmCheckbox) {
+        return false
+      }
+      return true
+    }
   },
 
   beforeCreate () {

@@ -5,6 +5,8 @@
     "EMPLOYEE_LEAVE": "Medarbejderen med UUID {uuid} har fået tildelt orlov.",
     "EMPLOYEE_MOVE": "Medarbejderen med UUID {uuid} er blevet flyttet.",
     "EMPLOYEE_TERMINATE": "Medarbejderen med UUID {uuid} er afsluttet.",
+    "FUNCTION_EDIT": "{type} med UUID {uuid} er blevet redigeret.",
+    "FUNCTION_TERMINATE": "{type} med UUID {uuid} er blevet afsluttet pr. {date}.",
     "ORGANISATION_CREATE": "Organisationsenheden med UUID {uuid} er blevet oprettet.",
     "ORGANISATION_EDIT": "Organisationsenheden med UUID {uuid} er blevet redigeret.",
     "ORGANISATION_RENAME": "Organisationsenheden med UUID {uuid} er blevet omdøbt.",
@@ -14,6 +16,7 @@
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
     "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
+    "CONFIRM_EMPLOYEE_TERMINATE": "Jeg bekræfter, at medarbejderen {employeeName} opsiges pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
     "E_FORBIDDEN": "Du har ikke rettigheder til at foretage denne operation",
     "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
@@ -33,7 +36,7 @@
     "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller",
     "V_CHANGING_THE_PAST": "Kan ikke foretage ændringer før dags dato",
     "E_INVALID_INPUT": "Ugyldigt input",
-    "E_UNKNOWN": "Ugyldig"
+    "E_UNKNOWN": "Uspecificeret fejl"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",

@@ -75,7 +75,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request, request_type: RequestType):
+    def __init__(self, request: dict, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
 
@@ -105,7 +105,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        pass
 
     @abc.abstractmethod
     def prepare_edit(self, request: dict):
@@ -115,7 +114,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        pass
 
     def prepare_terminate(self, request: dict):
         """
@@ -132,10 +130,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
-        request to LoRa, typically a UUID.
+                 request to LoRa, typically a UUID.
 
         """
-        pass
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -191,21 +188,36 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
-        self.uuid = request['uuid']
-        date = request['date']
-        original = request['original']
-
-        validity = mapping.ORG_FUNK_GYLDIGHED_FIELD(original)
+        self.uuid = util.get_uuid(request)
+        date = util.get_valid_to(request, required=True)
 
         validator.is_edit_from_date_before_today(date)
 
+        original = (
+            lora.Connector(effective_date=date)
+            .organisationfunktion.get(self.uuid)
+        )
+
+        if (
+            original is None or
+            not util.is_reg_valid(original) or
+            get_key_for_function(original) != self.function_key
+        ):
+            exceptions.ErrorCodes.E_NOT_FOUND(
+                uuid=self.uuid,
+                original=original,
+            )
+
         self.payload = common.update_payload(
-            max(date, util.get_effect_from(validity[0])),
+            date,
             util.POSITIVE_INFINITY,
-            [(self.termination_field, self.termination_value)],
+            [(
+                self.termination_field,
+                self.termination_value,
+            )],
             original,
             {
-                'note': "Afslut medarbejder",
+                'note': "Afsluttet",
             },
         )
 
@@ -218,8 +230,8 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.update(self.payload, self.uuid)
 
 
-def get_handler_for_function(obj: dict):
-    '''Obtain the handler class corresponding to the given LoRA object'''
+def get_key_for_function(obj: dict) -> str:
+    '''Obtain the function key class corresponding to the given LoRA object'''
 
     # use unpacking to ensure that the set contains just one element
     (key,) = {
@@ -227,7 +239,13 @@ def get_handler_for_function(obj: dict):
         for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
     }
 
-    return HANDLERS_BY_FUNCTION_KEY[key]
+    return key
+
+
+def get_handler_for_function(obj: dict):
+    '''Obtain the handler class corresponding to the given LoRA object'''
+
+    return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
 
 
 def get_handler_for_role_type(role_type: str):

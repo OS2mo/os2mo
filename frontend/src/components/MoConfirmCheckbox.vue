@@ -4,6 +4,7 @@
     :class="errors.has('confirm') ? 'alert-warning' : 'alert-success'"
   >
     <input
+      class="mt-2 mr-1"
       data-vv-as="checkbox"
       :name="nameId"
       type="checkbox"
@@ -11,8 +12,11 @@
       v-model="confirm"
     >
 
-    <h5>{{$t('alerts.error.CONFIRM_ENGAGEMENT_END_DATE', alertData)}}
-    </h5>
+    <h6 v-if="engagementName" class="mt-1">{{$t('alerts.error.CONFIRM_ENGAGEMENT_END_DATE', alertEngagementData)}}
+    </h6>
+
+    <h6 v-if="employeeName" class="mt-1">{{$t('alerts.error.CONFIRM_EMPLOYEE_TERMINATE', alertEmployeeData)}}
+    </h6>
   </div>
 </template>
 
@@ -41,7 +45,12 @@ export default {
     /**
      * Defines a entry name.
      */
-    entryName: String,
+    engagementName: String,
+
+    /**
+     * Defines a entry name.
+     */
+    employeeName: String,
 
     /**
      * Defines a entry OrgName.
@@ -74,11 +83,19 @@ export default {
     nameId () {
       return 'confirm'
     },
-    alertData () {
+
+    alertEngagementData () {
       return {
-        engagementName: this.entryName,
+        engagementName: this.engagementName,
         orgName: this.entryOrgName,
         endDate: moment(this.entryDate).subtract(1, 'd').format('DD-MM-YYYY')
+      }
+    },
+
+    alertEmployeeData () {
+      return {
+        employeeName: this.employeeName,
+        endDate: moment(this.entryDate).format('DD-MM-YYYY')
       }
     }
   },

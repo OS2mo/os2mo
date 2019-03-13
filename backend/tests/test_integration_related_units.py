@@ -5,12 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import unittest
-from unittest.mock import patch
 
 import freezegun
 
-from mora import lora
 from mora import util as mora_util
 
 from . import util
@@ -315,8 +312,6 @@ class Tests(util.LoRATestCase):
         with self.subTest('past'):
             hist = mora_util.set_obj_value(HIST, ('validity', 'to'),
                                            '2017-05-31')
-            hum = mora_util.set_obj_value(HUM, ('validity', 'to'),
-                                          '2017-05-31')
 
             self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'

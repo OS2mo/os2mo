@@ -141,8 +141,6 @@ export default {
       association: [
         { label: 'org_unit', data: 'org_unit' },
         { label: 'association_type', data: 'association_type' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'address', data: 'address' }
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' }
@@ -153,10 +151,12 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
+        { label: 'visibility', data: 'visibility' },
         { label: 'address', data: 'address' }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
+        { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
 
