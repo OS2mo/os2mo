@@ -37,14 +37,14 @@ for (const [selection, contents] of trees.entries()) {
       .expect(tree.exists)
       .ok()
       .expect(rootNode.exists)
-      .ok()
+      .ok(`no tree for ${selection}`)
       .expect(VueSelector('mo-tree-view').exists)
       .ok()
       .expect(selected.exists)
       .eql(selection.length > 0, { timeout: 1500 })
       .expect(VueSelector('mo-tree-view')
-        .getVue(({ computed }) => computed.contents))
-      .eql(contents)
+        .getVue(({ computed }) => JSON.stringify(computed.contents)))
+      .eql(JSON.stringify(contents))
   })
 }
 
