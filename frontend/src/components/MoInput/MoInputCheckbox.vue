@@ -8,9 +8,14 @@
         :name="identifier"
         :id="identifier"
         :ref="identifier"
+        v-validate="{ required: isRequired }"
       />
       <span class="checkmark"></span>
     </label>
+
+    <span v-show="errors.has(identifier)" class="text-danger">
+      {{ errors.first(identifier) }}
+    </span>
   </div>
 </template>
 
