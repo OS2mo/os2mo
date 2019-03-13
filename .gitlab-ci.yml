@@ -1,24 +1,42 @@
-test:
+Tests:
+  stage: test
+
   image: python:3.5
-
-  services:
-    - postgres:9.6
-
-  variables:
-    POSTGRES_HOST: postgres
-    POSTGRES_DB: mox_test
-    POSTGRES_USER: mox_test
-    POSTGRES_PASSWORD: mox_test
-
-    PYTHONWARNINGS: default
-    FLASK_ENV: testing
-    FLASK_APP: mora.app:app
 
   script:
     - apt-get update -qy
-    - apt-get install -qy libxmlsec1-dev python3-dev python3-pip
-    - backend/.jenkins/0-clean.sh
-    - backend/.jenkins/1-build.sh
-    - backend/.jenkins/2-checks.sh
-    - backend/.jenkins/3-tests.sh
-    - backend/.jenkins/4-deploy.sh
+    - apt-get install -qy
+      libxmlsec1-dev python3-dev python3-pip python3-venv
+      postgresql sudo
+    - useradd -m testrunner
+    - chown -R testrunner .
+    - pip install 'pip>=18.1' 'setuptools>=40'
+    - pip install -r backend/requirements-test.txt -e backend
+    - cd frontend && yarn && yarn build
+    - flake8 --exit-zero backend
+    - sudo -u testrunner coverage run -m unittest
+      -t backend -s tests --buffer --verbose
+      --rcfile=backend/setup.cfg
+    - sudo -u testrunner coverage report
+      --rcfile=backend/setup.cfg
+    - sudo -u testrunner coverage html --skip-covered -d coverage
+      --rcfile=backend/setup.cfg
+
+  artifacts:
+    paths:
+      - coverage
+
+Docs:
+  stage: test
+
+  image: python:3.5
+
+  script:
+    - apt-get update -qy
+    - pip install -r backend/requirements-docs.txt
+    - make -C doc html SPHINXBUILD=sphinx-build
+    - mv doc/out/html docs
+
+  artifacts:
+    paths:
+      - docs
