@@ -2,6 +2,7 @@
   <div>
     <mo-input-checkbox
       v-model="entry.primary"
+      :data-vv-as="$t('input_fields.primary_engagement')"
     />
 
     <div class="form-row">

@@ -1,7 +1,9 @@
 <template>
   <div>
     <mo-input-checkbox
+      class="associationCheckbox"
       v-model="entry.primary"
+      :data-vv-as="$t('input_fields.primary_association')"
     />
 
     <div class="form-row">

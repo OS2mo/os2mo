@@ -4,6 +4,10 @@
       <input
         type="checkbox"
         v-model="internalValue"
+        :data-vv-as="label"
+        :name="identifier"
+        :id="identifier"
+        :ref="identifier"
       />
       <span class="checkmark"></span>
     </label>
