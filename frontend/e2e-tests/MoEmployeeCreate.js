@@ -34,7 +34,7 @@ const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
 
 // Association
-const associationCheckbox = dialog.find('.container .associationCheckbox')
+const associationCheckbox = dialog.find('[data-vv-as="Primær tilknytning"] .container')
 
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
 
@@ -136,9 +136,9 @@ test('Workflow: create employee', async t => {
     .click(addressVisibilityOption.nth(1))
 
     // Association
-    .click(associationCheckbox)
-
     .click(dialog.find('.btn-association .btn-outline-success'))
+
+    .click(associationCheckbox)
 
     .click(parentAssociationInput)
     .click(dialog.find('.unit-association span.tree-anchor'))
