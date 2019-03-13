@@ -55,7 +55,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
                                                required=True)
 
-        bvn = "{} {} {}".format(employee_uuid, org_unit_uuid, mapping.ROLE_KEY)
+        bvn = util.checked_get(
+            req, mapping.USER_KEY,
+            "{} {} {}".format(employee_uuid, org_unit_uuid,
+                              mapping.ROLE_KEY))
 
         role = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ROLE_KEY,

@@ -37,6 +37,7 @@ class Tests(util.LoRATestCase):
                 },
                 "leave_type": {
                     'uuid': leave_type},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -107,7 +108,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Orlov"
                     }
                 ]
