@@ -425,7 +425,7 @@ def full_run(fixture, dump_to, backend_only):
             subprocess.check_call(
                 [
                     'pg_dump',
-                    '--data-only', '--column-inserts',
+                    '--data-only',
                     '--dbname', lora_settings.DATABASE,
                     '--host', lora_settings.DB_HOST,
                     '--port', str(lora_settings.DB_PORT),
