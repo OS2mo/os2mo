@@ -318,7 +318,13 @@ def full_run(fixture, dump_to, backend_only):
     from oio_rest import settings as lora_settings
 
     from mora import app
+
+    # ensure that we can import the tests module, regardless of $PWD
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
     from tests import util as test_util
+
+    sys.path.pop(0)
 
     def make_server(app, startport=5000):
         '''create a server at the first available port after startport'''
