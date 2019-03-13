@@ -1,10 +1,11 @@
 import { ClientFunction, Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMapper')
+  .afterEach(reset)
   .page(`${baseURL}`)
 
 const mapperButton = Selector('button.btn-mapper')

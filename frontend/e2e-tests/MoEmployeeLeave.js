@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeLeave')
+  .afterEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeLeave')

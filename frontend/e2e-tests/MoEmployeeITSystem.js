@@ -1,7 +1,8 @@
 import VueSelector from 'testcafe-vue-selectors'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 
 fixture('MoEmployeeITSystem')
+  .afterEach(reset)
   .page(`${baseURL}/medarbejder/75878240-2999-4bb4-b9c0-665f1553ef25`)
 
 test('Read IT System', async t => {

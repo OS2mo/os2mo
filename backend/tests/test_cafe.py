@@ -30,15 +30,6 @@ TEST_DIR = os.path.join(util.FRONTEND_DIR, "e2e-tests")
 TESTCAFE_COMMAND = os.path.join(util.FRONTEND_DIR,
                                 "node_modules", ".bin", "testcafe")
 
-TEST_FILES = sorted(
-    os.path.join(dirpath, file_name)
-    for dirpath, dirs, file_names in os.walk(TEST_DIR)
-    for file_name in file_names
-    if (file_name.endswith('.js') and
-        not file_name.startswith('.') and
-        file_name not in SKIP_FILES)
-)
-
 
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
@@ -51,8 +42,9 @@ class TestCafeTests(util.LiveLoRATestCase):
         'SKIP_TESTCAFE' in os.environ,
         'TestCafé disabled by $SKIP_TESTCAFE!',
     )
-    def _test_with_testcafe(self, test_file, test_name):
+    def test_with_testcafe(self):
         self.load_sql_fixture()
+        self.add_resetting_endpoint()
 
         # Start the testing process
         print("----------------------")
@@ -72,16 +64,14 @@ class TestCafeTests(util.LiveLoRATestCase):
                                  'safari' if platform.system() == 'Darwin'
                                  else 'chromium:headless --no-sandbox')
 
-        xml_report_file = os.path.join(util.REPORTS_DIR,
-                                       test_name + ".xml")
-        json_report_file = os.path.join(util.REPORTS_DIR,
-                                        test_name + ".json")
+        xml_report_file = os.path.join(util.REPORTS_DIR, "testcafe.xml")
+        json_report_file = os.path.join(util.REPORTS_DIR, "testcafe.json")
 
         process = subprocess.run(
             [
                 TESTCAFE_COMMAND,
                 "'{} --no-sandbox'".format(browser),
-                test_file,
+                TEST_DIR,
                 "-r", ','.join(["spec",
                                 "xunit:" + xml_report_file,
                                 "json:" + json_report_file]),
@@ -117,13 +107,3 @@ class TestCafeTests(util.LiveLoRATestCase):
             print("{} tests skipped".format(res['skipped']))
 
         self.assertEqual(process.returncode, 0, "Test run failed!")
-
-    for test_file in TEST_FILES:
-        test_name = os.path.splitext(os.path.basename(test_file))[0]
-
-        def test_with_testcafe(self, test_file=test_file, test_name=test_name):
-            self._test_with_testcafe(test_file, test_name)
-
-        locals()['test_' + test_name] = test_with_testcafe
-
-        del test_file, test_name, test_with_testcafe

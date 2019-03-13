@@ -97,6 +97,31 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     return r
 
 
+def load_sql_fixture(fixture_name):
+    '''Load an SQL fixture, directly into the database.
+    into LoRA at the given path & UUID.
+
+    '''
+    fixture_path = os.path.join(FIXTURE_DIR, fixture_name)
+
+    assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
+    assert os.path.isfile(fixture_path), 'no such SQL fixture found!'
+
+    test_support.load_sql_fixture(fixture_path)
+
+
+def add_resetting_endpoint(app, fixture_name):
+    @app.route('/reset-db')
+    def reset_db():
+        app.logger.warn('RESETTING DATABASE!!!')
+
+        load_sql_fixture(fixture_name)
+
+        return '', 200
+
+    return app
+
+
 def load_sample_structures(*, verbose=False, minimal=False, check=False,
                            delete=False):
     '''Inject our test data into LoRA.
@@ -522,13 +547,13 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
     def load_sql_fixture(self, fixture_name='dummy.sql'):
         '''Load an SQL fixture'''
-        assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
 
-        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
-            conn.autocommit = True
+        load_sql_fixture(fixture_name)
 
-            with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
-                curs.execute(fp.read())
+    def add_resetting_endpoint(self, fixture_name='dummy.sql'):
+        '''Add an endpoint for resetting the database'''
+
+        add_resetting_endpoint(self.app, fixture_name)
 
     def setUp(self):
         lora_server = werkzeug.serving.make_server(

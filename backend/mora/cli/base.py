@@ -339,8 +339,10 @@ def full_run(fixture, dump_to, backend_only):
         if last_exc is not None:
             raise last_exc
 
+    mora_app = app.create_app()
+
     lora_server, lora_port = make_server(lora_app.app, 6000)
-    mora_server, mora_port = make_server(app.create_app(), 5000)
+    mora_server, mora_port = make_server(mora_app, 5000)
 
     exts = json.loads(
         pkgutil.get_data('mora', 'db_extensions.json').decode(),
@@ -391,11 +393,8 @@ def full_run(fixture, dump_to, backend_only):
             test_util.load_sample_structures(minimal=True)
 
         elif fixture == 'dummy':
-            with db.get_connection() as conn, \
-                    conn.cursor() as curs, \
-                    open(os.path.join(backenddir, 'tests', 'fixtures',
-                                      'dummy.sql')) as fp:
-                curs.execute(fp.read())
+            test_util.load_sql_fixture('dummy.sql')
+            test_util.add_resetting_endpoint(mora_app, 'dummy.sql')
 
         else:
             from os2mo_data_import import ImportHelper

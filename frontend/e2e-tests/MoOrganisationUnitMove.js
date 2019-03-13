@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMove')
+  .afterEach(reset)
   .page(`${baseURL}/organisation/fb816fdf-bef3-4d49-89cb-3d3bde3e5b54`)
 
 const dialog = Selector('#orgUnitMove')
