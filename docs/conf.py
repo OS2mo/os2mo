@@ -31,6 +31,8 @@ FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
 DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 
+os.environ['FLASK_ENV'] = 'docs'
+
 #
 # -- Generated files ------------------------------------------------------
 #
@@ -51,7 +53,6 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.httpdomain',
@@ -82,7 +83,7 @@ MOCK_MODULES = [
     'onelogin.saml2.constants',
     'onelogin.saml2.idp_metadata_parser',
 ]
-sys.modules.update((mod_name, MagicMock()) for mod_name in MOCK_MODULES)
+sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 
 
 apidoc_module_dir = '../backend/mora'

@@ -1,3 +1,14 @@
+Version 0.16.0, in development
+==============================
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
 Version 0.15.0, in development
 ==============================
 
@@ -11,11 +22,6 @@ similarly to any other functions. To achieve the previous behaviour of
 merely marking manager functions as *vacant*, set ``"vacant": true``
 in the JSON request. Please note that this is the inverse of the
 previous ``terminate_all`` parameter, which no longer has any affect.
-
-Bug fixes
-=========
-
-* #27488: Fixed 401 not redirecting to login
 
 Internal changes
 ----------------
@@ -49,6 +55,7 @@ Bug fixes
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
 * #27153: Fixed the error and success messages for organisation and employee.
+* #27488: Fixed 401 not redirecting to login
 
 Version 0.14.1, 2019-02-22
 ==========================
