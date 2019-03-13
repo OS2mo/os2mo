@@ -14,8 +14,8 @@ Bug fixes
 * #26402: The “Save” button on the organisation mapper now correctly
   deactivates when successfully saving changes.
 
-Version 0.15.0, in development
-==============================
+Version 0.15.0, 2019-03-11
+==========================
 
 API changes
 -----------
