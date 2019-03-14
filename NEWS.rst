@@ -5,6 +5,8 @@ New features
 ------------
 
 * #27687: The various org funk relations now accept a ``user_key`` parameter.
+* #25396: Added backend validation API, for validating individual fields from
+  the front-end.
 
 Bug fixes
 ---------
@@ -55,8 +57,6 @@ New features
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -
   address, association and manager for employee and organisation.
 * #25407: Added checkbox message alert validation for workflow employee terminate.
-* 25396: Added backend validation API, for validating individual fields from
-  the front-end.
 * #27336: Remove association addresses.
 * #25174: Add support for marking engagements as “primary”.
 * #26961: Add support for marking associations as “primary”.
