@@ -4,8 +4,6 @@ import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
-const ROOTID = '97337de5-6096-41f9-921e-5bed7a140d85'
-
 const dialog = Selector('#employeeCreate')
 
 // CPR Number
@@ -28,7 +26,7 @@ const fromInput = dialog.find('.from-date input.form-control')
 const addressTypeSelect = dialog.find('select[data-vv-as="Adressetype"]')
 const addressTypeOption = addressTypeSelect.find('option')
 
-const addressInput = dialog.find('input[data-vv-as="Tlf"]')
+const addressInput = dialog.find('input[data-vv-as="Telefon"]')
 
 const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
@@ -126,7 +124,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.btn-address .btn-outline-success'))
 
     .click(addressTypeSelect)
-    .click(addressTypeOption.withText('Tlf'))
+    .click(addressTypeOption.withText('Telefon'))
 
     .click(addressInput)
     .typeText(addressInput, '35502010')
@@ -143,7 +141,7 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.unit-association span.tree-anchor'))
 
     .click(associationTypeSelect)
-    .click(associationTypeOption.withText('Konsulent'))
+    .click(associationTypeOption.withText('Projektleder'))
 
     // Role
     .click(dialog.find('.btn-role .btn-outline-success'))
@@ -189,7 +187,7 @@ test('Workflow: create employee', async t => {
     .click(managerTypeOption.withText('Direktør'))
 
     .click(levelManagerSelect)
-    .click(levelManagerOption.withText('Niveau 90'))
+    .click(levelManagerOption.withText('Niveau 3'))
 
     .click(responsibilityManagerSelect)
     .click(responsibilityManagerOption.withText('Beredskabsledelse'))
@@ -263,6 +261,10 @@ test('Workflow: create employee with role only', async t => {
     )
     .expect(Selector('.card-title').textContent)
     .match(/Oliver Jensen \(200392-0009\)/)
+    .expect(VueSelector('bTabButtonHelper').exists)
+    .ok()
+    .expect(VueSelector('bTabButtonHelper').withText('Roller').exists)
+    .ok()
     .click(VueSelector('bTabButtonHelper').withText('Roller'))
     .expect(Selector('ul.role_type-name').textContent)
     .match(/Tillidsrepræsentant/)
@@ -316,7 +318,7 @@ test('Workflow: create employee with association to unit lacking address', async
             .withText('Social og sundhed'))
 
     .click(associationTypeSelect)
-    .click(associationTypeOption.withText('Konsulent'))
+    .click(associationTypeOption.withText('Projektleder'))
 
     // Submit button
     .click(dialog.find('.btn-primary'))
@@ -336,5 +338,68 @@ test('Workflow: create employee with association to unit lacking address', async
     // and the association
     .click(VueSelector('bTabButtonHelper').withText('Tilknytninger'))
     .expect(Selector('ul.association_type-name').textContent)
-    .match(/Konsulent/)
+    .match(/Projektleder/)
+})
+
+test('Workflow: create employee with itsystem only', async t => {
+  let today = moment()
+
+  await t
+    .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
+    .click('.btn-employee-create')
+
+    .expect(dialog.exists).ok('Opened dialog')
+
+    // CPR Number
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
+    .click(dialog.find('.btn-outline-primary'))
+    .click(checkbox)
+    .expect(checkbox.checked).ok()
+
+    // Engagement
+    .click(parentEngagementInput)
+    .click(dialog.find('span.tree-anchor'))
+
+    .click(jobFunctionEngagementSelect)
+    .click(jobFunctionEngagementOption.withText('Bogopsætter'))
+
+    .click(engagementTypeSelect)
+    .click(engagementTypeOption.withText('Ansat'))
+
+    .click(fromInput)
+    .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .click(dialog.find('.vdp-datepicker .day:not(.blank)')
+      .withText(today.date().toString()))
+    .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    // IT System
+    .click(dialog.find('.btn-itSystem .btn-outline-success'))
+
+    .click(itSystemSelect)
+    .click(itSystemOption.withText('SAP'))
+    .click(itSystemInput)
+    .typeText(itSystemInput, 'admin')
+
+    // Submit button
+    .click(dialog.find('.btn-primary'))
+
+    .expect(dialog.exists).notOk()
+
+    .expect(VueSelector('MoLog')
+      .find('.alert').nth(-1).innerText)
+    .match(
+      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+    )
+    .expect(Selector('.card-title').textContent)
+    .match(/Oliver Jensen \(200392-0009\)/)
+    .expect(VueSelector('bTabButtonHelper').exists)
+    .ok()
+    .expect(VueSelector('bTabButtonHelper').withText('IT').exists)
+    .ok()
+    .click(VueSelector('bTabButtonHelper').withText('IT'))
+    .expect(VueSelector('mo-link').filter('.itsystem-name').textContent)
+    .match(/SAP/)
+    .expect(VueSelector('mo-link').filter('.user_key').textContent)
+    .match(/admin/)
 })
