@@ -20,8 +20,6 @@ from unittest.mock import patch
 import flask
 import flask_testing
 import jinja2
-import psycopg2
-import requests
 import requests_mock
 import time
 import werkzeug.serving
