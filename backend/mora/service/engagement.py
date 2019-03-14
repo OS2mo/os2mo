@@ -63,7 +63,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
 
-        bvn = str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,

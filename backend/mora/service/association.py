@@ -13,7 +13,6 @@ Associations
 This section describes how to interact with employee associations.
 
 '''
-
 from . import handlers
 from .. import common
 from .. import exceptions
@@ -54,8 +53,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        bvn = "{} {} {}".format(employee_uuid, org_unit_uuid,
-                                mapping.ASSOCIATION_KEY)
+        bvn = util.checked_get(
+            req, mapping.USER_KEY,
+            "{} {} {}".format(employee_uuid, org_unit_uuid,
+                              mapping.ASSOCIATION_KEY))
 
         primary = req.get(mapping.PRIMARY)
 

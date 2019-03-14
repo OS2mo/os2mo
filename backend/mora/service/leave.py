@@ -45,7 +45,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
         valid_from, valid_to = util.get_validities(req)
-        bvn = str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         # Validation
         validator.is_date_range_in_employee_range(employee, valid_from,

@@ -37,6 +37,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -44,10 +45,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-        with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -131,7 +130,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Engagement"
                     }
                 ]
