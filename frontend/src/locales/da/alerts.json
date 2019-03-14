@@ -37,7 +37,12 @@
     "V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES": "Kan ikke afslutte en enhed med aktive underenheder og roller",
     "V_CHANGING_THE_PAST": "Kan ikke foretage ændringer før dags dato",
     "E_INVALID_INPUT": "Ugyldigt input",
-    "E_UNKNOWN": "Uspecificeret fejl"
+    "E_UNKNOWN": "Uspecificeret fejl",
+    "V_INVALID_ADDRESS_PHONE": "Feltet skal indeholde otte cifre",
+    "V_INVALID_ADDRESS_EMAIL": "Feltet skal indeholde en email-adresse",
+    "V_INVALID_ADDRESS_EAN": "Feltet skal indeholde 13 cifre",
+    "V_INVALID_ADDRESS_PNUMBER": "Feltet skal indeholde 10 cifre",
+    "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en korrekt webadresse"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",
