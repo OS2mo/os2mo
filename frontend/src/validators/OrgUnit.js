@@ -6,7 +6,7 @@ export default {
     let validity = args[0]
     let orgUuid = args[1]
 
-    if (!orgUuid) {
+    if (!orgUuid || !validity || !validity.from) {
       return true
     }
 
