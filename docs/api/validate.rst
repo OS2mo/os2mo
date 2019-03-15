@@ -6,11 +6,11 @@ This section describes how to interact with the various validation endpoints.
 .. automodule:: mora.service.validate
 
 
-.. qrefflask:: mora.app:app
+.. qrefflask:: mora.app:create_app()
    :blueprints: validate
    :order: path
 
-.. autoflask:: mora.app:app
+.. autoflask:: mora.app:create_app()
    :include-empty-docstring:
    :order: path
    :blueprints: validate
