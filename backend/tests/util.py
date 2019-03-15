@@ -540,8 +540,11 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         pkgutil.get_data('mora', 'db_extensions.json').decode(),
     )
 
-    def load_sample_structures(self, **kwargs):
-        load_sample_structures(**kwargs)
+    def load_sample_structures(self, minimal=False):
+        if minimal:
+            load_sql_fixture('minimal.sql')
+        else:
+            load_sql_fixture('simple.sql')
 
     def load_sql_fixture(self, fixture_name='dummy.sql'):
         '''Load an SQL fixture'''
