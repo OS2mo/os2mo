@@ -1,5 +1,10 @@
 <template>
   <div>
+    <mo-input-checkbox
+      v-model="entry.primary"
+      :data-vv-as="$t('input_fields.primary_engagement')"
+    />
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col"
@@ -35,6 +40,7 @@
  */
 
 import { MoInputDateRange } from '@/components/MoInput'
+import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
@@ -48,6 +54,7 @@ export default {
   name: 'MoEngagementEntry',
 
   components: {
+    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
