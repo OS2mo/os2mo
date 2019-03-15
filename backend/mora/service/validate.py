@@ -97,7 +97,6 @@ def check_cpr():
 
     :<json string cpr: The associated CPR number
     :<json object org: The associated organisation
-    :<json object validity: The relevant validities to be checked
 
     .. sourcecode:: json
 
@@ -105,10 +104,6 @@ def check_cpr():
         "cpr_no": "1212121212",
         "org": {
           "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
-        },
-        "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
         }
       }
     """
@@ -118,7 +113,7 @@ def check_cpr():
     org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
     validator.does_employee_with_cpr_already_exist(
-        cpr, '-infinity', 'infinity', org_uuid)
+        cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid)
 
     return flask.jsonify(success=True)
 

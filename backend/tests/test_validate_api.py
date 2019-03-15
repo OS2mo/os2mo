@@ -16,13 +16,13 @@ class TestValidateAPI(util.TestCase):
 
     @patch('mora.service.validate.validator.is_date_range_in_org_unit_range')
     def test_candidate_org_unit(self, mock):
-        org_unit_uuid = "be0df80c-7eed-4a2e-a682-e36be4e4877e"
         from_date = "2000-01-01"
 
+        org_unit = {
+            "uuid": "be0df80c-7eed-4a2e-a682-e36be4e4877e"
+        }
         payload = {
-            "org_unit": {
-                "uuid": org_unit_uuid
-            },
+            "org_unit": org_unit,
             "validity": {
                 "from": from_date,
                 "to": None
@@ -32,7 +32,7 @@ class TestValidateAPI(util.TestCase):
         self.client.post('/service/validate/org-unit/', json=payload)
 
         mock.assert_called_with(
-            org_unit_uuid,
+            org_unit,
             mora_util.parsedatetime(from_date),
             mora_util.POSITIVE_INFINITY
         )
@@ -63,7 +63,6 @@ class TestValidateAPI(util.TestCase):
     @patch('mora.service.validate.validator.'
            'does_employee_with_cpr_already_exist')
     def test_cpr(self, mock):
-        from_date = "2000-01-01"
         cpr_no = "1234567890"
 
         org_uuid = "52e8d1ff-6fe0-4e8a-a19c-8bd8e1154b3b"
@@ -71,10 +70,6 @@ class TestValidateAPI(util.TestCase):
             "cpr_no": cpr_no,
             "org": {
                 "uuid": org_uuid
-            },
-            "validity": {
-                "from": from_date,
-                "to": None
             }
         }
 
@@ -82,7 +77,7 @@ class TestValidateAPI(util.TestCase):
 
         mock.assert_called_with(
             cpr_no,
-            mora_util.parsedatetime(from_date),
+            mora_util.NEGATIVE_INFINITY,
             mora_util.POSITIVE_INFINITY,
             org_uuid
         )
@@ -118,6 +113,7 @@ class TestValidateAPI(util.TestCase):
         org_unit_uuid = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
         from_date = "2000-01-01"
 
+        association_uuid = "7cd87e2a-e41a-4b68-baca-ff69426be753"
         payload = {
             "person": {
                 "uuid": person_uuid
@@ -128,7 +124,8 @@ class TestValidateAPI(util.TestCase):
             "validity": {
                 "from": from_date,
                 "to": None
-            }
+            },
+            "uuid": association_uuid
         }
 
         self.client.post('/service/validate/existing-associations/',
@@ -138,7 +135,7 @@ class TestValidateAPI(util.TestCase):
             person_uuid,
             org_unit_uuid,
             mora_util.parsedatetime(from_date),
-            mora_util.POSITIVE_INFINITY
+            association_uuid
         )
 
     @patch('mora.service.validate.validator.'
