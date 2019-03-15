@@ -1,5 +1,21 @@
-Version 0.15.0, in development
+Version 0.16.0, in development
 ==============================
+
+New features
+------------
+
+* #27687: The various org funk relations now accept a ``user_key`` parameter.
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
+Version 0.15.0, 2019-03-11
+==========================
 
 API changes
 -----------

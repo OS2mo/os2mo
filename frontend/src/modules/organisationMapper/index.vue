@@ -11,9 +11,9 @@
         <button
           @click="onSubmit"
           class="mt-2 btn btn-primary btn-submit"
-          :disabled="!valid"
+          :disabled="!isDirty"
         >
-          <icon name="map-signs"/>
+          <icon name="sitemap"/>
           {{$t('buttons.save')}}
         </button>
       </div>
@@ -37,12 +37,17 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <mo-log class="card"/>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import isEqualTo from 'lodash.isequal'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import MoLog from '@/components/MoLog/MoLog'
 import { mapGetters } from 'vuex'
 import store from './_store'
 import mainStore from '@/store'
@@ -52,6 +57,7 @@ mainStore.registerModule('organisationMapper', store)
 export default {
   name: 'OrganisationMapperModule',
   components: {
+    MoLog,
     MoTreeView
   },
   computed: {
@@ -74,12 +80,8 @@ export default {
       }
     },
 
-    valid () {
-      return this.origin && !isEqualTo(this.original_destination, this.destination)
-    },
-
     ...mapGetters({
-      original_destination: 'organisationMapper/original_destination'
+      isDirty: 'organisationMapper/isDirty'
     })
   },
 
