@@ -9,6 +9,9 @@ fixture('MoOrganisationUnitCreate')
 
 const dialog = Selector('#orgUnitCreate')
 
+const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
+const timeOption = timeSelect.find('option')
+
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
 
@@ -57,6 +60,9 @@ test('Workflow: create unit', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
+
+    .click(timeSelect)
+    .click(timeOption.withText('Tjenestetid'))
 
     .click(unitSelect)
     .click(unitOption.withText('Fagligt center'))

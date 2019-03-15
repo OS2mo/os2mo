@@ -289,22 +289,8 @@ class Writing(util.LoRATestCase):
     def test_edit_errors(self, mock):
         self.load_sample_structures()
 
-        other_userid = util.load_fixture('organisation/bruger',
-                                         'create_bruger_fætterguf.json')
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-
-        orig_address = {
-            "href": "https://www.openstreetmap.org/"
-            "?mlon=10.19938084&mlat=56.17102843&zoom=16",
-            "name": "Nordre Ringgade 1, 8000 Aarhus C",
-            "uuid": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": address_class,
-            "validity": {
-                "from": "2016-01-01",
-                "to": "2018-12-31",
-            },
-        }
 
         with self.subTest('both failing'):
             req = [

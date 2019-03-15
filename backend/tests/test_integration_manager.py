@@ -30,8 +30,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = {
             "type": "manager",
             "validity": {
@@ -96,6 +94,7 @@ class Tests(util.LoRATestCase):
                 "manager_level": {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -210,8 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": '11111111-1111-1111-'
-                                             '1111-111111111113',
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -861,8 +859,6 @@ class Tests(util.LoRATestCase):
     def test_create_manager_with_future_address(self):
         """Ensure that reading works when address is in the future"""
         self.load_sample_structures()
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 

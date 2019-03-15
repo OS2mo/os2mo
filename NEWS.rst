@@ -1,5 +1,22 @@
-Version 0.15.0, in development
+Version 0.16.0, in development
 ==============================
+
+New features
+------------
+
+* #27687: The various org funk relations now accept a ``user_key`` parameter.
+* #26666: Add support for assigning a nickname to employees.
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
+Version 0.15.0, 2019-03-11
+==========================
 
 API changes
 -----------
@@ -12,16 +29,25 @@ merely marking manager functions as *vacant*, set ``"vacant": true``
 in the JSON request. Please note that this is the inverse of the
 previous ``terminate_all`` parameter, which no longer has any affect.
 
+Internal changes
+----------------
+
+* #27431: The ``address_property`` facet is now named ``visibility``.
+
 New features
 ------------
 
+* #27299: Config check on startup, DUMMY_MODE instead of PROD_MODE,
 * #26459: Add support for terminating relations, such as associations,
   addresses, etc., using a separate dialog.
 * #25575: Added visibility for addresses with a phone number and exposed them in columns -
   address, association and manager for employee and organisation.
 * #25407: Added checkbox message alert validation for workflow employee terminate.
-* #26666: Add support for assigning a nickname to employees.
-
+* #27336: Remove association addresses.
+* #25174: Add support for marking engagements as “primary”.
+* #26961: Add support for marking associations as “primary”.
+* #27261: We can now read the username from the SAML session NameID
+* #27290: Add support for assigning time planning to organisational units.
 
 Bug fixes
 ---------
@@ -34,6 +60,8 @@ Bug fixes
   employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
+* #27153: Fixed the error and success messages for organisation and employee.
+* #27488: Fixed 401 not redirecting to login
 
 Version 0.14.1, 2019-02-22
 ==========================

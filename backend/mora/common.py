@@ -302,6 +302,7 @@ def create_organisationsfunktion_payload(
     tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
+    primær: bool=None,
     opgaver: typing.List[dict] = None,
     adresser: typing.List[dict] = None
 ) -> dict:
@@ -368,6 +369,13 @@ def create_organisationsfunktion_payload(
     if adresser:
         org_funk['relationer']['adresser'] = adresser
 
+    if primær is not None:
+        org_funk['attributter']['organisationfunktionudvidelser'] = [
+            {
+                'primær': primær,
+            },
+        ]
+
     org_funk = _set_virkning(org_funk, virkning)
 
     return org_funk
@@ -381,7 +389,7 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
-    adresser: typing.List[dict] = None,
+    opgaver: typing.List[dict] = None,
     integration_data: dict = {}
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
@@ -423,8 +431,8 @@ def create_organisationsenhed_payload(
         }
     }
 
-    if adresser:
-        org_unit['relationer']['adresser'] = adresser
+    if opgaver:
+        org_unit['relationer']['opgaver'] = opgaver
 
     org_unit = _set_virkning(org_unit, virkning)
 

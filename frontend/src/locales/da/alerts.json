@@ -16,7 +16,7 @@
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
     "CONFIRM_ENGAGEMENT_END_DATE": "Engagementet {engagementName}, {orgName} afsluttes pr. {endDate}",
-    "CONFIRM_EMPLOYEE_TERMINATE": "Jeg bekræfter at medarbejderen {employeeName}, opsiges pr. {endDate}",
+    "CONFIRM_EMPLOYEE_TERMINATE": "Jeg bekræfter, at medarbejderen {employeeName} opsiges pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
     "E_FORBIDDEN": "Du har ikke rettigheder til at foretage denne operation",
     "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
@@ -29,6 +29,7 @@
     "V_MISSING_REQUIRED_VALUE": "Manglende værdi er påkrævet",
     "V_MISSING_START_DATE": "Manglende start dato",
     "V_MORE_THAN_ONE_ASSOCIATION": "Medarbejderen har allerede en aktiv tilknytning med organisationsenheden",
+    "V_MORE_THAN_ONE_PRIMARY": "Medarbejderen har allerede en primær funktion af denne slags",
     "V_NO_ACTIVE_ENGAGEMENT": "Medarbejderen skal have et aktivt engagement",
     "V_NO_PERSON_FOR_CPR": "Ingen personer er fundet med det indtastet CPR nummer",
     "V_ORG_UNIT_MOVE_TO_CHILD": "Organisationsenheden kan ikke flyttes under dens egen underenheder",

@@ -18,6 +18,7 @@ from . import service
 from . import settings
 from . import util
 from .auth import base
+from .integrations import serviceplatformen
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -77,8 +78,5 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return flask.send_file('index.html')
 
+    serviceplatformen.check_config(app)
     return app
-
-
-# create a default instance for backwards compatibility
-app = create_app()

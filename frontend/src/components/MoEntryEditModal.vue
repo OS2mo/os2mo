@@ -259,14 +259,25 @@ export default {
         this.$refs[this.nameId].hide()
         this.$emit('submit')
 
-        this.$store.commit('log/newWorkLog',
-          { type: 'FUNCTION_EDIT',
-            value: {
+        if (this.type === 'EMPLOYEE') {
+          this.$store.commit('log/newWorkLog',
+            {
+              type: 'EMPLOYEE_EDIT',
               contentType: this.contentType,
-              uuid: this.uuid
-            }
-          },
-          { root: true })
+              value: this.uuid
+            },
+            { root: true })
+        }
+
+        if (this.type === 'ORG_UNIT') {
+          this.$store.commit('log/newWorkLog',
+            {
+              type: 'ORGANISATION_EDIT',
+              contentType: this.contentType,
+              value: this.uuid
+            },
+            { root: true })
+        }
       }
     }
   }

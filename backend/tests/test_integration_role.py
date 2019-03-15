@@ -32,6 +32,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": '1234',
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -112,10 +113,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Rolle"
                     }
                 ]
@@ -1045,8 +1043,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "00000000-0000-0000-0000-000000000000"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -1081,8 +1077,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"
 

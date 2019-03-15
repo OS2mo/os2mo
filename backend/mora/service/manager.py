@@ -92,7 +92,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 'uuid': manager_level_uuid
             })
 
-        bvn = str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         # Validation
         validator.is_date_range_in_org_unit_range(
@@ -124,8 +124,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
     def submit(self):
         if hasattr(self, 'addresses'):
-            for address in self.addresses:
-                address.submit()
+            for addr in self.addresses:
+                addr.submit()
         return super().submit()
 
     def prepare_edit(self, req: dict):

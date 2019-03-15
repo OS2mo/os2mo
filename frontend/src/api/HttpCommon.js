@@ -33,8 +33,5 @@ export default {
       })
   },
 
-  post (url, payload) {
-    return Service
-      .post(url, payload)
-  }
+  post: Service.post
 }

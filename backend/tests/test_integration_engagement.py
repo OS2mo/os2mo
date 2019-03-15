@@ -6,6 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import copy
+import uuid
+
 import freezegun
 import notsouid
 
@@ -34,6 +37,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -41,10 +45,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-        with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
             "livscykluskode": "Opstaaet",
@@ -128,7 +130,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -543,8 +545,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = [
             {
                 "type": "engagement",
@@ -578,8 +578,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = [
             {
                 "type": "engagement",
@@ -620,6 +618,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "uuid": engagement_uuid,
             "data": {
+                "primary": True,
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
@@ -750,7 +749,18 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "bvn",
                         "funktionsnavn": "Engagement"
                     }
-                ]
+                ],
+                "organisationfunktionudvidelser": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "primær": True,
+                    },
+                ],
             },
         }
 
@@ -1075,6 +1085,199 @@ class Tests(util.LoRATestCase):
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
+
+    def test_edit_engagement_primary(self):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+        userid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/engagement?validity=future'.format(userid),
+            [],
+        )
+
+        orig = c.organisationfunktion.get(engagement_uuid)
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                        "to": "2019-03-31",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+            },
+        )
+
+        with self.subTest('lora'):
+            expected = copy.deepcopy(orig)
+            actual = c.organisationfunktion.get(engagement_uuid)
+
+            expected.update(
+                note='Rediger engagement',
+                livscykluskode='Rettet',
+            )
+
+            expected['tilstande']['organisationfunktiongyldighed'] = [
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2017-01-01 '
+                              '00:00:00+01',
+                              'from_included': True,
+                              'to': '2018-04-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-04-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2018-06-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-06-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2018-08-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-08-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2019-04-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2019-04-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': 'infinity',
+                              'to_included': False}}
+            ]
+
+            expected['attributter']['organisationfunktionudvidelser'] = [
+                {
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-04-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-08-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2019-04-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "virkning": {
+                        "from": "2018-06-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-08-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+            ]
+
+            self.assertRegistrationsEqual(expected, actual)
+
+        base = {
+            "engagement_type": {
+                "example": None,
+                "name": "Afdeling",
+                "scope": None,
+                "user_key": "afd",
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+            },
+            "job_function": {
+                "example": None,
+                "name": "Fakultet",
+                "scope": None,
+                "user_key": "fak",
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            },
+            "org_unit": {
+                "name": "Humanistisk fakultet",
+                "user_key": "hum",
+                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+            },
+            "person": {
+                "name": "Anders And",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/engagement?validity=future'.format(userid),
+            [
+                {
+                    **base,
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                        "to": "2018-05-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-08-01",
+                        "to": "2019-03-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": None,
+                    "validity": {
+                        "from": "2019-04-01",
+                        "to": None,
+                    },
+                },
+            ],
+        )
 
     def test_edit_engagement_move_from_unit(self):
         self.load_sample_structures()
@@ -1518,3 +1721,300 @@ class Tests(util.LoRATestCase):
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
+
+    def test_create_primary(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        payload = {
+            "type": "engagement",
+            "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+            "primary": True,
+            "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+            "job_function": {
+                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+            "engagement_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-31",
+            }
+        }
+
+        with notsouid.freeze_uuid(auto_increment=True):
+            engagementid = self.assertRequest('/service/details/create',
+                                              json=payload)
+
+        with self.subTest('reading'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/engagement?validity=future',
+                [
+                    {
+                        'engagement_type': {
+                            'example': None,
+                            'name': 'Medlem',
+                            'scope': None,
+                            'user_key': 'medl',
+                            'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                        },
+                        'job_function': None,
+                        'org_unit': {
+                            'name': 'Humanistisk fakultet',
+                            'user_key': 'hum',
+                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                            'validity': {'from': '2016-01-01', 'to': None},
+                        },
+                        'person': {
+                            'name': 'Fedtmule',
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
+                        'primary': True,
+                        'uuid': engagementid,
+                        'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
+                    },
+                ],
+            )
+
+        expected_validation_error = {
+            "error": True,
+            "description": "Employee already has another active "
+            "and primary function.",
+            "status": 400,
+            "error_key": "V_MORE_THAN_ONE_PRIMARY",
+            "preexisting": [engagementid],
+        }
+
+        with self.subTest('duplicate fails'):
+            self.assertRequestResponse(
+                '/service/details/create',
+                expected_validation_error,
+                status_code=400,
+                json=payload,
+            )
+
+        with self.subTest('also fails to different unit'):
+            self.assertRequestResponse(
+                '/service/details/create',
+                expected_validation_error,
+                status_code=400,
+                json={
+                    **payload,
+                    "org_unit": {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    },
+                },
+            )
+
+        with self.subTest('but succeeds to different person'):
+            self.assertRequest(
+                '/service/details/create',
+                json={
+                    **payload,
+                    "person": {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "validity": {
+                        "from": "2017-12-01",
+                        "to": "2017-12-10",
+                    },
+                },
+            )
+
+        with self.subTest('or if secondary'):
+            self.assertRequest(
+                '/service/details/create',
+                json={
+                    **payload,
+                    "primary": False,
+                },
+            )
+
+        with self.subTest('or entirely directed elsewhere, in time too'):
+            self.assertRequest(
+                '/service/details/create',
+                json={
+                    **payload,
+                    "person": {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    },
+                    "org_unit": {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    },
+                    "validity": {
+                        "from": "2017-12-11",
+                        "to": "2017-12-20",
+                    },
+                },
+            )
+
+        expected = {
+            "livscykluskode": "Opstaaet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+                    }
+                ],
+                "opgaver": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                    }
+                ]
+            },
+            "attributter": {
+
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": str(uuid.UUID(int=1)),
+                        "funktionsnavn": "Engagement"
+                    }
+                ],
+                "organisationfunktionudvidelser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2018-01-01 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "primær": True,
+                    }
+                ]
+            }
+        }
+
+        actual_engagement = c.organisationfunktion.get(engagementid)
+
+        self.assertRegistrationsEqual(actual_engagement, expected)
+
+    def test_edit_primary_validations(self):
+        self.load_sample_structures()
+
+        origengagementid = 'd000591f-8705-4324-897a-075e3623f37b'
+        newengagementid = '07c98c2f-1ce7-4c0c-8073-0cb724f0e3a4'
+
+        payload = {
+            "type": "engagement",
+            "uuid": newengagementid,
+            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+            "primary": True,
+            "org_unit": {"uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"},
+            "job_function": {
+                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+            "engagement_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            }
+        }
+
+        self.assertRequestResponse('/service/details/create', newengagementid,
+                                   json=payload)
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            {
+                "error": True,
+                "description": "Employee already has another active "
+                "and primary function.",
+                "status": 400,
+                "error_key": "V_MORE_THAN_ONE_PRIMARY",
+                "preexisting": [newengagementid],
+            },
+            status_code=400,
+            json={
+                "type": "engagement",
+                "uuid": origengagementid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2017-04-01",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            origengagementid,
+            status_code=200,
+            json={
+                "type": "engagement",
+                "uuid": origengagementid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                    },
+                },
+            },
+        )

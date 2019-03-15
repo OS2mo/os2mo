@@ -37,6 +37,7 @@ class Tests(util.LoRATestCase):
                 },
                 "leave_type": {
                     'uuid': leave_type},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -107,7 +108,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Orlov"
                     }
                 ]
@@ -806,8 +807,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"
 

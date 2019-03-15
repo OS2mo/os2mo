@@ -12,6 +12,8 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
+const engagementCheckbox = dialog.find('.container')
+
 const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
@@ -32,6 +34,8 @@ const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
 
 // Association
+const associationCheckbox = dialog.find('[data-vv-as="Primær tilknytning"] .container')
+
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
 
 const addressAssociationSelect = dialog.find('.address-association select[data-vv-as="Adresser"]')
@@ -102,6 +106,8 @@ test('Workflow: create employee', async t => {
     .typeText(dialog.find('input[data-vv-as="Kaldenavn (valgfri)"]'), 'Teddy')
 
     // Engagement
+    .click(engagementCheckbox)
+
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
@@ -135,11 +141,10 @@ test('Workflow: create employee', async t => {
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
 
+    .click(associationCheckbox)
+
     .click(parentAssociationInput)
     .click(dialog.find('.unit-association span.tree-anchor'))
-
-    .click(addressAssociationSelect)
-    .pressKey('down enter')
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))
@@ -313,12 +318,6 @@ test('Workflow: create employee with association to unit lacking address', async
     .ok()
     .click(dialog.find('.unit-association .tree-node .tree-content')
             .withText('Social og sundhed'))
-
-    .expect(addressAssociationSelect.visible)
-    .notOk()
-
-    .expect(dialog.find('p.no-address').exists)
-    .ok()
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Konsulent'))

@@ -127,6 +127,7 @@ export default {
        */
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
         { label: 'engagement_type', data: 'engagement_type' }
       ],
@@ -140,10 +141,8 @@ export default {
       ],
       association: [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'association_type', data: 'association_type' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'address_property', data: 'visibility' },
-        { label: 'address', data: 'address' }
+        { label: 'primary', data: 'primary', field: null },
+        { label: 'association_type', data: 'association_type' }
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' }
@@ -154,12 +153,13 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
-        { label: 'address_property', data: 'visibility' },
-        { label: 'address', data: 'address' }
+        { label: 'visibility', data: 'visibility' },
+        { label: 'address', data: 'address' },
+        { label: 'primary', data: 'primary', field: null }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
-        { label: 'address_property', data: 'visibility' },
+        { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
 

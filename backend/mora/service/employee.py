@@ -402,7 +402,7 @@ def terminate_employee(employee_uuid):
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
     :<json boolean vacate: *Optional* - mark applicable — currently
-        only ``manager` -- functions as _vacant_, i.e. simply detach
+        only ``manager`` -- functions as _vacant_, i.e. simply detach
         the employee from them.
 
     **Example Request**:
