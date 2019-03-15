@@ -598,6 +598,7 @@ class Tests(util.LoRATestCase):
                 },
                 "cpr_no": "0202020202",
                 "name": "Test 2 Employee",
+                'nickname': "T2E",
             },
         }]
 
@@ -608,25 +609,41 @@ class Tests(util.LoRATestCase):
         )
 
         # there must be a registration of the new name
-        expected_brugeregenskaber = [{
-            'brugernavn': 'Fedtmule',
-            'brugervendtnoegle': 'fedtmule',
-            'virkning': {
-                'from': '1932-05-12 00:00:00+01',
-                'from_included': True,
-                'to': '2017-01-01 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'brugernavn': 'Test 2 Employee',
-            'brugervendtnoegle': 'fedtmule',
-            'virkning': {
-                'from': '2017-01-01 00:00:00+01',
-                'from_included': True,
-                'to': 'infinity',
-                'to_included': False
-            }
-        }]
+        expected_brugerattr = {
+            'brugeregenskaber': [
+                {
+                    'brugernavn': 'Fedtmule',
+                    'brugervendtnoegle': 'fedtmule',
+                    'virkning': {
+                        'from': '1932-05-12 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-01-01 00:00:00+01',
+                        'to_included': False
+                    },
+                },
+                {
+                    'brugernavn': 'Test 2 Employee',
+                    'brugervendtnoegle': 'fedtmule',
+                    'virkning': {
+                        'from': '2017-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    },
+                },
+            ],
+            'brugerudvidelser': [
+                {
+                    'kaldenavn': 'T2E',
+                    'virkning': {
+                        'from': '2017-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    },
+                },
+            ],
+        }
 
         expected_tilknyttedepersoner = [
             {
@@ -683,8 +700,8 @@ class Tests(util.LoRATestCase):
         actual = c.bruger.get(userid)
 
         self.assertEqual(
-            expected_brugeregenskaber,
-            actual['attributter']['brugeregenskaber']
+            expected_brugerattr,
+            actual['attributter']
         )
         self.assertEqual(
             expected_brugergyldighed,
