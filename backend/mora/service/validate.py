@@ -28,6 +28,9 @@ def org_unit_validity():
 
     .. :quickref: Validate; Validate org unit
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json object org_unit: The associated org unit
     :<json object validity: The relevant validities to be checked
 
@@ -42,6 +45,16 @@ def org_unit_validity():
             "to": "2017-12-31"
         }
       }
+
+    Possible validation errors:
+
+    * ``V_INVALID_ADDRESS_DAR``
+    * ``V_INVALID_ADDRESS_EAN``
+    * ``V_INVALID_ADDRESS_EMAIL``
+    * ``V_INVALID_ADDRESS_PNUMBER``
+    * ``V_INVALID_ADDRESS_PHONE``
+    * ``V_INVALID_ADDRESS_WWW``
+
     """
     req = flask.request.get_json()
 
@@ -62,6 +75,9 @@ def employee_validity():
 
     .. :quickref: Validate; Validate employee
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json object org_unit: The associated org unit
     :<json object validity: The relevant validities to be checked
 
@@ -76,6 +92,11 @@ def employee_validity():
             "to": "2017-12-31"
         }
       }
+
+    Possible validation errors:
+
+    * ``V_DATE_OUTSIDE_EMPL_RANGE``
+
     """
     req = flask.request.get_json()
 
@@ -95,6 +116,9 @@ def check_cpr():
 
     .. :quickref: Validate; Validate CPR no.
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json string cpr: The associated CPR number
     :<json object org: The associated organisation
 
@@ -106,6 +130,10 @@ def check_cpr():
           "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
         }
       }
+
+    Possible validation errors:
+
+    * ``V_EXISTING_CPR``
     """
     req = flask.request.get_json()
 
@@ -126,6 +154,9 @@ def employee_engagements():
 
     .. :quickref: Validate; Validate active engagements
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json object person: The associated employee
     :<json object validity: The relevant validities to be checked
 
@@ -140,6 +171,10 @@ def employee_engagements():
             "to": "2017-12-31"
         }
       }
+
+    Possible validation errors:
+
+    * ``V_NO_ACTIVE_ENGAGEMENT``
     """
     req = flask.request.get_json()
 
@@ -160,6 +195,9 @@ def employee_existing_associations():
     org unit
 
     .. :quickref: Validate; Validate existing associations
+
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
 
     :<json object person: The associated employee
     :<json object person: The associated org unit
@@ -182,6 +220,10 @@ def employee_existing_associations():
         },
         "uuid": "df995126-e747-4f9f-8e3b-ca38cadbfdb1",
       }
+
+    Possible validation errors:
+
+    * ``V_MORE_THAN_ONE_ASSOCIATION``
     """
     req = flask.request.get_json()
 
@@ -206,6 +248,9 @@ def candidate_parent_org_unit():
 
     .. :quickref: Validate; Validate candidate parent org unit
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json object org_unit: The associated org unit to be moved
     :<json object parent: The associated parent org unit
     :<json object from: The date on which the move is to take place
@@ -223,6 +268,13 @@ def candidate_parent_org_unit():
             "from": "2016-01-01",
         }
       }
+
+    Possible validation errors:
+
+    * ``V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL``
+    * ``V_ORG_UNIT_MOVE_TO_CHILD``
+    * ``V_DATE_OUTSIDE_ORG_UNIT_RANGE``
+    * ``V_UNIT_OUTSIDE_ORG``
     """
     req = flask.request.get_json()
 
@@ -245,6 +297,9 @@ def address_value():
 
     .. :quickref: Validate; Validate address value
 
+    :statuscode 200: Validation succeeded.
+    :statuscode 4XX: Validation failed.
+
     :<json object value: The address value to be checked
     :<json object address_type: The address type to be checked against
 
@@ -256,6 +311,10 @@ def address_value():
           "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
         }
       }
+
+    Possible validation errors:
+
+    * ``V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL``
     """
 
     req = flask.request.get_json()

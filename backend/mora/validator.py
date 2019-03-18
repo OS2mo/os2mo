@@ -388,7 +388,7 @@ def is_edit_from_date_before_today(from_date: datetime.datetime):
 
 @forceable
 def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
-                                         user_id=None):
+                                         allowed_user_id=None):
     """
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
@@ -403,7 +403,7 @@ def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
         tilhoerer=org_uuid
     )
 
-    if user_ids and user_id not in user_ids:
+    if user_ids and allowed_user_id not in user_ids:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_EXISTING_CPR,
             cpr=cpr,
