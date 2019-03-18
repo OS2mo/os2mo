@@ -546,12 +546,12 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         else:
             load_sql_fixture('simple.sql')
 
-    def load_sql_fixture(self, fixture_name='dummy.sql'):
+    def load_sql_fixture(self, fixture_name='normal.sql'):
         '''Load an SQL fixture'''
 
         load_sql_fixture(fixture_name)
 
-    def add_resetting_endpoint(self, fixture_name='dummy.sql'):
+    def add_resetting_endpoint(self, fixture_name='normal.sql'):
         '''Add an endpoint for resetting the database'''
 
         add_resetting_endpoint(self.app, fixture_name)

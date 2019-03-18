@@ -112,8 +112,8 @@ COPY actual_state.bruger (id) FROM stdin;
 --
 
 COPY actual_state.bruger_registrering (id, bruger_id, registrering) FROM stdin;
-1	53181ed2-f1de-4c4a-a8fd-ab358c2c454a	("[""2019-03-13 16:17:01.531598+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
-2	6ee24785-ee9a-4502-81c2-7697009c9053	("[""2019-03-13 16:17:01.557362+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+1	53181ed2-f1de-4c4a-a8fd-ab358c2c454a	("[""2019-03-18 17:51:00.989699+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+2	6ee24785-ee9a-4502-81c2-7697009c9053	("[""2019-03-18 17:51:01.014555+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
 \.
 
 
@@ -338,9 +338,9 @@ ef71fe9c-7901-48e2-86d8-84116e210202
 --
 
 COPY actual_state.facet_registrering (id, facet_id, registrering) FROM stdin;
-1	fc917e7c-fc3b-47c2-8aa5-a0383342a280	("[""2019-03-13 16:17:00.941246+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
-2	e337bab4-635f-49ce-aa31-b44047a43aa1	("[""2019-03-13 16:17:00.960447+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
-3	ef71fe9c-7901-48e2-86d8-84116e210202	("[""2019-03-13 16:17:00.975025+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+1	fc917e7c-fc3b-47c2-8aa5-a0383342a280	("[""2019-03-18 17:51:00.441936+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+2	e337bab4-635f-49ce-aa31-b44047a43aa1	("[""2019-03-18 17:51:00.460547+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+3	ef71fe9c-7901-48e2-86d8-84116e210202	("[""2019-03-18 17:51:00.473934+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
 \.
 
 
@@ -574,8 +574,8 @@ COPY actual_state.itsystem (id) FROM stdin;
 --
 
 COPY actual_state.itsystem_registrering (id, itsystem_id, registrering) FROM stdin;
-1	59c135c9-2b15-41cc-97c8-b5dff7180beb	("[""2019-03-13 16:17:01.578939+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
-2	0872fb72-926d-4c5c-a063-ff800b8ee697	("[""2019-03-13 16:17:01.603528+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+1	59c135c9-2b15-41cc-97c8-b5dff7180beb	("[""2019-03-18 17:51:01.034639+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+2	0872fb72-926d-4c5c-a063-ff800b8ee697	("[""2019-03-18 17:51:01.05919+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
 \.
 
 
@@ -658,14 +658,14 @@ e34d4426-9845-4c72-b31e-709be85d6fa2
 --
 
 COPY actual_state.klasse_registrering (id, klasse_id, registrering) FROM stdin;
-1	32547559-cfc1-4d97-94c6-70b192eff825	("[""2019-03-13 16:17:00.992952+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-2	4311e351-6a3c-4e7e-ae60-8a3b2938fbd6	("[""2019-03-13 16:17:01.017335+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-3	ca76a441-6226-404f-88a9-31e02e420e52	("[""2019-03-13 16:17:01.033684+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-4	c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0	("[""2019-03-13 16:17:01.048188+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
-5	1d1d3711-5af4-4084-99b3-df2b8752fdec	("[""2019-03-13 16:17:01.067118+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
-6	4e337d8e-1fd2-4449-8110-e0c8a22958ed	("[""2019-03-13 16:17:01.082141+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
-7	e34d4426-9845-4c72-b31e-709be85d6fa2	("[""2019-03-13 16:17:01.097467+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
-8	62ec821f-4179-4758-bfdf-134529d186e9	("[""2019-03-13 16:17:01.115705+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+1	32547559-cfc1-4d97-94c6-70b192eff825	("[""2019-03-18 17:51:00.490726+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+2	4311e351-6a3c-4e7e-ae60-8a3b2938fbd6	("[""2019-03-18 17:51:00.518681+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+3	ca76a441-6226-404f-88a9-31e02e420e52	("[""2019-03-18 17:51:00.534516+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+4	c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0	("[""2019-03-18 17:51:00.550208+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
+5	1d1d3711-5af4-4084-99b3-df2b8752fdec	("[""2019-03-18 17:51:00.565589+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
+6	4e337d8e-1fd2-4449-8110-e0c8a22958ed	("[""2019-03-18 17:51:00.580947+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
+7	e34d4426-9845-4c72-b31e-709be85d6fa2	("[""2019-03-18 17:51:00.595804+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæst fra JSON")
+8	62ec821f-4179-4758-bfdf-134529d186e9	("[""2019-03-18 17:51:00.60991+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
 \.
 
 
@@ -918,7 +918,7 @@ COPY actual_state.organisation (id) FROM stdin;
 --
 
 COPY actual_state.organisation_registrering (id, organisation_id, registrering) FROM stdin;
-1	456362c4-0ee4-4e5e-a72c-751239745e62	("[""2019-03-13 16:17:00.918166+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+1	456362c4-0ee4-4e5e-a72c-751239745e62	("[""2019-03-18 17:51:00.420252+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
 \.
 
 
@@ -996,12 +996,12 @@ da77153e-30f3-4dc2-a611-ee912a28d8aa
 --
 
 COPY actual_state.organisationenhed_registrering (id, organisationenhed_id, registrering) FROM stdin;
-1	2874e1dc-85e6-4269-823a-e1125484dfd3	("[""2019-03-13 16:17:01.136171+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-2	9d07123e-47ac-4a9a-88c8-da82e3a4bc9e	("[""2019-03-13 16:17:01.161464+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-3	b688513d-11f7-4efc-b679-ab082a2055d0	("[""2019-03-13 16:17:01.180487+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-4	85715fc7-925d-401b-822d-467eb4b163b6	("[""2019-03-13 16:17:01.197037+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-5	da77153e-30f3-4dc2-a611-ee912a28d8aa	("[""2019-03-13 16:17:01.218527+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-6	04c78fc2-72d2-4d02-b55f-807af19eac48	("[""2019-03-13 16:17:01.23555+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+1	2874e1dc-85e6-4269-823a-e1125484dfd3	("[""2019-03-18 17:51:00.627539+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+2	9d07123e-47ac-4a9a-88c8-da82e3a4bc9e	("[""2019-03-18 17:51:00.649625+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+3	b688513d-11f7-4efc-b679-ab082a2055d0	("[""2019-03-18 17:51:00.667791+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+4	85715fc7-925d-401b-822d-467eb4b163b6	("[""2019-03-18 17:51:00.68451+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+5	da77153e-30f3-4dc2-a611-ee912a28d8aa	("[""2019-03-18 17:51:00.701639+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+6	04c78fc2-72d2-4d02-b55f-807af19eac48	("[""2019-03-18 17:51:00.719128+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
 \.
 
 
@@ -1118,22 +1118,22 @@ a0fe7d43-1e0d-4232-a220-87098024b34d
 --
 
 COPY actual_state.organisationfunktion_registrering (id, organisationfunktion_id, registrering) FROM stdin;
-1	d000591f-8705-4324-897a-075e3623f37b	("[""2019-03-13 16:17:01.254586+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-2	c2153d5d-4a2b-492d-a18c-c498f7bb6221	("[""2019-03-13 16:17:01.279497+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-3	1b20d0b9-96a0-42a6-b196-293bb86e62e8	("[""2019-03-13 16:17:01.295946+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-4	b807628c-030c-4f5f-a438-de41c1f26ba5	("[""2019-03-13 16:17:01.315765+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-5	05609702-977f-4869-9fb4-50ad74c6999a	("[""2019-03-13 16:17:01.332516+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-6	aaa8c495-d7d4-4af1-b33a-f4cb27b82c66	("[""2019-03-13 16:17:01.347146+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-7	cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276	("[""2019-03-13 16:17:01.367309+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-8	daa77a4d-6500-483d-b099-2c2eb7fa7a76	("[""2019-03-13 16:17:01.382265+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-9	5c68402c-2a8d-4776-9237-16349fc72648	("[""2019-03-13 16:17:01.396389+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-10	fba61e38-b553-47cc-94bf-8c7c3c2a6887	("[""2019-03-13 16:17:01.414792+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-11	64ea02e2-8469-4c54-a523-3d46729e86a7	("[""2019-03-13 16:17:01.430722+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-12	cd6008bc-1ad2-4272-bc1c-d349ef733f52	("[""2019-03-13 16:17:01.44485+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-13	414044e0-fe5f-4f82-be20-1e107ad50e80	("[""2019-03-13 16:17:01.463919+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-14	e1a9cede-8c9b-4367-b628-113834361871	("[""2019-03-13 16:17:01.479802+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-15	55848eca-4e9e-4f30-954b-78d55eec0473	("[""2019-03-13 16:17:01.49488+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
-16	a0fe7d43-1e0d-4232-a220-87098024b34d	("[""2019-03-13 16:17:01.512679+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+1	d000591f-8705-4324-897a-075e3623f37b	("[""2019-03-18 17:51:00.7367+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+2	c2153d5d-4a2b-492d-a18c-c498f7bb6221	("[""2019-03-18 17:51:00.758737+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+3	1b20d0b9-96a0-42a6-b196-293bb86e62e8	("[""2019-03-18 17:51:00.774097+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+4	b807628c-030c-4f5f-a438-de41c1f26ba5	("[""2019-03-18 17:51:00.789823+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+5	05609702-977f-4869-9fb4-50ad74c6999a	("[""2019-03-18 17:51:00.807229+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+6	aaa8c495-d7d4-4af1-b33a-f4cb27b82c66	("[""2019-03-18 17:51:00.821457+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+7	cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276	("[""2019-03-18 17:51:00.836464+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+8	daa77a4d-6500-483d-b099-2c2eb7fa7a76	("[""2019-03-18 17:51:00.851576+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+9	5c68402c-2a8d-4776-9237-16349fc72648	("[""2019-03-18 17:51:00.864981+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+10	fba61e38-b553-47cc-94bf-8c7c3c2a6887	("[""2019-03-18 17:51:00.881295+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+11	64ea02e2-8469-4c54-a523-3d46729e86a7	("[""2019-03-18 17:51:00.896794+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+12	cd6008bc-1ad2-4272-bc1c-d349ef733f52	("[""2019-03-18 17:51:00.911118+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+13	414044e0-fe5f-4f82-be20-1e107ad50e80	("[""2019-03-18 17:51:00.925312+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+14	e1a9cede-8c9b-4367-b628-113834361871	("[""2019-03-18 17:51:00.941019+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+15	55848eca-4e9e-4f30-954b-78d55eec0473	("[""2019-03-18 17:51:00.956316+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
+16	a0fe7d43-1e0d-4232-a220-87098024b34d	("[""2019-03-18 17:51:00.970803+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"Automatisk indlæsning")
 \.
 
 
