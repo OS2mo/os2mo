@@ -77,9 +77,9 @@ pipeline {
   }
 
   post {
-    always {
+    success {
       cobertura coberturaReportFile: '*/build/coverage/*.xml',  \
-        onlyStable: false,                                      \
+        onlyStable: true,                                       \
         conditionalCoverageTargets: '90, 0, 0',                 \
         lineCoverageTargets: '95, 0, 0',                        \
         maxNumberOfBuilds: 0
@@ -91,7 +91,8 @@ pipeline {
         reportName: 'Documentation',
         reportTitles: 'Documentation',
       ]
-
+    }
+    always {
       junit healthScaleFactor: 200.0,           \
         testResults: '*/build/reports/*.xml'
 
@@ -101,9 +102,9 @@ pipeline {
           [parserName: 'Pep8']
         ]
       }
-
+    }
+    cleanup {
       cleanWs deleteDirs: true
-
     }
   }
 }
