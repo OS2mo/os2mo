@@ -5,8 +5,8 @@ New features
 ------------
 
 * #27687: The various org funk relations now accept a ``user_key`` parameter.
-* #25396: Added backend validation API, for validating individual fields from
-  the front-end.
+* #25396: Implemented validation of individual fields in frontend using
+  backend validation API.
 
 Bug fixes
 ---------
