@@ -563,24 +563,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
         super().setUp()
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        exts = json.loads(
-            pkgutil.get_data('mora', 'db_extensions.json').decode(),
-        )
-
-        cls.__db_patcher = test_support.extend_db_struct(exts)
-        cls.__db_patcher.__enter__()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.__db_patcher.__exit__(None, None, None)
-        cls.__db_patcher = None
-
-        super().tearDownClass()
-
 
 class TestCase(TestCaseMixin, flask_testing.TestCase):
     pass
