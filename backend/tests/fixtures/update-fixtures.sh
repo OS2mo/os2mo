@@ -3,14 +3,11 @@
 CURDIR=$(cd $(dirname $0); pwd)
 TOPDIR="$CURDIR/../.."
 
-for fixture in minimal simple normal
+for fixture in minimal simple small normal large
 do
     echo
     echo $fixture
     echo
 
-    "$TOPDIR"/flask.sh full-run \
-             --fixture $fixture --dump-to "$CURDIR/$fixture.sql"
+    "$TOPDIR"/flask.sh update-fixture $fixture
 done
-
-mv "$CURDIR/normal.sql" "$CURDIR/dummy.sql"

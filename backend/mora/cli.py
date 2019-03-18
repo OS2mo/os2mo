@@ -27,6 +27,7 @@ In addition, we have ``docs`` for building the documentation.
 
 '''
 
+import contextlib
 import doctest
 import json
 import os
@@ -250,17 +251,77 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
         raise Exit()
 
 
+@contextlib.contextmanager
+def make_dummy_instance():
+    from unittest import mock
+
+    import psycopg2
+
+    from oio_rest import app as lora_app
+    from oio_rest.utils import test_support
+    from oio_rest import db
+    from oio_rest import settings as lora_settings
+
+    from mora import app
+
+    # ensure that we can import the tests module, regardless of $PWD
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+    sys.path.pop(0)
+
+    def make_server(app, startport=5000):
+        '''create a server at the first available port after startport'''
+        last_exc = None
+
+        for port in range(startport, 65536):
+            try:
+                return (
+                    werkzeug.serving.make_server(
+                        'localhost', port, app,
+                        threaded=True,
+                    ),
+                    port,
+                )
+            except OSError as exc:
+                last_exc = exc
+
+        if last_exc is not None:
+            raise last_exc
+
+    lora_server, lora_port = make_server(lora_app.app, 6000)
+    mora_server, mora_port = make_server(app.create_app(), 5000)
+
+    exts = json.loads(
+        pkgutil.get_data('mora', 'db_extensions.json').decode(),
+    )
+
+    with \
+            test_support.psql() as psql, \
+            test_support.extend_db_struct(exts), \
+            mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
+            mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
+                       create=True), \
+            mock.patch('oio_rest.settings.DB_PORT', psql.dsn()['port'],
+                       create=True), \
+            mock.patch('oio_rest.db.pool',
+                       psycopg2.pool.PersistentConnectionPool(
+                           0, 100,
+                           **psql.dsn(database=lora_settings.DATABASE),
+                       )), \
+            mock.patch('mora.settings.LORA_URL',
+                       'http://localhost:{}/'.format(lora_port)):
+
+        test_support._initdb()
+
+        yield psql, lora_server, mora_server
+
+
 @group.command()
-@click.option('--fixture', type=click.Choice(['minimal', 'simple', 'dummy',
+@click.option('--fixture', type=click.Choice(['minimal', 'simple',
                                               'small', 'normal', 'large']),
-              default='dummy',
+              default='normal',
               help='Choose the initial dataset.')
-@click.option('--dump-to', type=click.File(mode='w', lazy=True, atomic=True),
-              help='Dump the database to the given file.')
-@click.option('--backend-only', is_flag=True,
-              help="Don't run the ``vue-cli-service`` server for frontend "
-              "development.")
-def full_run(fixture, dump_to, backend_only):
+def full_run(fixture):
     '''Command for running a one-off server for frontend development.
 
     This server consists of a the following:
@@ -308,73 +369,20 @@ def full_run(fixture, dump_to, backend_only):
 
     '''
 
-    from unittest import mock
-
-    import psycopg2
-
-    from oio_rest import app as lora_app
-    from oio_rest.utils import test_support
-    from oio_rest import db
     from oio_rest import settings as lora_settings
-
-    from mora import app
-
-    # ensure that we can import the tests module, regardless of $PWD
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
     from tests import util as test_util
 
-    sys.path.pop(0)
-
-    def make_server(app, startport=5000):
-        '''create a server at the first available port after startport'''
-        last_exc = None
-
-        for port in range(startport, 65536):
-            try:
-                return (
-                    werkzeug.serving.make_server(
-                        'localhost', port, app,
-                        threaded=True,
-                    ),
-                    port,
-                )
-            except OSError as exc:
-                last_exc = exc
-
-        if last_exc is not None:
-            raise last_exc
-
-    mora_app = app.create_app()
-
-    lora_server, lora_port = make_server(lora_app.app, 6000)
-    mora_server, mora_port = make_server(mora_app, 5000)
-
-    exts = json.loads(
-        pkgutil.get_data('mora', 'db_extensions.json').decode(),
-    )
-
-    with \
-            test_support.psql() as psql, \
-            test_support.extend_db_struct(exts), \
-            mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
-            mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
-                       create=True), \
-            mock.patch('oio_rest.settings.DB_PORT', psql.dsn()['port'],
-                       create=True), \
-            mock.patch('oio_rest.db.pool',
-                       psycopg2.pool.PersistentConnectionPool(
-                           0, 100,
-                           **psql.dsn(database=lora_settings.DATABASE),
-                       )), \
-            mock.patch('mora.settings.LORA_URL',
-                       'http://localhost:{}/'.format(lora_port)):
-
+    with make_dummy_instance() as (psql, lora_server, mora_server):
         print(' * PostgreSQL running at {}'.format(psql.url(
             database=lora_settings.DATABASE,
         )))
+        print(' * LoRA running at {}'.format(settings.LORA_URL))
+        print(' * Backend running at http://localhost:{}/'
+              .format(mora_server.port))
 
-        test_support._initdb()
+        test_util.load_sql_fixture(fixture + '.sql')
+        test_util.add_resetting_endpoint(mora_server.app, fixture + '.sql')
 
         threading.Thread(
             target=lora_server.serve_forever,
@@ -382,35 +390,69 @@ def full_run(fixture, dump_to, backend_only):
             daemon=True,
         ).start()
 
-        print(' * LoRA running at {}'.format(settings.LORA_URL))
-
         threading.Thread(
             target=mora_server.serve_forever,
             args=(),
             daemon=True,
         ).start()
 
-        print(' * Backend running at http://localhost:{}/'.format(mora_port))
+        subprocess.check_call(
+            get_yarn_cmd('dev'),
+            cwd=frontenddir,
+            env={
+                **os.environ,
+                'BASE_URL':
+                'http://localhost:{}'.format(mora_server.port),
+            },
+        )
 
-        if fixture == 'simple':
+
+@group.command()
+@click.argument('fixture-name', metavar='NAME', default='normal')
+@click.option('-o', 'target', type=click.File(mode='w',
+                                              lazy=True, atomic=True))
+def update_fixture(fixture_name, target):
+    '''Update a given fixture'''
+
+    with make_dummy_instance() as (psql, lora_server, mora_server):
+        from oio_rest import settings as lora_settings
+        from tests import util as test_util
+
+        threading.Thread(
+            target=lora_server.serve_forever,
+            args=(),
+            daemon=True,
+        ).start()
+
+        if fixture_name == 'simple':
             test_util.load_sample_structures()
 
-        elif fixture == 'minimal':
+        elif fixture_name == 'minimal':
             test_util.load_sample_structures(minimal=True)
-
-        elif fixture == 'dummy':
-            test_util.load_sql_fixture('dummy.sql')
-            test_util.add_resetting_endpoint(mora_app, 'dummy.sql')
 
         else:
             from os2mo_data_import import ImportHelper
             from fixture_generator import populate_mo
             from fixture_generator import dummy_data_creator
 
+            try:
+                org_size = getattr(dummy_data_creator.Size,
+                                   fixture_name.title())
+            except AttributeError:
+                raise click.exceptions.BadArgumentUsage(
+                    'Unexpected fixture name {!r}'.format(fixture_name),
+                )
+
+            threading.Thread(
+                target=mora_server.serve_forever,
+                args=(),
+                daemon=True,
+            ).start()
+
             importer = ImportHelper(
                 create_defaults=True,
                 mox_base=settings.LORA_URL,
-                mora_base='http://localhost:{}/'.format(mora_port),
+                mora_base='http://localhost:{}/'.format(mora_server.port),
                 system_name="Artificial import",
                 end_marker="STOP",
                 store_integration_data=True,
@@ -421,13 +463,22 @@ def full_run(fixture, dump_to, backend_only):
                 '0860',
                 'Hjørring Kommune',
                 scale=1,
-                org_size=getattr(dummy_data_creator.Size, fixture.title()),
+                org_size=org_size,
                 extra_root=True,
             )
 
             importer.import_all()
 
-        if dump_to:
+            mora_server.shutdown()
+
+        lora_server.shutdown()
+
+        if target is None:
+            target = open(os.path.join(test_util.FIXTURE_DIR,
+                                       fixture_name.lower() + '.sql'),
+                          mode='w')
+
+        with target:
             subprocess.check_call(
                 [
                     'pg_dump',
@@ -437,35 +488,8 @@ def full_run(fixture, dump_to, backend_only):
                     '--port', str(lora_settings.DB_PORT),
                     '--username', lora_settings.DB_USER,
                 ],
-                stdout=dump_to,
+                stdout=target,
             )
-            return
-
-        try:
-            if backend_only:
-                mora_server.serve_forever()
-            else:
-                threading.Thread(
-                    target=mora_server.serve_forever,
-                    args=(),
-                    daemon=True,
-                ).start()
-
-                with subprocess.Popen(
-                        get_yarn_cmd('dev'),
-                        cwd=frontenddir,
-                        env={
-                            **os.environ,
-                            'BASE_URL':
-                            'http://localhost:{}'.format(mora_port),
-                        },
-                ):
-                    pass
-
-        finally:
-            db.pool.closeall()
-            mora_server.shutdown()
-            lora_server.shutdown()
 
 
 if __name__ == '__main__':
