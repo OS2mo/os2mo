@@ -13,7 +13,6 @@ import flask
 import flask_saml_sso
 import werkzeug
 
-from . import cli
 from . import exceptions
 from . import service
 from . import settings
@@ -34,7 +33,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     '''
     app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
-    app.cli = cli.base.cli
 
     app.config.from_object(settings)
 

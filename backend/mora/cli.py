@@ -42,16 +42,16 @@ import click
 import flask
 import werkzeug.serving
 
-from .. import settings
+from . import settings
 
-basedir = os.path.dirname(os.path.dirname(__file__))
+basedir = os.path.dirname(__file__)
 backenddir = os.path.dirname(basedir)
 topdir = os.path.dirname(backenddir)
 docsdir = os.path.join(topdir, 'docs')
 frontenddir = os.path.join(topdir, 'frontend')
 
 
-cli = flask.cli.FlaskGroup(help=__doc__, context_settings={
+group = flask.cli.FlaskGroup(help=__doc__, context_settings={
     'help_option_names': ['-h', '--help'],
 })
 
@@ -78,7 +78,7 @@ def get_yarn_cmd(cmd):
     return args
 
 
-@cli.command()
+@group.command()
 @click.argument('target', required=False)
 def build(target=None):
     'Build the frontend application.'
@@ -92,7 +92,7 @@ def build(target=None):
             cwd=frontenddir)
 
 
-@cli.command()
+@group.command()
 @click.option('-b', '--open-browser', is_flag=True)
 @click.argument('destdir', type=click.Path(), required=False)
 def docs(open_browser, destdir):
@@ -125,7 +125,7 @@ def docs(open_browser, destdir):
         webbrowser.get('default').open(click.format_filename(destdir))
 
 
-@cli.command()
+@group.command()
 @click.option('--verbose', '-v', count=True,
               help='Show more output.')
 @click.option('--quiet', '-q', is_flag=True,
@@ -250,7 +250,7 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
         raise Exit()
 
 
-@cli.command()
+@group.command()
 @click.option('--fixture', type=click.Choice(['minimal', 'simple', 'dummy',
                                               'small', 'normal', 'large']),
               default='dummy',
@@ -466,3 +466,7 @@ def full_run(fixture, dump_to, backend_only):
             db.pool.closeall()
             mora_server.shutdown()
             lora_server.shutdown()
+
+
+if __name__ == '__main__':
+    group(prog_name=os.getenv('FLASK_PROG_NAME', sys.argv[0]))
