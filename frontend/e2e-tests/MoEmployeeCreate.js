@@ -10,6 +10,8 @@ const dialog = Selector('#employeeCreate')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 // Engagement
+const engagementCheckbox = dialog.find('.container')
+
 const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
@@ -30,6 +32,8 @@ const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
 
 // Association
+const associationCheckbox = dialog.find('[data-vv-as="Primær tilknytning"] .container')
+
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
 
 const associationTypeSelect = dialog.find('.select-association select[data-vv-as="Tilknytningsrolle"]')
@@ -93,6 +97,8 @@ test('Workflow: create employee', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(engagementCheckbox)
+
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
@@ -125,6 +131,8 @@ test('Workflow: create employee', async t => {
 
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
+
+    .click(associationCheckbox)
 
     .click(parentAssociationInput)
     .click(dialog.find('.unit-association span.tree-anchor'))

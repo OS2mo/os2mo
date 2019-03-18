@@ -127,6 +127,7 @@ export default {
        */
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
         { label: 'engagement_type', data: 'engagement_type' }
       ],
@@ -140,6 +141,7 @@ export default {
       ],
       association: [
         { label: 'org_unit', data: 'org_unit' },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'association_type', data: 'association_type' }
       ],
       leave: [
@@ -152,7 +154,8 @@ export default {
         { label: 'manager_level', data: 'manager_level' },
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
-        { label: 'address', data: 'address' }
+        { label: 'address', data: 'address' },
+        { label: 'primary', data: 'primary', field: null }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
