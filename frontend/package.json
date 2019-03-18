@@ -23,7 +23,6 @@
     "lodash.reduce": "^4.6.0",
     "lodash.sortby": "^4.7.0",
     "moment": "^2.22.2",
-    "node-fetch": "^2.3.0",
     "v-autocomplete": "git+https://github.com/magenta-aps/v-autocomplete.git",
     "vee-validate": "^2.1.2",
     "vue": "^2.5.17",
