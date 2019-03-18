@@ -1236,6 +1236,7 @@ class Tests(util.LoRATestCase):
             },
             "person": {
                 "name": "Anders And",
+                "nickname": None,
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             },
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
@@ -1769,6 +1770,7 @@ class Tests(util.LoRATestCase):
                         },
                         'person': {
                             'name': 'Fedtmule',
+                            'nickname': None,
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'primary': True,
