@@ -25,7 +25,6 @@ test('Workflow: move employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 100 })
     .click('.btn-employee-move')
 
