@@ -29,7 +29,7 @@ def org_unit_validity():
     .. :quickref: Validate; Validate org unit
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object org_unit: The associated org unit
     :<json object validity: The relevant validities to be checked
@@ -76,7 +76,7 @@ def employee_validity():
     .. :quickref: Validate; Validate employee
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object org_unit: The associated org unit
     :<json object validity: The relevant validities to be checked
@@ -117,7 +117,7 @@ def check_cpr():
     .. :quickref: Validate; Validate CPR no.
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json string cpr: The associated CPR number
     :<json object org: The associated organisation
@@ -155,7 +155,7 @@ def employee_engagements():
     .. :quickref: Validate; Validate active engagements
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object person: The associated employee
     :<json object validity: The relevant validities to be checked
@@ -197,7 +197,7 @@ def employee_existing_associations():
     .. :quickref: Validate; Validate existing associations
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object person: The associated employee
     :<json object person: The associated org unit
@@ -249,7 +249,7 @@ def candidate_parent_org_unit():
     .. :quickref: Validate; Validate candidate parent org unit
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object org_unit: The associated org unit to be moved
     :<json object parent: The associated parent org unit
@@ -298,7 +298,7 @@ def address_value():
     .. :quickref: Validate; Validate address value
 
     :statuscode 200: Validation succeeded.
-    :statuscode 4XX: Validation failed.
+    :statuscode 400: Validation failed.
 
     :<json object value: The address value to be checked
     :<json object address_type: The address type to be checked against
