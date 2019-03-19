@@ -106,6 +106,8 @@ export default {
 
     validity () {
       return {
+        // Validation is meant to check an instant in time,
+        // which is why 'to' is duplicated
         'from': this.terminate.validity.to,
         'to': this.terminate.validity.to
       }
