@@ -47,7 +47,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
-        primary = util.checked_get(req, mapping.PRIMARY, False)
+        primary = req.get(mapping.PRIMARY)
 
         if primary:
             validator.does_employee_have_existing_primary_function(
@@ -62,9 +62,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         engagement_type_uuid = util.get_mapping_uuid(req,
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
-        primary = util.checked_get(req, mapping.PRIMARY, False)
 
-        bvn = str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
@@ -159,7 +158,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
         else:
-            primary = exts.get('primær', False)
+            primary = exts.get('primær')
 
         if primary:
             validator.does_employee_have_existing_primary_function(

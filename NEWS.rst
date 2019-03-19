@@ -1,3 +1,26 @@
+Version 0.16.0, in development
+==============================
+
+New features
+------------
+
+* #27687: The various org funk relations now accept a ``user_key`` parameter.
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
+Internal changes
+----------------
+
+* #27526: TestCafe test for employee association tab for create, edit and terminate popups.
+* #27527: TestCafe test for organisation manager tab for create, edit and terminate popups.
+
+
 Version 0.15.1, 2019-03-19
 ==========================
 
@@ -34,6 +57,7 @@ New features
 * #25407: Added checkbox message alert validation for workflow employee terminate.
 * #27336: Remove association addresses.
 * #25174: Add support for marking engagements as “primary”.
+* #26961: Add support for marking associations as “primary”.
 * #27261: We can now read the username from the SAML session NameID
 * #27290: Add support for assigning time planning to organisational units.
 
