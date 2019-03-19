@@ -73,20 +73,13 @@ Best practices for implementering
      - Kunde
    * - 5.
      - Tilvejebringelse af certifikater til Serviceplatformen
-     - Der skal laves en aftale til at slå personer op i Serviceplatformens CPR-service (LaesPerson) og til hændelsesdata (LaesPersonAendringer), så personoplysninger forbliver ajourførte I OS2MO 2.0.
-       Serviceplatformens CPR-data:Hvert it-system, der er oprettet på Serviceplatformen, registreres med ét unikt certifikat. Dvs. at det ikke er muligt at anvende samme certifikat for flere it-systemer på Serviceplatformen.
-
-       * Kommunen skal bestille et Funktionscertifikat (FOCES) fra NETS til OS2MO 2.0-installationen
-
-       * Kommunen skal oprette et it-systemet på
-         Serviceplatformen til OS2MO 2.0-installationen
-
-       * Kommunen skal oprette en serviceaftale på denne `service <https://www.serviceplatformen.dk/administration/serviceOverview/show?uid=e6be2436-bf35-4df2-83fe-925142825dc2>`_
+     - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
+       `Se vejledning her <https://github.com/OS2mo/os2mo/blob/development/docs/graphics/Vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem.pdf>`_
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'erne fra serviceaftalen til leverandøren
      - Kunde
    * - 6.
-     - Installation af OS2MO 2.0 og tilhørende agenter
+     - Installation af OS2MO og tilhørende agenter
      - Se de enkelte trin nedenfor.
      - Leverandør
    * - 6. 1
@@ -115,16 +108,16 @@ Best practices for implementering
        2.Løbende synkronisering mellem databasen (LoRa) og Serviceplatformens CPR-service (LaesPersonAendringer)
      - Leverandør
    * - 7.
-     - Data iOS2MO 2.0
-     - OS2MO 2.0 populeres med Kundens organisaions- og medarbejderdata.
+     - Data i OS2MO
+     - OS2MO populeres med Kundens organisaions- og medarbejderdata.
        Se de enkelte trin nedenfor.
      - Kunde / Leverandør
    * - 7. 1
      - Tilvejebringelse af data
-     - Kunden tilvejebringer adgang til API eller et databasedump med myndighedens organisaions- og medarbejderdata
+     - Kunden tilvejebringer adgang til API eller et databasedump med myndighedens organisations- og medarbejderdata
      - Kunde
    * - 7. 2
      - Indlæsning af data
-     - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO 2.0’s database, LoRa
+     - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO’s database, LoRa
      - Leverandør
 
