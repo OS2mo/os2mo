@@ -1003,6 +1003,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'user_key': 'bvn',
                 'validity': {'from': '2017-01-01', 'to': None},
             }],
         )
@@ -1028,6 +1029,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'user_key': 'bvn',
                 'validity': {'from': '2017-01-01', 'to': None},
             }],
         )

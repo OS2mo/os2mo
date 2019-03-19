@@ -1238,6 +1238,7 @@ class Tests(util.LoRATestCase):
                 "name": "Anders And",
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             },
+            "user_key": "bvn",
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
         }
 
@@ -1771,6 +1772,7 @@ class Tests(util.LoRATestCase):
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
+                        'user_key': '00000000-0000-0000-0000-000000000001',
                         'primary': True,
                         'uuid': engagementid,
                         'validity': {'from': '2017-12-01', 'to': '2017-12-31'},

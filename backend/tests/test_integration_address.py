@@ -1050,6 +1050,7 @@ class Reading(util.LoRATestCase):
                 'name': 'bruger@example.com',
                 'value': 'bruger@example.com',
                 'address_type': None,
+                'user_key': 'bruger@example.comw',
                 'person': {
                     'name': 'Anders And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
@@ -1079,6 +1080,7 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'value': 'goofy@example.com',
+                        'user_key': 'bruger@example.comw',
                         'person': {
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -1101,6 +1103,8 @@ class Reading(util.LoRATestCase):
                                 '10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'user_key': 'Christiansborg Slotsplads 1, '
+                                    '1218 København K',
                         'person': {
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -1130,6 +1134,7 @@ class Reading(util.LoRATestCase):
                         'href': 'mailto:bruger@example.com',
                         'name': 'bruger@example.com',
                         'value': 'bruger@example.com',
+                        'user_key': 'bruger@example.comw',
                         'person': {
                             'name': 'Anders And',
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
@@ -1151,6 +1156,7 @@ class Reading(util.LoRATestCase):
                         "href": "https://www.openstreetmap.org/"
                         "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                         "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                        "user_key": "Nordre Ringgade 1, 8000 Aarhus C",
                         "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
@@ -1186,6 +1192,7 @@ class Reading(util.LoRATestCase):
                         "href": "tel:+4587150000",
                         "name": "+4587150000",
                         "value": "87150000",
+                        "user_key": "8715 0000",
                         "address_type": {
                             "example": "20304060",
                             "name": "Telefonnummer",
@@ -1219,6 +1226,7 @@ class Reading(util.LoRATestCase):
                         "href": None,
                         "name": "5798000420526",
                         "value": "5798000420526",
+                        "user_key": "5798000420526",
                         "address_type": {
                             "example": "5712345000014",
                             "name": "EAN",
@@ -1245,6 +1253,7 @@ class Reading(util.LoRATestCase):
                         "href": "https://www.openstreetmap.org/"
                         "?mlon=10.19938084&mlat=56.17102843&zoom=16",
                         "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                        "user_key": "Nordre Ringgade 1, 8000 Aarhus C",
                         "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
@@ -1432,6 +1441,7 @@ class Reading(util.LoRATestCase):
                     'user_key': 'AdressePost',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                 },
+                'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
                 'href': None,
                 'name': 'Ukendt',
                 'org_unit': {
@@ -1496,6 +1506,7 @@ class Reading(util.LoRATestCase):
                     },
                     'href': None,
                     'name': 'Ukendt',
+                    'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
                     'org_unit': {
                         'name': 'Overordnet Enhed',
                         'user_key': 'root',

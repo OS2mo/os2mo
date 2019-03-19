@@ -442,12 +442,6 @@ def get_detail(type, id, function):
 
     # TODO: the logic encoded in the functions below belong in the
     # 'mapping' module, as part of e.g. FieldTuples
-    def get_user_key(effect):
-        return [
-            prop['brugervendtnoegle']
-            for prop in mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
-        ]
-
     def is_primary(effect):
         return [
             ext.get('primær', False)
@@ -562,9 +556,6 @@ def get_detail(type, id, function):
             ),
             mapping.ITSYSTEM: (
                 itsystem_cache, mapping.SINGLE_ITSYSTEM_FIELD, None, False,
-            ),
-            mapping.USER_KEY: (
-                None, get_user_key, None, False,
             ),
         },
     }
@@ -716,6 +707,11 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
+
+        # this field is required by LoRA, so use tuple unpacking
+        props, = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
+
+        func[mapping.USER_KEY] = props['brugervendtnoegle']
 
         return func
 

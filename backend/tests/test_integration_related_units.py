@@ -35,6 +35,7 @@ HUM = {
         },
     ],
     'uuid': '5c68402c-2a8d-4776-9237-16349fc72648',
+    'user_key': 'rod <-> hum',
     'validity': {
         'from': '2016-06-01',
         'to': None,
@@ -63,6 +64,7 @@ HIST = {
         },
     ],
     "uuid": "daa77a4d-6500-483d-b099-2c2eb7fa7a76",
+    'user_key': 'rod <-> fil',
     "validity": {
         "from": "2017-01-01",
         "to": "2018-12-31",
@@ -271,6 +273,7 @@ class Tests(util.LoRATestCase):
                 },
             ],
             "uuid": functionid,
+            "user_key": "root <-> samf",
             "validity": {
                 "from": "2017-06-01",
                 "to": None,

@@ -310,6 +310,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             }],
             'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+            'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
             'validity': {
                 'from': '2017-01-01',
                 'to': '2017-11-30',

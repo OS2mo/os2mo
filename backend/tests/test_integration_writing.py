@@ -146,7 +146,7 @@ class TestWritingIntegration(util.LoRATestCase):
         del current['livscykluskode']
         del current['brugerref']
 
-        self.assertEqual({
+        self.assertRegistrationsEqual({
             "attributter": {
                 "organisationegenskaber": [
                     {
