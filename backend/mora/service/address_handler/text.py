@@ -27,7 +27,7 @@ class TextAddressHandler(base.AddressHandler):
         value = util.urnunquote(quoted_value)
         return cls(value)
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """Text value can be whatever"""
         pass

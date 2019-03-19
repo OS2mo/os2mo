@@ -75,8 +75,8 @@ class PhoneAddressHandler(base.AddressHandler):
             })
         return properties
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """Phone number is 8 digits, optionally with country code"""
         if not re.match(r'^\d{8}$|^\+45\d{8}$', value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_PHONE(

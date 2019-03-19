@@ -16,8 +16,8 @@ class WWWAddressHandler(base.AddressHandler):
     scope = 'WWW'
     prefix = 'urn:magenta.dk:www:'
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """Ensure value is correct URL"""
         if not validators.url(value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_WWW(

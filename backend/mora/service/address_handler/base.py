@@ -54,9 +54,9 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         value = util.checked_get(request, mapping.VALUE, "", required=True)
         return cls(value)
 
-    @classmethod
+    @staticmethod
     @abc.abstractmethod
-    def validate_value(cls, value):
+    def validate_value(value):
         """Validate that the address value is correctly formed"""
         pass
 

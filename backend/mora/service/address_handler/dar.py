@@ -154,8 +154,8 @@ class DARAddressHandler(base.AddressHandler):
         yield ' '
         yield addr['postnrnavn']
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """Values should be UUID in DAR"""
         try:
             uuid.UUID(value)

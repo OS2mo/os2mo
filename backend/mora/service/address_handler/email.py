@@ -19,8 +19,8 @@ class EmailAddressHandler(base.AddressHandler):
     def href(self):
         return "mailto:{}".format(self.value)
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """Ensure that value is correct email"""
         if not validators.email(value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_EMAIL(

@@ -15,8 +15,8 @@ class EANAddressHandler(base.AddressHandler):
     scope = 'EAN'
     prefix = 'urn:magenta.dk:ean:'
 
-    @classmethod
-    def validate_value(cls, value):
+    @staticmethod
+    def validate_value(value):
         """EANs are 13 digits"""
         if not re.match(r'\d{13}', value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_EAN(
