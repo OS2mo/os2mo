@@ -23,7 +23,7 @@ const actions = {
     /**
      * @todo: all create calls are shared now. refactor to one central handler
      */
-    return Service.post('/details/create', [payload])
+    return Service.post('/details/create', payload)
       .then(response => {
         if (response.data.error) {
           commit('updateIsLoading', false)

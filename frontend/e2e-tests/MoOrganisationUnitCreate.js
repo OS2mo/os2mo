@@ -1,11 +1,12 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitCreate')
-  .page(`${baseURL}/organisation/97337de5-6096-41f9-921e-5bed7a140d85`)
+  .afterEach(reset)
+  .page(`${baseURL}/organisation/f06ee470-9f17-566f-acbe-e938112d46d9`)
 
 const dialog = Selector('#orgUnitCreate')
 
@@ -15,7 +16,7 @@ const timeOption = timeSelect.find('option')
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
+const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
 const addressVisibility = dialog.find('.form-row .phone select[data-vv-as="Synlighed"]')
@@ -83,7 +84,7 @@ test('Workflow: create unit', async t => {
     .expect(addressInput.find('input').value)
     .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
 
-    .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
+    .typeText(dialog.find('input[data-vv-as="Telefon"]'), '44772000')
 
     .click(addressVisibility)
     .click(addressVisibilityOption.nth(1))

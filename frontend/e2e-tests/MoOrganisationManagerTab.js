@@ -5,7 +5,7 @@ import { baseURL } from './support'
 let moment = require('moment')
 
 fixture('MoOrganisationManagerTab')
-  .page(`${baseURL}/organisation/40644200-b3f1-42d4-8752-8dab581d5b23`)
+  .page(`${baseURL}/organisation/a6773531-6c0a-4c7b-b0e2-77992412b610`)
 
 const dialog = Selector('.modal-content')
 
@@ -65,7 +65,7 @@ test('Workflow: organisation manager tab', async t => {
     .click(managerTypeOption.withText('Direktør'))
 
     .click(levelManagerSelect)
-    .click(levelManagerOption.withText('Niveau 90'))
+    .click(levelManagerOption.withText('Niveau 3'))
 
     .click(responsibilityManagerSelect)
     .click(responsibilityManagerOption.withText('Beredskabsledelse'))
@@ -92,10 +92,11 @@ test('Workflow: organisation manager tab', async t => {
     .click(Selector('.edit-entry .btn-outline-primary'))
 
     .click(searchManagerEmployee)
-    .typeText(searchManagerEmployee.find('input'), 'anne')
+    .typeText(searchManagerEmployee.find('input'), 'jens')
+
     .expect(searchManagerItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(searchManagerEmployee.find('input').value).eql('Anne  Andersen')
+    .expect(searchManagerEmployee.find('input').value).match(/Jens/)
 
     .click(managerTypeSelect)
     .click(managerTypeOption.withText('Leder'))

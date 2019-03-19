@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeTerminate')
+  .afterEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeTerminate')
@@ -35,15 +36,16 @@ test('Workflow: terminate employee by search', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeField)
-    .typeText(searchEmployeeInput, 'thejs')
+    .typeText(searchEmployeeInput, 'jens')
 
     // FIXME: this is wrong...
     .expect(searchEmployeeInput.value)
-    .eql('hejs', 'Have you fixed a bug so that it retains the first letter?')
+    .eql('ens', 'Have you fixed a bug so that it retains the first letter?')
 
-    .expect(searchEmployeeItem.withText(' ').visible).ok()
+    .expect(searchEmployeeItem.withText(' ').visible)
+    .ok('no user found - did test data change?')
     .pressKey('down enter')
-    .expect(searchEmployeeInput.value).eql('Thejs Hvid Larsen')
+    .expect(searchEmployeeInput.value).match(/Jens/)
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -71,16 +73,18 @@ test('Workflow: terminate employee from page', async t => {
 
   await t
     .click(mainSearchField)
-    .typeText(mainSearchField, 'holdg')
+    .typeText(mainSearchField, 'jens')
     .expect(mainSearchInput.value)
-    .eql('holdg')
+    .eql('jens')
     .expect(mainSearchItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(mainSearchInput.value)
-    .eql('Alex Holdgaard Hansen')
+    .expect(mainSearchInput.value).match(/Jens/)
 
-    .expect(fromField.innerText)
-    .eql('01-08-1971')
+  let userID = await t.eval(() => window.location.pathname.split('/').slice(-1))
+  let name = await mainSearchInput.value
+  let fromDate = await fromField.innerText
+
+  await t
     .expect(toField.innerText)
     .eql('')
 
@@ -91,10 +95,10 @@ test('Workflow: terminate employee from page', async t => {
 
     // TODO: we shouldn't need to fill in the employee
     .click(searchEmployeeField)
-    .typeText(searchEmployeeInput, 'holdg')
+    .typeText(searchEmployeeInput, 'jens')
     .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(searchEmployeeInput.value).eql('Alex Holdgaard Hansen')
+    .expect(searchEmployeeInput.value).eql(name)
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -112,12 +116,10 @@ test('Workflow: terminate employee from page', async t => {
 
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
-    .match(
-      /Medarbejderen med UUID [-0-9a-f]* er afsluttet/
-    )
+    .eql(`Medarbejderen med UUID ${userID} er afsluttet.`)
 
     .expect(fromField.innerText)
-    .eql('01-08-1971')
+    .eql(fromDate)
     .expect(toField.innerText)
     .eql(today.format('DD-MM-YYYY'))
 })
@@ -128,28 +130,19 @@ test('Workflow: terminate employee role', async t => {
   const entryModal = VueSelector('mo-entry-terminate-modal')
   const terminateDialog = entryModal.find('*[role=dialog]')
 
-  const roleID = 'f0c6f0a4-db51-4c40-bd83-1267a667aa30'
-
   await t
     .click(mainSearchField)
-    .typeText(mainSearchField, 'kolind')
+    .typeText(mainSearchField, 'jens')
     .expect(mainSearchItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(mainSearchInput.value).eql('Kim Kolind Christensen')
-
-    .expect(fromField.innerText)
-    .eql('13-07-1986')
-    .expect(toField.innerText)
-    .eql('')
+    .expect(mainSearchInput.value).match(/Jens/)
 
     .click(VueSelector('employee-detail-tabs bTabButtonHelper')
            .withText('Roller'))
 
-    .expect(fromField.innerText)
-    .eql('13-07-1986')
-    .expect(toField.innerText)
-    .eql('')
+  let fromDate = await fromField.innerText
 
+  await t
     .expect(entryModal.count)
     .eql(1)
 
@@ -173,13 +166,13 @@ test('Workflow: terminate employee role', async t => {
     .notOk()
 
     .expect(fromField.innerText)
-    .eql('13-07-1986')
+    .eql(fromDate)
     .expect(toField.innerText)
     .eql(expectedTerminationDate)
 
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
-    .eql(
-      `Rolle med UUID ${roleID} er blevet afsluttet pr. ${today.format('YYYY-MM-DD')}.`
-    )
+    .match(new RegExp(
+      `Rolle med UUID [-0-9a-f]+ er blevet afsluttet pr. ${today.format('YYYY-MM-DD')}.`
+    ))
 })

@@ -7,7 +7,6 @@
 #
 
 import copy
-import unittest
 
 import freezegun
 
