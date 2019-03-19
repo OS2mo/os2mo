@@ -3,6 +3,10 @@ Validate
 
 This section describes how to interact with the various validation endpoints.
 
+The endpoints primarily exist as a way for the frontend to validate individual
+fields as the form is being filled out, without having to rely on validation
+of the entire form.
+
 On validation failure, a response will be sent on the following format ::
 
   {
