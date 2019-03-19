@@ -22,11 +22,11 @@ const createErrorPayload = err => {
 }
 
 export default {
-  cpr (cpr, org) {
+  cpr (cpr, orgUuid) {
     const payload = {
       'cpr_no': cpr,
       'org': {
-        'uuid': org[0]
+        'uuid': orgUuid
       }
     }
     return Validate
@@ -37,10 +37,10 @@ export default {
       })
   },
 
-  orgUnit (orgUnit, validity) {
+  orgUnit (orgUnitUuid, validity) {
     const payload = {
       'org_unit': {
-        'uuid': orgUnit
+        'uuid': orgUnitUuid
       },
       'validity': validity
     }
