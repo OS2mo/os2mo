@@ -5,7 +5,7 @@ import VueSelector from 'testcafe-vue-selectors'
 let moment = require('moment')
 
 fixture('MoEmployeeMoveMany')
-  .afterEach(reset)
+  .beforeEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeMoveMany')
