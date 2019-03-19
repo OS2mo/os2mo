@@ -23,6 +23,7 @@
     </div>
 
     <mo-input-date-range
+      class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="{orgUnitValidity, disabledDates}"

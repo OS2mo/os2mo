@@ -14,6 +14,12 @@ Bug fixes
 * #26402: The “Save” button on the organisation mapper now correctly
   deactivates when successfully saving changes.
 
+Internal changes
+----------------
+
+* #27526: TestCafe test for employee association tab for create, edit and terminate popups.
+
+
 Version 0.15.0, 2019-03-11
 ==========================
 
