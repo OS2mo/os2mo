@@ -22,7 +22,6 @@ test.skip('Workflow: leave employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 60 })
     .click('.btn-employee-leave')
 
