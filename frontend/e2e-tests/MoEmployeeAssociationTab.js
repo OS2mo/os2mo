@@ -5,9 +5,13 @@ import { baseURL } from './support'
 let moment = require('moment')
 
 fixture('MoEmployeeAssociationTab')
-  .page(`${baseURL}/medarbejder/554ef7cc-4a18-478f-865f-3c2f0dd20a69`)
+  .page(`${baseURL}/medarbejder/`)
 
 const dialog = Selector('.modal-content')
+
+const searchField = Selector('.navbar .v-autocomplete.search-bar')
+const searchItem = searchField.find('.v-autocomplete-list-item')
+const searchInput = searchField.find('input')
 
 // Association
 const parentAssociationInput = dialog.find('input[data-vv-as="Angiv enhed"]')
@@ -23,6 +27,16 @@ test('Workflow: employee association tab', async t => {
   let today = moment()
 
   await t
+
+    .click(searchField)
+    .typeText(searchInput, 'jens')
+    .expect(searchInput.value)
+    .eql('jens')
+
+    .expect(searchItem.withText(' ').visible)
+    .ok('no user found - did test data change?')
+    .pressKey('down enter')
+
     .click(VueSelector('employee-detail-tabs bTabButtonHelper').withText('Tilknytninger'))
 
     // Create association
@@ -32,7 +46,7 @@ test('Workflow: employee association tab', async t => {
     .click(dialog.find('.unit-association span.tree-anchor'))
 
     .click(associationTypeSelect)
-    .click(associationTypeOption.withText('Konsulent'))
+    .click(associationTypeOption.withText('Projektleder'))
 
     .click(fromDateInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -55,7 +69,7 @@ test('Workflow: employee association tab', async t => {
     .click(Selector('.edit-entry .btn-outline-primary'))
 
     .click(associationTypeSelect)
-    .click(associationTypeOption.withText('Problemknuser'))
+    .click(associationTypeOption.withText('Teammedarbejder'))
 
     .click(dialog.find('.btn-primary'))
 
