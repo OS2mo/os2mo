@@ -1,10 +1,11 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 
 let moment = require('moment')
 
 fixture('MoEmployeeAssociationTab')
+  .beforeEach(reset)
   .page(`${baseURL}/medarbejder/`)
 
 const dialog = Selector('.modal-content')
