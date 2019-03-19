@@ -23,8 +23,6 @@ test('Workflow: employee association tab', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
-
     .click(VueSelector('employee-detail-tabs bTabButtonHelper').withText('Tilknytninger'))
 
     // Create association
