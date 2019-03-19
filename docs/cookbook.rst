@@ -58,7 +58,7 @@ Best practices for implementering
    * - 3.
      - Indgåelse af aftaler
      -
-       * Databehandleraftale; *påkrævet*.
+       * Databehandleraftale.
 
        * Fortrolighedsaftale, om nødvendigt.
      - Kunde
@@ -90,7 +90,7 @@ Best practices for implementering
      - Se de enkelte trin nedenfor.
      - Leverandør
    * - 6. 1
-     - Agent tilautentificering (SAML 2.0SSO)
+     - Agent til autentificering (SAML 2.0 SSO)
      - Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
 
        * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, som de kan give til IdP'en. Derefter sker konfigurationen automatisk
