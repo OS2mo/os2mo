@@ -242,7 +242,7 @@ def employee_existing_associations():
 @util.restrictargs()
 def candidate_parent_org_unit():
     """
-    Verify that a given parent is a suitable candidate for a org unit move,
+    Verify that a given parent is a suitable candidate for an org unit move,
     i.e. that the candidate parent is not in the sub tree of the org unit being
     moved, and that the org unit being moved is not a root unit.
 

@@ -81,7 +81,7 @@ class ErrorCodes(Enum):
     V_INVALID_ADDRESS_DAR = 400, "Invalid address"
     V_INVALID_ADDRESS_EAN = 400, "Invalid EAN"
     V_INVALID_ADDRESS_EMAIL = 400, "Invalid email"
-    V_INVALID_ADDRESS_PNUMBER = 400, "Invalid pnumber"
+    V_INVALID_ADDRESS_PNUMBER = 400, "Invalid P-number"
     V_INVALID_ADDRESS_PHONE = 400, "Invalid phone number"
     V_INVALID_ADDRESS_WWW = 400, "Invalid web address"
 
