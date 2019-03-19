@@ -103,13 +103,29 @@ class DarAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_fails_on_invalid_value(self, mock):
+    def test_validation_fails_on_invalid_value(self, mock):
         # Arrange
         value = '1234'  # Not a valid DAR UUID
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value)
+            self.handler.validate_value(value)
+
+    def test_validation_fails_on_unknown_uuid(self, mock):
+        # Arrange
+        value = 'e30645d3-2c2b-4b9f-9b7a-3b7fc0b4b80d'  # Not a valid DAR UUID
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_uuid(self, mock):
+        # Arrange
+        value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
+
+        # Act & Assert
+        # Assert that no exception is raised
+        self.handler.validate_value(value)
 
     def test_failed_lookup_from_request(self, mock):
         """Ensure that failed request lookups are handled appropriately"""
@@ -240,7 +256,7 @@ class EANAddressHandlerTests(util.TestCase):
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value)
+            self.handler.validate_value(value)
 
 
 class EmailAddressHandlerTests(util.TestCase):
@@ -333,7 +349,7 @@ class EmailAddressHandlerTests(util.TestCase):
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value)
+            self.handler.validate_value(value)
 
 
 class PhoneAddressHandlerTests(util.TestCase):
@@ -451,10 +467,10 @@ class PhoneAddressHandlerTests(util.TestCase):
         # Not a valid phone number
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler('asdasd', '')
+            self.handler.validate_value('asdasd')
 
         with self.assertRaises(exceptions.HTTPException):
-            self.handler('9999999999999999', '')
+            self.handler.validate_value('9999999999999999')
 
 
 class PNumberAddressHandlerTests(util.TestCase):
@@ -547,7 +563,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value)
+            self.handler.validate_value(value)
 
 
 class TextAddressHandlerTests(util.TestCase):
@@ -725,4 +741,4 @@ class WWWAddressHandlerTests(util.TestCase):
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler(value)
+            self.handler.validate_value(value)

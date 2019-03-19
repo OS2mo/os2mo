@@ -36,8 +36,6 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         ADDRESS_HANDLERS[cls.scope] = cls
 
     def __init__(self, value):
-        self.validate_value(value)
-
         self._value = value
 
     @classmethod
@@ -52,6 +50,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     def from_request(cls, request):
         """Initialize handler from MO object"""
         value = util.checked_get(request, mapping.VALUE, "", required=True)
+        cls.validate_value(value)
         return cls(value)
 
     @staticmethod
