@@ -74,7 +74,9 @@ Best practices for implementering
    * - 5.
      - Tilvejebringelse af certifikater til Serviceplatformen
      - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
-       `Se vejledning her <https://github.com/OS2mo/os2mo/blob/development/docs/graphics/Vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem.pdf>`_
+       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning_>`_.
+
+       .. _vejledning: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'erne fra serviceaftalen til leverandøren
      - Kunde
