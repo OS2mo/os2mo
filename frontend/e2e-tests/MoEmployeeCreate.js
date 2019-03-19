@@ -76,8 +76,6 @@ const levelManagerOption = levelManagerSelect.find('option')
 const responsibilityManagerSelect = dialog.find('.responsibility-manager select[data-vv-as="Lederansvar"]')
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
-const treeNodes = Selector('.tree-node .tree-content')
-
 // Search field
 const searchField = Selector('.search-bar')
 const searchFieldItem = searchField.find('.v-autocomplete-list-item')
@@ -89,7 +87,6 @@ test('Workflow: create employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-employee-create')
