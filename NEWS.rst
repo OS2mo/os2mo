@@ -1,3 +1,9 @@
+Version 0.15.1, 2019-03-19
+==========================
+
+* This release merely contains minor tweaks to the documentation.
+
+
 Version 0.15.0, 2019-03-11
 ==========================
 
