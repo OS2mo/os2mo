@@ -9,12 +9,12 @@
 
 import flask
 
-from . import facet
-from .address_handler import base
-from .. import lora
-from .. import mapping
-from .. import util
-from .. import validator
+from . import validator
+from .. import facet
+from ..address_handler import base
+from ... import lora
+from ... import mapping
+from ... import util
 
 blueprint = flask.Blueprint('validate', __name__, static_url_path='',
                             url_prefix='/service/validate')

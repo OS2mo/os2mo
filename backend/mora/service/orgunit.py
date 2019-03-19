@@ -31,13 +31,13 @@ import flask
 from . import facet
 from . import handlers
 from . import org
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')

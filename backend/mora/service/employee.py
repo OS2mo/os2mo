@@ -18,21 +18,21 @@ For more information regarding reading relations involving employees, refer to
 
 '''
 import copy
-import uuid
 import enum
 import json
+import uuid
 
 import flask
 
 from . import handlers
 from . import org
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')

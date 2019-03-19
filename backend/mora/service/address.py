@@ -12,19 +12,18 @@ import re
 import flask
 import requests
 
+from . import employee
+from . import facet
 from . import handlers
+from . import orgunit
+from .address_handler import base
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
-from . import facet
-from . import employee
-from . import orgunit
-
-from .address_handler import base
 
 session = requests.Session()
 session.headers = {
