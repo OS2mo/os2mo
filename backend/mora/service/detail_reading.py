@@ -26,6 +26,7 @@ from __future__ import generator_stop
 
 import collections
 import itertools
+import json
 
 import flask
 
@@ -712,6 +713,19 @@ def get_detail(type, id, function):
         props, = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
 
         func[mapping.USER_KEY] = props['brugervendtnoegle']
+
+        if 'integrationsdata' in props:
+            try:
+                func[mapping.INTEGRATION_DATA] = json.loads(
+                    props["integrationsdata"],
+                )
+            except json.JSONDecodeError:
+                flask.current_app.logger.warning(
+                    'invalid integation data for function %s!',
+                    funcid,
+                )
+
+                func[mapping.INTEGRATION_DATA] = None
 
         return func
 
