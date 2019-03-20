@@ -39,7 +39,7 @@ class DARAddressHandler(base.AddressHandler):
             )
         except LookupError as e:
             flask.current_app.logger.warning(
-                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
                     flask.request.url,
                     value,
                 ),
@@ -121,7 +121,7 @@ class DARAddressHandler(base.AddressHandler):
             # The request mocking library throws a pretty generic exception
             # catch and rethrow as something we know how to manage
             except Exception as e:
-                raise LookupError(e)
+                raise LookupError(str(e)) from e
 
         else:
             raise LookupError('no such address {!r}'.format(addrid))
