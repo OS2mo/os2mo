@@ -13,19 +13,144 @@ This section describes how to interact with employee manager roles.
 
 """
 import uuid
+import flask
 
 from . import address
 from . import handlers
+from . import orgunit
+from . import facet
+from . import employee
 from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 
+SEARCH_FIELDS = {
+    'e': 'tilknyttedebrugere',
+    'ou': 'tilknyttedeenheder'
+}
 
-class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
+
+class ManagerRequestHandler(
+    handlers.OrgFunkRequestHandler,
+    handlers.ReadingRequestHandler
+):
+
+    __slots__ = ()
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
+
+    @classmethod
+    def has(cls, scope, objid):
+        pass
+
+    @classmethod
+    def get(cls, c, type, objid):
+
+        search = {
+            SEARCH_FIELDS[type]: objid
+        }
+
+        function_effects = [
+            cls.get_one_mo_object(effect, start, end, funcid)
+            for funcid, funcobj in c.organisationfunktion.get_all(
+                funktionsnavn=cls.function_key,
+                **search,
+            )
+            for start, end, effect in c.organisationfunktion.get_effects(
+                funcobj,
+                {
+                    'relationer': (
+                        'opgaver',
+                        'adresser',
+                        'organisatoriskfunktionstype',
+                        'tilknyttedeenheder',
+                        'tilknyttedebrugere',
+                        'tilknyttedefunktioner',
+                    ),
+                    'tilstande': (
+                        'organisationfunktiongyldighed',
+                    ),
+                },
+                {
+                    'attributter': (
+                        'organisationfunktionegenskaber',
+                    ),
+                    'relationer': (
+                        'tilhoerer',
+                        'tilknyttedeorganisationer',
+                        'tilknyttedeitsystemer',
+                    ),
+                },
+            )
+            if util.is_reg_valid(effect)
+        ]
+        return flask.jsonify(function_effects)
+
+    @classmethod
+    def get_one_mo_object(cls, effect, start, end, funcid):
+        c = common.get_connector()
+
+        persons = list(mapping.USER_FIELD.get_uuids(effect))
+        manager_types = list(mapping.ORG_FUNK_TYPE_FIELD.get_uuids(effect))
+        manager_levels = list(mapping.MANAGER_LEVEL_FIELD.get_uuids(effect))
+        addresses = list(mapping.FUNCTION_ADDRESS_FIELD.get_uuids(effect))
+        responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
+        org_units = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
+
+        func = {
+            mapping.UUID: funcid,
+            mapping.RESPONSIBILITY: [
+                facet.get_one_class(c, classid, classobj)
+                for classid, classobj in c.klasse.get_all(
+                    uuid=responsibilities
+                )
+            ],
+            mapping.ORG_UNIT: orgunit.get_one_orgunit(
+                c, org_units[0],
+                details=orgunit.UnitDetails.MINIMAL),
+            mapping.VALIDITY: {
+                mapping.FROM: util.to_iso_date(start),
+                mapping.TO: util.to_iso_date(
+                    end, is_end=True)
+            },
+        }
+
+        func[mapping.ADDRESS] = []
+        for uuid in addresses:
+            orgfunc = c.organisationfunktion.get(uuid=uuid)
+            try:
+                addr = address.get_one_address(orgfunc)
+            except IndexError as e:
+                func[mapping.ADDRESS].append(None)
+                continue
+            addr["address_type"] = address.get_address_type(orgfunc)
+            addr["uuid"] = uuid
+            func[mapping.ADDRESS].append(addr)
+
+        if len(persons):
+            func[mapping.PERSON] = employee.get_one_employee(c, persons[0])
+        else:
+            func[mapping.PERSON] = None
+
+        if len(manager_types):
+            func[mapping.MANAGER_TYPE] = facet.get_one_class(
+                c,
+                manager_types[0]
+            )
+        else:
+            func[mapping.MANAGER_TYPE] = None
+
+        if len(manager_levels):
+            func[mapping.MANAGER_LEVEL] = facet.get_one_class(
+                c,
+                manager_levels[0]
+            )
+        else:
+            func[mapping.MANAGER_LEVEL] = None
+
+        return func
 
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
