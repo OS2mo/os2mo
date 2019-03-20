@@ -1106,17 +1106,17 @@ class Tests(util.LoRATestCase):
                 'responsibility': [
                     {
                         'example': None,
-                        'name': 'Institut',
-                        'scope': None,
-                        'user_key': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                    },
-                    {
-                        'example': None,
                         'name': 'Fakultet',
                         'scope': None,
                         'user_key': 'fak',
                         'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                    },
+                    {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                 ],
                 'uuid': managerid,
