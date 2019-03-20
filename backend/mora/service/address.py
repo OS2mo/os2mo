@@ -33,11 +33,6 @@ session.headers = {
 
 MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
-SEARCH_FIELDS = {
-    'e': 'tilknyttedebrugere',
-    'ou': 'tilknyttedeenheder'
-}
-
 blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
@@ -163,55 +158,12 @@ def address_autocomplete(orgid):
 
 
 class AddressRequestHandler(handlers.OrgFunkRequestHandler,
-                            handlers.ReadingRequestHandler):
+                            handlers.OrgFunkReadingRequestHandler):
 
     __slots__ = ()
 
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
-
-    @classmethod
-    def get(cls, c, type, objid):
-
-        search = {
-            SEARCH_FIELDS[type]: objid
-        }
-
-        function_effects = [
-            cls.get_one_mo_object(effect, start, end, funcid)
-            for funcid, funcobj in c.organisationfunktion.get_all(
-                funktionsnavn=cls.function_key,
-                **search,
-            )
-            for start, end, effect in c.organisationfunktion.get_effects(
-                funcobj,
-                {
-                    'relationer': (
-                        'opgaver',
-                        'adresser',
-                        'organisatoriskfunktionstype',
-                        'tilknyttedeenheder',
-                        'tilknyttedebrugere',
-                    ),
-                    'tilstande': (
-                        'organisationfunktiongyldighed',
-                    ),
-                },
-                {
-                    'attributter': (
-                        'organisationfunktionegenskaber',
-                    ),
-                    'relationer': (
-                        'tilhoerer',
-                        'tilknyttedeorganisationer',
-                        'tilknyttedeitsystemer',
-                    ),
-                },
-            )
-            if util.is_reg_valid(effect)
-        ]
-
-        return flask.jsonify(function_effects)
 
     @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
@@ -257,10 +209,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             )
 
         return func
-
-    @classmethod
-    def has(cls, scope, objid):
-        pass
 
     def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,

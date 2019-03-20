@@ -34,7 +34,7 @@ SEARCH_FIELDS = {
 
 class ManagerRequestHandler(
     handlers.OrgFunkRequestHandler,
-    handlers.ReadingRequestHandler
+    handlers.OrgFunkReadingRequestHandler
 ):
 
     __slots__ = ()
@@ -42,62 +42,15 @@ class ManagerRequestHandler(
     function_key = mapping.MANAGER_KEY
 
     @classmethod
-    def has(cls, scope, objid):
-        pass
-
-    @classmethod
-    def get(cls, c, type, objid):
-
-        search = {
-            SEARCH_FIELDS[type]: objid
-        }
-
-        function_effects = [
-            cls.get_one_mo_object(effect, start, end, funcid)
-            for funcid, funcobj in c.organisationfunktion.get_all(
-                funktionsnavn=cls.function_key,
-                **search,
-            )
-            for start, end, effect in c.organisationfunktion.get_effects(
-                funcobj,
-                {
-                    'relationer': (
-                        'opgaver',
-                        'adresser',
-                        'organisatoriskfunktionstype',
-                        'tilknyttedeenheder',
-                        'tilknyttedebrugere',
-                        'tilknyttedefunktioner',
-                    ),
-                    'tilstande': (
-                        'organisationfunktiongyldighed',
-                    ),
-                },
-                {
-                    'attributter': (
-                        'organisationfunktionegenskaber',
-                    ),
-                    'relationer': (
-                        'tilhoerer',
-                        'tilknyttedeorganisationer',
-                        'tilknyttedeitsystemer',
-                    ),
-                },
-            )
-            if util.is_reg_valid(effect)
-        ]
-        return flask.jsonify(function_effects)
-
-    @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
         c = common.get_connector()
 
-        persons = list(mapping.USER_FIELD.get_uuids(effect))
-        manager_types = list(mapping.ORG_FUNK_TYPE_FIELD.get_uuids(effect))
-        manager_levels = list(mapping.MANAGER_LEVEL_FIELD.get_uuids(effect))
+        person = mapping.USER_FIELD.get_uuid(effect)
+        manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)
         addresses = list(mapping.FUNCTION_ADDRESS_FIELD.get_uuids(effect))
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
-        org_units = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
         func = {
             mapping.UUID: funcid,
@@ -108,7 +61,7 @@ class ManagerRequestHandler(
                 )
             ], key=lambda r: r["name"]),
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_units[0],
+                c, org_unit,
                 details=orgunit.UnitDetails.MINIMAL),
             mapping.VALIDITY: {
                 mapping.FROM: util.to_iso_date(start),
@@ -123,31 +76,25 @@ class ManagerRequestHandler(
             try:
                 addr = address.get_one_address(orgfunc)
             except IndexError as e:
-                func[mapping.ADDRESS].append(None)
+                # empty ["relationer"]["adresser"]
                 continue
             addr["address_type"] = address.get_address_type(orgfunc)
             addr["uuid"] = uuid
             func[mapping.ADDRESS].append(addr)
         func[mapping.ADDRESS] = sorted(func[mapping.ADDRESS], key=str)
 
-        if len(persons):
-            func[mapping.PERSON] = employee.get_one_employee(c, persons[0])
+        if person:
+            func[mapping.PERSON] = employee.get_one_employee(c, person)
         else:
             func[mapping.PERSON] = None
 
-        if len(manager_types):
-            func[mapping.MANAGER_TYPE] = facet.get_one_class(
-                c,
-                manager_types[0]
-            )
+        if manager_type:
+            func[mapping.MANAGER_TYPE] = facet.get_one_class(c, manager_type)
         else:
             func[mapping.MANAGER_TYPE] = None
 
-        if len(manager_levels):
-            func[mapping.MANAGER_LEVEL] = facet.get_one_class(
-                c,
-                manager_levels[0]
-            )
+        if manager_level:
+            func[mapping.MANAGER_LEVEL] = facet.get_one_class(c, manager_level)
         else:
             func[mapping.MANAGER_LEVEL] = None
 

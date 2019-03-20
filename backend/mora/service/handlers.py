@@ -15,6 +15,7 @@ import abc
 import enum
 import inspect
 import typing
+import flask
 
 from .validation import validator
 from .. import common
@@ -228,6 +229,65 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.create(self.payload, self.uuid)
         else:
             return c.organisationfunktion.update(self.payload, self.uuid)
+
+
+class OrgFunkReadingRequestHandler(ReadingRequestHandler):
+    SEARCH_FIELDS = {
+        'e': 'tilknyttedebrugere',
+        'ou': 'tilknyttedeenheder'
+    }
+
+    @classmethod
+    @abc.abstractmethod
+    def get_one_mo_object(cls, effect, start, end, funcid):
+        pass
+
+    @classmethod
+    def has(cls, scope, objid):
+        pass
+
+    @classmethod
+    def get(cls, c, type, objid):
+
+        search = {
+            cls.SEARCH_FIELDS[type]: objid
+        }
+
+        function_effects = [
+            cls.get_one_mo_object(effect, start, end, funcid)
+            for funcid, funcobj in c.organisationfunktion.get_all(
+                funktionsnavn=cls.function_key,
+                **search,
+            )
+            for start, end, effect in c.organisationfunktion.get_effects(
+                funcobj,
+                {
+                    'relationer': (
+                        'opgaver',
+                        'adresser',
+                        'organisatoriskfunktionstype',
+                        'tilknyttedeenheder',
+                        'tilknyttedebrugere',
+                        'tilknyttedefunktioner',
+                    ),
+                    'tilstande': (
+                        'organisationfunktiongyldighed',
+                    ),
+                },
+                {
+                    'attributter': (
+                        'organisationfunktionegenskaber',
+                    ),
+                    'relationer': (
+                        'tilhoerer',
+                        'tilknyttedeorganisationer',
+                        'tilknyttedeitsystemer',
+                    ),
+                },
+            )
+            if util.is_reg_valid(effect)
+        ]
+        return flask.jsonify(function_effects)
 
 
 def get_key_for_function(obj: dict) -> str:
