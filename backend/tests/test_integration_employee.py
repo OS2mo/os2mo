@@ -711,6 +711,175 @@ class Tests(util.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
+    def test_edit_employee_nickname(self):
+        # A generic example of editing an employee
+
+        self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        base = {
+            'cpr_no': '1205320000',
+            'name': 'Fedtmule',
+            'nickname': None,
+            'org': {
+                'name': 'Aarhus Universitet',
+                'user_key': 'AU',
+                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+            },
+            'user_key': 'fedtmule',
+            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+        }
+
+        self.assertRequestResponse('/service/e/{}/'.format(userid), base)
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[{
+                "type": "employee",
+                "uuid": userid,
+                "data": {
+                    "validity": {
+                        "from": "2017-01-01",
+                    },
+                    "nickname": "Test 2 Employee",
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/'.format(userid),
+            {
+                **base,
+                'nickname': 'Test 2 Employee',
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[{
+                "type": "employee",
+                "uuid": userid,
+                "data": {
+                    "validity": {
+                        "from": "2017-06-01",
+                    },
+                    "nickname": "Test 3 Employee",
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/?at=2018-01-01'.format(userid),
+            {
+                **base,
+                'nickname': 'Test 3 Employee',
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=[{
+                "type": "employee",
+                "uuid": userid,
+                "data": {
+                    "validity": {
+                        "from": "2017-06-01",
+                    },
+                    "nickname": "Test 4 Employee",
+                },
+            }],
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/?at=2018-01-01'.format(userid),
+            {
+                **base,
+                'nickname': 'Test 4 Employee',
+            },
+        )
+
+        # there must be a registration of the new name
+        expected_brugerattr = {
+            'brugeregenskaber': [
+                {
+                    'brugernavn': 'Fedtmule',
+                    'brugervendtnoegle': 'fedtmule',
+                    'virkning': {
+                        'from': '1932-05-12 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    },
+                },
+            ],
+            'brugerudvidelser': [
+                {
+                    'kaldenavn': 'Test 2 Employee',
+                    'virkning': {
+                        'from': '2017-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-06-01 00:00:00+02',
+                        'to_included': False
+                    },
+                },
+                {
+                    'kaldenavn': 'Test 4 Employee',
+                    'virkning': {
+                        'from': '2017-06-01 00:00:00+02',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    },
+                },
+            ],
+        }
+
+        expected_brugergyldighed = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '1932-05-12 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-01-01 00:00:00+01',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2017-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2017-06-01 00:00:00+02',
+                    'to_included': False
+                }
+            },
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from': '2017-06-01 00:00:00+02',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False
+                }
+            },
+        ]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = c.bruger.get(userid)
+
+        self.assertEqual(
+            expected_brugerattr,
+            actual['attributter']
+        )
+        self.assertEqual(
+            expected_brugergyldighed,
+            actual['tilstande']['brugergyldighed']
+        )
+
     def test_edit_employee(self):
         # A generic example of editing an employee
 

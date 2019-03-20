@@ -174,7 +174,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             except (TypeError, LookupError):
                 exts = {}
 
-                exts['kaldenavn'] = data[mapping.NICKNAME]
+            exts['kaldenavn'] = data[mapping.NICKNAME]
 
             update_fields.append((
                 mapping.EMPLOYEE_UDVIDELSER_FIELD,
