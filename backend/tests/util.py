@@ -100,7 +100,7 @@ def load_sql_fixture(fixture_name):
     into LoRA at the given path & UUID.
 
     '''
-    fixture_path = os.path.join(FIXTURE_DIR, fixture_name)
+    fixture_path = os.path.join(FIXTURE_DIR, 'sql', fixture_name)
 
     assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
     assert os.path.isfile(fixture_path), 'no such SQL fixture found!'
