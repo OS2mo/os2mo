@@ -101,12 +101,12 @@ class ManagerRequestHandler(
 
         func = {
             mapping.UUID: funcid,
-            mapping.RESPONSIBILITY: [
+            mapping.RESPONSIBILITY: sorted([
                 facet.get_one_class(c, classid, classobj)
                 for classid, classobj in c.klasse.get_all(
                     uuid=responsibilities
                 )
-            ],
+            ], key=lambda r: r["name"]),
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_units[0],
                 details=orgunit.UnitDetails.MINIMAL),
@@ -128,6 +128,7 @@ class ManagerRequestHandler(
             addr["address_type"] = address.get_address_type(orgfunc)
             addr["uuid"] = uuid
             func[mapping.ADDRESS].append(addr)
+        func[mapping.ADDRESS] = sorted(func[mapping.ADDRESS], key=str)
 
         if len(persons):
             func[mapping.PERSON] = employee.get_one_employee(c, persons[0])
