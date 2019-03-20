@@ -895,7 +895,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
         )[-1]
 
-        self.assertEqual([None], present.get('address'))
+        self.assertEqual([], present.get('address'))
 
         # Ensure that the address exists when we go far enough into the future
         future = self.assertRequest(
