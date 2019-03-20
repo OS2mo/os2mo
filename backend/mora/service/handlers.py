@@ -16,12 +16,12 @@ import enum
 import inspect
 import typing
 
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 @enum.unique

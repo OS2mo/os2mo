@@ -16,12 +16,12 @@ This section describes how to interact with employee leave.
 import uuid
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):

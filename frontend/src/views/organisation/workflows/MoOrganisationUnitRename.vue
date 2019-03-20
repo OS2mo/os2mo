@@ -16,6 +16,7 @@
           class="col"
           v-model="original"
           required
+          :validity="rename.data.validity"
         />
       </div>
 

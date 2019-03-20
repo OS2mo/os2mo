@@ -15,6 +15,7 @@ from . import employee
 from . import engagement  # noqa
 from . import exports
 from . import facet
+from . import integration_data
 from . import itsystem
 from . import leave  # noqa
 from . import manager  # noqa
@@ -22,7 +23,7 @@ from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
-from . import integration_data
+from .validation import validate
 
 blueprints = (
     address.blueprint,
@@ -37,4 +38,6 @@ blueprints = (
     org.blueprint,
     orgunit.blueprint,
     related.blueprint,
+    exports.blueprint,
+    validate.blueprint,
 )
