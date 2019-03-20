@@ -304,7 +304,8 @@ def create_organisationsfunktion_payload(
     funktionstype: str = None,
     primær: bool=None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[dict] = None
+    adresser: typing.List[dict] = None,
+    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -333,6 +334,12 @@ def create_organisationsfunktion_payload(
             ]
         }
     }
+
+    if integration_data is not None:
+        (
+            org_funk['attributter']['organisationfunktionegenskaber'][0]
+            ['integrationsdata']
+        ) = json.dumps(integration_data)
 
     if tilknyttedebrugere:
         org_funk['relationer']['tilknyttedebrugere'] = [

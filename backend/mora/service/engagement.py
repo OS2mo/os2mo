@@ -76,7 +76,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=engagement_type_uuid,
-            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
+            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else [],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = payload

@@ -64,6 +64,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
             funktionstype=leave_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = leave

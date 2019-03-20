@@ -84,6 +84,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=association_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = association

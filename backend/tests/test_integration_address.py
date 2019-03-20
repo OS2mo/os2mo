@@ -455,6 +455,10 @@ class Writing(util.LoRATestCase):
                     "validity": {
                         "from": "2017-01-02",
                     },
+                    "integration_data": {
+                        "fætter": "kusine",
+                        "hest": "æsel",
+                    },
                 },
             ],
         )
@@ -464,6 +468,10 @@ class Writing(util.LoRATestCase):
                 'organisationfunktionegenskaber': [{
                     'brugervendtnoegle': 'root@example.com',
                     'funktionsnavn': 'Adresse',
+                    'integrationsdata': (
+                        '{"f\\u00e6tter": "kusine", '
+                        '"hest": "\\u00e6sel"}'
+                    ),
                     'virkning': {
                         'from': '2017-01-02 '
                                 '00:00:00+01',
@@ -531,10 +539,45 @@ class Writing(util.LoRATestCase):
             }
         }
 
-        self.assertRegistrationsEqual(
-            expected,
-            c.organisationfunktion.get(addr_id)
-        )
+        with self.subTest('LoRA'):
+            self.assertRegistrationsEqual(
+                expected,
+                c.organisationfunktion.get(addr_id)
+            )
+
+        with self.subTest('result'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/address?validity=future'
+                .format(employee_id),
+                [
+                    {
+                        "address_type": {
+                            "example": "test@example.com",
+                            "name": "Emailadresse",
+                            "scope": "EMAIL",
+                            "user_key": "Email",
+                            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+                        },
+                        "integration_data": {
+                            "fætter": "kusine",
+                            "hest": "æsel",
+                        },
+                        "href": "mailto:root@example.com",
+                        "name": "root@example.com",
+                        "person": {
+                            "name": "Anders And",
+                            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        },
+                        "user_key": "root@example.com",
+                        "uuid": addr_id,
+                        "validity": {
+                            "from": "2017-01-02",
+                            "to": None,
+                        },
+                        "value": "root@example.com",
+                    },
+                ],
+            )
 
     def test_create_employee_with_address(self, mock):
         self.load_sample_structures()

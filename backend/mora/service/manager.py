@@ -114,6 +114,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
             tilknyttedefunktioner=addr_ids,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = manager

@@ -84,6 +84,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = func
