@@ -36,6 +36,7 @@ from . import facet
 from . import handlers
 from . import itsystem
 from . import orgunit
+from . import manager
 from .. import common
 from .. import exceptions
 from .. import mapping
@@ -588,7 +589,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
      ]
 
     '''
-
     c = common.get_connector()
 
     info = DETAIL_TYPES[type]
