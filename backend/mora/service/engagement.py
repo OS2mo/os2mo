@@ -47,6 +47,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
         primary = req.get(mapping.PRIMARY)
 
         if primary:
@@ -63,8 +66,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
 
-        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
-
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
             primær=primary,
@@ -79,7 +80,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
         self.payload = payload
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)

@@ -64,10 +64,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         )
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
-        userid = util.get_uuid(req, required=False)
+        userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, userid)
 
-        if not userid:
-            userid = str(uuid.uuid4())
         try:
             valid_from = \
                 util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
@@ -78,8 +77,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         validator.does_employee_with_cpr_already_exist(
             cpr, valid_from, valid_to, org_uuid, userid)
-
-        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         user = common.create_bruger_payload(
             valid_from=valid_from,

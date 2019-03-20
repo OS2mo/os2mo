@@ -49,7 +49,7 @@ class Tests(util.LoRATestCase):
                                       json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -146,7 +146,7 @@ class Tests(util.LoRATestCase):
         leaveid, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {

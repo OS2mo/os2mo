@@ -13,6 +13,8 @@ Associations
 This section describes how to interact with employee associations.
 
 '''
+import uuid
+
 from . import handlers
 from .validation import validator
 from .. import common
@@ -53,10 +55,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        bvn = util.checked_get(
-            req, mapping.USER_KEY,
-            "{} {} {}".format(employee_uuid, org_unit_uuid,
-                              mapping.ASSOCIATION_KEY))
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = req.get(mapping.PRIMARY)
 
@@ -87,7 +87,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
         self.payload = association
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         association_uuid = req.get('uuid')

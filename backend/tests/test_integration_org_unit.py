@@ -333,8 +333,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2016-02-04 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                            'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
+                        "brugervendtnoegle": unitid,
                         "enhedsnavn": "Fake Corp",
                         "integrationsdata": '{"fakekey": 42}'
                     }
@@ -461,7 +460,7 @@ class Tests(util.LoRATestCase):
                         "to": None
                     }
                 },
-                "user_key": "Fake Corp f494ad89-039d-478e-91f2-a63566554bd6",
+                "user_key": unitid,
                 "user_settings": {
                     "orgunit": {
                         "show_location": True,
@@ -1139,8 +1138,7 @@ class Tests(util.LoRATestCase):
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
-                        'brugervendtnoegle': 'Fake Corp '
-                        'f494ad89-039d-478e-91f2-a63566554bd6',
+                        'brugervendtnoegle': org_unit_uuid,
                         'enhedsnavn': 'Fake Corp',
                         'integrationsdata': '{}',
                         'virkning': {

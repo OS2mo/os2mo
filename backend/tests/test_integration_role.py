@@ -43,7 +43,7 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -147,10 +147,10 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        roleid, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -220,19 +220,14 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                        "{} {} Rolle".format(userid, unitid),
+                        "brugervendtnoegle": roleid,
                         "funktionsnavn": "Rolle"
                     }
                 ]
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-            tilknyttedeenheder=unitid,
-            funktionsnavn='Rolle',
-        )
+        actual_role = c.organisationfunktion.get(roleid)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -260,7 +255,7 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -330,10 +325,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
+                        "brugervendtnoegle": role_id,
                         "funktionsnavn": "Rolle"
                     }
                 ]

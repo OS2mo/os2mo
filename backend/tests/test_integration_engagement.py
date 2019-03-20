@@ -49,7 +49,7 @@ class Tests(util.LoRATestCase):
                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -172,7 +172,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -295,7 +295,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -416,7 +416,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -1853,7 +1853,7 @@ class Tests(util.LoRATestCase):
             )
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {

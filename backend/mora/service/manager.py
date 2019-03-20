@@ -60,9 +60,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             for responsibility in responsibilities
         ]
 
-        func_id = util.get_uuid(req, required=False)
-        if not func_id:
-            func_id = str(uuid.uuid4())
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         self.addresses = []
         addr_ids = []
@@ -91,8 +90,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 'objekttype': 'lederniveau',
                 'uuid': manager_level_uuid
             })
-
-        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         # Validation
         validator.is_date_range_in_org_unit_range(

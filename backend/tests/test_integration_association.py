@@ -281,8 +281,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                        "{} {} Tilknytning".format(userid, unitid),
+                        "brugervendtnoegle": association_uuid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -316,7 +315,7 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
             'primary': None,
-            'user_key': ' '.join((userid, unitid, 'Tilknytning')),
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -500,10 +499,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -573,20 +573,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -614,7 +606,7 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
             'primary': None,
-            'user_key': ' '.join((userid, unitid, 'Tilknytning')),
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -745,10 +737,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -818,20 +811,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -859,7 +844,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
-            'user_key': ' '.join((userid, unitid, 'Tilknytning')),
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -902,10 +887,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -975,20 +961,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -1016,7 +994,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
-            'user_key': ' '.join((userid, unitid, 'Tilknytning')),
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -2375,7 +2353,7 @@ class AddressTests(util.LoRATestCase):
             )
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
