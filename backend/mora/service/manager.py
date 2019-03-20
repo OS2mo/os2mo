@@ -13,6 +13,7 @@ This section describes how to interact with employee manager roles.
 
 """
 import uuid
+import operator
 import flask
 
 from . import address
@@ -59,7 +60,7 @@ class ManagerRequestHandler(
                 for classid, classobj in c.klasse.get_all(
                     uuid=responsibilities
                 )
-            ], key=lambda r: r["name"]),
+            ], key=lambda r: r[mapping.NAME]),
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit,
                 details=orgunit.UnitDetails.MINIMAL),
@@ -81,7 +82,11 @@ class ManagerRequestHandler(
             addr["address_type"] = address.get_address_type(orgfunc)
             addr["uuid"] = uuid
             func[mapping.ADDRESS].append(addr)
-        func[mapping.ADDRESS] = sorted(func[mapping.ADDRESS], key=str)
+
+        func[mapping.ADDRESS] = sorted(
+            func[mapping.ADDRESS],
+            key=operator.itemgetter(mapping.NAME)
+        )
 
         if person:
             func[mapping.PERSON] = employee.get_one_employee(c, person)
