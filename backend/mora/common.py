@@ -390,7 +390,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     opgaver: typing.List[dict] = None,
-    integration_data: dict = {}
+    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -401,7 +401,6 @@ def create_organisationsenhed_payload(
                 {
                     'enhedsnavn': enhedsnavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -431,6 +430,12 @@ def create_organisationsenhed_payload(
         }
     }
 
+    if integration_data is not None:
+        (
+            org_unit['attributter']['organisationenhedegenskaber'][0]
+            ['integrationsdata']
+        ) = json.dumps(integration_data)
+
     if opgaver:
         org_unit['relationer']['opgaver'] = opgaver
 
@@ -446,7 +451,7 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integration_data: dict = {},
+    integration_data: dict = None,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -457,7 +462,6 @@ def create_bruger_payload(
                 {
                     'brugernavn': brugernavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -476,6 +480,12 @@ def create_bruger_payload(
             ],
         }
     }
+
+    if integration_data is not None:
+        (
+            user['attributter']['brugeregenskaber'][0]
+            ['integrationsdata']
+        ) = json.dumps(integration_data)
 
     if cpr:
         user['relationer']['tilknyttedepersoner'] = [
