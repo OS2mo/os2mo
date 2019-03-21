@@ -339,7 +339,7 @@ def create_organisationsfunktion_payload(
         (
             org_funk['attributter']['organisationfunktionegenskaber'][0]
             ['integrationsdata']
-        ) = json.dumps(integration_data)
+        ) = stable_json_dumps(integration_data)
 
     if tilknyttedebrugere:
         org_funk['relationer']['tilknyttedebrugere'] = [
@@ -441,7 +441,7 @@ def create_organisationsenhed_payload(
         (
             org_unit['attributter']['organisationenhedegenskaber'][0]
             ['integrationsdata']
-        ) = json.dumps(integration_data)
+        ) = stable_json_dumps(integration_data)
 
     if opgaver:
         org_unit['relationer']['opgaver'] = opgaver
@@ -492,7 +492,7 @@ def create_bruger_payload(
         (
             user['attributter']['brugeregenskaber'][0]
             ['integrationsdata']
-        ) = json.dumps(integration_data)
+        ) = stable_json_dumps(integration_data)
 
     if cpr:
         user['relationer']['tilknyttedepersoner'] = [
@@ -586,3 +586,8 @@ def convert_reg_to_history(reg):
         'life_cycle_code': reg['livscykluskode'],
         'action': reg.get('note')
     }
+
+
+def stable_json_dumps(v):
+    """like :py:func:`json.dumps()`, but stable."""
+    return json.dumps(v, sort_keys=True, allow_nan=False, ensure_ascii=False)

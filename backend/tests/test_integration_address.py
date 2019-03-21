@@ -470,8 +470,8 @@ class Writing(util.LoRATestCase):
                     'brugervendtnoegle': 'root@example.com',
                     'funktionsnavn': 'Adresse',
                     'integrationsdata': (
-                        '{"f\\u00e6tter": "kusine", '
-                        '"hest": "\\u00e6sel"}'
+                        '{"fætter": "kusine", '
+                        '"hest": "æsel"}'
                     ),
                     'virkning': {
                         'from': '2017-01-02 '

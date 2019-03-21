@@ -24,7 +24,6 @@ import functools
 import locale
 import operator
 import uuid
-import json
 
 import flask
 
@@ -244,7 +243,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             changed_props['enhedsnavn'] = data[mapping.NAME]
 
         if mapping.INTEGRATION_DATA in data:
-            changed_props['integrationsdata'] = json.dumps(
+            changed_props['integrationsdata'] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
             )
 

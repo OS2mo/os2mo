@@ -39,6 +39,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "user_key": "1234",
+                "integration_data": "køflkøflkøfl",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -121,6 +122,7 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "1234",
+                        "integrationsdata": '"køflkøflkøfl"',
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -160,6 +162,7 @@ class Tests(util.LoRATestCase):
             'primary': None,
             "user_key": "1234",
             'uuid': associationid,
+            'integration_data': 'køflkøflkøfl',
             'validity': {
                 'from': '2017-12-01',
                 'to': '2017-12-01',

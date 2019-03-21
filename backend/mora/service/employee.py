@@ -19,7 +19,6 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import enum
-import json
 import uuid
 
 import flask
@@ -148,7 +147,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             changed_props['brugernavn'] = data[mapping.NAME]
 
         if mapping.INTEGRATION_DATA in data:
-            changed_props['integrationsdata'] = json.dumps(
+            changed_props['integrationsdata'] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
             )
 
