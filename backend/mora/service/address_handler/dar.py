@@ -7,6 +7,7 @@
 #
 import flask
 import requests
+import uuid
 
 from ... import mapping
 from ... import util
@@ -36,9 +37,9 @@ class DARAddressHandler(base.AddressHandler):
                 if 'x' in self.address_object and 'y' in self.address_object
                 else None
             )
-        except Exception as e:
+        except LookupError as e:
             flask.current_app.logger.warning(
-                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
                     flask.request.url,
                     value,
                 ),
@@ -63,6 +64,8 @@ class DARAddressHandler(base.AddressHandler):
 
         try:
             handler._fetch_and_initialize(value)
+        # Suppress lookup exception, as we want to handle this specific case
+        # without dying
         except exceptions.HTTPException:
             handler.address_object = {}
             handler._name = NOT_FOUND
@@ -97,23 +100,28 @@ class DARAddressHandler(base.AddressHandler):
             'adresser', 'adgangsadresser',
             'historik/adresser', 'historik/adgangsadresser'
         ):
-            r = session.get(
-                'https://dawa.aws.dk/' + addrtype,
-                # use a list to work around unordered dicts in Python < 3.6
-                params=[
-                    ('id', addrid),
-                    ('noformat', '1'),
-                    ('struktur', 'mini'),
-                ],
-            )
+            try:
+                r = session.get(
+                    'https://dawa.aws.dk/' + addrtype,
+                    # use a list to work around unordered dicts in Python < 3.6
+                    params=[
+                        ('id', addrid),
+                        ('noformat', '1'),
+                        ('struktur', 'mini'),
+                    ],
+                )
 
-            addrobjs = r.json()
+                addrobjs = r.json()
 
-            r.raise_for_status()
+                r.raise_for_status()
 
-            if addrobjs:
-                # found, escape loop!
-                break
+                if addrobjs:
+                    # found, escape loop!
+                    break
+            # The request mocking library throws a pretty generic exception
+            # catch and rethrow as something we know how to manage
+            except Exception as e:
+                raise LookupError(str(e)) from e
 
         else:
             raise LookupError('no such address {!r}'.format(addrid))
@@ -152,3 +160,14 @@ class DARAddressHandler(base.AddressHandler):
         yield addr['postnr']
         yield ' '
         yield addr['postnrnavn']
+
+    @staticmethod
+    def validate_value(value):
+        """Values should be UUID in DAR"""
+        try:
+            uuid.UUID(value)
+            DARAddressHandler._fetch_from_dar(value)
+        except (ValueError, LookupError):
+            exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(
+                value=value
+            )

@@ -4,6 +4,7 @@
       class="search-employee"
       v-model="person"
       required
+      :validity="validity"
     />
 
     <div class="form-row">
@@ -21,6 +22,7 @@
         class="col"
         v-model="org_unit"
         required
+        :validity="validity"
       />
     </div>
 
@@ -29,7 +31,6 @@
         class="col from-date"
         :label="$t('input_fields.move_date')"
         v-model="from"
-        :valid-dates="currentDateValidity"
         required
       />
     </div>
@@ -123,6 +124,12 @@ export default {
         if (newFrom <= originalTo) return true
       }
       return false
+    },
+
+    validity () {
+      return {
+        'from': this.from
+      }
     }
   },
   beforeCreate () {

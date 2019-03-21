@@ -18,21 +18,21 @@ For more information regarding reading relations involving employees, refer to
 
 '''
 import copy
-import uuid
 import enum
 import json
+import uuid
 
 import flask
 
 from . import handlers
 from . import org
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -55,7 +55,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     def prepare_create(self, req):
-        c = lora.Connector()
         name = util.checked_get(req, mapping.NAME, "", required=True)
         integration_data = util.checked_get(
             req,
@@ -75,15 +74,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         except ValueError as exc:
             exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
 
-        userids = c.bruger.fetch(
-            tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
-            tilhoerer=org_uuid
-        )
-
-        if userids and userid not in userids:
-            exceptions.ErrorCodes.V_EXISTING_CPR(cpr=cpr)
-
         valid_to = util.POSITIVE_INFINITY
+
+        validator.does_employee_with_cpr_already_exist(
+            cpr, valid_from, valid_to, org_uuid, userid)
+
         bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         user = common.create_bruger_payload(

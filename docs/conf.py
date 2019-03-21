@@ -73,6 +73,7 @@ MOCK_MODULES = [
     'lxml.etree',
     'service_person_stamdata_udvidet',
     'flask_saml_sso',
+    'validators',
 
     'onelogin',
     'onelogin.saml2',

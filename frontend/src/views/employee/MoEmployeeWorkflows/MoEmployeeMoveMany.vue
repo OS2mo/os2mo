@@ -15,6 +15,7 @@
         v-model="orgUnitSource"
         class="col from-unit"
         required
+        :validity="validity"
       />
 
       <mo-organisation-unit-picker
@@ -23,6 +24,7 @@
         v-model="orgUnitDestination"
         class="col to-unit"
         required
+        :validity="validity"
       />
     </div>
 
@@ -120,6 +122,10 @@ export default {
         return false
       }
       return true
+    },
+
+    validity () {
+      return { 'from': this.moveDate }
     }
   },
   beforeCreate () {

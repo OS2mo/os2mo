@@ -21,12 +21,12 @@ import uuid
 import flask
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')

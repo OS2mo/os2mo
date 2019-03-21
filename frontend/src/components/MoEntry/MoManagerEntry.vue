@@ -7,6 +7,7 @@
         class="col unit-manager"
         required
         v-if="!hideOrgPicker"
+        :validity="entry.validity"
       />
     </div>
 
@@ -16,6 +17,7 @@
         class="search-employee mb-3"
         v-if="!hideEmployeePicker && hideOrgPicker"
         noLabel
+        :validity="entry.validity"
       />
 
       <mo-add-many

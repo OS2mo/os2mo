@@ -14,12 +14,12 @@ This section describes how to interact with employee associations.
 
 '''
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):

@@ -5,6 +5,7 @@
         v-model="employee"
         class="col search-employee"
         required
+        :validity="validity"
       />
 
       <mo-input-date
@@ -108,6 +109,13 @@ export default {
         return false
       }
       return true
+    },
+
+    validity () {
+      return {
+        'from': this.endDate,
+        'to': this.endDate
+      }
     }
   },
 

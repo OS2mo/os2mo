@@ -5,7 +5,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import validators
+
 from . import base
+from ... import exceptions
 
 
 class EmailAddressHandler(base.AddressHandler):
@@ -15,3 +18,11 @@ class EmailAddressHandler(base.AddressHandler):
     @property
     def href(self):
         return "mailto:{}".format(self.value)
+
+    @staticmethod
+    def validate_value(value):
+        """Ensure that value is correct email"""
+        if not validators.email(value):
+            exceptions.ErrorCodes.V_INVALID_ADDRESS_EMAIL(
+                value=value,
+            )
