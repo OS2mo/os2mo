@@ -9,10 +9,11 @@ import flask
 import requests
 import uuid
 
+from . import base
+from ..validation.validator import forceable
+from ... import exceptions
 from ... import mapping
 from ... import util
-from ... import exceptions
-from . import base
 
 session = requests.Session()
 session.headers = {
@@ -162,6 +163,7 @@ class DARAddressHandler(base.AddressHandler):
         yield addr['postnrnavn']
 
     @staticmethod
+    @forceable
     def validate_value(value):
         """Values should be UUID in DAR"""
         try:

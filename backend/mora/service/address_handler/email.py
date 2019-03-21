@@ -8,6 +8,7 @@
 import validators
 
 from . import base
+from ..validation.validator import forceable
 from ... import exceptions
 
 
@@ -20,6 +21,7 @@ class EmailAddressHandler(base.AddressHandler):
         return "mailto:{}".format(self.value)
 
     @staticmethod
+    @forceable
     def validate_value(value):
         """Ensure that value is correct email"""
         if not validators.email(value):

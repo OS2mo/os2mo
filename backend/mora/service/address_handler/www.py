@@ -7,9 +7,9 @@
 #
 import validators
 
-from ... import exceptions
-
 from . import base
+from ..validation.validator import forceable
+from ... import exceptions
 
 
 class WWWAddressHandler(base.AddressHandler):
@@ -17,6 +17,7 @@ class WWWAddressHandler(base.AddressHandler):
     prefix = 'urn:magenta.dk:www:'
 
     @staticmethod
+    @forceable
     def validate_value(value):
         """Ensure value is correct URL"""
         if not validators.url(value):
