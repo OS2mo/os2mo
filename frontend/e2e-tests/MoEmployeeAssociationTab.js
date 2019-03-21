@@ -17,12 +17,18 @@ const associationTypeOption = associationTypeSelect.find('option')
 
 const fromDateInput = dialog.find('.from-date .form-control')
 
-const submitButton = dialog.find('button .btn .btn-primary')
-
 test('Workflow: employee association tab', async t => {
   let today = moment()
 
   await t
+    // Edit nickname
+    .click(Selector('.nickname-entry .button'))
+
+    .typeText(dialog.find('input[data-vv-as="Kaldenavn"]'), 'Schuster')
+
+    .click(dialog.find('.btn-primary'))
+
+    // Association
     .click(VueSelector('employee-detail-tabs bTabButtonHelper').withText('Tilknytninger'))
 
     // Create association
