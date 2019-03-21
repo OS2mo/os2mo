@@ -1370,6 +1370,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "name": "Filosofisk Institut II",
+                "user_key": "højrespidseskilning",
                 "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2018-01-01",
@@ -1402,7 +1403,7 @@ class Tests(util.LoRATestCase):
                             "from": "2018-01-01 00:00:00+01",
                             "to": "infinity"
                         },
-                        "brugervendtnoegle": "fil",
+                        "brugervendtnoegle": "højrespidseskilning",
                         "enhedsnavn": "Filosofisk Institut II"
                     },
                 ]

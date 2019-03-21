@@ -593,6 +593,7 @@ class Tests(util.LoRATestCase):
                 "validity": {
                     "from": "2017-02-02",
                 },
+                "user_key": "regnbøfssalat",
                 "cpr_no": "0101010101",
                 "name": "Test 1 Employee",
             },
@@ -617,7 +618,7 @@ class Tests(util.LoRATestCase):
             }
         }, {
             'brugernavn': 'Test 1 Employee',
-            'brugervendtnoegle': 'fedtmule',
+            'brugervendtnoegle': 'regnbøfssalat',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,

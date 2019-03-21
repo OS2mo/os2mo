@@ -124,6 +124,12 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
+
         if mapping.ASSOCIATION_TYPE in data:
             update_fields.append((
                 mapping.ORG_FUNK_TYPE_FIELD,

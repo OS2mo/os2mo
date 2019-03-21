@@ -130,6 +130,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
+
         if mapping.JOB_FUNCTION in data:
             update_fields.append((
                 mapping.JOB_FUNCTION_FIELD,

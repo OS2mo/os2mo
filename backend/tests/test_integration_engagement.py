@@ -619,6 +619,7 @@ class Tests(util.LoRATestCase):
             "uuid": engagement_uuid,
             "data": {
                 "primary": True,
+                "user_key": "regnormsberiger",
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
@@ -744,9 +745,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Engagement"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "regnormsberiger",
                         "funktionsnavn": "Engagement"
                     }
                 ],

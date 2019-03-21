@@ -11,6 +11,7 @@ import logging
 import freezegun
 
 from mora import lora
+from mora import util as mora_util
 from tests import util
 
 address_class = {
@@ -1071,6 +1072,73 @@ class Writing(util.LoRATestCase):
         actual = c.organisationfunktion.get(addr_id)
 
         self.assertRegistrationsEqual(expected, actual)
+
+    def test_edit_address_user_key(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        addr_id = '414044e0-fe5f-4f82-be20-1e107ad50e80'
+
+        self.assertRequest(
+            '/service/details/edit',
+            json=[
+                {
+                    "type": "address",
+                    "uuid": addr_id,
+                    "data": {
+                        "user_key": "gedebukkebensoverogundergeneralkrigs"
+                        "kommandørsergenten",
+                        'validity': {'from': '2018-01-01', 'to': '2019-12-31'},
+                    },
+                }
+            ]
+        )
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
+
+        actual_reg = c.organisationfunktion.get(addr_id)
+        actual = sorted(
+            actual_reg['attributter']['organisationfunktionegenskaber'],
+            key=mora_util.get_effect_from,
+        )
+
+        expected = [
+            {
+                "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "2018-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "brugervendtnoegle": (
+                    "gedebukkebensoverogundergeneralkrigskommandørsergenten"
+                ),
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2018-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "2020-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2020-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        self.assertEqual(actual, expected)
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)

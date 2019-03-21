@@ -139,20 +139,23 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
-            attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
+        changed_props = {}
 
-            if mapping.NAME in data:
-                attrs['brugernavn'] = data[mapping.NAME]
+        if mapping.USER_KEY in data:
+            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-            if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = json.dumps(
-                    data[mapping.INTEGRATION_DATA]
-                )
+        if mapping.NAME in data:
+            changed_props['brugernavn'] = data[mapping.NAME]
 
+        if mapping.INTEGRATION_DATA in data:
+            changed_props['integrationsdata'] = json.dumps(
+                data[mapping.INTEGRATION_DATA],
+            )
+
+        if changed_props:
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
-                attrs,
+                changed_props,
             ))
 
         if mapping.CPR_NO in data:

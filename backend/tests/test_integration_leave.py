@@ -290,6 +290,7 @@ class Tests(util.LoRATestCase):
             "type": "leave",
             "uuid": leave_uuid,
             "data": {
+                "user_key": "koflagerske",
                 "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -381,9 +382,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Orlov"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "koflagerske",
                         "funktionsnavn": "Orlov"
                     }
                 ]

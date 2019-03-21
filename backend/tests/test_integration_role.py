@@ -351,6 +351,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
+                "user_key": "bjørndrager",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -456,9 +457,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Rolle"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bjørndrager",
                         "funktionsnavn": "Rolle"
                     }
                 ]

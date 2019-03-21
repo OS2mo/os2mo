@@ -1154,6 +1154,7 @@ class Tests(util.LoRATestCase):
                 "manager_type": {
                     'uuid': "e34d4426-9845-4c72-b31e-709be85d6fa2"
                 },
+                "user_key": "kaflaflibob",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -1321,10 +1322,20 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                                             "b4a4-15ffa19e2848",
+                        "b4a4-15ffa19e2848",
+                        "funktionsnavn": "Leder"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "kaflaflibob",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -1449,7 +1460,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': manager_uuid,
-                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
+                'user_key': 'kaflaflibob',
                 'validity': {
                     'from': '2018-04-01', 'to': None,
                 },

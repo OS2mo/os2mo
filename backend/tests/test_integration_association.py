@@ -1052,6 +1052,7 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
+                "user_key": "overhestetå",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -1151,9 +1152,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Tilknytning"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "overhestetå",
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -1235,7 +1246,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
-            'user_key': 'bvn',
+            'user_key': 'overhestetå',
             'uuid': association_uuid,
             'validity': {
                 'from': '2018-04-01',
