@@ -6,6 +6,8 @@ New features
 
 * #27687: The various org funk relations now accept a ``user_key`` parameter.
 * #26666: Add support for assigning a nickname to employees.
+* #25396: Implemented validation of individual fields in frontend using
+  backend validation API.
 
 Bug fixes
 ---------

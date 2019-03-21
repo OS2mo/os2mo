@@ -72,8 +72,8 @@ MOCK_MODULES = [
     'lxml',
     'lxml.etree',
     'service_person_stamdata_udvidet',
-    'pyexcel',
     'flask_saml_sso',
+    'validators',
 
     'onelogin',
     'onelogin.saml2',

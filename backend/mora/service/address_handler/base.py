@@ -50,7 +50,14 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     def from_request(cls, request):
         """Initialize handler from MO object"""
         value = util.checked_get(request, mapping.VALUE, "", required=True)
+        cls.validate_value(value)
         return cls(value)
+
+    @staticmethod
+    @abc.abstractmethod
+    def validate_value(value):
+        """Validate that the address value is correctly formed"""
+        pass
 
     @property
     def urn(self):

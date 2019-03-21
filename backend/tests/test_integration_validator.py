@@ -8,10 +8,9 @@
 import datetime
 
 from mora import exceptions
-from mora import util as mora_util
-from mora import validator
 from mora import mapping
-
+from mora import util as mora_util
+from mora.service.validation import validator
 from tests import util
 
 

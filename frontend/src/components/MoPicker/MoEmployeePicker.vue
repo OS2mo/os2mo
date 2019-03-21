@@ -13,7 +13,7 @@
       :auto-select-one-item="false"
       :min-len="2"
       :placeholder="$t('input_fields.search_for_employee')"
-      v-validate="{ required: required }"
+      v-validate="validations"
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
@@ -50,7 +50,15 @@ export default {
   props: {
     value: Object,
     noLabel: Boolean,
-    required: Boolean
+    required: Boolean,
+    /**
+     * Validities, used for validation
+     */
+    validity: Object,
+    /**
+     * An object of additional validations to be performed
+     */
+    extraValidations: Object
   },
 
   data () {
@@ -64,11 +72,22 @@ export default {
   computed: {
     orderedListOptions () {
       return sortBy(this.items, 'name')
+    },
+    validations () {
+      let validations = {
+        required: this.required,
+        employee: [this.validity]
+      }
+      if (this.extraValidations) {
+        validations = { ...validations, ...this.extraValidations }
+      }
+      return validations
     }
   },
 
   watch: {
     item (newVal) {
+      this.$validator.validate('employee-picker')
       this.$emit('input', newVal)
     }
   },

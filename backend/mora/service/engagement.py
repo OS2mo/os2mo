@@ -17,11 +17,11 @@ employees and organisational units.
 import uuid
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):

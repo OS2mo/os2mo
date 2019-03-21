@@ -16,11 +16,11 @@ import uuid
 
 from . import address
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):

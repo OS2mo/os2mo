@@ -42,7 +42,7 @@ Best practices for implementering
 
        * Ubuntu 16.04
 
-       * Tillade udgående trafik på portene 80, 443, 4505 og 4506
+       * Tillade udgående trafik på portene 22, 80, 443, 4505 og 4506
 
        * Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
      - Kunde

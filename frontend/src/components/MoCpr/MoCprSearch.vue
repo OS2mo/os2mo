@@ -10,7 +10,7 @@
         class="form-control"
         type="text"
         maxlength="10"
-        v-validate="{digits: 10, required}"
+        v-validate="{digits: 10, required: true, cpr: orgUuid}"
       />
 
       <button
@@ -42,6 +42,8 @@
 
 import Search from '@/api/Search'
 import MoLoader from '@/components/atoms/MoLoader'
+import { mapGetters } from 'vuex'
+import { Organisation } from '@/store/actions/organisation'
 
 export default {
   name: 'MoCprSearch',
@@ -94,6 +96,15 @@ export default {
     cprNo () {
       this.$emit('input', {})
     }
+  },
+
+  computed: {
+    /**
+     * Get worklog message.
+     */
+    ...mapGetters({
+      orgUuid: Organisation.getters.GET_UUID
+    })
   },
 
   methods: {
