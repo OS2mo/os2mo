@@ -1,8 +1,8 @@
 <template>
 <div>
-  <div v-b-modal="nameId">
-    <icon name="edit" class="icon"/>
-  </div>
+    <button class="row button" v-b-modal="nameId">
+      <icon name="edit"/>
+    </button>
 
   <b-modal
     :id="nameId"
@@ -15,19 +15,24 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="editNickname">
-      <mo-input-text
-        :label="$t('input_fields.nickname')"
-        v-model="nickname"
-        required
-      />
+      <div class="form-group">
+        <mo-input-text
+          :label="$t('input_fields.nickname')"
+          v-model="nickname"
+          required
+        />
+      </div>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError.error_key)}}
       </div>
 
-      <div class="float-right">
-        <button-submit :disabled="!formValid" :is-loading="isLoading"/>
+      <div class="col">
+        <div class="float-right">
+          <button-submit :disabled="!formValid" :is-loading="isLoading"/>
+        </div>
       </div>
+
     </form>
   </b-modal>
 </div>
@@ -39,11 +44,15 @@
  */
 
 import Service from '@/api/Employee'
+import { EventBus, Events } from '@/EventBus'
 import { MoInputText } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import { mapState, mapGetters } from 'vuex'
+import { Employee } from '@/store/actions/employee'
+import moment from 'moment'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -73,6 +82,14 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      route: 'route'
+    }),
+
+    ...mapGetters({
+      employee: Employee.getters.GET_EMPLOYEE
+    }),
+
     title () {
       let edit = this.$t('common.edit')
       let type = this.$tc('common.nickname')
@@ -85,10 +102,20 @@ export default {
 
     payload () {
       return {
-        type: this.type,
-        nickname: this.nickname
+        type: 'employee',
+        uuid: this.content.uuid,
+        data: {
+          validity: {
+            from: moment().format('YYYY-MM-DD')
+          },
+          nickname: this.nickname
+        }
       }
     }
+  },
+
+  created () {
+    this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
   },
 
   methods: {
@@ -107,9 +134,19 @@ export default {
 
         return Service.edit(this.payload)
           .then(response => {
+            EventBus.$emit(Events.EMPLOYEE_CHANGED)
             this.isLoading = false
             this.$refs.editNickname.hide()
             this.$emit('submit')
+
+            this.$store.commit('log/newWorkLog',
+              { type: 'EMPLOYEE_EDIT',
+                value: {
+                  type: this.$tc(`shared.${this.payload.type}`, 1),
+                  uuid: this.payload.uuid
+                }
+              },
+              { root: true })
           })
           .catch(err => {
             this.isLoading = false
@@ -124,8 +161,15 @@ export default {
 </script>
 
 <style scoped>
-  .icon :hover{
-    color: #007bff;
+  .button {
+    color: #aaa;
+    background-color: #fff;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
     cursor: pointer;
+  }
+  .button :hover{
+    color: #007bff;
   }
 </style>
