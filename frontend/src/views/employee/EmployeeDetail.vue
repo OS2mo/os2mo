@@ -10,7 +10,7 @@
 
       <div class="row">
         <div class="employee-nickname ml-3">
-          <h5 class="ml-4 col-margin">
+          <h5 class="col-margin ml-4">
             {{employee.nickname}}
           </h5>
           <span class="nickname-text ml-2">
@@ -18,10 +18,10 @@
           </span>
         </div>
 
-        <div class="col col-margin">
+        <div class="col col-margin ml-1">
           <mo-entry-edit-nickname-modal
+            class="nickname-entry"
             :content="employee"
-            @submit="$emit('update')"
           />
         </div>
 
@@ -86,11 +86,13 @@ export default {
   created () {
     this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
   },
+
   mounted () {
     EventBus.$on(Events.EMPLOYEE_CHANGED, () => {
       this.loadContent(this.latestEvent)
     })
   },
+
   methods: {
     loadContent (event) {
       this.latestEvent = event
