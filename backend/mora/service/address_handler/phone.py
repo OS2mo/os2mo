@@ -9,10 +9,11 @@ import re
 
 from . import base
 from .. import facet
+from ..validation.validator import forceable
+from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
-from ... import exceptions
 
 
 class PhoneAddressHandler(base.AddressHandler):
@@ -76,9 +77,10 @@ class PhoneAddressHandler(base.AddressHandler):
         return properties
 
     @staticmethod
+    @forceable
     def validate_value(value):
-        """Phone number is 8 digits, optionally with country code"""
-        if not re.match(r'^\d{8}$|^\+45\d{8}$', value):
+        """Phone number is only digits, optionally with country code"""
+        if not re.match(r'^\+?\d+$', value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_PHONE(
                 value=value,
             )
