@@ -13,6 +13,8 @@ Associations
 This section describes how to interact with employee associations.
 
 '''
+import uuid
+
 from . import handlers
 from .validation import validator
 from .. import common
@@ -53,10 +55,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        bvn = util.checked_get(
-            req, mapping.USER_KEY,
-            "{} {} {}".format(employee_uuid, org_unit_uuid,
-                              mapping.ASSOCIATION_KEY))
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = req.get(mapping.PRIMARY)
 
@@ -84,10 +84,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=association_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = association
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         association_uuid = req.get('uuid')
@@ -122,6 +123,12 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ORG_FUNK_GYLDIGHED_FIELD,
             {'gyldighed': "Aktiv"}
         ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
 
         if mapping.ASSOCIATION_TYPE in data:
             update_fields.append((

@@ -304,7 +304,8 @@ def create_organisationsfunktion_payload(
     funktionstype: str = None,
     primær: bool=None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[dict] = None
+    adresser: typing.List[dict] = None,
+    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -333,6 +334,12 @@ def create_organisationsfunktion_payload(
             ]
         }
     }
+
+    if integration_data is not None:
+        (
+            org_funk['attributter']['organisationfunktionegenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
 
     if tilknyttedebrugere:
         org_funk['relationer']['tilknyttedebrugere'] = [
@@ -390,7 +397,7 @@ def create_organisationsenhed_payload(
     enhedstype: str,
     overordnet: str,
     opgaver: typing.List[dict] = None,
-    integration_data: dict = {}
+    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -401,7 +408,6 @@ def create_organisationsenhed_payload(
                 {
                     'enhedsnavn': enhedsnavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -431,6 +437,12 @@ def create_organisationsenhed_payload(
         }
     }
 
+    if integration_data is not None:
+        (
+            org_unit['attributter']['organisationenhedegenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
+
     if opgaver:
         org_unit['relationer']['opgaver'] = opgaver
 
@@ -446,7 +458,7 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integration_data: dict = {},
+    integration_data: dict = None,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -457,7 +469,6 @@ def create_bruger_payload(
                 {
                     'brugernavn': brugernavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -476,6 +487,12 @@ def create_bruger_payload(
             ],
         }
     }
+
+    if integration_data is not None:
+        (
+            user['attributter']['brugeregenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
 
     if cpr:
         user['relationer']['tilknyttedepersoner'] = [
@@ -569,3 +586,8 @@ def convert_reg_to_history(reg):
         'life_cycle_code': reg['livscykluskode'],
         'action': reg.get('note')
     }
+
+
+def stable_json_dumps(v):
+    """like :py:func:`json.dumps()`, but stable."""
+    return json.dumps(v, sort_keys=True, allow_nan=False, ensure_ascii=False)

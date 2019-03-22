@@ -14,6 +14,8 @@ This section describes how to interact with employee roles.
 
 '''
 
+import uuid
+
 from . import handlers
 from .validation import validator
 from .. import common
@@ -55,10 +57,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
                                                required=True)
 
-        bvn = util.checked_get(
-            req, mapping.USER_KEY,
-            "{} {} {}".format(employee_uuid, org_unit_uuid,
-                              mapping.ROLE_KEY))
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         role = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ROLE_KEY,
@@ -69,10 +69,11 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=role_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = role
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
@@ -110,6 +111,12 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ORG_FUNK_GYLDIGHED_FIELD,
             {'gyldighed': "Aktiv"}
         ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
 
         if mapping.ROLE_TYPE in data:
             update_fields.append((

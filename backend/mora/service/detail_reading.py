@@ -26,6 +26,7 @@ from __future__ import generator_stop
 
 import collections
 import itertools
+import json
 
 import flask
 
@@ -164,70 +165,81 @@ def get_detail(type, id, function):
 
     .. sourcecode:: json
 
-      [
-            {
-                "job_function": {
-                    "example": null,
-                    "name": "Fakultet",
-                    "scope": null,
-                    "user_key": "fak",
-                    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-                },
-                "org_unit": {
-                    "name": "Humanistisk fakultet",
-                    "user_key": "hum",
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                },
-                "person": {
-                    "name": "Anders And",
-                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-                },
-                "engagement_type": {
-                    "example": null,
-                    "name": "Afdeling",
-                    "scope": null,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-                },
-                "primary": false,
-                "uuid": "d000591f-8705-4324-897a-075e3623f37b",
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": null
-                }
-            }
-        ]
+     [
+       {
+         "engagement_type": {
+           "example": null,
+           "name": "Ansat",
+           "scope": "TEXT",
+           "user_key": "Ansat",
+           "uuid": "60315fce-995c-4874-ad7b-48b27aaafb25"
+         },
+         "job_function": {
+           "example": null,
+           "name": "Personalekonsulent",
+           "scope": "TEXT",
+           "user_key": "Personalekonsulent",
+           "uuid": "c5d76586-32fe-41e8-b702-27636265d696"
+         },
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "person": {
+           "name": "Martin F\u00e8vre Laustsen",
+           "uuid": "7d5cdeec-8333-46e9-8a69-b4a2351f4d01"
+         },
+         "primary": true,
+         "user_key": "2368360a-c860-458c-9725-d678c5efbf79",
+         "uuid": "6467fbb0-dd62-48ae-90be-abdef7e66aa7",
+         "validity": {
+           "from": "1997-04-16",
+           "to": null
+         }
+       }
+     ]
 
     **Example association response**:
 
     .. sourcecode:: json
 
-      [
-        {
-          "association_type": {
-            "example": null,
-            "name": "Medlem",
-            "scope": null,
-            "user_key": "medl",
-            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-          },
-          "org_unit": {
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-          },
-          "person": {
-            "name": "Fedtmule",
-            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
-          },
-          "uuid": "30cd25e1-b21d-46fe-b299-1c1265e9be66",
-          "primary": true,
-          "validity": {
-            "from": "2017-01-01",
-            "to": "2017-12-31"
-          }
-        }
-      ]
+     [
+       {
+         "association_type": {
+           "example": null,
+           "name": "Formand",
+           "scope": "TEXT",
+           "user_key": "Formand",
+           "uuid": "6968bcf7-e33f-41cd-a218-28d850d5f02d"
+         },
+         "org_unit": {
+           "name": "Borgmesterens Afdeling",
+           "user_key": "Borgmesterens Afdeling",
+           "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "person": {
+           "name": "J\u00f8rgen Siig J\u00f8rgensen",
+           "uuid": "f1458657-2498-4c53-82e0-e3857f32875b"
+         },
+         "primary": null,
+         "user_key": "f1458657-2498-4c53-82e0-e3857f32875b \
+b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
+         "uuid": "ad366f7e-4294-4602-abd3-2bd6db20060e",
+         "validity": {
+           "from": "1996-04-21",
+           "to": null
+         }
+       }
+     ]
 
     **Example IT response**:
 
@@ -243,84 +255,231 @@ def get_detail(type, id, function):
 
     .. sourcecode:: json
 
-      [
-        {
-          "itsystem": {
-            "name": "Active Directory",
-            "reference": null,
-            "system_type": null,
-            "user_key": "AD",
-            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-            "validity": {
-              "from": "2002-02-14",
-              "to": null
-            }
-          },
-          "org_unit": null,
-          "person": {
-            "name": "Anders And",
-            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-          },
-          "user_key": "donald",
-          "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
-          "validity": {
-            "from": "2017-01-01",
-            "to": "2018-09-30"
-          }
-        }
-      ]
+     [
+       {
+         "itsystem": {
+           "name": "Active Directory",
+           "reference": null,
+           "system_type": null,
+           "user_key": "Active Directory",
+           "uuid": "ef1acc94-dc2f-49e3-aa03-73a02262393c",
+           "validity": {
+             "from": "1900-01-01",
+             "to": null
+           }
+         },
+         "org_unit": null,
+         "person": {
+           "name": "Bente Pedersen",
+           "uuid": "c9eaffad-971e-4c0c-8516-44c5d29ca092"
+         },
+         "user_key": "BenteP",
+         "uuid": "9045b3e3-5cb9-416d-9499-87c6648695d4",
+         "validity": {
+           "from": "1978-12-22",
+           "to": null
+         }
+       }
+     ]
 
     **Example address response**:
 
     .. sourcecode:: json
 
      [
-        {
-          "name": "Christiansborg Slotsplads 1, 1218 København K",
-          "uuid": "bae093df-3b06-4f23-90a8-92eabedb3622"
-          "href": "https://www.openstreetmap.org/"
-              "?mlon=12.58176945&mlat=55.67563739&zoom=16",
-          "address_type": {
-            "scope": "DAR"
-          },
-          "validity": {
-            "from": "2002-02-14",
-            "to": null
-          },
-        },
-        {
-          "name": "goofy@example.com",
-          "href": "mailto:goofy@example.com",
-          "urn": "urn:mailto:goofy@example.com"
-          "address_type": {
-            "example": "test@example.com",
-            "name": "Emailadresse",
-            "scope": "EMAIL",
-            "user_key": "Email",
-            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-          },
-          "validity": {
-            "from": "2002-02-14",
-            "to": null
-          },
-        },
-        {
-          "name": "goofy@example.com",
-          "href": "mailto:goofy@example.com",
-          "urn": "urn:mailto:goofy@example.com"
-          "address_type": {
-            "example": "test@example.com",
-            "name": "Emailadresse",
-            "scope": "EMAIL",
-            "user_key": "Email",
-            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-          },
-          "validity": {
-            "from": "2002-02-14",
-            "to": null
-          },
-        }
-      ]
+       {
+         "address_type": {
+           "example": null,
+           "name": "Email",
+           "scope": "EMAIL",
+           "user_key": "EmailUnit",
+           "uuid": "f37f821e-2469-4fdd-bb7b-9e371df0a83b"
+         },
+         "href": "mailto:info@hjorring.dk",
+         "name": "info@hjorring.dk",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "info@hjorring.dk",
+         "uuid": "3dce271e-ba61-4a32-ad3b-9ae9b504c1bb",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "info@hjorring.dk"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "Postadresse",
+           "scope": "DAR",
+           "user_key": "AddressMailUnit",
+           "uuid": "ee9041d0-3a56-4935-82b3-71302e834cfe"
+         },
+         "href": "https://www.openstreetmap.org/\
+?mlon=9.93195702&mlat=57.35598874&zoom=16",
+         "name": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "uuid": "5a21cf1a-aafb-40ad-b3ac-a563f7db4881",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "0a3f50c8-9f8f-32b8-e044-0003ba298018"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "P-nummer",
+           "scope": "PNUMBER",
+           "user_key": "p-nummer",
+           "uuid": "8d4d0452-7e53-47d8-86c4-64262e940076"
+         },
+         "href": null,
+         "name": "1484518640",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "1484518640",
+         "uuid": "5bcc497b-22a5-4e51-bd57-63e71d3ce596",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "1484518640"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "Returadresse",
+           "scope": "DAR",
+           "user_key": "AdressePostRetur",
+           "uuid": "3067bcd7-53d0-474d-a9ac-3d490c738d0a"
+         },
+         "href": "https://www.openstreetmap.org/\
+?mlon=9.93195702&mlat=57.35598874&zoom=16",
+         "name": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "uuid": "a038d42a-0372-430d-bd78-f4cf65fcbc4e",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "0a3f50c8-9f8f-32b8-e044-0003ba298018"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "Webadresse",
+           "scope": "WWW",
+           "user_key": "WebUnit",
+           "uuid": "1ee7ee52-c597-44d7-a391-6efa7185f51c"
+         },
+         "href": null,
+         "name": "www.hjorring.dk",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "www.hjorring.dk",
+         "uuid": "a18b7b18-7e7c-472d-a7f4-3f3e734b0cba",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "www.hjorring.dk"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "EAN-nummer",
+           "scope": "EAN",
+           "user_key": "EAN",
+           "uuid": "e40662b4-4098-405d-909a-0a5b2ef11992"
+         },
+         "href": null,
+         "name": "1557056556007",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "1557056556007",
+         "uuid": "bc529a74-0d42-42fa-a0a4-5091d4815331",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "1557056556007"
+       },
+       {
+         "address_type": {
+           "example": null,
+           "name": "Henvendelsessted",
+           "scope": "DAR",
+           "user_key": "AdresseHenvendelsessted",
+           "uuid": "4525c0e0-0f55-4848-9222-b1b4543105a5"
+         },
+         "href": "https://www.openstreetmap.org/\
+?mlon=9.93195702&mlat=57.35598874&zoom=16",
+         "name": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "org_unit": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "user_key": "H\u00f8jskolebakken 2E, 1., 9760 Vr\u00e5",
+         "uuid": "ec3b056c-9d58-4a95-b67a-ad5dc91ce695",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         },
+         "value": "0a3f50c8-9f8f-32b8-e044-0003ba298018"
+       }
+     ]
 
     **Example org_unit response**:
 
@@ -328,92 +487,105 @@ def get_detail(type, id, function):
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Afdeling for Fortidshistorik",
-          "user_key": "frem",
-          "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
-          "org": {
-            "name": "Aarhus Universitet",
-            "user_key": "AU",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-          },
-          "org_unit_type": {
-            "example": null,
-            "name": "Afdeling",
-            "scope": null,
-            "user_key": "afd",
-            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-          },
-          "parent": {
-            "name": "Historisk Institut",
-            "user_key": "hist",
-            "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-          },
-          "validity": {
-            "from": "2018-01-01",
-            "to": "2018-12-31"
-          }
-        }
-      ]
+     [
+       {
+         "name": "Borgmesterens Afdeling",
+         "org": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+         },
+         "org_unit_type": {
+           "example": null,
+           "name": "Afdeling",
+           "scope": "TEXT",
+           "user_key": "Afdeling",
+           "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
+         },
+         "parent": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "time_planning": null,
+         "user_key": "Borgmesterens Afdeling",
+         "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       }
+     ]
 
     **Example manager response**:
 
     .. sourcecode:: json
 
-      [
-        {
-          "address": {
-            "href": "mailto:ceo@example.com",
-            "name": "ceo@example.com",
-            "urn": "urn:mailto:ceo@example.com"
-          },
-          "address_type": {
-            "example": "test@example.com",
-            "name": "Emailadresse",
-            "scope": "EMAIL",
-            "user_key": "Email",
-            "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-          },
-          "manager_level": {
-            "example": null,
-            "name": "Institut",
-            "scope": null,
-            "user_key": "inst",
-            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
-          },
-          "manager_type": {
-            "example": null,
-            "name": "Afdeling",
-            "scope": null,
-            "user_key": "afd",
-            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-          },
-          "org_unit": {
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-          },
-          "person": {
-            "name": "Anders And",
-            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-          },
-          "responsibility": [
-            {
-              "example": null,
-              "name": "Fakultet",
-              "scope": null,
-              "user_key": "fak",
-              "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-            }
-          ],
-          "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
-          "validity": {
-            "from": "2017-01-01",
-            "to": null
-          }
-        }
-      ]
+     [
+       {
+         "address": [],
+         "manager_level": {
+           "example": null,
+           "name": "Niveau 4",
+           "scope": "TEXT",
+           "user_key": "Niveau 4",
+           "uuid": "049fb201-fc32-40e3-80c7-4cd7cb89a9a3"
+         },
+         "manager_type": {
+           "example": null,
+           "name": "Direkt\u00f8r",
+           "scope": "TEXT",
+           "user_key": "Direkt\u00f8r",
+           "uuid": "d4c5983b-c4cd-43f2-b18a-653387172b08"
+         },
+         "org_unit": {
+           "name": "Borgmesterens Afdeling",
+           "user_key": "Borgmesterens Afdeling",
+           "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "person": {
+           "name": "Elisabeth B\u00f8gholm Meils\u00f8e",
+           "uuid": "1cd7d465-e525-402f-b93e-e60a20a6e494"
+         },
+         "responsibility": [
+           {
+             "example": null,
+             "name": "Personale: ans\u00e6ttelse/afskedigelse",
+             "scope": "TEXT",
+             "user_key": "Personale: ans\u00e6ttelse/afskedigelse",
+             "uuid": "07b8b1f5-a441-46d4-b523-c2f44a6dd538"
+           },
+           {
+             "example": null,
+             "name": "Ansvar for bygninger og arealer",
+             "scope": "TEXT",
+             "user_key": "Ansvar for bygninger og arealer",
+             "uuid": "76a2a5cc-3274-4110-993b-38110eaea182"
+           },
+           {
+             "example": null,
+             "name": "Beredskabsledelse",
+             "scope": "TEXT",
+             "user_key": "Beredskabsledelse",
+             "uuid": "c2add5de-a3a7-41e8-88e9-a71f7b75dc60"
+           }
+         ],
+         "user_key": "d1d2cc75-b86b-45a3-8110-ac7ccbd5993a",
+         "uuid": "4a3074ec-bd64-4410-b9ac-08b1e48d6701",
+         "validity": {
+           "from": "2010-04-08",
+           "to": null
+         }
+       }
+     ]
 
     '''
 
@@ -442,12 +614,6 @@ def get_detail(type, id, function):
 
     # TODO: the logic encoded in the functions below belong in the
     # 'mapping' module, as part of e.g. FieldTuples
-    def get_user_key(effect):
-        return [
-            prop['brugervendtnoegle']
-            for prop in mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
-        ]
-
     def is_primary(effect):
         return [
             ext.get('primær', False)
@@ -562,9 +728,6 @@ def get_detail(type, id, function):
             ),
             mapping.ITSYSTEM: (
                 itsystem_cache, mapping.SINGLE_ITSYSTEM_FIELD, None, False,
-            ),
-            mapping.USER_KEY: (
-                None, get_user_key, None, False,
             ),
         },
     }
@@ -716,6 +879,24 @@ def get_detail(type, id, function):
             mapping.TO: util.to_iso_date(end, is_end=True),
         }
         func[mapping.UUID] = funcid
+
+        # this field is required by LoRA, so use tuple unpacking
+        props, = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
+
+        func[mapping.USER_KEY] = props['brugervendtnoegle']
+
+        if 'integrationsdata' in props:
+            try:
+                func[mapping.INTEGRATION_DATA] = json.loads(
+                    props["integrationsdata"],
+                )
+            except json.JSONDecodeError:
+                flask.current_app.logger.warning(
+                    'invalid integation data for function %s!',
+                    funcid,
+                )
+
+                func[mapping.INTEGRATION_DATA] = None
 
         return func
 

@@ -19,7 +19,6 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import enum
-import json
 import uuid
 
 import flask
@@ -64,10 +63,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         )
         org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
-        userid = util.get_uuid(req, required=False)
+        userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, userid)
 
-        if not userid:
-            userid = str(uuid.uuid4())
         try:
             valid_from = \
                 util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
@@ -78,8 +76,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         validator.does_employee_with_cpr_already_exist(
             cpr, valid_from, valid_to, org_uuid, userid)
-
-        bvn = util.checked_get(req, mapping.USER_KEY, str(uuid.uuid4()))
 
         user = common.create_bruger_payload(
             valid_from=valid_from,
@@ -142,20 +138,23 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
-            attrs = mapping.EMPLOYEE_EGENSKABER_FIELD.get(original)[-1].copy()
+        changed_props = {}
 
-            if mapping.NAME in data:
-                attrs['brugernavn'] = data[mapping.NAME]
+        if mapping.USER_KEY in data:
+            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-            if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = json.dumps(
-                    data[mapping.INTEGRATION_DATA]
-                )
+        if mapping.NAME in data:
+            changed_props['brugernavn'] = data[mapping.NAME]
 
+        if mapping.INTEGRATION_DATA in data:
+            changed_props['integrationsdata'] = common.stable_json_dumps(
+                data[mapping.INTEGRATION_DATA],
+            )
+
+        if changed_props:
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
-                attrs,
+                changed_props,
             ))
 
         if mapping.CPR_NO in data:
@@ -254,20 +253,32 @@ def list_employees(orgid):
 
     .. sourcecode:: json
 
-      {
-        "items": [
-          {
-            "name": "Hans Bruger",
-            "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3"
-          },
-          {
-            "name": "Joe User",
-            "uuid": "cd2dcfad-6d34-4553-9fee-a7023139a9e8"
-          }
-        ],
-        "offset": 0,
-        "total": 1
-      }
+     {
+       "items": [
+         {
+           "name": "Knud S\u00f8lvtoft Pedersen",
+           "uuid": "059b45b4-7e92-4450-b7ae-dff989d66ad2"
+         },
+         {
+           "name": "Hanna Hede Pedersen",
+           "uuid": "74894be9-2476-48e2-8b3a-ba1db926bb0b"
+         },
+         {
+           "name": "Susanne Nybo Pedersen",
+           "uuid": "7e79881d-a4ee-4654-904e-4aaa0d697157"
+         },
+         {
+           "name": "Bente Pedersen",
+           "uuid": "c9eaffad-971e-4c0c-8516-44c5d29ca092"
+         },
+         {
+           "name": "Vang Overgaard Pedersen",
+           "uuid": "f2b9008d-8646-4672-8a91-c12fa897f9a6"
+         }
+       ],
+       "offset": 0,
+       "total": 5
+     }
 
     '''
 
@@ -324,16 +335,17 @@ def get_employee(id):
 
     .. sourcecode:: json
 
-      {
-        "cpr_no": "1011101010",
-        "name": "Hans Bruger",
-        "uuid": "9917e91c-e3ee-41bf-9a60-b024c23b5fe3",
-        "org": {
-          "name": "Magenta ApS",
-          "user_key": "Magenta ApS",
-          "uuid": "8efbd074-ad2a-4e6a-afec-1d0b1891f566"
-        }
-      }
+     {
+       "cpr_no": "0708522600",
+       "name": "Bente Pedersen",
+       "org": {
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+       },
+       "user_key": "2ba3feb8-9617-43c1-8502-e55a2b283c58",
+       "uuid": "c9eaffad-971e-4c0c-8516-44c5d29ca092"
+     }
 
     '''
     c = common.get_connector()

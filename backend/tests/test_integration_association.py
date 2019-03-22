@@ -39,6 +39,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "user_key": "1234",
+                "integration_data": "køflkøflkøfl",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -121,6 +122,7 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "brugervendtnoegle": "1234",
+                        "integrationsdata": '"køflkøflkøfl"',
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -158,7 +160,9 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
             'primary': None,
+            "user_key": "1234",
             'uuid': associationid,
+            'integration_data': 'køflkøflkøfl',
             'validity': {
                 'from': '2017-12-01',
                 'to': '2017-12-01',
@@ -280,8 +284,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                        "{} {} Tilknytning".format(userid, unitid),
+                        "brugervendtnoegle": association_uuid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -315,6 +318,7 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
             'primary': None,
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -498,10 +502,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -571,20 +576,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -612,6 +609,7 @@ class Tests(util.LoRATestCase):
                 'uuid': userid,
             },
             'primary': None,
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -742,10 +740,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -815,20 +814,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -856,6 +847,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -898,10 +890,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        associationid, = self.assertRequest('/service/details/create',
+                                            json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -971,20 +964,12 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Tilknytning",
+                        "brugervendtnoegle": associationid,
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
             }
         }
-
-        associations = c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
-        self.assertEqual(len(associations), 1)
-        associationid = associations[0]
 
         actual_association = c.organisationfunktion.get(associationid)
 
@@ -1012,6 +997,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
+            'user_key': associationid,
             'uuid': associationid,
             'validity': {
                 'from': '2017-12-01',
@@ -1069,6 +1055,7 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
+                "user_key": "overhestetå",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -1168,9 +1155,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Tilknytning"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "overhestetå",
                         "funktionsnavn": "Tilknytning"
                     }
                 ]
@@ -1204,6 +1201,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
+            'user_key': 'bvn',
             'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
             'validity': {
                 'from': '2017-01-01',
@@ -1251,6 +1249,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
+            'user_key': 'overhestetå',
             'uuid': association_uuid,
             'validity': {
                 'from': '2018-04-01',
@@ -1301,6 +1300,7 @@ class Tests(util.LoRATestCase):
                         'uuid': userid,
                     },
                     'primary': None,
+                    'user_key': 'bvn',
                     'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
                     'validity': {'from': '2017-01-01', 'to': None},
                 }],
@@ -1349,6 +1349,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'primary': None,
+                'user_key': 'bvn',
                 'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
                 'validity': {
                     'from': '2017-01-01',
@@ -1606,6 +1607,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
+            'user_key': 'bvn',
             'uuid': association_uuid,
             'validity': {
                 'from': '2018-04-01',
@@ -1790,6 +1792,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
+            'user_key': 'bvn',
             'uuid': association_uuid,
             'validity': {
                 'from': '2017-01-01',
@@ -1999,6 +2002,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
+            'user_key': 'bvn',
             'uuid': association_uuid,
             'validity': {
                 'from': '2017-01-01',
@@ -2247,7 +2251,7 @@ class AddressTests(util.LoRATestCase):
             },
         )
 
-    def test_create_primary(self):
+    def test_create_primary_with_user_key(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -2260,6 +2264,7 @@ class AddressTests(util.LoRATestCase):
             "type": "association",
             "person": {"uuid": userid},
             "primary": True,
+            "user_key": "kaflaflibob",
             "org_unit": {"uuid": unitid},
             "association_type": {
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
@@ -2299,6 +2304,7 @@ class AddressTests(util.LoRATestCase):
                             'uuid': userid,
                         },
                         'primary': True,
+                        'user_key': 'kaflaflibob',
                         'uuid': associationid,
                         'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
                     },
@@ -2361,7 +2367,7 @@ class AddressTests(util.LoRATestCase):
             )
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -2432,8 +2438,7 @@ class AddressTests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": ' '.join((userid, unitid,
-                                                       "Tilknytning")),
+                        "brugervendtnoegle": 'kaflaflibob',
                         "funktionsnavn": "Tilknytning"
                     }
                 ],
@@ -2612,6 +2617,7 @@ class AddressTests(util.LoRATestCase):
                     "to": None,
                 },
             },
+            "user_key": "bvn",
             "person": {
                 "name": "Anders And",
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",

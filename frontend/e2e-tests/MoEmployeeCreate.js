@@ -77,7 +77,7 @@ const searchField = Selector('.search-bar')
 const searchFieldItem = searchField.find('.v-autocomplete-list-item')
 
 fixture('MoEmployeeCreate')
-  .afterEach(reset)
+  .beforeEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 test('Workflow: create employee', async t => {

@@ -316,7 +316,7 @@ def make_dummy_instance():
 
 
 @group.command()
-@click.option('--fixture', type=click.Choice(['minimal', 'simple',
+@click.option('--fixture', type=click.Choice(['empty', 'minimal', 'simple',
                                               'small', 'normal', 'large']),
               default='normal',
               help='Choose the initial dataset.')

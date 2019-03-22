@@ -61,7 +61,7 @@ let selected = treeNode.filter('.selected')
 let currentUnitName = Selector('.orgunit .orgunit-name')
 
 fixture('MoOrganisationUnitTree')
-  .afterEach(reset)
+  .beforeEach(reset)
 
 for (const [selection, contents] of trees.entries()) {
   test

@@ -5,7 +5,7 @@ import VueSelector from 'testcafe-vue-selectors'
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMapper')
-  .afterEach(reset)
+  .beforeEach(reset)
   .page(`${baseURL}`)
 
 const mapperButton = Selector('button.btn-mapper')

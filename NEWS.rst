@@ -4,7 +4,8 @@ Version 0.16.0, in development
 New features
 ------------
 
-* #27687: The various org funk relations now accept a ``user_key`` parameter.
+* #27687, #27777: The various ``organisationfunktion`` relations now support both
+  ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using
   backend validation API.
 

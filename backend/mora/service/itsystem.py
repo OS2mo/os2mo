@@ -59,7 +59,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        bvn = util.checked_get(req, mapping.USER_KEY, '', required=True)
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
         if org_unit:
@@ -83,10 +84,11 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = func
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)

@@ -5,7 +5,7 @@ import VueSelector from 'testcafe-vue-selectors'
 let moment = require('moment')
 
 fixture('MoOrganisationUnitTerminate')
-  .afterEach(reset)
+  .beforeEach(reset)
   .page(`${baseURL}/organisation`)
 
 const createDialog = Selector('#orgUnitCreate')

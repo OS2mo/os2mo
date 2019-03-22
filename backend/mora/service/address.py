@@ -7,6 +7,7 @@
 #
 
 import collections
+import json
 import re
 
 import flask
@@ -216,6 +217,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
     def get_one_mo_object(cls, effect, start, end, funcid):
         c = common.get_connector()
 
+        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
+
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
 
         try:
@@ -237,6 +240,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                     end, is_end=True)
             },
             mapping.UUID: funcid,
+            mapping.USER_KEY: props['brugervendtnoegle'],
             **handler.get_mo_address_and_properties()
         }
         if person:
@@ -246,6 +250,11 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
                 c, org_unit[0],
                 details=orgunit.UnitDetails.MINIMAL)
+
+        if props.get('integrationsdata') is not None:
+            func[mapping.INTEGRATION_DATA] = json.loads(
+                props['integrationsdata'],
+            )
 
         return func
 
@@ -307,7 +316,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             tilknyttedeorganisationer=[orgid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
-            opgaver=handler.get_lora_properties()
+            opgaver=handler.get_lora_properties(),
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = func
