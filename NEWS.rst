@@ -4,6 +4,7 @@ Version 0.16.0, in development
 New features
 ------------
 
+* #25411 organisation units can show managers by inheritance from parent
 * #27687, #27777: The various ``organisationfunktion`` relations now support both
   ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using
