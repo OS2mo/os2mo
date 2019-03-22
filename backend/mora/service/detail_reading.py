@@ -108,7 +108,7 @@ def list_details(type, id):
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit')
+@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
