@@ -2546,3 +2546,30 @@ class Tests(util.LoRATestCase):
                 },
             ],
         )
+
+    def test_read_no_inherit_manager(self):
+        self.load_sample_structures()
+        # Anders And er chef på humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # Der er ingen chef på filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # Vi må IKKE arve Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager'.format(filins)
+        )
+        self.assertEqual(inherited_managers, [])
+
+    def test_read_inherit_manager(self):
+        self.load_sample_structures()
+        # Anders And er chef på humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # Der er ingen chef på filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # Vi må arve Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(
+                filins
+            )
+        )
+        self.assertEqual(len(inherited_managers), 1)
+        self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
