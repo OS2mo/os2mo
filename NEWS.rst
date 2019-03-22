@@ -8,6 +8,7 @@ New features
   ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using
   backend validation API.
+* #25416: Added engagement ID to column engagement for employee and organisation.
 
 Bug fixes
 ---------
