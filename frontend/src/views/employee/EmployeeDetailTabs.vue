@@ -127,6 +127,7 @@ export default {
        */
       engagement: [
         { label: 'org_unit', data: 'org_unit' },
+        { label: 'engagement_id', data: 'user_key', field: null },
         { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
         { label: 'engagement_type', data: 'engagement_type' }

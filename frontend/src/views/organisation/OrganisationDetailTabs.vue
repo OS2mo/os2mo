@@ -149,9 +149,10 @@ export default {
       ],
       engagement: [
         { label: 'person', data: 'person' },
-        { label: 'engagement_type', data: 'engagement_type' },
+        { label: 'engagement_id', data: 'user_key', field: null },
         { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
+        { label: 'engagement_type', data: 'engagement_type' },
         { label: 'org_unit', data: 'org_unit' }
       ],
       association: [
