@@ -32,7 +32,6 @@ SEARCH_FIELDS = {
     'ou': 'tilknyttedeenheder'
 }
 
-
 class ManagerRequestHandler(
     handlers.OrgFunkRequestHandler,
     handlers.OrgFunkReadingRequestHandler
@@ -41,6 +40,22 @@ class ManagerRequestHandler(
     __slots__ = ()
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
+
+    @classmethod
+    def finder(cls, c, type, objid):
+
+        found = super().finder(c, type, objid)
+        if not found and util.get_args_flag("inherit_manager"):
+            ou = orgunit.get_one_orgunit(
+                c, objid, details=orgunit.UnitDetails.FULL
+            )
+            while not found:
+                upperid = ou[mapping.PARENT][mapping.UUID]
+                ou = orgunit.get_one_orgunit(
+                    c, upperid, details=orgunit.UnitDetails.FULL
+                )
+                found = super().finder(c, type, upperid)
+        return found
 
     @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
