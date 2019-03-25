@@ -24,6 +24,8 @@ Internal changes
 
 * #27526: TestCafe test for employee association tab for create, edit and terminate popups.
 * #27527: TestCafe test for organisation manager tab for create, edit and terminate popups.
+* #27959: Documentation added on how to set up a SAML SSO instance for
+  testing and development.
 
 
 Version 0.15.1, 2019-03-19

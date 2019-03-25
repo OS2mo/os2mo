@@ -252,7 +252,7 @@ def test(tests, quiet, verbose, minimox_dir, browser, do_list,
 
 
 @contextlib.contextmanager
-def make_dummy_instance():
+def make_dummy_instance(idp_url=None):
     from unittest import mock
 
     import psycopg2
@@ -312,6 +312,14 @@ def make_dummy_instance():
         }.items():
             stack.enter_context(mock.patch(k, v, create=True))
 
+        if idp_url:
+            doublepatch("SAML_AUTH_ENABLE", True, create=True)
+            doublepatch("SQLALCHEMY_DATABASE_URI", psql.url(), create=True)
+            doublepatch(
+                "SAML_IDP_METADATA_URL",
+                "{}/simplesaml/saml2/idp/metadata.php".format(idp_url),
+            )
+
         stack.enter_context(test_support.extend_db_struct(exts))
 
         mora_server, mora_port = make_server(app.create_app(), 5000)
@@ -331,11 +339,12 @@ def make_dummy_instance():
 
 
 @group.command()
+@click.option('--idp-url', help='Optional phpSimpleSAML IdP URL')
 @click.option('--fixture', type=click.Choice(['empty', 'minimal', 'simple',
                                               'small', 'normal', 'large']),
               default='normal',
               help='Choose the initial dataset.')
-def full_run(fixture):
+def full_run(idp_url, fixture):
     '''Command for running a one-off server for frontend development.
 
     This server consists of a the following:
@@ -387,7 +396,11 @@ def full_run(fixture):
 
     from tests import util as test_util
 
-    with make_dummy_instance() as (psql, lora_server, mora_server):
+    with make_dummy_instance(idp_url=idp_url) as (
+        psql,
+        lora_server,
+        mora_server,
+    ):
         print(' * PostgreSQL running at {}'.format(psql.url(
             database=lora_settings.DATABASE,
         )))
