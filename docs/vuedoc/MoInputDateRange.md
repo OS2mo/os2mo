@@ -1,4 +1,4 @@
-# mo-date-picker-range 
+# mo-input-date-range 
 
 A date picker range component. 
 
@@ -43,13 +43,13 @@ A date picker range component.
 
   Disable the dates before the choosen start date. 
 
-   **dependencies:** `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `validTo`, `validTo`, `validTo` 
+   **dependencies:** `getRanges`, `disabledDates`, `validTo`, `validTo`, `validTo` 
 
 - `validEndDateRange` 
 
   Disable the dates after the choosen end date. 
 
-   **dependencies:** `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `disabledDates`, `validFrom`, `validFrom`, `validFrom` 
+   **dependencies:** `getRanges`, `disabledDates`, `validFrom`, `validFrom`, `validFrom` 
 
 
 ## events 
@@ -57,6 +57,10 @@ A date picker range component.
 - `input` 
 
 ## methods 
+
+- `getRanges(disabledDates)` 
+
+  Valid from and to dates in the date picker for orgUnitValidity and disabledDates. 
 
 - `updateDate()` 
 

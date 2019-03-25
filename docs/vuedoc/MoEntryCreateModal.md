@@ -60,6 +60,10 @@ A entry create modal component.
    **dependencies:** `type` 
 
 
+## events 
+
+- `submit` 
+
 ## methods 
 
 - `create()` 

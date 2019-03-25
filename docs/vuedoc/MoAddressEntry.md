@@ -4,14 +4,6 @@ A address entry component.
 
 ## props 
 
-- `value` ***Object*** (*optional*) 
-
-  Create two-way data bindings with the component. 
-
-- `validity-hidden` ***Boolean*** (*optional*) 
-
-  This boolean property hides the validity dates. 
-
 - `required` ***Boolean*** (*optional*) 
 
   This boolean property requires a selected address type. 
@@ -27,10 +19,6 @@ A address entry component.
 - `facet` ***String*** (*required*) 
 
   Defines a preselectedType. 
-
-- `disabled-dates` ***Object*** (*optional*) 
-
-  The valid dates for the entry component date pickers 
 
 ## data 
 
@@ -61,11 +49,11 @@ A address entry component.
 
    **dependencies:** `entry`, `entry` 
 
-- `isDisabled` 
+- `isPhone` 
 
-  Disable address type. 
+  If the address is a PHONE. 
 
-   **dependencies:** `entry` 
+   **dependencies:** `entry`, `entry` 
 
 - `noPreselectedType` 
 
@@ -73,16 +61,10 @@ A address entry component.
 
    **dependencies:** `preselectedType` 
 
-- `nameId` 
-
-  Get name `scope-type`. 
-
-   **dependencies:** `_uid` 
-
 - `validityRules` 
 
   Every scopes validity rules. 
 
-   **dependencies:** `entry`, `entry`, `entry`, `entry`, `entry`, `entry` 
+   **dependencies:** `entry` 
 
 

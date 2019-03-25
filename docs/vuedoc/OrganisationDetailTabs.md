@@ -55,6 +55,10 @@ A organisation detail tabs component.
 
 **initial value:** `[object Object]` 
 
+- `related_unit` 
+
+**initial value:** `[object Object]` 
+
 - `components` 
 
   The MoOrganisationUnitEntry, MoAddressEntry component.

@@ -8,3 +8,5 @@ A button submit component.
 
   This boolean property defines the loading. 
 
+- `disabled` ***Boolean*** (*optional*) 
+

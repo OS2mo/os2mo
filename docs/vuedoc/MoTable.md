@@ -20,7 +20,7 @@ A table component.
 
 - `is-loading` ***Boolean*** (*optional*) 
 
-  This boolean property defines the loading. 
+  True during rendering or loading of the component. 
 
 - `edit-component` ***Object*** (*optional*) 
 
@@ -28,7 +28,7 @@ A table component.
 
 - `edit-uuid` ***String*** (*optional*) 
 
-  Defines the editUuid. 
+  Defines the UUID of the owning element, i.e. user or unit. 
 
 - `multi-select` ***Boolean*** (*optional*) 
 
@@ -66,6 +66,10 @@ A table component.
   If content is available, get content. 
 
    **dependencies:** `content`, `content` 
+
+- `isDeletable` 
+
+   **dependencies:** `contentType` 
 
 
 ## methods 

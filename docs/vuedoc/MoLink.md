@@ -12,6 +12,10 @@ A link component.
 
   Defines a default field name. 
 
+- `index` ***Number*** (*optional*) `default: [object Object]` 
+
+  If set, restrict this entry to the given index in an array. 
+
 - `column` ***String*** (*optional*) `default: null` 
 
   Defines a default column. 
@@ -37,6 +41,6 @@ A link component.
 
   Defines contents, columns and value. 
 
-   **dependencies:** `column`, `value`, `column`, `value`, `column`, `value`, `value`, `column`, `column`, `value`, `column_handlers`, `column`, `field`, `field` 
+   **dependencies:** `column`, `value`, `column`, `value`, `column`, `value`, `value`, `column`, `column`, `value`, `column`, `value`, `value`, `column`, `column`, `value`, `column`, `index`, `index`, `column_handlers`, `column`, `field`, `field` 
 
 

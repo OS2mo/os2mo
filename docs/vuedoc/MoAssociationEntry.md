@@ -2,26 +2,10 @@
 
 A association entry component. 
 
-## props 
+## computed properties 
 
-- `value` ***Object*** (*optional*) 
+- `validations` 
 
-  Create two-way data bindings with the component. 
+   **dependencies:** `currentEmployee`, `entry`, `entry`, `entry` 
 
-- `validity-hidden` ***Boolean*** (*optional*) 
-
-  This boolean property hides the validity. 
-
-- `disabled-dates` ***Object*** (*optional*) 
-
-  The valid dates for the entry component date pickers 
-
-## data 
-
-- `entry` 
-
-  The entry component value.
-  Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
 

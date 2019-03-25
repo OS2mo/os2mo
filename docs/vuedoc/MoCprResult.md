@@ -19,7 +19,7 @@ A cpr result component.
 
 ## computed properties 
 
-- `nameId` 
+- `identifier` 
 
   Get name `cpr-result`. 
 - `showAlert` 
