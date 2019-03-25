@@ -287,32 +287,47 @@ def make_dummy_instance():
         if last_exc is not None:
             raise last_exc
 
-    lora_server, lora_port = make_server(lora_app.app, 6000)
-    mora_server, mora_port = make_server(app.create_app(), 5000)
-
     exts = json.loads(
         pkgutil.get_data('mora', 'db_extensions.json').decode(),
     )
 
-    with \
-            test_support.psql() as psql, \
-            test_support.extend_db_struct(exts), \
-            mock.patch('oio_rest.settings.LOG_AMQP_SERVER', None), \
-            mock.patch('oio_rest.settings.DB_HOST', psql.dsn()['host'],
-                       create=True), \
-            mock.patch('oio_rest.settings.DB_PORT', psql.dsn()['port'],
-                       create=True), \
-            mock.patch('oio_rest.db.pool',
-                       psycopg2.pool.PersistentConnectionPool(
-                           0, 100,
-                           **psql.dsn(database=lora_settings.DATABASE),
-                       )), \
-            mock.patch('mora.settings.LORA_URL',
-                       'http://localhost:{}/'.format(lora_port)):
+    with test_support.psql() as psql, contextlib.ExitStack() as stack:
 
-        test_support._initdb()
+        def doublepatch(k, v, *, create=False):
+            stack.enter_context(
+                mock.patch("oio_rest.settings." + k, v, create=create)
+            )
 
-        yield psql, lora_server, mora_server
+            stack.enter_context(
+                mock.patch("mora.settings." + k, v, create=create)
+            )
+
+        for k, v in {
+            "oio_rest.settings.DB_HOST": psql.dsn()["host"],
+            "oio_rest.settings.DB_PORT": psql.dsn()["port"],
+            "oio_rest.settings.LOG_AMQP_SERVER": None,
+            "oio_rest.db.pool": psycopg2.pool.PersistentConnectionPool(
+                0, 100, **psql.dsn(database=lora_settings.DATABASE)
+            ),
+        }.items():
+            stack.enter_context(mock.patch(k, v, create=True))
+
+        stack.enter_context(test_support.extend_db_struct(exts))
+
+        mora_server, mora_port = make_server(app.create_app(), 5000)
+        lora_server, lora_port = make_server(lora_app.create_app(), 6000)
+
+        stack.enter_context(
+            mock.patch(
+                "mora.settings.LORA_URL",
+                "http://localhost:{}/".format(lora_port),
+            )
+        )
+
+        with stack:
+            test_support._initdb()
+
+            yield psql, lora_server, mora_server
 
 
 @group.command()
