@@ -50,7 +50,6 @@ class EmployeeDetails(enum.Enum):
 
 
 class EmployeeRequestHandler(handlers.RequestHandler):
-    __slots__ = ('details_requests',)
     role_type = "employee"
 
     def prepare_create(self, req):
@@ -187,6 +186,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
+        super().submit()
 
         return result
 

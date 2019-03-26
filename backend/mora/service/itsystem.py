@@ -33,8 +33,6 @@ blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
 
 
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'it'
     function_key = mapping.ITSYSTEM_KEY
 

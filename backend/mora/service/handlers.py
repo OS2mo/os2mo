@@ -18,6 +18,7 @@ import typing
 import flask
 
 from .validation import validator
+from .. import amqp
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -62,7 +63,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     '''
 
-    __slots__ = 'request', 'request_type', 'payload', 'uuid'
+    __slots__ = ('request', 'request_type', 'payload',
+                 'uuid', 'org_unit_uuid', 'employee_uuid')
 
     role_type = None
     '''
@@ -88,6 +90,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
+        self.org_unit_uuid = None
+        self.employee_uuid = None
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -97,6 +101,20 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             self.prepare_terminate(request)
         else:
             raise NotImplementedError
+
+        self.set_domain(request)
+
+    def set_domain(self, request: dict):
+        """Assign ``self.org_unit_uuid`` and ``self.employee_uuid``.
+
+        May be set to ``None``, if they do not make sense in the context of
+        the current request.
+
+        This is used to send amqp messages. Think of "domain" as the
+        Medarbejder/Organisation tab in the UI.
+        """
+        self.org_unit_uuid = util.get_mapping_uuid(request, mapping.ORG_UNIT)
+        self.employee_uuid = util.get_mapping_uuid(request, mapping.PERSON)
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -130,10 +148,24 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     def submit(self) -> str:
         """Submit the request to LoRa.
 
+        Subclasses *have* to invoke this to make sure the message is
+        published to AMQP.
+
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
-
         """
+        action = {
+            RequestType.CREATE: "create",
+            RequestType.EDIT: "update",
+            RequestType.TERMINATE: "delete",
+        }[self.request_type]
+        # both may exist, e.g. for engagement and association
+        if self.employee_uuid:
+            amqp.publish_message('employee', action, self.role_type,
+                self.employee_uuid)
+        if self.org_unit_uuid:
+            amqp.publish_message('organisation', action, self.role_type,
+                self.org_unit_uuid)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -151,8 +183,6 @@ class ReadingRequestHandler(RequestHandler):
 class OrgFunkRequestHandler(RequestHandler):
     '''Abstract base class for automatically registering
     `organisationsfunktion`-based handlers.'''
-
-    __slots__ = ()
 
     function_key = None
     '''
@@ -226,9 +256,12 @@ class OrgFunkRequestHandler(RequestHandler):
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            return c.organisationfunktion.create(self.payload, self.uuid)
+            r = c.organisationfunktion.create(self.payload, self.uuid)
         else:
-            return c.organisationfunktion.update(self.payload, self.uuid)
+            r = c.organisationfunktion.update(self.payload, self.uuid)
+
+        super().submit()
+        return r
 
 
 class OrgFunkReadingRequestHandler(ReadingRequestHandler,

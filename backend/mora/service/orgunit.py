@@ -61,8 +61,6 @@ class UnitDetails(enum.Enum):
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
-    __slots__ = ()
-
     role_type = 'org_unit'
 
     @classmethod
@@ -302,9 +300,11 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 for r in self.details_requests:
                     r.submit()
 
-            return result
         else:
-            return c.organisationenhed.update(self.payload, self.uuid)
+            result = c.organisationenhed.update(self.payload, self.uuid)
+
+        super().submit()
+        return result
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
