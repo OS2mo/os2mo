@@ -31,4 +31,7 @@ export default {
     min-height: 5vh;
     max-height: 75vh;
   }
+  .form-control-lg {
+    height: auto;
+  }
 </style>
