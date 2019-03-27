@@ -47,14 +47,14 @@ class ManagerRequestHandler(
         found = super().finder(c, type, objid)
         if type == "e":
             return found
-	    
+
         if not found and util.get_args_flag("inherit_manager"):
             ou = orgunit.get_one_orgunit(
                 c, objid, details=orgunit.UnitDetails.FULL
             )
             while not found:
                 upper = ou[mapping.PARENT]
-                if upper == None:
+                if not upper:
                     return found
                 upperid = upper[mapping.UUID]
                 ou = orgunit.get_one_orgunit(
