@@ -231,7 +231,8 @@ class OrgFunkRequestHandler(RequestHandler):
             return c.organisationfunktion.update(self.payload, self.uuid)
 
 
-class OrgFunkReadingRequestHandler(ReadingRequestHandler):
+class OrgFunkReadingRequestHandler(ReadingRequestHandler,
+                                   OrgFunkRequestHandler):
     SEARCH_FIELDS = {
         'e': 'tilknyttedebrugere',
         'ou': 'tilknyttedeenheder'

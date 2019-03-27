@@ -32,10 +32,8 @@ SEARCH_FIELDS = {
     'ou': 'tilknyttedeenheder'
 }
 
-class ManagerRequestHandler(
-    handlers.OrgFunkRequestHandler,
-    handlers.OrgFunkReadingRequestHandler
-):
+
+class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
     __slots__ = ()
     role_type = 'manager'

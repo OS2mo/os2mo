@@ -157,8 +157,7 @@ def address_autocomplete(orgid):
     ])
 
 
-class AddressRequestHandler(handlers.OrgFunkRequestHandler,
-                            handlers.OrgFunkReadingRequestHandler):
+class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
     __slots__ = ()
 
