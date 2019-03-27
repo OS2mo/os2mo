@@ -47,17 +47,13 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             return found
 
         if not found and util.get_args_flag("inherit_manager"):
-            ou = orgunit.get_one_orgunit(
-                c, objid, details=orgunit.UnitDetails.FULL
-            )
             while not found:
-                upper = ou[mapping.PARENT]
-                if not upper:
-                    return found
-                upperid = upper[mapping.UUID]
                 ou = orgunit.get_one_orgunit(
-                    c, upperid, details=orgunit.UnitDetails.FULL
+                    c, objid, details=orgunit.UnitDetails.FULL
                 )
+                if not ou or mapping.PARENT not in ou:
+                    return found
+                upperid = ou[mapping.PARENT][mapping.UUID]
                 found = super().finder(c, type, upperid)
         return found
 
