@@ -895,7 +895,7 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
         )[-1]
 
-        self.assertEqual([None], present.get('address'))
+        self.assertEqual([], present.get('address'))
 
         # Ensure that the address exists when we go far enough into the future
         future = self.assertRequest(
@@ -1106,17 +1106,17 @@ class Tests(util.LoRATestCase):
                 'responsibility': [
                     {
                         'example': None,
-                        'name': 'Institut',
-                        'scope': None,
-                        'user_key': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                    },
-                    {
-                        'example': None,
                         'name': 'Fakultet',
                         'scope': None,
                         'user_key': 'fak',
                         'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                    },
+                    {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                     },
                 ],
                 'uuid': managerid,
@@ -2546,3 +2546,30 @@ class Tests(util.LoRATestCase):
                 },
             ],
         )
+
+    def test_read_no_inherit_manager(self):
+        self.load_sample_structures()
+        # Anders And er chef på humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # Der er ingen chef på filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # Vi må IKKE arve Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager'.format(filins)
+        )
+        self.assertEqual(inherited_managers, [])
+
+    def test_read_inherit_manager(self):
+        self.load_sample_structures()
+        # Anders And er chef på humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # Der er ingen chef på filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # Vi må arve Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(
+                filins
+            )
+        )
+        self.assertEqual(len(inherited_managers), 1)
+        self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)

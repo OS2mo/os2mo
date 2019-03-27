@@ -36,6 +36,7 @@ from . import facet
 from . import handlers
 from . import itsystem
 from . import orgunit
+from . import manager
 from .. import common
 from .. import exceptions
 from .. import mapping
@@ -107,7 +108,7 @@ def list_details(type, id):
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit')
+@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
@@ -588,7 +589,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
      ]
 
     '''
-
     c = common.get_connector()
 
     info = DETAIL_TYPES[type]
@@ -697,26 +697,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
             ),
             mapping.LEAVE_TYPE: (
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
-            ),
-        },
-        'manager': {
-            mapping.PERSON: (
-                user_cache, mapping.USER_FIELD, None, False,
-            ),
-            mapping.ORG_UNIT: (
-                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
-            ),
-            mapping.RESPONSIBILITY: (
-                class_cache, mapping.RESPONSIBILITY_FIELD, None, True,
-            ),
-            mapping.MANAGER_LEVEL: (
-                class_cache, mapping.MANAGER_LEVEL_FIELD, None, False,
-            ),
-            mapping.MANAGER_TYPE: (
-                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
-            ),
-            mapping.ADDRESS: (
-                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, True,
             ),
         },
         'it': {
