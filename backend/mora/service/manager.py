@@ -73,6 +73,7 @@ class ManagerRequestHandler(
         addresses = list(mapping.FUNCTION_ADDRESS_FIELD.get_uuids(effect))
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
+        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
 
         func = {
             mapping.UUID: funcid,
@@ -90,9 +91,10 @@ class ManagerRequestHandler(
                 mapping.TO: util.to_iso_date(
                     end, is_end=True)
             },
+            mapping.ADDRESS: [],
+            mapping.USER_KEY: props['brugervendtnoegle'],
         }
 
-        func[mapping.ADDRESS] = []
         for uuid in addresses:
             orgfunc = c.organisationfunktion.get(uuid=uuid)
             try:
