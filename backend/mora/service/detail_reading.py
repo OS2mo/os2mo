@@ -699,26 +699,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
                 class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
             ),
         },
-        'manager': {
-            mapping.PERSON: (
-                user_cache, mapping.USER_FIELD, None, False,
-            ),
-            mapping.ORG_UNIT: (
-                unit_cache, mapping.ASSOCIATED_ORG_UNIT_FIELD, None, False,
-            ),
-            mapping.RESPONSIBILITY: (
-                class_cache, mapping.RESPONSIBILITY_FIELD, None, True,
-            ),
-            mapping.MANAGER_LEVEL: (
-                class_cache, mapping.MANAGER_LEVEL_FIELD, None, False,
-            ),
-            mapping.MANAGER_TYPE: (
-                class_cache, mapping.ORG_FUNK_TYPE_FIELD, None, False,
-            ),
-            mapping.ADDRESS: (
-                function_cache, mapping.FUNCTION_ADDRESS_FIELD, None, True,
-            ),
-        },
         'it': {
             mapping.PERSON: (
                 user_cache, mapping.USER_FIELD, None, False,
