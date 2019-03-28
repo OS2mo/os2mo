@@ -45,8 +45,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        engagementid, = self.assertRequest('/service/details/create',
-                                           json=payload)
+        engagementid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+            ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -168,8 +174,14 @@ class Tests(util.LoRATestCase):
 
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
         with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+            engagementid, = self.assertRequest(
+                '/service/details/create',
+                json=payload,
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
+            )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -291,8 +303,14 @@ class Tests(util.LoRATestCase):
         ]
 
         with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+            engagementid, = self.assertRequest(
+                '/service/details/create',
+                json=payload,
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
+            )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -412,8 +430,14 @@ class Tests(util.LoRATestCase):
         ]
 
         with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+            engagementid, = self.assertRequest(
+                '/service/details/create',
+                json=payload,
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
+            )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -1756,8 +1780,14 @@ class Tests(util.LoRATestCase):
         }
 
         with notsouid.freeze_uuid(auto_increment=True):
-            engagementid = self.assertRequest('/service/details/create',
-                                              json=payload)
+            engagementid = self.assertRequest(
+                '/service/details/create',
+                json=payload,
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
+            )
 
         with self.subTest('reading'):
             self.assertRequestResponse(
@@ -1789,6 +1819,10 @@ class Tests(util.LoRATestCase):
                         'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
                     },
                 ],
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
             )
 
         expected_validation_error = {
@@ -1806,6 +1840,10 @@ class Tests(util.LoRATestCase):
                 expected_validation_error,
                 status_code=400,
                 json=payload,
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
             )
 
         with self.subTest('also fails to different unit'):
@@ -1819,6 +1857,10 @@ class Tests(util.LoRATestCase):
                         "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                     },
                 },
+                amqp_topics=(
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
             )
 
         with self.subTest('but succeeds to different person'):
@@ -1834,6 +1876,10 @@ class Tests(util.LoRATestCase):
                         "to": "2017-12-10",
                     },
                 },
+                amqp_topics=(
+                    ('employee.create.engagement', 2),
+                    ('organisation.create.engagement', 2),
+                ),
             )
 
         with self.subTest('or if secondary'):
@@ -1843,6 +1889,10 @@ class Tests(util.LoRATestCase):
                     **payload,
                     "primary": False,
                 },
+                amqp_topics=(
+                    ('employee.create.engagement', 3),
+                    ('organisation.create.engagement', 3),
+                ),
             )
 
         with self.subTest('or entirely directed elsewhere, in time too'):
@@ -1861,6 +1911,10 @@ class Tests(util.LoRATestCase):
                         "to": "2017-12-20",
                     },
                 },
+                amqp_topics=(
+                    ('employee.create.engagement', 4),
+                    ('organisation.create.engagement', 4),
+                ),
             )
 
         expected = {
@@ -1990,8 +2044,15 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/details/create', newengagementid,
-                                   json=payload)
+        self.assertRequestResponse(
+            '/service/details/create',
+            newengagementid,
+            json=payload,
+            amqp_topics=(
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+            ),
+        )
 
         self.assertRequestResponse(
             '/service/details/edit',
@@ -2014,6 +2075,10 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+            ),
         )
 
         self.assertRequestResponse(
@@ -2030,4 +2095,8 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+            ),
         )

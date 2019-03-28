@@ -352,6 +352,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics=(('organisation.create.address', 1),),
         )
 
         expected = {
@@ -462,6 +463,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics=(('employee.create.address', 1), ),
         )
 
         expected = {
@@ -578,6 +580,7 @@ class Writing(util.LoRATestCase):
                         "value": "root@example.com",
                     },
                 ],
+            amqp_topics=(('employee.create.address', 1), ),
             )
 
     def test_create_employee_with_address(self, mock):
@@ -608,7 +611,8 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics=(('employee.create.address', 1),),
         )
 
         expected = {
@@ -735,7 +739,11 @@ class Writing(util.LoRATestCase):
                         'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
                 }],
-            }]
+            }],
+            amqp_topics=(
+                ('organisation.create.manager', 1),
+                ('employee.create.manager', 1)
+            ),
         )
 
         expected = {
@@ -853,7 +861,8 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics=(('organisation.create.address', 1), ),
         )
 
         expected = {

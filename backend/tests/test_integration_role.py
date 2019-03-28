@@ -40,7 +40,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        role_id, = self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(
+                ('organisation.create.role', 1),
+                ('employee.create.role', 1),
+            ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -147,7 +154,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        roleid, = self.assertRequest('/service/details/create', json=payload)
+        roleid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(
+                ('organisation.create.role', 1),
+                ('employee.create.role', 1),
+            ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -252,7 +266,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        role_id, = self.assertRequest('/service/details/create', json=payload)
+        role_id, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(
+                ('organisation.create.role', 1),
+                ('employee.create.role', 1),
+            ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -1008,8 +1029,20 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(
+                ('employee.delete.association', 1),
+                ('employee.delete.role', 1),
+                ('employee.delete.address', 1),
+                ('employee.delete.leave', 1),
+                ('employee.delete.it', 1),
+                ('employee.delete.engagement', 1),
+                ('employee.delete.manager', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Afsluttet",

@@ -45,8 +45,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        leaveid, = self.assertRequest('/service/details/create',
-                                      json=payload)
+        leaveid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(('employee.create.leave', 1), ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -143,7 +146,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        leaveid, = self.assertRequest('/service/details/create', json=payload)
+        leaveid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics=(('employee.create.leave', 1), ),
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -304,6 +311,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
+            amqp_topics=(('employee.update.leave', 1), ),
         )
 
         expected_leave = {
@@ -430,6 +438,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
+            amqp_topics=(('employee.update.leave', 1), ),
         )
 
         expected_leave = {
@@ -548,8 +557,12 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit', [leave_uuid],
-                                   json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [leave_uuid],
+            json=req,
+            amqp_topics=(('employee.update.leave', 1), ),
+        )
 
         expected_leave = {
             "note": "Rediger orlov",
@@ -724,8 +737,12 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(('employee.delete.leave', 1), ),
+        )
 
         expected = {
             "note": "Afsluttet",
@@ -867,6 +884,7 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                 },
             },
+            amqp_topics=(('employee.create.leave', 1), ),
         )
 
         with self.subTest('failing without any'):
@@ -885,6 +903,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
+                amqp_topics=(('employee.create.leave', 1), ),
             )
 
         # first, create an engagement for the other user
@@ -904,6 +923,11 @@ class Tests(util.LoRATestCase):
                     "from": "2018-01-01",
                 }
             },
+            amqp_topics=(
+                ('employee.create.leave', 1),
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+            ),
         )
 
         with self.subTest('failing too soon'):
@@ -939,6 +963,12 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(
+                ('employee.create.leave', 1),
+                ('employee.create.engagement', 1),
+                ('organisation.create.engagement', 1),
+                ('employee.update.leave', 1),
+            ),
         )
 
         expected_users = [

@@ -474,6 +474,10 @@ class Tests(util.LoRATestCase):
                     "to": "2017-10-21"
                 }
             },
+            amqp_topics=(
+                ('organisation.create.org_unit', 1),
+                ('organisation.create.address', 2),
+            ),
         )
 
     def test_create_org_unit_fails_validation_outside_org_unit(self):
@@ -530,14 +534,25 @@ class Tests(util.LoRATestCase):
             'wanted_valid_to': '2017-10-21'
         }
 
-        self.assertRequestResponse('/service/ou/create', expected,
-                                   json=payload, status_code=400)
+        self.assertRequestResponse(
+            '/service/ou/create',
+            expected,
+            json=payload,
+            status_code=400,
+        )
 
-        self.assertRequestResponse('/service/ou/create?force=0', expected,
-                                   json=payload, status_code=400)
+        self.assertRequestResponse(
+            '/service/ou/create?force=0',
+            expected,
+            json=payload,
+            status_code=400,
+        )
 
-        self.assertRequest('/service/ou/create?force=1',
-                           json=payload)
+        self.assertRequest(
+            '/service/ou/create?force=1',
+            json=payload,
+            amqp_topics=(('organisation.create.org_unit', 1), ),
+        )
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -577,6 +592,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         expected = {
@@ -885,6 +901,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         expected = {
@@ -1056,20 +1073,23 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequest(
             '/service/ou/' + org_unit_uuid +
             '/?at=2016-06-01',
             200,
-            "should exist on 2016-06-01"
+            "should exist on 2016-06-01",
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequest(
             '/service/ou/' + org_unit_uuid +
             '/?at=2016-05-31',
             404,
-            "should not exist before start"
+            "should not exist before start",
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
     @freezegun.freeze_time('2016-01-01')
@@ -1116,7 +1136,13 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        org_unit_uuid = self.assertRequest('/service/ou/create', json=payload)
+        org_unit_uuid = self.assertRequest(
+            '/service/ou/create',
+            json=payload,
+            amqp_topics=(
+                ('organisation.create.org_unit', 1),
+            ),
+        )
 
         req = {
             "type": "org_unit",
@@ -1132,6 +1158,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
+            amqp_topics=(
+                ('organisation.create.org_unit', 1),
+                ('organisation.update.org_unit', 1),
+            ),
         )
 
         expected = {
@@ -1236,7 +1266,8 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             json=req,
-            status_code=400)
+            status_code=400,
+        )
 
         self.assertRequestResponse(
             '/service/details/edit?force=1',
@@ -1244,6 +1275,7 @@ class Tests(util.LoRATestCase):
                 org_unit_uuid,
             ],
             json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
     @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
@@ -1301,49 +1333,53 @@ class Tests(util.LoRATestCase):
                                        roots)
 
         self.assertRequestResponse('/service/ou/create', unitid, json={
-            "name": "Fake Corp",
-            "uuid": unitid,
-            "user_key": "fakefakefake",
-            "parent": {
-                'uuid': orgid,
+                "name": "Fake Corp",
+                "uuid": unitid,
+                "user_key": "fakefakefake",
+                "parent": {
+                    'uuid': orgid,
+                },
+                'time_planning': None,
+                "org_unit_type": {
+                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01",
+                }
             },
-            'time_planning': None,
-            "org_unit_type": {
-                'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-            "validity": {
-                "from": "2017-01-01",
-                "to": "2018-01-01",
-            }
-        })
+            amqp_topics=(('organisation.create.org_unit', 1), ),
+        )
 
         self.assertRequestResponse('/service/ou/{}/'.format(unitid), {
-            "location": "",
-            "name": "Fake Corp",
-            "user_key": "fakefakefake",
-            "uuid": unitid,
-            "org": {
-                "name": "Aarhus Universitet",
-                "user_key": "AU",
-                "uuid": orgid
+                "location": "",
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": orgid
+                },
+                'time_planning': None,
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Afdeling",
+                    "scope": None,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                },
+                "parent": None,
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01"
+                },
+                'user_settings': {'orgunit': {'show_user_key': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
             },
-            'time_planning': None,
-            "org_unit_type": {
-                "example": None,
-                "name": "Afdeling",
-                "scope": None,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-            },
-            "parent": None,
-            "validity": {
-                "from": "2017-01-01",
-                "to": "2018-01-01"
-            },
-            'user_settings': {'orgunit': {'show_user_key': False,
-                                          'show_location': True,
-                                          'show_roles': True}},
-        })
+            amqp_topics=(('organisation.create.org_unit', 1), ),
+        )
 
         roots.insert(0, {
             "child_count": 0,
@@ -1356,8 +1392,11 @@ class Tests(util.LoRATestCase):
             }
         })
 
-        self.assertRequestResponse('/service/o/{}/children'.format(orgid),
-                                   roots)
+        self.assertRequestResponse(
+            '/service/o/{}/children'.format(orgid),
+            roots,
+            amqp_topics=(('organisation.create.org_unit', 1), ),
+        )
 
     def test_rename_org_unit(self):
         # A generic example of editing an org unit
@@ -1380,7 +1419,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
+        )
 
         expected = {
             "note": "Rediger organisationsenhed",
@@ -1537,7 +1579,8 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json={
+            org_unit_uuid,
+            json={
                 "type": "org_unit",
                 "data": {
                     "time_planning": {
@@ -1549,6 +1592,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
@@ -1565,6 +1609,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(('organisation.update.org_unit', 2), ),
         )
 
         actual = c.organisationenhed.get(org_unit_uuid)
@@ -1608,6 +1653,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
+                amqp_topics=(('organisation.update.org_unit', 2), ),
             )
 
         with self.subTest('reading future'):
@@ -1690,6 +1736,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
+                amqp_topics=(('organisation.update.org_unit', 2), ),
             )
 
     @unittest.expectedFailure
@@ -1725,12 +1772,14 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=past'.format(org_unit_uuid),
             [],
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
@@ -1765,12 +1814,14 @@ class Tests(util.LoRATestCase):
                     'from': '2016-01-01', 'to': None,
                 },
             }],
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=future'.format(org_unit_uuid),
             [],
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
     def test_rename_root_org_unit(self):
@@ -1793,7 +1844,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
+        )
 
         expected = {
             'attributter': {
@@ -1903,7 +1957,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
+        )
 
         expected = {
             "note": "Rediger organisationsenhed",
@@ -2028,7 +2085,8 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             status_code=400,
-            json=req)
+            json=req,
+        )
 
     def test_move_org_unit_to_root_fails(self):
         """Should fail validation when trying to move an org unit to the root
@@ -2414,6 +2472,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=present',
             [],
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
     def test_terminate_org_unit_validations(self):
@@ -2565,6 +2624,7 @@ class Tests(util.LoRATestCase):
                         "to": "2018-12-31"
                     }
                 },
+                amqp_topics=(('organisation.delete.org_unit', 1), ),
             )
 
         self.assertRequestResponse(
@@ -2829,7 +2889,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
-            json=payload)
+            json=payload,
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
+        )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -2866,12 +2928,14 @@ class Tests(util.LoRATestCase):
                     "to": "2018-09-30",
                 }
             }],
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=future',
             [],
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
@@ -2914,6 +2978,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
+            amqp_topics=(('organisation.update.org_unit', 1), ),
         )
 
         expected_organisationenhedegenskaber = [{

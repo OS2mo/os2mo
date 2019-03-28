@@ -62,8 +62,20 @@ class Tests(util.LoRATestCase):
         expected_leave = get_expected(leave_uuid)
         expected_manager = get_expected(manager_uuid, True)
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(
+                ('employee.delete.engagement', 1),
+                ('organisation.delete.engagement', 1),
+                ('employee.delete.association', 1),
+                ('organisation.delete.association', 1),
+                ('employee.delete.role', 1),
+                ('organisation.delete.role', 1),
+                ('employee.delete.leave', 1),
+            ),
+        )
 
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
         actual_association = c.organisationfunktion.get(association_uuid)
@@ -226,8 +238,12 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(('employee.delete.manager', 1), ),
+        )
 
         expected_manager = {
             **c.organisationfunktion.get(manager_uuid),
@@ -320,6 +336,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [expected],
+            amqp_topics=(('employee.delete.manager', 1), ),
         )
 
         self.assertRequestResponse(
@@ -330,6 +347,7 @@ class Tests(util.LoRATestCase):
                 'person': None,
                 'validity': {'from': '2017-12-01', 'to': None},
             }],
+            amqp_topics=(('employee.delete.manager', 1), ),
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -349,8 +367,15 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(
+                ('employee.delete.manager', 1),
+                ('organisation.delete.manager', 1),
+            ),
+        )
 
         expected_manager = {
             **c.organisationfunktion.get(manager_uuid),
@@ -402,15 +427,21 @@ class Tests(util.LoRATestCase):
 
         original = c.organisationfunktion.get(manager_uuid)
 
-        self.assertRequestResponse('/service/details/terminate',
-                                   manager_uuid,
-                                   json={
-                                       "type": "manager",
-                                       "uuid": manager_uuid,
-                                       "validity": {
-                                           "to": "2017-11-30"
-                                       }
-                                   })
+        self.assertRequestResponse(
+            '/service/details/terminate',
+            manager_uuid,
+            json={
+                "type": "manager",
+                "uuid": manager_uuid,
+                "validity": {
+                    "to": "2017-11-30"
+                }
+            },
+            amqp_topics=(
+                ('employee.delete.manager', 1),
+                ('organisation.delete.manager', 1),
+            ),
+        )
 
         expected = copy.deepcopy(original)
         expected.update(
