@@ -304,6 +304,10 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = util.get_uuid(request)
 
+    def set_domain(self, request: dict):
+        self.org_unit_uuid = self.uuid
+        self.employee_uuid = None
+
     def submit(self):
         c = lora.Connector()
 
