@@ -256,7 +256,11 @@ class OrgFunkRequestHandler(RequestHandler):
 
     def set_domain(self, request: dict):
         super().set_domain(request)
-        if self.org_unit_uuid is None or self.employee_uuid is None:
+        is_create = self.request_type == RequestType.CREATE
+        one_uuid_is_none = (
+            self.org_unit_uuid is None or self.employee_uuid is None
+        )
+        if one_uuid_is_none and not is_create:
             # on terminate, we have to ask lora for uuids...
             try:  # date = from or to
                 date = util.get_valid_from(request)
@@ -264,8 +268,12 @@ class OrgFunkRequestHandler(RequestHandler):
                 date = util.get_valid_to(request)
             c = lora.Connector(effective_date=date)
             r = c.organisationfunktion.get(self.uuid)
-            self.employee_uuid = mapping.USER_FIELD.get_uuid(r)
-            self.org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(r)
+            if self.employee_uuid is None:
+                self.employee_uuid = mapping.USER_FIELD.get_uuid(r)
+            if self.org_unit_uuid is None:
+                self.org_unit_uuid = (
+                    mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(r)
+                )
 
     def submit(self) -> str:
         c = lora.Connector()
