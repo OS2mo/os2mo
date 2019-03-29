@@ -176,6 +176,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.payload = payload
         self.uuid = userid
 
+    def set_domain(self, request: dict):
+        self.org_unit_uuid = None
+        self.employee_uuid = self.uuid
+
     def submit(self):
         c = lora.Connector()
 
@@ -409,6 +413,7 @@ def terminate_employee(employee_uuid):
                         is_end=True,
                     ),
                 },
+                'person': {'uuid': employee_uuid},
             },
             handlers.RequestType.TERMINATE,
         )
