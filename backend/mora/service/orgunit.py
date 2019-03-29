@@ -290,6 +290,20 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = unitid
 
+    def prepare_terminate(self, request: dict):
+        date = util.get_valid_to(request)
+        obj_path = ('tilstande', 'organisationenhedgyldighed')
+        val_inactive = {
+            'gyldighed': 'Inaktiv',
+            'virkning': common._create_virkning(date, 'infinity')
+        }
+
+        payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+        payload['note'] = 'Afslut enhed'
+
+        self.payload = payload
+        self.uuid = util.get_uuid(request)
+
     def submit(self):
         c = lora.Connector()
 
@@ -1047,7 +1061,8 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json()
+    date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
@@ -1082,19 +1097,11 @@ def terminate_org_unit(unitid):
             role_count=len(relevant),
         )
 
-    obj_path = ('tilstande', 'organisationenhedgyldighed')
-    val_inactive = {
-        'gyldighed': 'Inaktiv',
-        'virkning': common._create_virkning(date, 'infinity')
-    }
-
-    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-    payload['note'] = 'Afslut enhed'
-
-    c.organisationenhed.update(payload, unitid)
+    request[mapping.UUID] = unitid
+    handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
+    handler.submit()
 
     return flask.jsonify(unitid)
-
     # TODO: Afkort adresser?
 
 
