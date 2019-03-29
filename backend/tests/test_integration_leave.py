@@ -540,16 +540,12 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                     "to": None
                 },
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "leave_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
             },
             "data": {
                 "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                },
-                "org_unit": {
-                    'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
                 },
                 "validity": {
                     "from": "2018-04-01",
@@ -741,7 +737,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(('employee.delete.leave', 1), ),
+            amqp_topics=(
+                ('employee.delete.address', 1),
+                ('employee.delete.association', 1),
+                ('employee.delete.engagement', 1),
+                ('employee.delete.it', 1),
+                ('employee.delete.leave', 1),
+                ('employee.delete.manager', 1),
+                ('employee.delete.role', 1),
+                ('organisation.delete.association', 1),
+                ('organisation.delete.engagement', 1),
+                ('organisation.delete.manager', 1),
+                ('organisation.delete.role', 1),
+            ),
         )
 
         expected = {
@@ -946,6 +954,11 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
+                amqp_topics=(
+                    ('employee.create.leave', 1),
+                    ('employee.create.engagement', 1),
+                    ('organisation.create.engagement', 1),
+                ),
             )
 
         self.assertRequestResponse(

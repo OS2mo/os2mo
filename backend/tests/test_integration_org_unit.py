@@ -1332,7 +1332,10 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse('/service/o/{}/children'.format(orgid),
                                        roots)
 
-        self.assertRequestResponse('/service/ou/create', unitid, json={
+        self.assertRequestResponse(
+            '/service/ou/create',
+            unitid,
+            json={
                 "name": "Fake Corp",
                 "uuid": unitid,
                 "user_key": "fakefakefake",
@@ -1351,7 +1354,9 @@ class Tests(util.LoRATestCase):
             amqp_topics=(('organisation.create.org_unit', 1), ),
         )
 
-        self.assertRequestResponse('/service/ou/{}/'.format(unitid), {
+        self.assertRequestResponse(
+            '/service/ou/{}/'.format(unitid),
+            {
                 "location": "",
                 "name": "Fake Corp",
                 "user_key": "fakefakefake",
@@ -2427,7 +2432,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
-            json=payload)
+            json=payload,
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
+        )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -2465,6 +2472,7 @@ class Tests(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
         # Verify that we are no longer able to see org unit
@@ -2649,6 +2657,7 @@ class Tests(util.LoRATestCase):
                     "to": "2018-12-31T00:00:00+01"
                 }
             },
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
@@ -2673,6 +2682,7 @@ class Tests(util.LoRATestCase):
                     "to": "1999-12-31"
                 }
             },
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
@@ -2697,6 +2707,7 @@ class Tests(util.LoRATestCase):
                     "to": "2099-12-31"
                 }
             },
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
         )
 
         self.assertRequestResponse(
@@ -2721,6 +2732,7 @@ class Tests(util.LoRATestCase):
                     "to": "2015-12-31"
                 }
             },
+            amqp_topics=(('organisation.delete.org_unit', 1), ),
             message='No terminating on creation date!'
         )
 

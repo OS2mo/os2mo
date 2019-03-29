@@ -556,6 +556,7 @@ class Tests(util.LoRATestCase):
                 amqp_topics=(
                     ('organisation.create.manager', 1),
                     ('employee.create.manager', 1),
+                    ('employee.update.manager', 1),
                 ),
             )
 
@@ -575,6 +576,7 @@ class Tests(util.LoRATestCase):
                 amqp_topics=(
                     ('organisation.create.manager', 1),
                     ('employee.create.manager', 1),
+                    ('employee.update.manager', 1),
                 ),
             )
 
@@ -585,6 +587,7 @@ class Tests(util.LoRATestCase):
                 amqp_topics=(
                     ('organisation.create.manager', 1),
                     ('employee.create.manager', 1),
+                    ('employee.update.manager', 1),
                 ),
             )
 
@@ -2594,10 +2597,6 @@ class Tests(util.LoRATestCase):
             },
             json=req,
             status_code=400,
-            amqp_topics=(
-                ('organisation.update.manager', 1),
-                ('employee.update.manager', 1),
-            ),
         )
 
     def test_read_manager_multiple_responsibilities(self):

@@ -659,6 +659,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [engagement_uuid],
             json=req,
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         expected_engagement = {
@@ -842,6 +846,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [engagement_uuid],
             json=req,
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         expected_engagement = {
@@ -989,6 +997,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [engagement_uuid],
             json=req,
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         expected_engagement = {
@@ -1150,6 +1162,10 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         self.assertRequestResponse(
@@ -1166,6 +1182,10 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics=(
+                ('employee.update.engagement', 2),
+                ('organisation.update.engagement', 2),
+            ),
         )
 
         with self.subTest('lora'):
@@ -1313,6 +1333,10 @@ class Tests(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics=(
+                ('employee.update.engagement', 2),
+                ('organisation.update.engagement', 2),
+            ),
         )
 
     def test_edit_engagement_move_from_unit(self):
@@ -1340,6 +1364,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [engagement_uuid],
             json=req,
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         expected_engagement = {
@@ -1494,6 +1522,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [engagement_uuid],
             json=req,
+            amqp_topics=(
+                ('employee.update.engagement', 1),
+                ('organisation.update.engagement', 1),
+            ),
         )
 
         expected_engagement = {
@@ -1651,8 +1683,24 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics=(
+                ('employee.delete.address', 1),
+                ('employee.delete.association', 1),
+                ('employee.delete.engagement', 1),
+                ('employee.delete.it', 1),
+                ('employee.delete.leave', 1),
+                ('employee.delete.manager', 1),
+                ('employee.delete.role', 1),
+                ('organisation.delete.association', 1),
+                ('organisation.delete.engagement', 1),
+                ('organisation.delete.manager', 1),
+                ('organisation.delete.role', 1),
+            ),
+        )
 
         expected = {
             "note": "Afsluttet",
@@ -2097,6 +2145,8 @@ class Tests(util.LoRATestCase):
             },
             amqp_topics=(
                 ('employee.create.engagement', 1),
+                ('employee.update.engagement', 1),
                 ('organisation.create.engagement', 1),
+                ('organisation.update.engagement', 1),
             ),
         )

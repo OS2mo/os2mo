@@ -615,6 +615,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics=(('organisation.update.it', 1), ),
         )
 
         updated = copy.deepcopy(original)
@@ -639,16 +640,19 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [original],
+            amqp_topics=(('organisation.update.it', 1), ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [updated],
+            amqp_topics=(('organisation.update.it', 1), ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=future'.format(unitid),
             [],
+            amqp_topics=(('organisation.update.it', 1), ),
         )
 
     def test_edit_itsystem_in_the_past_fails(self):
@@ -745,6 +749,10 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics=(
+                ('employee.update.it', 1),
+                ('organisation.update.it', 1),
+            ),
         )
 
         updated = copy.deepcopy(original)
@@ -769,16 +777,28 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [],
+            amqp_topics=(
+                ('employee.update.it', 1),
+                ('organisation.update.it', 1),
+            ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [updated],
+            amqp_topics=(
+                ('employee.update.it', 1),
+                ('organisation.update.it', 1),
+            ),
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(new_unitid),
             [updated],
+            amqp_topics=(
+                ('employee.update.it', 1),
+                ('organisation.update.it', 1),
+            ),
         )
 
 

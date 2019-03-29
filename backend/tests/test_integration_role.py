@@ -379,8 +379,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [role_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [role_uuid],
+            json=req,
+            amqp_topics=(
+                ('employee.update.role', 1),
+                ('organisation.update.role', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Rediger rolle",
@@ -517,8 +524,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [role_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [role_uuid],
+            json=req,
+            amqp_topics=(
+                ('employee.update.role', 1),
+                ('organisation.update.role', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Rediger rolle",
@@ -627,8 +641,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [role_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [role_uuid],
+            json=req,
+            amqp_topics=(
+                ('employee.update.role', 1),
+                ('organisation.update.role', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Rediger rolle",
@@ -740,8 +761,15 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        self.assertRequestResponse('/service/details/edit',
-                                   role_uuid, json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            role_uuid,
+            json=req,
+            amqp_topics=(
+                ('employee.update.role', 1),
+                ('organisation.update.role', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Rediger rolle",
@@ -874,8 +902,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [role_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [role_uuid],
+            json=req,
+            amqp_topics=(
+                ('employee.update.role', 1),
+                ('organisation.update.role', 1),
+            ),
+        )
 
         expected_role = {
             "note": "Rediger rolle",
@@ -1034,13 +1069,17 @@ class Tests(util.LoRATestCase):
             userid,
             json=payload,
             amqp_topics=(
-                ('employee.delete.association', 1),
-                ('employee.delete.role', 1),
                 ('employee.delete.address', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.it', 1),
+                ('employee.delete.association', 1),
                 ('employee.delete.engagement', 1),
+                ('employee.delete.it', 1),
+                ('employee.delete.leave', 1),
                 ('employee.delete.manager', 1),
+                ('employee.delete.role', 1),
+                ('organisation.delete.association', 1),
+                ('organisation.delete.engagement', 1),
+                ('organisation.delete.manager', 1),
+                ('organisation.delete.role', 1),
             ),
         )
 
