@@ -361,7 +361,8 @@ class TestCaseMixin(object):
 
     def setUp(self):
         self.amqp_counter = Counter()
-        def amqp_publish_message_mock(domain, action, object_type, domain_uuid):
+
+        def amqp_publish_message_mock(domain, action, object_type, __):
             self.amqp_counter['%s.%s.%s' % (domain, action, object_type)] += 1
         amqp.publish_message = amqp_publish_message_mock
         super().setUp()
@@ -439,7 +440,8 @@ class TestCaseMixin(object):
             except (IndexError, KeyError, TypeError):
                 pass
 
-        # example: (('employee.create.it', 3), ('organisation.edit.association', 1))
+        # example: (('employee.create.it', 3),
+        #           ('organisation.edit.association', 1))
         amqp_recieved = Counter()
         for topic, count in amqp_topics:
             amqp_recieved[topic] += count
@@ -447,7 +449,8 @@ class TestCaseMixin(object):
 
         return actual
 
-    def assertRequestResponse(self, path, expected, message=None, amqp_topics=(), **kwargs):
+    def assertRequestResponse(self, path, expected, message=None,
+                              amqp_topics=(), **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -460,7 +463,8 @@ class TestCaseMixin(object):
 
         '''
 
-        actual = self.assertRequest(path, message=message, amqp_topics=amqp_topics, **kwargs)
+        actual = self.assertRequest(path, message=message,
+                                    amqp_topics=amqp_topics, **kwargs)
 
         if actual != expected:
             pprint.pprint(actual)
