@@ -9,6 +9,7 @@ New features
 * #25396: Implemented validation of individual fields in frontend using
   backend validation API.
 * #25416: Added engagement ID to column engagement for employee and organisation.
+* #26961: Add support for marking associations as “primary”.
 
 Bug fixes
 ---------
@@ -61,7 +62,6 @@ New features
 * #25407: Added checkbox message alert validation for workflow employee terminate.
 * #27336: Remove association addresses.
 * #25174: Add support for marking engagements as “primary”.
-* #26961: Add support for marking associations as “primary”.
 * #27261: We can now read the username from the SAML session NameID
 * #27290: Add support for assigning time planning to organisational units.
 
