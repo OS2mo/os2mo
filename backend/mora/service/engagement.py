@@ -17,11 +17,11 @@ employees and organisational units.
 import uuid
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
@@ -47,7 +47,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
-        primary = util.checked_get(req, mapping.PRIMARY, False)
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        primary = req.get(mapping.PRIMARY)
 
         if primary:
             validator.does_employee_have_existing_primary_function(
@@ -62,9 +65,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         engagement_type_uuid = util.get_mapping_uuid(req,
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
-        primary = util.checked_get(req, mapping.PRIMARY, False)
-
-        bvn = str(uuid.uuid4())
 
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
@@ -76,11 +76,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=engagement_type_uuid,
-            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
+            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else [],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = payload
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -129,6 +130,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
+
         if mapping.JOB_FUNCTION in data:
             update_fields.append((
                 mapping.JOB_FUNCTION_FIELD,
@@ -159,7 +166,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
         else:
-            primary = exts.get('primær', False)
+            primary = exts.get('primær')
 
         if primary:
             validator.does_employee_have_existing_primary_function(

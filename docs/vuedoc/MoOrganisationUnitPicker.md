@@ -20,6 +20,14 @@ A organisation unit picker component.
 
   This boolean property requires a valid name. 
 
+- `validity` ***Object*** (*optional*) 
+
+  An object of the validities, used for validation 
+
+- `extra-validations` ***Object*** (*optional*) 
+
+  An object of additional validations to be performed 
+
 ## data 
 
 - `selectedSuperUnitUuid` 
@@ -37,6 +45,10 @@ A organisation unit picker component.
 
 **initial value:** `null` 
 
+- `orgUnitUuid` 
+
+**initial value:** `null` 
+
 ## computed properties 
 
 - `nameId` 
@@ -50,6 +62,10 @@ A organisation unit picker component.
   When its not disable, make it required. 
 
    **dependencies:** `isDisabled`, `required` 
+
+- `validations` 
+
+   **dependencies:** `orgName`, `required`, `orgName`, `validity`, `orgUnitUuid`, `extraValidations`, `extraValidations` 
 
 
 ## methods 

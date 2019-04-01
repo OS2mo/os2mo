@@ -1,3 +1,31 @@
+Version 0.16.0, 2019-03-22
+==========================
+
+New features
+------------
+
+* #27687, #27777: The various ``organisationfunktion`` relations now support both
+  ``user_key`` and ``integration_data``.
+* #25396: Implemented validation of individual fields in frontend using
+  backend validation API.
+* #25416: Added engagement ID to column engagement for employee and organisation.
+* #26961: Add support for marking associations as “primary”.
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
+Internal changes
+----------------
+
+* #27526: TestCafe test for employee association tab for create, edit and terminate popups.
+* #27527: TestCafe test for organisation manager tab for create, edit and terminate popups.
+
+
 Version 0.15.1, 2019-03-19
 ==========================
 

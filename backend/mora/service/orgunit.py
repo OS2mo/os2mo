@@ -24,20 +24,19 @@ import functools
 import locale
 import operator
 import uuid
-import json
 
 import flask
 
 from . import facet
 from . import handlers
 from . import org
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -122,11 +121,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             required=False
         )
 
-        unitid = util.get_uuid(req, required=False)
-        if not unitid:
-            unitid = str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY,
-                               "{} {}".format(name, uuid.uuid4()))
+        unitid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
         organisationenhed_get = c.organisationenhed.get(parent_uuid)
@@ -238,20 +234,23 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
-            attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+        changed_props = {}
 
-            if mapping.NAME in data:
-                attrs['enhedsnavn'] = data[mapping.NAME]
+        if mapping.USER_KEY in data:
+            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-            if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = json.dumps(
-                    data[mapping.INTEGRATION_DATA]
-                )
+        if mapping.NAME in data:
+            changed_props['enhedsnavn'] = data[mapping.NAME]
 
+        if mapping.INTEGRATION_DATA in data:
+            changed_props['integrationsdata'] = common.stable_json_dumps(
+                data[mapping.INTEGRATION_DATA],
+            )
+
+        if changed_props:
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
-                attrs,
+                changed_props,
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
@@ -670,44 +669,67 @@ def get_orgunit(unitid):
 
     .. sourcecode:: json
 
-      {
-        "location": "Overordnet Enhed/Humanistisk fakultet/Historisk Institut",
-        "name": "Afdeling for Fortidshistorik",
-        "user_key": "frem",
-        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-        "org": {
-          "name": "Aarhus Universitet",
-          "user_key": "AU",
-          "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-        },
-        "org_unit_type": {
-          "example": null,
-          "name": "Afdeling",
-          "scope": null,
-          "user_key": "afd",
-          "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-        },
-        "time_planning": {
-          "example": null,
-          "name": "Arbejdstidsplaner",
-          "scope": null,
-          "user_key": "abtp",
-          "uuid": "f81b3921-fed4-4616-a24a-59d68423e1f9"
-        },
-        "parent": {
-          "name": "Historisk Institut",
-          "user_key": "hist",
-          "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2018-12-31"
-          }
-        },
-        "validity": {
-          "from": "2016-01-01",
-          "to": "2018-12-31"
-        }
-      }
+     {
+       "location": "Hj\u00f8rring Kommune",
+       "name": "Borgmesterens Afdeling",
+       "org": {
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+       },
+       "org_unit_type": {
+         "example": null,
+         "name": "Afdeling",
+         "scope": "TEXT",
+         "user_key": "Afdeling",
+         "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
+       },
+       "parent": {
+         "location": "",
+         "name": "Hj\u00f8rring Kommune",
+         "org": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+         },
+         "org_unit_type": {
+           "example": null,
+           "name": "Afdeling",
+           "scope": "TEXT",
+           "user_key": "Afdeling",
+           "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
+         },
+         "parent": null,
+         "time_planning": null,
+         "user_key": "Hj\u00f8rring Kommune",
+         "user_settings": {
+           "orgunit": {
+             "show_location": true,
+             "show_roles": true,
+             "show_user_key": false
+           }
+         },
+         "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       },
+       "time_planning": null,
+       "user_key": "Borgmesterens Afdeling",
+       "user_settings": {
+         "orgunit": {
+           "show_location": true,
+           "show_roles": true,
+           "show_user_key": false
+         }
+       },
+       "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+       "validity": {
+         "from": "1960-01-01",
+         "to": null
+       }
+     }
 
     '''
     c = common.get_connector()
@@ -750,30 +772,48 @@ def list_orgunits(orgid):
 
     .. sourcecode:: json
 
-      {
-        "items": [
-          {
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "validity": {
-              "from": "2016-01-01",
-              "to": null
-            }
-          },
-          {
-            "name": "Samfundsvidenskabelige fakultet",
-            "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "validity": {
-              "from": "2017-01-01",
-              "to": null
-            }
-          }
-        ],
-        "offset": 0,
-        "total": 2
-      }
+     {
+       "items": [
+         {
+           "name": "Hj\u00f8rring b\u00f8rnehus",
+           "user_key": "Hj\u00f8rring b\u00f8rnehus",
+           "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring skole",
+           "user_key": "Hj\u00f8rring skole",
+           "uuid": "4b3d0f67-3844-50c3-8332-be3d9819b7be",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring skole",
+           "user_key": "Hj\u00f8rring skole",
+           "uuid": "6d9fcaa1-25cc-587f-acf2-dc02d8e30d76",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         }
+       ],
+       "offset": 0,
+       "total": 4
+     }
 
     '''
     c = common.get_connector()
@@ -821,37 +861,48 @@ def list_orgunit_tree(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "children": [
-            {
-              "name": "Humanistisk fakultet",
-              "user_key": "hum",
-              "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-              "validity": {
-                "from": "2016-01-01",
-                "to": null
-              }
-            },
-            {
-              "name": "Samfundsvidenskabelige fakultet",
-              "user_key": "samf",
-              "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-              "validity": {
-                "from": "2017-01-01",
-                "to": null
-              }
-            }
-          ],
-          "name": "Overordnet Enhed",
-          "user_key": "root",
-          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-          "validity": {
-            "from": "2016-01-01",
-            "to": null
-          }
-        }
-      ]
+     [
+       {
+         "children": [
+           {
+             "name": "Borgmesterens Afdeling",
+             "user_key": "Borgmesterens Afdeling",
+             "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+             "validity": {
+               "from": "1960-01-01",
+               "to": null
+             }
+           }
+         ],
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       },
+       {
+         "children": [
+           {
+             "name": "Borgmesterens Afdeling",
+             "user_key": "Borgmesterens Afdeling",
+             "uuid": "5648c99d-d0f2-52c0-b919-26f16a649f75",
+             "validity": {
+               "from": "1960-01-01",
+               "to": null
+             }
+           }
+         ],
+         "name": "L\u00f8norganisation",
+         "user_key": "L\u00f8norganisation",
+         "uuid": "fb2d158f-114e-5f67-8365-2c520cf10b58",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       }
+     ]
 
     '''
     c = common.get_connector()

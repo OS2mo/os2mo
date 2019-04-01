@@ -8,12 +8,10 @@
 
 from unittest.mock import patch
 
+from mora.service.address_handler import (
+    dar, ean, email, phone, pnumber, text, www)
 from mora import exceptions
 from . import util
-
-from mora.service.address_handler import (dar, ean, email, phone, pnumber,
-                                          text,
-                                          www)
 
 
 @util.mock('dawa-addresses.json')
@@ -105,6 +103,49 @@ class DarAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
+    def test_validation_fails_on_invalid_value(self, mock):
+        # Arrange
+        value = '1234'  # Not a valid DAR UUID
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_fails_on_unknown_uuid(self, mock):
+        # Arrange
+        value = 'e30645d3-2c2b-4b9f-9b7a-3b7fc0b4b80d'  # Not a valid DAR UUID
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_uuid(self, mock):
+        # Arrange
+        value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
+
+        # Act & Assert
+        # Assert that no exception is raised
+        self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_values(self, mock):
+        # Arrange
+        valid_values = [
+            '0a3f50a0-23c9-32b8-e044-0003ba298018'
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self, mock):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid DAR UUID
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)
+
     def test_failed_lookup_from_request(self, mock):
         """Ensure that failed request lookups are handled appropriately"""
         # Arrange
@@ -149,7 +190,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_from_effect(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
 
         effect = {
             'relationer': {
@@ -169,7 +210,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
 
         request = {
             'value': value
@@ -184,7 +225,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_mo_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = {
@@ -201,7 +242,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = {
@@ -217,7 +258,7 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_get_lora_properties(self):
         # Arrange
-        value = '123456'
+        value = '1234567890123'
         address_handler = self.handler(value)
 
         expected = []
@@ -227,6 +268,33 @@ class EANAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = '1234'  # Not a valid EAN
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_values(self):
+        # Arrange
+        valid_values = [
+            "1234123412341"
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid EAN
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)
 
 
 class EmailAddressHandlerTests(util.TestCase):
@@ -312,6 +380,35 @@ class EmailAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = 'asdasd'  # Not a valid email address
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_values(self):
+        # Arrange
+        valid_values = [
+            'test@test.com',
+            'test+hest@test.com',
+            't.e.s.t@test.com'
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid email address
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)
 
 
 class PhoneAddressHandlerTests(util.TestCase):
@@ -424,13 +521,41 @@ class PhoneAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(expected, actual)
 
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            # Not a valid phone number
+            self.handler.validate_value('asdasd')
+
+    def test_validation_succeeds_on_correct_values(self):
+        # Arrange
+        valid_values = [
+            '+4520931217'
+            '12341234'
+            '123'
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid phone number
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)
+
 
 class PNumberAddressHandlerTests(util.TestCase):
     handler = pnumber.PNumberAddressHandler
 
     def test_from_effect(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
 
         effect = {
             'relationer': {
@@ -450,7 +575,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
 
         request = {
             'value': value
@@ -465,7 +590,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_mo_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = {
@@ -482,7 +607,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = {
@@ -498,7 +623,7 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_get_lora_properties(self):
         # Arrange
-        value = '123456'
+        value = '1234567890'
         address_handler = self.handler(value)
 
         expected = []
@@ -508,6 +633,33 @@ class PNumberAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_fails_on_invalid_value(self):
+        # Arrange
+        value = '1234'  # Not a valid P-number
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_values(self):
+        # Arrange
+        valid_values = [
+            '1234123412'
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid P-number
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)
 
 
 class TextAddressHandlerTests(util.TestCase):
@@ -605,7 +757,7 @@ class WWWAddressHandlerTests(util.TestCase):
         effect = {
             'relationer': {
                 'adresser': [{
-                    'urn': 'urn:magenta.dk:www:http://www.test.org/'
+                    'urn': 'urn:magenta.dk:www:{}'.format(value)
                 }]
             }
         }
@@ -678,3 +830,32 @@ class WWWAddressHandlerTests(util.TestCase):
 
         # Assert
         self.assertEqual(expected, actual)
+
+    def test_validation_fails_on_invalid_value(self):
+        # Arrange
+        value = '@$@#$@#$'  # Not a valid URL
+
+        # Act & Assert
+        with self.assertRaises(exceptions.HTTPException):
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_on_correct_values(self):
+        # Arrange
+        valid_values = [
+            'http://www.test.com',
+            'https://www.test.com',
+            'http://subdomain.hej.com/welcome/to/test.html',
+        ]
+
+        # Act & Assert
+        for value in valid_values:
+            # Shouldn't raise exception
+            self.handler.validate_value(value)
+
+    def test_validation_succeeds_with_force(self):
+        # Arrange
+        value = 'GARBAGEGARBAGE'  # Not a valid URL
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            self.handler.validate_value(value)

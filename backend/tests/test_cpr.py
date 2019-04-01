@@ -116,7 +116,7 @@ class TestConfig(util.TestCase):
     def test_serviceplatformen_dummy_true(self):
         "test bad/missing values in config for Serviceplatformen "
         "are not considered in dummy mode"
-        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+        with util.override_config(
             ENV='production',
             DUMMY_MODE=True,
         ):

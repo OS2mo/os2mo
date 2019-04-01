@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeMoveMany')
+  .beforeEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeMoveMany')
@@ -21,7 +22,6 @@ test('Workflow: moveMany employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 140 })
     .click('.btn-employee-moveMany')
 
@@ -36,11 +36,11 @@ test('Workflow: moveMany employee', async t => {
 
     .click(parentFromInput)
     .click(dialog.find('.from-unit span.tree-anchor')
-      .withText('Hjørring'))
+      .withText('Hjørring Kommune'))
 
     .click(parentToInput)
     .click(dialog.find('.to-unit .tree-node')
-      .withText('Hjørring')
+      .withText('Hjørring Kommune')
       .find('.tree-arrow'))
     .click(dialog.find('.to-unit span.tree-anchor')
       .withText('Social og sundhed'))

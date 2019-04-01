@@ -25,6 +25,7 @@
         v-model="entry.parent"
         :label="$t('input_fields.select_super_unit')"
         required
+        :validity="entry.validity"
       />
 
       <mo-input-date-range

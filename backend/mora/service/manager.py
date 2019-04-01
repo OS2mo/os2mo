@@ -16,11 +16,11 @@ import uuid
 
 from . import address
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
@@ -60,9 +60,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             for responsibility in responsibilities
         ]
 
-        func_id = util.get_uuid(req, required=False)
-        if not func_id:
-            func_id = str(uuid.uuid4())
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         self.addresses = []
         addr_ids = []
@@ -92,8 +91,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 'uuid': manager_level_uuid
             })
 
-        bvn = str(uuid.uuid4())
-
         # Validation
         validator.is_date_range_in_org_unit_range(
             org_unit,
@@ -117,6 +114,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
             tilknyttedefunktioner=addr_ids,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = manager
@@ -161,6 +159,12 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ORG_FUNK_GYLDIGHED_FIELD,
             {'gyldighed': "Aktiv"}
         ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
 
         if mapping.MANAGER_TYPE in data:
             update_fields.append((

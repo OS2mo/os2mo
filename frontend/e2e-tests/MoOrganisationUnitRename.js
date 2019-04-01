@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitRename')
+  .beforeEach(reset)
   .page(`${baseURL}/organisation`)
 
 const dialog = Selector('#orgUnitRename')
@@ -17,8 +18,6 @@ test('Workflow: rename unit', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
-
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
 

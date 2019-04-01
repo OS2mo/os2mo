@@ -94,6 +94,7 @@ class Tests(util.LoRATestCase):
                 "manager_level": {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -208,8 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": '11111111-1111-1111-'
-                                             '1111-111111111113',
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -278,6 +278,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': managerid,
+                'user_key': '1234',
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
@@ -356,6 +357,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': function_id,
+                'user_key': mock_uuid,
                 'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
             }],
         )
@@ -374,6 +376,7 @@ class Tests(util.LoRATestCase):
 
         # first create a manager on the unit
         expected = {
+            'user_key': mock_uuid,
             'address': [],
             'manager_level': {
                 'example': 'test@example.com',
@@ -709,6 +712,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': managerid,
+                'user_key': mock_uuid,
                 'validity': {
                     'from': '2017-12-01', 'to': None,
                 },
@@ -842,6 +846,7 @@ class Tests(util.LoRATestCase):
                 },
                 'responsibility': [],
                 'uuid': managerid,
+                "user_key": mock_uuid,
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
@@ -1115,6 +1120,7 @@ class Tests(util.LoRATestCase):
                     },
                 ],
                 'uuid': managerid,
+                'user_key': mock_uuid,
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
@@ -1148,6 +1154,7 @@ class Tests(util.LoRATestCase):
                 "manager_type": {
                     'uuid': "e34d4426-9845-4c72-b31e-709be85d6fa2"
                 },
+                "user_key": "kaflaflibob",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -1315,10 +1322,20 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                                             "b4a4-15ffa19e2848",
+                        "b4a4-15ffa19e2848",
+                        "funktionsnavn": "Leder"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "kaflaflibob",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -1382,6 +1399,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {
                     'from': '2017-01-01',
                     'to': '2018-03-31',
@@ -1442,6 +1460,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': manager_uuid,
+                'user_key': 'kaflaflibob',
                 'validity': {
                     'from': '2018-04-01', 'to': None,
                 },
@@ -1653,6 +1672,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
                 }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {'from': '2018-04-01', 'to': None}
             }]
         )
@@ -1934,6 +1954,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {
                     'from': '2018-04-01', 'to': None,
                 },
@@ -2263,6 +2284,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             }],
             'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+            'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
             'validity': {'from': '2017-01-01',
                          'to': None}
         }]
@@ -2516,6 +2538,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                    'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                     'validity': {
                         'from': '2017-01-01',
                         'to': None,

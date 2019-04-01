@@ -31,12 +31,16 @@ A organisation unit terminate component.
 
    **dependencies:** `org_unit`, `org_unit` 
 
+- `validity` 
+
+   **dependencies:** `terminate`, `terminate` 
+
 
 ## methods 
 
-- `resetData()` 
+- `onHidden()` 
 
-  Resets the data fields. 
+- `loadContent(event)` 
 
 - `endOrganisationUnit(evt)` 
 

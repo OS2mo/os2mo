@@ -269,9 +269,8 @@ class Tests(util.LoRATestCase):
             "uuid": employee_uuid
         }
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-        with notsouid.freeze_uuid(mock_uuid):
-            self.request('/service/e/create', json=payload)
+        self.assertRequestResponse('/service/e/create', employee_uuid,
+                                   json=payload)
 
         self.assertRequestResponse(
             '/service/e/{}/'.format(employee_uuid),
@@ -282,7 +281,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
-                'user_key': mock_uuid,
+                'user_key': employee_uuid,
                 'cpr_no': '0101501234',
                 'uuid': employee_uuid,
             },
@@ -594,6 +593,7 @@ class Tests(util.LoRATestCase):
                 "validity": {
                     "from": "2017-02-02",
                 },
+                "user_key": "regnbøfssalat",
                 "cpr_no": "0101010101",
                 "name": "Test 1 Employee",
             },
@@ -618,7 +618,7 @@ class Tests(util.LoRATestCase):
             }
         }, {
             'brugernavn': 'Test 1 Employee',
-            'brugervendtnoegle': 'fedtmule',
+            'brugervendtnoegle': 'regnbøfssalat',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,

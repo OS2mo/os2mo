@@ -10,6 +10,14 @@ A employee picker component.
 
 - `required` ***Boolean*** (*optional*) 
 
+- `validity` ***Object*** (*optional*) 
+
+  Validities, used for validation 
+
+- `extra-validations` ***Object*** (*optional*) 
+
+  An object of additional validations to be performed 
+
 ## data 
 
 - `item` 
@@ -29,6 +37,10 @@ A employee picker component.
 - `orderedListOptions` 
 
    **dependencies:** `items` 
+
+- `validations` 
+
+   **dependencies:** `required`, `validity`, `extraValidations`, `extraValidations` 
 
 
 ## methods 

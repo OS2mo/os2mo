@@ -27,6 +27,17 @@ A organisation unit move component.
 
 **initial value:** `null` 
 
+## computed properties 
+
+- `validity` 
+
+   **dependencies:** `move` 
+
+- `parentValidations` 
+
+   **dependencies:** `original`, `move`, `validity` 
+
+
 ## methods 
 
 - `resetData()` 

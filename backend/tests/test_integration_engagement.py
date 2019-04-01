@@ -37,6 +37,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -44,13 +45,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-        with notsouid.freeze_uuid(mock_uuid):
-            engagementid, = self.assertRequest('/service/details/create',
-                                               json=payload)
+        engagementid, = self.assertRequest('/service/details/create',
+                                           json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -131,7 +130,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Engagement"
                     }
                 ]
@@ -173,7 +172,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -296,7 +295,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -417,7 +416,7 @@ class Tests(util.LoRATestCase):
                                                json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -620,6 +619,7 @@ class Tests(util.LoRATestCase):
             "uuid": engagement_uuid,
             "data": {
                 "primary": True,
+                "user_key": "regnormsberiger",
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
                 "engagement_type": {
@@ -745,9 +745,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Engagement"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "regnormsberiger",
                         "funktionsnavn": "Engagement"
                     }
                 ],
@@ -1101,22 +1111,37 @@ class Tests(util.LoRATestCase):
         )
 
         orig = c.organisationfunktion.get(engagement_uuid)
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "primary": True,
-                "validity": {
-                    "from": "2018-04-01",
-                    "to": "2019-03-31",
-                },
-            },
-        }]
 
         self.assertRequestResponse(
             '/service/details/edit',
-            [engagement_uuid],
-            json=req,
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-04-01",
+                        "to": "2019-03-31",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            engagement_uuid,
+            json={
+                "type": "engagement",
+                "uuid": engagement_uuid,
+                "data": {
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+            },
         )
 
         with self.subTest('lora'):
@@ -1140,6 +1165,20 @@ class Tests(util.LoRATestCase):
                  'virkning': {'from': '2018-04-01 '
                               '00:00:00+02',
                               'from_included': True,
+                              'to': '2018-06-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-06-01 '
+                              '00:00:00+02',
+                              'from_included': True,
+                              'to': '2018-08-01 '
+                              '00:00:00+02',
+                              'to_included': False}},
+                {'gyldighed': 'Aktiv',
+                 'virkning': {'from': '2018-08-01 '
+                              '00:00:00+02',
+                              'from_included': True,
                               'to': '2019-04-01 '
                               '00:00:00+02',
                               'to_included': False}},
@@ -1153,14 +1192,29 @@ class Tests(util.LoRATestCase):
 
             expected['attributter']['organisationfunktionudvidelser'] = [
                 {
-                    'primær': True,
-                    'virkning': {
-                        'from': '2018-04-01 '
-                        '00:00:00+02',
-                        'from_included': True,
-                        'to': '2019-04-01 '
-                        '00:00:00+02',
-                        'to_included': False,
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-04-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "primær": True,
+                    "virkning": {
+                        "from": "2018-08-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2019-04-01 00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "virkning": {
+                        "from": "2018-06-01 00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-08-01 00:00:00+02",
+                        "to_included": False,
                     },
                 },
             ]
@@ -1195,6 +1249,7 @@ class Tests(util.LoRATestCase):
                 "name": "Anders And",
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             },
+            "user_key": "bvn",
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
         }
 
@@ -1206,6 +1261,22 @@ class Tests(util.LoRATestCase):
                     "primary": True,
                     "validity": {
                         "from": "2018-04-01",
+                        "to": "2018-05-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": False,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-07-31",
+                    },
+                },
+                {
+                    **base,
+                    "primary": True,
+                    "validity": {
+                        "from": "2018-08-01",
                         "to": "2019-03-31",
                     },
                 },
@@ -1712,6 +1783,7 @@ class Tests(util.LoRATestCase):
                             'name': 'Fedtmule',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
+                        'user_key': '00000000-0000-0000-0000-000000000001',
                         'primary': True,
                         'uuid': engagementid,
                         'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
@@ -1792,7 +1864,7 @@ class Tests(util.LoRATestCase):
             )
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {

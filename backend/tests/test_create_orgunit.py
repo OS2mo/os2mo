@@ -20,7 +20,6 @@ class TestCreateOrgFunk(unittest.TestCase):
                 'organisationenhedegenskaber': [{
                     'enhedsnavn': 'enhedsnavn',
                     'brugervendtnoegle': 'brugervendtnoegle',
-                    'integrationsdata': '{}',
                     'virkning': {
                         'from': '2016-01-01T00:00:00+01:00',
                         'to': '2018-01-01T00:00:00+01:00'

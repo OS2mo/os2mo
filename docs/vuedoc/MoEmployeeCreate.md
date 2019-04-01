@@ -2,6 +2,10 @@
 
 A employee create component. 
 
+## props 
+
+- `show` ***Boolean*** (*optional*) `default: false` 
+
 ## data 
 
 - `isLoading` 
@@ -19,10 +23,18 @@ A employee create component.
 
 **initial value:** `[object Object]` 
 
+## events 
+
+- `submitted` 
+
 ## methods 
 
-- `createEmployee(evt)` 
+- `updateOrganisation()` 
 
   Create a employee and check if the data fields are valid.
   Then throw a error if not. 
+
+- `createEmployee(evt)` 
+
+- `onHidden()` 
 

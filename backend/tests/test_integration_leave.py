@@ -37,6 +37,7 @@ class Tests(util.LoRATestCase):
                 },
                 "leave_type": {
                     'uuid': leave_type},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -48,7 +49,7 @@ class Tests(util.LoRATestCase):
                                       json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -107,7 +108,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Orlov"
                     }
                 ]
@@ -145,7 +146,7 @@ class Tests(util.LoRATestCase):
         leaveid, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -289,6 +290,7 @@ class Tests(util.LoRATestCase):
             "type": "leave",
             "uuid": leave_uuid,
             "data": {
+                "user_key": "koflagerske",
                 "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
@@ -380,9 +382,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Orlov"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "koflagerske",
                         "funktionsnavn": "Orlov"
                     }
                 ]
@@ -834,4 +846,126 @@ class Tests(util.LoRATestCase):
             },
             json=payload,
             status_code=404,
+        )
+
+    def test_edit_leave_person(self):
+        self.load_sample_structures()
+
+        leave_uuid = self.assertRequest(
+            '/service/details/create',
+            json={
+                "type": "leave",
+                "uuid": "3be0c325-83db-48cc-9d60-12d80993a3c8",
+                "person": {
+                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                },
+                "leave_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
+                },
+                "user_key": "1234",
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        )
+
+        with self.subTest('failing without any'):
+            self.assertRequestFails(
+                '/service/details/edit',
+                400,
+                json={
+                    "type": "leave",
+                    "uuid": leave_uuid,
+                    "data": {
+                        "person": {
+                            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                        },
+                        "validity": {
+                            "from": "2018-01-01",
+                        },
+                    },
+                },
+            )
+
+        # first, create an engagement for the other user
+        self.assertRequest(
+            '/service/details/create',
+            json={
+                "type": "engagement",
+                "uuid": "f1383b2d-d706-4c49-9249-20fa9ef7b55a",
+                "person": {'uuid': "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
+                "validity": {
+                    "from": "2018-01-01",
+                }
+            },
+        )
+
+        with self.subTest('failing too soon'):
+            self.assertRequestFails(
+                '/service/details/edit',
+                400,
+                json={
+                    "type": "leave",
+                    "uuid": leave_uuid,
+                    "data": {
+                        "person": {
+                            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                        },
+                        "validity": {
+                            "from": "2017-06-01",
+                        },
+                    },
+                },
+            )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            leave_uuid,
+            json={
+                "type": "leave",
+                "uuid": leave_uuid,
+                "data": {
+                    "person": {
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                    },
+                    "validity": {
+                        "from": "2018-06-01",
+                    },
+                },
+            },
+        )
+
+        expected_users = [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2017-01-01 00:00:00+01",
+                    "to": "2018-06-01 00:00:00+02",
+                }
+            },
+            {
+                "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2018-06-01 00:00:00+02",
+                    "to": "infinity"
+                }
+            }
+        ]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_leave = c.organisationfunktion.get(leave_uuid)
+
+        self.assertEqual(
+            expected_users,
+            actual_leave['relationer']['tilknyttedebrugere'],
         )

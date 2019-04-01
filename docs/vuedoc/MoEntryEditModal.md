@@ -81,6 +81,10 @@ A entry edit modal component.
 
   The valid dates for the entry component date pickers 
 
+## events 
+
+- `submit` 
+
 ## methods 
 
 - `handleContent(content)` 

@@ -17,12 +17,12 @@ This section describes how to interact with related units.
 import flask
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('related_unit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -119,7 +119,7 @@ def map_org_units(origin):
     validator.is_edit_from_date_before_today(date)
 
     wanted_units = {origin} | destinations
-    units = dict(c.organisationenhed.get_all(uuid=wanted_units))
+    units = dict(c.organisationenhed.get_all(uuid=sorted(wanted_units)))
 
     if len(units) != len(wanted_units):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
@@ -165,7 +165,12 @@ def map_org_units(origin):
         common.create_organisationsfunktion_payload(
             mapping.RELATED_UNIT_KEY,
             date, util.POSITIVE_INFINITY,
-            '{} <-> {}'.format(origin, destid),
+            '{} <-> {}'.format(
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])
+                [0]['brugervendtnoegle'],
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])
+                [0]['brugervendtnoegle']
+            ),
             tilknyttedebrugere=[],
             tilknyttedeorganisationer=[orgid],
             tilknyttedeenheder=[origin, destid],

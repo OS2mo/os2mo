@@ -14,9 +14,8 @@ import requests_mock
 
 from mora import lora, exceptions
 from mora import settings
-from mora import validator
 from mora import util as mora_util
-
+from mora.service.validation import validator
 from . import util
 
 

@@ -4,24 +4,14 @@ A organisation unit entry component.
 
 ## props 
 
-- `value` ***Object*** (*optional*) 
-
-  Create two-way data bindings with the component. 
-
 - `creating-date` ***Boolean*** (*optional*) 
 
   This boolean property able the date in create organisation component. 
 
-- `disabled-dates` ***Object*** (*optional*) 
+## computed properties 
 
-  The valid dates for the entry component date pickers 
+- `orgUnitValidity` 
 
-## data 
+   **dependencies:** `entry`, `entry`, `disabledDates` 
 
-- `orgUnit` 
-
-  The orgUnit component value.
-  Used to detect changes and restore the value. 
-
-**initial value:** `[object Object]` 
 

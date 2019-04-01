@@ -16,12 +16,12 @@ This section describes how to interact with employee leave.
 import uuid
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
@@ -45,7 +45,9 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
         valid_from, valid_to = util.get_validities(req)
-        bvn = str(uuid.uuid4())
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
         validator.is_date_range_in_employee_range(employee, valid_from,
@@ -62,10 +64,11 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
             funktionstype=leave_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = leave
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         leave_uuid = req.get('uuid')
@@ -97,6 +100,12 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             mapping.ORG_FUNK_GYLDIGHED_FIELD,
             {'gyldighed': "Aktiv"}
         ))
+
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
 
         if mapping.LEAVE_TYPE in data:
             update_fields.append((

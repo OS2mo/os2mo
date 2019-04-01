@@ -64,18 +64,13 @@ def list_organisations():
 
     .. sourcecode:: json
 
-      [
-        {
-          "name": "Aarhus Kommune",
-          "user_key": "AARHUS",
-          "uuid": "59141156-ed0b-457c-9535-884447c5220b"
-        },
-        {
-          "name": "Ballerup Kommune",
-          "user_key": "BALLERUP",
-          "uuid": "3a87187c-f25a-40a1-8d42-312b2e2b43bd"
-        }
-      ]
+     [
+       {
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+       }
+     ]
 
     '''
     c = common.get_connector()
@@ -120,19 +115,19 @@ def get_organisation(orgid):
 
     .. sourcecode:: json
 
-      {
-        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-        "name": "Aarhus Universitet",
-        "user_key": "AU",
-        "person_count": 2,
-        "child_count": 1,
-        "unit_count": 6,
-        "employment_count": 1,
-        "association_count": 1,
-        "leave_count": 1,
-        "role_count": 1,
-        "manager_count": 1
-      }
+     {
+       "association_count": 24,
+       "child_count": 2,
+       "engagement_count": 111,
+       "leave_count": 0,
+       "manager_count": 41,
+       "name": "Hj\u00f8rring Kommune",
+       "person_count": 132,
+       "role_count": 22,
+       "unit_count": 67,
+       "user_key": "Hj\u00f8rring Kommune",
+       "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+     }
 
     '''
 

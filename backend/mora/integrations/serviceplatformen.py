@@ -9,7 +9,6 @@
 import random
 
 import service_person_stamdata_udvidet
-import logging
 import pathlib
 import requests
 import flask
@@ -98,10 +97,10 @@ def get_citizen(cpr):
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
             else:
-                app.logger.exception(e)
+                flask.current_app.logger.exception(e)
                 raise e
         except requests.exceptions.SSLError as e:
-            app.logger.exception(e)
+            flask.current_app.logger.exception(e)
             exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
