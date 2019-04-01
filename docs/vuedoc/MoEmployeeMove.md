@@ -4,17 +4,7 @@ A employee move component.
 
 ## props 
 
-- `entry-name` ***String*** (*optional*) 
-
-  Defines a engagement type name. 
-
-- `entry-date` ***Date*** (*optional*) 
-
-  Defines a from date. 
-
-- `entry-org-name` ***String*** (*optional*) 
-
-  Defines a orgName. 
+- `show` ***Boolean*** (*optional*) `default: false` 
 
 ## data 
 
@@ -33,12 +23,14 @@ A employee move component.
 
    **dependencies:** `from`, `original`, `original`, `from`, `original` 
 
-- `validDates` 
+- `validity` 
 
-  Check if the organisation date are valid. 
+   **dependencies:** `from` 
 
-   **dependencies:** `move`, `move` 
 
+## events 
+
+- `submitted` 
 
 ## methods 
 
@@ -46,4 +38,6 @@ A employee move component.
 
   Move a employee and check if the data fields are valid.
   Then throw a error if not. 
+
+- `onHidden()` 
 

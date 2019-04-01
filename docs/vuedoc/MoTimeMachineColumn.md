@@ -6,8 +6,6 @@ A timemachine column component.
 
 - `store-id` ***String*** (*required*) 
 
-- `store-id` ***String*** (*required*) 
-
 ## data 
 
 - `date` 

@@ -8,7 +8,11 @@ A confirm checkbox component.
 
   Defines a entry date. 
 
-- `entry-name` ***String*** (*optional*) 
+- `engagement-name` ***String*** (*optional*) 
+
+  Defines a entry name. 
+
+- `employee-name` ***String*** (*optional*) 
 
   Defines a entry name. 
 
@@ -30,8 +34,12 @@ A confirm checkbox component.
 - `nameId` 
 
   Get default name. 
-- `alertData` 
+- `alertEngagementData` 
 
-   **dependencies:** `entryName`, `entryOrgName`, `entryDate` 
+   **dependencies:** `engagementName`, `entryOrgName`, `entryDate` 
+
+- `alertEmployeeData` 
+
+   **dependencies:** `employeeName`, `entryDate` 
 
 

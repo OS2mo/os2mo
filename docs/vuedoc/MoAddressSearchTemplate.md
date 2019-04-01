@@ -4,7 +4,7 @@ A address search template.
 
 ## props 
 
-- `item` ***[object Object]*** (*required*) 
+- `item` ***Object*** (*required*) `default: [object Object]` 
 
-  Defines a item location name, which is required. 
+  Item to display 
 
