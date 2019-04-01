@@ -54,6 +54,26 @@ i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
 LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 
+MO betjener sig af udvidelser af datamodellen i LoRa. Før Lora kan anvendes sammen
+med MO skal disse tilretninger afspejles i databasen.
+
+MO-tilretninger af datamodellen i LoRa
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For at få datamodellen i LoRa til at afspejle datamodellen i MO skal
+LoRAs konfiguration justeres så den anvender en anden
+databaseopsætning::
+
+  DB_STRUCTURE_EXTENSIONS=/path/to/os2mo/backend/mora/db_extensions.json
+
+Dette skal sættes som en del af konfigurationen af LoRA inden
+databasen oprettes og ``initdb.sh`` afvikles. Derudover skal det være
+sat under kørslen.
+
+Uden denne indstilling vil eksempelvis kaldenavn og primære
+engagementer ikke kunne lagres.
+
+
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
