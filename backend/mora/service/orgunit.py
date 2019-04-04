@@ -305,6 +305,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.uuid = util.get_uuid(request)
 
     def set_domain(self, request: dict):
+        super().set_domain(request)
         self.org_unit_uuid = self.uuid
         self.employee_uuid = None
 

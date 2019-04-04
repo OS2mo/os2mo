@@ -107,7 +107,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.set_domain(request)
 
     def set_domain(self, request: dict):
-        """Assign ``self.org_unit_uuid`` and ``self.employee_uuid``.
+        """Assign ``self.org_unit_uuid``, ``self.employee_uuid`` and
+        ``self.date``.
 
         May be set to ``None``, if they do not make sense in the context of
         the current request.
@@ -117,6 +118,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         self.org_unit_uuid = util.get_mapping_uuid(request, mapping.ORG_UNIT)
         self.employee_uuid = util.get_mapping_uuid(request, mapping.PERSON)
+        try:  # date = from or to
+            self.date = util.get_valid_from(request)
+        except exceptions.HTTPException:
+            self.date = util.get_valid_to(request)
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -161,13 +166,14 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             RequestType.EDIT: "update",
             RequestType.TERMINATE: "delete",
         }[self.request_type]
+
         # both may exist, e.g. for engagement and association
         if self.employee_uuid:
             amqp.publish_message('employee', action, self.role_type,
-                                 self.employee_uuid)
+                                 self.employee_uuid, self.date)
         if self.org_unit_uuid:
             amqp.publish_message('organisation', action, self.role_type,
-                                 self.org_unit_uuid)
+                                 self.org_unit_uuid, self.date)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -262,11 +268,7 @@ class OrgFunkRequestHandler(RequestHandler):
         )
         if one_uuid_is_none and not is_create:
             # on terminate, we have to ask lora for uuids...
-            try:  # date = from or to
-                date = util.get_valid_from(request)
-            except exceptions.HTTPException:
-                date = util.get_valid_to(request)
-            c = lora.Connector(effective_date=date)
+            c = lora.Connector(effective_date=self.date)
             r = c.organisationfunktion.get(self.uuid)
             if self.employee_uuid is None:
                 self.employee_uuid = mapping.USER_FIELD.get_uuid(r)

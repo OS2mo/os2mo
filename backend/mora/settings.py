@@ -63,5 +63,9 @@ USER_SETTINGS = {
 
 QUERY_EXPORT_DIR = ''
 
+ENABLE_AMQP_MESSAGES = True
+AMQP_MO_EXCHANGE = 'moq'
+AMQP_HOST = '172.16.30.65'
+AMQP_PORT = 5672
 
 _util.update_config(globals(), CONFIG_FILE)
