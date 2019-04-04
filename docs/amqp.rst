@@ -16,8 +16,8 @@ example of a message body:
 
     ``{"uuid": "c390b9a2-7202-48e6-972b-ce36a90065c4", "time": "2019-03-24T13:02:15.132025"}``
 
-Where ``uuid`` is the uuid of the affected object and ``time`` is a ISO
-timestamp of when the change is effective.
+Where ``uuid`` is the uuid of the affected ``employee`` or ``org_unit`` and
+``time`` is a ISO timestamp of when the change is effective.
 
 
 Topic
