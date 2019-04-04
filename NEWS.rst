@@ -1,3 +1,12 @@
+Version 0.17.0, in development
+==============================
+
+New features
+------------
+
+* #28323: Added 'fraction' field to engagements
+
+
 Version 0.16.0, 2019-03-22
 ==========================
 

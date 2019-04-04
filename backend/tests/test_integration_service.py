@@ -909,6 +909,7 @@ class Tests(util.LoRATestCase):
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'user_key': 'bvn',
                 'primary': None,
+                'fraction': None,
                 "validity": {
                     'from': '2017-01-01',
                     'to': None,
@@ -1439,6 +1440,7 @@ class Tests(util.LoRATestCase):
             'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
             'user_key': 'bvn',
             'primary': None,
+            'fraction': None,
             'validity': {
                 'from': '2017-01-01',
                 'to': None
@@ -1474,6 +1476,7 @@ class Tests(util.LoRATestCase):
             'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
             'user_key': 'bvn',
             'primary': None,
+            'fraction': None,
             'validity': {
                 'from': '2017-01-01',
                 'to': None
