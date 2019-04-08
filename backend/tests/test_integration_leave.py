@@ -48,7 +48,7 @@ class Tests(util.LoRATestCase):
         leaveid, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics=(('employee.create.leave', 1), ),
+            amqp_topics={'employee.create.leave': 1},
         )
 
         expected = {
@@ -149,7 +149,7 @@ class Tests(util.LoRATestCase):
         leaveid, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics=(('employee.create.leave', 1), ),
+            amqp_topics={'employee.create.leave': 1},
         )
 
         expected = {
@@ -311,7 +311,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
-            amqp_topics=(('employee.update.leave', 1), ),
+            amqp_topics={'employee.update.leave': 1},
         )
 
         expected_leave = {
@@ -438,7 +438,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
-            amqp_topics=(('employee.update.leave', 1), ),
+            amqp_topics={'employee.update.leave': 1},
         )
 
         expected_leave = {
@@ -557,7 +557,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
-            amqp_topics=(('employee.update.leave', 1), ),
+            amqp_topics={'employee.update.leave': 1},
         )
 
         expected_leave = {
@@ -737,19 +737,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.it': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         expected = {
@@ -892,7 +892,7 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                 },
             },
-            amqp_topics=(('employee.create.leave', 1), ),
+            amqp_topics={'employee.create.leave': 1},
         )
 
         with self.subTest('failing without any'):
@@ -911,7 +911,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
-                amqp_topics=(('employee.create.leave', 1), ),
+                amqp_topics={'employee.create.leave': 1},
             )
 
         # first, create an engagement for the other user
@@ -931,11 +931,11 @@ class Tests(util.LoRATestCase):
                     "from": "2018-01-01",
                 }
             },
-            amqp_topics=(
-                ('employee.create.leave', 1),
-                ('employee.create.engagement', 1),
-                ('organisation.create.engagement', 1),
-            ),
+            amqp_topics={
+                'employee.create.leave': 1,
+                'employee.create.engagement': 1,
+                'organisation.create.engagement': 1,
+            },
         )
 
         with self.subTest('failing too soon'):
@@ -954,11 +954,11 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
-                amqp_topics=(
-                    ('employee.create.leave', 1),
-                    ('employee.create.engagement', 1),
-                    ('organisation.create.engagement', 1),
-                ),
+                amqp_topics={
+                    'employee.create.leave': 1,
+                    'employee.create.engagement': 1,
+                    'organisation.create.engagement': 1,
+                },
             )
 
         self.assertRequestResponse(
@@ -976,12 +976,12 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
-            amqp_topics=(
-                ('employee.create.leave', 1),
-                ('employee.create.engagement', 1),
-                ('organisation.create.engagement', 1),
-                ('employee.update.leave', 1),
-            ),
+            amqp_topics={
+                'employee.create.leave': 1,
+                'employee.create.engagement': 1,
+                'organisation.create.engagement': 1,
+                'employee.update.leave': 1,
+            },
         )
 
         expected_users = [

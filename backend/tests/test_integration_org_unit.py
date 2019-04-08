@@ -474,10 +474,10 @@ class Tests(util.LoRATestCase):
                     "to": "2017-10-21"
                 }
             },
-            amqp_topics=(
-                ('organisation.create.org_unit', 1),
-                ('organisation.create.address', 2),
-            ),
+            amqp_topics={
+                'organisation.create.org_unit': 1,
+                'organisation.create.address': 2,
+            },
         )
 
     def test_create_org_unit_fails_validation_outside_org_unit(self):
@@ -551,7 +551,7 @@ class Tests(util.LoRATestCase):
         self.assertRequest(
             '/service/ou/create?force=1',
             json=payload,
-            amqp_topics=(('organisation.create.org_unit', 1), ),
+            amqp_topics={'organisation.create.org_unit': 1},
         )
 
     def test_edit_org_unit_overwrite(self):
@@ -592,7 +592,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected = {
@@ -901,7 +901,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected = {
@@ -1073,7 +1073,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequest(
@@ -1081,7 +1081,7 @@ class Tests(util.LoRATestCase):
             '/?at=2016-06-01',
             200,
             "should exist on 2016-06-01",
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequest(
@@ -1089,7 +1089,7 @@ class Tests(util.LoRATestCase):
             '/?at=2016-05-31',
             404,
             "should not exist before start",
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
     @freezegun.freeze_time('2016-01-01')
@@ -1139,9 +1139,9 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = self.assertRequest(
             '/service/ou/create',
             json=payload,
-            amqp_topics=(
-                ('organisation.create.org_unit', 1),
-            ),
+            amqp_topics={
+                'organisation.create.org_unit': 1,
+            },
         )
 
         req = {
@@ -1158,10 +1158,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
-            amqp_topics=(
-                ('organisation.create.org_unit', 1),
-                ('organisation.update.org_unit', 1),
-            ),
+            amqp_topics={
+                'organisation.create.org_unit': 1,
+                'organisation.update.org_unit': 1,
+            },
         )
 
         expected = {
@@ -1275,7 +1275,7 @@ class Tests(util.LoRATestCase):
                 org_unit_uuid,
             ],
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
     @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
@@ -1351,7 +1351,7 @@ class Tests(util.LoRATestCase):
                     "to": "2018-01-01",
                 }
             },
-            amqp_topics=(('organisation.create.org_unit', 1), ),
+            amqp_topics={'organisation.create.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -1383,7 +1383,7 @@ class Tests(util.LoRATestCase):
                                               'show_location': True,
                                               'show_roles': True}},
             },
-            amqp_topics=(('organisation.create.org_unit', 1), ),
+            amqp_topics={'organisation.create.org_unit': 1},
         )
 
         roots.insert(0, {
@@ -1400,7 +1400,7 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/o/{}/children'.format(orgid),
             roots,
-            amqp_topics=(('organisation.create.org_unit', 1), ),
+            amqp_topics={'organisation.create.org_unit': 1},
         )
 
     def test_rename_org_unit(self):
@@ -1426,7 +1426,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected = {
@@ -1597,7 +1597,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -1614,7 +1614,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
-            amqp_topics=(('organisation.update.org_unit', 2), ),
+            amqp_topics={'organisation.update.org_unit': 2},
         )
 
         actual = c.organisationenhed.get(org_unit_uuid)
@@ -1658,7 +1658,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
-                amqp_topics=(('organisation.update.org_unit', 2), ),
+                amqp_topics={'organisation.update.org_unit': 2},
             )
 
         with self.subTest('reading future'):
@@ -1741,7 +1741,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
-                amqp_topics=(('organisation.update.org_unit', 2), ),
+                amqp_topics={'organisation.update.org_unit': 2},
             )
 
     @unittest.expectedFailure
@@ -1777,14 +1777,14 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=past'.format(org_unit_uuid),
             [],
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -1819,14 +1819,14 @@ class Tests(util.LoRATestCase):
                     'from': '2016-01-01', 'to': None,
                 },
             }],
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=future'.format(org_unit_uuid),
             [],
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
     def test_rename_root_org_unit(self):
@@ -1851,7 +1851,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected = {
@@ -1964,7 +1964,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected = {
@@ -2433,7 +2433,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
             json=payload,
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -2472,7 +2472,7 @@ class Tests(util.LoRATestCase):
                     }
                 }
             ],
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         # Verify that we are no longer able to see org unit
@@ -2480,7 +2480,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=present',
             [],
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
     def test_terminate_org_unit_validations(self):
@@ -2632,7 +2632,7 @@ class Tests(util.LoRATestCase):
                         "to": "2018-12-31"
                     }
                 },
-                amqp_topics=(('organisation.delete.org_unit', 1), ),
+                amqp_topics={'organisation.delete.org_unit': 1},
             )
 
         self.assertRequestResponse(
@@ -2657,7 +2657,7 @@ class Tests(util.LoRATestCase):
                     "to": "2018-12-31T00:00:00+01"
                 }
             },
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -2682,7 +2682,7 @@ class Tests(util.LoRATestCase):
                     "to": "1999-12-31"
                 }
             },
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -2707,7 +2707,7 @@ class Tests(util.LoRATestCase):
                     "to": "2099-12-31"
                 }
             },
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -2732,7 +2732,7 @@ class Tests(util.LoRATestCase):
                     "to": "2015-12-31"
                 }
             },
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
             message='No terminating on creation date!'
         )
 
@@ -2902,7 +2902,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
             json=payload,
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
@@ -2940,14 +2940,14 @@ class Tests(util.LoRATestCase):
                     "to": "2018-09-30",
                 }
             }],
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=future',
             [],
-            amqp_topics=(('organisation.delete.org_unit', 1), ),
+            amqp_topics={'organisation.delete.org_unit': 1},
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
@@ -2990,7 +2990,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
-            amqp_topics=(('organisation.update.org_unit', 1), ),
+            amqp_topics={'organisation.update.org_unit': 1},
         )
 
         expected_organisationenhedegenskaber = [{

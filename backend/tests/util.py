@@ -441,11 +441,12 @@ class TestCaseMixin(object):
             except (IndexError, KeyError, TypeError):
                 pass
 
-        # example: (('employee.create.it', 3),
-        #           ('organisation.edit.association', 1))
-        amqp_recieved = Counter()
-        for topic, count in amqp_topics:
-            amqp_recieved[topic] += count
+        # example:
+        # {
+        #     'employee.create.it': 3,
+        #     'organisation.edit.association': 1,
+        # }
+        amqp_recieved = Counter(amqp_topics)
         self.assertEqual(self.amqp_counter, amqp_recieved)
 
         return actual

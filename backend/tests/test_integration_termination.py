@@ -66,19 +66,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
@@ -169,19 +169,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         actual_manager = c.organisationfunktion.get(manager_uuid)
@@ -262,19 +262,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         expected_manager = {
@@ -368,19 +368,19 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [expected],
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -391,19 +391,19 @@ class Tests(util.LoRATestCase):
                 'person': None,
                 'validity': {'from': '2017-12-01', 'to': None},
             }],
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -427,19 +427,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.it': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         expected_manager = {
@@ -502,10 +502,10 @@ class Tests(util.LoRATestCase):
                     "to": "2017-11-30"
                 }
             },
-            amqp_topics=(
-                ('employee.delete.manager', 1),
-                ('organisation.delete.manager', 1),
-            ),
+            amqp_topics={
+                'employee.delete.manager': 1,
+                'organisation.delete.manager': 1,
+            },
         )
 
         expected = copy.deepcopy(original)
@@ -547,10 +547,10 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/{}/details/manager'.format(userid),
                 current,
-                amqp_topics=(
-                    ('employee.delete.manager', 1),
-                    ('organisation.delete.manager', 1),
-                ),
+                amqp_topics={
+                    'employee.delete.manager': 1,
+                    'organisation.delete.manager': 1,
+                },
             )
 
         with self.subTest('future'):
@@ -558,8 +558,8 @@ class Tests(util.LoRATestCase):
                 '/service/e/{}/details/manager'
                 '?validity=future'.format(userid),
                 [],
-                amqp_topics=(
-                    ('employee.delete.manager', 1),
-                    ('organisation.delete.manager', 1),
-                ),
+                amqp_topics={
+                    'employee.delete.manager': 1,
+                    'organisation.delete.manager': 1,
+                },
             )

@@ -352,7 +352,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
-            amqp_topics=(('organisation.create.address', 1),),
+            amqp_topics={'organisation.create.address': 1},
         )
 
         expected = {
@@ -463,7 +463,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
-            amqp_topics=(('employee.create.address', 1), ),
+            amqp_topics={'employee.create.address': 1},
         )
 
         expected = {
@@ -580,7 +580,7 @@ class Writing(util.LoRATestCase):
                         "value": "root@example.com",
                     },
                 ],
-                amqp_topics=(('employee.create.address', 1), ),
+                amqp_topics={'employee.create.address': 1},
             )
 
     def test_create_employee_with_address(self, mock):
@@ -612,10 +612,10 @@ class Writing(util.LoRATestCase):
                     },
                 ]
             },
-            amqp_topics=(
-                ('employee.create.address', 1),
-                ('employee.create.employee', 1),
-            ),
+            amqp_topics={
+                'employee.create.address': 1,
+                'employee.create.employee': 1,
+            },
         )
 
         expected = {
@@ -743,10 +743,10 @@ class Writing(util.LoRATestCase):
                     },
                 }],
             }],
-            amqp_topics=(
-                ('organisation.create.manager', 1),
-                ('employee.create.manager', 1)
-            ),
+            amqp_topics={
+                'organisation.create.manager': 1,
+                'employee.create.manager': 1,
+            },
         )
 
         expected = {
@@ -865,10 +865,10 @@ class Writing(util.LoRATestCase):
                     },
                 ]
             },
-            amqp_topics=(
-                ('organisation.create.address', 1),
-                ('organisation.create.org_unit', 1),
-            ),
+            amqp_topics={
+                'organisation.create.address': 1,
+                'organisation.create.org_unit': 1,
+            },
         )
 
         expected = {
@@ -976,7 +976,7 @@ class Writing(util.LoRATestCase):
                     },
                 }
             ],
-            amqp_topics=(('organisation.update.address', 1), ),
+            amqp_topics={'organisation.update.address': 1},
         )
 
         expected = {
@@ -1109,7 +1109,7 @@ class Writing(util.LoRATestCase):
                     },
                 }
             ],
-            amqp_topics=(('organisation.update.address', 1), ),
+            amqp_topics={'organisation.update.address': 1},
         )
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")

@@ -43,10 +43,10 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics=(
-                ('organisation.create.role', 1),
-                ('employee.create.role', 1),
-            ),
+            amqp_topics={
+                'organisation.create.role': 1,
+                'employee.create.role': 1,
+            },
         )
 
         expected = {
@@ -157,10 +157,10 @@ class Tests(util.LoRATestCase):
         roleid, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics=(
-                ('organisation.create.role', 1),
-                ('employee.create.role', 1),
-            ),
+            amqp_topics={
+                'organisation.create.role': 1,
+                'employee.create.role': 1,
+            },
         )
 
         expected = {
@@ -269,10 +269,10 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics=(
-                ('organisation.create.role', 1),
-                ('employee.create.role', 1),
-            ),
+            amqp_topics={
+                'organisation.create.role': 1,
+                'employee.create.role': 1,
+            },
         )
 
         expected = {
@@ -383,10 +383,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [role_uuid],
             json=req,
-            amqp_topics=(
-                ('employee.update.role', 1),
-                ('organisation.update.role', 1),
-            ),
+            amqp_topics={
+                'employee.update.role': 1,
+                'organisation.update.role': 1,
+            },
         )
 
         expected_role = {
@@ -528,10 +528,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [role_uuid],
             json=req,
-            amqp_topics=(
-                ('employee.update.role', 1),
-                ('organisation.update.role', 1),
-            ),
+            amqp_topics={
+                'employee.update.role': 1,
+                'organisation.update.role': 1,
+            },
         )
 
         expected_role = {
@@ -645,10 +645,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [role_uuid],
             json=req,
-            amqp_topics=(
-                ('employee.update.role', 1),
-                ('organisation.update.role', 1),
-            ),
+            amqp_topics={
+                'employee.update.role': 1,
+                'organisation.update.role': 1,
+            },
         )
 
         expected_role = {
@@ -765,10 +765,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             role_uuid,
             json=req,
-            amqp_topics=(
-                ('employee.update.role', 1),
-                ('organisation.update.role', 1),
-            ),
+            amqp_topics={
+                'employee.update.role': 1,
+                'organisation.update.role': 1,
+            },
         )
 
         expected_role = {
@@ -906,10 +906,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [role_uuid],
             json=req,
-            amqp_topics=(
-                ('employee.update.role', 1),
-                ('organisation.update.role', 1),
-            ),
+            amqp_topics={
+                'employee.update.role': 1,
+                'organisation.update.role': 1,
+            },
         )
 
         expected_role = {
@@ -1068,19 +1068,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
-            amqp_topics=(
-                ('employee.delete.address', 1),
-                ('employee.delete.association', 1),
-                ('employee.delete.engagement', 1),
-                ('employee.delete.it', 1),
-                ('employee.delete.leave', 1),
-                ('employee.delete.manager', 1),
-                ('employee.delete.role', 1),
-                ('organisation.delete.association', 1),
-                ('organisation.delete.engagement', 1),
-                ('organisation.delete.manager', 1),
-                ('organisation.delete.role', 1),
-            ),
+            amqp_topics={
+                'employee.delete.address': 1,
+                'employee.delete.association': 1,
+                'employee.delete.engagement': 1,
+                'employee.delete.it': 1,
+                'employee.delete.leave': 1,
+                'employee.delete.manager': 1,
+                'employee.delete.role': 1,
+                'organisation.delete.association': 1,
+                'organisation.delete.engagement': 1,
+                'organisation.delete.manager': 1,
+                'organisation.delete.role': 1,
+            },
         )
 
         expected_role = {
