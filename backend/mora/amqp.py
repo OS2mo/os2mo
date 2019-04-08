@@ -11,7 +11,7 @@ import json
 from . import settings
 
 
-if settings.ENABLE_AMQP_MESSAGES:
+if settings.ENABLE_AMQP:
     import pika
     conn = pika.BlockingConnection(
         pika.ConnectionParameters(
@@ -32,7 +32,7 @@ def publish_message(domain, action, object_type, domain_uuid, date):
     For the full documentation, refer to "AMQP Messages" in the docs.
     The source for that is in ``docs/amqp.rst``.
     """
-    if not settings.ENABLE_AMQP_MESSAGES:
+    if not settings.ENABLE_AMQP:
         return
 
     topic = "%s.%s.%s" % (domain, action, object_type)
