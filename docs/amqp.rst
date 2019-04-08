@@ -84,9 +84,9 @@ This is an example of a Python script that exhausts the queue::
 Configuration
 -------------
 
-Messages are **enabled by default**.
+Messages are **disabled by default**.
 
-To disable AMQP completely, set ``ENABLE_AMQP_MESSAGES`` to ``False``.
+To enable AMQP, set ``ENABLE_AMQP`` to ``True``.
 
 The default exchange is ``moq`` can be configured by changing
 ``AMQP_MO_EXCHANGE``.
