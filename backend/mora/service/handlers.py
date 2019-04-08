@@ -155,7 +155,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     def submit(self) -> str:
         """Submit the request to LoRa.
 
-        Subclasses *have* to invoke this to make sure the message is
+        Subclass overrides *must* invoke this to ensure the message is
         published to AMQP.
 
         :return: A string containing the result from submitting the
