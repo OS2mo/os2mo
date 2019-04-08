@@ -323,7 +323,7 @@ def make_dummy_instance(idp_url=None):
         stack.enter_context(test_support.extend_db_struct(exts))
 
         mora_server, mora_port = make_server(app.create_app(), 5000)
-        lora_server, lora_port = make_server(lora_app.create_app(), 6000)
+        lora_server, lora_port = make_server(lora_app.app, 6000)
 
         stack.enter_context(
             mock.patch(

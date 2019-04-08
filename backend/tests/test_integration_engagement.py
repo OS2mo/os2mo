@@ -38,6 +38,7 @@ class Tests(util.LoRATestCase):
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "user_key": "1234",
+                "fraction": 10,
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -133,7 +134,18 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "1234",
                         "funktionsnavn": "Engagement"
                     }
-                ]
+                ],
+                'organisationfunktionudvidelser': [{
+                    'fraktion': 10,
+                    'virkning': {
+                        'from': '2017-12-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-12-02 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }]
             }
         }
 
@@ -1249,6 +1261,7 @@ class Tests(util.LoRATestCase):
                 "name": "Anders And",
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             },
+            "fraction": None,
             "user_key": "bvn",
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
         }
@@ -1744,6 +1757,7 @@ class Tests(util.LoRATestCase):
             "type": "engagement",
             "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
             "primary": True,
+            "fraction": 10,
             "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
             "job_function": {
                 "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
@@ -1785,6 +1799,7 @@ class Tests(util.LoRATestCase):
                         },
                         'user_key': '00000000-0000-0000-0000-000000000001',
                         'primary': True,
+                        'fraction': 10,
                         'uuid': engagementid,
                         'validity': {'from': '2017-12-01', 'to': '2017-12-31'},
                     },
@@ -1959,6 +1974,7 @@ class Tests(util.LoRATestCase):
                             "from": "2017-12-01 00:00:00+01"
                         },
                         "primær": True,
+                        "fraktion": 10,
                     }
                 ]
             }

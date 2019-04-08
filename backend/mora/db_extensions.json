@@ -2,13 +2,17 @@
   "organisationfunktion": {
     "attributter": {
       "udvidelser": [
-        "primær"
+        "primær",
+        "fraktion"
       ]
     },
     "attributter_metadata": {
       "udvidelser": {
         "primær": {
           "type": "boolean"
+        },
+        "fraktion": {
+          "type": "int"
         }
       }
     }

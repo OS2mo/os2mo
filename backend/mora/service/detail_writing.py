@@ -497,6 +497,10 @@ def edit():
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
+    :<jsonarr boolean primary: Whether this is the one and only main
+                               position for the relevant person.
+    :<jsonarr string fraction: An indication of how much this
+        engagement constitutes the employee's overall employment
 
     The parameters ``job_function`` and ``engagement_type`` should contain
     UUIDs obtained from their respective facet endpoints.
