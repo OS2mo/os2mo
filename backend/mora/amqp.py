@@ -35,7 +35,7 @@ def publish_message(domain, action, object_type, domain_uuid, date):
     if not settings.ENABLE_AMQP:
         return
 
-    topic = "%s.%s.%s" % (domain, action, object_type)
+    topic = "{}.{}.{}".format(domain, action, object_type)
     message = {
         "uuid": domain_uuid,
         "time": date.isoformat(),
