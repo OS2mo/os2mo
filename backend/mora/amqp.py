@@ -8,21 +8,22 @@
 
 import json
 
-from .settings import (
-    ENABLE_AMQP_MESSAGES,
-    AMQP_MO_EXCHANGE,
-    AMQP_HOST,
-    AMQP_PORT,
-)
+from . import settings
 
 
-if ENABLE_AMQP_MESSAGES:
+if settings.ENABLE_AMQP_MESSAGES:
     import pika
     conn = pika.BlockingConnection(
-        pika.ConnectionParameters(host=AMQP_HOST, port=AMQP_PORT)
+        pika.ConnectionParameters(
+            host=settings.AMQP_HOST,
+            port=settings.AMQP_PORT,
+        )
     )
     channel = conn.channel()
-    channel.exchange_declare(exchange=AMQP_MO_EXCHANGE, exchange_type="topic")
+    channel.exchange_declare(
+        exchange=settings.AMQP_MO_EXCHANGE,
+        exchange_type="topic",
+    )
 
 
 def publish_message(domain, action, object_type, domain_uuid, date):
@@ -31,7 +32,7 @@ def publish_message(domain, action, object_type, domain_uuid, date):
     For the full documentation, refer to "AMQP Messages" in the docs.
     The source for that is in ``docs/amqp.rst``.
     """
-    if not ENABLE_AMQP_MESSAGES:
+    if not settings.ENABLE_AMQP_MESSAGES:
         return
 
     topic = "%s.%s.%s" % (domain, action, object_type)
@@ -41,7 +42,7 @@ def publish_message(domain, action, object_type, domain_uuid, date):
     }
 
     channel.publish(
-        exchange=AMQP_MO_EXCHANGE,
+        exchange=settings.AMQP_MO_EXCHANGE,
         routing_key=topic,
         body=json.dumps(message),
     )
