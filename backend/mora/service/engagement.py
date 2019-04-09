@@ -160,14 +160,14 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         new_extensions = {}
 
         if mapping.PRIMARY in data:
-            primary = util.checked_get(data, mapping.PRIMARY, False)
+            primary = util.checked_get(data, mapping.PRIMARY, default=False)
 
             new_extensions['primær'] = primary
         else:
             primary = exts.get('primær')
 
         if mapping.FRACTION in data:
-            fraction = util.checked_get(data, mapping.FRACTION, True)
+            fraction = util.checked_get(data, mapping.FRACTION, default=100)
 
             new_extensions['fraktion'] = fraction
 
