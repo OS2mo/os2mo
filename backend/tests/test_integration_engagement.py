@@ -631,6 +631,7 @@ class Tests(util.LoRATestCase):
             "uuid": engagement_uuid,
             "data": {
                 "primary": True,
+                "fraction": 30,
                 "user_key": "regnormsberiger",
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
@@ -782,6 +783,7 @@ class Tests(util.LoRATestCase):
                             "to": "infinity"
                         },
                         "primær": True,
+                        "fraktion": 30,
                     },
                 ],
             },
