@@ -30,7 +30,7 @@ Here is an example of a topic:
 
 The three topics can be described as:
 
-    1. The domain of the object: ``employee`` or ``organisation``.
+    1. The service: ``employee`` or ``org_unit``.
     2. Name of affected object type: ``address``, ``association``,
        ``employee``, ``engagement``, ``it``, ``leave``, ``manager``,
        ``org_unit``, ``related_unit``, ``role``.
@@ -38,7 +38,7 @@ The three topics can be described as:
 
 Or put more abstractly:
 
-    ``<domain>.<object-type>.<action>``
+    ``<service>.<object-type>.<action>``
 
 
 Delayed queue

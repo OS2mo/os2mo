@@ -108,8 +108,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         May be set to ``None``, if they do not make sense in the context of
         the current request.
-
-        Think of "domain" as the Medarbejder/Organisation tab in the UI.
         """
         self.org_unit_uuid = util.get_mapping_uuid(request, mapping.ORG_UNIT)
         self.employee_uuid = util.get_mapping_uuid(request, mapping.PERSON)
@@ -167,7 +165,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             amqp.publish_message('employee', self.role_type, action,
                                  self.employee_uuid, self.date)
         if self.org_unit_uuid:
-            amqp.publish_message('organisation', self.role_type, action,
+            amqp.publish_message('org_unit', self.role_type, action,
                                  self.org_unit_uuid, self.date)
 
 
