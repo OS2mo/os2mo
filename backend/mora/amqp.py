@@ -9,6 +9,8 @@
 import json
 import logging
 
+import pika
+
 from . import settings
 
 
@@ -16,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 if settings.ENABLE_AMQP:
-    import pika
     conn = pika.BlockingConnection(
         pika.ConnectionParameters(
             host=settings.AMQP_HOST,
