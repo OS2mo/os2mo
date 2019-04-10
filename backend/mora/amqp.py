@@ -7,8 +7,12 @@
 #
 
 import json
+import logging
 
 from . import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 if settings.ENABLE_AMQP:
@@ -31,6 +35,10 @@ def publish_message(domain, action, object_type, domain_uuid, date):
 
     For the full documentation, refer to "AMQP Messages" in the docs.
     The source for that is in ``docs/amqp.rst``.
+
+    Message publishing is a secondary task to writting to lora. We
+    should not throw a HTTPError in the case where lora writting is
+    successful, but amqp is down. Therefore, the try/except block.
     """
     if not settings.ENABLE_AMQP:
         return
@@ -41,8 +49,16 @@ def publish_message(domain, action, object_type, domain_uuid, date):
         "time": date.isoformat(),
     }
 
-    channel.publish(
-        exchange=settings.AMQP_MO_EXCHANGE,
-        routing_key=topic,
-        body=json.dumps(message),
-    )
+    try:
+        channel.publish(
+            exchange=settings.AMQP_MO_EXCHANGE,
+            routing_key=topic,
+            body=json.dumps(message),
+        )
+    except pika.AMQPError:
+        logger.error(
+            "Failed to publish message. Topic: %r, body: %r",
+            topic,
+            body,
+            exc_info=True,
+        )
