@@ -1104,10 +1104,7 @@ def terminate_org_unit(unitid):
 
     request[mapping.UUID] = unitid
     handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
-    handler.submit()
-
-    return flask.jsonify(unitid)
-    # TODO: Afkort adresser?
+    return flask.jsonify(handler.submit())
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])
