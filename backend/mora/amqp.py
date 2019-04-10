@@ -30,7 +30,7 @@ if settings.ENABLE_AMQP:
     )
 
 
-def publish_message(domain, action, object_type, domain_uuid, date):
+def publish_message(domain, object_type, action, domain_uuid, date):
     """Send a message to the MO exchange.
 
     For the full documentation, refer to "AMQP Messages" in the docs.
@@ -43,7 +43,7 @@ def publish_message(domain, action, object_type, domain_uuid, date):
     if not settings.ENABLE_AMQP:
         return
 
-    topic = "{}.{}.{}".format(domain, action, object_type)
+    topic = "{}.{}.{}".format(domain, object_type, action)
     message = {
         "uuid": domain_uuid,
         "time": date.isoformat(),

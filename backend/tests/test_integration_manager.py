@@ -106,8 +106,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.manager': 1,
-                'organisation.create.manager': 1,
+                'employee.manager.create': 1,
+                'organisation.manager.create': 1,
             },
         )
 
@@ -230,8 +230,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [],
             amqp_topics={
-                'employee.create.manager': 1,
-                'organisation.create.manager': 1,
+                'employee.manager.create': 1,
+                'organisation.manager.create': 1,
             },
         )
 
@@ -295,8 +295,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'employee.create.manager': 1,
-                'organisation.create.manager': 1,
+                'employee.manager.create': 1,
+                'organisation.manager.create': 1,
             },
         )
 
@@ -336,7 +336,7 @@ class Tests(util.LoRATestCase):
         function_id, = self.assertRequest(
             '/service/details/create',
             json=payload,
-            amqp_topics={'organisation.create.manager': 1},
+            amqp_topics={'organisation.manager.create': 1},
         )
 
         self.assertRequestResponse(
@@ -375,7 +375,7 @@ class Tests(util.LoRATestCase):
                 'user_key': mock_uuid,
                 'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
             }],
-            amqp_topics={'organisation.create.manager': 1},
+            amqp_topics={'organisation.manager.create': 1},
         )
 
     def test_edit_manager_on_unit(self):
@@ -453,8 +453,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -465,8 +465,8 @@ class Tests(util.LoRATestCase):
                 '/service/ou/{}/details/manager?validity=past'.format(unit_id),
                 [],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -474,8 +474,8 @@ class Tests(util.LoRATestCase):
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -484,8 +484,8 @@ class Tests(util.LoRATestCase):
                 '?validity=future'.format(unit_id),
                 [],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -505,8 +505,8 @@ class Tests(util.LoRATestCase):
                     },
                 }],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -521,8 +521,8 @@ class Tests(util.LoRATestCase):
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -531,8 +531,8 @@ class Tests(util.LoRATestCase):
                 '?validity=future'.format(unit_id),
                 [future],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
                 },
             )
 
@@ -554,9 +554,9 @@ class Tests(util.LoRATestCase):
                     },
                 }],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
-                    'employee.update.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -574,9 +574,9 @@ class Tests(util.LoRATestCase):
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
-                    'employee.update.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -585,9 +585,9 @@ class Tests(util.LoRATestCase):
                 '?validity=future'.format(unit_id),
                 [future, far_future],
                 amqp_topics={
-                    'organisation.create.manager': 1,
-                    'employee.create.manager': 1,
-                    'employee.update.manager': 1,
+                    'organisation.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -623,8 +623,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -736,8 +736,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -787,8 +787,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -816,8 +816,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -897,8 +897,8 @@ class Tests(util.LoRATestCase):
             '?validity=past'.format(userid),
             [],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -906,8 +906,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -940,8 +940,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -983,8 +983,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -992,8 +992,8 @@ class Tests(util.LoRATestCase):
         present = self.assertRequest(
             '/service/e/{}/details/manager'.format(userid),
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )[-1]
 
@@ -1003,8 +1003,8 @@ class Tests(util.LoRATestCase):
         future = self.assertRequest(
             '/service/e/{}/details/manager?at=2018-01-01'.format(userid),
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )[-1]
 
@@ -1059,8 +1059,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -1182,8 +1182,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -1243,8 +1243,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.create.manager': 1,
-                'employee.create.manager': 1,
+                'organisation.manager.create': 1,
+                'employee.manager.create': 1,
             },
         )
 
@@ -1286,8 +1286,8 @@ class Tests(util.LoRATestCase):
             [manager_uuid],
             json=req,
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -1533,8 +1533,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -1597,8 +1597,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -1637,8 +1637,8 @@ class Tests(util.LoRATestCase):
             [manager_uuid],
             json=req,
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -1818,8 +1818,8 @@ class Tests(util.LoRATestCase):
                 'validity': {'from': '2018-04-01', 'to': None}
             }],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -1879,8 +1879,8 @@ class Tests(util.LoRATestCase):
             [manager_uuid],
             json=req,
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2051,8 +2051,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             [],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2117,8 +2117,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2150,8 +2150,8 @@ class Tests(util.LoRATestCase):
             [manager_uuid],
             json=req,
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2497,8 +2497,8 @@ class Tests(util.LoRATestCase):
                 },
             },
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2544,8 +2544,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
             expected_mora,
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2553,8 +2553,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager?validity=past'.format(userid),
             [],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 
@@ -2562,8 +2562,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager?validity=future'.format(userid),
             [],
             amqp_topics={
-                'organisation.update.manager': 1,
-                'employee.update.manager': 1,
+                'organisation.manager.update': 1,
+                'employee.manager.update': 1,
             },
         )
 

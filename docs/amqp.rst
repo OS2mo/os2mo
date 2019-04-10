@@ -26,19 +26,19 @@ Topic
 The exchange is a topic exchange and all messages are pushed with three topics.
 Here is an example of a topic:
 
-    ``employee.create.it``
+    ``employee.it.create``
 
 The three topics can be described as:
 
     1. The domain of the object: ``employee`` or ``organisation``.
-    2. The action performed: ``create``, ``update`` or ``delete``.
-    3. Name of affected object type: ``address``, ``association``,
+    2. Name of affected object type: ``address``, ``association``,
        ``employee``, ``engagement``, ``it``, ``leave``, ``manager``,
        ``org_unit``, ``related_unit``, ``role``.
+    3. The action performed: ``create``, ``update`` or ``delete``.
 
 Or put more abstractly:
 
-    ``<domain>.<action>.<object-type>``
+    ``<domain>.<object-type>.<action>``
 
 
 Delayed queue

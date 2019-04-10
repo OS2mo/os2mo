@@ -52,8 +52,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -181,8 +181,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -191,8 +191,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -227,8 +227,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -350,8 +350,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -360,8 +360,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -476,8 +476,8 @@ class Tests(util.LoRATestCase):
                 },
             ],
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
             },
         )
 
@@ -509,10 +509,10 @@ class Tests(util.LoRATestCase):
                 }
             ],
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -544,8 +544,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -666,8 +666,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -676,8 +676,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -796,8 +796,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -918,8 +918,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -928,8 +928,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -960,8 +960,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -1082,8 +1082,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -1092,8 +1092,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -1147,8 +1147,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1298,8 +1298,8 @@ class Tests(util.LoRATestCase):
                 '/service/e/{}/details/association'.format(userid),
                 expected,
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1307,8 +1307,8 @@ class Tests(util.LoRATestCase):
                 '/service/ou/{}/details/association'.format(unitid),
                 expected,
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1318,8 +1318,8 @@ class Tests(util.LoRATestCase):
                 '?validity=past'.format(userid),
                 [],
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1328,8 +1328,8 @@ class Tests(util.LoRATestCase):
                 '?validity=past'.format(unitid),
                 [],
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1363,8 +1363,8 @@ class Tests(util.LoRATestCase):
                 '?validity=future'.format(userid),
                 expected,
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1373,8 +1373,8 @@ class Tests(util.LoRATestCase):
                 '?validity=future'.format(unitid),
                 expected,
                 amqp_topics={
-                    'employee.update.association': 1,
-                    'organisation.update.association': 1,
+                    'employee.association.update': 1,
+                    'organisation.association.update': 1,
                 },
             )
 
@@ -1432,8 +1432,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1469,8 +1469,8 @@ class Tests(util.LoRATestCase):
                 },
             }],
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1501,8 +1501,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -1545,8 +1545,8 @@ class Tests(util.LoRATestCase):
                 json=req,
                 status_code=400,
                 amqp_topics={
-                    'employee.create.association': 1,
-                    'organisation.create.association': 1,
+                    'employee.association.create': 1,
+                    'organisation.association.create': 1,
                 },
             )
 
@@ -1571,10 +1571,10 @@ class Tests(util.LoRATestCase):
             ],
             json=req,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1614,8 +1614,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1724,8 +1724,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/association'.format(userid),
             [],
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1733,8 +1733,8 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/details/association'.format(unitid),
             [],
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1767,8 +1767,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1777,8 +1777,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(unitid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1807,8 +1807,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1966,16 +1966,16 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/association'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
         self.assertRequestResponse(
             '/service/ou/{}/details/association'.format(orig_unitid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -1990,8 +1990,8 @@ class Tests(util.LoRATestCase):
             '?at=2019-06-01'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2000,8 +2000,8 @@ class Tests(util.LoRATestCase):
             '?at=2019-06-01'.format(orig_unitid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2026,8 +2026,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/association?at=2018-06-01'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2035,8 +2035,8 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/details/association?at=2018-06-01'.format(unitid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2064,8 +2064,8 @@ class Tests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2204,8 +2204,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/association'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2230,8 +2230,8 @@ class Tests(util.LoRATestCase):
             '?validity=future'.format(userid),
             expected,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2286,17 +2286,17 @@ class Tests(util.LoRATestCase):
             userid,
             json=payload,
             amqp_topics={
-                'employee.delete.association': 1,
-                'employee.delete.engagement': 1,
-                'employee.delete.manager': 1,
-                'employee.delete.address': 1,
-                'employee.delete.role': 1,
-                'employee.delete.it': 1,
-                'employee.delete.leave': 1,
-                'organisation.delete.association': 1,
-                'organisation.delete.engagement': 1,
-                'organisation.delete.manager': 1,
-                'organisation.delete.role': 1,
+                'employee.association.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.address.delete': 1,
+                'employee.role.delete': 1,
+                'employee.it.delete': 1,
+                'employee.leave.delete': 1,
+                'organisation.association.delete': 1,
+                'organisation.engagement.delete': 1,
+                'organisation.manager.delete': 1,
+                'organisation.role.delete': 1,
             },
         )
 
@@ -2431,8 +2431,8 @@ class AddressTests(util.LoRATestCase):
             associationid,
             json=payload,
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
             },
         )
 
@@ -2441,8 +2441,8 @@ class AddressTests(util.LoRATestCase):
             '?validity=past'.format(userid),
             [],
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
             },
         )
 
@@ -2451,8 +2451,8 @@ class AddressTests(util.LoRATestCase):
             '?validity=present'.format(userid),
             expected,
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
             },
         )
 
@@ -2461,8 +2461,8 @@ class AddressTests(util.LoRATestCase):
             '?validity=future'.format(userid),
             [],
             amqp_topics={
-                'employee.delete.association': 1,
-                'organisation.delete.association': 1,
+                'employee.association.delete': 1,
+                'organisation.association.delete': 1,
             },
         )
 
@@ -2511,8 +2511,8 @@ class AddressTests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -2549,8 +2549,8 @@ class AddressTests(util.LoRATestCase):
                     },
                 ],
                 amqp_topics={
-                    'employee.create.association': 1,
-                    'organisation.create.association': 1,
+                    'employee.association.create': 1,
+                    'organisation.association.create': 1,
                 },
             )
 
@@ -2575,8 +2575,8 @@ class AddressTests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.association': 1,
-                    'organisation.create.association': 1,
+                    'employee.association.create': 1,
+                    'organisation.association.create': 1,
                 },
             )
 
@@ -2594,8 +2594,8 @@ class AddressTests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.association': 2,
-                    'organisation.create.association': 2,
+                    'employee.association.create': 2,
+                    'organisation.association.create': 2,
                 },
             )
 
@@ -2616,8 +2616,8 @@ class AddressTests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.association': 3,
-                    'organisation.create.association': 3,
+                    'employee.association.create': 3,
+                    'organisation.association.create': 3,
                 },
             )
 
@@ -2740,8 +2740,8 @@ class AddressTests(util.LoRATestCase):
             newassociationid,
             json=payload,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -2772,8 +2772,8 @@ class AddressTests(util.LoRATestCase):
             status_code=400,
             json=req,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
             },
         )
 
@@ -2785,10 +2785,10 @@ class AddressTests(util.LoRATestCase):
             status_code=200,
             json=req,
             amqp_topics={
-                'employee.create.association': 1,
-                'organisation.create.association': 1,
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.create': 1,
+                'organisation.association.create': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2823,8 +2823,8 @@ class AddressTests(util.LoRATestCase):
             [association_uuid],
             json=req,
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )
 
@@ -2922,7 +2922,7 @@ class AddressTests(util.LoRATestCase):
                 },
             ],
             amqp_topics={
-                'employee.update.association': 1,
-                'organisation.update.association': 1,
+                'employee.association.update': 1,
+                'organisation.association.update': 1,
             },
         )

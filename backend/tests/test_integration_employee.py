@@ -110,7 +110,7 @@ class Tests(util.LoRATestCase):
                 'cpr_no': '0101501234',
                 'uuid': userid,
             },
-            amqp_topics={'employee.create.employee': 1},
+            amqp_topics={'employee.employee.create': 1},
         )
 
     def test_create_employee_like_import(self):
@@ -133,7 +133,7 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': userid,
             },
-            amqp_topics={'employee.create.employee': 1},
+            amqp_topics={'employee.employee.create': 1},
         )
 
         self.assertRequestResponse(
@@ -148,7 +148,7 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': userid,
             },
-            amqp_topics={'employee.create.employee': 1},
+            amqp_topics={'employee.employee.create': 1},
         )
 
     def test_create_employee_fails_on_empty_payload(self):
@@ -277,9 +277,9 @@ class Tests(util.LoRATestCase):
             employee_uuid,
             json=payload,
             amqp_topics={
-                'employee.create.engagement': 1,
-                'organisation.create.engagement': 1,
-                'employee.create.employee': 1,
+                'employee.engagement.create': 1,
+                'organisation.engagement.create': 1,
+                'employee.employee.create': 1,
             },
         )
 
@@ -297,9 +297,9 @@ class Tests(util.LoRATestCase):
                 'uuid': employee_uuid,
             },
             amqp_topics={
-                'employee.create.engagement': 1,
-                'organisation.create.engagement': 1,
-                'employee.create.employee': 1,
+                'employee.engagement.create': 1,
+                'organisation.engagement.create': 1,
+                'employee.employee.create': 1,
             },
         )
 
@@ -505,7 +505,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [userid],
             json=req,
-            amqp_topics={'employee.update.employee': 1},
+            amqp_topics={'employee.employee.update': 1},
         )
 
         # there must be a registration of the new name
@@ -621,7 +621,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [userid],
             json=req,
-            amqp_topics={'employee.update.employee': 1},
+            amqp_topics={'employee.employee.update': 1},
         )
 
         # there must be a registration of the new name
@@ -748,7 +748,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             employee_uuid,
             json=req,
-            amqp_topics={'employee.update.employee': 1},
+            amqp_topics={'employee.employee.update': 1},
         )
 
         self.assertRequestResponse(
@@ -762,7 +762,7 @@ class Tests(util.LoRATestCase):
                 'name': 'Andersine And',
                 'uuid': employee_uuid
             },
-            amqp_topics={'employee.update.employee': 1},
+            amqp_topics={'employee.employee.update': 1},
         )
 
     def test_edit_employee_in_the_past_fails(self):

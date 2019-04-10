@@ -49,8 +49,8 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'employee.create.engagement': 1,
-                'organisation.create.engagement': 1,
+                'employee.engagement.create': 1,
+                'organisation.engagement.create': 1,
             },
         )
 
@@ -178,8 +178,8 @@ class Tests(util.LoRATestCase):
                 '/service/details/create',
                 json=payload,
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -307,8 +307,8 @@ class Tests(util.LoRATestCase):
                 '/service/details/create',
                 json=payload,
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -434,8 +434,8 @@ class Tests(util.LoRATestCase):
                 '/service/details/create',
                 json=payload,
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -660,8 +660,8 @@ class Tests(util.LoRATestCase):
             [engagement_uuid],
             json=req,
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -847,8 +847,8 @@ class Tests(util.LoRATestCase):
             [engagement_uuid],
             json=req,
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -998,8 +998,8 @@ class Tests(util.LoRATestCase):
             [engagement_uuid],
             json=req,
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -1163,8 +1163,8 @@ class Tests(util.LoRATestCase):
                 },
             },
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -1183,8 +1183,8 @@ class Tests(util.LoRATestCase):
                 },
             },
             amqp_topics={
-                'employee.update.engagement': 2,
-                'organisation.update.engagement': 2,
+                'employee.engagement.update': 2,
+                'organisation.engagement.update': 2,
             },
         )
 
@@ -1334,8 +1334,8 @@ class Tests(util.LoRATestCase):
                 },
             ],
             amqp_topics={
-                'employee.update.engagement': 2,
-                'organisation.update.engagement': 2,
+                'employee.engagement.update': 2,
+                'organisation.engagement.update': 2,
             },
         )
 
@@ -1365,8 +1365,8 @@ class Tests(util.LoRATestCase):
             [engagement_uuid],
             json=req,
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -1523,8 +1523,8 @@ class Tests(util.LoRATestCase):
             [engagement_uuid],
             json=req,
             amqp_topics={
-                'employee.update.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.update': 1,
             },
         )
 
@@ -1688,17 +1688,17 @@ class Tests(util.LoRATestCase):
             userid,
             json=payload,
             amqp_topics={
-                'employee.delete.address': 1,
-                'employee.delete.association': 1,
-                'employee.delete.engagement': 1,
-                'employee.delete.it': 1,
-                'employee.delete.leave': 1,
-                'employee.delete.manager': 1,
-                'employee.delete.role': 1,
-                'organisation.delete.association': 1,
-                'organisation.delete.engagement': 1,
-                'organisation.delete.manager': 1,
-                'organisation.delete.role': 1,
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.it.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.role.delete': 1,
+                'organisation.association.delete': 1,
+                'organisation.engagement.delete': 1,
+                'organisation.manager.delete': 1,
+                'organisation.role.delete': 1,
             },
         )
 
@@ -1832,8 +1832,8 @@ class Tests(util.LoRATestCase):
                 '/service/details/create',
                 json=payload,
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -1868,8 +1868,8 @@ class Tests(util.LoRATestCase):
                     },
                 ],
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -1889,8 +1889,8 @@ class Tests(util.LoRATestCase):
                 status_code=400,
                 json=payload,
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -1906,8 +1906,8 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.engagement': 1,
-                    'organisation.create.engagement': 1,
+                    'employee.engagement.create': 1,
+                    'organisation.engagement.create': 1,
                 },
             )
 
@@ -1925,8 +1925,8 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.engagement': 2,
-                    'organisation.create.engagement': 2,
+                    'employee.engagement.create': 2,
+                    'organisation.engagement.create': 2,
                 },
             )
 
@@ -1938,8 +1938,8 @@ class Tests(util.LoRATestCase):
                     "primary": False,
                 },
                 amqp_topics={
-                    'employee.create.engagement': 3,
-                    'organisation.create.engagement': 3,
+                    'employee.engagement.create': 3,
+                    'organisation.engagement.create': 3,
                 },
             )
 
@@ -1960,8 +1960,8 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 amqp_topics={
-                    'employee.create.engagement': 4,
-                    'organisation.create.engagement': 4,
+                    'employee.engagement.create': 4,
+                    'organisation.engagement.create': 4,
                 },
             )
 
@@ -2097,8 +2097,8 @@ class Tests(util.LoRATestCase):
             newengagementid,
             json=payload,
             amqp_topics={
-                'employee.create.engagement': 1,
-                'organisation.create.engagement': 1,
+                'employee.engagement.create': 1,
+                'organisation.engagement.create': 1,
             },
         )
 
@@ -2124,8 +2124,8 @@ class Tests(util.LoRATestCase):
                 },
             },
             amqp_topics={
-                'employee.create.engagement': 1,
-                'organisation.create.engagement': 1,
+                'employee.engagement.create': 1,
+                'organisation.engagement.create': 1,
             },
         )
 
@@ -2144,9 +2144,9 @@ class Tests(util.LoRATestCase):
                 },
             },
             amqp_topics={
-                'employee.create.engagement': 1,
-                'employee.update.engagement': 1,
-                'organisation.create.engagement': 1,
-                'organisation.update.engagement': 1,
+                'employee.engagement.create': 1,
+                'employee.engagement.update': 1,
+                'organisation.engagement.create': 1,
+                'organisation.engagement.update': 1,
             },
         )

@@ -37,7 +37,7 @@ class TestHelper(util.LoRATestCase):
             '/service/ou/{}/terminate'.format(org_unit),
             org_unit,
             json=payload,
-            amqp_topics={'organisation.delete.org_unit': 1},
+            amqp_topics={'organisation.org_unit.delete': 1},
         )
 
 

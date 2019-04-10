@@ -165,10 +165,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         # both may exist, e.g. for engagement and association
         if self.employee_uuid:
-            amqp.publish_message('employee', action, self.role_type,
+            amqp.publish_message('employee', self.role_type, action,
                                  self.employee_uuid, self.date)
         if self.org_unit_uuid:
-            amqp.publish_message('organisation', action, self.role_type,
+            amqp.publish_message('organisation', self.role_type, action,
                                  self.org_unit_uuid, self.date)
 
 

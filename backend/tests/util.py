@@ -362,8 +362,8 @@ class TestCaseMixin(object):
     def setUp(self):
         self.amqp_counter = Counter()
 
-        def amqp_publish_message_mock(domain, action, object_type, __, ___):
-            topic = '{}.{}.{}'.format(domain, action, object_type)
+        def amqp_publish_message_mock(domain, object_type, action, __, ___):
+            topic = '{}.{}.{}'.format(domain, object_type, action)
             self.amqp_counter[topic] += 1
         amqp.publish_message = amqp_publish_message_mock
         super().setUp()
