@@ -414,7 +414,6 @@ def terminate_employee(employee_uuid):
                         is_end=True,
                     ),
                 },
-                'person': {'uuid': employee_uuid},
             },
             handlers.RequestType.TERMINATE,
         )
