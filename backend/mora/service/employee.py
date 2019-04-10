@@ -176,8 +176,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.payload = payload
         self.uuid = userid
 
-    def set_domain(self, request: dict):
-        super().set_domain(request)
+    def prepare_amqp_message(self, request: dict):
+        super().prepare_amqp_message(request)
         self.org_unit_uuid = None
         self.employee_uuid = self.uuid
 

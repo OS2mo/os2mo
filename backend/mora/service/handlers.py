@@ -100,17 +100,16 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         if self.request_type == RequestType.EDIT:
             request = request['data']
-        self.set_domain(request)
+        self.prepare_amqp_message(request)
 
-    def set_domain(self, request: dict):
+    def prepare_amqp_message(self, request: dict):
         """Assign ``self.org_unit_uuid``, ``self.employee_uuid`` and
         ``self.date``.
 
         May be set to ``None``, if they do not make sense in the context of
         the current request.
 
-        This is used to send amqp messages. Think of "domain" as the
-        Medarbejder/Organisation tab in the UI.
+        Think of "domain" as the Medarbejder/Organisation tab in the UI.
         """
         self.org_unit_uuid = util.get_mapping_uuid(request, mapping.ORG_UNIT)
         self.employee_uuid = util.get_mapping_uuid(request, mapping.PERSON)
@@ -256,8 +255,8 @@ class OrgFunkRequestHandler(RequestHandler):
             },
         )
 
-    def set_domain(self, request: dict):
-        super().set_domain(request)
+    def prepare_amqp_message(self, request: dict):
+        super().prepare_amqp_message(request)
         is_create = self.request_type == RequestType.CREATE
         one_uuid_is_none = (
             self.org_unit_uuid is None or self.employee_uuid is None

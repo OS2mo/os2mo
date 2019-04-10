@@ -304,8 +304,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = util.get_uuid(request)
 
-    def set_domain(self, request: dict):
-        super().set_domain(request)
+    def prepare_amqp_message(self, request: dict):
+        super().prepare_amqp_message(request)
         self.org_unit_uuid = self.uuid
         self.employee_uuid = None
 
