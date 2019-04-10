@@ -26,7 +26,7 @@ if settings.ENABLE_AMQP:
     )
     channel = conn.channel()
     channel.exchange_declare(
-        exchange=settings.AMQP_MO_EXCHANGE,
+        exchange=settings.AMQP_OS2MO_EXCHANGE,
         exchange_type="topic",
     )
 
@@ -52,7 +52,7 @@ def publish_message(service, object_type, action, service_uuid, date):
 
     try:
         channel.publish(
-            exchange=settings.AMQP_MO_EXCHANGE,
+            exchange=settings.AMQP_OS2MO_EXCHANGE,
             routing_key=topic,
             body=json.dumps(message),
         )
