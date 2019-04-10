@@ -65,7 +65,7 @@ QUERY_EXPORT_DIR = ''
 
 ENABLE_AMQP = False
 AMQP_MO_EXCHANGE = 'moq'
-AMQP_HOST = '172.16.30.65'
+AMQP_HOST = 'localhost'
 AMQP_PORT = 5672
 
 _util.update_config(globals(), CONFIG_FILE)
