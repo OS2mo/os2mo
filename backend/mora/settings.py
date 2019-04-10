@@ -64,7 +64,7 @@ USER_SETTINGS = {
 QUERY_EXPORT_DIR = ''
 
 ENABLE_AMQP = False
-AMQP_MO_EXCHANGE = 'moq'
+AMQP_OS2MO_EXCHANGE = 'os2mo_queue'
 AMQP_HOST = 'localhost'
 AMQP_PORT = 5672
 

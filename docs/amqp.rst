@@ -88,8 +88,8 @@ Messages are **disabled by default**.
 
 To enable AMQP, set ``ENABLE_AMQP`` to ``True``.
 
-The default exchange is ``moq`` can be configured by changing
-``AMQP_MO_EXCHANGE``.
+The default exchange is ``os2mo_queue`` can be configured by changing
+``AMQP_OS2MO_EXCHANGE``.
 
 Host and port are set to ``localhost:5672`` and can be configured with
 ``AMQP_HOST`` and ``AMQP_PORT`` respectively.
