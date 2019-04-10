@@ -278,7 +278,7 @@ class Tests(util.LoRATestCase):
             json=payload,
             amqp_topics={
                 'employee.engagement.create': 1,
-                'organisation.engagement.create': 1,
+                'org_unit.engagement.create': 1,
                 'employee.employee.create': 1,
             },
         )
@@ -298,7 +298,7 @@ class Tests(util.LoRATestCase):
             },
             amqp_topics={
                 'employee.engagement.create': 1,
-                'organisation.engagement.create': 1,
+                'org_unit.engagement.create': 1,
                 'employee.employee.create': 1,
             },
         )

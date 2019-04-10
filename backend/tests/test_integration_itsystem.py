@@ -512,19 +512,19 @@ class Writing(util.LoRATestCase):
                     }
                 },
             ],
-            amqp_topics={'organisation.it.create': 1},
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [],
-            amqp_topics={'organisation.it.create': 1},
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [],
-            amqp_topics={'organisation.it.create': 1},
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
@@ -557,7 +557,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
-            amqp_topics={'organisation.it.create': 1},
+            amqp_topics={'org_unit.it.create': 1},
         )
 
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
@@ -615,7 +615,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
-            amqp_topics={'organisation.it.update': 1},
+            amqp_topics={'org_unit.it.update': 1},
         )
 
         updated = copy.deepcopy(original)
@@ -640,19 +640,19 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [original],
-            amqp_topics={'organisation.it.update': 1},
+            amqp_topics={'org_unit.it.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [updated],
-            amqp_topics={'organisation.it.update': 1},
+            amqp_topics={'org_unit.it.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=future'.format(unitid),
             [],
-            amqp_topics={'organisation.it.update': 1},
+            amqp_topics={'org_unit.it.update': 1},
         )
 
     def test_edit_itsystem_in_the_past_fails(self):
@@ -751,7 +751,7 @@ class Writing(util.LoRATestCase):
             ],
             amqp_topics={
                 'employee.it.update': 1,
-                'organisation.it.update': 1,
+                'org_unit.it.update': 1,
             },
         )
 
@@ -779,7 +779,7 @@ class Writing(util.LoRATestCase):
             [],
             amqp_topics={
                 'employee.it.update': 1,
-                'organisation.it.update': 1,
+                'org_unit.it.update': 1,
             },
         )
 
@@ -788,7 +788,7 @@ class Writing(util.LoRATestCase):
             [updated],
             amqp_topics={
                 'employee.it.update': 1,
-                'organisation.it.update': 1,
+                'org_unit.it.update': 1,
             },
         )
 
@@ -797,7 +797,7 @@ class Writing(util.LoRATestCase):
             [updated],
             amqp_topics={
                 'employee.it.update': 1,
-                'organisation.it.update': 1,
+                'org_unit.it.update': 1,
             },
         )
 

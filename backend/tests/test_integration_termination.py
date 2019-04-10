@@ -74,10 +74,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -177,10 +177,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -270,10 +270,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -376,10 +376,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -399,10 +399,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -435,10 +435,10 @@ class Tests(util.LoRATestCase):
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
@@ -504,7 +504,7 @@ class Tests(util.LoRATestCase):
             },
             amqp_topics={
                 'employee.manager.delete': 1,
-                'organisation.manager.delete': 1,
+                'org_unit.manager.delete': 1,
             },
         )
 
@@ -549,7 +549,7 @@ class Tests(util.LoRATestCase):
                 current,
                 amqp_topics={
                     'employee.manager.delete': 1,
-                    'organisation.manager.delete': 1,
+                    'org_unit.manager.delete': 1,
                 },
             )
 
@@ -560,6 +560,6 @@ class Tests(util.LoRATestCase):
                 [],
                 amqp_topics={
                     'employee.manager.delete': 1,
-                    'organisation.manager.delete': 1,
+                    'org_unit.manager.delete': 1,
                 },
             )

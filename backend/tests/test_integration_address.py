@@ -352,7 +352,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
-            amqp_topics={'organisation.address.create': 1},
+            amqp_topics={'org_unit.address.create': 1},
         )
 
         expected = {
@@ -744,7 +744,7 @@ class Writing(util.LoRATestCase):
                 }],
             }],
             amqp_topics={
-                'organisation.manager.create': 1,
+                'org_unit.manager.create': 1,
                 'employee.manager.create': 1,
             },
         )
@@ -866,8 +866,8 @@ class Writing(util.LoRATestCase):
                 ]
             },
             amqp_topics={
-                'organisation.address.create': 1,
-                'organisation.org_unit.create': 1,
+                'org_unit.address.create': 1,
+                'org_unit.org_unit.create': 1,
             },
         )
 
@@ -976,7 +976,7 @@ class Writing(util.LoRATestCase):
                     },
                 }
             ],
-            amqp_topics={'organisation.address.update': 1},
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         expected = {
@@ -1109,7 +1109,7 @@ class Writing(util.LoRATestCase):
                     },
                 }
             ],
-            amqp_topics={'organisation.address.update': 1},
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")

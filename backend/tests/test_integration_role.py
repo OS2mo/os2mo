@@ -44,7 +44,7 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.role.create': 1,
+                'org_unit.role.create': 1,
                 'employee.role.create': 1,
             },
         )
@@ -158,7 +158,7 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.role.create': 1,
+                'org_unit.role.create': 1,
                 'employee.role.create': 1,
             },
         )
@@ -270,7 +270,7 @@ class Tests(util.LoRATestCase):
             '/service/details/create',
             json=payload,
             amqp_topics={
-                'organisation.role.create': 1,
+                'org_unit.role.create': 1,
                 'employee.role.create': 1,
             },
         )
@@ -385,7 +385,7 @@ class Tests(util.LoRATestCase):
             json=req,
             amqp_topics={
                 'employee.role.update': 1,
-                'organisation.role.update': 1,
+                'org_unit.role.update': 1,
             },
         )
 
@@ -530,7 +530,7 @@ class Tests(util.LoRATestCase):
             json=req,
             amqp_topics={
                 'employee.role.update': 1,
-                'organisation.role.update': 1,
+                'org_unit.role.update': 1,
             },
         )
 
@@ -647,7 +647,7 @@ class Tests(util.LoRATestCase):
             json=req,
             amqp_topics={
                 'employee.role.update': 1,
-                'organisation.role.update': 1,
+                'org_unit.role.update': 1,
             },
         )
 
@@ -767,7 +767,7 @@ class Tests(util.LoRATestCase):
             json=req,
             amqp_topics={
                 'employee.role.update': 1,
-                'organisation.role.update': 1,
+                'org_unit.role.update': 1,
             },
         )
 
@@ -908,7 +908,7 @@ class Tests(util.LoRATestCase):
             json=req,
             amqp_topics={
                 'employee.role.update': 1,
-                'organisation.role.update': 1,
+                'org_unit.role.update': 1,
             },
         )
 
@@ -1076,10 +1076,10 @@ class Tests(util.LoRATestCase):
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
                 'employee.role.delete': 1,
-                'organisation.association.delete': 1,
-                'organisation.engagement.delete': 1,
-                'organisation.manager.delete': 1,
-                'organisation.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
             },
         )
 
