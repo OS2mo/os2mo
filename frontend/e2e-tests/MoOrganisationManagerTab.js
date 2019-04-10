@@ -36,7 +36,7 @@ test('Workflow: organisation manager tab', async t => {
       /Hjørring Kommune/
     )
     .expect(Selector('.row .user-settings')
-      .find('.card-text .orgunit-user_key').innerText)
+      .find('.user-key .orgunit-user_key').innerText)
     .match(
       /Social og sundhed/
     )

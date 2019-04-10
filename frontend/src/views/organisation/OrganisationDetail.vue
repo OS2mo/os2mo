@@ -12,7 +12,7 @@
             {{$t('common.placement')}}:
             <span class="orgunit-location">{{orgUnit.location}}</span>
           </div>
-          <div class="card-text mb-3" v-if="orgUnit.user_settings.orgunit.show_user_key">
+          <div class="user-key card-text mb-3" v-if="orgUnit.user_settings.orgunit.show_user_key">
             {{$t('common.unit_number')}}:
             <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
           </div>
