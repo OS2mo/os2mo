@@ -25,8 +25,6 @@ from .. import util
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'engagement'
     function_key = mapping.ENGAGEMENT_KEY
 

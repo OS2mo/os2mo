@@ -25,8 +25,6 @@ from .. import util
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'leave'
     function_key = mapping.LEAVE_KEY
 

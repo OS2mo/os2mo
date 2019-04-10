@@ -62,10 +62,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     implements all relevant methods, i.e. they're no longer abstract.
 
     '''
-
-    __slots__ = ('request', 'request_type', 'payload',
-                 'uuid', 'org_unit_uuid', 'employee_uuid')
-
     role_type = None
     '''
     The `role_type` for corresponding details to this attribute.

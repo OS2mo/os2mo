@@ -26,8 +26,6 @@ from .. import util
 
 
 class RoleRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'role'
     function_key = mapping.ROLE_KEY
 

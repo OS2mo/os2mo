@@ -34,8 +34,6 @@ SEARCH_FIELDS = {
 
 
 class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
-
-    __slots__ = ()
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
 

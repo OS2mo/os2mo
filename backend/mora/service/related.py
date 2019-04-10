@@ -35,8 +35,6 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
     their _existence_ to allow reading.
 
     '''
-    __slots__ = ()
-
     role_type = 'related_unit'
     function_key = mapping.RELATED_UNIT_KEY
 

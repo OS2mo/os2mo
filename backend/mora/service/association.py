@@ -25,8 +25,6 @@ from .. import util
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'association'
     function_key = mapping.ASSOCIATION_KEY
 

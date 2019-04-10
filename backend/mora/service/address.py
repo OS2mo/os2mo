@@ -158,9 +158,6 @@ def address_autocomplete(orgid):
 
 
 class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
-
-    __slots__ = ()
-
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
 
