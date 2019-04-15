@@ -97,6 +97,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = user
         self.uuid = userid
+        self.employee_uuid = userid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -175,11 +176,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
-
-    def prepare_amqp_message(self, request: dict):
-        super().prepare_amqp_message(request)
-        self.org_unit_uuid = None
-        self.employee_uuid = self.uuid
+        self.employee_uuid = userid
 
     def submit(self):
         c = lora.Connector()

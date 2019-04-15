@@ -103,18 +103,36 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.prepare_amqp_message(request)
 
     def prepare_amqp_message(self, request: dict):
-        """Assign ``self.org_unit_uuid``, ``self.employee_uuid`` and
-        ``self.date``.
+        """Assign and fill ``self.amqp_messages``."""
+        self.amqp_messages = []
 
-        May be set to ``None``, if they do not make sense in the context of
-        the current request.
-        """
-        self.org_unit_uuid = util.get_mapping_uuid(request, mapping.ORG_UNIT)
-        self.employee_uuid = util.get_mapping_uuid(request, mapping.PERSON)
         try:  # date = from or to
             self.date = util.get_valid_from(request)
         except exceptions.HTTPException:
             self.date = util.get_valid_to(request)
+        action = {
+            RequestType.CREATE: "create",
+            RequestType.EDIT: "update",
+            RequestType.TERMINATE: "delete",
+        }[self.request_type]
+
+        # both may exist, e.g. for engagement and association
+        if self.employee_uuid:
+            self.amqp_messages.append((
+                'employee',
+                self.role_type,
+                action,
+                self.employee_uuid,
+                self.date,
+            ))
+        if self.org_unit_uuid:
+            self.amqp_messages.append((
+                'org_unit',
+                self.role_type,
+                action,
+                self.org_unit_uuid,
+                self.date,
+            ))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -154,19 +172,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
-        action = {
-            RequestType.CREATE: "create",
-            RequestType.EDIT: "update",
-            RequestType.TERMINATE: "delete",
-        }[self.request_type]
-
-        # both may exist, e.g. for engagement and association
-        if self.employee_uuid:
-            amqp.publish_message('employee', self.role_type, action,
-                                 self.employee_uuid, self.date)
-        if self.org_unit_uuid:
-            amqp.publish_message('org_unit', self.role_type, action,
-                                 self.org_unit_uuid, self.date)
+        for message in self.amqp_messages:
+            amqp.publish_message(*message)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -253,22 +260,12 @@ class OrgFunkRequestHandler(RequestHandler):
             },
         )
 
-    def prepare_amqp_message(self, request: dict):
-        super().prepare_amqp_message(request)
-        is_create = self.request_type == RequestType.CREATE
-        one_uuid_is_none = (
-            self.org_unit_uuid is None or self.employee_uuid is None
-        )
-        if one_uuid_is_none and not is_create:
-            # on terminate, we have to ask lora for uuids...
-            c = lora.Connector(effective_date=self.date)
-            r = c.organisationfunktion.get(self.uuid)
-            if self.employee_uuid is None:
-                self.employee_uuid = mapping.USER_FIELD.get_uuid(r)
-            if self.org_unit_uuid is None:
-                self.org_unit_uuid = (
-                    mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(r)
-                )
+        if self.employee_uuid is None:
+            self.employee_uuid = mapping.USER_FIELD.get_uuid(original)
+        if self.org_unit_uuid is None:
+            self.org_unit_uuid = (
+                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            )
 
     def submit(self) -> str:
         c = lora.Connector()

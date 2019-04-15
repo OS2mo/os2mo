@@ -507,6 +507,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -523,6 +525,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -533,6 +537,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
                 },
             )
 
@@ -556,7 +562,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
-                    'employee.manager.update': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
                 },
             )
 
@@ -576,7 +583,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
-                    'employee.manager.update': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
                 },
             )
 
@@ -587,7 +595,8 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'org_unit.manager.create': 1,
                     'employee.manager.create': 1,
-                    'employee.manager.update': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
                 },
             )
 

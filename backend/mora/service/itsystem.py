@@ -87,6 +87,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = func
         self.uuid = func_id
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -170,6 +172,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
+        self.org_unit_uuid = (
+            mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+        )
+        self.employee_uuid = (
+            util.get_mapping_uuid(data, mapping.PERSON) or
+            mapping.USER_FIELD.get_uuid(original)
+        )
 
 
 @blueprint.route('/o/<uuid:orgid>/it/')
