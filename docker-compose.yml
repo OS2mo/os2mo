@@ -4,5 +4,32 @@ services:
 
   mo:
     build: .
+    # The `volumes` and `command` mounts the backend directory in the docker
+    # container and overwrites the CMD from Dockerfile. With this gunicorn
+    # reloads on file changes. This is very useful when developing the backend.
+    volumes:
+      - ./backend:/code/backend
+    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
     ports:
-      - "5001:5000"
+      - "5000:5000"
+    environment:
+      - OS2MO_LORA_URL=http://mox:5000/
+      - OS2MO_DUMMY_MODE=True
+    depends_on:
+      - mox
+
+  mox:
+    image: magentalabs/mox:dev-latest
+    env_file:
+      - db.env
+    environment:
+      - DB_HOST=mox-db
+    ports:
+      - "8080:5000"
+    depends_on:
+      - mox-db
+
+  mox-db:
+    image: postgres:9.6
+    env_file:
+      - db.env
