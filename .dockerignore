@@ -1,0 +1,15 @@
+*.DS_Store
+.dockerignore
+.editorconfig
+.git
+.github
+.gitignore
+.readthedocs.yml
+Dockerfile
+Dockerfile.test
+Jenkinsfile
+db.env
+docker-compose.yml
+docs
+setup
+*/venv
