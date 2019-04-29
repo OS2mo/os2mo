@@ -729,6 +729,9 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
         for start, end, effect in c.organisationfunktion.get_effects(
             funcobj,
             {
+                'attributter': (
+                    'organisationfunktionudvidelser',
+                ),
                 'relationer': (
                     'opgaver',
                     'adresser',
@@ -744,7 +747,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
             {
                 'attributter': (
                     'organisationfunktionegenskaber',
-                    'organisationfunktionudvidelser',
                 ),
                 'relationer': (
                     'tilhoerer',
