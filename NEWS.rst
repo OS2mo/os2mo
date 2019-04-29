@@ -5,7 +5,15 @@ New features
 ------------
 
 * #28323: Added 'fraction' field to engagements
+* #28563: Added feature for generating 'thin' responses when reading details,
+  where only the UUIDs of relations are returned as opposed to deep lookups
+  being performed.
 
+Bug fixes
+---------
+
+* #28563: Fixed bug where attribute extensions were not used for chunking on
+  reads
 
 Version 0.16.0, 2019-03-22
 ==========================

@@ -108,7 +108,8 @@ def list_details(type, id):
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager')
+@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
+                   'only_primary_uuid')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
@@ -139,6 +140,13 @@ def get_detail(type, id, function):
         values.
     :queryparam int start: Index of first item for paging.
     :queryparam int limit: Maximum items.
+    :queryparam bool inherit_manager: Whether inheritance of managers should
+        be performed. E.g. if a manager is not found for a given unit, the
+        tree is searched upwards until a manager is found.
+    :queryparam bool only_primary_uuid: If the response should only contain
+        the UUIDs of the various related persons, org units and classes, as
+        opposed to a full lookup containing the relevant names etc. This can
+        lead to increased performance in some cases.
 
     :param type: 'ou' for querying a unit; 'e' for querying an
         employee.
