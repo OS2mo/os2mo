@@ -5,6 +5,7 @@ New features
 ------------
 
 * #28323: Added 'fraction' field to engagements
+* #26857: Removed manager address for create employee and employee and organisation tabs.
 
 
 Version 0.16.0, 2019-03-22
