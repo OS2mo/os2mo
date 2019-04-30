@@ -4,6 +4,7 @@ Version 0.17.0, in development
 New features
 ------------
 
+* #25411 organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
 * #28563: Added feature for generating 'thin' responses when reading details,
   where only the UUIDs of relations are returned as opposed to deep lookups
@@ -21,7 +22,6 @@ Version 0.16.0, 2019-03-22
 New features
 ------------
 
-* #25411 organisation units can show managers by inheritance from parent
 * #27687, #27777: The various ``organisationfunktion`` relations now support both
   ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using
