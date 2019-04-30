@@ -49,6 +49,7 @@ CPR_NO = 'cpr_no'
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
+FRACTION = 'fraction'
 
 # Association
 ASSOCIATION_KEY = 'Tilknytning'

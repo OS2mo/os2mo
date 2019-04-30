@@ -1,3 +1,21 @@
+Version 0.17.0, 2019-04-30
+==========================
+
+New features
+------------
+
+* #25411 organisation units can show managers by inheritance from parent
+* #28323: Added 'fraction' field to engagements
+* #28563: Added feature for generating 'thin' responses when reading details,
+  where only the UUIDs of relations are returned as opposed to deep lookups
+  being performed.
+
+Bug fixes
+---------
+
+* #28563: Fixed bug where attribute extensions were not used for chunking on
+  reads
+
 Version 0.16.0, 2019-03-22
 ==========================
 
@@ -24,6 +42,8 @@ Internal changes
 
 * #27526: TestCafe test for employee association tab for create, edit and terminate popups.
 * #27527: TestCafe test for organisation manager tab for create, edit and terminate popups.
+* #27959: Documentation added on how to set up a SAML SSO instance for
+  testing and development.
 
 
 Version 0.15.1, 2019-03-19

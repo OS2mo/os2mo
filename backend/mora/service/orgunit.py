@@ -326,6 +326,12 @@ def get_one_orgunit(c, unitid, unit=None,
 
     '''
 
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    if only_primary_uuid:
+        return {
+            mapping.UUID: unitid
+        }
+
     if not unit:
         unit = c.organisationenhed.get(unitid)
 

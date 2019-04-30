@@ -69,6 +69,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
             primær=primary,
+            fraktion=req.get(mapping.FRACTION),
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
@@ -155,18 +156,29 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 {'uuid': org_unit_uuid},
             ))
 
-        if mapping.PRIMARY in data:
-            primary = util.checked_get(data, mapping.PRIMARY, False)
+        # Attribute extensions
+        new_extensions = {}
 
+        if mapping.PRIMARY in data:
+            primary = util.checked_get(data, mapping.PRIMARY, default=False)
+
+            new_extensions['primær'] = primary
+        else:
+            primary = exts.get('primær')
+
+        if mapping.FRACTION in data:
+            fraction = util.checked_get(data, mapping.FRACTION, default=100)
+
+            new_extensions['fraktion'] = fraction
+
+        if new_extensions:
             update_fields.append((
                 mapping.ORG_FUNK_UDVIDELSER_FIELD,
                 {
                     **exts,
-                    'primær': primary,
+                    **new_extensions
                 },
             ))
-        else:
-            primary = exts.get('primær')
 
         if primary:
             validator.does_employee_have_existing_primary_function(

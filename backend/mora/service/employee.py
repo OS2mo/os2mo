@@ -192,6 +192,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    if only_primary_uuid:
+        return {
+            mapping.UUID: userid
+        }
+
     if not user:
         user = c.bruger.get(userid)
 
