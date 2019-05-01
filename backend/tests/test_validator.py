@@ -93,8 +93,8 @@ class TestIsDateRangeValid(util.TestCase):
 
         # multiple sequences, but valid
         check(True, [
-            ('01-01-1700', '01-01-1900', 'Inaktiv'),
-            ('01-01-1900', '01-01-2100', 'Aktiv'),
+            ('01-01-1940', '01-01-1950', 'Inaktiv'),
+            ('01-01-1950', '01-01-2100', 'Aktiv'),
             ('01-01-2100', '01-01-2300', 'Aktiv'),
             ('01-01-2300', '01-01-2500', 'Aktiv'),
             ('01-01-2500', '01-01-2700', 'Aktiv'),
@@ -136,7 +136,7 @@ class TestIsDateRangeValid(util.TestCase):
 
         # ends too soon!
         check(False, [
-            ('01-01-1500', '01-01-2500', 'Aktiv'),
+            ('01-01-1930', '01-01-2500', 'Aktiv'),
         ])
 
 
