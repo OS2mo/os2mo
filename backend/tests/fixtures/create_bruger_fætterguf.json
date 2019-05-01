@@ -11,6 +11,18 @@
                     "to_included": false
                 }
             }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Fætter",
+                "efternavn": "Guf",
+                "virkning": {
+                    "from": "1938-05-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "2020-01-01T00:00:00+01:00",
+                    "to_included": false
+                }
+            }
         ]
     },
     "relationer": {

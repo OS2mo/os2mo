@@ -55,6 +55,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
     def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
+        # 28804 >
+        givenname = name.rsplit(" ", maxsplit=1)[0] 
+        givenname = util.checked_get(req, mapping.GIVENNAME, givenname)
+        surname = name[len(givenname):].strip()
+        surname = util.checked_get(req, mapping.SURNAME, surname)
+        # 28804 <
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
@@ -81,6 +87,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             valid_from=valid_from,
             valid_to=valid_to,
             brugernavn=name,
+            fornavn=givenname,
+            efternavn=surname,
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
@@ -205,9 +213,15 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
             return None
 
     props = user['attributter']['brugeregenskaber'][0]
+    extensions = user['attributter']['brugerudvidelser'][0]
 
     r = {
-        mapping.NAME: props['brugernavn'],
+        # mapping.NAME: props['brugernavn'],
+        mapping.GIVENNAME: extensions['fornavn'],
+        mapping.SURNAME: extensions['efternavn'],
+        mapping.NAME: " ".join((
+            extensions['fornavn'], extensions['efternavn']
+        )),
         mapping.UUID: userid,
     }
 

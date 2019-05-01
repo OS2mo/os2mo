@@ -461,6 +461,8 @@ def create_bruger_payload(
     valid_from: str,
     valid_to: str,
     brugernavn: str,
+    fornavn: str,
+    efternavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
@@ -505,6 +507,18 @@ def create_bruger_payload(
             {
                 'urn': 'urn:dk:cpr:person:{}'.format(cpr),
             },
+        ]
+
+    extensions = {}
+    if fornavn is not None:
+        extensions['fornavn'] = fornavn
+
+    if efternavn is not None:
+        extensions['efternavn'] = efternavn
+
+    if extensions:
+        user['attributter']['brugerudvidelser'] = [
+            extensions
         ]
 
     user = _set_virkning(user, virkning)

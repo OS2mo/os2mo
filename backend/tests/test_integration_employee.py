@@ -25,6 +25,8 @@ class Tests(util.LoRATestCase):
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
 
         payload = {
+            "givenname": "Torkild",
+            "surname": "Testperson",
             "name": "Torkild Testperson",
             "cpr_no": "0101501234",
             "org": {
@@ -52,7 +54,20 @@ class Tests(util.LoRATestCase):
                         "brugernavn": "Torkild Testperson",
                         "integrationsdata": "{}"
                     }
-                ]
+                ],
+                'brugerudvidelser': [
+                    {
+                        'efternavn': 'Testperson',
+                        'fornavn': 'Torkild',
+                        'virkning': {
+                            'from': '1950-01-01 '
+                            '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
+               ]
             },
             "relationer": {
                 "tilhoerer": [
@@ -100,6 +115,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
+                'surname': 'Testperson',
+                'givenname': 'Torkild',
                 'name': 'Torkild Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -125,8 +142,10 @@ class Tests(util.LoRATestCase):
             '/service/e/create',
             userid,
             json={
-                'name': 'Teodor Testfætter',
+                'givenname': 'Teodor',
+                'surname': 'Testfætter',
                 'user_key': 'testfætter',
+                'name': 'Teodor Testfætter',
                 'org': {
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                 },
@@ -137,6 +156,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
+                'givenname': 'Teodor',
+                'surname': 'Testfætter',
                 'name': 'Teodor Testfætter',
                 'user_key': 'testfætter',
                 'org': {
@@ -193,6 +214,8 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         payload = {
+            "givenname": "Torkild",
+            "surname": "Testperson",
             "name": "Torkild Testperson",
             "cpr_no": "0906340000",
             "org": {
@@ -224,6 +247,8 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Torkild Testperson",
+            "givenname": "Torkild",
+            "surname": "Testperson",
             "cpr_no": "0906340000",
             "org": {
                 'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
@@ -275,6 +300,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(employee_uuid),
             {
+                'surname': 'Testperson',
+                'givenname': 'Torkild',
                 'name': 'Torkild Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -698,6 +725,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/integration-data'.format(employee_uuid),
             {
                 'integration_data': {"von-and-løn-id": "2468"},
+                'surname': 'And',
+                'givenname': 'Andersine',
                 'name': 'Andersine And',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
@@ -740,6 +769,8 @@ class Tests(util.LoRATestCase):
                     'bjørnebanden-hjælper-id': 'sorte-slyngel',
                     'von-and-løn-id': '2468'
                 },
+                'surname': 'And',
+                'givenname': 'Andersine',
                 'name': 'Andersine And',
                 'uuid': employee_uuid
             }

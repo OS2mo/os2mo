@@ -11,6 +11,18 @@
                     "to_included": false
                 }
             }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Fedtmule",
+                "efternavn": "",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
         ]
     },
     "relationer": {
