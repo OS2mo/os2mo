@@ -35,9 +35,9 @@ const actions = {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
     let atDate = payload.atDate || new Date()
-    let inherit_manager_flag = ""
+    let inherit_manager_flag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    if (payload.detail === "manager") inherit_manager_flag = "&inherit_manager=1"
+    if (payload.detail === 'manager') inherit_manager_flag = '&inherit_manager=1'
     return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inherit_manager_flag}`)
       .then(response => {
         let content = {

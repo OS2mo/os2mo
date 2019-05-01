@@ -6,6 +6,7 @@ New features
 
 * #25411 organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
+* #26857: Removed manager address for create employee and employee and organisation tabs.
 * #28563: Added feature for generating 'thin' responses when reading details,
   where only the UUIDs of relations are returned as opposed to deep lookups
   being performed.
