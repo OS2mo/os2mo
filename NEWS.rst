@@ -1,12 +1,21 @@
-Version 0.17.0, in development
-==============================
+Version 0.17.0, 2019-04-30
+==========================
 
 New features
 ------------
 
+* #25411 organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
 * #26857: Removed manager address for create employee and employee and organisation tabs.
+* #28563: Added feature for generating 'thin' responses when reading details,
+  where only the UUIDs of relations are returned as opposed to deep lookups
+  being performed.
 
+Bug fixes
+---------
+
+* #28563: Fixed bug where attribute extensions were not used for chunking on
+  reads
 
 Version 0.16.0, 2019-03-22
 ==========================
@@ -14,7 +23,6 @@ Version 0.16.0, 2019-03-22
 New features
 ------------
 
-* #25411 organisation units can show managers by inheritance from parent
 * #27687, #27777: The various ``organisationfunktion`` relations now support both
   ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using
