@@ -51,7 +51,6 @@ class Tests(util.LoRATestCase):
                             "from": "1950-01-01 00:00:00+01"
                         },
                         "brugervendtnoegle": mock_uuid,
-                        "brugernavn": "Torkild Testperson",
                         "integrationsdata": "{}"
                     }
                 ],
@@ -67,7 +66,7 @@ class Tests(util.LoRATestCase):
                             'to_included': False
                         }
                     }
-               ]
+                ]
             },
             "relationer": {
                 "tilhoerer": [
@@ -177,11 +176,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/create',
             {
-                'description': 'Missing name',
+                'description': 'Missing required value.',
                 'error': True,
                 'error_key': 'V_MISSING_REQUIRED_VALUE',
-                'key': 'name',
-                'obj': {},
+                'name': 'Missing name or givenname or surname',
                 'status': 400,
             },
             json=payload,

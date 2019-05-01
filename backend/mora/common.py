@@ -460,7 +460,6 @@ def create_organisationsenhed_payload(
 def create_bruger_payload(
     valid_from: str,
     valid_to: str,
-    brugernavn: str,
     fornavn: str,
     efternavn: str,
     brugervendtnoegle: str,
@@ -475,7 +474,7 @@ def create_bruger_payload(
         'attributter': {
             'brugeregenskaber': [
                 {
-                    'brugernavn': brugernavn,
+                    'brugernavn': '', # MO uses the extended values for names
                     'brugervendtnoegle': brugervendtnoegle,
                 },
             ],

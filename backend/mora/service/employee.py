@@ -54,13 +54,25 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     def prepare_create(self, req):
-        name = util.checked_get(req, mapping.NAME, "", required=True)
-        # 28804 >
-        givenname = name.rsplit(" ", maxsplit=1)[0] 
-        givenname = util.checked_get(req, mapping.GIVENNAME, givenname)
-        surname = name[len(givenname):].strip()
-        surname = util.checked_get(req, mapping.SURNAME, surname)
-        # 28804 <
+        # TODO: As of now, a supplied name will override givenname and surname.
+        name = util.checked_get(req, mapping.NAME, "", required=False)
+
+        if name != "":
+            givenname = name.rsplit(" ", maxsplit=1)[0]
+            givenname = util.checked_get(req, mapping.GIVENNAME, givenname)
+            surname = name[len(givenname):].strip()
+            surname = util.checked_get(req, mapping.SURNAME, surname)
+        else:
+            givenname = util.checked_get(req, mapping.GIVENNAME, "",
+                                         required=False)
+            surname = util.checked_get(req, mapping.SURNAME, "",
+                                       required=False)
+
+        if name == '' and givenname == '' and surname == '':
+            raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                name='Missing name or givenname or surname'
+            )
+
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
@@ -86,7 +98,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         user = common.create_bruger_payload(
             valid_from=valid_from,
             valid_to=valid_to,
-            brugernavn=name,
             fornavn=givenname,
             efternavn=surname,
             brugervendtnoegle=bvn,
