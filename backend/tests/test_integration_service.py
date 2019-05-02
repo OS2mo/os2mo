@@ -488,8 +488,8 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_user_key': False,
-                                              'show_location': True,
+                'user_settings': {'orgunit': {'show_location': True,
+                                              'show_key': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'validity': {
@@ -581,7 +581,7 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {'show_user_key': False,
+                'user_settings': {'orgunit': {'show_key': True,
                                               'show_location': True,
                                               'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -652,8 +652,12 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
             {'items': [{'name': 'Anders And',
+                        'givenname': 'Anders',
+                        'surname': 'And',
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-                       {'name': 'Fedtmule',
+                       {'name': 'Fedtmule Hest',
+                        'givenname': 'Fedtmule',
+                        'surname': 'Hest',
                         'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'}],
              'offset': 0,
              'total': 2}
@@ -897,6 +901,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'engagement_type': {
@@ -978,6 +984,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'role_type': {
@@ -1048,6 +1056,8 @@ class Tests(util.LoRATestCase):
             {
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'leave_type': {
@@ -1139,6 +1149,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'org_unit': {
@@ -1471,6 +1483,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
