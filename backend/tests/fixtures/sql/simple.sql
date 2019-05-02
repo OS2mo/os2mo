@@ -112,8 +112,8 @@ COPY actual_state.bruger (id) FROM stdin;
 --
 
 COPY actual_state.bruger_registrering (id, bruger_id, registrering) FROM stdin;
-1	53181ed2-f1de-4c4a-a8fd-ab358c2c454a	("[""2019-03-18 17:51:00.989699+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
-2	6ee24785-ee9a-4502-81c2-7697009c9053	("[""2019-03-18 17:51:01.014555+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+1	53181ed2-f1de-4c4a-a8fd-ab358c2c454a	("[""1934-06-09 00:00:00+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
+2	6ee24785-ee9a-4502-81c2-7697009c9053	("[""1932-05-12 00:00:00+01"",infinity)",Importeret,42c432e8-9c4a-11e6-9f62-873cf34a735f,"")
 \.
 
 
@@ -132,6 +132,22 @@ COPY actual_state.bruger_attr_egenskaber (id, brugervendtnoegle, brugernavn, bru
 --
 
 SELECT pg_catalog.setval('actual_state.bruger_attr_egenskaber_id_seq', 2, true);
+
+--
+-- Data for Name: bruger_attr_udvidelser; Type: TABLE DATA; Schema: actual_state; Owner: mox
+--
+
+COPY actual_state.bruger_attr_udvidelser (id, fornavn, efternavn, virkning, bruger_registrering_id) FROM stdin;
+1	Anders	And	("[""1934-06-09 00:00:00+01"",infinity)",,,"")	1
+2	Fedtmule	Hest	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
+\.
+
+
+--
+-- Name: bruger_attr_udvidelser_id_seq; Type: SEQUENCE SET; Schema: actual_state; Owner: mox
+--
+
+SELECT pg_catalog.setval('actual_state.bruger_attr_udvidelser_id_seq', 2, true);
 
 
 --
