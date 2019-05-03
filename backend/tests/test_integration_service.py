@@ -720,14 +720,20 @@ class Tests(util.LoRATestCase):
                     [
                         {
                             'name': 'Anders And',
+                            'givenname': 'Anders',
+                            'surname': 'And',
                             'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                         },
                         {
                             'name': 'Fedtmule',
+                            'givenname': 'Fedtmule',
+                            'surname': 'Hest',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
                         },
                         {
                             'name': 'Andersine And',
+                            'givenname': 'Andersine',
+                            'surname': 'And',
                             'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
                         }
                     ],
