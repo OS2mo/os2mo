@@ -1166,6 +1166,8 @@ class Reading(util.LoRATestCase):
                 'user_key': 'bruger@example.comw',
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 },
                 'uuid': functionid,
@@ -1195,7 +1197,9 @@ class Reading(util.LoRATestCase):
                         'value': 'goofy@example.com',
                         'user_key': 'bruger@example.comw',
                         'person': {
-                            'name': 'Fedtmule',
+                            'name': 'Fedtmule Hest',
+                            'givenname': 'Fedtmule',
+                            'surname': 'Hest',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
