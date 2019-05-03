@@ -474,7 +474,7 @@ def create_bruger_payload(
         'attributter': {
             'brugeregenskaber': [
                 {
-                    'brugernavn': '', # MO uses the extended values for names
+                    'brugernavn': '',  # MO uses the extended values for names
                     'brugervendtnoegle': brugervendtnoegle,
                 },
             ],
