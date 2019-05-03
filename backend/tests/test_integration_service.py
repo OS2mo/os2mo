@@ -667,6 +667,8 @@ class Tests(util.LoRATestCase):
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/',
             {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 'user_key': 'andersand',
                 'cpr_no': '0906340000',
@@ -681,7 +683,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/',
             {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hest',
+                'givenname': 'Fedtmule',
+                'surname': 'Hest',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 'user_key': 'fedtmule',
                 'cpr_no': '1205320000',
@@ -1447,6 +1451,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             },
             'uuid': 'd000591f-8705-4324-897a-075e3623f37b',

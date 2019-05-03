@@ -690,7 +690,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
-                'user_settings': {'orgunit': {'show_user_key': False,
+                'user_settings': {'orgunit': {'show_key': True,
                                               'show_location': True,
                                               'show_roles': True}},
                 "parent": None,
@@ -779,7 +779,7 @@ class Tests(util.LoRATestCase):
                                 "orgunit": {
                                     "show_location": True,
                                     "show_roles": True,
-                                    "show_user_key": False
+                                    "show_key": True
                                 }
                             },
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -793,7 +793,7 @@ class Tests(util.LoRATestCase):
                             "orgunit": {
                                 "show_location": True,
                                 "show_roles": True,
-                                "show_user_key": False
+                                "show_key": True
                             }
                         },
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
@@ -807,7 +807,7 @@ class Tests(util.LoRATestCase):
                         "orgunit": {
                             "show_location": True,
                             "show_roles": True,
-                            "show_user_key": False
+                            "show_key": True
                         }
                     },
                     "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
@@ -821,7 +821,7 @@ class Tests(util.LoRATestCase):
                     "orgunit": {
                         "show_location": True,
                         "show_roles": True,
-                        "show_user_key": False
+                        "show_key": True
                     }
                 },
                 "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
