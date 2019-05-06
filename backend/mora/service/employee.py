@@ -349,7 +349,9 @@ def get_employee(id):
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
 
-    :>json string name: Human-readable name.
+    :<json string name: Full name of the employee (concatenation of givenname and surname).
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -369,6 +371,8 @@ def get_employee(id):
      {
        "cpr_no": "0708522600",
        "name": "Bente Pedersen",
+       "givenname": "Bente",
+       "surname": "Pedersen",
        "org": {
          "name": "Hj\u00f8rring Kommune",
          "user_key": "Hj\u00f8rring Kommune",
@@ -532,13 +536,18 @@ def create_employee():
 
     **Example Request**:
 
-    :<json string name: The name of the employee
+    :<json string name: Name of the employee.
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
+
+    Only the full name, or givenname/surname should be given, not both.
+    If only the full name is supplied, the name will be split on the last space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.
