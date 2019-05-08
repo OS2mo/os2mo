@@ -11,7 +11,7 @@ Om OS2MO 2.0
 
 
 Introduktion
-------------
+============
 
 MORa er en webapplikation til håndtering af et medarbejder- og
 organisationshierarki. Systemet sætter brugerne i stand til at navigere rundt i
@@ -28,7 +28,7 @@ Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
    :width: 100%
 
 Opbygning
----------
+=========
 
 Den modulære opbygning af MORa ses på nedenstående figur.
 
@@ -40,15 +40,17 @@ backend. De enkelte moduler kan opfattes som elementer i
 `MVC-modellen <https://en.wikipedia.org/wiki/
 Model%E2%80%93view%E2%80%93controller>`_:
 
+--------------------
 MO (Frontend / View)
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 MOs frontend er skrevet i Javascript frameworket
 `Vue.js`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
+----------------------
 LoRa (Backend / Model)
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
@@ -57,8 +59,9 @@ LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
 MO betjener sig af udvidelser af datamodellen i LoRa. Før Lora kan anvendes sammen
 med MO skal disse tilretninger afspejles i databasen.
 
+--------------------------------------
 MO-tilretninger af datamodellen i LoRa
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 For at få datamodellen i LoRa til at afspejle datamodellen i MO skal
 LoRAs konfiguration justeres så den anvender en anden
@@ -73,9 +76,9 @@ sat under kørslen.
 Uden denne indstilling vil eksempelvis kaldenavn og primære
 engagementer ikke kunne lagres.
 
-
+------------------------
 MO (Middleend / Control)
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 MOs middleend fungerer som en bro mellem frontenden og backenden, og den har
 til opgave at oversætte de data, der sendes mellem frontenden og backenden til
 passende JSON formater, når der udføres læse- og skriveoperationer fra og
@@ -87,8 +90,10 @@ til det JSON-format, som frontenden forventer. Tilsvarende sender frontenden
 ved skriveoperationer JSON i et format, som skal oversættes af middleenden til
 det JSON-format, som kræves af LoRa's REST API. Middlend kan opfattes som *Control* i MVC-modellen.
 
+
+
 Opsætning af udviklingsmiljø
-----------------------------
+============================
 
 .. tip::
 
@@ -101,8 +106,9 @@ Opsætning af udviklingsmiljø
       docker-compose up -d --build
 
 
+------
 Docker
-~~~~~~
+------
 
 Repositoriet inderholder en :file:`Dockerfile`. Det er den anbefalede måde at
 installere OS2MO i produktion og som udvikler.
@@ -141,8 +147,9 @@ Hvis serveren starter rigtigt op skulle du kunne tilgå den på fra din host
 maskine på ``http://localhost:5000``.
 
 
+--------------
 Docker-compose
-~~~~~~~~~~~~~~
+--------------
 
 Du kan bruge ``docker-compose`` til at starte OS2MO, LoRa og relaterede services
 op.
@@ -172,8 +179,9 @@ stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
 , kør ``docker-compose down``.
 
 
+---
 LXC
-~~~
+---
 
 I princippet er det muligt at foretage videreudvikling af MORa uden at have
 en kørende instans af LoRa (idet man blot skriver tests til den udviklede
@@ -256,8 +264,9 @@ port 5000). Applikationen kan således tilgås på *http://localhost:5000*.
 Bemærk dog, at der først skal uploades data til LoRa - til dette formål
 kan man med fordel anvende ``flask.sh``.
 
+--------------------------------------
 Generel brug af kommandolinieværktøjet
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 Scriptet ``flask.sh`` kan bruges til en række forskellige operationer. De
 mulige funktioner ses ved blot at køre scriptet fra kommandolinjen
@@ -303,8 +312,9 @@ Som vil angive, hvad den korrekte syntaks er::
 For yderligere detaljer om brugen af ``flask.sh`` henvises til
 kildekoden og den indbyggede hjælp.
 
+-------------
 Konfiguration
-~~~~~~~~~~~~~
+-------------
 
 Indstillinger gemmes i ``setup/mora.json``. Den vigtiste er
 ``LORA_URL``; denne kan også sættes som en miljøvariabel::
@@ -316,7 +326,8 @@ Alternativt kan stien til konfigurationsfilen angives med miljøvariablen
 
 
 Testsuiten
------------
+==========
+
 Der arbejdes i proktet med tre typer af tests:
 
 1. Unit tests
@@ -336,7 +347,7 @@ Testsuiten kan køres med kommandoen::
   $ ./flask.sh test
 
 End-to-end tests
-----------------
+================
 
 Vores end-to-end tests køres typisk som en del af testsuiten. For at
 køre den direkte mod en udviklingsmaskine anvendes eksempelvis::
@@ -345,7 +356,7 @@ køre den direkte mod en udviklingsmaskine anvendes eksempelvis::
   BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
 
 Dokumentation
--------------
+=============
 
 Det er muligt at autogenerere dokumentation ud fra doc-strings i kildekoden.
 Til dette anvendes `Sphinx <http://www.sphinx-doc.org/en/stable/index.html>`_.
@@ -357,12 +368,12 @@ Dokumentation kan nu findes ved at åbne filen
 ``/sti/til/mora/docs/out/index.html``.
 
 Kodestandarder
---------------
+==============
 
 Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
 Licens og Copyright
--------------------
+===================
 
 Copyright (c) 2017-2019, Magenta ApS.
 
