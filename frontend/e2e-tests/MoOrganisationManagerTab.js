@@ -30,17 +30,6 @@ test('Workflow: organisation manager tab', async t => {
   let today = moment()
 
   await t
-    .expect(Selector('.row .user-settings')
-      .find('.card-text .orgunit-location').innerText)
-    .match(
-      /Hjørring Kommune/
-    )
-    .expect(Selector('.row .user-settings')
-      .find('.user-key .orgunit-user_key').innerText)
-    .match(
-      /Social og sundhed/
-    )
-
     .click(VueSelector('organisation-detail-tabs bTabButtonHelper').withText('Ledere'))
 
 
