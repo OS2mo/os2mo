@@ -147,6 +147,19 @@ Hvis serveren starter rigtigt op skulle du kunne tilgå den på fra din host
 maskine på ``http://localhost:5000``.
 
 
+Brugerrettigheder
+-----------------
+
+:file:`Dockerfile` laver en ``mora`` brugerkonto der kører applikationen.
+Brugerkonto ejer alle filer lavet af applikationen. Brugerkontoen har ``UID`` og
+``GID`` på 72020.
+
+Hvis du vil kører under en anden ``UID/GID``, kan du specificere det med
+``--user=uid:gid`` `flaget
+<https://docs.docker.com/engine/reference/run/#user>`_ til ``docker run`` eller
+`i docker-compose
+<https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir>`_.
+
 --------------
 Docker-compose
 --------------

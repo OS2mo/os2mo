@@ -38,12 +38,16 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /code/
 COPY sys-requirements.txt sys-requirements.txt
-RUN set -ex \\
+RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
-  # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999. The link between
-  # os2mo and this UID/GID is registered in Magentas internal ansible repo.
-  && groupadd -g 1141 -r mora\
-  && useradd -u 1141 --no-log-init -r -g mora mora \
+  # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999, but also above the
+  # automatic ranges of UID_MAX/GID_MAX used by useradd/groupadd. See
+  # `/etc/login.defs`. Hopefully there will be no conflicts with users of the
+  # host system or users of other docker containers.
+  #
+  # See `doc/user/installation.rst` for instructions on how to overwrite this.
+  && groupadd -g 72020 -r mora\
+  && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install system dependencies from file.
   && apt-get -y update \
   && apt-get -y install --no-install-recommends $(grep -vE "^\s*#" sys-requirements.txt  | tr "\n" " ") \
