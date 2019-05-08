@@ -133,7 +133,7 @@ følgende:
 
 .. code-block:: bash
 
-    docker run -p 5000:5000 -e OS2MO_LORA_URL=http://<LoRa-IP>:5000/ -e OS2MO_DUMMY_MODE=True magentaaps/os2mo:latest
+    docker run -p 5000:5000 -e OS2MO_LORA_URL=http://<LoRa-IP>:8080/ -e OS2MO_DUMMY_MODE=True magentaaps/os2mo:latest
 
 Den henter docker imaget fra Docker Hub og starter en container i forgrunden.
 ``-p 5000:5000`` `binds port

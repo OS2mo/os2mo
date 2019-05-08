@@ -13,7 +13,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - OS2MO_LORA_URL=http://mox:5000/
+      - OS2MO_LORA_URL=http://mox:8080/
       - OS2MO_DUMMY_MODE=True
     depends_on:
       - mox
@@ -25,7 +25,7 @@ services:
     environment:
       - DB_HOST=mox-db
     ports:
-      - "8080:5000"
+      - "8080:8080"
     depends_on:
       - mox-db
 
