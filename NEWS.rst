@@ -1,6 +1,11 @@
 Version 0.18.0, in development
 ==============================
 
+Bug fixes
+---------
+
+* #28017: Changed style for user settings - location and user key.
+
 Internal changes
 ----------------
 

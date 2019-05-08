@@ -32,6 +32,7 @@ test('Workflow: organisation manager tab', async t => {
   await t
     .click(VueSelector('organisation-detail-tabs bTabButtonHelper').withText('Ledere'))
 
+
     // Create manager
     .click(Selector('.btn-outline-primary').withText('Opret ny'))
 
