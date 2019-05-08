@@ -36,10 +36,14 @@ def get_one_organisation(c, orgid, org=None):
 
     attrs = org['attributter']['organisationegenskaber'][0]
 
+    myndighed = mapping.MUNICIPALITY_CODE_FIELD(org)[0]
+    code = myndighed['urn'][15:]
+
     return {
         'name': attrs['organisationsnavn'],
         'user_key': attrs['brugervendtnoegle'],
         'uuid': orgid,
+        'municipality_code': code,
     }
 
 

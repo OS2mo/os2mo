@@ -54,6 +54,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -75,6 +76,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -113,6 +115,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -151,6 +154,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'frem',
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
+                        'municipality_code': '751',
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -182,6 +186,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'frem',
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
+                        'municipality_code': '751',
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -213,6 +218,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'frem',
                     'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
                     'org': {
+                        'municipality_code': '751',
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -283,6 +289,7 @@ class Tests(util.LoRATestCase):
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -413,6 +420,7 @@ class Tests(util.LoRATestCase):
                 "location": "Overordnet Enhed",
                 "name": "Fake Corp",
                 "org": {
+                    'municipality_code': '751',
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -435,6 +443,7 @@ class Tests(util.LoRATestCase):
                     "location": "",
                     "name": "Overordnet Enhed",
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -668,6 +677,7 @@ class Tests(util.LoRATestCase):
                 "location": "",
                 "name": "Overordnet Enhed",
                 "org": {
+                    'municipality_code': '751',
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
@@ -701,6 +711,7 @@ class Tests(util.LoRATestCase):
                 "/Historisk Institut",
                 "name": "Afdeling for Samtidshistorik",
                 "org": {
+                    'municipality_code': '751',
                     "name": "Aarhus Universitet",
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -717,6 +728,7 @@ class Tests(util.LoRATestCase):
                     "location": "Overordnet Enhed/Humanistisk fakultet",
                     "name": "Historisk Institut",
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -733,6 +745,7 @@ class Tests(util.LoRATestCase):
                         "location": "Overordnet Enhed",
                         "name": "Humanistisk fakultet",
                         "org": {
+                            'municipality_code': '751',
                             "name": "Aarhus Universitet",
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -749,6 +762,7 @@ class Tests(util.LoRATestCase):
                             "location": "",
                             "name": "Overordnet Enhed",
                             "org": {
+                                'municipality_code': '751',
                                 "name": "Aarhus Universitet",
                                 "user_key": "AU",
                                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -1287,6 +1301,7 @@ class Tests(util.LoRATestCase):
             "user_key": "fakefakefake",
             "uuid": unitid,
             "org": {
+                'municipality_code': '751',
                 "name": "Aarhus Universitet",
                 "user_key": "AU",
                 "uuid": orgid
@@ -1541,6 +1556,7 @@ class Tests(util.LoRATestCase):
                     {
                         "name": "Filosofisk Institut",
                         "org": {
+                            'municipality_code': '751',
                             "name": "Aarhus Universitet",
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
@@ -1580,6 +1596,7 @@ class Tests(util.LoRATestCase):
                     {
                         "name": "Filosofisk Institut",
                         "org": {
+                            'municipality_code': '751',
                             "name": "Aarhus Universitet",
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
@@ -1617,6 +1634,7 @@ class Tests(util.LoRATestCase):
                     {
                         "name": "Filosofisk Institut",
                         "org": {
+                            'municipality_code': '751',
                             "name": "Aarhus Universitet",
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
@@ -1700,6 +1718,7 @@ class Tests(util.LoRATestCase):
             [{
                 'name': 'Whatever',
                 'org': {
+                    'municipality_code': '751',
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
@@ -2340,6 +2359,7 @@ class Tests(util.LoRATestCase):
                 {
                     "name": "Filosofisk Institut",
                     "org": {
+                        'municipality_code': '751',
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"

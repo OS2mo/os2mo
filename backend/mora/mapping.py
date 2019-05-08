@@ -321,6 +321,11 @@ ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
 )
 
+MUNICIPALITY_CODE_FIELD = FieldTuple(
+    path=('relationer', 'myndighed'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
     EMPLOYEE_EGENSKABER_FIELD,
