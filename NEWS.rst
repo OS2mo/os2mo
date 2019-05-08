@@ -1,3 +1,11 @@
+Version 0.18.0, in development
+==============================
+
+Internal changes
+----------------
+
+* #26407: Allow selecting optional components per deployment.
+
 Version 0.17.0, 2019-04-30
 ==========================
 
