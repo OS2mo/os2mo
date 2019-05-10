@@ -61,11 +61,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         surname = util.checked_get(req, mapping.SURNAME, "",
                                    required=False)
 
-        print('********************')
-        print(name)
-        print(givenname)
-        print(surname)
-
         if name and (surname or givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 name='Supply either name or given name/surame'
