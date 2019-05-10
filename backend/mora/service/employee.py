@@ -56,19 +56,26 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     def prepare_create(self, req):
         # TODO: As of now, a supplied name will override givenname and surname.
         name = util.checked_get(req, mapping.NAME, "", required=False)
+        givenname = util.checked_get(req, mapping.GIVENNAME, "",
+                                     required=False)
+        surname = util.checked_get(req, mapping.SURNAME, "",
+                                   required=False)
 
-        if name != "":
+        print('********************')
+        print(name)
+        print(givenname)
+        print(surname)
+
+        if name and (surname or givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either name or given name/surame'
+            )            
+        
+        if name:
             givenname = name.rsplit(" ", maxsplit=1)[0]
-            givenname = util.checked_get(req, mapping.GIVENNAME, givenname)
             surname = name[len(givenname):].strip()
-            surname = util.checked_get(req, mapping.SURNAME, surname)
-        else:
-            givenname = util.checked_get(req, mapping.GIVENNAME, "",
-                                         required=False)
-            surname = util.checked_get(req, mapping.SURNAME, "",
-                                       required=False)
-
-        if name == '' and givenname == '' and surname == '':
+            
+        if (not name) and (not givenname) and (not surname):
             raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
                 name='Missing name or givenname or surname'
             )

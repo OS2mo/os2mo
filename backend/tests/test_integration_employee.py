@@ -26,8 +26,7 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "givenname": "Torkild",
-            "surname": "Testperson",
-            "name": "Torkild Testperson",
+            "surname": "von Testperson",
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -56,7 +55,7 @@ class Tests(util.LoRATestCase):
                 ],
                 'brugerudvidelser': [
                     {
-                        'efternavn': 'Testperson',
+                        'efternavn': 'von Testperson',
                         'fornavn': 'Torkild',
                         'virkning': {
                             'from': '1950-01-01 '
@@ -114,9 +113,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
-                'surname': 'Testperson',
+                'surname': 'von Testperson',
                 'givenname': 'Torkild',
-                'name': 'Torkild Testperson',
+                'name': 'Torkild von Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -144,7 +143,6 @@ class Tests(util.LoRATestCase):
                 'givenname': 'Teodor',
                 'surname': 'Testfætter',
                 'user_key': 'testfætter',
-                'name': 'Teodor Testfætter',
                 'org': {
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                 },
@@ -214,7 +212,6 @@ class Tests(util.LoRATestCase):
         payload = {
             "givenname": "Torkild",
             "surname": "Testperson",
-            "name": "Torkild Testperson",
             "cpr_no": "0906340000",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -236,6 +233,34 @@ class Tests(util.LoRATestCase):
             status_code=409,
         )
 
+    def test_fail_on_double_naming(self):
+        self.load_sample_structures()
+
+        payload = {
+            "givenname": "Torkild",
+            "surname": "Testperson",
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        expected = {
+            'description': 'Invalid input.',
+            'error': True,
+            'error_key': 'E_INVALID_INPUT',
+            'name': 'Supply either name or given name/surame',
+            'status': 400
+        }
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            expected,
+            json=payload,
+            status_code=400,
+        )
+        
     def test_create_employee_existing_cpr_new_org(self):
         """
         Should be able to create employee with same CPR no,
@@ -245,8 +270,6 @@ class Tests(util.LoRATestCase):
 
         payload = {
             "name": "Torkild Testperson",
-            "givenname": "Torkild",
-            "surname": "Testperson",
             "cpr_no": "0906340000",
             "org": {
                 'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
@@ -260,13 +283,15 @@ class Tests(util.LoRATestCase):
         self.assertTrue(c.bruger.get(uuid))
 
     def test_create_employee_with_details(self):
-        """Test creating an employee with added details"""
+        """Test creating an employee with added details.
+        Also add three names to a single name parameter and check
+        it will be split on lest space."""
         self.load_sample_structures()
 
         employee_uuid = "f7bcc7b1-381a-4f0e-a3f5-48a7b6eedf1c"
 
         payload = {
-            "name": "Torkild Testperson",
+            "name": "Torkild Von Testperson",
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -299,8 +324,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/'.format(employee_uuid),
             {
                 'surname': 'Testperson',
-                'givenname': 'Torkild',
-                'name': 'Torkild Testperson',
+                'givenname': 'Torkild Von',
+                'name': 'Torkild Von Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
