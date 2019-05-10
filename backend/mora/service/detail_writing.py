@@ -92,7 +92,8 @@ def create():
     :<json list details: A list of details to be created for the employee.
 
     Only the full name, or givenname/surname should be given, not both.
-    If only the full name is supplied, the name will be split on the last space.
+    If only the full name is supplied, the name will be split on the last
+    space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.

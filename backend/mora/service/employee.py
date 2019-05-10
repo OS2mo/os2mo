@@ -349,7 +349,8 @@ def get_employee(id):
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
 
-    :<json string name: Full name of the employee (concatenation of givenname and surname).
+    :<json string name: Full name of the employee (concatenation
+    of givenname and surname).
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
     :>json string uuid: Machine-friendly UUID.
@@ -546,8 +547,9 @@ def create_employee():
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
 
-    Only the full name, or givenname/surname should be given, not both.
-    If only the full name is supplied, the name will be split on the last space.
+    Only the full name or givenname/surname should be given, not both.
+    If only the full name is supplied, the name will be split on the last
+    space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.
