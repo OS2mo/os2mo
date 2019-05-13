@@ -260,7 +260,7 @@ class Tests(util.LoRATestCase):
             json=payload,
             status_code=400,
         )
-        
+
     def test_create_employee_existing_cpr_new_org(self):
         """
         Should be able to create employee with same CPR no,
