@@ -49,9 +49,59 @@ class EmployeeDetails(enum.Enum):
     INTEGRATION = 2
 
 
-class EmployeeRequestHandler(handlers.RequestHandler):
+class EmployeeRequestHandler(handlers.ReadingRequestHandler):
     __slots__ = ('details_requests',)
     role_type = "employee"
+
+    @classmethod
+    def has(cls, scope, reg):
+        pass
+
+    @classmethod
+    def get(cls, c, search_fields):
+
+        scope = c.bruger
+
+        object_tuples = list(scope.get_all(
+            **search_fields,
+        ))
+
+        return [
+            get_one_employee(
+                c, obj_id, effect, details=EmployeeDetails.FULL,
+                validity={
+                    mapping.FROM: util.to_iso_date(start),
+                    mapping.TO: util.to_iso_date(end, is_end=True),
+                },
+            )
+            for obj_id, obj in object_tuples
+            for start, end, effect in scope.get_effects(
+                obj,
+                {
+                    'attributter': (
+                        'brugeregenskaber',
+                    ),
+                    'relationer': (
+                        'tilknyttedepersoner',
+                        'tilhoerer',
+                    ),
+                    'tilstande': (
+                        'brugergyldighed',
+                    ),
+                },
+            )
+            if c.is_effect_relevant({'from': start, 'to': end}) and
+            effect.get('tilstande')
+                  .get('brugergyldighed')[0]
+                  .get('gyldighed') == 'Aktiv'
+        ]
+
+    @classmethod
+    def get_from_type(cls, c, type, objid):
+        if type != 'e':
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
+
+        return cls.get(c, {'uuid': [objid]})
 
     def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=False)
@@ -232,9 +282,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return result
 
 
-def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    if only_primary_uuid:
+def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL,
+                     validity=None):
+
+    if 'only_primary_uuid' in flask.request.args:
         return {
             mapping.UUID: userid
         }
@@ -274,6 +325,10 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
         r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
+
+    if validity:
+        r[mapping.VALIDITY] = validity
+
     return r
 
 

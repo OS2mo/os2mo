@@ -1,6 +1,11 @@
 In development
 ==============
 
+New features
+------------
+
+* #26186: API expanded with simple CRUD interface, to simplify data exports
+
 Bug fixes
 ---------
 

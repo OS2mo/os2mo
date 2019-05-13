@@ -7,6 +7,7 @@
 #
 
 from . import address
+from . import api
 from . import association  # noqa
 from . import cpr
 from . import detail_reading
@@ -28,6 +29,7 @@ from .validation import validate
 
 blueprints = (
     address.blueprint,
+    api.blueprint,
     cpr.blueprint,
     detail_reading.blueprint,
     detail_writing.blueprint,

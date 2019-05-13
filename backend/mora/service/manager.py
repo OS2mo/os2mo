@@ -40,9 +40,9 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
     function_key = mapping.MANAGER_KEY
 
     @classmethod
-    def finder(cls, c, type, objid):
+    def get_from_type(cls, c, type, objid):
 
-        found = super().finder(c, type, objid)
+        found = super().get_from_type(c, type, objid)
         if type == "e":
             return found
 
@@ -59,7 +59,8 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                 objid = upper.get(mapping.UUID)
                 if not objid:
                     return found
-                found = super().finder(c, type, objid)
+                upperid = ou[mapping.PARENT][mapping.UUID]
+                found = super().get_from_type(c, type, upperid)
         return found
 
     @classmethod

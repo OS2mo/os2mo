@@ -71,22 +71,25 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         return scope.path == 'organisation/organisationenhed' and reg
 
     @classmethod
-    def get(cls, c, type, objid):
-        if type != 'ou':
-            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
+    def get(cls, c, search_fields):
 
         scope = c.organisationenhed
 
-        return flask.jsonify([
+        object_tuples = list(scope.get_all(
+            **search_fields,
+        ))
+
+        return [
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.SELF,
+                c, obj_id, effect, details=UnitDetails.SELF,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
                 },
             )
+            for obj_id, obj in object_tuples
             for start, end, effect in scope.get_effects(
-                objid,
+                obj,
                 {
                     'attributter': (
                         'organisationenhedegenskaber',
@@ -106,7 +109,14 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             effect.get('tilstande')
                   .get('organisationenhedgyldighed')[0]
                   .get('gyldighed') == 'Aktiv'
-        ])
+        ]
+
+    @classmethod
+    def get_from_type(cls, c, type, objid):
+        if type != 'ou':
+            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
+
+        return cls.get(c, {'uuid': [objid]})
 
     def prepare_create(self, req):
         c = lora.Connector()
@@ -327,8 +337,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     '''
 
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    if only_primary_uuid:
+    if 'only_primary_uuid' in flask.request.args:
         return {
             mapping.UUID: unitid
         }

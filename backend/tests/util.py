@@ -472,9 +472,10 @@ class TestCaseMixin(object):
         if 'json' in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
+            assert kwargs.keys().isdisjoint({'data', 'headers'})
 
-            kwargs['method'] = 'POST'
+            if not kwargs.get('method'):
+                kwargs['method'] = 'POST'
             kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
             kwargs['headers'] = {'Content-Type': 'application/json'}
 

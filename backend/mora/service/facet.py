@@ -108,8 +108,7 @@ def get_one_facet(c, facetid, orgid, facet=None, data=None):
 
 def get_one_class(c, classid, clazz=None):
 
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    if only_primary_uuid:
+    if 'only_primary_uuid' in flask.request.args:
         return {
             mapping.UUID: classid
         }

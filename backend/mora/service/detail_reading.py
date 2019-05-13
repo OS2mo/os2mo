@@ -36,7 +36,6 @@ from . import facet
 from . import handlers
 from . import itsystem
 from . import orgunit
-from . import manager
 from .. import common
 from .. import exceptions
 from .. import mapping
@@ -105,12 +104,26 @@ def list_details(type, id):
     return flask.jsonify(r)
 
 
-@blueprint.route(
-    '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
-)
+@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/<function>')
 @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
                    'only_primary_uuid')
-def get_detail(type, id, function):
+def get_detail_from_type(type, id, function):
+    c = common.get_connector()
+
+    info = DETAIL_TYPES[type]
+    search_fields = {
+        info.search: id,
+    }
+
+    cls = handlers.get_handler_for_role_type(function)
+
+    if issubclass(cls, handlers.ReadingRequestHandler):
+        return flask.jsonify(cls.get_from_type(c, type, id))
+
+    return get_detail(c, function, search_fields)
+
+
+def get_detail(c, function, search):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     :http:get:`/service/(any:type)/(uuid:id)/details/` for the
@@ -597,16 +610,10 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
            "to": null
          }
        }
-     ]
+
 
     '''
-    c = common.get_connector()
-
-    info = DETAIL_TYPES[type]
-    search = {
-        info.search: id,
-    }
-
+    # ensure that we report an error correctly
     cls = handlers.get_handler_for_role_type(function)
 
     if issubclass(cls, handlers.ReadingRequestHandler):
