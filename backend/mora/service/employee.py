@@ -160,13 +160,35 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         ))
 
         changed_props = {}
+        changed_extended_props = {}
 
         if mapping.USER_KEY in data:
             changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-        if mapping.NAME in data:
-            changed_props['brugernavn'] = data[mapping.NAME]
 
+        name = ''
+        givenname = ''
+        surname = ''
+        if mapping.GIVENNAME in data:
+            givenname = data[mapping.GIVENNAME]
+        if mapping.SURNAME in data:
+            surname = data[mapping.SURNAME]
+        if mapping.NAME in data:
+            name = data[mapping.NAME]
+
+        if name and (surname or givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either name or given name/surame'
+            )            
+        if name:
+            givenname = name.rsplit(" ", maxsplit=1)[0]
+            surname = name[len(givenname):].strip()
+
+        if givenname:
+            changed_extended_props['fornavn'] = givenname
+        if surname:
+            changed_extended_props['efternavn'] = surname
+        
         if mapping.INTEGRATION_DATA in data:
             changed_props['integrationsdata'] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
@@ -176,6 +198,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
                 changed_props,
+            ))
+
+        if changed_extended_props:
+            update_fields.append((
+                mapping.EMPLOYEE_UDVIDELSER_FIELD,
+                changed_extended_props,
             ))
 
         if mapping.CPR_NO in data:
@@ -190,6 +218,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)
 
+        print('---------------------')
+        for key, value in payload.items():
+            print('{}: {}'.format(key, value))
+        print('---------------------')
+        
         bounds_fields = list(
             mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,

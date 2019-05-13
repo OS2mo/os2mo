@@ -305,6 +305,11 @@ EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+EMPLOYEE_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'brugerudvidelser'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
     path=('tilstande', 'brugergyldighed'),
     type=FieldTypes.ZERO_TO_ONE,
