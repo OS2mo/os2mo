@@ -523,7 +523,8 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "cpr_no": "1205320000",
-                "name": "Fedtmule",
+                "givenname": "Fedtmule",
+                "surname": "Hund",
                 "uuid": userid,
             },
             "data": {
@@ -531,7 +532,8 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                 },
                 "cpr_no": "0202020202",
-                "name": "Test 2 Employee",
+                "givenname": "Test",
+                "surname": "2 Employee",
             },
         }]
 
@@ -543,8 +545,18 @@ class Tests(util.LoRATestCase):
 
         # there must be a registration of the new name
         expected_brugeregenskaber = [{
-            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        expected_brugerudvidelser = [{
+            'fornavn': 'Fedtmule',
+            'efternavn': 'Hund',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
                 'from_included': True,
@@ -552,8 +564,8 @@ class Tests(util.LoRATestCase):
                 'to_included': False
             }
         }, {
-            'brugernavn': 'Test 2 Employee',
-            'brugervendtnoegle': 'fedtmule',
+            'fornavn': 'Test',
+            'efternavn': '2 Employee',
             'virkning': {
                 'from': '2017-01-01 00:00:00+01',
                 'from_included': True,
@@ -621,6 +633,10 @@ class Tests(util.LoRATestCase):
             actual['attributter']['brugeregenskaber']
         )
         self.assertEqual(
+            expected_brugerudvidelser,
+            actual['attributter']['brugerudvidelser']
+        )
+        self.assertEqual(
             expected_brugergyldighed,
             actual['tilstande']['brugergyldighed']
         )
@@ -645,7 +661,8 @@ class Tests(util.LoRATestCase):
                 },
                 "user_key": "regnbøfssalat",
                 "cpr_no": "0101010101",
-                "name": "Test 1 Employee",
+                "givenname": "Martin L",
+                "surname": "Gore",
             },
             "uuid": userid
         }]
@@ -658,7 +675,6 @@ class Tests(util.LoRATestCase):
 
         # there must be a registration of the new name
         expected_brugeregenskaber = [{
-            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
@@ -667,8 +683,27 @@ class Tests(util.LoRATestCase):
                 'to_included': False
             }
         }, {
-            'brugernavn': 'Test 1 Employee',
             'brugervendtnoegle': 'regnbøfssalat',
+            'virkning': {
+                'from': '2017-02-02 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        expected_brugerudvidelser = [{
+            'fornavn': 'Fedtmule',
+            'efternavn': 'Hund',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2017-02-02 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'fornavn': 'Martin L',
+            'efternavn': 'Gore',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,
@@ -726,6 +761,10 @@ class Tests(util.LoRATestCase):
         self.assertEqual(
             expected_brugeregenskaber,
             actual['attributter']['brugeregenskaber']
+        )
+        self.assertEqual(
+            expected_brugerudvidelser,
+            actual['attributter']['brugerudvidelser']
         )
         self.assertEqual(
             expected_brugergyldighed,

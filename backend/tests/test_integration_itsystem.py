@@ -351,9 +351,9 @@ class Writing(util.LoRATestCase):
                     },
                     "org_unit": None,
                     "person": {
-                        "name": "Fedtmule Hest",
+                        "name": "Fedtmule Hund",
                         "givenname": "Fedtmule",
-                        "surname": "Hest",
+                        "surname": "Hund",
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
                     },
                     "user_key": "goofy-moofy",
@@ -749,9 +749,9 @@ class Writing(util.LoRATestCase):
                 'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
             },
             person={
-                'name': 'Fedtmule Hest',
+                'name': 'Fedtmule Hund',
                 'givenname': 'Fedtmule',
-                'surname': 'Hest',
+                'surname': 'Hund',
                 'uuid': new_userid,
             },
             validity={

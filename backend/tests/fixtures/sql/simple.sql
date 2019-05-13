@@ -122,8 +122,8 @@ COPY actual_state.bruger_registrering (id, bruger_id, registrering) FROM stdin;
 --
 
 COPY actual_state.bruger_attr_egenskaber (id, brugervendtnoegle, brugernavn, brugertype, integrationsdata, virkning, bruger_registrering_id) FROM stdin;
-1	andersand	Anders And	\N	\N	("[""1934-06-09 00:00:00+01"",infinity)",,,"")	1
-2	fedtmule	Fedtmule	\N	\N	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
+1	andersand		\N	\N	("[""1934-06-09 00:00:00+01"",infinity)",,,"")	1
+2	fedtmule		\N	\N	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
 \.
 
 
@@ -139,7 +139,7 @@ SELECT pg_catalog.setval('actual_state.bruger_attr_egenskaber_id_seq', 2, true);
 
 COPY actual_state.bruger_attr_udvidelser (id, fornavn, efternavn, virkning, bruger_registrering_id) FROM stdin;
 1	Anders	And	("[""1934-06-09 00:00:00+01"",infinity)",,,"")	1
-2	Fedtmule	Hest	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
+2	Fedtmule	Hund	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
 \.
 
 

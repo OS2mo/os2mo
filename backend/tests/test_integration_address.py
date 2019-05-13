@@ -1197,9 +1197,9 @@ class Reading(util.LoRATestCase):
                         'value': 'goofy@example.com',
                         'user_key': 'bruger@example.comw',
                         'person': {
-                            'name': 'Fedtmule Hest',
+                            'name': 'Fedtmule Hund',
                             'givenname': 'Fedtmule',
-                            'surname': 'Hest',
+                            'surname': 'Hund',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
@@ -1223,9 +1223,9 @@ class Reading(util.LoRATestCase):
                         'user_key': 'Christiansborg Slotsplads 1, '
                                     '1218 København K',
                         'person': {
-                            'name': 'Fedtmule Hest',
+                            'name': 'Fedtmule Hund',
                             'givenname': 'Fedtmule',
-                            'surname': 'Hest',
+                            'surname': 'Hund',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {

@@ -1798,9 +1798,9 @@ class Tests(util.LoRATestCase):
                             'validity': {'from': '2016-01-01', 'to': None},
                         },
                         'person': {
-                            'name': 'Fedtmule Hest',
+                            'name': 'Fedtmule Hund',
                             'givenname': 'Fedtmule',
-                            'surname': 'Hest',
+                            'surname': 'Hund',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'user_key': '00000000-0000-0000-0000-000000000001',
