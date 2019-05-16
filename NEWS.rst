@@ -12,6 +12,8 @@ Bug fixes
 
 * #29019: Never ending loop in manager inheritance
 * #28017: Changed style for user settings - location and user key.
+* #29200: We now properly clear the store when switching org units/employees
+  to prevent 'old data' from showing.
 
 Internal changes
 ----------------
