@@ -51,12 +51,17 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                 ou = orgunit.get_one_orgunit(
                     c, objid, details=orgunit.UnitDetails.FULL
                 )
-                if not ou or mapping.PARENT not in ou:
+                if not ou:
                     return found
-                objid = ou[mapping.PARENT][mapping.UUID]
+                upper = ou.get(mapping.PARENT)
+                if not upper:
+                    return found
+                objid = upper.get(mapping.UUID)
+                if not objid:
+                    return found
                 found = super().finder(c, type, objid)
         return found
-
+ 
     @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
         c = common.get_connector()

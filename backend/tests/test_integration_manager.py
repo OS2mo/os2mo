@@ -1,4 +1,4 @@
-#
+
 # Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -2559,7 +2559,7 @@ class Tests(util.LoRATestCase):
         )
         self.assertEqual(inherited_managers, [])
 
-    def test_read_inherit_manager(self):
+    def test_read_inherit_manager_one_level(self):
         self.load_sample_structures()
         # Anders And er chef på humfak
         humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
@@ -2573,3 +2573,17 @@ class Tests(util.LoRATestCase):
         )
         self.assertEqual(len(inherited_managers), 1)
         self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
+
+    def test_read_inherit_manager_none_found_all_the_way_up(self):
+        self.load_sample_structures()
+        # Der er ingen chef på ovnenh
+        ovnenh='2874e1dc-85e6-4269-823a-e1125484dfd3'
+        # Der er ingen chef på samfak
+        samfak = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        # Vi må vise IKKE gå i skoven
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(samfak)
+        )
+        self.assertEqual(inherited_managers, [])
+
+
