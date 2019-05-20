@@ -53,8 +53,8 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                 )
                 if not ou or mapping.PARENT not in ou:
                     return found
-                upperid = ou[mapping.PARENT][mapping.UUID]
-                found = super().finder(c, type, upperid)
+                objid = ou[mapping.PARENT][mapping.UUID]
+                found = super().finder(c, type, objid)
         return found
 
     @classmethod

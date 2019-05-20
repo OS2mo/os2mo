@@ -27,6 +27,7 @@ New features
 Bug fixes
 ---------
 
+* #29019: Never ending loop in manager inheritance
 * #28563: Fixed bug where attribute extensions were not used for chunking on
   reads
 
