@@ -165,15 +165,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         if mapping.USER_KEY in data:
             changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-        name = ''
-        givenname = ''
-        surname = ''
-        if mapping.GIVENNAME in data:
-            givenname = data[mapping.GIVENNAME]
-        if mapping.SURNAME in data:
-            surname = data[mapping.SURNAME]
-        if mapping.NAME in data:
-            name = data[mapping.NAME]
+        givenname = data.get(mapping.GIVENNAME, '')
+        surname = data.get(mapping.SURNAME, '')
+        name = data.get(mapping.NAME, '')
 
         if name and (surname or givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -256,7 +250,6 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     extensions = user['attributter']['brugerudvidelser'][0]
 
     r = {
-        # mapping.NAME: props['brugernavn'],
         mapping.GIVENNAME: extensions['fornavn'],
         mapping.SURNAME: extensions['efternavn'],
         mapping.NAME: " ".join((
