@@ -268,6 +268,7 @@ class OrgFunkRequestHandler(RequestHandler):
             )
 
     def submit(self) -> str:
+        super().submit()
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
@@ -275,7 +276,6 @@ class OrgFunkRequestHandler(RequestHandler):
         else:
             r = c.organisationfunktion.update(self.payload, self.uuid)
 
-        super().submit()
         return r
 
 

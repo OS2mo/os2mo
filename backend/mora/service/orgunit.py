@@ -308,6 +308,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.org_unit_uuid = self.uuid
 
     def submit(self):
+        super().submit()
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
@@ -320,7 +321,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         else:
             result = c.organisationenhed.update(self.payload, self.uuid)
 
-        super().submit()
         return result
 
 
