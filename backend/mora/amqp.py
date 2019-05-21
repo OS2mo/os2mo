@@ -22,6 +22,7 @@ if settings.ENABLE_AMQP:
         pika.ConnectionParameters(
             host=settings.AMQP_HOST,
             port=settings.AMQP_PORT,
+            heartbeat=0,
         )
     )
     channel = conn.channel()
@@ -51,15 +52,15 @@ def publish_message(service, object_type, action, service_uuid, date):
     }
 
     try:
-        channel.publish(
+        channel.basic_publish(
             exchange=settings.AMQP_OS2MO_EXCHANGE,
             routing_key=topic,
             body=json.dumps(message),
         )
-    except pika.AMQPError:
+    except pika.exceptions.AMQPError:
         logger.error(
             "Failed to publish message. Topic: %r, body: %r",
             topic,
-            body,
+            message,
             exc_info=True,
         )
