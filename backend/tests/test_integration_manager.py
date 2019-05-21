@@ -1,11 +1,9 @@
-
 # Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
 import copy
 import unittest
 
@@ -2577,7 +2575,7 @@ class Tests(util.LoRATestCase):
     def test_read_inherit_manager_none_found_all_the_way_up(self):
         self.load_sample_structures()
         # Der er ingen chef på ovnenh
-        ovnenh='2874e1dc-85e6-4269-823a-e1125484dfd3'
+        ovnenh = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         # Der er ingen chef på samfak
         samfak = 'b688513d-11f7-4efc-b679-ab082a2055d0'
         # Vi må vise IKKE gå i skoven
@@ -2585,5 +2583,3 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/details/manager?inherit_manager=1'.format(samfak)
         )
         self.assertEqual(inherited_managers, [])
-
-
