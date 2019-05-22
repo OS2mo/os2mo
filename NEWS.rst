@@ -1,6 +1,12 @@
 Version 0.18.0, in development
 ==============================
 
+
+New features
+------------
+
+* #29234: AD integration cookbook added to documentation
+
 Bug fixes
 ---------
 
@@ -17,7 +23,6 @@ Version 0.17.0, 2019-04-30
 New features
 ------------
 
-* #29234: AD integration cookbook added to documentation
 * #25411: organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
 * #26857: Removed manager address for create employee and employee and organisation tabs.
