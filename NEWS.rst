@@ -4,6 +4,7 @@ Version 0.18.0, in development
 Bug fixes
 ---------
 
+* #29019: Never ending loop in manager inheritance
 * #28017: Changed style for user settings - location and user key.
 
 Internal changes
@@ -17,7 +18,7 @@ Version 0.17.0, 2019-04-30
 New features
 ------------
 
-* #25411 organisation units can show managers by inheritance from parent
+* #25411: organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
 * #26857: Removed manager address for create employee and employee and organisation tabs.
 * #28563: Added feature for generating 'thin' responses when reading details,
