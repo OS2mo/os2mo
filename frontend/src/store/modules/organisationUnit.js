@@ -13,22 +13,24 @@ const defaultState = () => {
     location: undefined,
     user_settings: {},
     details: {},
-    isLoading: false,
-    ShowIfInherited: (org_unit_uuid, content) => {
-        if (content.key !== 'manager') return content
-        /* for managers show if inherited */
-        for (var i=0; i < content.value.length; i++){
-            if (content.value[i].org_unit.uuid !== org_unit_uuid){
-                content.value[i].person.name += " (*)"
-            }
-        }
-        return content
-    }
+    isLoading: false
   }
 }
 
 const state = defaultState
 
+const ShowIfInherited=(org_unit_uuid, content) => {
+    if (content.key !== 'manager') return content
+    /* for managers show if inherited */
+    for (var i=0; i < content.value.length; i++){
+        if (content.value[i].org_unit.uuid !== org_unit_uuid){
+            if (content.value[i].person){
+                content.value[i].person.name += " (*)";
+            }
+        }
+    }
+    return content;
+}
 
 
 const actions = {
@@ -52,7 +54,7 @@ const actions = {
     if (payload.detail === 'manager') inherit_manager_flag = '&inherit_manager=1'
     return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inherit_manager_flag}`)
       .then(response => {
-        let content = state.ShowIfInherited(state.uuid, {
+        let content = ShowIfInherited(state.uuid, {
           key: payload.detail,
           validity: payload.validity,
           value: response.data
