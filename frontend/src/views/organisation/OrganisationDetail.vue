@@ -74,6 +74,7 @@ export default {
     })
   },
   created () {
+    this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
     this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
   },
   mounted () {
@@ -84,14 +85,9 @@ export default {
   methods: {
     loadContent (event) {
       this.latestEvent = event
-
       this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
       this.$store.dispatch(OrganisationUnit.actions.SET_DETAIL, event)
     }
-  },
-  beforeRouteLeave (to, from, next) {
-    this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
-    next()
   }
 }
 </script>

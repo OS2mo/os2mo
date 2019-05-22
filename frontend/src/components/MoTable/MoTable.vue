@@ -138,11 +138,6 @@ export default {
     columns: Array,
 
     /**
-     * True during rendering or loading of the component.
-     */
-    isLoading: Boolean,
-
-    /**
      * Defines the editComponent.
      */
     editComponent: Object,
@@ -175,7 +170,8 @@ export default {
       selectAll: false,
       selected: [],
       open: {},
-      sortableContent: null
+      sortableContent: null,
+      isLoading: true
     }
   },
 
@@ -220,6 +216,7 @@ export default {
      */
     content () {
       this.sortableContent = this.content
+      this.isLoading = false
     },
     deep: true
   },
