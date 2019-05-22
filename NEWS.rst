@@ -1,6 +1,12 @@
 Version 0.18.0, in development
 ==============================
 
+
+New features
+------------
+
+* #29234: AD integration cookbook added to documentation
+
 Bug fixes
 ---------
 
