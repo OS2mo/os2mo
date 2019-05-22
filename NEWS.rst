@@ -10,6 +10,7 @@ New features
 Bug fixes
 ---------
 
+* #29019: Never ending loop in manager inheritance
 * #28017: Changed style for user settings - location and user key.
 
 Internal changes
