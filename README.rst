@@ -117,7 +117,7 @@ Alle releases bliver sendt til  Docker Hub på `magentaaps/os2mo
 <https://hub.docker.com/r/magentaaps/os2mo>`_ under tagget ``latest``. Tagget
 ``dev-latest`` indeholder det seneste byg af ``development`` branchen.
 
-For at kører OS2MO i docker, skal du have en kørende docker instans. For
+For at køre OS2MO i docker, skal du have en kørende docker instans. For
 installationen af denne, referere vi til `den officielle dokumentation
 <https://docs.docker.com/install/>`_.
 
