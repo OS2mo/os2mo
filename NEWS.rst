@@ -1,3 +1,12 @@
+In development
+==============
+
+Internal changes
+----------------
+
+* #28686, #28687: Add Dockerfile for both production and development.
+
+
 Version 0.18.0, in development
 ==============================
 
