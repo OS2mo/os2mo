@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,21 +25,19 @@ import functools
 import locale
 import operator
 import uuid
-import json
 
 import flask
 
-from . import address
 from . import facet
 from . import handlers
 from . import org
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -131,6 +129,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                     ),
                     'relationer': (
                         'enhedstype',
+                        'opgaver',
                         'overordnet',
                         'tilhoerer',
                     ),
@@ -159,11 +158,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             required=False
         )
 
-        unitid = util.get_uuid(req, required=False)
-        if not unitid:
-            unitid = str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY,
-                               "{} {}".format(name, uuid.uuid4()))
+        unitid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
         organisationenhed_get = c.organisationenhed.get(parent_uuid)
@@ -185,6 +181,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
 
+        time_planning_uuid = util.get_mapping_uuid(req, mapping.TIME_PLANNING,
+                                                   required=False)
+
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -195,6 +194,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             enhedstype=org_unit_type_uuid,
+            opgaver=[
+                {
+                    'objekttype': 'tidsregistrering',
+                    'uuid': time_planning_uuid,
+                },
+            ] if time_planning_uuid else [],
             overordnet=parent_uuid,
             integration_data=integration_data,
         )
@@ -266,26 +271,38 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
-        if mapping.NAME in data or mapping.INTEGRATION_DATA in data:
-            attrs = mapping.ORG_UNIT_EGENSKABER_FIELD.get(original)[-1].copy()
+        changed_props = {}
 
-            if mapping.NAME in data:
-                attrs['enhedsnavn'] = data[mapping.NAME]
+        if mapping.USER_KEY in data:
+            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-            if mapping.INTEGRATION_DATA in data:
-                attrs['integrationsdata'] = json.dumps(
-                    data[mapping.INTEGRATION_DATA]
-                )
+        if mapping.NAME in data:
+            changed_props['enhedsnavn'] = data[mapping.NAME]
 
+        if mapping.INTEGRATION_DATA in data:
+            changed_props['integrationsdata'] = common.stable_json_dumps(
+                data[mapping.INTEGRATION_DATA],
+            )
+
+        if changed_props:
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
-                attrs,
+                changed_props,
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
             update_fields.append((
                 mapping.ORG_UNIT_TYPE_FIELD,
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
+            ))
+
+        if mapping.TIME_PLANNING in data:
+            update_fields.append((
+                mapping.ORG_UNIT_TIME_PLANNING_FIELD,
+                {
+                    'objekttype': 'tidsregistrering',
+                    'uuid': data[mapping.TIME_PLANNING]['uuid'],
+                }
             ))
 
         if mapping.PARENT in data:
@@ -346,6 +363,12 @@ def get_one_orgunit(c, unitid, unit=None,
 
     '''
 
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    if only_primary_uuid:
+        return {
+            mapping.UUID: unitid
+        }
+
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
@@ -356,7 +379,8 @@ def get_one_orgunit(c, unitid, unit=None,
     rels = unit['relationer']
     validities = unit['tilstande']['organisationenhedgyldighed']
 
-    unittype = util.get_uuid(rels['enhedstype'][0], required=False)
+    unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
+    timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     parentid = rels['overordnet'][0]['uuid']
     orgid = rels['tilhoerer'][0]['uuid']
 
@@ -408,12 +432,21 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, unittype) if unittype else None
         )
 
+        r[mapping.TIME_PLANNING] = (
+            facet.get_one_class(c, timeplanning) if timeplanning else None
+        )
+
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = org.get_one_organisation(c, orgid)
         r[mapping.PARENT] = get_one_orgunit(c, parentid,
                                             details=UnitDetails.MINIMAL)
+
         r[mapping.ORG_UNIT_TYPE] = (
             facet.get_one_class(c, unittype) if unittype else None
+        )
+
+        r[mapping.TIME_PLANNING] = (
+            facet.get_one_class(c, timeplanning) if timeplanning else None
         )
 
     elif details is UnitDetails.MINIMAL:
@@ -517,7 +550,7 @@ def get_unit_ancestor_tree():
     * Every sibling of every ancestor, with a child count.
 
     The intent of this routine is to enable easily showing the tree
-    _up to and including_ the given units in the UI.
+    *up to and including* the given units in the UI.
 
     .. :quickref: Unit; Ancestor tree
 
@@ -674,6 +707,8 @@ def get_orgunit(unitid):
     :>json uuid parent: The parent org unit or organisation
     :>json uuid org: The organisation the unit belongs to
     :>json uuid org_unit_type: The type of org unit
+    :>json uuid parent: The parent org unit or organisation
+    :>json uuid time_planning: A class identifying the time planning strategy.
     :>json object validity: The validity of the created object.
 
     :status 200: Whenever the object exists.
@@ -683,37 +718,67 @@ def get_orgunit(unitid):
 
     .. sourcecode:: json
 
-      {
-        "location": "Overordnet Enhed/Humanistisk fakultet/Historisk Institut",
-        "name": "Afdeling for Fortidshistorik",
-        "user_key": "frem",
-        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-        "org": {
-          "name": "Aarhus Universitet",
-          "user_key": "AU",
-          "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-        },
-        "org_unit_type": {
-          "example": null,
-          "name": "Afdeling",
-          "scope": null,
-          "user_key": "afd",
-          "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-        },
-        "parent": {
-          "name": "Historisk Institut",
-          "user_key": "hist",
-          "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2018-12-31"
-          }
-        },
-        "validity": {
-          "from": "2016-01-01",
-          "to": "2018-12-31"
-        }
-      }
+     {
+       "location": "Hj\u00f8rring Kommune",
+       "name": "Borgmesterens Afdeling",
+       "org": {
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+       },
+       "org_unit_type": {
+         "example": null,
+         "name": "Afdeling",
+         "scope": "TEXT",
+         "user_key": "Afdeling",
+         "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
+       },
+       "parent": {
+         "location": "",
+         "name": "Hj\u00f8rring Kommune",
+         "org": {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
+         },
+         "org_unit_type": {
+           "example": null,
+           "name": "Afdeling",
+           "scope": "TEXT",
+           "user_key": "Afdeling",
+           "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
+         },
+         "parent": null,
+         "time_planning": null,
+         "user_key": "Hj\u00f8rring Kommune",
+         "user_settings": {
+           "orgunit": {
+             "show_location": true,
+             "show_roles": true,
+             "show_user_key": false
+           }
+         },
+         "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       },
+       "time_planning": null,
+       "user_key": "Borgmesterens Afdeling",
+       "user_settings": {
+         "orgunit": {
+           "show_location": true,
+           "show_roles": true,
+           "show_user_key": false
+         }
+       },
+       "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+       "validity": {
+         "from": "1960-01-01",
+         "to": null
+       }
+     }
 
     '''
     c = common.get_connector()
@@ -756,30 +821,48 @@ def list_orgunits(orgid):
 
     .. sourcecode:: json
 
-      {
-        "items": [
-          {
-            "name": "Humanistisk fakultet",
-            "user_key": "hum",
-            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "validity": {
-              "from": "2016-01-01",
-              "to": null
-            }
-          },
-          {
-            "name": "Samfundsvidenskabelige fakultet",
-            "user_key": "samf",
-            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "validity": {
-              "from": "2017-01-01",
-              "to": null
-            }
-          }
-        ],
-        "offset": 0,
-        "total": 2
-      }
+     {
+       "items": [
+         {
+           "name": "Hj\u00f8rring b\u00f8rnehus",
+           "user_key": "Hj\u00f8rring b\u00f8rnehus",
+           "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring skole",
+           "user_key": "Hj\u00f8rring skole",
+           "uuid": "4b3d0f67-3844-50c3-8332-be3d9819b7be",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring skole",
+           "user_key": "Hj\u00f8rring skole",
+           "uuid": "6d9fcaa1-25cc-587f-acf2-dc02d8e30d76",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         {
+           "name": "Hj\u00f8rring Kommune",
+           "user_key": "Hj\u00f8rring Kommune",
+           "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         }
+       ],
+       "offset": 0,
+       "total": 4
+     }
 
     '''
     c = common.get_connector()
@@ -827,37 +910,48 @@ def list_orgunit_tree(orgid):
 
     .. sourcecode:: json
 
-      [
-        {
-          "children": [
-            {
-              "name": "Humanistisk fakultet",
-              "user_key": "hum",
-              "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-              "validity": {
-                "from": "2016-01-01",
-                "to": null
-              }
-            },
-            {
-              "name": "Samfundsvidenskabelige fakultet",
-              "user_key": "samf",
-              "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-              "validity": {
-                "from": "2017-01-01",
-                "to": null
-              }
-            }
-          ],
-          "name": "Overordnet Enhed",
-          "user_key": "root",
-          "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-          "validity": {
-            "from": "2016-01-01",
-            "to": null
-          }
-        }
-      ]
+     [
+       {
+         "children": [
+           {
+             "name": "Borgmesterens Afdeling",
+             "user_key": "Borgmesterens Afdeling",
+             "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+             "validity": {
+               "from": "1960-01-01",
+               "to": null
+             }
+           }
+         ],
+         "name": "Hj\u00f8rring Kommune",
+         "user_key": "Hj\u00f8rring Kommune",
+         "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       },
+       {
+         "children": [
+           {
+             "name": "Borgmesterens Afdeling",
+             "user_key": "Borgmesterens Afdeling",
+             "uuid": "5648c99d-d0f2-52c0-b919-26f16a649f75",
+             "validity": {
+               "from": "1960-01-01",
+               "to": null
+             }
+           }
+         ],
+         "name": "L\u00f8norganisation",
+         "user_key": "L\u00f8norganisation",
+         "uuid": "fb2d158f-114e-5f67-8365-2c520cf10b58",
+         "validity": {
+           "from": "1960-01-01",
+           "to": null
+         }
+       }
+     ]
 
     '''
     c = common.get_connector()
@@ -904,14 +998,15 @@ def create_org_unit():
 
     :<json string name: The name of the org unit
     :<json uuid parent: The parent org unit or organisation
+    :<json uuid time_planning: A class identifying the time planning strategy.
     :<json uuid org_unit_type: The type of org unit
-    :<json list addresses: A list of address objects.
+    :<json list details: A list of details, see
+                         :http:get:`/service/(any:type)/(uuid:id)/details/`
     :<json object validity: The validity of the created object.
 
     The parameter ``org_unit_type`` should contain
     an UUID obtained from the respective facet endpoint.
     See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
-    For the ``addresses`` parameter, see :ref:`Adresses <address>`.
 
     Validity objects are defined as such:
 
@@ -932,20 +1027,6 @@ def create_org_unit():
           "from": "2016-01-01",
           "to": null
         },
-        "addresses": [{
-          "value": "0101501234",
-          "address_type": {
-            "example": "5712345000014",
-            "name": "EAN",
-            "scope": "EAN",
-            "user_key": "EAN",
-            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-          },
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          }
-        }]
       }
 
     :returns: UUID of created org unit

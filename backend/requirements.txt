@@ -1,14 +1,10 @@
 Flask~=1.0.0
 requests~=2.19.1
 lxml~=4.2.3
-grequests~=0.3.0
-pyexcel>=0.5.7
-pyexcel-io>=0.5.7
-pyexcel-xlsx>=0.5.5
-pyexcel-ods>=0.5.2
-gevent~=1.3.5
 python-dateutil>=2.7.0
 setuptools>=40.0.0
 Flask-Session~=0.3.1
+validators>=0.12.4
 service_person_stamdata_udvidet @ https://github.com/magenta-aps/service_person_stamdata_udvidet/releases/download/0.1.3/service_person_stamdata_udvidet-0.1.3-py3-none-any.whl#egg=service_person_stamdata_udvidet-0.1.3
-flask_saml_sso @ https://github.com/magenta-aps/flask_saml_sso/releases/download/0.2.1/flask_saml_sso-0.2.1-py3-none-any.whl#egg=flask_saml_sso-0.2.1
+flask_saml_sso @ https://github.com/magenta-aps/flask_saml_sso/archive/master.tar.gz#egg=flask_saml_sso&branch=master
+oio_rest @ https://github.com/magenta-aps/mox/archive/development.tar.gz#egg=oio-rest&subdirectory=oio_rest&branch=development

@@ -10,11 +10,11 @@ A facet picker component.
 
 - `required` ***Boolean*** (*optional*) 
 
-- `preselected-user-key` ***String*** (*optional*) 
+- `preselected-user-key` ***String*** (*optional*) `default: null` 
 
 ## data 
 
-- `selected` 
+- `internalValue` 
 
 **initial value:** `null` 
 
@@ -26,14 +26,22 @@ A facet picker component.
 
 - `sortedOptions` 
 
-   **dependencies:** `$store`, `facet` 
+   **dependencies:** `facetData` 
 
 - `isDisabled` 
 
    **dependencies:** `preselectedUserKey` 
 
+- `labelText` 
+
+   **dependencies:** `facetData`, `$t`, `facetData` 
+
+- `preselected` 
+
+   **dependencies:** `facetData`, `facetData`, `preselectedUserKey` 
+
 
 ## methods 
 
-- `setPreselected()` 
+- `setInternalValue()` 
 

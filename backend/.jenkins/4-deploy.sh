@@ -12,13 +12,16 @@ GIT_COMMIT=$(GIT_DIR="$TOPDIR/.git" git rev-parse --short HEAD)
 #
 if [[ "$BRANCH_NAME" = development ]]
 then
-    ssh -l mora 192.168.122.116 /srv/update-mora.py "$GIT_COMMIT"
+    # This is a temporary measure
+    ssh -l mora 192.168.122.116 /opt/magenta/bin/update-mora.sh
 elif [[ "$BRANCH_NAME" = master ]]
 then
-    ssh -l mora 192.168.122.113 /srv/update-mora.py "$GIT_COMMIT"
+    :
+    #ssh -l mora 192.168.122.113 /srv/update-mora.py "$GIT_COMMIT"
 elif [[ "$BRANCH_NAME" = release/* ]]
 then
-    echo "TODO: Cannot handle release branches, yet!"
+    :
+    #ssh -l mora 192.168.122.113 /srv/update-mora.py "$GIT_COMMIT"
 else
     echo "Nothing to deploy for $BRANCH_NAME!"
 fi

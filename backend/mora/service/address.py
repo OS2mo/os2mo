@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,36 +7,31 @@
 #
 
 import collections
+import json
 import re
 
 import flask
 import requests
 
+from . import employee
+from . import facet
 from . import handlers
+from . import orgunit
+from .address_handler import base
+from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from .. import validator
-from . import facet
-from . import employee
-from . import orgunit
-
-from .address_handler import base
 
 session = requests.Session()
 session.headers = {
     'User-Agent': 'MORA/0.1',
 }
 
-MUNICIPALITY_CODE_PATTERN = re.compile('urn:dk:kommune:(\d+)')
-
-SEARCH_FIELDS = {
-    'e': 'tilknyttedebrugere',
-    'ou': 'tilknyttedeenheder'
-}
+MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
 blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
@@ -162,8 +157,7 @@ def address_autocomplete(orgid):
     ])
 
 
-class AddressRequestHandler(handlers.OrgFunkRequestHandler,
-                            handlers.ReadingRequestHandler):
+class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
     __slots__ = ()
 
@@ -171,51 +165,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
     function_key = mapping.ADDRESS_KEY
 
     @classmethod
-    def get(cls, c, type, objid):
-
-        search = {
-            SEARCH_FIELDS[type]: objid
-        }
-
-        function_effects = [
-            cls.get_one_mo_object(effect, start, end, funcid)
-            for funcid, funcobj in c.organisationfunktion.get_all(
-                funktionsnavn=cls.function_key,
-                **search,
-            )
-            for start, end, effect in c.organisationfunktion.get_effects(
-                funcobj,
-                {
-                    'relationer': (
-                        'opgaver',
-                        'adresser',
-                        'organisatoriskfunktionstype',
-                        'tilknyttedeenheder',
-                        'tilknyttedebrugere',
-                    ),
-                    'tilstande': (
-                        'organisationfunktiongyldighed',
-                    ),
-                },
-                {
-                    'attributter': (
-                        'organisationfunktionegenskaber',
-                    ),
-                    'relationer': (
-                        'tilhoerer',
-                        'tilknyttedeorganisationer',
-                        'tilknyttedeitsystemer',
-                    ),
-                },
-            )
-            if util.is_reg_valid(effect)
-        ]
-
-        return flask.jsonify(function_effects)
-
-    @classmethod
     def get_one_mo_object(cls, effect, start, end, funcid):
         c = common.get_connector()
+
+        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
 
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
 
@@ -227,8 +180,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-        person = mapping.USER_FIELD(effect)
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(effect)
+        person = list(mapping.USER_FIELD.get_uuids(effect))
+        org_unit = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
 
         func = {
             mapping.ADDRESS_TYPE: address_type,
@@ -237,20 +190,24 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
                 mapping.TO: util.to_iso_date(
                     end, is_end=True)
             },
-            mapping.PERSON: employee.get_one_employee(
-                c, person[0]['uuid']) if person else None,
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit[0]['uuid'],
-                details=orgunit.UnitDetails.MINIMAL) if org_unit else None,
             mapping.UUID: funcid,
+            mapping.USER_KEY: props['brugervendtnoegle'],
             **handler.get_mo_address_and_properties()
         }
+        if person:
+            func[mapping.PERSON] = employee.get_one_employee(
+                c, person[0])
+        if org_unit:
+            func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
+                c, org_unit[0],
+                details=orgunit.UnitDetails.MINIMAL)
+
+        if props.get('integrationsdata') is not None:
+            func[mapping.INTEGRATION_DATA] = json.loads(
+                props['integrationsdata'],
+            )
 
         return func
-
-    @classmethod
-    def has(cls, scope, objid):
-        pass
 
     def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
@@ -265,7 +222,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
         number_of_uuids = len(
             list(filter(None, [org_unit_uuid, employee_uuid, manager_uuid])))
 
-        if number_of_uuids is not 1:
+        if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 'Must supply exactly one org unit UUID, '
                 'employee UUID or manager UUID', obj=req)
@@ -274,11 +231,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
-        typeobj = util.checked_get(req, mapping.ADDRESS_TYPE, {})
-        function_type = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
-                                              required=True)
+        address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
+                                                  required=True)
 
-        scope = util.checked_get(typeobj, 'scope', '', required=True)
+        c = lora.Connector()
+        type_obj = facet.get_one_class(c, address_type_uuid)
+
+        scope = util.checked_get(type_obj, 'scope', '', required=True)
 
         handler = base.get_handler_for_scope(scope).from_request(req)
 
@@ -298,13 +257,14 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=handler.name,
-            funktionstype=function_type,
+            funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[orgid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
-            opgaver=handler.get_lora_properties()
+            opgaver=handler.get_lora_properties(),
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = func
@@ -396,10 +356,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
 
         if mapping.VALUE in data:
 
-            address_type = util.checked_get(
-                data, mapping.ADDRESS_TYPE, {}, required=True)
-            scope = util.checked_get(address_type, 'scope', '', required=True)
-            type_uuid = util.get_uuid(address_type)
+            address_type_uuid = util.get_mapping_uuid(
+                data, mapping.ADDRESS_TYPE, required=True)
+            type_obj = facet.get_one_class(c, address_type_uuid)
+            scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
 
@@ -411,7 +371,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler,
             update_fields.append((
                 mapping.ADDRESS_TYPE_FIELD,
                 {
-                    'uuid': type_uuid
+                    'uuid': address_type_uuid
                 }
             ))
 

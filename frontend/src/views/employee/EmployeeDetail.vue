@@ -68,6 +68,7 @@ export default {
   },
 
   created () {
+    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
     this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
   },
   mounted () {
@@ -78,12 +79,9 @@ export default {
   methods: {
     loadContent (event) {
       this.latestEvent = event
+      this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
       this.$store.dispatch(Employee.actions.SET_DETAIL, event)
     }
-  },
-  beforeRouteLeave (to, from, next) {
-    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
-    next()
   }
 
 }

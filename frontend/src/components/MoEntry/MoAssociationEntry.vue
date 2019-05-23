@@ -1,28 +1,23 @@
 <template>
   <div>
+    <mo-input-checkbox
+      class="associationCheckbox"
+      v-model="entry.primary"
+      :data-vv-as="$t('input_fields.primary_association')"
+    />
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col unit-association"
         :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
         required
-      />
-
-      <mo-address-picker
-        class="col address-association"
-        v-model="entry.address"
-        :org-unit="entry.org_unit"
-      />
-    </div>
-
-    <div class="form-row select-association">
-      <mo-facet-picker
-        facet="association_job_function"
-        v-model="entry.job_function"
-        required
+        :validity="entry.validity"
+        :extra-validations="validations"
       />
 
       <mo-facet-picker
+        class="select-association"
         facet="association_type"
         v-model="entry.association_type"
         required
@@ -30,9 +25,10 @@
     </div>
 
     <mo-input-date-range
+      class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -42,19 +38,43 @@
  * A association entry component.
  */
 
+import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoAddressPicker from '@/components/MoPicker/MoAddressPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import { Employee } from '@/store/actions/employee'
+import { mapGetters } from 'vuex'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoAssociationEntry',
+
+  computed: {
+    ...mapGetters({
+      currentEmployee: Employee.getters.GET_EMPLOYEE
+    }),
+
+    validations () {
+      return {
+        existing_associations: [
+          this.currentEmployee,
+          this.entry.org_unit,
+          this.entry.validity,
+          this.entry.uuid
+        ]
+      }
+    }
+  },
+
   components: {
+    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
-    MoAddressPicker,
     MoFacetPicker
   },
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,6 +28,7 @@ import flask
 
 from .. import common
 from .. import exceptions
+from .. import mapping
 from .. import settings
 from .. import util
 
@@ -106,6 +107,13 @@ def get_one_facet(c, facetid, orgid, facet=None, data=None):
 
 
 def get_one_class(c, classid, clazz=None):
+
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    if only_primary_uuid:
+        return {
+            mapping.UUID: classid
+        }
+
     if not clazz:
         clazz = c.klasse.get(classid)
 

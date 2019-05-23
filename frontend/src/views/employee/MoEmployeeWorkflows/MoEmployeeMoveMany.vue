@@ -5,6 +5,7 @@
         class="col"
         :label="$t('input_fields.move_date')"
         v-model="moveDate"
+        :valid-dates="currentDateValidity"
         required
       />
 
@@ -14,6 +15,7 @@
         v-model="orgUnitSource"
         class="col from-unit"
         required
+        :validity="validity"
       />
 
       <mo-organisation-unit-picker
@@ -22,6 +24,7 @@
         v-model="orgUnitDestination"
         class="col to-unit"
         required
+        :validity="validity"
       />
     </div>
 
@@ -47,7 +50,7 @@
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
     </div>
   </form>
 </template>
@@ -62,6 +65,7 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoTable from '@/components/MoTable/MoTable'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import { mapFields } from 'vuex-map-fields'
 import { mapGetters } from 'vuex'
 import store from './_store/employeeMoveMany.js'
@@ -69,7 +73,7 @@ import store from './_store/employeeMoveMany.js'
 const STORE_KEY = '$_employeeMoveMany'
 
 export default {
-  mixins: [ValidateForm],
+  mixins: [ValidateForm, CurrentDateValidity],
 
   components: {
     MoInputDate,
@@ -85,6 +89,7 @@ export default {
   },
   data () {
     return {
+      isLoading: false,
       orgUnitSource: undefined
     }
   },
@@ -98,8 +103,7 @@ export default {
       'moveDate',
       'orgUnitDestination',
       'columns',
-      'backendValidationError',
-      'isLoading'
+      'backendValidationError'
     ]),
 
     ...mapGetters(STORE_KEY, [
@@ -111,6 +115,17 @@ export default {
      */
     dateSelected () {
       return !this.moveDate
+    },
+
+    isDisabled () {
+      if (this.formValid && this.selected.length) {
+        return false
+      }
+      return true
+    },
+
+    validity () {
+      return { 'from': this.moveDate }
     }
   },
   beforeCreate () {
@@ -135,12 +150,6 @@ export default {
       deep: true
     },
 
-    selected (val) {
-      if (this.fields['selected-employees-count']) {
-        this.$validator.validate('selected-employees-count', val.length)
-      }
-    },
-
     show (val) {
       if (!val) {
         this.onHidden()
@@ -153,13 +162,21 @@ export default {
      * Check if fields are valid, and move employees if they are.
      * Otherwise validate the fields.
      */
-    moveMany () {
-      let vm = this
+    moveMany (evt) {
+      evt.preventDefault()
       if (this.formValid) {
+        let vm = this
+        vm.isLoading = true
+
         this.$store.dispatch(`${STORE_KEY}/moveManyEmployees`)
-          .then(() => {
-            vm.orgUnitSource = undefined
-            vm.$emit('submitted')
+          .then(response => {
+            vm.isLoading = false
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.orgUnitSource = undefined
+              vm.$emit('submitted')
+            }
           })
       } else {
         this.$validator.validateAll()

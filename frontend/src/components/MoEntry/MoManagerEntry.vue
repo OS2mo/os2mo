@@ -7,6 +7,7 @@
         class="col unit-manager"
         required
         v-if="!hideOrgPicker"
+        :validity="entry.validity"
       />
     </div>
 
@@ -16,16 +17,7 @@
         class="search-employee mb-3"
         v-if="!hideEmployeePicker && hideOrgPicker"
         noLabel
-      />
-
-      <mo-add-many
-        class="address-manager"
-        v-model="entry.address"
-        :entry-component="managerAddressEntry"
-        :label="$t('input_fields.manager_address_type')"
-        validity-hidden
-        has-initial-entry
-        small-buttons
+        :validity="entry.validity"
       />
 
     <div class="form-row select-manager">
@@ -54,7 +46,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -69,12 +61,16 @@ import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPi
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import { MoManagerAddressEntry } from '@/components/MoEntry'
 import MoEntryBase from './MoEntryBase.js'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoManagerEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
@@ -122,29 +118,6 @@ export default {
         },
 
         template: `<div class="form-row"><mo-facet-picker facet="responsibility" v-model="val" required/></div>`
-      }
-    },
-
-    /**
-     * Adds the managerAddressEntry template to the add many component.
-     */
-    managerAddressEntry () {
-      return {
-        components: {
-          MoManagerAddressEntry
-        },
-
-        props: {
-          value: [Object, Array]
-        },
-
-        data () {
-          return {
-            val: this.value
-          }
-        },
-
-        template: `<mo-manager-address-entry v-model="val" validity-hidden required/>`
       }
     }
   },

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -156,7 +156,7 @@ def update_payload(
             updated_props = _merge_obj_effects(props, vals)
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
-            updated_props = props + vals
+            updated_props = vals
         else:
             # Zero-to-one relation - LoRa does the merging for us,
             # so disregard existing props
@@ -302,8 +302,11 @@ def create_organisationsfunktion_payload(
     tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
+    primær: bool=None,
     opgaver: typing.List[dict] = None,
-    adresser: typing.List[dict] = None
+    adresser: typing.List[dict] = None,
+    integration_data: dict = None,
+    fraktion: str = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -332,6 +335,12 @@ def create_organisationsfunktion_payload(
             ]
         }
     }
+
+    if integration_data is not None:
+        (
+            org_funk['attributter']['organisationfunktionegenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
 
     if tilknyttedebrugere:
         org_funk['relationer']['tilknyttedebrugere'] = [
@@ -368,6 +377,18 @@ def create_organisationsfunktion_payload(
     if adresser:
         org_funk['relationer']['adresser'] = adresser
 
+    extensions = {}
+    if primær is not None:
+        extensions['primær'] = primær
+
+    if fraktion is not None:
+        extensions['fraktion'] = fraktion
+
+    if extensions:
+        org_funk['attributter']['organisationfunktionudvidelser'] = [
+            extensions
+        ]
+
     org_funk = _set_virkning(org_funk, virkning)
 
     return org_funk
@@ -381,8 +402,8 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
-    adresser: typing.List[dict] = None,
-    integration_data: dict = {}
+    opgaver: typing.List[dict] = None,
+    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -393,7 +414,6 @@ def create_organisationsenhed_payload(
                 {
                     'enhedsnavn': enhedsnavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -423,8 +443,14 @@ def create_organisationsenhed_payload(
         }
     }
 
-    if adresser:
-        org_unit['relationer']['adresser'] = adresser
+    if integration_data is not None:
+        (
+            org_unit['attributter']['organisationenhedegenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
+
+    if opgaver:
+        org_unit['relationer']['opgaver'] = opgaver
 
     org_unit = _set_virkning(org_unit, virkning)
 
@@ -438,7 +464,7 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integration_data: dict = {},
+    integration_data: dict = None,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -449,7 +475,6 @@ def create_bruger_payload(
                 {
                     'brugernavn': brugernavn,
                     'brugervendtnoegle': brugervendtnoegle,
-                    'integrationsdata': json.dumps(integration_data)
                 },
             ],
         },
@@ -468,6 +493,12 @@ def create_bruger_payload(
             ],
         }
     }
+
+    if integration_data is not None:
+        (
+            user['attributter']['brugeregenskaber'][0]
+            ['integrationsdata']
+        ) = stable_json_dumps(integration_data)
 
     if cpr:
         user['relationer']['tilknyttedepersoner'] = [
@@ -561,3 +592,8 @@ def convert_reg_to_history(reg):
         'life_cycle_code': reg['livscykluskode'],
         'action': reg.get('note')
     }
+
+
+def stable_json_dumps(v):
+    """like :py:func:`json.dumps()`, but stable."""
+    return json.dumps(v, sort_keys=True, allow_nan=False, ensure_ascii=False)

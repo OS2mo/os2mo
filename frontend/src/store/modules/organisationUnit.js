@@ -19,6 +19,20 @@ const defaultState = () => {
 
 const state = defaultState
 
+const ShowIfInherited=(org_unit_uuid, content) => {
+    if (content.key !== 'manager') return content
+    /* for managers show if inherited */
+    for (var i=0; i < content.value.length; i++){
+        if (content.value[i].org_unit.uuid !== org_unit_uuid){
+            if (content.value[i].person){
+                content.value[i].person.name += " (*)";
+            }
+        }
+    }
+    return content;
+}
+
+
 const actions = {
   async [_orgUnit.actions.SET_ORG_UNIT] ({ commit }, payload) {
     const response = await Service.get(`/ou/${payload}/`)
@@ -35,14 +49,16 @@ const actions = {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
     let atDate = payload.atDate || new Date()
+    let inherit_manager_flag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}`)
+    if (payload.detail === 'manager') inherit_manager_flag = '&inherit_manager=1'
+    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inherit_manager_flag}`)
       .then(response => {
-        let content = {
+        let content = ShowIfInherited(state.uuid, {
           key: payload.detail,
           validity: payload.validity,
           value: response.data
-        }
+        })
         commit(_orgUnit.mutations.SET_DETAIL, content)
       })
       .catch(error => {

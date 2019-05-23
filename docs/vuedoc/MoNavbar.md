@@ -10,6 +10,10 @@
 
 **initial value:** `'N/A'` 
 
+- `shortcuts` 
+
+**initial value:** `[object Object]` 
+
 ## methods 
 
 - `logout()` 

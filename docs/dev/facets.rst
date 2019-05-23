@@ -32,11 +32,9 @@ The system currently works with the following facets:
 +------------------------------+-----------------------------------------------------------+
 | ``manager_address_type``     | Address types applicable to managers                      |
 +------------------------------+-----------------------------------------------------------+
-| ``address_property``         | Properties for addresses, e.g. public or secret addresses |
+| ``visibility``               | Visibility for addresses, e.g. public or secret addresses |
 +------------------------------+-----------------------------------------------------------+
 | ``engagement_job_function``  | Job functions applicable to engagements                   |
-+------------------------------+-----------------------------------------------------------+
-| ``association_job_function`` | Job functions applicable to associations                  |
 +------------------------------+-----------------------------------------------------------+
 | ``org_unit_type``            | Types of organisational units                             |
 +------------------------------+-----------------------------------------------------------+

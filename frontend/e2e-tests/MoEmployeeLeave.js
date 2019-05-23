@@ -1,10 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeLeave')
+  .beforeEach(reset)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeLeave')
@@ -17,22 +18,19 @@ const leaveOption = leaveSelect.find('option')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-// skip: test data lacks leave types
-test.skip('Workflow: leave employee', async t => {
+test('Workflow: leave employee', async t => {
   let today = moment()
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 60 })
     .click('.btn-employee-leave')
 
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeInput)
-    .typeText(searchEmployeeInput.find('input'), 'bror')
+    .typeText(searchEmployeeInput.find('input'), 'erik')
     .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(searchEmployeeInput.find('input').value).eql('Bror Hansen')
 
     .click(leaveSelect)
     .click(leaveOption.withText('Barselsorlov'))

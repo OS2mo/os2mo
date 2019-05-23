@@ -1,15 +1,15 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import logging
 import copy
 
 import freezegun
-
 from mora import lora
 from tests import util
 
@@ -28,8 +28,6 @@ class Writing(util.LoRATestCase):
 
     def test_errors(self):
         self.load_sample_structures(minimal=True)
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         self.assertRequestResponse(
             '/service/details/create',
@@ -998,4 +996,47 @@ class Reading(util.LoRATestCase):
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it'
             '?at=2018-06-01&validity=future',
             [],
+        )
+
+    def test_reading_invalid_integration_data(self):
+        self.load_sample_structures()
+
+        userid = '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+        funcid = 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66'
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        expected = self.assertRequest(
+            '/service/e/{}/details/it'.format(userid),
+        )
+
+        c.organisationfunktion.update(
+            {
+                'attributter': {
+                    'organisationfunktionegenskaber': [
+                        {
+                            'integrationsdata': 'blødebjergeboller',
+                            'virkning': {
+                                'from': '2017-01-01 00:00:00+01:00',
+                                'to': 'infinity',
+                            },
+                        },
+                    ],
+                },
+            },
+            funcid,
+        )
+
+        expected[0]['integration_data'] = None
+
+        with self.assertLogs(level=logging.WARNING) as cm:
+            self.assertRequestResponse(
+                '/service/e/{}/details/it'.format(userid),
+                expected,
+            )
+
+        self.assertIn(
+            'WARNING:flask.app:invalid integation data for function {}!'
+            .format(funcid),
+            cm.output,
         )

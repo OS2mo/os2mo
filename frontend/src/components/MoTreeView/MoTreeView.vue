@@ -312,6 +312,18 @@ export default {
     },
 
     /**
+     * Add the given nodes to the tree.
+     */
+    addNodes (units) {
+      for (let unit of units) {
+        this.addNode(unit, null)
+      }
+
+      this.tree.sort()
+      this.setSelection(this.value)
+    },
+
+    /**
      * Add the given node to the tree, nested under the parent, specified, or
      * root otherwise.
      */
@@ -357,29 +369,16 @@ export default {
      * Reset and re-fetch the tree.
      */
     updateTree (force) {
-      let vm = this
-
       if (force) {
         this.tree.remove({}, true)
       }
 
       if (this.multiple ? this.value.length > 0 : this.value) {
         OrganisationUnit.getAncestorTree(this.value, this.atDate)
-          .then(response => {
-            vm.addNode(response, null)
-            vm.tree.sort()
-            vm.setSelection(this.value)
-          })
+          .then(this.addNodes)
       } else if (this.orgUuid) {
         Organisation.getChildren(this.orgUuid, this.atDate)
-          .then(response => {
-            for (let unit of response) {
-              vm.addNode(unit, null)
-            }
-
-            vm.tree.sort()
-            vm.setSelection(this.value)
-          })
+          .then(this.addNodes)
       }
     },
 

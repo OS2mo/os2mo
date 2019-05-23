@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,18 +9,80 @@
 import random
 
 import service_person_stamdata_udvidet
-
-from requests import HTTPError
+import pathlib
+import requests
+import flask
 
 from .. import util
 from .. import settings
+from .. import exceptions
+
+
+def is_dummy_mode(app):
+    if app.env != 'production':
+        # force dummy during tests and development, and make it
+        # configurable in production
+        #
+        # the underlying logic is that developers know how to edit
+        # source code, wheras that's a big no-no in production
+        return True
+
+    return app.config['DUMMY_MODE']
+
+
+def check_config(app):
+    if is_dummy_mode(app):
+        return True
+
+    config = app.config
+
+    missing = [
+        k
+        for k in (
+            "SP_SERVICE_UUID",
+            "SP_SERVICE_AGREEMENT_UUID",
+            "SP_MUNICIPALITY_UUID",
+            "SP_SYSTEM_UUID",
+        )
+        if not util.is_uuid(config.get(k))
+    ]
+
+    if missing:
+        raise ValueError(
+            "Serviceplatformen uuids must be valid: {}".format(
+                ", ".join(missing)
+            )
+        )
+
+    SP_CERTIFICATE_PATH = config.get("SP_CERTIFICATE_PATH", "")
+    if not SP_CERTIFICATE_PATH:
+        raise ValueError(
+            "Serviceplatformen certificate path must be configured: "
+            "SP_CERTIFICATE_PATH"
+        )
+
+    p = pathlib.Path(SP_CERTIFICATE_PATH)
+    if not p.exists():
+        raise FileNotFoundError(
+            "Serviceplatformen certificate not found: "
+            "SP_CERTIFICATE_PATH"
+        )
+    if not p.stat().st_size:
+        raise ValueError(
+            "Serviceplatformen certificate can not be empty: "
+            "SP_CERTIFICATE_PATH"
+        )
+
+    return True
 
 
 def get_citizen(cpr):
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
-    if settings.PROD_MODE:
+    if is_dummy_mode(flask.current_app):
+        return _get_citizen_stub(cpr)
+    else:
         sp_uuids = {
             'service_agreement': settings.SP_SERVICE_AGREEMENT_UUID,
             'user_system': settings.SP_SYSTEM_UUID,
@@ -31,12 +93,15 @@ def get_citizen(cpr):
         try:
             return service_person_stamdata_udvidet.get_citizen(
                 sp_uuids, certificate, cpr)
-        except HTTPError as e:
+        except requests.HTTPError as e:
             if "PNRNotFound" in e.response.text:
-                raise KeyError('CPR not found')
-            raise e
-    else:
-        return _get_citizen_stub(cpr)
+                raise KeyError("CPR not found")
+            else:
+                flask.current_app.logger.exception(e)
+                raise e
+        except requests.exceptions.SSLError as e:
+            flask.current_app.logger.exception(e)
+            exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 
 MALE_FIRST_NAMES = [

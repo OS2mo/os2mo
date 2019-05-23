@@ -12,18 +12,26 @@
           v-model="entry.org_unit_type"
           required
         />
+
+        <mo-facet-picker
+          facet="time_planning"
+          v-model="entry.time_planning"
+          preselectedType
+          required
+        />
       </div>
 
       <mo-organisation-unit-picker
         v-model="entry.parent"
         :label="$t('input_fields.select_super_unit')"
         required
+        :validity="entry.validity"
       />
 
       <mo-input-date-range
         v-model="entry.validity"
         :disable-to-date="!creatingDate"
-        :disabled-dates="disabledDates"
+        :disabled-dates="{orgUnitValidity, disabledDates}"
       />
   </div>
 </template>
@@ -39,7 +47,9 @@ import MoEntryBase from './MoEntryBase'
 
 export default {
   extends: MoEntryBase,
+
   name: 'MoOrganisationUnitEntry',
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
@@ -59,6 +69,15 @@ export default {
      * This boolean property able the date in create organisation component.
      */
     creatingDate: Boolean
+  },
+
+  computed: {
+    orgUnitValidity () {
+      if (this.entry.parent) {
+        return this.entry.parent.validity
+      }
+      return this.disabledDates
+    }
   },
 
   watch: {

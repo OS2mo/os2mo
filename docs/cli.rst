@@ -1,4 +1,4 @@
 
-.. click:: mora.cli.base:cli
+.. click:: mora.cli:group
    :prog: flask.sh
    :show-nested:

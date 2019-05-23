@@ -139,24 +139,26 @@ export default {
       org_unit: [
         { label: 'org_unit', data: null },
         { label: 'org_unit_type', data: 'org_unit_type' },
+        { label: 'time_planning', data: 'time_planning' },
         { label: 'parent', data: 'parent' }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
+        { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
       engagement: [
         { label: 'person', data: 'person' },
-        { label: 'engagement_type', data: 'engagement_type' },
+        { label: 'engagement_id', data: 'user_key', field: null },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
+        { label: 'engagement_type', data: 'engagement_type' },
         { label: 'org_unit', data: 'org_unit' }
       ],
       association: [
         { label: 'person', data: 'person' },
         { label: 'association_type', data: 'association_type' },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'address', data: 'address' },
+        { label: 'primary', data: 'primary', field: null },
         { label: 'org_unit', data: 'org_unit' }
       ],
       role: [
@@ -171,11 +173,14 @@ export default {
         { label: 'person', data: 'person' },
         { label: 'responsibility', data: 'responsibility' },
         { label: 'manager_type', data: 'manager_type' },
-        { label: 'manager_level', data: 'manager_level' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'address', data: 'address' }
+        { label: 'manager_level', data: 'manager_level' }
       ],
       related_unit: [
+        // NB: the backend always returns both units in a mapping,
+        // ordered by uuid; one of these is always _this_ unit, but we
+        // don't have an easy way to suppress that one, yet, so just
+        // display both :(
+        { label: 'related_org_unit', data: 'org_unit', index: 0 },
         { label: 'related_org_unit', data: 'org_unit', index: 1 }
       ],
 

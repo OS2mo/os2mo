@@ -23,7 +23,7 @@ const actions = {
     /**
      * @todo: all create calls are shared now. refactor to one central handler
      */
-    return Service.post('/details/create', [payload])
+    return Service.post('/details/create', payload)
       .then(response => {
         if (response.data.error) {
           commit('updateIsLoading', false)
@@ -40,7 +40,7 @@ const actions = {
         commit('updateIsLoading', false)
         commit('updateError', error.response.data)
         commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
-        return error
+        return error.response.data
       })
   },
 

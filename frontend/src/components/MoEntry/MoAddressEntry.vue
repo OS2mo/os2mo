@@ -27,13 +27,21 @@
             v-model.trim="contactInfo"
             type="text"
             class="form-control"
-            v-validate="validityRules"
+            v-validate="{required: true, address: this.entry.address_type}"
           >
         </div>
         <span v-show="errors.has(identifier)" class="text-danger">
           {{ errors.first(identifier) }}
         </span>
       </div>
+
+        <mo-facet-picker
+          v-if="isPhone"
+          v-show="noPreselectedType"
+          facet="visibility"
+          v-model="entry.visibility"
+          :preselected-user-key="preselectedType"
+        />
     </div>
 
     <mo-input-date-range
@@ -125,6 +133,15 @@ export default {
     },
 
     /**
+     * If the address is a PHONE.
+     * @type {Boolean}
+     */
+    isPhone () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
+      return false
+    },
+
+    /**
      * If it has not a preselectedType.
      * @type {Boolean}
      */
@@ -136,13 +153,10 @@ export default {
      * Every scopes validity rules.
      */
     validityRules () {
-      if (this.entry.address_type.scope === 'PHONE') return { required: true, digits: 8 }
-      if (this.entry.address_type.scope === 'EMAIL') return { required: true, email: true }
-      if (this.entry.address_type.scope === 'EAN') return { required: true, digits: 13 }
-      if (this.entry.address_type.scope === 'TEXT') return { required: true }
-      if (this.entry.address_type.scope === 'WWW') return { required: true, url: true }
-      if (this.entry.address_type.scope === 'PNUMBER') return { required: true, numeric: true, min: 5 }
-      return {}
+      return {
+        required: true,
+        address: this.entry.address_type
+      }
     }
   },
 
@@ -179,8 +193,6 @@ export default {
         if (val == null) return
         if (this.entry.address_type.scope === 'DAR') {
           this.entry.value = val.location.uuid
-        } else {
-          this.entry.value = val
         }
       },
       deep: true
@@ -192,16 +204,16 @@ export default {
      * Called synchronously after the instance is created.
      * Set entry and contactInfo to value.
      */
-    if (this.value.uuid) {
+    if (this.value.value) {
       this.address = {
         location: {
           name: this.value.name,
           uuid: this.value.value
         }
       }
+      this.contactInfo = this.value.value
     }
     this.entry = this.value
-    this.contactInfo = this.value.value
   }
 }
 </script>

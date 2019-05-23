@@ -43,7 +43,7 @@ Model%E2%80%93view%E2%80%93controller>`_:
 MO (Frontend / View)
 ~~~~~~~~~~~~~~~~~~~~
 MOs frontend er skrevet i Javascript frameworket
-`Vue.js <http://vuejs.org>`_. Frontenden kan opfattes som *View* i
+`Vue.js`_. Frontenden kan opfattes som *View* i
 MVC-modellen, og brugerne interagerer med applikationen via denne. Frontenden
 kommunikerer indirekte med Lora via MOs middleend.
 
@@ -53,6 +53,26 @@ En `LoRa <https://github.com/magenta-aps/mox>`_ backend, som gemmer alle data
 i en PostgreSQL-database. Disse data udstilles og manipuleres via en
 RESTful service skrevet i Python. LoRa kan opfattes som *Model* i MVC-modellen.
 LoRa anvender OIO-standarderne for sag, dokument, organisation og klassifikation
+
+MO betjener sig af udvidelser af datamodellen i LoRa. Før Lora kan anvendes sammen
+med MO skal disse tilretninger afspejles i databasen.
+
+MO-tilretninger af datamodellen i LoRa
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For at få datamodellen i LoRa til at afspejle datamodellen i MO skal
+LoRAs konfiguration justeres så den anvender en anden
+databaseopsætning::
+
+  DB_STRUCTURE_EXTENSIONS=/path/to/os2mo/backend/mora/db_extensions.json
+
+Dette skal sættes som en del af konfigurationen af LoRA inden
+databasen oprettes og ``initdb.sh`` afvikles. Derudover skal det være
+sat under kørslen.
+
+Uden denne indstilling vil eksempelvis kaldenavn og primære
+engagementer ikke kunne lagres.
+
 
 MO (Middleend / Control)
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -264,7 +284,7 @@ Der anvendes overalt i python-koden styleguiden `PEP 8 <https://www.python.org/d
 Licens og Copyright
 -------------------
 
-Copyright (c) 2017-2018, Magenta ApS.
+Copyright (c) 2017-2019, Magenta ApS.
 
 Dette værk er frigivet under `Mozilla Public License, version 2.0 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. 
 Dette er et OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.
@@ -275,13 +295,7 @@ Værket anvender følgende Open Source software-komponenter:
 
 * `Flask <https://www.palletsprojects.com/p/flask/>`_, BSD License
 * `Flask-Session <https://github.com/fengsp/flask-session>`_, BSD License
-* `gevent <http://www.gevent.org/>`_, MIT License
-* `grequests <https://github.com/kennethreitz/grequests>`_, BSD License
 * `lxml <http://lxml.de/>`_, BSD License
-* `pyexcel <https://github.com/pyexcel/pyexcel>`_, New BSD License
-* `pyexcel-io <https://github.com/pyexcel/pyexcel-io>`_, BSD License
-* `pyexcel-ods <https://github.com/pyexcel/pyexcel-ods>`_, New BSD License
-* `pyexcel-xlsx <https://github.com/pyexcel/pyexcel-xlsx>`_, New BSD License
 * `python-dateutil <https://dateutil.readthedocs.io>`_, BSD License, Apache Software License
 * `python3-saml <https://github.com/onelogin/python3-saml>`_, MIT License
 * `requests <http://python-requests.org>`_, Apache Software License

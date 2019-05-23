@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,9 +7,13 @@
 #
 import flask
 import requests
+import uuid
 
 from . import base
+from ..validation.validator import forceable
+from ... import exceptions
 from ... import mapping
+from ... import util
 
 session = requests.Session()
 session.headers = {
@@ -23,46 +27,73 @@ class DARAddressHandler(base.AddressHandler):
     scope = 'DAR'
     prefix = 'urn:dar:'
 
-    def __init__(self, value):
-        super().__init__(value)
-
+    def _fetch_and_initialize(self, value):
         try:
             self.address_object = self._fetch_from_dar(value)
-        except Exception as exc:
-            self.error = {
-                mapping.NAME: NOT_FOUND,
-                mapping.HREF: None,
-                mapping.VALUE: value,
-                mapping.ERROR: str(exc),
-            }
-
-            flask.current_app.logger.warn(
-                'ADDRESS LOOKUP FAILED in {!r}:\n{}'.format(
+            self._name = ''.join(
+                self._address_string_chunks(self.address_object))
+            self._href = (
+                'https://www.openstreetmap.org/'
+                '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)
+                if 'x' in self.address_object and 'y' in self.address_object
+                else None
+            )
+        except LookupError as e:
+            flask.current_app.logger.warning(
+                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
                     flask.request.url,
                     value,
                 ),
             )
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                "DAR Address lookup failed",
+                e=str(e),
+            )
+
+    @classmethod
+    def from_effect(cls, effect):
+        """
+        Initialize handler from LoRa object
+
+        If the saved address fails lookup in DAR for whatever reason, handle
+        gracefully and return _some_ kind of result
+        """
+        # Cut off the prefix
+        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
+        value = urn[len(cls.prefix):]
+        handler = cls(value)
+
+        try:
+            handler._fetch_and_initialize(value)
+        # Suppress lookup exception, as we want to handle this specific case
+        # without dying
+        except exceptions.HTTPException:
+            handler.address_object = {}
+            handler._name = NOT_FOUND
+            handler._href = None
+
+        return handler
+
+    @classmethod
+    def from_request(cls, request):
+        """
+        Initialize handler from MO object
+
+        If lookup in DAR fails, this will raise an exception as we do not want
+        to save a partial object to LoRa
+        """
+        value = util.checked_get(request, mapping.VALUE, "", required=True)
+        handler = cls(value)
+        handler._fetch_and_initialize(value)
+        return handler
 
     @property
     def name(self):
-        return ''.join(self._address_string_chunks(self.address_object))
+        return self._name
 
     @property
     def href(self):
-        href = (
-            'https://www.openstreetmap.org/'
-            '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)
-            if 'x' in self.address_object and 'y' in self.address_object
-            else None
-        )
-
-        return href
-
-    def get_mo_address_and_properties(self):
-        if hasattr(self, 'error'):
-            return self.error
-        else:
-            return super().get_mo_address_and_properties()
+        return self._href
 
     @staticmethod
     def _fetch_from_dar(addrid):
@@ -70,23 +101,28 @@ class DARAddressHandler(base.AddressHandler):
             'adresser', 'adgangsadresser',
             'historik/adresser', 'historik/adgangsadresser'
         ):
-            r = session.get(
-                'https://dawa.aws.dk/' + addrtype,
-                # use a list to work around unordered dicts in Python < 3.6
-                params=[
-                    ('id', addrid),
-                    ('noformat', '1'),
-                    ('struktur', 'mini'),
-                ],
-            )
+            try:
+                r = session.get(
+                    'https://dawa.aws.dk/' + addrtype,
+                    # use a list to work around unordered dicts in Python < 3.6
+                    params=[
+                        ('id', addrid),
+                        ('noformat', '1'),
+                        ('struktur', 'mini'),
+                    ],
+                )
 
-            addrobjs = r.json()
+                addrobjs = r.json()
 
-            r.raise_for_status()
+                r.raise_for_status()
 
-            if addrobjs:
-                # found, escape loop!
-                break
+                if addrobjs:
+                    # found, escape loop!
+                    break
+            # The request mocking library throws a pretty generic exception
+            # catch and rethrow as something we know how to manage
+            except Exception as e:
+                raise LookupError(str(e)) from e
 
         else:
             raise LookupError('no such address {!r}'.format(addrid))
@@ -125,3 +161,15 @@ class DARAddressHandler(base.AddressHandler):
         yield addr['postnr']
         yield ' '
         yield addr['postnrnavn']
+
+    @staticmethod
+    @forceable
+    def validate_value(value):
+        """Values should be UUID in DAR"""
+        try:
+            uuid.UUID(value)
+            DARAddressHandler._fetch_from_dar(value)
+        except (ValueError, LookupError):
+            exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(
+                value=value
+            )

@@ -1,5 +1,138 @@
-Version 0.14.0, in development
-=============================
+Version 0.18.0, in development
+==============================
+
+
+New features
+------------
+
+* #29234: AD integration cookbook added to documentation
+
+Bug fixes
+---------
+
+* #29019: Never ending loop in manager inheritance
+* #28017: Changed style for user settings - location and user key.
+* #29200: We now properly clear the store when switching org units/employees
+  to prevent 'old data' from showing.
+* #29200: Fixed spinners when loading table data.
+
+Internal changes
+----------------
+
+* #26407: Allow selecting optional components per deployment.
+
+Version 0.17.0, 2019-04-30
+==========================
+
+New features
+------------
+
+* #25411: organisation units can show managers by inheritance from parent
+* #28323: Added 'fraction' field to engagements
+* #26857: Removed manager address for create employee and employee and organisation tabs.
+* #28563: Added feature for generating 'thin' responses when reading details,
+  where only the UUIDs of relations are returned as opposed to deep lookups
+  being performed.
+
+Bug fixes
+---------
+
+* #28563: Fixed bug where attribute extensions were not used for chunking on
+  reads
+
+Version 0.16.0, 2019-03-22
+==========================
+
+New features
+------------
+
+* #27687, #27777: The various ``organisationfunktion`` relations now support both
+  ``user_key`` and ``integration_data``.
+* #25396: Implemented validation of individual fields in frontend using
+  backend validation API.
+* #25416: Added engagement ID to column engagement for employee and organisation.
+* #26961: Add support for marking associations as “primary”.
+
+Bug fixes
+---------
+
+* #27228: Clicking the “Save” button in the organisation mapper now
+  shows a confirmation that the operation succeeded.
+* #26402: The “Save” button on the organisation mapper now correctly
+  deactivates when successfully saving changes.
+
+Internal changes
+----------------
+
+* #27526: TestCafe test for employee association tab for create, edit and terminate popups.
+* #27527: TestCafe test for organisation manager tab for create, edit and terminate popups.
+* #27959: Documentation added on how to set up a SAML SSO instance for
+  testing and development.
+
+
+Version 0.15.1, 2019-03-19
+==========================
+
+* This release merely contains minor tweaks to the documentation.
+
+
+Version 0.15.0, 2019-03-11
+==========================
+
+API changes
+-----------
+
+``/service/e/(uuid:employee_uuid)/terminate``:
+
+The defaults for employee termination changed, and now affect managers
+similarly to any other functions. To achieve the previous behaviour of
+merely marking manager functions as *vacant*, set ``"vacant": true``
+in the JSON request. Please note that this is the inverse of the
+previous ``terminate_all`` parameter, which no longer has any affect.
+
+Internal changes
+----------------
+
+* #27431: The ``address_property`` facet is now named ``visibility``.
+
+New features
+------------
+
+* #27299: Config check on startup, DUMMY_MODE instead of PROD_MODE,
+* #26459: Add support for terminating relations, such as associations,
+  addresses, etc., using a separate dialog.
+* #25575: Added visibility for addresses with a phone number and exposed them in columns -
+  address, association and manager for employee and organisation.
+* #25407: Added checkbox message alert validation for workflow employee terminate.
+* #27336: Remove association addresses.
+* #25174: Add support for marking engagements as “primary”.
+* #27261: We can now read the username from the SAML session NameID
+* #27290: Add support for assigning time planning to organisational units.
+
+Bug fixes
+---------
+
+* #25671: Organisation is now properly set when creating new employee.
+* #25694: Changed table columns layout to align between table future, present and past.
+* #26886: Fixed duplicate for addresses in create organisation unit and 
+  employee move many workflow now works again.
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+  employeeMoveMany.
+* #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
+* #27155: Ensure that we show all unit roots when reloading a unit page.
+* #27153: Fixed the error and success messages for organisation and employee.
+* #27488: Fixed 401 not redirecting to login
+
+Version 0.14.1, 2019-02-22
+==========================
+
+New features
+------------
+
+* #27244: Associations no longer have job functions. 'Tilknytningstype' renamed to 'Tilknytningsrolle'.
+
+Version 0.14.0, 2019-01-30
+==========================
 
 New features
 ------------
@@ -15,8 +148,9 @@ New features
   for disabling certain validations.
 * #25409: Added backend support for specifying visibility for phone number
   address objects.
-* #24130: The configuration module now has a public api, allowing for dynamic
-  changes of the configuration options.
+* #25706: Added more meaningful error message when editing addresses.
+* #25406: All text has been moved into a translation file
+* #25404: A validation ensures that a person (cpr) cannot be created twice in the database
 
 Internal changes
 ----------------
@@ -36,18 +170,30 @@ Internal changes
 
 Bug fixes
 ---------
-* #25405: Submit button for create new and edit modals for organisation 
+* #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
-* #25028: Timeachine is working again.
+* #25028: Time machine is working again.
 * #25579: Address race condition when quickly switching between units
   in the tree view at the left.
 * #25186: Hidden person input for create employee manager.
 * #25690: Ignore spacing in address type input field.
 * #26368: Validation no longer prevents adding an association if it
   duplicates another *inactive* association.
-* #25704 Added max-width to table columns.
+* #25704: Set ``max-width`` on the detail view table columns to ensure consistent alignment.
 * #25696: Added remove button for dates.
-* #25694: Changed table columns layout to align between table future, present and past.
+* #26890: Fixed regression that broke viewing the details of a unit in
+  the termination dialog.
+* #26898: Ensure that detail view for organisation mapper shows all
+  related units.
+* #26788: Fixed the manager edit popup to submit with a blank employee picker field.
+* #26801: Adjust styling of missing address note for associations such
+  that it no longer appears as an error.
+* #26787: Added check for org unit valid dates in the datepicker. 
+* #26874: Added scrollbar overflow-x for table.
+* #25697: Added scrollbars to the dropdown menu when choosing Unit in Create Employee
+* #24493: Added indication of where a value is missing in Create Unit
+* #24492: Name change was not reflected before the page was updated manually
+* #24933: Internet Explorer stopped validating input fields. Works again now.
 
 Version 0.13.0, 2018-11-30
 ==========================

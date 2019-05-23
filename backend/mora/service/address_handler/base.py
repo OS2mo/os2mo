@@ -1,12 +1,11 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import abc
-import inspect
 
 from ... import exceptions
 from ... import mapping
@@ -51,7 +50,14 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     def from_request(cls, request):
         """Initialize handler from MO object"""
         value = util.checked_get(request, mapping.VALUE, "", required=True)
+        cls.validate_value(value)
         return cls(value)
+
+    @staticmethod
+    @abc.abstractmethod
+    def validate_value(value):
+        """Validate that the address value is correctly formed"""
+        pass
 
     @property
     def urn(self):
@@ -80,11 +86,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         The properties are used to further describe the individual
         address subtypes. E.g. visibility.
 
-        Example:
-        [{
+        Example::
+
+          [{
             'objekttype': 'synlighed',
             'uuid': 'd99b500c-34b4-4771-9381-5c989eede969'
-        }]
+          }]
         """
         return []
 
@@ -92,11 +99,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         """
         Get a LoRa object fragment for the address
 
-        Example
-        {
+        Example::
+
+          {
             'objekttype': 'PHONE',
             'urn': 'urn:magenta.dk:telefon:+4512345678'
-        }
+          }
         """
         return {
             'objekttype': self.scope,
@@ -110,12 +118,13 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         The properties are used to further describe the individual
         address subtypes. E.g. visibility.
 
-        Example:
-        {
+        Example::
+
+          {
             'visibility': {
                 'uuid': visibility
             }
-        }
+          }
         """
         return {}
 
@@ -124,15 +133,16 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         Get a MO object fragment for the address, including any eventual
         properties
 
-        E.g.
-        {
+        Example::
+
+          {
             'href': 'tel:+4512345678',
             'name': '+4512345678',
             'value': '12345678',
             'visibility': {
                 'uuid': visibility
             }
-        }
+          }
         """
         return {
             mapping.HREF: self.href,

@@ -81,7 +81,6 @@ export default {
         if (response.data.error) {
           return response.data
         }
-        store.commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: response.data })
         return response.data
       })
   },
@@ -96,7 +95,6 @@ export default {
     return Service.post('/details/edit', edit)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
-        store.commit('log/newWorkLog', { type: 'EMPLOYEE_EDIT', value: response.data })
         return response.data
       })
       .catch(error => {

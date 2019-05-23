@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,6 @@ import platform
 import subprocess
 import traceback
 import unittest
-
 import psycopg2
 import mora.settings as settings
 
@@ -33,16 +32,15 @@ TEST_DIR = os.path.join(util.FRONTEND_DIR, "e2e-tests")
 TESTCAFE_COMMAND = os.path.join(util.FRONTEND_DIR,
                                 "node_modules", ".bin", "testcafe")
 
-TEST_FILES = sorted(
-    os.path.join(dirpath, file_name)
-    for dirpath, dirs, file_names in os.walk(TEST_DIR)
-    for file_name in file_names
-    if (file_name.endswith('.js') and
-        not file_name.startswith('.') and
-        file_name not in SKIP_FILES)
+
+@unittest.skipUnless(
+    util.is_frontend_built() and os.path.isfile(TESTCAFE_COMMAND),
+    'frontend sources & TestCafé command required!',
 )
-
-
+@unittest.skipIf(
+    'SKIP_TESTCAFE' in os.environ,
+    'TestCafé disabled by $SKIP_TESTCAFE!',
+)
 class TestCafeTests(util.LiveLoRATestCase):
     """Run tests with test-cafe."""
 
@@ -138,10 +136,8 @@ class TestCafeTests(util.LiveLoRATestCase):
                                  'safari' if platform.system() == 'Darwin'
                                  else 'chromium:headless --no-sandbox')
 
-        xml_report_file = os.path.join(util.REPORTS_DIR,
-                                       test_name + ".xml")
-        json_report_file = os.path.join(util.REPORTS_DIR,
-                                        test_name + ".json")
+        xml_report_file = os.path.join(util.REPORTS_DIR, "testcafe.xml")
+        json_report_file = os.path.join(util.REPORTS_DIR, "testcafe.json")
 
         with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
             process = subprocess.run(
@@ -184,13 +180,3 @@ class TestCafeTests(util.LiveLoRATestCase):
             print("{} tests skipped".format(res['skipped']))
 
         self.assertEqual(process.returncode, 0, "Test run failed!")
-
-    for test_file in TEST_FILES:
-        test_name = os.path.splitext(os.path.basename(test_file))[0]
-
-        def test_with_testcafe(self, test_file=test_file, test_name=test_name):
-            self._test_with_testcafe(test_file, test_name)
-
-        locals()['test_' + test_name] = test_with_testcafe
-
-        del test_file, test_name, test_with_testcafe

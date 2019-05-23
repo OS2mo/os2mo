@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,6 +35,7 @@ LOCATION = 'location'
 ERROR = 'error'
 USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
+PRIMARY = 'primary'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -48,6 +49,7 @@ CPR_NO = 'cpr_no'
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
+FRACTION = 'fraction'
 
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
@@ -74,6 +76,7 @@ MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
+TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
 
@@ -128,6 +131,9 @@ class FieldTuple(object):
             except KeyError:
                 pass
 
+    def get_uuid(self, obj):
+        return next(self.get_uuids(obj), None)
+
     @property
     def path(self) -> typing.Tuple[str, str]:
         return self.__path
@@ -137,7 +143,7 @@ class FieldTuple(object):
         return self.__type
 
     @property
-    def filter_fn(self) -> typing.Callable[[dict], bool]:
+    def filter_fn(self) -> typing.Optional[typing.Callable[[dict], bool]]:
         return self.__filter_fn
 
     def __repr__(self):
@@ -164,6 +170,11 @@ ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'organisationfunktionudvidelser'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 ORG_FUNK_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -187,6 +198,11 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
 ASSOCIATED_FUNCTION_FIELD = FieldTuple(
     path=('relationer', 'tilknyttedefunktioner'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+)
+
+ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedefunktioner'),
+    type=FieldTypes.ZERO_TO_MANY
 )
 
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
@@ -292,6 +308,12 @@ EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
+    filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
+)
+
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
     EMPLOYEE_EGENSKABER_FIELD,
@@ -302,6 +324,7 @@ EMPLOYEE_FIELDS = {
 
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_UDVIDELSER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
     JOB_FUNCTION_FIELD,
     ORG_FUNK_TYPE_FIELD,
@@ -347,7 +370,7 @@ MANAGER_FIELDS = {
     USER_FIELD,
     RESPONSIBILITY_FIELD,
     MANAGER_LEVEL_FIELD,
-    SINGLE_ADDRESS_FIELD,
+    ASSOCIATED_MANAGER_ADDRESSES_FIELD,
 }
 
 ORG_UNIT_FIELDS = {
@@ -356,6 +379,7 @@ ORG_UNIT_FIELDS = {
     ADDRESSES_FIELD,
     BELONGS_TO_FIELD,
     ORG_UNIT_TYPE_FIELD,
+    ORG_UNIT_TIME_PLANNING_FIELD,
     PARENT_FIELD
 }
 

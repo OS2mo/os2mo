@@ -42,7 +42,7 @@ Best practices for implementering
 
        * Ubuntu 16.04
 
-       * Tillade udgående trafik på portene 80, 443, 4505 og 4506
+       * Tillade udgående trafik på portene 22, 80, 443, 4505 og 4506
 
        * Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
      - Kunde
@@ -58,7 +58,7 @@ Best practices for implementering
    * - 3.
      - Indgåelse af aftaler
      -
-       * Databehandleraftale; *påkrævet*.
+       * Databehandleraftale.
 
        * Fortrolighedsaftale, om nødvendigt.
      - Kunde
@@ -73,25 +73,23 @@ Best practices for implementering
      - Kunde
    * - 5.
      - Tilvejebringelse af certifikater til Serviceplatformen
-     - Der skal laves en aftale til at slå personer op i Serviceplatformens CPR-service (LaesPerson) og til hændelsesdata (LaesPersonAendringer), så personoplysninger forbliver ajourførte I OS2MO 2.0.
-       Serviceplatformens CPR-data:Hvert it-system, der er oprettet på Serviceplatformen, registreres med ét unikt certifikat. Dvs. at det ikke er muligt at anvende samme certifikat for flere it-systemer på Serviceplatformen.
+     - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
+       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning1_>`_.
 
-       * Kommunen skal bestille et Funktionscertifikat (FOCES) fra NETS til OS2MO 2.0-installationen
-
-       * Kommunen skal oprette et it-systemet på
-         Serviceplatformen til OS2MO 2.0-installationen
-
-       * Kommunen skal oprette en serviceaftale på denne `service <https://www.serviceplatformen.dk/administration/serviceOverview/show?uid=e6be2436-bf35-4df2-83fe-925142825dc2>`_
+       .. _vejledning1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'erne fra serviceaftalen til leverandøren
      - Kunde
    * - 6.
-     - Installation af OS2MO 2.0 og tilhørende agenter
+     - Installation af OS2MO og tilhørende agenter
      - Se de enkelte trin nedenfor.
      - Leverandør
    * - 6. 1
-     - Agent tilautentificering (SAML 2.0SSO)
+     - Agent til autentificering (SAML 2.0 SSO)
      - Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
+       Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
+
+       .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
 
        * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, som de kan give til IdP'en. Derefter sker konfigurationen automatisk
 
@@ -99,7 +97,7 @@ Best practices for implementering
 
        * Brugerens navn, og eventuelle roller skal i IdP'en tilføjes til de claims, der kommer tilbage i SAML-token
 
-       * Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
+       Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
 
        Opgaven forudsætter, at Kunden har en IdP, der understøtter SAML 2.0 SSO.
      - Kunde / Leverandør
@@ -115,16 +113,35 @@ Best practices for implementering
        2.Løbende synkronisering mellem databasen (LoRa) og Serviceplatformens CPR-service (LaesPersonAendringer)
      - Leverandør
    * - 7.
-     - Data iOS2MO 2.0
-     - OS2MO 2.0 populeres med Kundens organisaions- og medarbejderdata.
+     - Data i OS2MO
+     - OS2MO populeres med Kundens organisaions- og medarbejderdata.
        Se de enkelte trin nedenfor.
      - Kunde / Leverandør
    * - 7. 1
      - Tilvejebringelse af data
-     - Kunden tilvejebringer adgang til API eller et databasedump med myndighedens organisaions- og medarbejderdata
+     - Kunden tilvejebringer adgang til API eller et databasedump med myndighedens organisations- og medarbejderdata
      - Kunde
    * - 7. 2
      - Indlæsning af data
-     - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO 2.0’s database, LoRa
+     - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO’s database, LoRa
      - Leverandør
+   * - 8.
+     - Integration med øvrig infrastruktur
+     - Kommuner binder OS2MO sammen med øvrig infrastruktur på både system- og dataniveau 
+       Se eksempler og guides nedenfor
+     - Kunde / Leverandør
+   * - 8. 1
+     - OS2MO i et Windows Domæneme
+     - Viborg har tilføjet OS2MO-serveren til deres Windows-domæne og har i den forbindelse lavet en guide, der beskriver:
 
+       * Tilføjelse af OS2MO server til Windows domænet
+
+       * Powershell remote server opsætning
+
+       * Skjult CPR-nummer i AD
+
+       Se `AD - OS2MO opsætnings guide <vejledning3_>`_.   
+
+       .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf 
+
+     - Kunde

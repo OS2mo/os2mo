@@ -8,7 +8,7 @@ BUILD_DIR="$TOPDIR"/backend/build
 # We'll want warnings during our test run!
 export PYTHONWARNINGS=default
 export FLASK_ENV=development
-export FLASK_APP=mora.app:app
+export FLASK_APP="mora.app:create_app()"
 
 #
 # create the output directories
@@ -26,15 +26,15 @@ mkdir -p "$BUILD_DIR"/coverage "$BUILD_DIR"/reports
 # eventually
 #
 coverage run \
-         --rcfile="$TOPDIR"/backend/.coveragerc \
+         --rcfile="$TOPDIR"/backend/setup.cfg \
          -m mora.cli -- \
          test --verbose --buffer \
          --xml-report "$BUILD_DIR"/reports \
          "$@"
 
 coverage report \
-         --rcfile="$TOPDIR"/backend/.coveragerc
+         --rcfile="$TOPDIR"/backend/setup.cfg
 
 coverage xml \
-         --rcfile="$TOPDIR"/backend/.coveragerc \
+         --rcfile="$TOPDIR"/backend/setup.cfg \
          -o "$BUILD_DIR"/coverage/python.xml

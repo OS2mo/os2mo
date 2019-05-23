@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,6 +18,7 @@ from . import service
 from . import settings
 from . import util
 from .auth import base
+from .integrations import serviceplatformen
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -69,16 +70,20 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return error.get_response(flask.request.environ)
 
-    @app.route('/')
-    @app.route('/<path:path>')
-    def root(path=''):
-        if path.split('/', 1)[0] == 'service':
-            exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+    if app.env != 'production':
+        @app.route('/')
+        @app.route('/<path:path>')
+        def root(path=''):
+            '''Serve static files.
 
-        return flask.send_file('index.html')
+            Disabled in production since you should configure the
+            proxy to do so.
 
+            '''
+            if path.split('/', 1)[0] == 'service':
+                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
+            return flask.send_file('index.html')
+
+    serviceplatformen.check_config(app)
     return app
-
-
-# create a default instance for backwards compatibility
-app = create_app()

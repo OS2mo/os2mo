@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,11 +38,21 @@ class MockTests(util.TestCase):
             status_code=401,
         )
 
-    def test_get_user_returns_username(self):
+    def test_get_user_returns_username_from_attr(self):
         self.app.config['SAML_USERNAME_ATTR'] = 'whatever'
+        self.app.config['SAML_USERNAME_FROM_NAMEID'] = False
 
         with self.client.session_transaction() as sess:
             sess['samlAttributes'] = {'whatever': ['USERNAME']}
+
+        self.assertRequestResponse(
+            '/service/user',
+            'USERNAME',
+        )
+
+    def test_get_user_returns_username_from_name_id(self):
+        with self.client.session_transaction() as sess:
+            sess['samlNameId'] = "USERNAME"
 
         self.assertRequestResponse(
             '/service/user',

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -32,6 +32,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": '1234',
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -42,7 +43,7 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -112,10 +113,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Rolle"
                     }
                 ]
@@ -149,10 +147,10 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        roleid, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -222,19 +220,14 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                        "{} {} Rolle".format(userid, unitid),
+                        "brugervendtnoegle": roleid,
                         "funktionsnavn": "Rolle"
                     }
                 ]
             }
         }
 
-        (roleid, actual_role), = c.organisationfunktion.get_all(
-            tilknyttedebrugere=userid,
-            tilknyttedeenheder=unitid,
-            funktionsnavn='Rolle',
-        )
+        actual_role = c.organisationfunktion.get(roleid)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -262,7 +255,7 @@ class Tests(util.LoRATestCase):
         role_id, = self.assertRequest('/service/details/create', json=payload)
 
         expected = {
-            "livscykluskode": "Opstaaet",
+            "livscykluskode": "Importeret",
             "tilstande": {
                 "organisationfunktiongyldighed": [
                     {
@@ -332,10 +325,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": "6ee24785-ee9a-4502-81c2-"
-                                             "7697009c9053 9d07123e-"
-                                             "47ac-4a9a-88c8-da82e3a4bc9e "
-                                             "Rolle",
+                        "brugervendtnoegle": role_id,
                         "funktionsnavn": "Rolle"
                     }
                 ]
@@ -349,8 +339,6 @@ class Tests(util.LoRATestCase):
     def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
         req = [{
@@ -363,6 +351,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"
                 },
+                "user_key": "bjørndrager",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -468,9 +457,19 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         },
                         "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Rolle"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bjørndrager",
                         "funktionsnavn": "Rolle"
                     }
                 ]
@@ -484,8 +483,6 @@ class Tests(util.LoRATestCase):
 
     def test_edit_role_minimal(self):
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -594,10 +591,8 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_edit_role_minimal_on_unit(self):
+    def test_edit_role_minimal_unit(self):
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -680,6 +675,128 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Rolle"
+                    }
+                ]
+            },
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_role = c.organisationfunktion.get(role_uuid)
+
+        self.assertRegistrationsEqual(expected_role, actual_role)
+
+    def test_edit_role_person(self):
+        self.load_sample_structures()
+
+        role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
+
+        req = {
+            "type": "role",
+            "uuid": role_uuid,
+            "data": {
+                "person": {
+                    "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                },
+                "validity": {
+                    "from": "2018-01-01",
+                },
+            },
+        }
+
+        self.assertRequestResponse('/service/details/edit',
+                                   role_uuid, json=req)
+
+        expected_role = {
+            "note": "Rediger rolle",
+            "relationer": {
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-01-01 00:00:00+01",
+                        }
+                    },
+                    {
+                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-01-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    }
+                ]
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-01-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-01-01 00:00:00+01",
                             "to": "infinity"
                         }
                     }
@@ -708,8 +825,6 @@ class Tests(util.LoRATestCase):
 
     def test_edit_role_overwrite(self):
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -897,7 +1012,7 @@ class Tests(util.LoRATestCase):
                                    userid, json=payload)
 
         expected_role = {
-            "note": "Afslut medarbejder",
+            "note": "Afsluttet",
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
@@ -1013,6 +1128,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'user_key': 'bvn',
                 'validity': {'from': '2017-01-01', 'to': None},
             }],
         )
@@ -1038,6 +1154,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
+                'user_key': 'bvn',
                 'validity': {'from': '2017-01-01', 'to': None},
             }],
         )
@@ -1051,8 +1168,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "00000000-0000-0000-0000-000000000000"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -1087,8 +1202,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"
 

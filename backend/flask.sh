@@ -16,6 +16,7 @@ fi
 "$VENV"/bin/pip install -qe "$DIR"
 
 export FLASK_ENV=development
-export FLASK_APP=mora.app:app
+export FLASK_PROG_NAME="$0"
+export FLASK_APP="mora.app:create_app()"
 
-exec "$VENV"/bin/python -m mora.cli "$0" "$@"
+exec "$VENV"/bin/python -m mora.cli "$@"

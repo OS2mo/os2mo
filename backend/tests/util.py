@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,19 +10,16 @@
 import contextlib
 import json
 import os
+import pkgutil
 import pprint
 import re
-import shutil
 import sys
-import tempfile
 import threading
 from unittest.mock import patch
 
 import flask
 import flask_testing
 import jinja2
-import psycopg2
-import requests
 import requests_mock
 import time
 import werkzeug.serving
@@ -30,13 +27,11 @@ import werkzeug.serving
 from oio_rest.utils import test_support
 
 from mora import app, lora, settings
-from mora.importing import spreadsheets
 
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
-IMPORTING_DIR = os.path.join(FIXTURE_DIR, 'importing')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
 TOP_DIR = os.path.dirname(BASE_DIR)
@@ -100,13 +95,29 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     return r
 
 
-def import_fixture(fixture_name):
-    path = os.path.join(IMPORTING_DIR, fixture_name)
-    print(fixture_name, path)
-    for method, path, obj in spreadsheets.convert([path]):
-        r = requests.request(method, settings.LORA_URL.rstrip('/') + path,
-                             json=obj)
-        r.raise_for_status()
+def load_sql_fixture(fixture_name):
+    '''Load an SQL fixture, directly into the database.
+    into LoRA at the given path & UUID.
+
+    '''
+    fixture_path = os.path.join(FIXTURE_DIR, 'sql', fixture_name)
+
+    assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
+    assert os.path.isfile(fixture_path), 'no such SQL fixture found!'
+
+    test_support.load_sql_fixture(fixture_path)
+
+
+def add_resetting_endpoint(app, fixture_name):
+    @app.route('/reset-db')
+    def reset_db():
+        app.logger.warn('RESETTING DATABASE!!!')
+
+        load_sql_fixture(fixture_name)
+
+        return '', 200
+
+    return app
 
 
 def load_sample_structures(*, verbose=False, minimal=False, check=False,
@@ -261,14 +272,16 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
 
 @contextlib.contextmanager
 def override_settings(**overrides):
-    orig_settings = {k: getattr(settings, k) for k in overrides}
-    settings.__dict__.update(overrides)
-    yield
-    settings.__dict__.update(orig_settings)
+    stack = contextlib.ExitStack()
+    with stack:
+        for k, v in overrides.items():
+            stack.enter_context(patch('mora.settings.{}'.format(k), v))
+
+        yield
 
 
 def override_lora_url(lora_url='http://mox/'):
-    return override_settings(LORA_URL=lora_url)
+    return patch('mora.settings.LORA_URL', lora_url)
 
 
 @contextlib.contextmanager
@@ -349,6 +362,8 @@ class TestCaseMixin(object):
         os.makedirs(BUILD_DIR, exist_ok=True)
 
         return app.create_app({
+            'ENV': 'testing',
+            'DUMMY_MODE': True,
             'DEBUG': False,
             'TESTING': True,
             'LIVESERVER_PORT': 0,
@@ -521,18 +536,25 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
     instance, and deletes all objects between runs.
     '''
 
-    def load_sample_structures(self, **kwargs):
-        load_sample_structures(**kwargs)
+    db_structure_extensions = json.loads(
+        pkgutil.get_data('mora', 'db_extensions.json').decode(),
+    )
 
-    def load_sql_fixture(self, fixture_name='dummy.sql'):
+    def load_sample_structures(self, minimal=False):
+        if minimal:
+            load_sql_fixture('minimal.sql')
+        else:
+            load_sql_fixture('simple.sql')
+
+    def load_sql_fixture(self, fixture_name='normal.sql'):
         '''Load an SQL fixture'''
-        assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
 
-        with psycopg2.connect(self.db_url) as conn, conn.cursor() as curs:
-            conn.autocommit = True
+        load_sql_fixture(fixture_name)
 
-            with open(os.path.join(FIXTURE_DIR, fixture_name)) as fp:
-                curs.execute(fp.read())
+    def add_resetting_endpoint(self, fixture_name='normal.sql'):
+        '''Add an endpoint for resetting the database'''
+
+        add_resetting_endpoint(self.app, fixture_name)
 
     def setUp(self):
         lora_server = werkzeug.serving.make_server(
@@ -540,21 +562,11 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         )
         (_, self.lora_port) = lora_server.socket.getsockname()
 
-        patches = [
-            patch('mora.settings.LORA_URL', 'http://localhost:{}/'.format(
-                self.lora_port,
-            )),
-            patch('oio_rest.app.settings.LOG_AMQP_SERVER', None),
-            patch('oio_rest.validate.SCHEMA', None),
-            patch('mora.importing.processors._fetch.cache', {}),
-            patch('mora.importing.processors._fetch.cache_file',
-                  os.devnull),
-        ]
-
         # apply patches, then start the server -- so they're active
         # while it's running
-        for p in patches:
-            p.start()
+        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
+        p.start()
+        self.addCleanup(p.stop)
 
         threading.Thread(
             target=lora_server.serve_forever,
@@ -563,9 +575,6 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
 
         # likewise, stop it, and *then* pop the patches
         self.addCleanup(lora_server.shutdown)
-
-        for p in patches:
-            self.addCleanup(p.stop)
 
         super().setUp()
 

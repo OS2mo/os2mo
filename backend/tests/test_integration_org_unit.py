@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,6 +35,7 @@ class Tests(util.LoRATestCase):
                     "name": "Afdeling for Fremtidshistorik",
                     "user_key": "frem",
                     "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -77,6 +78,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -114,6 +116,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -151,6 +154,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -181,6 +185,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -211,6 +216,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Afdeling',
@@ -256,6 +262,9 @@ class Tests(util.LoRATestCase):
         payload = {
             "name": "Fake Corp",
             "integration_data": {"fakekey": 42},
+            "time_planning": {
+                'uuid': "ca76a441-6226-404f-88a9-31e02e420e52",
+            },
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
             },
@@ -325,14 +334,25 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2016-02-04 00:00:00+01"
                         },
-                        "brugervendtnoegle":
-                            'Fake Corp f494ad89-039d-478e-91f2-a63566554bd6',
+                        "brugervendtnoegle": unitid,
                         "enhedsnavn": "Fake Corp",
                         "integrationsdata": '{"fakekey": 42}'
                     }
                 ]
             },
             "relationer": {
+                "opgaver": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-10-22 00:00:00+02",
+                            "from_included": True,
+                            "from": "2016-02-04 00:00:00+01"
+                        },
+                        "objekttype": "tidsregistrering",
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
+                    }
+                ],
                 "overordnet": [
                     {
                         "virkning": {
@@ -396,6 +416,13 @@ class Tests(util.LoRATestCase):
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
+                "time_planning": {
+                    "example": None,
+                    "name": "Institut",
+                    "scope": None,
+                    "user_key": "inst",
+                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                },
                 "org_unit_type": {
                     "example": None,
                     "name": "Institut",
@@ -411,6 +438,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    "time_planning": None,
                     "org_unit_type": {
                         "example": None,
                         "name": "Afdeling",
@@ -517,6 +545,7 @@ class Tests(util.LoRATestCase):
                 "parent": {
                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
+                'time_planning': None,
                 "org_unit_type": {
                     'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
@@ -642,6 +671,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 },
+                'time_planning': None,
                 "org_unit_type": {
                     "example": None,
                     "name": "Afdeling",
@@ -674,6 +704,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
+                'time_planning': None,
                 "org_unit_type": {
                     "example": None,
                     "name": "Afdeling",
@@ -689,6 +720,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'time_planning': None,
                     "org_unit_type": {
                         "example": None,
                         "name": "Institut",
@@ -704,6 +736,7 @@ class Tests(util.LoRATestCase):
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
+                        'time_planning': None,
                         "org_unit_type": {
                             "example": None,
                             "name": "Institut",
@@ -719,6 +752,7 @@ class Tests(util.LoRATestCase):
                                 "user_key": "AU",
                                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                             },
+                            'time_planning': None,
                             "org_unit_type": {
                                 "example": None,
                                 "name": "Afdeling",
@@ -1067,8 +1101,7 @@ class Tests(util.LoRATestCase):
             'attributter': {
                 'organisationenhedegenskaber': [
                     {
-                        'brugervendtnoegle': 'Fake Corp '
-                        'f494ad89-039d-478e-91f2-a63566554bd6',
+                        'brugervendtnoegle': org_unit_uuid,
                         'enhedsnavn': 'Fake Corp',
                         'integrationsdata': '{}',
                         'virkning': {
@@ -1237,6 +1270,7 @@ class Tests(util.LoRATestCase):
             "parent": {
                 'uuid': orgid,
             },
+            'time_planning': None,
             "org_unit_type": {
                 'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
             },
@@ -1256,6 +1290,7 @@ class Tests(util.LoRATestCase):
                 "user_key": "AU",
                 "uuid": orgid
             },
+            'time_planning': None,
             "org_unit_type": {
                 "example": None,
                 "name": "Afdeling",
@@ -1296,6 +1331,7 @@ class Tests(util.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "name": "Filosofisk Institut II",
+                "user_key": "højrespidseskilning",
                 "uuid": org_unit_uuid,
                 "validity": {
                     "from": "2018-01-01",
@@ -1328,7 +1364,7 @@ class Tests(util.LoRATestCase):
                             "from": "2018-01-01 00:00:00+01",
                             "to": "infinity"
                         },
-                        "brugervendtnoegle": "fil",
+                        "brugervendtnoegle": "højrespidseskilning",
                         "enhedsnavn": "Filosofisk Institut II"
                     },
                 ]
@@ -1398,6 +1434,225 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    def test_edit_time_planning(self):
+        self.load_sample_structures()
+
+        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        expected = c.organisationenhed.get(org_unit_uuid)
+
+        expected['livscykluskode'] = 'Rettet'
+        expected['note'] = 'Rediger organisationsenhed'
+        expected['relationer']['opgaver'] = [
+            {
+                'objekttype': 'tidsregistrering',
+                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                'virkning': {
+                    'from': '2018-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': '2019-01-01 00:00:00+01',
+                    'to_included': False,
+                },
+            },
+            {
+                'objekttype': 'tidsregistrering',
+                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                'virkning': {
+                    'from': '2019-01-01 00:00:00+01',
+                    'from_included': True,
+                    'to': 'infinity',
+                    'to_included': False,
+                },
+            },
+        ]
+        expected['tilstande']['organisationenhedgyldighed'] = [
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from_included': True,
+                    'to_included': False,
+                    'from': '2016-01-01 00:00:00+01',
+                    'to': '2018-01-01 00:00:00+01'
+                },
+            },
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from_included': True,
+                    'to_included': False,
+                    'from': '2018-01-01 00:00:00+01',
+                    'to': '2019-01-01 00:00:00+01',
+                },
+            },
+            {
+                'gyldighed': 'Aktiv',
+                'virkning': {
+                    'from_included': True,
+                    'to_included': False,
+                    'from': '2019-01-01 00:00:00+01',
+                    'to': 'infinity'
+                },
+            },
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            org_unit_uuid, json={
+                "type": "org_unit",
+                "data": {
+                    "time_planning": {
+                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                    },
+                    "uuid": org_unit_uuid,
+                    "validity": {
+                        "from": "2018-01-01",
+                    },
+                },
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            org_unit_uuid, json={
+                "type": "org_unit",
+                "data": {
+                    "time_planning": {
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    },
+                    "uuid": org_unit_uuid,
+                    "validity": {
+                        "from": "2019-01-01",
+                    },
+                },
+            },
+        )
+
+        actual = c.organisationenhed.get(org_unit_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+        with self.subTest('reading present'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/org_unit?validity=present'
+                .format(org_unit_uuid),
+                [
+                    {
+                        "name": "Filosofisk Institut",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Institut",
+                            "scope": None,
+                            "user_key": "inst",
+                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        },
+                        "parent": {
+                            "name": "Humanistisk fakultet",
+                            "user_key": "hum",
+                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None,
+                            },
+                        },
+                        "time_planning": None,
+                        "user_key": "fil",
+                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+                        "validity": {
+                            "from": "2016-01-01",
+                            "to": "2017-12-31",
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('reading future'):
+            self.assertRequestResponse(
+                '/service/ou/{}/details/org_unit?validity=future'
+                .format(org_unit_uuid),
+                [
+                    {
+                        "name": "Filosofisk Institut",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Institut",
+                            "scope": None,
+                            "user_key": "inst",
+                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        },
+                        "parent": {
+                            "name": "Humanistisk fakultet",
+                            "user_key": "hum",
+                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None,
+                            },
+                        },
+                        "time_planning": {
+                            "example": None,
+                            "name": "Fakultet",
+                            "scope": None,
+                            "user_key": "fak",
+                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                        },
+                        "user_key": "fil",
+                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+                        "validity": {
+                            "from": "2018-01-01",
+                            "to": "2018-12-31",
+                        },
+                    },
+                    {
+                        "name": "Filosofisk Institut",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        },
+                        "org_unit_type": {
+                            "example": None,
+                            "name": "Institut",
+                            "scope": None,
+                            "user_key": "inst",
+                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        },
+                        "parent": {
+                            "name": "Humanistisk fakultet",
+                            "user_key": "hum",
+                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                            "validity": {
+                                "from": "2016-01-01",
+                                "to": None,
+                            },
+                        },
+                        "time_planning": {
+                            "example": None,
+                            "name": "Institut",
+                            "scope": None,
+                            "user_key": "inst",
+                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                        },
+                        "user_key": "fil",
+                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+                        "validity": {
+                            "from": "2019-01-01",
+                            "to": None,
+                        },
+                    },
+                ],
+            )
+
     @unittest.expectedFailure
     @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
@@ -1448,6 +1703,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'time_planning': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Fakultet',
@@ -2087,6 +2343,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'time_planning': None,
                     "org_unit_type": {
                         "example": None,
                         "name": "Institut",
@@ -2389,6 +2646,7 @@ class Tests(util.LoRATestCase):
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
+                        'time_planning': None,
                         "org_unit_type": {
                             "example": None,
                             "name": "Afdeling",
@@ -2420,6 +2678,7 @@ class Tests(util.LoRATestCase):
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
+                        'time_planning': None,
                         "org_unit_type": {
                             "example": None,
                             "name": "Afdeling",
@@ -2451,6 +2710,7 @@ class Tests(util.LoRATestCase):
                             "user_key": "AU",
                             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
+                        'time_planning': None,
                         "org_unit_type": {
                             "example": None,
                             "name": "Fakultet",
@@ -2488,6 +2748,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'time_planning': None,
                     "org_unit_type": {
                         "example": None,
                         "name": "Fakultet",
@@ -2541,6 +2802,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
+                'time_planning': None,
                 "org_unit_type": {
                     "example": None,
                     "name": "Fakultet",

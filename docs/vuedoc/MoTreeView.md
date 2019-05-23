@@ -2,7 +2,7 @@
 
 ## props 
 
-- `v-model` ***String*** (*optional*) 
+- `v-model` ***String|Array*** (*optional*) 
 
   This control takes a string variable as its model, representing
   the UUID of the selected unit. Internally, the tree view does
@@ -13,6 +13,14 @@
 - `at-date` ***Date|String*** (*optional*) 
 
   Defines the date for rendering the tree; used for the time machine. 
+
+- `disabled-unit` ***String*** (*optional*) 
+
+  UUID of unselectable unit. 
+
+- `multiple` ***Boolean*** (*optional*) 
+
+  Select more than one node 
 
 ## computed properties 
 
@@ -29,13 +37,22 @@
 
 - `input` 
 
-  Emitted whenever the selection changes. 
-
 ## methods 
 
-- `setSelection(unitid)` 
+- `onNodeCheckedChanged(node)` 
 
-  Select the unit corresponding to the given ID, assuming it's present. 
+- `getSelection()` 
+
+- `toArray(values)` 
+
+- `setSelection(unitids)` 
+
+  Select the units corresponding to the given IDs, assuming
+  they're present, and updating the tree otherwise. 
+
+- `addNodes(units)` 
+
+  Add the given nodes to the tree. 
 
 - `addNode(unit, parent)` 
 

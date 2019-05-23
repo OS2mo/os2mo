@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,11 +17,11 @@ employees and organisational units.
 import uuid
 
 from . import handlers
+from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import validator
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
@@ -47,6 +47,16 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
                                                   valid_to)
 
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        primary = req.get(mapping.PRIMARY)
+
+        if primary:
+            validator.does_employee_have_existing_primary_function(
+                self.function_key, valid_from, valid_to, employee_uuid,
+            )
+
         org_unit_obj = c.organisationenhed.get(org_unit_uuid)
 
         org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
@@ -56,10 +66,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
 
-        bvn = str(uuid.uuid4())
-
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
+            primær=primary,
+            fraktion=req.get(mapping.FRACTION),
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
@@ -67,11 +77,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=engagement_type_uuid,
-            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else []
+            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else [],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = payload
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -88,11 +99,17 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         # Get employee uuid for validation purposes
         employee = util.get_obj_value(
             original, mapping.USER_FIELD.path)[-1]
+        employee_uuid = util.get_uuid(employee, required=True)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
 
         validator.is_edit_from_date_before_today(new_from)
+
+        try:
+            exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            exts = {}
 
         payload = dict()
         payload['note'] = 'Rediger engagement'
@@ -114,6 +131,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        if mapping.USER_KEY in data:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {'brugervendtnoegle': data[mapping.USER_KEY]},
+            ))
+
         if mapping.JOB_FUNCTION in data:
             update_fields.append((
                 mapping.JOB_FUNCTION_FIELD,
@@ -132,6 +155,36 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 mapping.ASSOCIATED_ORG_UNIT_FIELD,
                 {'uuid': org_unit_uuid},
             ))
+
+        # Attribute extensions
+        new_extensions = {}
+
+        if mapping.PRIMARY in data:
+            primary = util.checked_get(data, mapping.PRIMARY, default=False)
+
+            new_extensions['primær'] = primary
+        else:
+            primary = exts.get('primær')
+
+        if mapping.FRACTION in data:
+            fraction = util.checked_get(data, mapping.FRACTION, default=100)
+
+            new_extensions['fraktion'] = fraction
+
+        if new_extensions:
+            update_fields.append((
+                mapping.ORG_FUNK_UDVIDELSER_FIELD,
+                {
+                    **exts,
+                    **new_extensions
+                },
+            ))
+
+        if primary:
+            validator.does_employee_have_existing_primary_function(
+                self.function_key, new_from, new_to,
+                employee_uuid, engagement_uuid,
+            )
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)

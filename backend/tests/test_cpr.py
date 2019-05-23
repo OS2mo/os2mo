@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,6 +10,8 @@ import freezegun
 
 from . import util
 from mora import util as mora_util
+from mora.integrations import serviceplatformen
+import tempfile
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -17,8 +19,7 @@ from mora import util as mora_util
 class Tests(util.TestCase):
     maxDiff = None
 
-    @util.override_settings(PROD_MODE=False)
-    def test_cpr_lookup_prod_mode_false(self, m):
+    def test_cpr_lookup_dummy_mode_true(self, m):
         with self.subTest('found'):
             self.assertRequestResponse(
                 '/service/e/cpr_lookup/?q=0101501234',
@@ -98,3 +99,76 @@ class Tests(util.TestCase):
             },
             status_code=400,
         )
+
+
+class TestConfig(util.TestCase):
+    def uuids(self, **overrides):
+        UUID_OK = "12345678-9abc-def1-1111-111111111111"
+
+        return {
+            "SP_SERVICE_UUID": UUID_OK,
+            "SP_SERVICE_AGREEMENT_UUID": UUID_OK,
+            "SP_MUNICIPALITY_UUID": UUID_OK,
+            "SP_SYSTEM_UUID": UUID_OK,
+            **overrides,
+        }
+
+    def test_serviceplatformen_dummy_true(self):
+        "test bad/missing values in config for Serviceplatformen "
+        "are not considered in dummy mode"
+        with util.override_config(
+            ENV='production',
+            DUMMY_MODE=True,
+        ):
+            self.assertTrue(serviceplatformen.check_config(self.app))
+
+    def test_serviceplatformen_missing_path(self):
+        with util.override_config(ENV='production', DUMMY_MODE=False,
+                                  **self.uuids()):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen certificate path must be configured: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)
+
+    def test_serviceplatformen_empty_file(self):
+
+        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+            ENV='production', DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(),
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen certificate can not be empty: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)
+
+    def test_serviceplatformen_invalid_values(self):
+        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+            ENV='production', DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(SP_SYSTEM_UUID="some-other-string-with-4dashes",
+                         SP_SERVICE_UUID='asd'),
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen uuids must be valid: "
+                "SP_SERVICE_UUID, SP_SYSTEM_UUID"
+            ):
+                serviceplatformen.check_config(self.app)
+
+        with util.override_config(
+            ENV='production',
+            DUMMY_MODE=False,
+            SP_CERTIFICATE_PATH=tf.name,
+            **self.uuids(),
+        ):
+            with self.assertRaisesRegex(
+                FileNotFoundError,
+                "Serviceplatformen certificate not found: "
+                "SP_CERTIFICATE_PATH"
+            ):
+                serviceplatformen.check_config(self.app)

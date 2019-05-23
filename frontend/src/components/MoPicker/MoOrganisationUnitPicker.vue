@@ -12,7 +12,7 @@
       :placeholder="label"
       v-model="orgName"
       @click.stop="toggleTree()"
-      v-validate="{ required: this.orgName !== null ? required : this.orgName }"
+      v-validate="validations"
     >
 
     <div class="mo-input-group" v-show="showTree">
@@ -68,7 +68,17 @@ export default {
     /**
      * This boolean property requires a valid name.
      */
-    required: Boolean
+    required: Boolean,
+
+    /**
+     * An object of the validities, used for validation
+     */
+    validity: Object,
+
+    /**
+     * An object of additional validations to be performed
+     */
+    extraValidations: Object
   },
 
   data () {
@@ -79,7 +89,8 @@ export default {
        */
       selectedSuperUnitUuid: null,
       showTree: false,
-      orgName: null
+      orgName: null,
+      orgUnitUuid: null
     }
   },
 
@@ -104,6 +115,17 @@ export default {
     isRequired () {
       if (this.isDisabled) return false
       return this.required
+    },
+
+    validations () {
+      let validations = {
+        required: this.orgName !== null ? this.required : this.orgName,
+        orgunit: [this.validity, this.orgUnitUuid]
+      }
+      if (this.extraValidations) {
+        validations = { ...validations, ...this.extraValidations }
+      }
+      return validations
     }
   },
 
@@ -119,6 +141,7 @@ export default {
       let unit = await OrganisationUnit.get(newVal)
 
       this.orgName = unit.name
+      this.orgUnitUuid = unit.uuid
       this.$validator.validate(this.nameId)
       this.$refs[this.nameId].blur()
       this.showTree = false

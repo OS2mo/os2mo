@@ -1,11 +1,12 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import configparser
 import contextlib
 import io
 import itertools
@@ -64,6 +65,13 @@ class CodeStyleTests(unittest.TestCase):
                 elif fn.endswith('.py'):
                     yield os.path.relpath(os.path.join(dirpath, fn))
 
+    @property
+    def config(self):
+        config = configparser.ConfigParser()
+        config.read(os.path.join(util.BASE_DIR, 'setup.cfg'))
+
+        return config['pycodestyle']
+
     def test_license_headers(self):
         'Test that all Python source files begin with our license header'
 
@@ -86,7 +94,8 @@ class CodeStyleTests(unittest.TestCase):
 
     def test_style(self):
         'Test that all Python source files pass the style check'
-        style = pycodestyle.StyleGuide(ignore='N/A')
+
+        style = pycodestyle.StyleGuide(ignore=self.config['ignore'].split(','))
         style.init_report(pycodestyle.StandardReport)
 
         with contextlib.redirect_stdout(io.StringIO()) as buf:

@@ -1,18 +1,22 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitTerminate')
+  .beforeEach(reset)
   .page(`${baseURL}/organisation`)
 
 const createDialog = Selector('#orgUnitCreate')
 
+const createTimeSelect = createDialog.find('select[data-vv-as="Tidsregistrering"]')
+const createTimeOption = createTimeSelect.find('option')
+
 const createUnitSelect = createDialog.find('select[data-vv-as="Enhedstype"]')
 const createUnitOption = createUnitSelect.find('option')
 
-const createAddressInput = createDialog.find('.v-autocomplete[data-vv-as="Adresse"]')
+const createAddressInput = createDialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const createAddressItem = createAddressInput.find('.v-autocomplete-list-item label')
 
 const createParentInput = createDialog.find('input[data-vv-as="Angiv overenhed"]')
@@ -39,6 +43,9 @@ test('Workflow: terminate org unit', async t => {
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
 
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
+
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
 
@@ -54,7 +61,7 @@ test('Workflow: terminate org unit', async t => {
     .expect(createAddressInput.find('input').value)
     .eql('Hjørringgade 1, 9850 Hirtshals')
 
-    .typeText(createDialog.find('input[data-vv-as="Tlf"]'), '44772000')
+    .typeText(createDialog.find('input[data-vv-as="Telefon"]'), '44772000')
 
     .click(createDialog.find('.btn-primary'))
 
@@ -73,7 +80,7 @@ test('Workflow: terminate org unit', async t => {
 
     .click(parentInput)
     .click(dialog.find('.tree-node')
-      .withText('Hjørring')
+      .withText('Hjørring Kommune')
       .find('.tree-arrow'))
     .click(dialog.find('.tree-anchor').withText('VM 2018'))
 
@@ -83,6 +90,10 @@ test('Workflow: terminate org unit', async t => {
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    // verify that the details render as expected
+    .expect(dialog.find('.detail-present ul.name').withText('VM 2018').exists)
+    .ok()
 
     .click(dialog.find('.btn-primary'))
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,6 +35,7 @@ SAML_AUTH_ENABLE = False
 SAML_IDP_METADATA_URL = '/url/to/sso/metadata'
 SAML_IDP_METADATA_FILE = None
 SAML_IDP_INSECURE = False
+SAML_USERNAME_FROM_NAMEID = True
 SAML_USERNAME_ATTR = ''
 SAML_KEY_FILE = None
 SAML_CERT_FILE = None
@@ -50,7 +51,7 @@ SP_MUNICIPALITY_UUID = ""
 SP_SYSTEM_UUID = ""
 SP_CERTIFICATE_PATH = ""
 
-PROD_MODE = False
+DUMMY_MODE = False
 
 USER_SETTINGS_DB_NAME = 'mora'
 USER_SETTINGS_DB_USER = 'mora'

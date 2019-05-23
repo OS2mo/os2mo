@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -185,7 +185,7 @@ class EmployeeHistoryTest(util.LoRATestCase):
 
         expected_result = [
             {
-                'action': 'Afslut medarbejder',
+                'action': 'Afsluttet',
                 'life_cycle_code': 'Rettet',
                 'user_ref': '42c432e8-9c4a-11e6-9f62-873cf34a735f'
             },

@@ -1,3 +1,5 @@
+.. _errorcodes:
+
 Error codes
 ===========
 

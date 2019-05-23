@@ -1,16 +1,13 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import unittest
-from unittest.mock import patch
 
 import freezegun
 
-from mora import lora
 from mora import util as mora_util
 
 from . import util
@@ -38,6 +35,7 @@ HUM = {
         },
     ],
     'uuid': '5c68402c-2a8d-4776-9237-16349fc72648',
+    'user_key': 'rod <-> hum',
     'validity': {
         'from': '2016-06-01',
         'to': None,
@@ -66,6 +64,7 @@ HIST = {
         },
     ],
     "uuid": "daa77a4d-6500-483d-b099-2c2eb7fa7a76",
+    'user_key': 'rod <-> fil',
     "validity": {
         "from": "2017-01-01",
         "to": "2018-12-31",
@@ -274,6 +273,7 @@ class Tests(util.LoRATestCase):
                 },
             ],
             "uuid": functionid,
+            "user_key": "root <-> samf",
             "validity": {
                 "from": "2017-06-01",
                 "to": None,
@@ -315,8 +315,6 @@ class Tests(util.LoRATestCase):
         with self.subTest('past'):
             hist = mora_util.set_obj_value(HIST, ('validity', 'to'),
                                            '2017-05-31')
-            hum = mora_util.set_obj_value(HUM, ('validity', 'to'),
-                                          '2017-05-31')
 
             self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'

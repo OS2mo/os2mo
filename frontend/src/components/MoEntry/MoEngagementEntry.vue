@@ -1,11 +1,17 @@
 <template>
   <div>
+    <mo-input-checkbox
+      v-model="entry.primary"
+      :data-vv-as="$t('input_fields.primary_engagement')"
+    />
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col"
         :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
         required
+        :validity="entry.validity"
       />
 
       <mo-facet-picker
@@ -24,7 +30,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden"
-      :disabled-dates="orgUnitValidity"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>
@@ -35,14 +41,21 @@
  */
 
 import { MoInputDateRange } from '@/components/MoInput'
+import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
+
   name: 'MoEngagementEntry',
+
   components: {
+    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
@@ -61,20 +74,6 @@ export default {
      */
     datePickerHidden () {
       return this.validity != null
-    },
-
-    /**
-     * Disabled organisation dates.
-     */
-    orgUnitValidity () {
-      if (this.entry.org_unit) {
-        let validityCopy = Object.assign({}, this.entry.org_unit.validity)
-        if (validityCopy.from < this.disabledDates.from) {
-          validityCopy.from = this.disabledDates.from
-        }
-        return validityCopy
-      }
-      return this.disabledDates
     }
   },
 

@@ -1,6 +1,11 @@
 <template>
   <form @submit.stop.prevent="createLeave">
-    <mo-employee-picker v-model="employee" required/>
+    <mo-employee-picker
+      v-model="employee"
+      required
+      :validity="leave.validity"
+      :extra-validations="validations"
+    />
 
     <mo-leave-entry class="mt-3" v-model="leave"/>
 
@@ -52,7 +57,13 @@ export default {
       'leave',
       'isLoading',
       'backendValidationError'
-    ])
+    ]),
+
+    validations () {
+      return {
+        active_engagements: [this.leave.validity]
+      }
+    }
   },
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
@@ -80,8 +91,12 @@ export default {
       let vm = this
       if (this.formValid) {
         this.$store.dispatch(`${STORE_KEY}/leaveEmployee`)
-          .then(() => {
-            vm.$emit('submitted')
+          .then(response => {
+            if (response.error) {
+              vm.backendValidationError = response.error_key
+            } else {
+              vm.$emit('submitted')
+            }
           })
       } else {
         this.$validator.validateAll()

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,8 +30,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
         payload = {
             "type": "manager",
             "validity": {
@@ -96,6 +94,7 @@ class Tests(util.LoRATestCase):
                 "manager_level": {
                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
                 },
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -210,8 +209,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": '11111111-1111-1111-'
-                                             '1111-111111111113',
+                        "brugervendtnoegle": "1234",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -280,6 +278,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': managerid,
+                'user_key': '1234',
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
@@ -358,6 +357,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': function_id,
+                'user_key': mock_uuid,
                 'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
             }],
         )
@@ -376,6 +376,7 @@ class Tests(util.LoRATestCase):
 
         # first create a manager on the unit
         expected = {
+            'user_key': mock_uuid,
             'address': [],
             'manager_level': {
                 'example': 'test@example.com',
@@ -711,6 +712,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': managerid,
+                'user_key': mock_uuid,
                 'validity': {
                     'from': '2017-12-01', 'to': None,
                 },
@@ -844,12 +846,76 @@ class Tests(util.LoRATestCase):
                 },
                 'responsibility': [],
                 'uuid': managerid,
+                "user_key": mock_uuid,
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
                 },
             }],
         )
+
+    @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
+                          auto_increment=True)
+    def test_create_manager_with_future_address(self):
+        """Ensure that reading works when address is in the future"""
+        self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "manager",
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "person": {'uuid': userid},
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": None,
+                },
+                "address": [{
+                    "type": "address",
+                    'address_type': {
+                        'scope': 'EMAIL',
+                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    },
+                    'value': 'root@example.com',
+                    "validity": {
+                        "from": "2018-01-01",
+                    },
+                    "org": {
+                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    },
+                }],
+            }
+        ]
+
+        self.assertRequest('/service/details/create', json=payload)
+
+        # Check that we have no address in present (and that we don't fail)
+        present = self.assertRequest(
+            '/service/e/{}/details/manager'.format(userid),
+        )[-1]
+
+        self.assertEqual([], present.get('address'))
+
+        # Ensure that the address exists when we go far enough into the future
+        future = self.assertRequest(
+            '/service/e/{}/details/manager?at=2018-01-01'.format(userid),
+        )[-1]
+
+        expected_future_address = [{
+            'address_type': {
+                'example': 'test@example.com',
+                'name': 'Emailadresse',
+                'scope': 'EMAIL',
+                'user_key': 'Email',
+                'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
+            },
+            'href': 'mailto:root@example.com',
+            'name': 'root@example.com',
+            'uuid': '11111111-1111-1111-1111-111111111112',
+            'value': 'root@example.com'
+        }]
+        self.assertEqual(expected_future_address, future.get('address'))
 
     @util.mock('aabogade.json', allow_mox=True)
     def test_create_manager_multiple_responsibilities(self, m):
@@ -1040,20 +1106,21 @@ class Tests(util.LoRATestCase):
                 'responsibility': [
                     {
                         'example': None,
-                        'name': 'Institut',
-                        'scope': None,
-                        'user_key': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                    },
-                    {
-                        'example': None,
                         'name': 'Fakultet',
                         'scope': None,
                         'user_key': 'fak',
                         'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                     },
+                    {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
                 ],
                 'uuid': managerid,
+                'user_key': mock_uuid,
                 'validity': {
                     'from': '2017-12-01',
                     'to': '2017-12-01',
@@ -1087,6 +1154,7 @@ class Tests(util.LoRATestCase):
                 "manager_type": {
                     'uuid': "e34d4426-9845-4c72-b31e-709be85d6fa2"
                 },
+                "user_key": "kaflaflibob",
                 "validity": {
                     "from": "2018-04-01",
                 },
@@ -1254,10 +1322,20 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                                             "b4a4-15ffa19e2848",
+                        "b4a4-15ffa19e2848",
+                        "funktionsnavn": "Leder"
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        },
+                        "brugervendtnoegle": "kaflaflibob",
                         "funktionsnavn": "Leder"
                     }
                 ]
@@ -1321,6 +1399,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {
                     'from': '2017-01-01',
                     'to': '2018-03-31',
@@ -1381,10 +1460,221 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': manager_uuid,
+                'user_key': 'kaflaflibob',
                 'validity': {
                     'from': '2018-04-01', 'to': None,
                 },
             }],
+        )
+
+    @util.mock('dawa-addresses.json', allow_mox=True)
+    def test_edit_manager_create_new_address(self, m):
+        self.load_sample_structures()
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+
+        req = [{
+            "type": "manager",
+            "uuid": manager_uuid,
+            "data": {
+                "address": [
+                    {
+                        "address_type": {
+                            'scope': 'PHONE',
+                            'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+                        },
+                        "org": {
+                            'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        },
+                        "value": "12341234"
+                    },
+                ],
+                "validity": {
+                    "from": "2018-04-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse('/service/details/edit',
+                                   [manager_uuid], json=req)
+
+        expected_manager = {
+            'attributter': {
+                'organisationfunktionegenskaber': [
+                    {
+                        'brugervendtnoegle': 'be736ee5-5c44-4ed9-'
+                                             'b4a4-15ffa19e2848',
+                        'funktionsnavn': 'Leder',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }
+                ]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger leder',
+            'relationer': {
+                'opgaver': [
+                    {
+                        'objekttype': 'lederansvar',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'objekttype': 'lederniveau',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                        'virkning': {
+                            'from': '2017-01-01 00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedebrugere': [{
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedefunktioner': [{
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'virkning': {
+                        'from': '2018-04-01 '
+                                '00:00:00+02',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2017-01-01 '
+                                    '00:00:00+01',
+                            'from_included': True,
+                            'to': '2018-04-01 '
+                                  '00:00:00+02',
+                            'to_included': False
+                        }
+                    },
+                    {
+                        'gyldighed': 'Aktiv',
+                        'virkning': {
+                            'from': '2018-04-01 '
+                                    '00:00:00+02',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
+                    }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_manager = c.organisationfunktion.get(manager_uuid)
+
+        self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/manager'
+            '?validity=future'.format(userid),
+            [{
+                'address': [{
+                    'address_type': {
+                        'example': '20304060',
+                        'name': 'Telefonnummer',
+                        'scope': 'PHONE',
+                        'user_key': 'Telefon',
+                        'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
+                    },
+                    'href': 'tel:+4512341234',
+                    'name': '+4512341234',
+                    'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
+                    'value': '12341234'
+                }],
+                'manager_level': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                },
+                'manager_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'person': {
+                    'name': 'Anders And',
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                },
+                'responsibility': [{
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                }],
+                'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
+                'validity': {'from': '2018-04-01', 'to': None}
+            }]
         )
 
     @util.mock('dawa-addresses.json', allow_mox=True)
@@ -1420,18 +1710,6 @@ class Tests(util.LoRATestCase):
                 },
             },
             "data": {
-                "address": [
-                    {
-                        "address_type": {
-                            'example': '<UUID>',
-                            'name': 'Adresse',
-                            'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                        },
-                        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
-                    },
-                ],
                 "org_unit": {
                     'uuid': "85715fc7-925d-401b-822d-467eb4b163b6"
                 },
@@ -1460,14 +1738,6 @@ class Tests(util.LoRATestCase):
                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                     'virkning': {
                         'from': '2017-01-01 00:00:00+01',
-                        'from_included': True,
-                        'to': '2018-04-01 00:00:00+02',
-                        'to_included': False
-                    }
-                }, {
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                    'virkning': {
-                        'from': '2018-04-01 00:00:00+02',
                         'from_included': True,
                         'to': 'infinity',
                         'to_included': False
@@ -1684,6 +1954,7 @@ class Tests(util.LoRATestCase):
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {
                     'from': '2018-04-01', 'to': None,
                 },
@@ -1697,8 +1968,6 @@ class Tests(util.LoRATestCase):
         relation should remain intact when only one of the
         fields are updated"""
         self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
@@ -1854,220 +2123,6 @@ class Tests(util.LoRATestCase):
         actual_manager = c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
-
-    def test_terminate_manager(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-        payload = {
-            "validity": {
-                "to": "2017-11-30"
-            }
-        }
-
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
-
-        expected = {
-            "note": "Afslut medarbejder",
-            "relationer": {
-                'tilknyttedefunktioner': [
-                    {
-                        'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                        'virkning': {
-                            'from': '2017-01-01 00:00:00+01',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False,
-                        },
-                    },
-                ],
-                "opgaver": [
-                    {
-                        "objekttype": "lederansvar",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "objekttype": "lederniveau",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2017-12-01 00:00:00+01"
-                        }
-                    },
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-12-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    },
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        },
-                        "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                                             "b4a4-15ffa19e2848",
-                        "funktionsnavn": "Leder"
-                    }
-                ]
-            },
-        }
-
-        manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
-
-        actual_manager = c.organisationfunktion.get(manager_uuid)
-
-        self.assertRegistrationsEqual(expected, actual_manager)
-
-        expected = {
-            'address': [{
-                'address_type': {
-                    'example': '<UUID>',
-                    'name': 'Adresse',
-                    'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
-                },
-                'href': 'https://www.openstreetmap.org/'
-                        '?mlon=10.19938084&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            }],
-            'manager_level': {
-                'example': None,
-                'name': 'Institut',
-                'scope': None,
-                'user_key': 'inst',
-                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-            },
-            'manager_type': {
-                'example': None,
-                'name': 'Afdeling',
-                'scope': None,
-                'user_key': 'afd',
-                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-            },
-            'org_unit': {
-                'name': 'Humanistisk fakultet',
-                'user_key': 'hum',
-                'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                'validity': {
-                    'from': '2016-01-01',
-                    'to': None,
-                },
-            },
-            'person': {
-                'name': 'Anders And',
-                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-            },
-            'responsibility': [{
-                'example': None,
-                'name': 'Fakultet',
-                'scope': None,
-                'user_key': 'fak',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-            }],
-            'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
-            'validity': {
-                'from': '2017-01-01',
-                'to': '2017-11-30',
-            },
-        }
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/manager'.format(userid),
-            [expected],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/manager'
-            '?validity=future'.format(userid),
-            [{
-                **expected,
-                'person': None,
-                'validity': {'from': '2017-12-01', 'to': None},
-            }],
-        )
 
     def test_edit_manager_minimal(self):
         self.load_sample_structures()
@@ -2229,6 +2284,7 @@ class Tests(util.LoRATestCase):
                 'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             }],
             'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+            'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
             'validity': {'from': '2017-01-01',
                          'to': None}
         }]
@@ -2482,6 +2538,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
+                    'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                     'validity': {
                         'from': '2017-01-01',
                         'to': None,
@@ -2489,3 +2546,42 @@ class Tests(util.LoRATestCase):
                 },
             ],
         )
+
+    def test_read_no_inherit_manager(self):
+        self.load_sample_structures()
+        # Anders And is manager at humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # There is no manager at filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # We are NOT allowed to inherit Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager'.format(filins)
+        )
+        self.assertEqual(inherited_managers, [])
+
+    def test_read_inherit_manager_one_level(self):
+        self.load_sample_structures()
+        # Anders And is manager at humfak
+        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
+        # There is no manager at filins
+        filins = '85715fc7-925d-401b-822d-467eb4b163b6'
+        # We must inherit Anders And
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(
+                filins
+            )
+        )
+        self.assertEqual(len(inherited_managers), 1)
+        self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
+
+    def test_read_inherit_manager_none_found_all_the_way_up(self):
+        self.load_sample_structures()
+        # There is no manager at ovnenh
+        ovnenh = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        # There is no manager at samfak
+        samfak = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        # We must not find no managers
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(samfak)
+        )
+        self.assertEqual(inherited_managers, [])

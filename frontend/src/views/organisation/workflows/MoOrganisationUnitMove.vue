@@ -17,6 +17,7 @@
             v-model="original"
             :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
+            :validity="validity"
             required
           />
         </div>
@@ -37,6 +38,8 @@
         v-model="move.data.parent"
         :label="$t('input_fields.select_new_super_unit')"
         :date="move.data.validity.from"
+        :validity="validity"
+        :extra-validations="parentValidations"
         required
       />
 
@@ -45,6 +48,7 @@
           class="moveDate"
           :label="$t('input_fields.move_date')"
           v-model="move.data.validity.from"
+          :valid-dates="currentDateValidity"
           required
         />
       </div>
@@ -71,9 +75,10 @@ import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [ValidateForm, ModalBase, CurrentDateValidity],
 
   components: {
     MoOrganisationUnitPicker,
@@ -99,6 +104,21 @@ export default {
       isLoading: false,
       backendValidationError: null
     }
+  },
+
+  computed: {
+    validity () {
+      return {
+        'from': this.move.data.validity.from
+      }
+    },
+
+    parentValidations () {
+      return {
+        candidate_parent_org_unit: [this.original, this.move.data.parent, this.validity]
+      }
+    }
+
   },
 
   watch: {

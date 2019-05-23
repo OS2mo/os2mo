@@ -5,12 +5,14 @@
         v-model="employee"
         class="col search-employee"
         required
+        :validity="validity"
       />
 
       <mo-input-date
         v-model="endDate"
         :label="$t('input_fields.end_date')"
         class="from-date"
+        :valid-dates="currentDateValidity"
         required
       />
     </div>
@@ -25,12 +27,20 @@
       />
     </div>
 
+    <mo-confirm-checkbox
+      v-model="confirmCheckbox"
+      :entry-date="endDate"
+      :employee-name="employee.name"
+      v-if="employee && endDate"
+      required
+    />
+
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
     </div>
   </form>
 </template>
@@ -46,24 +56,33 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
+import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import EmployeeDetailTabs from '../EmployeeDetailTabs'
 import store from './_store/employeeTerminate.js'
 
 const STORE_KEY = '$_employeeTerminate'
 
 export default {
-  mixins: [ValidateForm],
+  mixins: [ValidateForm, CurrentDateValidity],
 
   components: {
     MoEmployeePicker,
     MoInputDate,
     ButtonSubmit,
-    EmployeeDetailTabs
+    EmployeeDetailTabs,
+    MoConfirmCheckbox
   },
   props: {
     show: {
       type: Boolean,
       default: false
+    }
+  },
+
+  data () {
+    return {
+      confirmCheckbox: true
     }
   },
 
@@ -83,8 +102,23 @@ export default {
      */
     ...mapGetters({
       details: `${STORE_KEY}/getDetails`
-    })
+    }),
+
+    isDisabled () {
+      if (this.formValid && this.confirmCheckbox) {
+        return false
+      }
+      return true
+    },
+
+    validity () {
+      return {
+        'from': this.endDate,
+        'to': this.endDate
+      }
+    }
   },
+
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)

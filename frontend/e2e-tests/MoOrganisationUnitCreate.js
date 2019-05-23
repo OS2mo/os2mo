@@ -1,26 +1,35 @@
 import { Selector } from 'testcafe'
-import { baseURL } from './support'
+import { baseURL, reset } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitCreate')
-  .page(`${baseURL}/organisation/97337de5-6096-41f9-921e-5bed7a140d85`)
+  .beforeEach(reset)
+  .page(`${baseURL}/organisation/f06ee470-9f17-566f-acbe-e938112d46d9`)
 
 const dialog = Selector('#orgUnitCreate')
+
+const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
+const timeOption = timeSelect.find('option')
 
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
 
-const addressInput = dialog.find('.v-autocomplete[data-vv-as="Adresse"]')
+const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
+
+const addressVisibility = dialog.find('.form-row .phone select[data-vv-as="Synlighed"]')
+const addressVisibilityOption = addressVisibility.find('option')
 
 const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-// const newDate = dialog.find('.btn-link')
-// const newDateInput = dialog.find('.address-date input.form-control')
+const addressTypeSelect = dialog.find('.address select[data-vv-as="Adressetype"]')
+const addressTypeOption = addressTypeSelect.find('option')
+
+const addressEmailInput = dialog.find('input[data-vv-as="Email"]')
 
 test('Workflow: create unit', async t => {
   let today = moment()
@@ -45,13 +54,15 @@ test('Workflow: create unit', async t => {
   // fail, rather than merely failing at form submit.
 
   await t
-    .setTestSpeed(0.8)
     .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-unit-create')
 
     .expect(dialog.exists).ok('Opened dialog')
 
-    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
+    .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
+
+    .click(timeSelect)
+    .click(timeOption.withText('Tjenestetid'))
 
     .click(unitSelect)
     .click(unitOption.withText('Fagligt center'))
@@ -73,15 +84,18 @@ test('Workflow: create unit', async t => {
     .expect(addressInput.find('input').value)
     .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
 
-    // .click(newDate)
-    // .click(newDateInput)
-    // .hover(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
-    //        .withText(today.date().toString()))
-    // .click(dialog.find('.address-date .vdp-datepicker .day:not(.blank)')
-    //        .withText(today.date().toString()))
-    // .expect(newDateInput.value).eql(today.format('DD-MM-YYYY'))
+    .typeText(dialog.find('input[data-vv-as="Telefon"]'), '44772000')
 
-    .typeText(dialog.find('input[data-vv-as="Tlf"]'), '44772000')
+    .click(addressVisibility)
+    .click(addressVisibilityOption.nth(1))
+
+    .click(dialog.find('.btn-outline-success'))
+
+    .click(addressTypeSelect)
+    .click(addressTypeOption.withText('Email'))
+
+    .click(addressEmailInput)
+    .typeText(addressEmailInput, 'magenta@gmail.dk')
 
     .click(dialog.find('.btn-primary'))
 

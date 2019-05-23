@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018, Magenta ApS
+# Copyright (c) Magenta ApS
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,6 +31,8 @@ FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
 DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 
+os.environ['FLASK_ENV'] = 'docs'
+
 #
 # -- Generated files ------------------------------------------------------
 #
@@ -51,7 +53,6 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.httpdomain',
@@ -71,8 +72,8 @@ MOCK_MODULES = [
     'lxml',
     'lxml.etree',
     'service_person_stamdata_udvidet',
-    'pyexcel',
     'flask_saml_sso',
+    'validators',
 
     'onelogin',
     'onelogin.saml2',
@@ -82,7 +83,7 @@ MOCK_MODULES = [
     'onelogin.saml2.constants',
     'onelogin.saml2.idp_metadata_parser',
 ]
-sys.modules.update((mod_name, MagicMock()) for mod_name in MOCK_MODULES)
+sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 
 
 apidoc_module_dir = '../backend/mora'
@@ -181,7 +182,7 @@ html_logo = 'graphics/logo.svg'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

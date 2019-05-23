@@ -12,13 +12,6 @@ A employee detail component.
 
 **initial value:** `undefined` 
 
-## computed properties 
-
-- `employee` 
-
-   **dependencies:** `$store` 
-
-
 ## methods 
 
 - `loadContent(event)` 

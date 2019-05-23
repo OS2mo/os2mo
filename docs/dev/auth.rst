@@ -34,7 +34,42 @@ the `readme`_ for Flask SAML SSO.
 
 The following additional configuration entries exist for auth in OS2MO.
 
-* ``"SAML_USERNAME_ATTR"``: The name of the attribute in the SAML assertion
-  containing the username.
+* ``"SAML_USERNAME_FROM_NAMEID"``: Whether or not the username should be read
+  from the NameID returned from the IdP. This is the default.
+* ``"SAML_USERNAME_ATTR"``: If username is not read from NameID, the username
+  will be read from an attribute with this name.
 
 .. _readme: https://github.com/magenta-aps/flask_saml_sso/blob/master/README.rst
+
+Testing
+"""""""
+
+.. highlight:: shell
+
+The easiest way to set up a SAML Identity Provider for testing and
+development, is to use the ``test-saml-idp`` `docker image`_. First,
+run the ``full-run`` development server::
+
+  ./flask.sh full-run --idp-url http://localhost:8000
+
+Note the port that it uses, typically ``8080``::
+
+  export MO_URL=http://localhost:8080
+
+Then run the docker image::
+
+  docker run --name=testsamlidp_idp \
+    -p 8000:8080 \
+    -e SIMPLESAMLPHP_SP_ENTITY_ID=$MO_URL/saml/metadata/ \
+    -e SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=$MO_URL/saml/acs/ \
+    -e SIMPLESAMLPHP_SP_SINGLE_LOGOUT_SERVICE=$MO_URL/saml/sls/ \
+    -d kristophjunge/test-saml-idp
+
+This will download the image if necessary and start it with port 8080
+redirected to 8000, and configured to use and allow
+``http://localhost:8000`` as the Service Provider.
+
+Two users exist in the test IdP image; ``user1`` and ``user2`` with the
+passwords ``user1pass`` and ``user2pass`` respictively.
+
+.. _docker image: https://hub.docker.com/r/kristophjunge/test-saml-idp/
