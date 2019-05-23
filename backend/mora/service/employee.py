@@ -54,7 +54,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     def prepare_create(self, req):
-        # TODO: As of now, a supplied name will override givenname and surname.
         name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "",
                                      required=False)
