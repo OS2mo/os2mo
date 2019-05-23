@@ -102,7 +102,7 @@ def get_org_unit_configuration(unitid):
     return flask.jsonify(return_dict)
 
 
-@blueprint.route('/o/configuration', methods=['POST'])
+@blueprint.route('/configuration', methods=['POST'])
 @util.restrictargs('at')
 def set_global_configuration():
     """Set or modify a gloal configuration setting.
@@ -150,7 +150,7 @@ def set_global_configuration():
     return flask.jsonify(True)
 
 
-@blueprint.route('/o/configuration', methods=['GET'])
+@blueprint.route('/configuration', methods=['GET'])
 @util.restrictargs('at')
 def get_global_configuration():
     """Read configuration settings for an ou.
