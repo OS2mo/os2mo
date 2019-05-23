@@ -50,28 +50,31 @@ def set_org_unit_configuration(unitid):
     :returns: True
     """
     conn = _get_connection()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    configuration = flask.request.get_json()
-    orgunit_conf = configuration['org_units']
+        configuration = flask.request.get_json()
+        orgunit_conf = configuration['org_units']
 
-    for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
-                 "AND object=%s")
-        cur.execute(query, (key, unitid))
-        rows = cur.fetchall()
-        if not rows:
-            query = ("INSERT INTO orgunit_settings (object, setting, " +
-                     "value) VALUES (%s, %s, %s)")
-            cur.execute(query, (unitid, key, value))
-        elif len(rows) == 1:
-            query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
-            cur.execute(query, (value, rows[0][0]))
-        else:
-            exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
-                'Inconsistent settings for {}'.format(unitid)
-            )
-        conn.commit()
+        for key, value in orgunit_conf.items():
+            query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
+                     "AND object=%s")
+            cur.execute(query, (key, unitid))
+            rows = cur.fetchall()
+            if not rows:
+                query = ("INSERT INTO orgunit_settings (object, setting, " +
+                         "value) VALUES (%s, %s, %s)")
+                cur.execute(query, (unitid, key, value))
+            elif len(rows) == 1:
+                query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
+                cur.execute(query, (value, rows[0][0]))
+            else:
+                exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
+                    'Inconsistent settings for {}'.format(unitid)
+                )
+            conn.commit()
+    finally:
+        conn.close()
     return flask.jsonify(True)
 
 
@@ -91,14 +94,16 @@ def get_org_unit_configuration(unitid):
     """
     return_dict = {}
     conn = _get_connection()
-    cur = conn.cursor()
-
     query = "SELECT setting, value FROM orgunit_settings WHERE object = %s"
 
-    cur.execute(query, (unitid,))
-    rows = cur.fetchall()
-    for row in rows:
-        return_dict[row[0]] = row[1]
+    try:
+        cur = conn.cursor()
+        cur.execute(query, (unitid,))
+        rows = cur.fetchall()
+        for row in rows:
+            return_dict[row[0]] = row[1]
+    finally:
+        conn.close()
     return flask.jsonify(return_dict)
 
 
@@ -124,29 +129,32 @@ def set_global_configuration():
     :returns: True
     """
     conn = _get_connection()
-    cur = conn.cursor()
+    try:
+        cur = conn.cursor()
 
-    configuration = flask.request.get_json()
-    orgunit_conf = configuration['org_units']
+        configuration = flask.request.get_json()
+        orgunit_conf = configuration['org_units']
 
-    for key, value in orgunit_conf.items():
-        query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
-                 "AND object IS NULL")
-        cur.execute(query, (key,))
-        rows = cur.fetchall()
+        for key, value in orgunit_conf.items():
+            query = ("SELECT id FROM orgunit_settings WHERE setting = %s " +
+                     "AND object IS NULL")
+            cur.execute(query, (key,))
+            rows = cur.fetchall()
 
-        if len(rows) == 0:
-            query = ("INSERT INTO orgunit_settings (object, setting, " +
-                     "value) values (NULL, '%s', '%s')")
-            cur.execute(query, (key, value))
-        elif len(rows) == 1:
-            query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
-            cur.execute(query, (value, rows[0][0]))
-        else:
-            exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
-                'Inconsistent global settings'
-            )
-        conn.commit()
+            if len(rows) == 0:
+                query = ("INSERT INTO orgunit_settings (object, setting, " +
+                         "value) values (NULL, '%s', '%s')")
+                cur.execute(query, (key, value))
+            elif len(rows) == 1:
+                query = "UPDATE orgunit_settings SET value=%s WHERE id=%s"
+                cur.execute(query, (value, rows[0][0]))
+            else:
+                exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
+                    'Inconsistent global settings'
+                )
+            conn.commit()
+    finally:
+        conn.close()
     return flask.jsonify(True)
 
 
@@ -164,11 +172,13 @@ def get_global_configuration():
     """
     return_dict = {}
     conn = _get_connection()
-    cur = conn.cursor()
-
     query = "SELECT setting, value FROM orgunit_settings WHERE object IS NULL"
-    cur.execute(query)
-    rows = cur.fetchall()
-    for row in rows:
-        return_dict[row[0]] = row[1]
+    try:
+        cur = conn.cursor()
+        cur.execute(query)
+        rows = cur.fetchall()
+        for row in rows:
+            return_dict[row[0]] = row[1]
+    finally:
+        conn.close()
     return flask.jsonify(return_dict)
