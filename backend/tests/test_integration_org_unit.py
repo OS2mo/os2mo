@@ -455,7 +455,7 @@ class Tests(util.LoRATestCase):
                         "to": None
                     }
                 },
-                "user_key": "Fake Corp f494ad89-039d-478e-91f2-a63566554bd6",
+                "user_key": unitid,
                 "user_settings": {"orgunit": {}},
                 "uuid": unitid,
                 "validity": {
