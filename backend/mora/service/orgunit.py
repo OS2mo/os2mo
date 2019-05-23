@@ -17,7 +17,6 @@ units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 
-import psycopg2
 import collections
 import copy
 import enum
@@ -27,6 +26,7 @@ import operator
 import uuid
 
 import flask
+import psycopg2
 
 from . import facet
 from . import handlers
