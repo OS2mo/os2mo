@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import psycopg2
+
 import mora.settings as settings
 from oio_rest.utils import test_support
 from . import util
