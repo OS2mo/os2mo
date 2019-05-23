@@ -86,7 +86,7 @@ class Tests(util.LoRATestCase):
         """
 
         p_port = self._create_conf_data()
-        url = '/service/o/configuration'
+        url = '/service/configuration'
         with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
             user_settings = self.assertRequest(url)
             self.assertTrue('show_location' in user_settings)
@@ -101,7 +101,7 @@ class Tests(util.LoRATestCase):
         """
 
         p_port = self._create_conf_data(inconsistent=True)
-        url = '/service/o/configuration'
+        url = '/service/configuration'
         payload = {"org_units": {"show_roles": "False"}}
         assertion_raised = False
         with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
@@ -117,7 +117,7 @@ class Tests(util.LoRATestCase):
         """
 
         p_port = self._create_conf_data()
-        url = '/service/o/configuration'
+        url = '/service/configuration'
 
         with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
             payload = {"org_units": {"show_roles": "False"}}
