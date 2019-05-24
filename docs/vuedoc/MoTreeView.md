@@ -22,6 +22,12 @@
 
   Select more than one node 
 
+## data 
+
+- `isLoading` 
+
+**initial value:** `true` 
+
 ## computed properties 
 
 - `contents` 
