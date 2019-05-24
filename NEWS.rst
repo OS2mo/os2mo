@@ -1,10 +1,34 @@
+Version 0.18.0, 2019-05-22
+==========================
+
+New features
+------------
+
+* #29234: AD integration cookbook added to documentation
+* #26857: Removed manager address for create employee and employee and organisation tabs.
+
+Bug fixes
+---------
+
+* #29019: Never ending loop in manager inheritance
+* #28017: Changed style for user settings - location and user key.
+* #29200: We now properly clear the store when switching org units/employees
+  to prevent 'old data' from showing.
+* #29200: Fixed spinners when loading table data.
+* #29603: Spinner is now shown when tree view is loading
+
+Internal changes
+----------------
+
+* #26407: Allow selecting optional components per deployment.
+
 Version 0.17.0, 2019-04-30
 ==========================
 
 New features
 ------------
 
-* #25411 organisation units can show managers by inheritance from parent
+* #25411: organisation units can show managers by inheritance from parent
 * #28323: Added 'fraction' field to engagements
 * #28563: Added feature for generating 'thin' responses when reading details,
   where only the UUIDs of relations are returned as opposed to deep lookups

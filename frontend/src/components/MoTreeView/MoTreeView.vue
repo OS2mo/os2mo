@@ -1,24 +1,27 @@
 <template>
   <div class="orgunit-tree">
-    <liquor-tree
-      :ref="_nameId"
-      :data="treeData"
-      :options="treeOptions"
-      @node:selected="onNodeSelected"
-      @node:checked="onNodeCheckedChanged"
-      @node:unchecked="onNodeCheckedChanged"
-    >
+    <mo-loader v-show="isLoading"/>
+    <div v-show="!isLoading" class="scroll">
+      <liquor-tree
+        :ref="_nameId"
+        :data="treeData"
+        :options="treeOptions"
+        @node:selected="onNodeSelected"
+        @node:checked="onNodeCheckedChanged"
+        @node:unchecked="onNodeCheckedChanged"
+      >
 
-      <div class="tree-scope" slot-scope="{ node }">
-        <template>
-          <icon name="users"/>
+        <div class="tree-scope" slot-scope="{ node }">
+          <template>
+            <icon name="users"/>
 
-          <span class="text">
-            {{ node.text }}
-          </span>
-        </template>
-      </div>
-    </liquor-tree>
+            <span class="text">
+                {{ node.text }}
+              </span>
+          </template>
+        </div>
+      </liquor-tree>
+    </div>
   </div>
 </template>
 
@@ -27,11 +30,13 @@ import { EventBus, Events } from '@/EventBus'
 import { mapGetters } from 'vuex'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
+import MoLoader from '@/components/atoms/MoLoader'
 import LiquorTree from 'liquor-tree'
 import { Organisation as OrgStore } from '@/store/actions/organisation'
 
 export default {
   components: {
+    MoLoader,
     LiquorTree
   },
 
@@ -162,7 +167,8 @@ export default {
         fetchData (node) {
           return vm.fetch(node)
         }
-      }
+      },
+      isLoading: true
     }
   },
 
@@ -321,6 +327,7 @@ export default {
 
       this.tree.sort()
       this.setSelection(this.value)
+      this.isLoading = false
     },
 
     /**
@@ -369,6 +376,7 @@ export default {
      * Reset and re-fetch the tree.
      */
     updateTree (force) {
+      this.isLoading = true
       if (force) {
         this.tree.remove({}, true)
       }

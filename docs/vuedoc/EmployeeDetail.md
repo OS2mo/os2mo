@@ -16,3 +16,5 @@ A employee detail component.
 
 - `loadContent(event)` 
 
+- `listener()` 
+

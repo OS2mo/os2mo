@@ -7,15 +7,15 @@
       </h4>
 
       <div class="row">
-          <div class="col" v-if="orgUnit.user_settings.orgunit">
-            <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
-              {{$t('common.placement')}}:
-              <span class="orgunit-location">{{orgUnit.location}}</span>
-            </p>
-            <p class="card-text" v-if="orgUnit.user_settings.orgunit.show_user_key">
-              {{$t('common.unit_number')}}:
-              <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
-            </p>
+        <div class="col user-settings" v-if="orgUnit.user_settings.orgunit">
+          <div class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
+            {{$t('common.placement')}}:
+            <span class="orgunit-location">{{orgUnit.location}}</span>
+          </div>
+          <div class="user-key card-text mb-3" v-if="orgUnit.user_settings.orgunit.show_user_key">
+            {{$t('common.unit_number')}}:
+            <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
+          </div>
         </div>
 
         <div class="mr-3">
@@ -27,8 +27,10 @@
         :uuid="route.params.uuid"
         :org-unit-info="orgUnit"
         :content="orgUnitDetails"
-        @show="loadContent($event)"/>
+        @show="loadContent($event)"
+      />
     </div>
+
     <div class="card-body" v-show="!orgUnit">
       <mo-loader/>
     </div>
@@ -72,24 +74,30 @@ export default {
     })
   },
   created () {
+    this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
     this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
   },
   mounted () {
-    EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, () => {
-      this.loadContent(this.latestEvent)
-    })
+    EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, this.listener)
+  },
+  beforeDestroy () {
+    EventBus.$off(Events.ORGANISATION_UNIT_CHANGED, this.listener)
   },
   methods: {
     loadContent (event) {
       this.latestEvent = event
-
-      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
       this.$store.dispatch(OrganisationUnit.actions.SET_DETAIL, event)
+    },
+    listener () {
+      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
+      this.loadContent(this.latestEvent)
     }
-  },
-  beforeRouteLeave (to, from, next) {
-    this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
-    next()
   }
 }
 </script>
+<style scoped>
+  .user-settings{
+    color: #aaa;
+  }
+</style>
+

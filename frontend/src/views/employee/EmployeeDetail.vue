@@ -68,22 +68,24 @@ export default {
   },
 
   created () {
+    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
     this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
   },
   mounted () {
-    EventBus.$on(Events.EMPLOYEE_CHANGED, () => {
-      this.loadContent(this.latestEvent)
-    })
+    EventBus.$on(Events.EMPLOYEE_CHANGED, this.listener)
+  },
+  beforeDestroy () {
+    EventBus.$off(Events.EMPLOYEE_CHANGED, this.listener)
   },
   methods: {
     loadContent (event) {
       this.latestEvent = event
       this.$store.dispatch(Employee.actions.SET_DETAIL, event)
+    },
+    listener () {
+      this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
+      this.loadContent(this.latestEvent)
     }
-  },
-  beforeRouteLeave (to, from, next) {
-    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
-    next()
   }
 
 }

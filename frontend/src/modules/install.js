@@ -1,4 +1,1 @@
-import './help/install'
-import './query/install'
-import './timeMachine/install'
-import './organisationMapper/install'
+export default MODULES.map(modname => require(`./${modname}/install`).default)

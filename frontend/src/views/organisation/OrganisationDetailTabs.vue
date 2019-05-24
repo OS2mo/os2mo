@@ -173,10 +173,7 @@ export default {
         { label: 'person', data: 'person' },
         { label: 'responsibility', data: 'responsibility' },
         { label: 'manager_type', data: 'manager_type' },
-        { label: 'manager_level', data: 'manager_level' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'visibility', data: 'visibility' },
-        { label: 'address', data: 'address' }
+        { label: 'manager_level', data: 'manager_level' }
       ],
       related_unit: [
         // NB: the backend always returns both units in a mapping,

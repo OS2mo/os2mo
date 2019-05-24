@@ -152,11 +152,7 @@ export default {
         { label: 'org_unit', data: 'org_unit' },
         { label: 'responsibility', data: 'responsibility' },
         { label: 'manager_type', data: 'manager_type' },
-        { label: 'manager_level', data: 'manager_level' },
-        { label: 'address_type', data: 'address_type' },
-        { label: 'visibility', data: 'visibility' },
-        { label: 'address', data: 'address' },
-        { label: 'primary', data: 'primary', field: null }
+        { label: 'manager_level', data: 'manager_level' }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
