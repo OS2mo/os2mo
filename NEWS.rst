@@ -14,6 +14,7 @@ Bug fixes
 * #29200: We now properly clear the store when switching org units/employees
   to prevent 'old data' from showing.
 * #29200: Fixed spinners when loading table data.
+* #29603: Spinner is now shown when tree view is loading
 
 Internal changes
 ----------------
