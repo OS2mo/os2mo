@@ -248,11 +248,13 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
     props = user['attributter']['brugeregenskaber'][0]
     extensions = user['attributter']['brugerudvidelser'][0]
 
+    fornavn = extensions.get('fornavn', '')
+    efternavn = extensions.get('efternavn', '')
     r = {
-        mapping.GIVENNAME: extensions['fornavn'],
-        mapping.SURNAME: extensions['efternavn'],
+        mapping.GIVENNAME: fornavn,
+        mapping.SURNAME: efternavn,
         mapping.NAME: " ".join((
-            extensions['fornavn'], extensions['efternavn']
+            fornavn, efternavn
         )),
         mapping.UUID: userid,
     }
