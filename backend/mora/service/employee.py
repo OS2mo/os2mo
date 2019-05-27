@@ -355,7 +355,11 @@ def list_employees(orgid):
                 tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
             )
         else:
-            kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+            query = args['query']
+            query = query.split(' ')
+            for i in range(0, len(query)):
+                query[i] = '%' + query[i] + '%'
+            kwargs['vilkaarligattr'] = query
 
     return flask.jsonify(
         c.bruger.paged_get(get_one_employee, **kwargs)
