@@ -63,17 +63,6 @@ pipeline {
       }
     }
 
-    stage('Deploy') {
-      steps {
-        timeout(5) {
-          ansiColor('xterm') {
-            dir("backend") {
-              sh './.jenkins/4-deploy.sh'
-            }
-          }
-        }
-      }
-    }
   }
 
   post {
