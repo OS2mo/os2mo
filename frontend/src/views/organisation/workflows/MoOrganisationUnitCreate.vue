@@ -25,19 +25,11 @@
       />
 
       <div class="mt-3 form-row">
-         <mo-org-unit-address-entry
+        <mo-org-unit-address-entry
           class="col"
           v-model="phone"
           preselected-type="PhoneUnit"
           validity-hidden
-          required
-        />
-
-        <mo-facet-picker
-          class="col phone"
-          facet="visibility"
-          v-model="phone.visibility"
-          preselectedType
           required
         />
       </div>
