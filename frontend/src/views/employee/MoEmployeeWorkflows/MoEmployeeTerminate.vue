@@ -1,19 +1,19 @@
 <template>
   <form @submit.stop.prevent="terminateEmployee">
     <div class="form-row">
-      <mo-employee-picker
-        v-model="employee"
-        class="col search-employee"
-        required
-        :validity="validity"
-      />
-
       <mo-input-date
         v-model="endDate"
         :label="$t('input_fields.end_date')"
         class="from-date"
         :valid-dates="currentDateValidity"
         required
+      />
+
+      <mo-employee-picker
+        v-model="employee"
+        class="col search-employee"
+        required
+        :validity="validity"
       />
     </div>
 

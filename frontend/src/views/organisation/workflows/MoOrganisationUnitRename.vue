@@ -11,6 +11,14 @@
   >
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
+        <mo-input-date-range
+          class="col"
+          v-model="rename.data.validity"
+          :disabled-dates="{orgUnitValidity, disabledDates}"
+        />
+      </div>
+
+      <div class="form-row">
         <mo-organisation-unit-picker
           :label="$t('input_fields.select_unit')"
           class="col"
@@ -27,15 +35,6 @@
           required
         />
       </div>
-
-      <div class="form-row">
-        <mo-input-date-range
-          class="col"
-          v-model="rename.data.validity"
-          :disabled-dates="{orgUnitValidity, disabledDates}"
-        />
-      </div>
-
       <div class="alert alert-danger" v-if="compareName">
         {{$t('alerts.error.COMPARE_ORG_RENAME_NAMES')}}
       </div>

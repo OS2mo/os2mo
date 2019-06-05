@@ -1,5 +1,11 @@
 <template>
   <div :id="identifier">
+    <mo-input-date-range
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="{disabledDates}"
+    />
+
     <div class="form-row">
       <mo-it-system-picker
         class="select-itSystem"
@@ -12,14 +18,8 @@
         v-model="entry.user_key"
         :label="$t('input_fields.account_name')"
         required
-        />
+      />
     </div>
-
-    <mo-input-date-range
-      v-model="entry.validity"
-      :initially-hidden="validityHidden"
-      :disabled-dates="{disabledDates}"
-    />
   </div>
 </template>
 

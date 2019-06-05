@@ -1,5 +1,11 @@
 <template>
   <div>
+    <mo-input-date-range
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
+    />
+
     <div class="form-row">
       <mo-organisation-unit-picker
         v-model="entry.org_unit"
@@ -11,14 +17,14 @@
       />
     </div>
 
-      <label v-if="!hideEmployeePicker && hideOrgPicker">{{$tc('input_fields.employee_optional')}}</label>
-      <mo-employee-picker
-        v-model="entry.person"
-        class="search-employee mb-3"
-        v-if="!hideEmployeePicker && hideOrgPicker"
-        noLabel
-        :validity="entry.validity"
-      />
+    <label v-if="!hideEmployeePicker && hideOrgPicker">{{$tc('input_fields.employee_optional')}}</label>
+    <mo-employee-picker
+      v-model="entry.person"
+      class="search-employee mb-3"
+      v-if="!hideEmployeePicker && hideOrgPicker"
+      noLabel
+      :validity="entry.validity"
+    />
 
     <div class="form-row select-manager">
       <mo-facet-picker
@@ -41,12 +47,6 @@
       :label="$t('input_fields.manager_responsibility')"
       has-initial-entry
       small-buttons
-    />
-
-    <mo-input-date-range
-      v-model="entry.validity"
-      :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
   </div>
 </template>

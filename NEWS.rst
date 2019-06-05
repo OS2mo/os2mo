@@ -1,6 +1,11 @@
 In development
 ==============
 
+Bug fixes
+---------
+
+* #29761: Date pickers moved to the top of the various forms
+
 New features
 ------------
 
