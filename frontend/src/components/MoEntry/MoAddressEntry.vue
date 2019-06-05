@@ -1,5 +1,11 @@
 <template>
   <div>
+    <mo-input-date-range
+      class="address-date"
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="disabledDates"
+    />
     <div class="form-row">
       <mo-facet-picker
         v-show="noPreselectedType"
@@ -35,21 +41,14 @@
         </span>
       </div>
 
-        <mo-facet-picker
-          v-if="isPhone"
-          v-show="noPreselectedType"
-          facet="visibility"
-          v-model="entry.visibility"
-          :preselected-user-key="preselectedType"
-        />
+      <mo-facet-picker
+        v-if="isPhone"
+        facet="visibility"
+        v-model="entry.visibility"
+        :preselected-user-key="preselectedType"
+      />
     </div>
 
-    <mo-input-date-range
-      class="address-date"
-      v-model="entry.validity"
-      :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
-    />
   </div>
 </template>
 
