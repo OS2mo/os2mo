@@ -34,6 +34,7 @@ def get_all(obj_type):
         'start': start,
         'limit': limit,
     }
+    search_fields = _filter_none_values(search_fields)
 
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -64,6 +65,7 @@ def get(obj_type, obj_uuid):
         'limit': limit,
         'uuid': [obj_uuid],
     }
+    search_fields = _filter_none_values(search_fields)
 
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -145,3 +147,6 @@ def put(obj_type, obj_uuid):
             handle_requests(put_request, handlers.RequestType.CREATE)),
         201
     )
+
+def _filter_none_values(dict: dict):
+    return {k: v for k, v in dict.items() if v is not None}
