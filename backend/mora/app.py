@@ -37,6 +37,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     app.config.from_object(settings)
 
     app.url_map.converters['uuid'] = util.StrUUIDConverter
+    app.url_map.strict_slashes = False
 
     if overrides is not None:
         app.config.update(overrides)
