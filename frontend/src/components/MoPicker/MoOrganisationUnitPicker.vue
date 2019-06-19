@@ -16,7 +16,7 @@
     >
 
     <div class="mo-input-group" v-show="showTree">
-      <mo-tree-view v-model="selectedSuperUnitUuid"/>
+      <mo-tree-view v-model="selectedSuperUnitUuid" :at-date="validity.from"/>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -138,7 +138,7 @@ export default {
         return
       }
 
-      let unit = await OrganisationUnit.get(newVal)
+      let unit = await OrganisationUnit.get(newVal, this.validity.from)
 
       this.orgName = unit.name
       this.orgUnitUuid = unit.uuid
@@ -147,6 +147,14 @@ export default {
       this.showTree = false
 
       this.$emit('input', unit)
+    },
+
+    validity () {
+      this.selectedSuperUnitUuid = null
+      this.showTree = false
+      this.orgName = null
+      this.orgUnitUuid = null
+      this.$emit('input', null)
     }
   },
 
