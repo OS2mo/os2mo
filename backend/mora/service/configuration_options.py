@@ -25,7 +25,6 @@ def _get_connection():
     return conn
 
 
-
 def get_configuration(unitid=None):
     if unitid:
         query_suffix=" = %s"
@@ -46,11 +45,12 @@ def get_configuration(unitid=None):
         conn.close()
     return configuration
 
+
 def set_configuration(configuration, unitid=None):
     if unitid:
-        query_suffix=" = %s"
+        query_suffix = ' = %s'
     else:
-        query_suffix=" IS %s"
+        query_suffix = ' IS %s'
 
     conn = _get_connection()
     try:
@@ -58,8 +58,8 @@ def set_configuration(configuration, unitid=None):
         orgunit_conf = configuration['org_units']
 
         for key, value in orgunit_conf.items():
-            query = ("SELECT id FROM orgunit_settings WHERE setting = %s and object"
-                     + query_suffix)
+            query = ('SELECT id FROM orgunit_settings WHERE setting =' +
+                     '%s and object' + query_suffix)
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
             if not rows:
@@ -67,8 +67,7 @@ def set_configuration(configuration, unitid=None):
                          + "value) VALUES (%s, %s, %s)")
                 cur.execute(query, (unitid, key, value))
             elif len(rows) == 1:
-                query = ("UPDATE orgunit_settings SET value=%s WHERE id"
-                         + query_suffix)
+                query = 'UPDATE orgunit_settings SET value=%s WHERE id = %s'
                 cur.execute(query, (value, rows[0][0]))
             else:
                 exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
