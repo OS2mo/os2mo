@@ -26,11 +26,11 @@ import operator
 import uuid
 
 import flask
-import psycopg2
 
 from . import facet
 from . import handlers
 from . import org
+from . import configuration_options
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -41,42 +41,6 @@ from .. import util
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
-
-
-def _read_local_settings(unitid=None):
-    """ Read a set of settings from the database. The values are pr default
-    arbitrary strings, but we do reserve the words 'True' and 'False' for the
-    logic values True and False.
-    :param query: The query
-    """
-    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                            dbname=settings.USER_SETTINGS_DB_NAME,
-                            host=settings.USER_SETTINGS_DB_HOST,
-                            port=settings.USER_SETTINGS_DB_PORT,
-                            password=settings.USER_SETTINGS_DB_PASSWORD)
-    cur = conn.cursor()
-
-    query_start = "SELECT setting, value FROM orgunit_settings WHERE object "
-    if unitid is None:
-        query = query_start + "is Null"
-        cur.execute(query)
-    else:
-        query = query_start + "= %s"
-        cur.execute(query, (unitid,))
-
-    user_settings = {}
-
-    rows = cur.fetchall()
-    for row in rows:
-        setting = row[0]
-        if row[1] == 'True':
-            value = True
-        elif row[1] == 'False':
-            value = False
-        else:
-            value = row[1]
-        user_settings[setting] = value
-    return user_settings
 
 
 @enum.unique
@@ -412,7 +376,7 @@ def get_one_orgunit(c, unitid, unit=None,
                 r[mapping.LOCATION] = ''
 
             settings = {}
-            local_settings = _read_local_settings(unitid)
+            local_settings = configuration_options.get_configuration(unitid)
 
             settings.update(local_settings)
             if parent:
@@ -420,7 +384,7 @@ def get_one_orgunit(c, unitid, unit=None,
                 for setting, value in parent_settings.items():
                     settings.setdefault(setting, value)
 
-            global_settings = _read_local_settings()
+            global_settings = configuration_options.get_configuration()
             for setting, value in global_settings.items():
                 settings.setdefault(setting, value)
 
