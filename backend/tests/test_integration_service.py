@@ -17,7 +17,8 @@ from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.orgunit._read_local_settings', new=lambda *x: {})
+@patch('mora.service.configuration_options.get_configuration',
+       new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None
 
