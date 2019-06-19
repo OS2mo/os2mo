@@ -20,10 +20,4 @@ A manager entry component.
 
    **dependencies:** `value`, `$emit` 
 
-- `managerAddressEntry` 
-
-  Adds the managerAddressEntry template to the add many component. 
-
-   **dependencies:** `value` 
-
 

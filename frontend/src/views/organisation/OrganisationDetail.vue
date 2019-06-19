@@ -78,15 +78,19 @@ export default {
     this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
   },
   mounted () {
-    EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, () => {
-      this.loadContent(this.latestEvent)
-    })
+    EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, this.listener)
+  },
+  beforeDestroy () {
+    EventBus.$off(Events.ORGANISATION_UNIT_CHANGED, this.listener)
   },
   methods: {
     loadContent (event) {
       this.latestEvent = event
-      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
       this.$store.dispatch(OrganisationUnit.actions.SET_DETAIL, event)
+    },
+    listener () {
+      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
+      this.loadContent(this.latestEvent)
     }
   }
 }

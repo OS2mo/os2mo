@@ -12,3 +12,5 @@ A organisation detail component.
 
 - `loadContent(event)` 
 
+- `listener()` 
+
