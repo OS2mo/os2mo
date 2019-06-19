@@ -7,21 +7,36 @@
 #
 import psycopg2
 import flask
+import logging
 from mora import exceptions
 from .. import settings
 from .. import util
 
+logger = logging.getLogger("mo_configuration")
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+if not (settings.USER_SETTINGS_DB_USER and settings.USER_SETTINGS_DB_NAME and
+        settings.USER_SETTINGS_DB_HOST and settings.USER_SETTINGS_DB_PORT and
+        settings.USER_SETTINGS_DB_PASSWORD):
+    error_msg = 'Configuration error of user settings connection information'
+    logger.error(error_msg)
+    raise Exception(error_msg)
+
+
 def _get_connection():
-    conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                            dbname=settings.USER_SETTINGS_DB_NAME,
-                            host=settings.USER_SETTINGS_DB_HOST,
-                            port=settings.USER_SETTINGS_DB_PORT,
-                            password=settings.USER_SETTINGS_DB_PASSWORD)
+    logger.debug('Open connection to database')
+    try:
+        conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
+                                dbname=settings.USER_SETTINGS_DB_NAME,
+                                host=settings.USER_SETTINGS_DB_HOST,
+                                port=settings.USER_SETTINGS_DB_PORT,
+                                password=settings.USER_SETTINGS_DB_PASSWORD)
+    except psycopg2.OperationalError:
+        logger.error('Database connection error')
+        raise
     return conn
 
 
@@ -50,10 +65,14 @@ def get_configuration(unitid=None):
             configuration[setting] = value
     finally:
         conn.close()
+    logger.debug('Read: Unit: {}, configuration: {}'.format(unitid,
+                                                            configuration))
     return configuration
 
 
 def set_configuration(configuration, unitid=None):
+    logger.debug('Write: Unit: {}, configuration: {}'.format(unitid,
+                                                             configuration))
     if unitid:
         query_suffix = ' = %s'
     else:
