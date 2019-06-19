@@ -93,7 +93,7 @@ class Tests(util.LoRATestCase):
             self.assertTrue('show_location' in user_settings)
             self.assertTrue('show_user_key' in user_settings)
             self.assertTrue('show_roles' in user_settings)
-            self.assertTrue(user_settings['show_location'] == 'True')
+            self.assertTrue(user_settings['show_location'] == True)
 
     def test_inconsistent_settings(self):
         """
@@ -124,12 +124,12 @@ class Tests(util.LoRATestCase):
             payload = {"org_units": {"show_roles": "False"}}
             self.assertRequest(url, json=payload)
             user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_roles'] == 'False')
+            self.assertTrue(user_settings['show_roles'] == False)
 
             payload = {"org_units": {"show_roles": "True"}}
             self.assertRequest(url, json=payload)
             user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_roles'] == 'True')
+            self.assertTrue(user_settings['show_roles'] == True)
 
     def test_ou_user_settings(self):
         """
@@ -146,7 +146,7 @@ class Tests(util.LoRATestCase):
             self.assertRequest(url, json=payload)
 
             user_settings = self.assertRequest(url)
-            self.assertTrue(user_settings['show_user_key'] == 'True')
+            self.assertTrue(user_settings['show_user_key'] == True)
 
     def test_ou_service_response(self):
         """
