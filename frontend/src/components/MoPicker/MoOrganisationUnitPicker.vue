@@ -73,7 +73,10 @@ export default {
     /**
      * An object of the validities, used for validation
      */
-    validity: Object,
+    validity: {
+      type: Object,
+      required: true
+    },
 
     /**
      * An object of additional validations to be performed
