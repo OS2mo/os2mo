@@ -178,14 +178,10 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
+                    'description': 'Missing address_type',
                     'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description': (
-                        "Invalid 'address_type', expected dict, got: null"
-                    ),
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
                     'key': 'address_type',
-                    'expected': 'dict',
-                    'actual': None,
                     'status': 400,
                     "obj": req[0],
                 },

@@ -491,8 +491,15 @@ def checked_get(
             return default
 
     if not isinstance(v, type(default)):
-        if not required and v is None:
-            return default
+        if v is None:
+            if not required:
+                return default
+            else:
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                    message='Missing {}'.format(key),
+                    key=key,
+                    obj=mapping,
+                )
 
         expected = type(default).__name__
         actual = v
