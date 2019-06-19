@@ -40,7 +40,14 @@ def get_configuration(unitid=None):
         cur.execute(query, (unitid,))
         rows = cur.fetchall()
         for row in rows:
-            configuration[row[0]] = row[1]
+            setting = row[0]
+            if row[1] == 'True':
+                value = True
+            elif row[1] == 'False':
+                value = False
+            else:
+                value = row[1]
+            configuration[setting] = value
     finally:
         conn.close()
     return configuration
