@@ -258,6 +258,11 @@ Herefter installeres følgende afhængighed::
 
   $ sudo apt-get update && sudo apt-get install yarn
 
+Der skal nu oprettes en database til MOs configurationsoplysninger::
+
+  cd setup
+  ./create_conf_db.sh
+
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
 skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
