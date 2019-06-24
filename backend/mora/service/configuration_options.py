@@ -21,9 +21,19 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
 if not (settings.USER_SETTINGS_DB_USER and settings.USER_SETTINGS_DB_NAME and
         settings.USER_SETTINGS_DB_HOST and settings.USER_SETTINGS_DB_PORT and
         settings.USER_SETTINGS_DB_PASSWORD):
-    error_msg = 'Configuration error of user settings connection information'
-    logger.error(error_msg)
-    raise Exception(error_msg)
+    error_msgs = [
+        'Configuration error of user settings connection information',
+        'USER_SETTINGS_DB_USER: {}'.format(settings.USER_SETTINGS_DB_USER),
+        'USER_SETTINGS_DB_NAME: {}'.format(settings.USER_SETTINGS_DB_NAME),
+        'USER_SETTINGS_DB_HOST: {}'.format(settings.USER_SETTINGS_DB_HOST),
+        'USER_SETTINGS_DB_PORT: {}'.format(settings.USER_SETTINGS_DB_PORT),
+        'Length of USER_SETTINGS_DB_PASSWORD: {}'.format(
+            len(settings.USER_SETTINGS_DB_PASSWORD)
+        )
+    ]
+    for msg in error_msgs:
+        logger.error(msg)
+    raise Exception(error_msgs[0])
 
 
 def _get_connection():
