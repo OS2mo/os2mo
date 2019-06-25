@@ -112,7 +112,7 @@ def load_sql_fixture(fixture_name):
 def add_resetting_endpoint(app, fixture_name):
     @app.route('/reset-db')
     def reset_db():
-        app.logger.warn('RESETTING DATABASE!!!')
+        app.logger.warning('RESETTING DATABASE!!!')
 
         load_sql_fixture(fixture_name)
 
