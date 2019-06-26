@@ -153,12 +153,17 @@ export default {
       this.$emit('input', unit)
     },
 
-    validity () {
-      this.selectedSuperUnitUuid = null
-      this.showTree = false
-      this.orgName = null
-      this.orgUnitUuid = null
-      this.$emit('input', null)
+    async validity (newVal, oldVal) {
+      if (this.orgUnitUuid) {
+        let unit = await OrganisationUnit.get(this.orgUnitUuid, newVal && newVal.from)
+
+        if (!unit) {
+          this.showTree = false
+          this.orgName = null
+          this.orgUnitUuid = null
+          this.$emit('input', null)
+        }
+      }
     }
   },
 
