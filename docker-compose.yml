@@ -3,7 +3,9 @@ version: '3'
 services:
 
   mo:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
@@ -21,7 +23,7 @@ services:
   mox:
     image: magentalabs/mox:dev-latest
     env_file:
-      - db.env
+      - docker/db.env
     environment:
       - DB_HOST=mox-db
     ports:
@@ -32,4 +34,4 @@ services:
   mox-db:
     image: postgres:9.6
     env_file:
-      - db.env
+      - docker/db.env
