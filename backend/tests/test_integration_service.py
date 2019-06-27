@@ -10,15 +10,12 @@ import datetime
 
 import freezegun
 
-from unittest.mock import patch
 from mora import lora
 
 from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.configuration_options.get_configuration',
-       new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -491,7 +488,9 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {}},
+                'user_settings': {'orgunit': {'show_location': True,
+                                              'show_user_key': False,
+                                              'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'validity': {
                     'from': '2016-01-01',
@@ -582,7 +581,9 @@ class Tests(util.LoRATestCase):
             {
                 'name': 'Overordnet Enhed',
                 'user_key': 'root',
-                'user_settings': {'orgunit': {}},
+                'user_settings': {'orgunit': {'show_user_key': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                 'validity': {
                     'from': '2016-01-01',

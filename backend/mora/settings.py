@@ -53,11 +53,13 @@ SP_CERTIFICATE_PATH = ""
 
 DUMMY_MODE = False
 
-USER_SETTINGS_DB_NAME = 'mora'
-USER_SETTINGS_DB_USER = 'mora'
-USER_SETTINGS_DB_PASSWORD = 'mora'
-USER_SETTINGS_DB_HOST = 'localhost'
-USER_SETTINGS_DB_PORT = 5432
+USER_SETTINGS = {
+    'orgunit': {
+        'show_location': True,
+        'show_user_key': False,
+        'show_roles': True
+    }
+}
 
 QUERY_EXPORT_DIR = ''
 

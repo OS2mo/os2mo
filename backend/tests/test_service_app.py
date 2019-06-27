@@ -44,7 +44,7 @@ class Tests(util.TestCase):
         unfiltered = {
             viewname
             for viewname, viewfunc in self.app.view_functions.items()
-            if '.' in viewname and not hasattr(viewfunc, 'restricts_args')
+            if '.' in viewname and not getattr(viewfunc, 'restricts_args')
         }
 
         print('\n'.join(sorted(unfiltered)))

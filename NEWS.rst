@@ -1,12 +1,6 @@
 In development
 ==============
 
-New features
-------------
-
-* #24130: The configuration module now has a public api, allowing for dynamic
-  changes of the configuration options.
-
 Internal changes
 ----------------
 

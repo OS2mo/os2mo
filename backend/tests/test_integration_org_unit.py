@@ -20,8 +20,6 @@ mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('mora.service.orgunit.uuid.uuid4', new=lambda: mock_uuid)
-@patch('mora.service.configuration_options.get_configuration',
-       new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -449,7 +447,13 @@ class Tests(util.LoRATestCase):
                     },
                     "parent": None,
                     "user_key": "root",
-                    "user_settings": {"orgunit": {}},
+                    "user_settings": {
+                        "orgunit": {
+                            "show_location": True,
+                            "show_roles": True,
+                            "show_user_key": False
+                        }
+                    },
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "validity": {
                         "from": "2016-01-01",
@@ -457,7 +461,13 @@ class Tests(util.LoRATestCase):
                     }
                 },
                 "user_key": unitid,
-                "user_settings": {"orgunit": {}},
+                "user_settings": {
+                    "orgunit": {
+                        "show_location": True,
+                        "show_roles": True,
+                        "show_user_key": False
+                    }
+                },
                 "uuid": unitid,
                 "validity": {
                     "from": "2016-02-04",
@@ -680,7 +690,9 @@ class Tests(util.LoRATestCase):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
-                'user_settings': {'orgunit': {}},
+                'user_settings': {'orgunit': {'show_user_key': False,
+                                              'show_location': True,
+                                              'show_roles': True}},
                 "parent": None,
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -763,7 +775,13 @@ class Tests(util.LoRATestCase):
                             },
                             "parent": None,
                             "user_key": "root",
-                            'user_settings': {'orgunit': {}},
+                            "user_settings": {
+                                "orgunit": {
+                                    "show_location": True,
+                                    "show_roles": True,
+                                    "show_user_key": False
+                                }
+                            },
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {
                                 "from": "2016-01-01",
@@ -771,7 +789,13 @@ class Tests(util.LoRATestCase):
                             }
                         },
                         "user_key": "hum",
-                        "user_settings": {"orgunit": {}},
+                        "user_settings": {
+                            "orgunit": {
+                                "show_location": True,
+                                "show_roles": True,
+                                "show_user_key": False
+                            }
+                        },
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                         "validity": {
                             "from": "2016-01-01",
@@ -779,7 +803,13 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     "user_key": "hist",
-                    "user_settings": {"orgunit": {}},
+                    "user_settings": {
+                        "orgunit": {
+                            "show_location": True,
+                            "show_roles": True,
+                            "show_user_key": False
+                        }
+                    },
                     "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
                     "validity": {
                         "from": "2016-01-01",
@@ -787,7 +817,13 @@ class Tests(util.LoRATestCase):
                     }
                 },
                 "user_key": "frem",
-                "user_settings": {"orgunit": {}},
+                "user_settings": {
+                    "orgunit": {
+                        "show_location": True,
+                        "show_roles": True,
+                        "show_user_key": False
+                    }
+                },
                 "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
                 "validity": {
                     "from": "2016-01-01",
@@ -1304,7 +1340,9 @@ class Tests(util.LoRATestCase):
                 "from": "2017-01-01",
                 "to": "2018-01-01"
             },
-            "user_settings": {"orgunit": {}}
+            'user_settings': {'orgunit': {'show_user_key': False,
+                                          'show_location': True,
+                                          'show_roles': True}},
         })
 
         roots.insert(0, {
