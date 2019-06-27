@@ -10,7 +10,8 @@ https://redmine.magenta-aps.dk/issues/INSERT_ISSUE_NUMBER
 - [ ] The documentation has been updated
     - [ ] The documentation builds without warnings or errors
 - [ ] Release notes have been updated
-- [ ] The corresponding Redmine ticket has been set to `I test`
+- [ ] The corresponding Redmine ticket has been set to `Needs review`
+    - [ ] The issue has a link to this PR
 
 **If applicable:**
 
