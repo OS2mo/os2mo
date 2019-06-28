@@ -1,6 +1,19 @@
 In development
 ==============
 
+New features
+------------
+
+Internal changes
+----------------
+
+Bug fixes
+---------
+
+
+Version 0.19.0, 2019-06-27
+==========================
+
 Internal changes
 ----------------
 
