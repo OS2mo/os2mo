@@ -54,7 +54,26 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     def prepare_create(self, req):
-        name = util.checked_get(req, mapping.NAME, "", required=True)
+        name = util.checked_get(req, mapping.NAME, "", required=False)
+        givenname = util.checked_get(req, mapping.GIVENNAME, "",
+                                     required=False)
+        surname = util.checked_get(req, mapping.SURNAME, "",
+                                   required=False)
+
+        if name and (surname or givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either name or given name/surame'
+            )
+
+        if name:
+            givenname = name.rsplit(" ", maxsplit=1)[0]
+            surname = name[len(givenname):].strip()
+
+        if (not name) and (not givenname) and (not surname):
+            raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                name='Missing name or givenname or surname'
+            )
+
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
@@ -80,7 +99,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         user = common.create_bruger_payload(
             valid_from=valid_from,
             valid_to=valid_to,
-            brugernavn=name,
+            fornavn=givenname,
+            efternavn=surname,
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
@@ -139,12 +159,27 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         ))
 
         changed_props = {}
+        changed_extended_props = {}
 
         if mapping.USER_KEY in data:
             changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
 
-        if mapping.NAME in data:
-            changed_props['brugernavn'] = data[mapping.NAME]
+        givenname = data.get(mapping.GIVENNAME, '')
+        surname = data.get(mapping.SURNAME, '')
+        name = data.get(mapping.NAME, '')
+
+        if name and (surname or givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either name or given name/surame'
+            )
+        if name:
+            givenname = name.rsplit(" ", maxsplit=1)[0]
+            surname = name[len(givenname):].strip()
+
+        if givenname:
+            changed_extended_props['fornavn'] = givenname
+        if surname:
+            changed_extended_props['efternavn'] = surname
 
         if mapping.INTEGRATION_DATA in data:
             changed_props['integrationsdata'] = common.stable_json_dumps(
@@ -155,6 +190,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             update_fields.append((
                 mapping.EMPLOYEE_EGENSKABER_FIELD,
                 changed_props,
+            ))
+
+        if changed_extended_props:
+            update_fields.append((
+                mapping.EMPLOYEE_UDVIDELSER_FIELD,
+                changed_extended_props,
             ))
 
         if mapping.CPR_NO in data:
@@ -205,9 +246,16 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
             return None
 
     props = user['attributter']['brugeregenskaber'][0]
+    extensions = user['attributter']['brugerudvidelser'][0]
 
+    fornavn = extensions.get('fornavn', '')
+    efternavn = extensions.get('efternavn', '')
     r = {
-        mapping.NAME: props['brugernavn'],
+        mapping.GIVENNAME: fornavn,
+        mapping.SURNAME: efternavn,
+        mapping.NAME: " ".join((
+            fornavn, efternavn
+        )),
         mapping.UUID: userid,
     }
 
@@ -307,7 +355,11 @@ def list_employees(orgid):
                 tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
             )
         else:
-            kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+            query = args['query']
+            query = query.split(' ')
+            for i in range(0, len(query)):
+                query[i] = '%' + query[i] + '%'
+            kwargs['vilkaarligattr'] = query
 
     return flask.jsonify(
         c.bruger.paged_get(get_one_employee, **kwargs)
@@ -324,7 +376,10 @@ def get_employee(id):
     :queryparam date at: Show the employee at this point in time,
         in ISO-8601 format.
 
-    :>json string name: Human-readable name.
+    :<json string name: Full name of the employee (concatenation
+    of givenname and surname).
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -344,6 +399,8 @@ def get_employee(id):
      {
        "cpr_no": "0708522600",
        "name": "Bente Pedersen",
+       "givenname": "Bente",
+       "surname": "Pedersen",
        "org": {
          "name": "Hj\u00f8rring Kommune",
          "user_key": "Hj\u00f8rring Kommune",
@@ -507,13 +564,19 @@ def create_employee():
 
     **Example Request**:
 
-    :<json string name: The name of the employee
+    :<json string name: Name of the employee.
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
+
+    Only the full name or givenname/surname should be given, not both.
+    If only the full name is supplied, the name will be split on the last
+    space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.

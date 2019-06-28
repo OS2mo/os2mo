@@ -2,8 +2,20 @@
     "attributter": {
         "brugeregenskaber": [
             {
-                "brugernavn": "Fedtmule",
+                "brugernavn": "",
                 "brugervendtnoegle": "fedtmule",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Fedtmule",
+                "efternavn": "Hund",
                 "virkning": {
                     "from": "1932-05-12T00:00:00+01:00",
                     "from_included": true,

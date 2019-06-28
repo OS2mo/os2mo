@@ -1,0 +1,7 @@
+# This file contains system package dependencies. It is used for `apt-get` in
+# Dockerfile and .gitlab-ci.yml. It is intended for the python:3.6 docker image
+# which through buildpack-deps is based on Debian Stretch.
+
+# Python packages dependencies:
+# for xmlsec.
+libxmlsec1-dev

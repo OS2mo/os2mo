@@ -1,3 +1,13 @@
+Version 0.19.0, 2019-06-27
+==========================
+
+Internal changes
+----------------
+
+* #28686, #28687: Add Dockerfile for both production and development.
+* #28804 MO now distinguishes between given name and surname.
+
+
 Version 0.18.0, 2019-05-22
 ==========================
 

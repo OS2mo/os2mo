@@ -12,6 +12,18 @@
           "to_included": false
         }
       }
+    ],
+    "brugerudvidelser": [
+      {
+        "fornavn": "Andersine",
+        "efternavn": "And",
+        "virkning": {
+          "from": "1937-01-09T00:00:00+01:00",
+          "from_included": true,
+          "to": "2020-01-01T00:00:00+01:00",
+          "to_included": false
+        }
+      }
     ]
   },
   "relationer": {

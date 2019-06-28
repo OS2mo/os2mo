@@ -133,6 +133,22 @@ COPY actual_state.bruger_attr_egenskaber (id, brugervendtnoegle, brugernavn, bru
 
 SELECT pg_catalog.setval('actual_state.bruger_attr_egenskaber_id_seq', 2, true);
 
+--
+-- Data for Name: bruger_attr_udvidelser; Type: TABLE DATA; Schema: actual_state; Owner: mox
+--
+
+COPY actual_state.bruger_attr_udvidelser (id, fornavn, efternavn, virkning, bruger_registrering_id) FROM stdin;
+1	Anders	And	("[""1934-06-09 00:00:00+01"",infinity)",,,"")	1
+2	Fedtmule	Hund	("[""1932-05-12 00:00:00+01"",infinity)",,,"")	2
+\.
+
+
+--
+-- Name: bruger_attr_udvidelser_id_seq; Type: SEQUENCE SET; Schema: actual_state; Owner: mox
+--
+
+SELECT pg_catalog.setval('actual_state.bruger_attr_udvidelser_id_seq', 2, true);
+
 
 --
 -- Name: bruger_registrering_id_seq; Type: SEQUENCE SET; Schema: actual_state; Owner: mox

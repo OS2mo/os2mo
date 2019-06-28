@@ -80,7 +80,9 @@ def create():
 
     **Employee**:
 
-    :<json string name: The name of the employee
+    :<json string name: Name of the employee.
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json dict integration_data: **optional** dictionary of integration data
@@ -88,6 +90,10 @@ def create():
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
+
+    Only the full name, or givenname/surname should be given, not both.
+    If only the full name is supplied, the name will be split on the last
+    space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.
