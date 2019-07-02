@@ -35,3 +35,19 @@ services:
     image: postgres:9.6
     env_file:
       - docker/db.env
+    volumes:
+      - postgres-initdb.d:/docker-entrypoint-initdb.d
+
+  # The following services is to copy the scripts needed to initialize the
+  # database with user and extentions to a volume. See
+  # https://mox.readthedocs.io/en/development/user/database/#db-user-ext-init
+  mox-cp:
+    image: magentalabs/mox:dev-latest
+    user: root
+    entrypoint: []
+    command: ["cp", "-r", "/code/docker/postgres-initdb.d/.", "/postgres-initdb.d"]
+    volumes:
+      - postgres-initdb.d:/postgres-initdb.d
+
+volumes:
+  postgres-initdb.d:
