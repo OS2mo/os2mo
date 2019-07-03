@@ -109,10 +109,10 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
     'flask': ('http://flask.pocoo.org/docs/', None),
-#    'LoRa': ('https://mox.readthedocs.org/', None),
+    'mox': ('https://mox.readthedocs.io/en/latest', None),
 }
 
-# primary_domain = 'http'
+primary_domain = 'py'
 
 
 # The master toctree document.

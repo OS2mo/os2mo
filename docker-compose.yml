@@ -3,7 +3,9 @@ version: '3'
 services:
 
   mo:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
@@ -21,9 +23,13 @@ services:
   mox:
     image: magentalabs/mox:dev-latest
     env_file:
-      - db.env
+      - docker/db.env
     environment:
       - DB_HOST=mox-db
+      - DB_STRUCTURE_EXTENSIONS=/db_extensions/db_extensions.json
+    volumes:
+      - ./backend/mora/db_extensions.json:/db_extensions/db_extensions.json
+      #- db_extensions:/db_extensions
     ports:
       - "8080:8080"
     depends_on:
@@ -32,4 +38,36 @@ services:
   mox-db:
     image: postgres:9.6
     env_file:
-      - db.env
+      - docker/db.env
+    volumes:
+      - postgres-initdb.d:/docker-entrypoint-initdb.d
+
+  # The following services is to copy the db_extension.json to a volume. It is
+  # not needed when the volume
+  # `./backend/mora/db_extensions.json:/db_extensions/db_extensions.json` is
+  # bound in mox above. It serves as an example for when the source code is not
+  # avaiable.
+  mo-cp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    user: root
+    entrypoint: []
+    command: ["cp", "/code/backend/mora/db_extensions.json", "/db_extensions/db_extensions.json"]
+    volumes:
+      - db_extensions:/db_extensions
+
+  # The following services is to copy the scripts needed to initialize the
+  # database with user and extentions to a volume. See
+  # https://mox.readthedocs.io/en/development/user/database/#db-user-ext-init
+  mox-cp:
+    image: magentalabs/mox:dev-latest
+    user: root
+    entrypoint: []
+    command: ["cp", "-r", "/code/docker/postgres-initdb.d/.", "/postgres-initdb.d"]
+    volumes:
+      - postgres-initdb.d:/postgres-initdb.d
+
+volumes:
+  db_extensions:
+  postgres-initdb.d:
