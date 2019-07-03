@@ -17,6 +17,8 @@ services:
     environment:
       - OS2MO_LORA_URL=http://mox:8080/
       - OS2MO_DUMMY_MODE=True
+      - OS2MO_USER_SETTINGS_DB_HOST=mox-db
+      - OS2MO_SESSIONS_DB_HOST=mox-db:5432
     depends_on:
       - mox
 
@@ -39,6 +41,8 @@ services:
     image: postgres:9.6
     env_file:
       - docker/db.env
+      - docker/sessions_db.env
+      - docker/conf_db.env
     volumes:
       - postgres-initdb.d:/docker-entrypoint-initdb.d
 
@@ -53,8 +57,9 @@ services:
       dockerfile: docker/Dockerfile
     user: root
     entrypoint: []
-    command: ["cp", "/code/backend/mora/db_extensions.json", "/db_extensions/db_extensions.json"]
+    command: ["sh", "-c", "cp /code/backend/mora/db_extensions.json /db_extensions/db_extensions.json && cp -r /code/docker/postgres-initdb.d/. /postgres-initdb.d"]
     volumes:
+      - postgres-initdb.d:/postgres-initdb.d
       - db_extensions:/db_extensions
 
   # The following services is to copy the scripts needed to initialize the

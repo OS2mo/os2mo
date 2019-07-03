@@ -9,6 +9,7 @@ Internal changes
 
 * #24130: The configuration module now has a public api, allowing for dynamic
   changes of the configuration options.
+* #30233: Conf module and sessions module have been dockerized
 
 Bug fixes
 ---------

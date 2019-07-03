@@ -61,6 +61,7 @@ RUN pip3 install -r backend/requirements.txt
 
 
 # Copy and install backend code.
+COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
 COPY NEWS.rst .
@@ -78,4 +79,5 @@ COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
 # Run the server as the mora user on port 5000
 USER mora:mora
 EXPOSE 5000
+ENTRYPOINT ["/code/docker/docker-entrypoint.sh"]
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "mora.app:create_app()"]

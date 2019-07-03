@@ -33,17 +33,22 @@ import json
 import os
 import pkgutil
 import random
+import time
+
+import click
+import flask
+import psycopg2
+import sqlalchemy
 import subprocess
 import sys
 import threading
 import traceback
 import unittest
-
-import click
-import flask
 import werkzeug.serving
 
 from . import settings
+from . import app as mora_app
+from .service import configuration_options
 
 basedir = os.path.dirname(__file__)
 backenddir = os.path.dirname(basedir)
@@ -520,6 +525,74 @@ def update_fixture(fixture_name, target):
                 ],
                 stdout=target,
             )
+
+
+@group.command()
+@click.option("--wait", default=None, type=int,
+              help="Wait up to n seconds for the database connection before"
+                   " exiting.")
+def initdb(wait):
+    """Initialize database.
+
+    This is supposed to be idempotent, so you can run it without fear
+    on an already initialized database.
+    """
+
+    def init_configuration():
+        conf_conn = configuration_options._get_connection()
+
+        CREATE_CONF_QUERY = """
+        CREATE TABLE IF NOT EXISTS orgunit_settings(
+            id serial PRIMARY KEY,
+        object UUID,
+        setting varchar(255) NOT NULL,
+        value varchar(255) NOT NULL
+        );"""
+
+        DEFAULT_CONF_DATA_QUERY = """
+        INSERT INTO orgunit_settings ( object, setting, value ) VALUES 
+            ( Null, 'show_roles', 'True' ),
+            ( Null, 'show_user_key', 'True' ),
+            ( Null, 'show_location', 'True' );
+        """
+
+        click.echo("Initializing configuration database.")
+        cursor = conf_conn.cursor()
+        cursor.execute(CREATE_CONF_QUERY)
+        cursor.execute(DEFAULT_CONF_DATA_QUERY)
+        conf_conn.commit()
+        conf_conn.close()
+        click.echo("Configuration database initialised.")
+
+    def get_init_sessions():
+        app = mora_app.create_app()
+
+        def init_sessions():
+            with app.app_context():
+                app.session_interface.db.create_all()
+
+        return init_sessions
+
+    time_left = _wait_and_init_db(init_configuration, psycopg2.OperationalError, wait)
+    if settings.SAML_AUTH_ENABLE:
+        _wait_and_init_db(get_init_sessions(), sqlalchemy.exc.OperationalError, time_left)
+
+
+def _wait_and_init_db(init_db_fn, db_exception, wait):
+    # Init sessions
+    SLEEPING_TIME = 0.25
+
+    attempts = 1 if wait is None else int(wait // SLEEPING_TIME)
+    for i in range(1, attempts + 1):
+        try:
+            init_db_fn()
+            return int(wait - (i * SLEEPING_TIME))
+        except db_exception:
+            click.echo(
+                "Database is unavailable - attempt %s/%s" % (i, attempts))
+            if i == attempts:
+                sys.exit(1)
+            time.sleep(SLEEPING_TIME)
 
 
 if __name__ == '__main__':
