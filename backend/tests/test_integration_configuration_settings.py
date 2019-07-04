@@ -29,34 +29,34 @@ class Tests(util.LoRATestCase):
                 try:
                     curs.execute(
                         "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
-                            settings.USER_SETTINGS_DB_USER,
-                            settings.USER_SETTINGS_DB_PASSWORD
+                            settings.CONF_DB_USER,
+                            settings.CONF_DB_PASSWORD
                         )
                     )
                 except psycopg2.ProgrammingError:
                     curs.execute(
                         "DROP DATABASE {};".format(
-                            settings.USER_SETTINGS_DB_NAME,
+                            settings.CONF_DB_NAME,
                         )
                     )
 
                 curs.execute(
                     "CREATE DATABASE {} OWNER {};".format(
-                        settings.USER_SETTINGS_DB_NAME,
-                        settings.USER_SETTINGS_DB_USER
+                        settings.CONF_DB_NAME,
+                        settings.CONF_DB_USER
                     )
                 )
                 curs.execute(
                     "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
-                        settings.USER_SETTINGS_DB_NAME,
-                        settings.USER_SETTINGS_DB_USER
+                        settings.CONF_DB_NAME,
+                        settings.CONF_DB_USER
                     )
                 )
 
-        with psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                              dbname=settings.USER_SETTINGS_DB_NAME,
-                              host=settings.USER_SETTINGS_DB_HOST,
-                              password=settings.USER_SETTINGS_DB_PASSWORD,
+        with psycopg2.connect(user=settings.CONF_DB_USER,
+                              dbname=settings.CONF_DB_NAME,
+                              host=settings.CONF_DB_HOST,
+                              password=settings.CONF_DB_PASSWORD,
                               port=p_port) as conn:
             conn.autocommit = True
             with conn.cursor() as curs:
@@ -88,7 +88,7 @@ class Tests(util.LoRATestCase):
 
         p_port = self._create_conf_data()
         url = '/service/configuration'
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             user_settings = self.assertRequest(url)
             self.assertTrue('show_location' in user_settings)
             self.assertTrue('show_user_key' in user_settings)
@@ -105,7 +105,7 @@ class Tests(util.LoRATestCase):
         url = '/service/configuration'
         payload = {"org_units": {"show_roles": "False"}}
         assertion_raised = False
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             try:
                 self.assertRequest(url, json=payload)
             except Exception:
@@ -120,7 +120,7 @@ class Tests(util.LoRATestCase):
         p_port = self._create_conf_data()
         url = '/service/configuration'
 
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             payload = {"org_units": {"show_roles": "False"}}
             self.assertRequest(url, json=payload)
             user_settings = self.assertRequest(url)
@@ -140,7 +140,7 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             payload = {"org_units": {"show_user_key": "True"}}
             url = '/service/ou/{}/configuration'.format(uuid)
             self.assertRequest(url, json=payload)
@@ -158,7 +158,7 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             url = '/service/ou/{}/configuration'.format(uuid)
             payload = {"org_units": {"show_user_key": "True"}}
             self.assertRequest(url, json=payload)

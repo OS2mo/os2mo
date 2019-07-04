@@ -59,34 +59,34 @@ class TestCafeTests(util.LiveLoRATestCase):
                 try:
                     curs.execute(
                         "CREATE USER {} WITH ENCRYPTED PASSWORD '{}'".format(
-                            settings.USER_SETTINGS_DB_USER,
-                            settings.USER_SETTINGS_DB_PASSWORD
+                            settings.CONF_DB_USER,
+                            settings.CONF_DB_PASSWORD
                         )
                     )
                 except psycopg2.ProgrammingError:
                     curs.execute(
                         "DROP DATABASE {};".format(
-                            settings.USER_SETTINGS_DB_NAME,
+                            settings.CONF_DB_NAME,
                         )
                     )
 
                 curs.execute(
                     "CREATE DATABASE {} OWNER {};".format(
-                        settings.USER_SETTINGS_DB_NAME,
-                        settings.USER_SETTINGS_DB_USER
+                        settings.CONF_DB_NAME,
+                        settings.CONF_DB_USER
                     )
                 )
                 curs.execute(
                     "GRANT ALL PRIVILEGES ON DATABASE {} TO {};".format(
-                        settings.USER_SETTINGS_DB_NAME,
-                        settings.USER_SETTINGS_DB_USER
+                        settings.CONF_DB_NAME,
+                        settings.CONF_DB_USER
                     )
                 )
 
-        with psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                              dbname=settings.USER_SETTINGS_DB_NAME,
-                              host=settings.USER_SETTINGS_DB_HOST,
-                              password=settings.USER_SETTINGS_DB_PASSWORD,
+        with psycopg2.connect(user=settings.CONF_DB_USER,
+                              dbname=settings.CONF_DB_NAME,
+                              host=settings.CONF_DB_HOST,
+                              password=settings.CONF_DB_PASSWORD,
                               port=p_port) as conn:
             conn.autocommit = True
             with conn.cursor() as curs:
@@ -139,7 +139,7 @@ class TestCafeTests(util.LiveLoRATestCase):
         xml_report_file = os.path.join(util.REPORTS_DIR, "testcafe.xml")
         json_report_file = os.path.join(util.REPORTS_DIR, "testcafe.json")
 
-        with util.override_settings(USER_SETTINGS_DB_PORT=p_port):
+        with util.override_settings(CONF_DB_PORT=p_port):
             process = subprocess.run(
                 [
                     TESTCAFE_COMMAND,

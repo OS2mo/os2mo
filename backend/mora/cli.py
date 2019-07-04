@@ -402,7 +402,7 @@ def full_run(idp_url, fixture):
     from tests import util as test_util
     from tests.test_integration_configuration_settings import Tests as cot
     ccd = cot._create_conf_data
-    settings.USER_SETTINGS_DB_PORT = ccd(None)
+    settings.CONF_DB_PORT = ccd(None)
 
     with make_dummy_instance(idp_url=idp_url) as (
         psql,
@@ -551,7 +551,7 @@ def initdb(wait):
         );"""
 
         DEFAULT_CONF_DATA_QUERY = """
-        INSERT INTO orgunit_settings ( object, setting, value ) VALUES 
+        INSERT INTO orgunit_settings ( object, setting, value ) VALUES
             ( Null, 'show_roles', 'True' ),
             ( Null, 'show_user_key', 'True' ),
             ( Null, 'show_location', 'True' );
@@ -574,9 +574,11 @@ def initdb(wait):
 
         return init_sessions
 
-    time_left = _wait_and_init_db(init_configuration, psycopg2.OperationalError, wait)
+    time_left = _wait_and_init_db(init_configuration,
+                                  psycopg2.OperationalError, wait)
     if settings.SAML_AUTH_ENABLE:
-        _wait_and_init_db(get_init_sessions(), sqlalchemy.exc.OperationalError, time_left)
+        _wait_and_init_db(get_init_sessions(),
+                          sqlalchemy.exc.OperationalError, time_left)
 
 
 def _wait_and_init_db(init_db_fn, db_exception, wait):

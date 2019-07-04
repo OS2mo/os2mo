@@ -18,17 +18,17 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-if not (settings.USER_SETTINGS_DB_USER and settings.USER_SETTINGS_DB_NAME and
-        settings.USER_SETTINGS_DB_HOST and settings.USER_SETTINGS_DB_PORT and
-        settings.USER_SETTINGS_DB_PASSWORD):
+if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
+        settings.CONF_DB_HOST and settings.CONF_DB_PORT and
+        settings.CONF_DB_PASSWORD):
     error_msgs = [
         'Configuration error of user settings connection information',
-        'USER_SETTINGS_DB_USER: {}'.format(settings.USER_SETTINGS_DB_USER),
-        'USER_SETTINGS_DB_NAME: {}'.format(settings.USER_SETTINGS_DB_NAME),
-        'USER_SETTINGS_DB_HOST: {}'.format(settings.USER_SETTINGS_DB_HOST),
-        'USER_SETTINGS_DB_PORT: {}'.format(settings.USER_SETTINGS_DB_PORT),
-        'Length of USER_SETTINGS_DB_PASSWORD: {}'.format(
-            len(settings.USER_SETTINGS_DB_PASSWORD)
+        'CONF_DB_USER: {}'.format(settings.CONF_DB_USER),
+        'CONF_DB_NAME: {}'.format(settings.CONF_DB_NAME),
+        'CONF_DB_HOST: {}'.format(settings.CONF_DB_HOST),
+        'CONF_DB_PORT: {}'.format(settings.CONF_DB_PORT),
+        'Length of CONF_DB_PASSWORD: {}'.format(
+            len(settings.CONF_DB_PASSWORD)
         )
     ]
     for msg in error_msgs:
@@ -39,11 +39,11 @@ if not (settings.USER_SETTINGS_DB_USER and settings.USER_SETTINGS_DB_NAME and
 def _get_connection():
     logger.debug('Open connection to database')
     try:
-        conn = psycopg2.connect(user=settings.USER_SETTINGS_DB_USER,
-                                dbname=settings.USER_SETTINGS_DB_NAME,
-                                host=settings.USER_SETTINGS_DB_HOST,
-                                port=settings.USER_SETTINGS_DB_PORT,
-                                password=settings.USER_SETTINGS_DB_PASSWORD)
+        conn = psycopg2.connect(user=settings.CONF_DB_USER,
+                                dbname=settings.CONF_DB_NAME,
+                                host=settings.CONF_DB_HOST,
+                                port=settings.CONF_DB_PORT,
+                                password=settings.CONF_DB_PASSWORD)
     except psycopg2.OperationalError:
         logger.error('Database connection error')
         raise
