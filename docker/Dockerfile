@@ -33,7 +33,8 @@ LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
 
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1 \
+    FLASK_APP=mora.app:create_app
 
 
 WORKDIR /code/
