@@ -33,7 +33,8 @@ LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
 
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1 \
+    FLASK_APP=mora.app:create_app
 
 
 WORKDIR /code/
@@ -61,6 +62,7 @@ RUN pip3 install -r backend/requirements.txt
 
 
 # Copy and install backend code.
+COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
 COPY NEWS.rst .
@@ -78,4 +80,5 @@ COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
 # Run the server as the mora user on port 5000
 USER mora:mora
 EXPOSE 5000
+ENTRYPOINT ["/code/docker/docker-entrypoint.sh"]
 CMD ["gunicorn", "-b", "0.0.0.0:5000", "mora.app:create_app()"]

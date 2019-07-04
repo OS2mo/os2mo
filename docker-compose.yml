@@ -17,6 +17,9 @@ services:
     environment:
       - OS2MO_LORA_URL=http://mox:8080/
       - OS2MO_DUMMY_MODE=True
+      - OS2MO_CONF_DB_HOST=mox-db
+      - OS2MO_SESSIONS_DB_HOST=mox-db
+      - OS2MO_SESSIONS_DB_PORT=5432
     depends_on:
       - mox
 
@@ -28,8 +31,7 @@ services:
       - DB_HOST=mox-db
       - DB_STRUCTURE_EXTENSIONS=/db_extensions/db_extensions.json
     volumes:
-      - ./backend/mora/db_extensions.json:/db_extensions/db_extensions.json
-      #- db_extensions:/db_extensions
+      - db_extensions:/db_extensions
     ports:
       - "8080:8080"
     depends_on:
@@ -39,22 +41,27 @@ services:
     image: postgres:9.6
     env_file:
       - docker/db.env
+      - docker/sessions_db.env
+      - docker/conf_db.env
     volumes:
       - postgres-initdb.d:/docker-entrypoint-initdb.d
 
-  # The following services is to copy the db_extension.json to a volume. It is
-  # not needed when the volume
-  # `./backend/mora/db_extensions.json:/db_extensions/db_extensions.json` is
-  # bound in mox above. It serves as an example for when the source code is not
-  # avaiable.
+  # The following services is to copy the `db_extension.json` and the scrript
+  # needed to initialize the database to volumes.
   mo-cp:
     build:
       context: .
       dockerfile: docker/Dockerfile
     user: root
     entrypoint: []
-    command: ["cp", "/code/backend/mora/db_extensions.json", "/db_extensions/db_extensions.json"]
+    command:
+      - sh
+      - -c
+      - >
+        cp /code/backend/mora/db_extensions.json /db_extensions/db_extensions.json &&
+        cp -r /code/docker/postgres-initdb.d/. /postgres-initdb.d
     volumes:
+      - postgres-initdb.d:/postgres-initdb.d
       - db_extensions:/db_extensions
 
   # The following services is to copy the scripts needed to initialize the
