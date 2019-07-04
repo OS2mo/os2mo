@@ -339,6 +339,8 @@ Som vil angive, hvad den korrekte syntaks er::
 For yderligere detaljer om brugen af ``flask.sh`` henvises til
 kildekoden og den indbyggede hjælp.
 
+.. _konfiguration:
+
 -------------
 Konfiguration
 -------------
