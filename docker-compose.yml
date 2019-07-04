@@ -17,8 +17,9 @@ services:
     environment:
       - OS2MO_LORA_URL=http://mox:8080/
       - OS2MO_DUMMY_MODE=True
-      - OS2MO_USER_SETTINGS_DB_HOST=mox-db
-      - OS2MO_SESSIONS_DB_HOST=mox-db:5432
+      - OS2MO_CONF_DB_HOST=mox-db
+      - OS2MO_SESSIONS_DB_HOST=mox-db
+      - OS2MO_SESSIONS_DB_PORT=5432
     depends_on:
       - mox
 
