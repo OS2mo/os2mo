@@ -182,7 +182,7 @@ initialisering <mox:db_user_ext_init>` kør:
 
 .. code-block:: bash
 
-   docker-compose up -d --build mox-cp
+   docker-compose up -d --build mox-cp mo-cp
 
 For at hente og bygge images og starte de tre services, kør:
 
