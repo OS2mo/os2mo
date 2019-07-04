@@ -527,8 +527,9 @@ def update_fixture(fixture_name, target):
             )
 
 
+_SLEEPING_TIME = 0.25
 @group.command()
-@click.option("--wait", default=None, type=int,
+@click.option("--wait", default=_SLEEPING_TIME, type=int,
               help="Wait up to n seconds for the database connection before"
                    " exiting.")
 def initdb(wait):
@@ -579,20 +580,17 @@ def initdb(wait):
 
 
 def _wait_and_init_db(init_db_fn, db_exception, wait):
-    # Init sessions
-    SLEEPING_TIME = 0.25
-
-    attempts = 1 if wait is None else int(wait // SLEEPING_TIME)
+    attempts = int(wait // _SLEEPING_TIME) or 1
     for i in range(1, attempts + 1):
         try:
             init_db_fn()
-            return int(wait - (i * SLEEPING_TIME))
+            return int(wait - (i * _SLEEPING_TIME))
         except db_exception:
             click.echo(
                 "Database is unavailable - attempt %s/%s" % (i, attempts))
-            if i == attempts:
+            if i >= attempts:
                 sys.exit(1)
-            time.sleep(SLEEPING_TIME)
+            time.sleep(_SLEEPING_TIME)
 
 
 if __name__ == '__main__':
