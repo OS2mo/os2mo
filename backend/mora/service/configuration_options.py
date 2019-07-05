@@ -11,12 +11,16 @@ import logging
 from mora import exceptions
 from .. import settings
 from .. import util
+from .. import service
 
 logger = logging.getLogger("mo_configuration")
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
+# tilladte triggernavne - alle config-vars prefixet af 
+# disse skal checkes ved opstart og ved indsætning af nye
+TRIGGER_NAMES={"trigger-before", "trigger-after"}
 
 if not (settings.USER_SETTINGS_DB_USER and settings.USER_SETTINGS_DB_NAME and
         settings.USER_SETTINGS_DB_HOST and settings.USER_SETTINGS_DB_PORT and
@@ -48,6 +52,34 @@ def _get_connection():
         logger.error('Database connection error')
         raise
     return conn
+
+
+def get_triggers(trigger_name, uuid, url_rule):
+
+    def _triggers(trigger_string):
+        triggers=[]
+        trigger_strings = [i.strip() for i in trigger_string.split(",") if i.strip()]
+        for s in trigger_strings:
+            identifiers = s.split(".")
+            t = globals().get(identifiers.pop(0), None)
+            while t and len(identifiers):
+                t = getattr(t, identifiers.pop(0), None)
+            if not t:
+                logger.error("trigger not found: %s", s)
+            else:
+                triggers.append(t)
+        return triggers
+
+    # raise hvis trigger_name ikke i TRIGGER_NAMES
+
+    trigger_mask = "{}://{}".format(trigger_name, url_rule)
+
+    # local else global triggers
+    triggers = _triggers(get_configuration(uuid).get(trigger_mask,""))
+    if not triggers:
+        triggers = _triggers(get_configuration().get(trigger_mask,""))
+
+    return triggers
 
 
 def get_configuration(unitid=None):
@@ -196,6 +228,5 @@ def get_global_configuration():
 
     :returns: Global configuration settings
     """
-
     configuration = get_configuration()
     return flask.jsonify(configuration)
