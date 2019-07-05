@@ -24,6 +24,7 @@ import functools
 import locale
 import operator
 import uuid
+import logging
 
 import flask
 
@@ -41,6 +42,12 @@ from .. import util
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
+
+logger = logging.getLogger("orgunit")
+
+# trigger example
+def ensure_vacant_manager(service_request):
+    logger.warning("inserting vacant manager skipped because of reasons")
 
 
 @enum.unique
@@ -107,6 +114,10 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                   .get('organisationenhedgyldighed')[0]
                   .get('gyldighed') == 'Aktiv'
         ])
+
+    # trigger example
+    def ensure_manager_vacancy(self):
+        logger.warning("inserting manager vacancy also skipped because of reasons")
 
     def prepare_create(self, req):
         c = lora.Connector()
@@ -183,6 +194,13 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
+
+        for trigger in configuration_options.get_triggers(
+            "trigger-before",
+            uuid=parent_uuid,
+            url_rule=flask.request.url_rule.rule
+        ):
+            trigger(self)
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -302,10 +320,17 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             if self.details_requests:
                 for r in self.details_requests:
                     r.submit()
-
-            return result
         else:
-            return c.organisationenhed.update(self.payload, self.uuid)
+            result = c.organisationenhed.update(self.payload, self.uuid)
+
+        for trigger in configuration_options.get_triggers(
+            "trigger-after",
+            uuid=self.uuid,
+            url_rule=flask.request.url_rule.rule
+        ):
+            trigger(self)
+
+        return result
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
