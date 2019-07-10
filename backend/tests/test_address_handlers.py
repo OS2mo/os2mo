@@ -456,7 +456,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         }
         address_handler = self.handler.from_request(request)
 
-        expected_value = '+4512345678'
+        expected_value = '12345678'
 
         # Act
         actual_value = address_handler._value
@@ -473,8 +473,8 @@ class PhoneAddressHandlerTests(util.TestCase):
         address_handler = self.handler(value, visibility)
 
         expected = {
-            'href': 'tel:+4512345678',
-            'name': '+4512345678',
+            'href': 'tel:12345678',
+            'name': '12345678',
             'value': '12345678',
             'visibility': {
                 'uuid': visibility
@@ -499,7 +499,7 @@ class PhoneAddressHandlerTests(util.TestCase):
 
         expected = {
             'objekttype': 'PHONE',
-            'urn': 'urn:magenta.dk:telefon:+4512345678'
+            'urn': 'urn:magenta.dk:telefon:12345678'
         }
 
         # Act
