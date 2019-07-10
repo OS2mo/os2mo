@@ -9,75 +9,111 @@ import psycopg2
 import flask
 import logging
 from mora import exceptions
-from .. import settings
 from .. import util
-from .. import service
+
 
 logger = logging.getLogger("mo_configuration")
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
-# tilladte triggernavne - alle config-vars prefixet af 
-# disse skal checkes ved opstart og ved indsætning af nye
-TRIGGER_NAMES={"trigger-before", "trigger-after"}
-
-if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
-        settings.CONF_DB_HOST and settings.CONF_DB_PORT and
-        settings.CONF_DB_PASSWORD):
-    error_msgs = [
-        'Configuration error of user settings connection information',
-        'CONF_DB_USER: {}'.format(settings.CONF_DB_USER),
-        'CONF_DB_NAME: {}'.format(settings.CONF_DB_NAME),
-        'CONF_DB_HOST: {}'.format(settings.CONF_DB_HOST),
-        'CONF_DB_PORT: {}'.format(settings.CONF_DB_PORT),
-        'Length of CONF_DB_PASSWORD: {}'.format(
-            len(settings.CONF_DB_PASSWORD)
-        )
-    ]
-    for msg in error_msgs:
-        logger.error(msg)
-    raise Exception(error_msgs[0])
+TRIGGER_NAMES = {"trigger-before", "trigger-after"}
 
 
-def _get_connection():
-    logger.debug('Open connection to database')
+def _get_connection(config=None):
+    if not config:
+        config = flask.current_app.config
+    logger.debug('Open connection to Configuration database')
     try:
-        conn = psycopg2.connect(user=settings.CONF_DB_USER,
-                                dbname=settings.CONF_DB_NAME,
-                                host=settings.CONF_DB_HOST,
-                                port=settings.CONF_DB_PORT,
-                                password=settings.CONF_DB_PASSWORD)
+        conn = psycopg2.connect(user=config.get("CONF_DB_USER"),
+                                dbname=config.get("CONF_DB_NAME"),
+                                host=config.get("CONF_DB_HOST"),
+                                port=config.get("CONF_DB_PORT"),
+                                password=config.get("CONF_DB_PASSWORD"))
     except psycopg2.OperationalError:
-        logger.error('Database connection error')
+        logger.error('Configuration database connection error')
         raise
     return conn
 
 
+def check_config(app):
+    errors = []
+    config = app.config
+    if not (config.get("CONF_DB_USER") and config.get("CONF_DB_NAME") and
+            config.get("CONF_DB_HOST") and config.get("CONF_DB_PORT") and
+            config.get("CONF_DB_PASSWORD")):
+        errors.extend([
+            'Configuration error of user settings connection information',
+            'CONF_DB_USER: {}'.format(config.get("CONF_DB_USER")),
+            'CONF_DB_NAME: {}'.format(config.get("CONF_DB_NAME")),
+            'CONF_DB_HOST: {}'.format(config.get("CONF_DB_HOST")),
+            'CONF_DB_PORT: {}'.format(config.get("CONF_DB_PORT")),
+            'Length of CONF_DB_PASSWORD: {}'.format(
+                len(config.get("CONF_DB_PASSWORD", "")))
+        ])
+    try:
+        conn = _get_connection(config)
+    except Exception:
+        errors.append("Configuration database could not be opened")
+        conn = None
+
+    if conn:
+        # check all triggers can be found from text and report those that can't
+        query_suffix = " OR ".join(["setting like %s" for i in TRIGGER_NAMES])
+        where_values = ["%s://%%" % n for n in TRIGGER_NAMES]
+        cur = conn.cursor()
+        query = ("SELECT object, setting, value FROM orgunit_settings WHERE " +
+                 query_suffix)
+        cur.execute(query, where_values)
+        rows = cur.fetchall()
+        for row in rows:
+            row = {"object": row[0], "setting": row[1], "value": row[2]}
+            try:
+                triggers_from_string(row["value"])
+            except Exception:
+                errors.append("trigger validation error for %r" % row)
+    if errors:
+        [logger.error(x) for x in errors]
+        raise Exception("Configuration settings had errors "
+                        "please check log output from startup")
+
+    return not errors
+
+
+def triggers_from_string(trigger_string):
+    triggers = []
+    trigger_strings = [
+        i.strip() for i in trigger_string.split(",") if i.strip()
+    ]
+    for s in trigger_strings:
+        identifiers = s.split(".")
+        t = globals().get(identifiers.pop(0), None)
+        while t and len(identifiers):
+            t = getattr(t, identifiers.pop(0), None)
+        if not t:
+            logger.error("trigger not found: %s", s)
+            raise Exception("trigger not found: %s" % s)
+        else:
+            triggers.append(t)
+    return triggers
+
+
 def get_triggers(trigger_name, uuid, url_rule):
 
-    def _triggers(trigger_string):
-        triggers=[]
-        trigger_strings = [i.strip() for i in trigger_string.split(",") if i.strip()]
-        for s in trigger_strings:
-            identifiers = s.split(".")
-            t = globals().get(identifiers.pop(0), None)
-            while t and len(identifiers):
-                t = getattr(t, identifiers.pop(0), None)
-            if not t:
-                logger.error("trigger not found: %s", s)
-            else:
-                triggers.append(t)
-        return triggers
-
-    # raise hvis trigger_name ikke i TRIGGER_NAMES
+    if trigger_name not in TRIGGER_NAMES:
+        logger.error("trigger name not allowed: %s", trigger_name)
+        raise Exception("trigger name not allowed: %s" % trigger_name)
 
     trigger_mask = "{}://{}".format(trigger_name, url_rule)
 
     # local else global triggers
-    triggers = _triggers(get_configuration(uuid).get(trigger_mask,""))
+    triggers = triggers_from_string(
+        get_configuration(uuid).get(trigger_mask, "")
+    )
     if not triggers:
-        triggers = _triggers(get_configuration().get(trigger_mask,""))
+        triggers = triggers_from_string(
+            get_configuration().get(trigger_mask, "")
+        )
 
     return triggers
 
@@ -120,31 +156,48 @@ def set_configuration(configuration, unitid=None):
     else:
         query_suffix = ' IS %s'
 
+    orgunit_conf = configuration['org_units']
+
+    # check if there are any triggers and whether they can be resolved
+    for key, value in orgunit_conf.items():
+        for tn in TRIGGER_NAMES:
+            if key.startswith("%s://" % tn):
+                triggers_from_string(value)
+
     conn = _get_connection()
     try:
         cur = conn.cursor()
-        orgunit_conf = configuration['org_units']
 
         for key, value in orgunit_conf.items():
             query = ('SELECT id FROM orgunit_settings WHERE setting =' +
                      '%s and object' + query_suffix)
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
-            if not rows and value != None:  # null value deletes key
+            if not rows:
                 query = ("INSERT INTO orgunit_settings (object, setting, " +
                          "value) VALUES (%s, %s, %s)")
                 cur.execute(query, (unitid, key, value))
-            elif len(rows) == 1 and value != None:  # null value deletes key
+            elif len(rows) == 1:
                 query = 'UPDATE orgunit_settings SET value=%s WHERE id = %s'
                 cur.execute(query, (value, rows[0][0]))
-            elif len(rows) == 1 and value == None:  # null value deletes key
-                query = 'DELETE from orgunit_settings WHERE id = %s'
-                cur.execute(query, (rows[0][0],))
-            elif value != None:
+            else:
                 exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
                     'Inconsistent settings for {}'.format(unitid)
                 )
-            conn.commit()
+
+        # remove any settings not mentioned in the new configuration
+        if orgunit_conf:
+            query_infix = ", ".join(["%s" for x in orgunit_conf.keys()])
+            query = ("DELETE from orgunit_settings where object" +
+                     query_suffix + " and setting not in (" +
+                     query_infix + ")")
+            cur.execute(query, (unitid, *orgunit_conf.keys()))
+        else:
+            query = ("DELETE from orgunit_settings where object" +
+                     query_suffix)
+            cur.execute(query, (unitid,))
+        conn.commit()
+
     finally:
         conn.close()
     return True

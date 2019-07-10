@@ -94,4 +94,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     serviceplatformen.check_config(app)
+    service.configuration_options.check_config(app)
+
     return app
