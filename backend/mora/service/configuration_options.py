@@ -130,17 +130,17 @@ def set_configuration(configuration, unitid=None):
                      '%s and object' + query_suffix)
             cur.execute(query, (key, unitid))
             rows = cur.fetchall()
-            if not rows and value != None:  # null values not inserted
+            if not rows and value != None:  # null value deletes key
                 query = ("INSERT INTO orgunit_settings (object, setting, " +
                          "value) VALUES (%s, %s, %s)")
                 cur.execute(query, (unitid, key, value))
-            elif len(rows) == 1 and value != None:
+            elif len(rows) == 1 and value != None:  # null value deletes key
                 query = 'UPDATE orgunit_settings SET value=%s WHERE id = %s'
                 cur.execute(query, (value, rows[0][0]))
-            elif len(rows) == 1 and value == None:  # null values are deleted
+            elif len(rows) == 1 and value == None:  # null value deletes key
                 query = 'DELETE from orgunit_settings WHERE id = %s'
                 cur.execute(query, (rows[0][0],))
-            else:
+            elif value != None:
                 exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
                     'Inconsistent settings for {}'.format(unitid)
                 )
