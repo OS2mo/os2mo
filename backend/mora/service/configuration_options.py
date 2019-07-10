@@ -10,6 +10,7 @@ import flask
 import logging
 from mora import exceptions
 from .. import util
+from .. import service
 
 
 logger = logging.getLogger("mo_configuration")
@@ -114,7 +115,6 @@ def get_triggers(trigger_name, uuid, url_rule):
         triggers = triggers_from_string(
             get_configuration().get(trigger_mask, "")
         )
-
     return triggers
 
 
