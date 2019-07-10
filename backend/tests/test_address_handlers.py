@@ -271,11 +271,15 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = '1234'  # Not a valid EAN
+        invalid_values = [
+            '1234',
+            '12341234123412341234'
+        ]  # Not a valid EAN
 
         # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+        for value in invalid_values:
+            with self.assertRaises(exceptions.HTTPException):
+                self.handler.validate_value(value)
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
@@ -636,11 +640,15 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = '1234'  # Not a valid P-number
+        invalid_values = [
+            '1234',
+            '12341234123412341234'
+        ]  # Not a valid P-number
 
         # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+        for value in invalid_values:
+            with self.assertRaises(exceptions.HTTPException):
+                self.handler.validate_value(value)
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
