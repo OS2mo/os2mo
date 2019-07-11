@@ -4,6 +4,9 @@ In development
 New features
 ------------
 
+* #29741 configurable triggers
+
+
 Internal changes
 ----------------
 
