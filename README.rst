@@ -103,7 +103,8 @@ Opsætning af udviklingsmiljø
 
       git clone https://github.com/OS2mo/os2mo.git
       cd os2mo
-      docker-compose up -d --build
+      docker-compose up mox-cp
+      docker-compose up -d --build mo
 
 
 ------
@@ -175,11 +176,19 @@ desuden også miljøvariablerne til at forbinde dem.
 Den mounter også din host maskines :file:`./backend` til den tilsvarende mappe
 inde i containeren og automatisk genstarter serveren ved kodeændringer.
 
-For at hente images og starte de tre services, kør:
+
+For at kopiere :ref:`MOX database filer til
+initialisering <mox:db_user_ext_init>` kør:
 
 .. code-block:: bash
 
-    docker-compose up -d --build
+   docker-compose up -d --build mox-cp mo-cp
+
+For at hente og bygge images og starte de tre services, kør:
+
+.. code-block:: bash
+
+   docker-compose up -d --build mo
 
 
 ``-d`` flaget starter servicene i baggrunden. Du kan se outputtet af dem med
@@ -258,6 +267,10 @@ Herefter installeres følgende afhængighed::
 
   $ sudo apt-get update && sudo apt-get install yarn
 
+Der skal oprettes en database til MOs configurationsoplysninger. Den kræver at
+du har oprettet en databasebruger og database objekt til den::
+
+  python -m mora.cli initdb
 
 Man kan nu på sædvanligvis manuelt installere det virtuelle miljø, som Python
 skal køre i og de nødvendige Python-moduler (med "pip install -r requirements.txt"),
@@ -324,6 +337,8 @@ Som vil angive, hvad den korrekte syntaks er::
 
 For yderligere detaljer om brugen af ``flask.sh`` henvises til
 kildekoden og den indbyggede hjælp.
+
+.. _konfiguration:
 
 -------------
 Konfiguration

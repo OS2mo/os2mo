@@ -1,3 +1,14 @@
+Version 0.20.0, 2019-07-10
+==========================
+
+Internal changes
+----------------
+
+* #24130: The configuration module now has a public api, allowing for dynamic
+  changes of the configuration options.
+* #30233: Conf module and sessions module have been dockerized
+
+
 Version 0.19.0, 2019-06-27
 ==========================
 
