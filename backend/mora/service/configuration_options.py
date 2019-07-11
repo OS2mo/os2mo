@@ -10,7 +10,6 @@ import flask
 import logging
 from mora import exceptions
 from .. import util
-from .. import service
 
 
 logger = logging.getLogger("mo_configuration")
@@ -184,23 +183,63 @@ def set_configuration(configuration, unitid=None):
                 exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
                     'Inconsistent settings for {}'.format(unitid)
                 )
+        conn.commit()
+    finally:
+        conn.close()
+    return True
 
-        # remove any settings not mentioned in the new configuration
-        if orgunit_conf:
-            query_infix = ", ".join(["%s" for x in orgunit_conf.keys()])
-            query = ("DELETE from orgunit_settings where object" +
-                     query_suffix + " and setting not in (" +
-                     query_infix + ")")
-            cur.execute(query, (unitid, *orgunit_conf.keys()))
-        else:
-            query = ("DELETE from orgunit_settings where object" +
-                     query_suffix)
-            cur.execute(query, (unitid,))
+
+def del_configuration(configuration, unitid=None):
+    logger.debug('Delete: Unit: {}, configuration: {}'.format(unitid,
+                                                              configuration))
+    if unitid:
+        query_suffix = ' = %s'
+    else:
+        query_suffix = ' IS %s'
+
+    orgunit_conf = configuration['org_units']
+    # in order to be somewhat symmetrical, this only deletes
+    # settings with exactly the specified iobject, setting and value
+    conn = _get_connection()
+    try:
+        cur = conn.cursor()
+
+        for key, value in orgunit_conf.items():
+            query = ('DELETE FROM orgunit_settings WHERE setting =' +
+                     '%s and value = %s and object' + query_suffix)
+            cur.execute(query, (key, value, unitid))
         conn.commit()
 
     finally:
         conn.close()
     return True
+
+
+@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['DELETE'])
+@util.restrictargs()
+def del_org_unit_configuration(unitid):
+    """Delete a configuration setting for an ou.
+
+    .. :quickref: Unit; Delete configuration setting.
+
+    :statuscode 201: Setting deleted
+
+    :param unitid: The UUID of the organisational unit to be configured.
+
+    :<json object conf: Configuration option
+
+    .. sourcecode:: json
+
+      {
+        "org_units": {
+          "show_location": "True"
+        }
+      }
+
+    :returns: True
+    """
+    configuration = flask.request.get_json()
+    return flask.jsonify(del_configuration(configuration, unitid))
 
 
 @blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
@@ -250,7 +289,7 @@ def get_org_unit_configuration(unitid):
 @blueprint.route('/configuration', methods=['POST'])
 @util.restrictargs('at')
 def set_global_configuration():
-    """Set or modify a gloal configuration setting.
+    """Set or modify a global configuration setting.
 
     .. :quickref: Set or modify a global configuration setting.
 
@@ -272,6 +311,31 @@ def set_global_configuration():
     return flask.jsonify(set_configuration(configuration))
 
 
+@blueprint.route('/configuration', methods=['DELETE'])
+@util.restrictargs('at')
+def del_global_configuration():
+    """Delete a global configuration setting.
+
+    .. :quickref: Delete a global configuration setting.
+
+    :statuscode 201: Setting deleted
+
+    :<json object conf: Configuration option
+
+    .. sourcecode:: json
+
+      {
+        "org_units": {
+          "show_roles": "False"
+        }
+      }
+
+    :returns: True
+    """
+    configuration = flask.request.get_json()
+    return flask.jsonify(del_configuration(configuration))
+
+
 @blueprint.route('/configuration', methods=['GET'])
 @util.restrictargs('at')
 def get_global_configuration():
@@ -286,3 +350,36 @@ def get_global_configuration():
     """
     configuration = get_configuration()
     return flask.jsonify(configuration)
+
+
+# Triggers were implemented before they were actually needed,
+# so here two examples on how they are going to be used
+#
+# This is a trigger-example on module-level in service/orgunit
+#
+#    def ensure_vacant_manager(service_request):
+#        logger.warning("inserting vacant manager skipped because...")
+#
+# The 'service_request' parameter is simply a OrgUnitRequestHandler instance
+# The same function coule be a method in OrgUnitRequestHandler,
+# in which case it would look like this:
+#
+#    def ensure_manager_vacancy(self):
+#        logger.warning("inserting manager vacancy also skipped because...")
+#
+#
+# triggers-before will typically be in the 'prepare-request part'
+# triggers-after will typically be in the submit part of the handler
+#
+# in this file a
+#     from .. import service
+# would then enable one to define a trigger in the options like
+#
+# "trigger-after:///service/ou/create":"service.orgunit.ensure_vacant_manager"
+#
+# provided the function
+#
+#    def ensure_vacant_manager(service_request):
+#        logger.warning("inserting vacant manager skipped because...")
+#
+# was defined in sercvice/orgunit.py

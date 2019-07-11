@@ -45,10 +45,6 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
 
 logger = logging.getLogger("orgunit")
 
-# trigger example
-def ensure_vacant_manager(service_request):
-    logger.warning("inserting vacant manager skipped because of reasons")
-
 
 @enum.unique
 class UnitDetails(enum.Enum):
@@ -114,10 +110,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                   .get('organisationenhedgyldighed')[0]
                   .get('gyldighed') == 'Aktiv'
         ])
-
-    # trigger example
-    def ensure_manager_vacancy(self):
-        logger.warning("inserting manager vacancy also skipped because of reasons")
 
     def prepare_create(self, req):
         c = lora.Connector()

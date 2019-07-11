@@ -12,35 +12,39 @@ from mora.service.configuration_options import (
 
 
 class NoApp:
-    config = {}
+    def __init__(self):
+        self.config = {}
 
 
 class Tests(TestCase):
 
-    def test_check_config(self):
+    def test_check_config_unconfigured(self):
         app = NoApp()
         with self.assertLogs('mo_configuration', level='ERROR') as log:
             with self.assertRaises(Exception):
                 checker(app)
-        self.assertEqual([
-            'ERROR:mo_configuration:Configuration error '
-            'of user settings connection information',
-            'ERROR:mo_configuration:CONF_DB_USER: None',
-            'ERROR:mo_configuration:CONF_DB_NAME: None',
-            'ERROR:mo_configuration:CONF_DB_HOST: None',
-            'ERROR:mo_configuration:CONF_DB_PORT: None',
-            'ERROR:mo_configuration:Length of CONF_DB_PASSWORD: 0',
-            'ERROR:mo_configuration:Configuration database could not be opened'
-        ], log.output)
+            self.assertEqual([
+                'ERROR:mo_configuration:Configuration error '
+                'of user settings connection information',
+                'ERROR:mo_configuration:CONF_DB_USER: None',
+                'ERROR:mo_configuration:CONF_DB_NAME: None',
+                'ERROR:mo_configuration:CONF_DB_HOST: None',
+                'ERROR:mo_configuration:CONF_DB_PORT: None',
+                'ERROR:mo_configuration:Length of CONF_DB_PASSWORD: 0',
+            ], log.output)
 
-        app.config.update({k: "xyz" for k in [
-            "CONF_DB_USER", "CONF_DB_NAME", "CONF_DB_HOST",
-            "CONF_DB_PORT", "CONF_DB_PASSWORD"
-        ]})
+    def test_check_badly_unconfigured(self):
+        app = NoApp()
         with self.assertLogs('mo_configuration', level='ERROR') as log:
+            app.config.update({k: "x y z" for k in [
+                "CONF_DB_USER", "CONF_DB_NAME", "CONF_DB_HOST",
+                "CONF_DB_PORT", "CONF_DB_PASSWORD"
+            ]})
             with self.assertRaises(Exception):
                 checker(app)
-        self.assertEqual([
-            'ERROR:mo_configuration:Configuration database connection error',
-            'ERROR:mo_configuration:Configuration database could not be opened'
-        ], log.output)
+            self.assertEqual([
+                'ERROR:mo_configuration:Configuration database '
+                'connection error',
+                'ERROR:mo_configuration:Configuration database '
+                'could not be opened'
+            ], log.output)

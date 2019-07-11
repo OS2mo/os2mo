@@ -9,16 +9,20 @@ import psycopg2
 
 import mora.settings as settings
 from oio_rest.utils import test_support
+import json
 from . import util
 
 
 class Tests(util.LoRATestCase):
 
+    setting_defaults = {
+        'show_roles': 'True',
+        'show_user_key': 'False',
+        'show_location': 'True'
+    }
+
     def _create_conf_data(self, inconsistent=False):
 
-        defaults = {'show_roles': 'True',
-                    'show_user_key': 'False',
-                    'show_location': 'True'}
 
         p_url = test_support.psql().url()
         p_port = p_url[p_url.rfind(':') + 1:p_url.rfind('/')]
@@ -58,7 +62,6 @@ class Tests(util.LoRATestCase):
                               host=settings.CONF_DB_HOST,
                               password=settings.CONF_DB_PASSWORD,
                               port=p_port) as conn:
-            conn.autocommit = True
             with conn.cursor() as curs:
 
                 curs.execute("""
@@ -72,13 +75,14 @@ class Tests(util.LoRATestCase):
                 VALUES (NULL, %s, %s);
                 """
 
-                for setting, value in defaults.items():
+                for setting, value in self.setting_defaults.items():
                     curs.execute(query, (setting, value))
 
                 if inconsistent:
                     # Insert once more, making an invalid configuration set
-                    for setting, value in defaults.items():
+                    for setting, value in self.setting_defaults.items():
                         curs.execute(query, (setting, value))
+                conn.commit()
         return p_port
 
     def test_global_user_settings_read(self):
@@ -88,7 +92,7 @@ class Tests(util.LoRATestCase):
 
         p_port = self._create_conf_data()
         url = '/service/configuration'
-        with util.override_settings(CONF_DB_PORT=p_port):
+        with util.override_config(CONF_DB_PORT=p_port):
             user_settings = self.assertRequest(url)
             self.assertTrue('show_location' in user_settings)
             self.assertTrue('show_user_key' in user_settings)
@@ -105,7 +109,7 @@ class Tests(util.LoRATestCase):
         url = '/service/configuration'
         payload = {"org_units": {"show_roles": "False"}}
         assertion_raised = False
-        with util.override_settings(CONF_DB_PORT=p_port):
+        with util.override_config(CONF_DB_PORT=p_port):
             try:
                 self.assertRequest(url, json=payload)
             except Exception:
@@ -120,7 +124,7 @@ class Tests(util.LoRATestCase):
         p_port = self._create_conf_data()
         url = '/service/configuration'
 
-        with util.override_settings(CONF_DB_PORT=p_port):
+        with util.override_config(CONF_DB_PORT=p_port):
             payload = {"org_units": {"show_roles": "False"}}
             self.assertRequest(url, json=payload)
             user_settings = self.assertRequest(url)
@@ -131,6 +135,44 @@ class Tests(util.LoRATestCase):
             user_settings = self.assertRequest(url)
             self.assertTrue(user_settings['show_roles'] is True)
 
+    def test_user_settings_delete(self):
+        """
+        Test that it is possible to delete a global setting
+        """
+
+        p_port = self._create_conf_data()
+        url = '/service/configuration'
+
+        with util.override_config(CONF_DB_PORT=p_port):
+            kwargs = {
+                "data" : json.dumps({"org_units": {"show_roles": "False"}}),
+                "headers": {'Content-Type': 'application/json'},
+                "method": "DELETE",
+            }
+            # Nothing should have happened
+            f = self.client.open(url, **kwargs)
+            user_settings = self.assertRequest(url)
+            self.assertEqual(
+                user_settings,
+                {
+                    "show_roles": True,
+                    "show_user_key": False,
+                    "show_location": True,
+                }
+            )
+
+            # Try again with accurate value - and show_roles should be gone
+            kwargs["data"] = json.dumps({"org_units": {"show_roles": "True"}})
+            f = self.client.open(url, **kwargs)
+            user_settings = self.assertRequest(url)
+            self.assertEqual(
+                user_settings,
+                {
+                    "show_user_key": False,
+                    "show_location": True,
+                }
+            )
+
     def test_ou_user_settings(self):
         """
         Test that reading and writing settings on units works corrcectly.
@@ -140,11 +182,10 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-        with util.override_settings(CONF_DB_PORT=p_port):
+        with util.override_config(CONF_DB_PORT=p_port):
             payload = {"org_units": {"show_user_key": "True"}}
             url = '/service/ou/{}/configuration'.format(uuid)
             self.assertRequest(url, json=payload)
-
             user_settings = self.assertRequest(url)
             self.assertTrue(user_settings['show_user_key'] is True)
 
@@ -158,7 +199,7 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-        with util.override_settings(CONF_DB_PORT=p_port):
+        with util.override_config(CONF_DB_PORT=p_port):
             url = '/service/ou/{}/configuration'.format(uuid)
             payload = {"org_units": {"show_user_key": "True"}}
             self.assertRequest(url, json=payload)
@@ -168,6 +209,6 @@ class Tests(util.LoRATestCase):
             service_url = '/service/ou/{}/'.format(uuid)
             response = self.assertRequest(service_url)
             user_settings = response['user_settings']['orgunit']
-            print(user_settings)
+            #print(user_settings)
             self.assertTrue(user_settings['show_user_key'])
             self.assertFalse(user_settings['show_location'])
