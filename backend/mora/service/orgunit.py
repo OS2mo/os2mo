@@ -303,6 +303,13 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = unitid
 
+        for trigger in configuration_options.get_triggers(
+            "trigger-before",
+            uuid=self.uuid,
+            url_rule=flask.request.url_rule.rule
+        ):
+            trigger(self)
+
     def submit(self):
         c = lora.Connector()
 
@@ -1112,6 +1119,13 @@ def terminate_org_unit(unitid):
             role_count=len(relevant),
         )
 
+    for trigger in configuration_options.get_triggers(
+        "trigger-before",
+        uuid=unitid,
+        url_rule=flask.request.url_rule.rule
+    ):
+        trigger(locals())
+
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
         'gyldighed': 'Inaktiv',
@@ -1122,6 +1136,13 @@ def terminate_org_unit(unitid):
     payload['note'] = 'Afslut enhed'
 
     c.organisationenhed.update(payload, unitid)
+
+    for trigger in configuration_options.get_triggers(
+        "trigger-after",
+        uuid=unitid,
+        url_rule=flask.request.url_rule.rule
+    ):
+        trigger(locals())
 
     return flask.jsonify(unitid)
 

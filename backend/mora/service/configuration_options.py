@@ -10,6 +10,7 @@ import flask
 import logging
 from mora import exceptions
 from .. import util
+from .. import service  # noqa
 
 
 logger = logging.getLogger("mo_configuration")
@@ -107,14 +108,13 @@ def get_triggers(trigger_name, uuid, url_rule):
     trigger_mask = "{}://{}".format(trigger_name, url_rule)
 
     # local else global triggers
-    triggers = triggers_from_string(
-        get_configuration(uuid).get(trigger_mask, "")
-    )
-    if not triggers:
-        triggers = triggers_from_string(
-            get_configuration().get(trigger_mask, "")
-        )
-    return triggers
+    configuration = get_configuration(uuid)
+    if trigger_mask not in configuration:
+        configuration = get_configuration()
+    if trigger_mask not in configuration:
+        return []
+    else:
+        return triggers_from_string(configuration[trigger_mask])
 
 
 def get_configuration(unitid=None):
