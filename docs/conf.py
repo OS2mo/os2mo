@@ -74,6 +74,7 @@ MOCK_MODULES = [
     'service_person_stamdata_udvidet',
     'flask_saml_sso',
     'validators',
+    'psycopg2',
 
     'onelogin',
     'onelogin.saml2',

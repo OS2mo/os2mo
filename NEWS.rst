@@ -1,3 +1,8 @@
+Version 0.20.1, 2019-07-15
+==========================
+
+This release only contains documentation fixes
+
 Version 0.20.0, 2019-07-10
 ==========================
 
