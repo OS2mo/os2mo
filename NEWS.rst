@@ -1,6 +1,11 @@
 In development
 ==============
 
+Bug fixes
+---------
+
+#29245: EAN and P-number validation now behave as expected
+#29244: We no longer automatically add +45 to phone numbers
 
 Version 0.20.0, 2019-07-10
 ==========================

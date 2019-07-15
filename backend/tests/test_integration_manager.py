@@ -1653,8 +1653,8 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Telefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                     },
-                    'href': 'tel:+4512341234',
-                    'name': '+4512341234',
+                    'href': 'tel:12341234',
+                    'name': '12341234',
                     'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
                     'value': '12341234'
                 }],

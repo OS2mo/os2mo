@@ -1312,7 +1312,7 @@ class Reading(util.LoRATestCase):
                     {
                         "href": "tel:+4587150000",
                         "name": "+4587150000",
-                        "value": "87150000",
+                        "value": "+4587150000",
                         "user_key": "8715 0000",
                         "address_type": {
                             "example": "20304060",
