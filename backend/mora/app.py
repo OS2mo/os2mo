@@ -70,20 +70,28 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return error.get_response(flask.request.environ)
 
-    if app.env != 'production':
-        @app.route('/')
-        @app.route('/<path:path>')
-        def root(path=''):
-            '''Serve static files.
+    # We serve index.html and favicon.ico here. For the other static files,
+    # Flask automatically adds a static view that takes a path relative to the
+    # `flaskr/static` directory.
 
-            Disabled in production since you should configure the
-            proxy to do so.
+    @app.route("/")
+    @app.route("/<path:path>")
+    def index(path=""):
+        """Serve index.html on `/` and unknown paths.
+        """
+        return flask.send_file("index.html")
 
-            '''
-            if path.split('/', 1)[0] == 'service':
-                exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+    @app.route("/favicon.ico")
+    def favicon(path=""):
+        """Serve favicon.ico on `/favicon.ico`.
+        """
+        return flask.send_file("favicon.ico")
 
-            return flask.send_file('index.html')
+    @app.route("/service/<path:path>")
+    def no_such_endpoint(path=""):
+        """Throw an error on unknown `/service/` endpoints.
+        """
+        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     serviceplatformen.check_config(app)
     return app

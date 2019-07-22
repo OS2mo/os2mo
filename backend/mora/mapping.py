@@ -17,6 +17,8 @@ VALID_TO = 'valid_to'
 TO = 'to'
 FROM = 'from'
 NAME = 'name'
+GIVENNAME = 'givenname'
+SURNAME = 'surname'
 USER_KEY = 'user_key'
 VALUE = 'value'
 HREF = 'href'
@@ -49,6 +51,7 @@ CPR_NO = 'cpr_no'
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
+FRACTION = 'fraction'
 
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
@@ -299,6 +302,11 @@ EMPLOYEE_PERSON_FIELD = FieldTuple(
 
 EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
     path=('attributter', 'brugeregenskaber'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+EMPLOYEE_UDVIDELSER_FIELD = FieldTuple(
+    path=('attributter', 'brugerudvidelser'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 

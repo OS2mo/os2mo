@@ -33,17 +33,22 @@ import json
 import os
 import pkgutil
 import random
+import time
+
+import click
+import flask
+import psycopg2
+import sqlalchemy
 import subprocess
 import sys
 import threading
 import traceback
 import unittest
-
-import click
-import flask
 import werkzeug.serving
 
 from . import settings
+from . import app as mora_app
+from .service import configuration_options
 
 basedir = os.path.dirname(__file__)
 backenddir = os.path.dirname(basedir)
@@ -323,7 +328,7 @@ def make_dummy_instance(idp_url=None):
         stack.enter_context(test_support.extend_db_struct(exts))
 
         mora_server, mora_port = make_server(app.create_app(), 5000)
-        lora_server, lora_port = make_server(lora_app.create_app(), 6000)
+        lora_server, lora_port = make_server(lora_app.app, 6000)
 
         stack.enter_context(
             mock.patch(
@@ -395,6 +400,9 @@ def full_run(idp_url, fixture):
     from oio_rest import settings as lora_settings
 
     from tests import util as test_util
+    from tests.test_integration_configuration_settings import Tests as cot
+    ccd = cot._create_conf_data
+    settings.CONF_DB_PORT = ccd(None)
 
     with make_dummy_instance(idp_url=idp_url) as (
         psql,
@@ -517,6 +525,74 @@ def update_fixture(fixture_name, target):
                 ],
                 stdout=target,
             )
+
+
+_SLEEPING_TIME = 0.25
+@group.command()
+@click.option("--wait", default=_SLEEPING_TIME, type=int,
+              help="Wait up to n seconds for the database connection before"
+                   " exiting.")
+def initdb(wait):
+    """Initialize database.
+
+    This is supposed to be idempotent, so you can run it without fear
+    on an already initialized database.
+    """
+
+    def init_configuration():
+        conf_conn = configuration_options._get_connection()
+
+        CREATE_CONF_QUERY = """
+        CREATE TABLE IF NOT EXISTS orgunit_settings(
+            id serial PRIMARY KEY,
+        object UUID,
+        setting varchar(255) NOT NULL,
+        value varchar(255) NOT NULL
+        );"""
+
+        DEFAULT_CONF_DATA_QUERY = """
+        INSERT INTO orgunit_settings ( object, setting, value ) VALUES
+            ( Null, 'show_roles', 'True' ),
+            ( Null, 'show_user_key', 'True' ),
+            ( Null, 'show_location', 'True' );
+        """
+
+        click.echo("Initializing configuration database.")
+        cursor = conf_conn.cursor()
+        cursor.execute(CREATE_CONF_QUERY)
+        cursor.execute(DEFAULT_CONF_DATA_QUERY)
+        conf_conn.commit()
+        conf_conn.close()
+        click.echo("Configuration database initialised.")
+
+    def get_init_sessions():
+        app = mora_app.create_app()
+
+        def init_sessions():
+            with app.app_context():
+                app.session_interface.db.create_all()
+
+        return init_sessions
+
+    time_left = _wait_and_init_db(init_configuration,
+                                  psycopg2.OperationalError, wait)
+    if settings.SAML_AUTH_ENABLE:
+        _wait_and_init_db(get_init_sessions(),
+                          sqlalchemy.exc.OperationalError, time_left)
+
+
+def _wait_and_init_db(init_db_fn, db_exception, wait):
+    attempts = int(wait // _SLEEPING_TIME) or 1
+    for i in range(1, attempts + 1):
+        try:
+            init_db_fn()
+            return int(wait - (i * _SLEEPING_TIME))
+        except db_exception:
+            click.echo(
+                "Database is unavailable - attempt %s/%s" % (i, attempts))
+            if i >= attempts:
+                sys.exit(1)
+            time.sleep(_SLEEPING_TIME)
 
 
 if __name__ == '__main__':

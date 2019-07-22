@@ -30,6 +30,7 @@ import flask
 from . import facet
 from . import handlers
 from . import org
+from . import configuration_options
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -343,6 +344,12 @@ def get_one_orgunit(c, unitid, unit=None,
 
     '''
 
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    if only_primary_uuid:
+        return {
+            mapping.UUID: unitid
+        }
+
     if not unit:
         unit = c.organisationenhed.get(unitid)
 
@@ -385,14 +392,20 @@ def get_one_orgunit(c, unitid, unit=None,
             else:
                 r[mapping.LOCATION] = ''
 
-            if unitid in settings.USER_SETTINGS['orgunit']:
-                org_settings = {'orgunit':
-                                settings.USER_SETTINGS['orgunit'][unitid]}
-                r[mapping.USER_SETTINGS] = org_settings
-            elif parent and mapping.USER_SETTINGS in parent:
-                r[mapping.USER_SETTINGS] = parent[mapping.USER_SETTINGS]
-            else:
-                r[mapping.USER_SETTINGS] = settings.USER_SETTINGS
+            settings = {}
+            local_settings = configuration_options.get_configuration(unitid)
+
+            settings.update(local_settings)
+            if parent:
+                parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
+                for setting, value in parent_settings.items():
+                    settings.setdefault(setting, value)
+
+            global_settings = configuration_options.get_configuration()
+            for setting, value in global_settings.items():
+                settings.setdefault(setting, value)
+
+            r[mapping.USER_SETTINGS] = {'orgunit': settings}
 
         r[mapping.PARENT] = parent
 

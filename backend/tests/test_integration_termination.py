@@ -348,6 +348,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'responsibility': [{

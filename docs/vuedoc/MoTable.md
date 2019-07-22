@@ -18,10 +18,6 @@ A table component.
 
   Defines columns. 
 
-- `is-loading` ***Boolean*** (*optional*) 
-
-  True during rendering or loading of the component. 
-
 - `edit-component` ***Object*** (*optional*) 
 
   Defines the editComponent. 
@@ -58,6 +54,10 @@ A table component.
 - `sortableContent` 
 
 **initial value:** `null` 
+
+- `isLoading` 
+
+**initial value:** `true` 
 
 ## computed properties 
 

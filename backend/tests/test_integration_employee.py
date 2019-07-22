@@ -25,7 +25,8 @@ class Tests(util.LoRATestCase):
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
 
         payload = {
-            "name": "Torkild Testperson",
+            "givenname": "Torkild",
+            "surname": "von Testperson",
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -49,8 +50,20 @@ class Tests(util.LoRATestCase):
                             "from": "1950-01-01 00:00:00+01"
                         },
                         "brugervendtnoegle": mock_uuid,
-                        "brugernavn": "Torkild Testperson",
                         "integrationsdata": "{}"
+                    }
+                ],
+                'brugerudvidelser': [
+                    {
+                        'efternavn': 'von Testperson',
+                        'fornavn': 'Torkild',
+                        'virkning': {
+                            'from': '1950-01-01 '
+                            '00:00:00+01',
+                            'from_included': True,
+                            'to': 'infinity',
+                            'to_included': False
+                        }
                     }
                 ]
             },
@@ -100,7 +113,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
-                'name': 'Torkild Testperson',
+                'surname': 'von Testperson',
+                'givenname': 'Torkild',
+                'name': 'Torkild von Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -126,7 +141,8 @@ class Tests(util.LoRATestCase):
             '/service/e/create',
             userid,
             json={
-                'name': 'Teodor Testfætter',
+                'givenname': 'Teodor',
+                'surname': 'Testfætter',
                 'user_key': 'testfætter',
                 'org': {
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
@@ -139,6 +155,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
+                'givenname': 'Teodor',
+                'surname': 'Testfætter',
                 'name': 'Teodor Testfætter',
                 'user_key': 'testfætter',
                 'org': {
@@ -159,11 +177,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/create',
             {
-                'description': 'Missing name',
+                'description': 'Missing required value.',
                 'error': True,
                 'error_key': 'V_MISSING_REQUIRED_VALUE',
-                'key': 'name',
-                'obj': {},
+                'name': 'Missing name or givenname or surname',
                 'status': 400,
             },
             json=payload,
@@ -196,7 +213,8 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         payload = {
-            "name": "Torkild Testperson",
+            "givenname": "Torkild",
+            "surname": "Testperson",
             "cpr_no": "0906340000",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -216,6 +234,34 @@ class Tests(util.LoRATestCase):
             expected,
             json=payload,
             status_code=409,
+        )
+
+    def test_fail_on_double_naming(self):
+        self.load_sample_structures()
+
+        payload = {
+            "givenname": "Torkild",
+            "surname": "Testperson",
+            "name": "Torkild Testperson",
+            "cpr_no": "0906340000",
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            }
+        }
+
+        expected = {
+            'description': 'Invalid input.',
+            'error': True,
+            'error_key': 'E_INVALID_INPUT',
+            'name': 'Supply either name or given name/surame',
+            'status': 400
+        }
+
+        self.assertRequestResponse(
+            '/service/e/create',
+            expected,
+            json=payload,
+            status_code=400,
         )
 
     def test_create_employee_existing_cpr_new_org(self):
@@ -240,13 +286,15 @@ class Tests(util.LoRATestCase):
         self.assertTrue(c.bruger.get(uuid))
 
     def test_create_employee_with_details(self):
-        """Test creating an employee with added details"""
+        """Test creating an employee with added details.
+        Also add three names to a single name parameter and check
+        it will be split on lest space."""
         self.load_sample_structures()
 
         employee_uuid = "f7bcc7b1-381a-4f0e-a3f5-48a7b6eedf1c"
 
         payload = {
-            "name": "Torkild Testperson",
+            "name": "Torkild Von Testperson",
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -286,7 +334,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(employee_uuid),
             {
-                'name': 'Torkild Testperson',
+                'surname': 'Testperson',
+                'givenname': 'Torkild Von',
+                'name': 'Torkild Von Testperson',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -489,7 +539,8 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "cpr_no": "1205320000",
-                "name": "Fedtmule",
+                "givenname": "Fedtmule",
+                "surname": "Hund",
                 "uuid": userid,
             },
             "data": {
@@ -497,7 +548,8 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                 },
                 "cpr_no": "0202020202",
-                "name": "Test 2 Employee",
+                "givenname": "Test",
+                "surname": "2 Employee",
             },
         }]
 
@@ -510,8 +562,18 @@ class Tests(util.LoRATestCase):
 
         # there must be a registration of the new name
         expected_brugeregenskaber = [{
-            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        expected_brugerudvidelser = [{
+            'fornavn': 'Fedtmule',
+            'efternavn': 'Hund',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
                 'from_included': True,
@@ -519,8 +581,8 @@ class Tests(util.LoRATestCase):
                 'to_included': False
             }
         }, {
-            'brugernavn': 'Test 2 Employee',
-            'brugervendtnoegle': 'fedtmule',
+            'fornavn': 'Test',
+            'efternavn': '2 Employee',
             'virkning': {
                 'from': '2017-01-01 00:00:00+01',
                 'from_included': True,
@@ -588,6 +650,10 @@ class Tests(util.LoRATestCase):
             actual['attributter']['brugeregenskaber']
         )
         self.assertEqual(
+            expected_brugerudvidelser,
+            actual['attributter']['brugerudvidelser']
+        )
+        self.assertEqual(
             expected_brugergyldighed,
             actual['tilstande']['brugergyldighed']
         )
@@ -612,7 +678,8 @@ class Tests(util.LoRATestCase):
                 },
                 "user_key": "regnbøfssalat",
                 "cpr_no": "0101010101",
-                "name": "Test 1 Employee",
+                "givenname": "Martin L",
+                "surname": "Gore",
             },
             "uuid": userid
         }]
@@ -626,7 +693,6 @@ class Tests(util.LoRATestCase):
 
         # there must be a registration of the new name
         expected_brugeregenskaber = [{
-            'brugernavn': 'Fedtmule',
             'brugervendtnoegle': 'fedtmule',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
@@ -635,8 +701,27 @@ class Tests(util.LoRATestCase):
                 'to_included': False
             }
         }, {
-            'brugernavn': 'Test 1 Employee',
             'brugervendtnoegle': 'regnbøfssalat',
+            'virkning': {
+                'from': '2017-02-02 00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        expected_brugerudvidelser = [{
+            'fornavn': 'Fedtmule',
+            'efternavn': 'Hund',
+            'virkning': {
+                'from': '1932-05-12 00:00:00+01',
+                'from_included': True,
+                'to': '2017-02-02 00:00:00+01',
+                'to_included': False
+            }
+        }, {
+            'fornavn': 'Martin L',
+            'efternavn': 'Gore',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,
@@ -696,6 +781,10 @@ class Tests(util.LoRATestCase):
             actual['attributter']['brugeregenskaber']
         )
         self.assertEqual(
+            expected_brugerudvidelser,
+            actual['attributter']['brugerudvidelser']
+        )
+        self.assertEqual(
             expected_brugergyldighed,
             actual['tilstande']['brugergyldighed']
         )
@@ -716,6 +805,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/integration-data'.format(employee_uuid),
             {
                 'integration_data': {"von-and-løn-id": "2468"},
+                'surname': 'And',
+                'givenname': 'Andersine',
                 'name': 'Andersine And',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
@@ -759,6 +850,8 @@ class Tests(util.LoRATestCase):
                     'bjørnebanden-hjælper-id': 'sorte-slyngel',
                     'von-and-løn-id': '2468'
                 },
+                'surname': 'And',
+                'givenname': 'Andersine',
                 'name': 'Andersine And',
                 'uuid': employee_uuid
             },

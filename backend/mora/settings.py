@@ -29,6 +29,12 @@ SQLALCHEMY_DATABASE_URI = ""
 SESSION_SQLALCHEMY_TABLE = 'sessions'
 SESSION_PERMANENT = True
 PERMANENT_SESSION_LIFETIME = 3600
+SESSIONS_DB_NAME = 'sessions'
+SESSIONS_DB_USER = 'sessions'
+SESSIONS_DB_PASSWORD = 'sessions'
+SESSIONS_DB_HOST = 'localhost'
+SESSIONS_DB_PORT = 5432
+
 
 # SSO config
 SAML_AUTH_ENABLE = False
@@ -53,13 +59,11 @@ SP_CERTIFICATE_PATH = ""
 
 DUMMY_MODE = False
 
-USER_SETTINGS = {
-    'orgunit': {
-        'show_location': True,
-        'show_user_key': False,
-        'show_roles': True
-    }
-}
+CONF_DB_NAME = 'mora'
+CONF_DB_USER = 'mora'
+CONF_DB_PASSWORD = 'mora'
+CONF_DB_HOST = 'localhost'
+CONF_DB_PORT = 5432
 
 QUERY_EXPORT_DIR = ''
 

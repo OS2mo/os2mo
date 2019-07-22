@@ -80,7 +80,9 @@ def create():
 
     **Employee**:
 
-    :<json string name: The name of the employee
+    :<json string name: Name of the employee.
+    :<json string givenname: Given name of the employee.
+    :<json string surname: Surname of the employee.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json dict integration_data: **optional** dictionary of integration data
@@ -88,6 +90,10 @@ def create():
     :<json string uuid: An **optional** parameter, that will be used as the
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
+
+    Only the full name, or givenname/surname should be given, not both.
+    If only the full name is supplied, the name will be split on the last
+    space.
 
     For more information on the available details,
     see: :http:post:`/service/details/create`.
@@ -136,6 +142,8 @@ def create():
     :<jsonarr boolean primary: Mark this one as the “main” engagement
                                or position of a given employee. There
                                can only be one.
+    :<jsonarr integer fraction: An indication of how much this
+        engagement constitutes the employee's overall employment
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr string user_key: Short, unique key identifying the relation.
@@ -497,6 +505,10 @@ def edit():
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr object validity: The validities of the changes.
+    :<jsonarr boolean primary: Whether this is the one and only main
+                               position for the relevant person.
+    :<jsonarr integer fraction: An indication of how much this
+        engagement constitutes the employee's overall employment
 
     The parameters ``job_function`` and ``engagement_type`` should contain
     UUIDs obtained from their respective facet endpoints.

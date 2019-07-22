@@ -23,6 +23,8 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('uuid.uuid4', new=lambda: mock_uuid)
+@patch('mora.service.configuration_options.get_configuration',
+       new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None
 
@@ -277,7 +279,9 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 'person': {
-                    'name': 'Fedtmule',
+                    'name': 'Fedtmule Hund',
+                    'givenname': 'Fedtmule',
+                    'surname': 'Hund',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [{
@@ -415,7 +419,9 @@ class Tests(util.LoRATestCase):
                 'validity': {'from': '2016-01-01', 'to': '2018-12-31'},
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'responsibility': [{
@@ -570,6 +576,8 @@ class Tests(util.LoRATestCase):
             far_future = future.copy()
             far_future['person'] = {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             }
             far_future['validity'] = {
@@ -779,7 +787,9 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 'person': {
-                    'name': 'Fedtmule',
+                    'name': 'Fedtmule Hund',
+                    'givenname': 'Fedtmule',
+                    'surname': 'Hund',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [{
@@ -937,7 +947,9 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 'person': {
-                    'name': 'Fedtmule',
+                    'name': 'Fedtmule Hund',
+                    'givenname': 'Fedtmule',
+                    'surname': 'Hund',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [],
@@ -1225,7 +1237,9 @@ class Tests(util.LoRATestCase):
                     },
                 },
                 'person': {
-                    'name': 'Fedtmule',
+                    'name': 'Fedtmule Hund',
+                    'givenname': 'Fedtmule',
+                    'surname': 'Hund',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
                 'responsibility': [
@@ -1525,6 +1539,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -1590,6 +1606,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -1786,8 +1804,8 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Telefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                     },
-                    'href': 'tel:+4512341234',
-                    'name': '+4512341234',
+                    'href': 'tel:12341234',
+                    'name': '12341234',
                     'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
                     'value': '12341234'
                 }],
@@ -1813,6 +1831,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 },
                 'responsibility': [{
@@ -2110,6 +2130,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'responsibility': [{
@@ -2452,6 +2474,8 @@ class Tests(util.LoRATestCase):
                          'validity': {'from': '2016-01-01',
                                       'to': None}},
             'person': {'name': 'Anders And',
+                       'givenname': 'Anders',
+                       'surname': 'And',
                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
             'responsibility': [{
                 'example': None,
@@ -2713,6 +2737,8 @@ class Tests(util.LoRATestCase):
                     },
                     'person': {
                         'name': 'Anders And',
+                        'givenname': 'Anders',
+                        'surname': 'And',
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                     },
                     'responsibility': [
@@ -2743,23 +2769,23 @@ class Tests(util.LoRATestCase):
 
     def test_read_no_inherit_manager(self):
         self.load_sample_structures()
-        # Anders And er chef på humfak
+        # Anders And is manager at humfak
         humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-        # Der er ingen chef på filins
+        # There is no manager at filins
         filins = '85715fc7-925d-401b-822d-467eb4b163b6'
-        # Vi må IKKE arve Anders And
+        # We are NOT allowed to inherit Anders And
         inherited_managers = self.assertRequest(
             '/service/ou/{}/details/manager'.format(filins)
         )
         self.assertEqual(inherited_managers, [])
 
-    def test_read_inherit_manager(self):
+    def test_read_inherit_manager_one_level(self):
         self.load_sample_structures()
-        # Anders And er chef på humfak
+        # Anders And is manager at humfak
         humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-        # Der er ingen chef på filins
+        # There is no manager at filins
         filins = '85715fc7-925d-401b-822d-467eb4b163b6'
-        # Vi må arve Anders And
+        # We must inherit Anders And
         inherited_managers = self.assertRequest(
             '/service/ou/{}/details/manager?inherit_manager=1'.format(
                 filins
@@ -2767,3 +2793,15 @@ class Tests(util.LoRATestCase):
         )
         self.assertEqual(len(inherited_managers), 1)
         self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
+
+    def test_read_inherit_manager_none_found_all_the_way_up(self):
+        self.load_sample_structures()
+        # There is no manager at ovnenh
+        ovnenh = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+        # There is no manager at samfak
+        samfak = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        # We must not find no managers
+        inherited_managers = self.assertRequest(
+            '/service/ou/{}/details/manager?inherit_manager=1'.format(samfak)
+        )
+        self.assertEqual(inherited_managers, [])

@@ -1,10 +1,86 @@
+In development
+==============
+
+Bug fixes
+---------
+
+#29245: EAN and P-number validation now behave as expected
+#29244: We no longer automatically add +45 to phone numbers
+
+Version 0.20.1, 2019-07-15
+==========================
+
+This release only contains documentation fixes
+
+Version 0.20.0, 2019-07-10
+==========================
+
+Internal changes
+----------------
+
+* #24130: The configuration module now has a public api, allowing for dynamic
+  changes of the configuration options.
+* #30233: Conf module and sessions module have been dockerized
+
+
+Version 0.19.0, 2019-06-27
+==========================
+
+Internal changes
+----------------
+
+* #28686, #28687: Add Dockerfile for both production and development.
+* #28804 MO now distinguishes between given name and surname.
+
+
+Version 0.18.0, 2019-05-22
+==========================
+
+New features
+------------
+
+* #29234: AD integration cookbook added to documentation
+* #26857: Removed manager address for create employee and employee and organisation tabs.
+
+Bug fixes
+---------
+
+* #29019: Never ending loop in manager inheritance
+* #28017: Changed style for user settings - location and user key.
+* #29200: We now properly clear the store when switching org units/employees
+  to prevent 'old data' from showing.
+* #29200: Fixed spinners when loading table data.
+* #29603: Spinner is now shown when tree view is loading
+
+Internal changes
+----------------
+
+* #26407: Allow selecting optional components per deployment.
+
+Version 0.17.0, 2019-04-30
+==========================
+
+New features
+------------
+
+* #25411: organisation units can show managers by inheritance from parent
+* #28323: Added 'fraction' field to engagements
+* #28563: Added feature for generating 'thin' responses when reading details,
+  where only the UUIDs of relations are returned as opposed to deep lookups
+  being performed.
+
+Bug fixes
+---------
+
+* #28563: Fixed bug where attribute extensions were not used for chunking on
+  reads
+
 Version 0.16.0, 2019-03-22
 ==========================
 
 New features
 ------------
 
-* #25411 organisation units can show managers by inheritance from parent
 * #27687, #27777: The various ``organisationfunktion`` relations now support both
   ``user_key`` and ``integration_data``.
 * #25396: Implemented validation of individual fields in frontend using

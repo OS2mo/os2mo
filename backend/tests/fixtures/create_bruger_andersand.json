@@ -11,6 +11,18 @@
                     "to_included": false
                 }
             }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Anders",
+                "efternavn": "And",
+                "virkning": {
+                    "from": "1934-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
         ]
     },
     "relationer": {

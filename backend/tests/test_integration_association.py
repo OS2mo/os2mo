@@ -163,7 +163,9 @@ class Tests(util.LoRATestCase):
                 },
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': userid,
             },
             'primary': None,
@@ -333,7 +335,9 @@ class Tests(util.LoRATestCase):
                 'validity': {'from': '2017-01-01', 'to': None},
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': userid,
             },
             'primary': None,
@@ -649,7 +653,9 @@ class Tests(util.LoRATestCase):
                 },
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': userid,
             },
             'primary': None,
@@ -901,7 +907,9 @@ class Tests(util.LoRATestCase):
                 },
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
@@ -1065,7 +1073,9 @@ class Tests(util.LoRATestCase):
                 },
             },
             'person': {
-                'name': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'givenname': 'Fedtmule',
+                'surname': 'Hund',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
             },
             'primary': None,
@@ -1282,6 +1292,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
@@ -1346,6 +1358,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
@@ -1405,6 +1419,8 @@ class Tests(util.LoRATestCase):
                     },
                     'person': {
                         'name': 'Anders And',
+                        'givenname': 'Anders',
+                        'surname': 'And',
                         'uuid': userid,
                     },
                     'primary': None,
@@ -1458,6 +1474,8 @@ class Tests(util.LoRATestCase):
                 },
                 'person': {
                     'name': 'Anders And',
+                    'givenname': 'Anders',
+                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'primary': None,
@@ -1751,6 +1769,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
@@ -1950,6 +1970,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
@@ -2189,6 +2211,8 @@ class Tests(util.LoRATestCase):
             },
             'person': {
                 'name': 'Anders And',
+                'givenname': 'Anders',
+                'surname': 'And',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
             },
             'primary': None,
@@ -2539,7 +2563,9 @@ class AddressTests(util.LoRATestCase):
                             },
                         },
                         'person': {
-                            'name': 'Fedtmule',
+                            'name': 'Fedtmule Hund',
+                            'givenname': 'Fedtmule',
+                            'surname': 'Hund',
                             'uuid': userid,
                         },
                         'primary': True,
@@ -2896,6 +2922,8 @@ class AddressTests(util.LoRATestCase):
             "user_key": "bvn",
             "person": {
                 "name": "Anders And",
+                "givenname": "Anders",
+                "surname": "And",
                 "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             },
             "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",

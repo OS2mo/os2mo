@@ -306,6 +306,7 @@ def create_organisationsfunktion_payload(
     opgaver: typing.List[dict] = None,
     adresser: typing.List[dict] = None,
     integration_data: dict = None,
+    fraktion: str = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -376,11 +377,16 @@ def create_organisationsfunktion_payload(
     if adresser:
         org_funk['relationer']['adresser'] = adresser
 
+    extensions = {}
     if primær is not None:
+        extensions['primær'] = primær
+
+    if fraktion is not None:
+        extensions['fraktion'] = fraktion
+
+    if extensions:
         org_funk['attributter']['organisationfunktionudvidelser'] = [
-            {
-                'primær': primær,
-            },
+            extensions
         ]
 
     org_funk = _set_virkning(org_funk, virkning)
@@ -454,7 +460,8 @@ def create_organisationsenhed_payload(
 def create_bruger_payload(
     valid_from: str,
     valid_to: str,
-    brugernavn: str,
+    fornavn: str,
+    efternavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
@@ -467,7 +474,6 @@ def create_bruger_payload(
         'attributter': {
             'brugeregenskaber': [
                 {
-                    'brugernavn': brugernavn,
                     'brugervendtnoegle': brugervendtnoegle,
                 },
             ],
@@ -499,6 +505,18 @@ def create_bruger_payload(
             {
                 'urn': 'urn:dk:cpr:person:{}'.format(cpr),
             },
+        ]
+
+    extensions = {}
+    if fornavn is not None:
+        extensions['fornavn'] = fornavn
+
+    if efternavn is not None:
+        extensions['efternavn'] = efternavn
+
+    if extensions:
+        user['attributter']['brugerudvidelser'] = [
+            extensions
         ]
 
     user = _set_virkning(user, virkning)

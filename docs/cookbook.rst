@@ -74,9 +74,9 @@ Best practices for implementering
    * - 5.
      - Tilvejebringelse af certifikater til Serviceplatformen
      - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
-       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning_>`_.
+       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning1_>`_.
 
-       .. _vejledning: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
+       .. _vejledning1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'erne fra serviceaftalen til leverandøren
      - Kunde
@@ -87,6 +87,9 @@ Best practices for implementering
    * - 6. 1
      - Agent til autentificering (SAML 2.0 SSO)
      - Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
+       Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
+
+       .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
 
        * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, som de kan give til IdP'en. Derefter sker konfigurationen automatisk
 
@@ -94,7 +97,7 @@ Best practices for implementering
 
        * Brugerens navn, og eventuelle roller skal i IdP'en tilføjes til de claims, der kommer tilbage i SAML-token
 
-       * Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
+       Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
 
        Opgaven forudsætter, at Kunden har en IdP, der understøtter SAML 2.0 SSO.
      - Kunde / Leverandør
@@ -122,4 +125,23 @@ Best practices for implementering
      - Indlæsning af data
      - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO’s database, LoRa
      - Leverandør
+   * - 8.
+     - Integration med øvrig infrastruktur
+     - Kommuner binder OS2MO sammen med øvrig infrastruktur på både system- og dataniveau 
+       Se eksempler og guides nedenfor
+     - Kunde / Leverandør
+   * - 8. 1
+     - OS2MO i et Windows Domæneme
+     - Viborg har tilføjet OS2MO-serveren til deres Windows-domæne og har i den forbindelse lavet en guide, der beskriver:
 
+       * Tilføjelse af OS2MO server til Windows domænet
+
+       * Powershell remote server opsætning
+
+       * Skjult CPR-nummer i AD
+
+       Se `AD - OS2MO opsætnings guide <vejledning3_>`_.   
+
+       .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf 
+
+     - Kunde

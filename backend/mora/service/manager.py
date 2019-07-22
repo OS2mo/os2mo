@@ -49,10 +49,15 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                 ou = orgunit.get_one_orgunit(
                     c, objid, details=orgunit.UnitDetails.FULL
                 )
-                if not ou or mapping.PARENT not in ou:
+                if not ou:
                     return found
-                upperid = ou[mapping.PARENT][mapping.UUID]
-                found = super().finder(c, type, upperid)
+                upper = ou.get(mapping.PARENT)
+                if not upper:
+                    return found
+                objid = upper.get(mapping.UUID)
+                if not objid:
+                    return found
+                found = super().finder(c, type, objid)
         return found
 
     @classmethod

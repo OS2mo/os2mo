@@ -108,7 +108,8 @@ def list_details(type, id):
 @blueprint.route(
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager')
+@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
+                   'only_primary_uuid')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
@@ -139,6 +140,13 @@ def get_detail(type, id, function):
         values.
     :queryparam int start: Index of first item for paging.
     :queryparam int limit: Maximum items.
+    :queryparam bool inherit_manager: Whether inheritance of managers should
+        be performed. E.g. if a manager is not found for a given unit, the
+        tree is searched upwards until a manager is found.
+    :queryparam bool only_primary_uuid: If the response should only contain
+        the UUIDs of the various related persons, org units and classes, as
+        opposed to a full lookup containing the relevant names etc. This can
+        lead to increased performance in some cases.
 
     :param type: 'ou' for querying a unit; 'e' for querying an
         employee.
@@ -163,6 +171,8 @@ def get_detail(type, id, function):
     :<jsonarr string validity: The validity times of the object.
     :<jsonarr boolean primary: Whether this is the one and only main
                                position for the relevant person.
+    :<jsonarr integer fraction: An indication of how much this
+        engagement constitutes the employee's overall employment
 
     .. sourcecode:: json
 
@@ -196,6 +206,7 @@ def get_detail(type, id, function):
            "uuid": "7d5cdeec-8333-46e9-8a69-b4a2351f4d01"
          },
          "primary": true,
+         "fraction": 20,
          "user_key": "2368360a-c860-458c-9725-d678c5efbf79",
          "uuid": "6467fbb0-dd62-48ae-90be-abdef7e66aa7",
          "validity": {
@@ -612,11 +623,15 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
         funktionsnavn=handlers.FUNCTION_KEYS[function],
     )
 
-    # TODO: the logic encoded in the functions below belong in the
-    # 'mapping' module, as part of e.g. FieldTuples
     def is_primary(effect):
         return [
             ext.get('primær', False)
+            for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
+        ]
+
+    def get_fraction(effect):
+        return [
+            ext.get('fraktion', None)
             for ext in mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
         ]
 
@@ -659,6 +674,9 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
             ),
             mapping.PRIMARY: (
                 None, is_primary, None, False,
+            ),
+            mapping.FRACTION: (
+                None, get_fraction, None, False,
             ),
         },
         'related_unit': {
@@ -719,6 +737,9 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
         for start, end, effect in c.organisationfunktion.get_effects(
             funcobj,
             {
+                'attributter': (
+                    'organisationfunktionudvidelser',
+                ),
                 'relationer': (
                     'opgaver',
                     'adresser',
@@ -734,7 +755,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
             {
                 'attributter': (
                     'organisationfunktionegenskaber',
-                    'organisationfunktionudvidelser',
                 ),
                 'relationer': (
                     'tilhoerer',
