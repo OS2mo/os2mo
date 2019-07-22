@@ -352,6 +352,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics={'org_unit.address.create': 1},
         )
 
         expected = {
@@ -462,6 +463,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics={'employee.address.create': 1},
         )
 
         expected = {
@@ -580,6 +582,7 @@ class Writing(util.LoRATestCase):
                         "value": "root@example.com",
                     },
                 ],
+                amqp_topics={'employee.address.create': 1},
             )
 
     def test_create_employee_with_address(self, mock):
@@ -610,7 +613,11 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics={
+                'employee.address.create': 1,
+                'employee.employee.create': 1,
+            },
         )
 
         expected = {
@@ -737,7 +744,11 @@ class Writing(util.LoRATestCase):
                         'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
                 }],
-            }]
+            }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         expected = {
@@ -855,7 +866,11 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics={
+                'org_unit.address.create': 1,
+                'org_unit.org_unit.create': 1,
+            },
         )
 
         expected = {
@@ -962,7 +977,8 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 }
-            ]
+            ],
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         expected = {
@@ -1094,7 +1110,8 @@ class Writing(util.LoRATestCase):
                         'validity': {'from': '2018-01-01', 'to': '2019-12-31'},
                     },
                 }
-            ]
+            ],
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")

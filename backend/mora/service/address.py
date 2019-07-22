@@ -158,9 +158,6 @@ def address_autocomplete(orgid):
 
 
 class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
-
-    __slots__ = ()
-
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
 
@@ -269,6 +266,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = func
         self.uuid = util.get_uuid(req, required=False)
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -394,3 +393,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
+        self.org_unit_uuid = (
+            mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+        )
+        self.employee_uuid = mapping.USER_FIELD.get_uuid(original)

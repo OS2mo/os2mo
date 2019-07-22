@@ -34,8 +34,6 @@ SEARCH_FIELDS = {
 
 
 class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
-
-    __slots__ = ()
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
 
@@ -219,6 +217,8 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = manager
         self.uuid = func_id
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def submit(self):
         if hasattr(self, 'addresses'):
@@ -370,6 +370,11 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = manager_uuid
+        self.org_unit_uuid = util.get_uuid(org_unit, required=False)
+        self.employee_uuid = (
+            util.get_mapping_uuid(data, mapping.PERSON) or
+            mapping.USER_FIELD.get_uuid(original)
+        )
 
     def prepare_terminate(self, request: dict):
         """Initialize a 'termination' request. Performs validation and all

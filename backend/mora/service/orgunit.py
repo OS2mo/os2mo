@@ -62,8 +62,6 @@ class UnitDetails(enum.Enum):
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
-    __slots__ = ()
-
     role_type = 'org_unit'
 
     @classmethod
@@ -183,6 +181,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
+        self.org_unit_uuid = unitid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -292,8 +291,25 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
+        self.org_unit_uuid = unitid
+
+    def prepare_terminate(self, request: dict):
+        date = util.get_valid_to(request)
+        obj_path = ('tilstande', 'organisationenhedgyldighed')
+        val_inactive = {
+            'gyldighed': 'Inaktiv',
+            'virkning': common._create_virkning(date, 'infinity')
+        }
+
+        payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+        payload['note'] = 'Afslut enhed'
+
+        self.payload = payload
+        self.uuid = util.get_uuid(request)
+        self.org_unit_uuid = self.uuid
 
     def submit(self):
+        super().submit()
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
@@ -303,9 +319,10 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 for r in self.details_requests:
                     r.submit()
 
-            return result
         else:
-            return c.organisationenhed.update(self.payload, self.uuid)
+            result = c.organisationenhed.update(self.payload, self.uuid)
+
+        return result
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -1060,7 +1077,8 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json()
+    date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
@@ -1095,20 +1113,9 @@ def terminate_org_unit(unitid):
             role_count=len(relevant),
         )
 
-    obj_path = ('tilstande', 'organisationenhedgyldighed')
-    val_inactive = {
-        'gyldighed': 'Inaktiv',
-        'virkning': common._create_virkning(date, 'infinity')
-    }
-
-    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-    payload['note'] = 'Afslut enhed'
-
-    c.organisationenhed.update(payload, unitid)
-
-    return flask.jsonify(unitid)
-
-    # TODO: Afkort adresser?
+    request[mapping.UUID] = unitid
+    handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
+    return flask.jsonify(handler.submit())
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])

@@ -67,5 +67,9 @@ CONF_DB_PORT = 5432
 
 QUERY_EXPORT_DIR = ''
 
+ENABLE_AMQP = False
+AMQP_OS2MO_EXCHANGE = 'os2mo_queue'
+AMQP_HOST = 'localhost'
+AMQP_PORT = 5672
 
 _util.update_config(globals(), CONFIG_FILE)

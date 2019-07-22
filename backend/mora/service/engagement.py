@@ -25,8 +25,6 @@ from .. import util
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'engagement'
     function_key = mapping.ENGAGEMENT_KEY
 
@@ -83,6 +81,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = func_id
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -202,3 +202,5 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = engagement_uuid
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
