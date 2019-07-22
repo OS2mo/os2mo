@@ -143,5 +143,6 @@ def put(obj_type, obj_uuid):
         201
     )
 
+
 def _filter_none_values(dict: dict):
     return {k: v for k, v in dict.items() if v is not None}

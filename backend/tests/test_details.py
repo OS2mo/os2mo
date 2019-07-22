@@ -20,13 +20,13 @@ class Tests(util.TestCase):
                 'description': 'Unknown role type.',
                 'error': True,
                 'error_key': 'E_UNKNOWN_ROLE_TYPE',
-                'status': 400,
+                'status': 404,
                 'types': ['kaflaflibob'],
             },
             json=[{
                 'type': 'kaflaflibob',
             }],
-            status_code=400,
+            status_code=404,
         )
 
         self.assertRequestResponse(
@@ -35,13 +35,13 @@ class Tests(util.TestCase):
                 'description': 'Unknown role type.',
                 'error': True,
                 'error_key': 'E_UNKNOWN_ROLE_TYPE',
-                'status': 400,
+                'status': 404,
                 'types': ['kaflaflibob'],
             },
             json=[{
                 'type': 'kaflaflibob',
             }],
-            status_code=400,
+            status_code=404,
         )
 
         self.assertRequestResponse(
@@ -63,8 +63,8 @@ class Tests(util.TestCase):
                 'description': 'Unknown role type.',
                 'error': True,
                 'error_key': 'E_UNKNOWN_ROLE_TYPE',
-                'status': 400,
+                'status': 404,
                 'type': 'blyf',
             },
-            status_code=400,
+            status_code=404,
         )

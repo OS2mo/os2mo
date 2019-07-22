@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+from mock import patch
 
 from tests import util
 
@@ -30,7 +31,6 @@ class Tests(util.LoRATestCase):
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'validity': {'from': '2017-01-01', 'to': None}
             }]
-
         )
 
     def test_get(self):
