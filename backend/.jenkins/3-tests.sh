@@ -7,7 +7,7 @@ BUILD_DIR="$TOPDIR"/backend/build
 
 # We'll want warnings during our test run!
 export PYTHONWARNINGS=default
-export FLASK_ENV=development
+export FLASK_ENV=testing
 export FLASK_APP="mora.app:create_app()"
 
 #
