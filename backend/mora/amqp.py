@@ -14,6 +14,22 @@ import pika
 from . import settings
 
 
+_SERVICES = ("employee", "org_unit")
+_OBJECT_TYPES = (
+    "address",
+    "association",
+    "employee",
+    "engagement",
+    "it",
+    "leave",
+    "manager",
+    "org_unit",
+    "related_unit",
+    "role",
+)
+_ACTIONS = ("create", "delete", "update")
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,6 +60,18 @@ def publish_message(service, object_type, action, service_uuid, date):
     """
     if not settings.ENABLE_AMQP:
         return
+
+    # we are strict about the topic format to avoid programmer errors.
+    if service not in _SERVICES:
+        raise ValueError("service {!r} not allowed, use one of {!r}".format(
+                         service, _SERVICES))
+    if object_type not in _OBJECT_TYPES:
+        raise ValueError(
+            "object_type {!r} not allowed, use one of {!r}".format(
+                object_type, _OBJECT_TYPES))
+    if action not in _ACTIONS:
+        raise ValueError("action {!r} not allowed, use one of {!r}".format(
+                         action, _ACTIONS))
 
     topic = "{}.{}.{}".format(service, object_type, action)
     message = {
