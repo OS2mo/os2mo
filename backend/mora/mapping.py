@@ -38,6 +38,8 @@ ERROR = 'error'
 USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
+ON_BEFORE = "before"
+ON_AFTER = "after"
 
 # Address
 ADDRESS_KEY = 'Adresse'
