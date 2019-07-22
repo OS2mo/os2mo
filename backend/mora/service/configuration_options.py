@@ -10,15 +10,11 @@ import flask
 import logging
 from mora import exceptions
 from .. import util
-from .. import service  # noqa
-
 
 logger = logging.getLogger("mo_configuration")
 
 blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
-
-TRIGGER_NAMES = {"trigger-before", "trigger-after"}
 
 
 def _get_connection(config=None):
@@ -58,63 +54,12 @@ def check_config(app):
         errors.append("Configuration database could not be opened")
         conn = None
 
-    if conn:
-        # check all triggers can be found from text and report those that can't
-        query_suffix = " OR ".join(["setting like %s" for i in TRIGGER_NAMES])
-        where_values = ["%s://%%" % n for n in TRIGGER_NAMES]
-        cur = conn.cursor()
-        query = ("SELECT object, setting, value FROM orgunit_settings WHERE " +
-                 query_suffix)
-        cur.execute(query, where_values)
-        rows = cur.fetchall()
-        for row in rows:
-            row = {"object": row[0], "setting": row[1], "value": row[2]}
-            try:
-                triggers_from_string(row["value"])
-            except Exception:
-                errors.append("trigger validation error for %r" % row)
     if errors:
         [logger.error(x) for x in errors]
         raise Exception("Configuration settings had errors "
                         "please check log output from startup")
 
     return not errors
-
-
-def triggers_from_string(trigger_string):
-    triggers = []
-    trigger_strings = [
-        i.strip() for i in trigger_string.split(",") if i.strip()
-    ]
-    for s in trigger_strings:
-        identifiers = s.split(".")
-        t = globals().get(identifiers.pop(0), None)
-        while t and len(identifiers):
-            t = getattr(t, identifiers.pop(0), None)
-        if not t:
-            logger.error("trigger not found: %s", s)
-            raise Exception("trigger not found: %s" % s)
-        else:
-            triggers.append(t)
-    return triggers
-
-
-def get_triggers(trigger_name, uuid, url_rule):
-
-    if trigger_name not in TRIGGER_NAMES:
-        logger.error("trigger name not allowed: %s", trigger_name)
-        raise Exception("trigger name not allowed: %s" % trigger_name)
-
-    trigger_mask = "{}://{}".format(trigger_name, url_rule)
-
-    # local else global triggers
-    configuration = get_configuration(uuid)
-    if trigger_mask not in configuration:
-        configuration = get_configuration()
-    if trigger_mask not in configuration:
-        return []
-    else:
-        return triggers_from_string(configuration[trigger_mask])
 
 
 def get_configuration(unitid=None):
@@ -350,36 +295,3 @@ def get_global_configuration():
     """
     configuration = get_configuration()
     return flask.jsonify(configuration)
-
-
-# Triggers were implemented before they were actually needed,
-# so here two examples on how they are going to be used
-#
-# This is a trigger-example on module-level in service/orgunit
-#
-#    def ensure_vacant_manager(service_request):
-#        logger.warning("inserting vacant manager skipped because...")
-#
-# The 'service_request' parameter is simply a OrgUnitRequestHandler instance
-# The same function coule be a method in OrgUnitRequestHandler,
-# in which case it would look like this:
-#
-#    def ensure_manager_vacancy(self):
-#        logger.warning("inserting manager vacancy also skipped because...")
-#
-#
-# triggers-before will typically be in the 'prepare-request part'
-# triggers-after will typically be in the submit part of the handler
-#
-# in this file a
-#     from .. import service
-# would then enable one to define a trigger in the options like
-#
-# "trigger-after:///service/ou/create":"service.orgunit.ensure_vacant_manager"
-#
-# provided the function
-#
-#    def ensure_vacant_manager(service_request):
-#        logger.warning("inserting vacant manager skipped because...")
-#
-# was defined in sercvice/orgunit.py
