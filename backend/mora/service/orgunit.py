@@ -39,6 +39,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -187,12 +188,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = org_unit
         self.uuid = unitid
 
-        for trigger in configuration_options.get_triggers(
-            "trigger-before",
-            uuid=parent_uuid,
-            url_rule=flask.request.url_rule.rule
-        ):
-            trigger(self)
+        for trigger in self.triggers.get(ON_BEFORE,[]):
+            trigger({"request":req, "uuid":parent_uuid})
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -303,12 +300,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = unitid
 
-        for trigger in configuration_options.get_triggers(
-            "trigger-before",
-            uuid=self.uuid,
-            url_rule=flask.request.url_rule.rule
-        ):
-            trigger(self)
+        for trigger in self.triggers.get(ON_BEFORE,[]):
+            trigger({"request":req, "uuid":self.uuid})
 
     def submit(self):
         c = lora.Connector()
@@ -322,12 +315,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         else:
             result = c.organisationenhed.update(self.payload, self.uuid)
 
-        for trigger in configuration_options.get_triggers(
-            "trigger-after",
-            uuid=self.uuid,
-            url_rule=flask.request.url_rule.rule
-        ):
-            trigger(self)
+        for trigger in self.triggers.get(mapping.ON_AFTER,[]):
+            trigger({"request":req, "uuid":self.uuid})
 
         return result
 
@@ -1119,12 +1108,10 @@ def terminate_org_unit(unitid):
             role_count=len(relevant),
         )
 
-    for trigger in configuration_options.get_triggers(
-        "trigger-before",
-        uuid=unitid,
-        url_rule=flask.request.url_rule.rule
-    ):
-        trigger(locals())
+    triggers = Trigger.map(mapping.ORG_UNIT, handlers.RequestType.TERMINATE)
+
+    for trigger in triggers.get(mapping.ON_BEFORE,[]):
+        trigger({"request":None, "uuid":unitid})
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
@@ -1137,12 +1124,8 @@ def terminate_org_unit(unitid):
 
     c.organisationenhed.update(payload, unitid)
 
-    for trigger in configuration_options.get_triggers(
-        "trigger-after",
-        uuid=unitid,
-        url_rule=flask.request.url_rule.rule
-    ):
-        trigger(locals())
+    for trigger in triggers.get(mapping.ON_AFTER,[]):
+        trigger({"request":None, "uuid":unitid})
 
     return flask.jsonify(unitid)
 

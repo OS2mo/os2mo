@@ -13,11 +13,10 @@ class Trigger:
     registry={}
 
     @classmethod
-    def get_triggers(cls, entity_type, request_type, event_type):
-        "return a list of triggers - can be empty"
+    def map(cls, entity_type, request_type):
+        "return a dictionary of event_type:[list of triggers]"
         return cls.registry.get(entity_type, {}
         ).get(request_type, {}
-        ).get(event_type, []
         )
 
     @classmethod
@@ -36,14 +35,3 @@ class Trigger:
                 return function(trigger_dict)
             return wrapper
         return decorator
-
-# current test code
-
-@Trigger.on("orgunit","create","before")
-def x(trigger_dict):
-    import pprint
-    pprint.pprint(trigger_dict)
-    pprint.pprint(Trigger.registry)
-
-for t in Trigger.get_triggers("orgunit","create","before"):
-    t({"hello":"world"})

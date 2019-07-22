@@ -23,6 +23,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from .. import triggers
 
 
 @enum.unique
@@ -88,6 +89,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
+        self.triggers = Trigger.map(self.role_type, request_type)
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
