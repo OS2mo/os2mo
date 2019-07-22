@@ -15,7 +15,6 @@ import abc
 import enum
 import inspect
 import typing
-import flask
 
 from .validation import validator
 from .. import common

@@ -19,7 +19,7 @@ blueprint = flask.Blueprint('api', __name__, static_url_path='',
 
 @blueprint.route('/<obj_type>', methods=['GET'])
 @util.restrictargs('start', 'limit', 'only_primary_uuid')
-def get_all(obj_type):
+def list_(obj_type):
     """
     List all objects of a given type
 
@@ -40,7 +40,6 @@ def get_all(obj_type):
 
     cls = handlers.get_handler_for_role_type(obj_type)
 
-    # Workaroundy stuff until read functionality is fully reimplemented
     if issubclass(cls, handlers.ReadingRequestHandler):
         return flask.jsonify(list(cls.get(c, search_fields)))
 
@@ -71,7 +70,6 @@ def get(obj_type, obj_uuid):
 
     cls = handlers.get_handler_for_role_type(obj_type)
 
-    # Workaroundy stuff until read functionality is fully reimplemented
     if issubclass(cls, handlers.ReadingRequestHandler):
         return flask.jsonify(list(cls.get(c, search_fields)))
 
@@ -88,7 +86,6 @@ def patch(obj_type, obj_uuid):
     """
     req = flask.request.get_json()
 
-    # Workaroundy stuff until better edit functionality is implemented
     edit_request = {
         'uuid': obj_uuid,
         'data': req,
@@ -112,7 +109,6 @@ def post(obj_type):
     """
     req = flask.request.get_json()
 
-    # Workaroundy stuff until better create functionality is implemented
     post_request = {
         'type': obj_type,
         **req,
@@ -135,7 +131,6 @@ def put(obj_type, obj_uuid):
     """
     req = flask.request.get_json()
 
-    # Workaroundy stuff until better create functionality is implemented
     put_request = {
         'type': obj_type,
         'uuid': obj_uuid,
