@@ -14,51 +14,18 @@ class Tests(util.LoRATestCase):
 
     def test_get_all(self):
         self.load_sample_structures()
-        self.assertRequestResponse(
-            '/service/api/engagement?only_primary_uuid',
-            [{
-                'engagement_type': {
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
-                },
-                'fraction': None,
-                'job_function': {
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
-                },
-                'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
-                'person': {'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-                'primary': None,
-                'user_key': 'bvn',
-                'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                'validity': {'from': '2017-01-01', 'to': None}
-            }]
+        response = self.assertRequest(
+            '/service/api/org_unit'
         )
+        self.assertEqual(8, len(response))
 
     def test_get(self):
         self.load_sample_structures()
-        self.assertRequestResponse(
-            '/service/api/engagement/d000591f-8705-4324-897a-075e3623f37b'
-            '?only_primary_uuid',
-            [{
-                'engagement_type': {
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
-                },
-                'fraction': None,
-                'job_function': {
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
-                },
-                'org_unit': {
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                },
-                'person': {
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                },
-                'primary': None,
-                'user_key': 'bvn',
-                'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                'validity': {'from': '2017-01-01', 'to': None}
-            }],
-            method='GET',
+        response = self.assertRequest(
+            '/service/api/org_unit/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            method='GET'
         )
+        self.assertEqual(1, len(response))
 
     def test_patch(self):
         self.load_sample_structures()
@@ -75,7 +42,7 @@ class Tests(util.LoRATestCase):
 
         expected_bvn = 'WHATEVER'
         actual = self.assertRequest(
-            '/service/api/engagement/{}?only_primary_uuid'.format(obj_uuid))[
+            '/service/api/engagement/{}'.format(obj_uuid))[
             -1]
 
         self.assertEqual(expected_bvn, actual.get('user_key'))
