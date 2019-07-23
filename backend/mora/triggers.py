@@ -6,6 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import enum
 from . import customer  # noqa - activates Trigger decorators
 
 
@@ -13,6 +14,12 @@ class Trigger:
     """ Trigger registry, retrieval, and decorator methods
     """
     registry = {}
+
+    @enum.unique
+    class Event(enum.Enum):
+        """ EventType for trigger registry
+        """
+        ON_BEFORE, ON_AFTER = range(2)
 
     @classmethod
     def map(cls, entity_type, request_type):

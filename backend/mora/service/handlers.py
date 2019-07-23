@@ -23,7 +23,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from .. import triggers
+from ..triggers import Trigger
 
 
 @enum.unique
@@ -96,7 +96,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
-        self.triggers = triggers.Trigger.map(self.role_type, request_type)
+        self.triggers = Trigger.map(self.role_type, request_type)
         if self.triggers:
             self._trigarg = {"request_type": request_type, "request": request}
 
@@ -109,8 +109,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        for trigger in self.triggers.get(mapping.ON_BEFORE, []):
-            trigger(self.trigger_dict(event_type=mapping.ON_BEFORE))
+        for trigger in self.triggers.get(Trigger.Event.ON_BEFORE, []):
+            trigger(self.trigger_dict(event_type=Trigger.Event.ON_BEFORE))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -147,9 +147,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
                  request to LoRa, typically a UUID.
 
         """
-        for trigger in self.triggers.get(mapping.ON_AFTER, []):
+        for trigger in self.triggers.get(Trigger.Event.ON_AFTER, []):
             trigger(self.trigger_dict(result=result,
-                                      event_type=mapping.ON_AFTER))
+                                      event_type=Trigger.Event.ON_AFTER))
         return result
 
 

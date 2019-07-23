@@ -9,11 +9,6 @@
 
 from . import util
 from mora.triggers import Trigger
-from mora.mapping import (
-    ON_BEFORE,
-    ON_AFTER,
-)
-
 from mora.service.handlers import (
     RequestType,
     RequestHandler,
@@ -45,11 +40,11 @@ class Tests(util.TestCase):
         self.trigger_called = False
 
     def test_handler_trigger_before_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, ON_BEFORE)
+        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_BEFORE,
+                'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.EDIT,
                 'uuid': 'edit'
@@ -58,11 +53,11 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, ON_AFTER)
+        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_AFTER,
+                'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
                 'request_type': RequestType.EDIT,
                 'uuid': 'edit',
@@ -72,11 +67,11 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_create(self):
-        @Trigger.on("mock", RequestType.CREATE, ON_BEFORE)
+        @Trigger.on("mock", RequestType.CREATE, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_BEFORE,
+                'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.CREATE,
                 'uuid': 'create'
@@ -85,11 +80,11 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_create(self):
-        @Trigger.on("mock", RequestType.CREATE, ON_AFTER)
+        @Trigger.on("mock", RequestType.CREATE, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_AFTER,
+                'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
                 'request_type': RequestType.CREATE,
                 'uuid': 'create',
@@ -99,11 +94,11 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, ON_BEFORE)
+        @Trigger.on("mock", RequestType.TERMINATE, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_BEFORE,
+                'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.TERMINATE,
                 'uuid': 'terminate'
@@ -112,11 +107,11 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, ON_AFTER)
+        @Trigger.on("mock", RequestType.TERMINATE, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
-                'event_type': ON_AFTER,
+                'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
                 'request_type': RequestType.TERMINATE,
                 'uuid': 'terminate',

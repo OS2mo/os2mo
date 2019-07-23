@@ -1101,7 +1101,7 @@ def terminate_org_unit(unitid):
 
     triggers = Trigger.map(mapping.ORG_UNIT, handlers.RequestType.TERMINATE)
 
-    for trigger in triggers.get(mapping.ON_BEFORE, []):
+    for trigger in triggers.get(Trigger.Event.ON_BEFORE, []):
         trigger({"request": None, "uuid": unitid})
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
@@ -1115,7 +1115,7 @@ def terminate_org_unit(unitid):
 
     c.organisationenhed.update(payload, unitid)
 
-    for trigger in triggers.get(mapping.ON_AFTER, []):
+    for trigger in triggers.get(Trigger.Event.ON_AFTER, []):
         trigger({"request": None, "uuid": unitid})
 
     return flask.jsonify(unitid)

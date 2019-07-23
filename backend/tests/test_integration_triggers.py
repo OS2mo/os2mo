@@ -9,11 +9,7 @@
 
 from . import util
 from mora.triggers import Trigger
-from mora.mapping import (
-    ON_BEFORE,
-    ON_AFTER,
-    ORG_UNIT
-)
+from mora.mapping import ORG_UNIT
 from mora.service.handlers import RequestType
 
 
@@ -27,7 +23,7 @@ class Tests(util.LoRATestCase):
     def test_orgunit_trigger_before_delete(self):
         called = []
 
-        @Trigger.on(ORG_UNIT, RequestType.TERMINATE, ON_BEFORE)
+        @Trigger.on(ORG_UNIT, RequestType.TERMINATE, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             called.append(trigger_dict["uuid"])
 
@@ -42,7 +38,7 @@ class Tests(util.LoRATestCase):
     def test_orgunit_trigger_after_delete(self):
         called = []
 
-        @Trigger.on(ORG_UNIT, RequestType.TERMINATE, ON_AFTER)
+        @Trigger.on(ORG_UNIT, RequestType.TERMINATE, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             called.append(trigger_dict["uuid"])
 
