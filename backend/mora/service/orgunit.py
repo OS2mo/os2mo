@@ -1064,7 +1064,8 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json() 
+    date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
@@ -1099,11 +1100,6 @@ def terminate_org_unit(unitid):
             role_count=len(relevant),
         )
 
-    triggers = Trigger.map(mapping.ORG_UNIT, handlers.RequestType.TERMINATE)
-
-    for trigger in triggers.get(Trigger.Event.ON_BEFORE, []):
-        trigger({"request": None, "uuid": unitid})
-
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
         'gyldighed': 'Inaktiv',
@@ -1113,12 +1109,25 @@ def terminate_org_unit(unitid):
     payload = util.set_obj_value(dict(), obj_path, [val_inactive])
     payload['note'] = 'Afslut enhed'
 
+    trigger_dict = {
+        'event_type': Trigger.Event.ON_BEFORE,
+        'request': request,
+        'request_type': handlers.RequestType.TERMINATE,
+        'uuid': unitid
+    }
+
+    triggers = Trigger.map(mapping.ORG_UNIT, handlers.RequestType.TERMINATE)
+    for trigger in triggers.get(Trigger.Event.ON_BEFORE, []):
+        trigger(trigger_dict)
+
     c.organisationenhed.update(payload, unitid)
 
+    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
+    trigger_dict["result"] = result = flask.jsonify(unitid)
     for trigger in triggers.get(Trigger.Event.ON_AFTER, []):
-        trigger({"request": None, "uuid": unitid})
+        trigger(trigger_dict)
 
-    return flask.jsonify(unitid)
+    return result
 
     # TODO: Afkort adresser?
 

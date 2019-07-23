@@ -1,4 +1,3 @@
-
 #
 # Copyright (c) Magenta ApS
 #
@@ -8,44 +7,57 @@
 #
 
 from . import util
+import freezegun
 from mora.triggers import Trigger
 from mora.mapping import ORG_UNIT
 from mora.service.handlers import RequestType
 
 
+@freezegun.freeze_time('2017-01-01')
 class Tests(util.LoRATestCase):
+    uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
-        self.uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        self.trigger_called = False
 
     def test_orgunit_trigger_before_delete(self):
-        called = []
 
         @Trigger.on(ORG_UNIT, RequestType.TERMINATE, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
-            called.append(trigger_dict["uuid"])
+            self.trigger_called = True
+            self.assertEqual({
+                'uuid': self.uuid,
+                'event_type': Trigger.Event.ON_BEFORE,
+                'request': {'validity': {'to': '2018-01-01'}},
+                'request_type': RequestType.TERMINATE,
+            }, trigger_dict)
 
         url = '/service/ou/{}/terminate'.format(self.uuid)
         self.assertRequest(
             url,
-            json={"validity": {"to": "2017-01-02"}}
+            json={"validity": {"to": "2018-01-01"}}
         )
         # assert trigger is called
-        self.assertEqual([self.uuid], called)
+        self.assertTrue(self.trigger_called)
 
     def test_orgunit_trigger_after_delete(self):
-        called = []
 
         @Trigger.on(ORG_UNIT, RequestType.TERMINATE, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
-            called.append(trigger_dict["uuid"])
+            self.trigger_called = True
+            trigger_dict.pop("result")
+            self.assertEqual({
+                'uuid': self.uuid,
+                'event_type': Trigger.Event.ON_AFTER,
+                'request': {'validity': {'to': '2018-01-01'}},
+                'request_type': RequestType.TERMINATE,
+            }, trigger_dict)
 
         url = '/service/ou/{}/terminate'.format(self.uuid)
         self.assertRequest(
             url,
-            json={"validity": {"to": "2017-01-02"}}
+            json={"validity": {"to": "2018-01-01"}}
         )
-        # assert trigger is called
-        self.assertEqual([self.uuid], called)
+        self.assertTrue(self.trigger_called)
