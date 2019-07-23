@@ -63,7 +63,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     '''
 
-    __slots__ = 'request', 'request_type', 'payload', 'uuid'
+    __slots__ = ('request', 'request_type', 'payload',
+                 'uuid', 'triggers', '_trigarg')
 
     role_type = None
     '''
@@ -95,8 +96,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
-        self._trigarg = {"request_type": request_type, "request": request}
         self.triggers = triggers.Trigger.map(self.role_type, request_type)
+        if self.triggers:
+            self._trigarg = {"request_type": request_type, "request": request}
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)

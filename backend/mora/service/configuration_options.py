@@ -102,12 +102,6 @@ def set_configuration(configuration, unitid=None):
 
     orgunit_conf = configuration['org_units']
 
-    # check if there are any triggers and whether they can be resolved
-    for key, value in orgunit_conf.items():
-        for tn in TRIGGER_NAMES:
-            if key.startswith("%s://" % tn):
-                triggers_from_string(value)
-
     conn = _get_connection()
     try:
         cur = conn.cursor()
