@@ -77,6 +77,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
+    def trigger_dict(self, **kwargs):
+        if "uuid" not in self._trigarg or not self._trigarg["uuid"]:
+            self._trigarg["uuid"] = self.uuid
+        self._trigarg.update(kwargs)
+        return self._trigarg
+
     def __init__(self, request: dict, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
@@ -89,7 +95,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
-        self.triggers = Trigger.map(self.role_type, request_type)
+        self._trigarg = {"request_type": request_type, "request": request}
+        self.triggers = triggers.Trigger.map(self.role_type, request_type)
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -99,6 +106,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             self.prepare_terminate(request)
         else:
             raise NotImplementedError
+
+        for trigger in self.triggers.get(mapping.ON_BEFORE, []):
+            trigger(self.trigger_dict(event_type=mapping.ON_BEFORE))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -128,14 +138,17 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def submit(self) -> str:
+    def submit(self, result=None) -> str:
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
 
         """
+        for trigger in self.triggers.get(mapping.ON_AFTER, []):
+            trigger(self.trigger_dict(result=result,
+                                      event_type=mapping.ON_AFTER))
+        return result
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -228,9 +241,11 @@ class OrgFunkRequestHandler(RequestHandler):
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            return c.organisationfunktion.create(self.payload, self.uuid)
+            result = c.organisationfunktion.create(self.payload, self.uuid)
         else:
-            return c.organisationfunktion.update(self.payload, self.uuid)
+            result = c.organisationfunktion.update(self.payload, self.uuid)
+
+        return super().submit(result=result)
 
 
 class OrgFunkReadingRequestHandler(ReadingRequestHandler,

@@ -229,7 +229,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
 
-        return result
+        return super().submit(result)
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):

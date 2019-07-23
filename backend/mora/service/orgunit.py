@@ -188,9 +188,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = org_unit
         self.uuid = unitid
 
-        for trigger in self.triggers.get(ON_BEFORE,[]):
-            trigger({"request":req, "uuid":parent_uuid})
-
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
@@ -300,9 +297,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         self.payload = payload
         self.uuid = unitid
 
-        for trigger in self.triggers.get(ON_BEFORE,[]):
-            trigger({"request":req, "uuid":self.uuid})
-
     def submit(self):
         c = lora.Connector()
 
@@ -315,10 +309,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         else:
             result = c.organisationenhed.update(self.payload, self.uuid)
 
-        for trigger in self.triggers.get(mapping.ON_AFTER,[]):
-            trigger({"request":req, "uuid":self.uuid})
-
-        return result
+        return super().submit(result=result)
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -1110,8 +1101,8 @@ def terminate_org_unit(unitid):
 
     triggers = Trigger.map(mapping.ORG_UNIT, handlers.RequestType.TERMINATE)
 
-    for trigger in triggers.get(mapping.ON_BEFORE,[]):
-        trigger({"request":None, "uuid":unitid})
+    for trigger in triggers.get(mapping.ON_BEFORE, []):
+        trigger({"request": None, "uuid": unitid})
 
     obj_path = ('tilstande', 'organisationenhedgyldighed')
     val_inactive = {
@@ -1124,8 +1115,8 @@ def terminate_org_unit(unitid):
 
     c.organisationenhed.update(payload, unitid)
 
-    for trigger in triggers.get(mapping.ON_AFTER,[]):
-        trigger({"request":None, "uuid":unitid})
+    for trigger in triggers.get(mapping.ON_AFTER, []):
+        trigger({"request": None, "uuid": unitid})
 
     return flask.jsonify(unitid)
 

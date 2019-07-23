@@ -10,28 +10,117 @@
 from . import util
 from mora.triggers import Trigger
 from mora.mapping import (
+    ON_BEFORE,
     ON_AFTER,
-    ORG_UNIT
 )
-from mora.service.handlers import RequestType
+
+from mora.service.handlers import (
+    RequestType,
+    RequestHandler,
+)
 
 
-class Tests(util.LoRATestCase):
+class MockHandler(RequestHandler):
+    role_type = "mock"
 
-    def test_orgunit_trigger_after_delete(self):
-        called = []
+    def prepare_edit(self, req):
+        self.uuid = "edit"
 
-        @Trigger.on(ORG_UNIT, RequestType.TERMINATE, ON_AFTER)
-        def del_trigger(trigger_dict):
-            called.append(trigger_dict["uuid"])
+    def prepare_create(self, req):
+        self.uuid = "create"
 
-        self.load_sample_structures()
-        uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+    def prepare_terminate(self, req):
+        self.uuid = "terminate"
 
-        url = '/service/ou/{}/terminate'.format(uuid)
-        self.assertRequest(
-            url,
-            json={"validity": {"to": "2017-01-02"}}
-        )
-        # trigger is called ok
-        self.assertEqual([uuid], called)
+    def submit(self):
+        super().submit(result="okidoki")
+
+
+class Tests(util.TestCase):
+    maxDiff = None
+    Trigger.registry = {}
+
+    def setUp(self):
+        super().setUp()
+        self.trigger_called = False
+
+    def test_handler_trigger_before_edit(self):
+        @Trigger.on("mock", RequestType.EDIT, ON_BEFORE)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_BEFORE,
+                'request': {},
+                'request_type': RequestType.EDIT,
+                'uuid': 'edit'
+            }, trigger_dict)
+        MockHandler({}, RequestType.EDIT)
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_after_edit(self):
+        @Trigger.on("mock", RequestType.EDIT, ON_AFTER)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_AFTER,
+                'request': {},
+                'request_type': RequestType.EDIT,
+                'uuid': 'edit',
+                'result': 'okidoki'
+            }, trigger_dict)
+        MockHandler({}, RequestType.EDIT).submit()
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_before_create(self):
+        @Trigger.on("mock", RequestType.CREATE, ON_BEFORE)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_BEFORE,
+                'request': {},
+                'request_type': RequestType.CREATE,
+                'uuid': 'create'
+            }, trigger_dict)
+        MockHandler({}, RequestType.CREATE)
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_after_create(self):
+        @Trigger.on("mock", RequestType.CREATE, ON_AFTER)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_AFTER,
+                'request': {},
+                'request_type': RequestType.CREATE,
+                'uuid': 'create',
+                'result': 'okidoki'
+            }, trigger_dict)
+        MockHandler({}, RequestType.CREATE).submit()
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_before_terminate(self):
+        @Trigger.on("mock", RequestType.TERMINATE, ON_BEFORE)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_BEFORE,
+                'request': {},
+                'request_type': RequestType.TERMINATE,
+                'uuid': 'terminate'
+            }, trigger_dict)
+        MockHandler({}, RequestType.TERMINATE)
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_after_terminate(self):
+        @Trigger.on("mock", RequestType.TERMINATE, ON_AFTER)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            self.assertEqual({
+                'event_type': ON_AFTER,
+                'request': {},
+                'request_type': RequestType.TERMINATE,
+                'uuid': 'terminate',
+                'result': 'okidoki'
+            }, trigger_dict)
+        MockHandler({}, RequestType.TERMINATE).submit()
+        self.assertTrue(self.trigger_called)
