@@ -1064,7 +1064,7 @@ def terminate_org_unit(unitid):
       }
 
     """
-    request = flask.request.get_json() 
+    request = flask.request.get_json()
     date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))

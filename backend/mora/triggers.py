@@ -50,5 +50,3 @@ class Trigger:
                 return function(trigger_dict)
             return wrapper
         return decorator
-
-
