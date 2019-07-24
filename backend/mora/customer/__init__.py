@@ -7,8 +7,16 @@
 #
 
 """
-'Customer' is a placeholder directory, which will act
+'customer' is a placeholder directory, which will act
 as a mount point for customer specific code
 
-See the documentation about triggers for guidance and examples
+See the documentation about Customization and triggers
+for guidance and examples
+
+-----------
+
+Changes to this file are untraced by git as this directory
+will typically have it's own repo mounted in.
+
+All other files in this directory are ignored completely by git
 """

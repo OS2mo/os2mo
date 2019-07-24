@@ -19,6 +19,7 @@ from . import settings
 from . import util
 from .auth import base
 from .integrations import serviceplatformen
+from . import customer # noqa - activates customizations
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
