@@ -17,15 +17,11 @@ The customer module
 
 A directory placed on the host machine (outside the container / module path) is mounted over the os2mo/backend/mora/customer
 
-In order to facilitate tests of customer modules, imports in this code should be absolute, so that the mapping module is imported like: ::
+Development and test should be performed with the directory mounted in, so relative imports work: ::
 
-    from os2mo.backend.mora import mapping
+    from ..triggers import Trigger
 
-rather than using the short form: ::
-
-    from .. import mapping
-
-The ``__init__.py`` in the customer module directory must import any code that is needed for the customizations, and it must all reside in this directory as the directory is unaware of its physical surroundings once it is mounted inside the OS2mo container.
+The ``__init__.py`` in the customer module directory must import any code that is needed for the customizations, and it must all reside in this directory or be available in the python environment as the directory is unaware of its physical surroundings once it is mounted inside the OS2mo container.
 
 Once mounted this module has access to any and all code inside the customer module as well as any code in OS2mo's python environment including os2mo itself.
 
@@ -77,28 +73,34 @@ The __init__.py file: ::
 
 The org_unit.py looks like this: ::
 
-    from os2mo.backend.mora.triggers import Trigger
-    from os2mo.backend.mora.mapping import ORG_UNIT
-    from os2mo.backend.mora.service.handlers import RequestType
+    import logging
+    from ..triggers import Trigger
+    from ..mapping import ORG_UNIT
+    from ..service.handlers import RequestType
+
+    logger = logging.getLogger("org_unit_trigger")
 
     @Trigger.on(ORG_UNIT, RequestType.CREATE, Trigger.Event.ON_BEFORE)
     def ou_before_create(trigger_dict):
-        pass
+        logger.warning(trigger_dict)
 
     @Trigger.on(ORG_UNIT, RequestType.CREATE, Trigger.Event.ON_AFTER)
     def ou_after_create(trigger_dict):
-        pass
+        logger.warning(trigger_dict)
 
-The employee.py looks like this: ::
+The empoyee.py file looks like this: ::
 
-    from os2mo.backend.mora.triggers import Trigger
-    from os2mo.backend.mora.mapping import EMPLOYEE
-    from os2mo.backend.mora.service.handlers import RequestType
+    import logging
+    from ..triggers import Trigger
+    from ..mapping import EMPLOYEE
+    from ..service.handlers import RequestType
+
+    logger = logging.getLogger("employee_trigger")
 
     @Trigger.on(EMPLOYEE, RequestType.EDIT, Trigger.Event.ON_BEFORE)
     def e_before_edit(trigger_dict):
-        pass
+        logger.warning(trigger_dict)
 
-    @Trigger.on(EMPLOYEE, RequestType.DELETE, Trigger.Event.ON_AFTER)
+    @Trigger.on(EMPLOYEE, RequestType.TERMINATE, Trigger.Event.ON_AFTER)
     def e_after_delete(trigger_dict):
-        pass
+        logger.warning(trigger_dict)
