@@ -32,6 +32,7 @@ class Tests(util.LoRATestCase):
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {'validity': {'to': '2018-01-01'}},
                 'request_type': RequestType.TERMINATE,
+                'role_type': ORG_UNIT,
             }, trigger_dict)
 
         url = '/service/ou/{}/terminate'.format(self.uuid)
@@ -53,6 +54,7 @@ class Tests(util.LoRATestCase):
                 'event_type': Trigger.Event.ON_AFTER,
                 'request': {'validity': {'to': '2018-01-01'}},
                 'request_type': RequestType.TERMINATE,
+                'role_type': ORG_UNIT,
             }, trigger_dict)
 
         url = '/service/ou/{}/terminate'.format(self.uuid)

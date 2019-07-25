@@ -47,6 +47,7 @@ class Tests(util.TestCase):
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.EDIT,
+                'role_type': 'mock',
                 'uuid': 'edit'
             }, trigger_dict)
         MockHandler({}, RequestType.EDIT)
@@ -60,6 +61,7 @@ class Tests(util.TestCase):
                 'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
                 'request_type': RequestType.EDIT,
+                'role_type': 'mock',
                 'uuid': 'edit',
                 'result': 'okidoki'
             }, trigger_dict)
@@ -74,6 +76,7 @@ class Tests(util.TestCase):
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.CREATE,
+                'role_type': 'mock',
                 'uuid': 'create'
             }, trigger_dict)
         MockHandler({}, RequestType.CREATE)
@@ -88,6 +91,7 @@ class Tests(util.TestCase):
                 'request': {},
                 'request_type': RequestType.CREATE,
                 'uuid': 'create',
+                'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
         MockHandler({}, RequestType.CREATE).submit()
@@ -101,6 +105,7 @@ class Tests(util.TestCase):
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
                 'request_type': RequestType.TERMINATE,
+                'role_type': 'mock',
                 'uuid': 'terminate'
             }, trigger_dict)
         MockHandler({}, RequestType.TERMINATE)
@@ -115,6 +120,7 @@ class Tests(util.TestCase):
                 'request': {},
                 'request_type': RequestType.TERMINATE,
                 'uuid': 'terminate',
+                'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
         MockHandler({}, RequestType.TERMINATE).submit()

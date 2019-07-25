@@ -32,6 +32,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -500,7 +501,6 @@ def terminate_employee(employee_uuid):
     trigger_dict["result"] = result = flask.jsonify(employee_uuid)
     for trigger in triggers.get(Trigger.Event.ON_AFTER, []):
         trigger(trigger_dict)
-
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
