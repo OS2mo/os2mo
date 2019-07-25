@@ -481,14 +481,32 @@ def terminate_employee(employee_uuid):
         )
     ]
 
+    trigger_dict = {
+        'role_type': mapping.EMPLOYEE,
+        'event_type': Trigger.Event.ON_BEFORE,
+        'request': request,
+        'request_type': handlers.RequestType.TERMINATE,
+        'uuid': employee_uuid
+    }
+
+    triggers = Trigger.map(mapping.EMPLOYEE, handlers.RequestType.TERMINATE)
+    for trigger in triggers.get(Trigger.Event.ON_BEFORE, []):
+        trigger(trigger_dict)
+
     for handler in request_handlers:
         handler.submit()
+
+    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
+    trigger_dict["result"] = result = flask.jsonify(employee_uuid)
+    for trigger in triggers.get(Trigger.Event.ON_AFTER, []):
+        trigger(trigger_dict)
+
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
 
     # TODO:
-    return flask.jsonify(employee_uuid), 200
+    return result, 200
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])

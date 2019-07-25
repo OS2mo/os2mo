@@ -39,7 +39,9 @@ An ``ON_BEFORE`` trigger_dict will typically contain at least these items: ::
         'event_type': Trigger.Event.ON_BEFORE,
         'request': {}, # the object that was received by the handler
         'request_type': RequestType.EDIT,
+        'role_type': '' # role_type of the request
         'uuid': '' # the uuid of the object being edited
+
     }
 
 
@@ -52,8 +54,9 @@ For an ``ON_AFTER`` trigger_dict an additional key is added - the result: ::
         'event_type': Trigger.Event.ON_AFTER,
         'request': {}, # the object that was received by the handler
         'request_type': RequestType.EDIT,
-        'uuid': '' # the uuid of the object being manipulated
         'result': '' # the result that is to be sent back to the client
+        'role_type': '' # role_type of the request
+        'uuid': '' # the uuid of the object being manipulated
     }
 
 A customer module example

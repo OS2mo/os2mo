@@ -98,7 +98,11 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.uuid = None
         self.triggers = Trigger.map(self.role_type, request_type)
         if self.triggers:
-            self._trigarg = {"request_type": request_type, "request": request}
+            self._trigarg = {
+                "request_type": request_type,
+                "request": request,
+                "role_type": self.role_type
+            }
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)

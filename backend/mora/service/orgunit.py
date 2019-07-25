@@ -1110,6 +1110,7 @@ def terminate_org_unit(unitid):
     payload['note'] = 'Afslut enhed'
 
     trigger_dict = {
+        'role_type' : mapping.ORG_UNIT,
         'event_type': Trigger.Event.ON_BEFORE,
         'request': request,
         'request_type': handlers.RequestType.TERMINATE,

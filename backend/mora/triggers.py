@@ -7,6 +7,9 @@
 #
 
 import enum
+import logging
+
+logger = logging.getLogger("triggers")
 
 
 class Trigger:
@@ -23,6 +26,7 @@ class Trigger:
     @classmethod
     def map(cls, entity_type, request_type):
         "return a dictionary of event_type:[list of triggers]"
+        logger.debug("map for :%r %r", entity_type, request_type)
         return cls.registry.get(
             entity_type, {}
         ).get(
