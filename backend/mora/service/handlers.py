@@ -64,7 +64,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     '''
 
     __slots__ = ('request', 'request_type', 'payload',
-                 'uuid', 'triggers', '_trigarg')
+                 'uuid', '_trigarg')
 
     role_type = None
     '''
@@ -96,13 +96,11 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
-        self.triggers = Trigger.map(self.role_type, request_type)
-        if self.triggers:
-            self._trigarg = {
-                "request_type": request_type,
-                "request": request,
-                "role_type": self.role_type
-            }
+        self._trigarg = {
+            "request_type": request_type,
+            "request": request,
+            "role_type": self.role_type
+        }
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -113,8 +111,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        for trigger in self.triggers.get(Trigger.Event.ON_BEFORE, []):
-            trigger(self.trigger_dict(event_type=Trigger.Event.ON_BEFORE))
+        Trigger.run(self.trigger_dict(event_type=Trigger.Event.ON_BEFORE))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -151,9 +148,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
                  request to LoRa, typically a UUID.
 
         """
-        for trigger in self.triggers.get(Trigger.Event.ON_AFTER, []):
-            trigger(self.trigger_dict(result=result,
-                                      event_type=Trigger.Event.ON_AFTER))
+        Trigger.run(self.trigger_dict(
+                    result=result,
+                    event_type=Trigger.Event.ON_AFTER))
+
         return result
 
 

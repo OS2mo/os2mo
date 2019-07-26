@@ -24,20 +24,21 @@ class Trigger:
         ON_BEFORE, ON_AFTER = range(2)
 
     @classmethod
-    def map(cls, entity_type, request_type):
-        "return a dictionary of event_type:[list of triggers]"
-        logger.debug("map for :%r %r", entity_type, request_type)
-        return cls.registry.get(
-            entity_type, {}
+    def run(cls, trigger_dict):
+        triggers = cls.registry.get(
+            trigger_dict["role_type"], {}
         ).get(
-            request_type, {}
+            trigger_dict["request_type"], {}
+        ).get(
+            trigger_dict["event_type"], []
         )
+        [t(trigger_dict) for t in triggers]
 
     @classmethod
-    def on(cls, entity_type, request_type, event_type):
+    def on(cls, role_type, request_type, event_type):
         "find relevant registry-list"
         registry = cls.registry.setdefault(
-            entity_type, {}
+            role_type, {}
         ).setdefault(
             request_type, {}
         ).setdefault(

@@ -490,17 +490,14 @@ def terminate_employee(employee_uuid):
         'uuid': employee_uuid
     }
 
-    triggers = Trigger.map(mapping.EMPLOYEE, handlers.RequestType.TERMINATE)
-    for trigger in triggers.get(Trigger.Event.ON_BEFORE, []):
-        trigger(trigger_dict)
+    Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
 
     trigger_dict["event_type"] = Trigger.Event.ON_AFTER
     trigger_dict["result"] = result = flask.jsonify(employee_uuid)
-    for trigger in triggers.get(Trigger.Event.ON_AFTER, []):
-        trigger(trigger_dict)
+    Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
