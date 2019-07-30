@@ -144,6 +144,7 @@ def create():
                                can only be one.
     :<jsonarr integer fraction: An indication of how much this
         engagement constitutes the employee's overall employment
+    :<jsonarr object org: The associated organisation
     :<jsonarr object job_function: The job function of the association
     :<jsonarr object engagement_type: The engagement type
     :<jsonarr string user_key: Short, unique key identifying the relation.
@@ -160,6 +161,9 @@ def create():
           "type": "engagement",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
@@ -182,6 +186,7 @@ def create():
 
     :<jsonarr string type: **"association"**
     :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object org: The associated organisation
     :<jsonarr object person: The associated employee
     :<jsonarr object association_type: The association type
     :<jsonarr string user_key: Short, unique key identifying the relation.
@@ -198,6 +203,9 @@ def create():
           "type": "association",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
@@ -219,6 +227,7 @@ def create():
     :<json string user_key: The account name on the IT system.
     :<json object itsystem: The IT system to create a relation to, as
         returned by :http:get:`/service/o/(uuid:orgid)/it/`.
+    :<json object org: The associated organisation
     :<json object org_unit: the UUID of the associated unit, if any
     :<json object person: the UUID of the associated employee, if any
 
@@ -230,6 +239,9 @@ def create():
           "user_key": "goofy-moofy",
           "itsystem": {
              "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
@@ -245,6 +257,7 @@ def create():
 
     :<jsonarr string type: **"role"**
     :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object org: The associated organisation
     :<jsonarr object person: The associated employee
     :<jsonarr object role_type: The role type
     :<jsonarr string user_key: Short, unique key identifying the relation.
@@ -261,6 +274,9 @@ def create():
           "type": "role",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
@@ -280,6 +296,7 @@ def create():
 
     :<jsonarr string type: **"manager"**
     :<jsonarr object org_unit: The associated org unit
+    :<jsonarr object org: The associated organisation
     :<jsonarr object person: The associated employee, if applicable
     :<jsonarr object manager_type: The manager type
     :<jsonarr array responsibility: The manager responsibilities
@@ -303,6 +320,9 @@ def create():
           "type": "manager",
           "org_unit": {
             "uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
@@ -341,6 +361,7 @@ def create():
     :<jsonarr string type: **"leave"**
     :<jsonarr object person: The associated employee
     :<jsonarr object leave_type: The leave type
+    :<jsonarr object org: The associated organisation
     :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
@@ -357,6 +378,9 @@ def create():
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
           },
           "leave_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "org": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "user_key": "1234",
@@ -378,6 +402,7 @@ def create():
         addresses.
     :<jsonarr object org_unit: the UUID of the associated unit, if any
     :<jsonarr object person: the UUID of the associated employee, if any
+    :<jsonarr object org: The associated organisation
     :<jsonarr object validity: The validities of the created object.
 
     Note that an address can be associated with an employee `or` a unit, but
@@ -399,6 +424,9 @@ def create():
           },
           "person": {
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
+          },
+          "org": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "type": "address",
           "validity": {

@@ -325,6 +325,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     "uuid": unit_id,
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -445,6 +446,7 @@ class Tests(util.LoRATestCase):
                 "org_unit": {
                     "uuid": unit_id,
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 }],
@@ -624,6 +626,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "responsibility": [{
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
@@ -828,6 +831,7 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "person": {'uuid': userid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -982,6 +986,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "validity": {
                     "from": "2017-01-01",
@@ -1063,6 +1068,7 @@ class Tests(util.LoRATestCase):
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "person": {'uuid': userid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "responsibility": [
                     {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
                     {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"},

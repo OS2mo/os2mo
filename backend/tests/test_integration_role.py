@@ -149,6 +149,7 @@ class Tests(util.LoRATestCase):
                 "type": "role",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
@@ -262,6 +263,7 @@ class Tests(util.LoRATestCase):
                 "type": "role",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "role_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {

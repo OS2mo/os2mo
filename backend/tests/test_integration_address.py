@@ -715,6 +715,9 @@ class Writing(util.LoRATestCase):
                 "org_unit": {
                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                 },
+                "org": {
+                    'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
                 "person": {
                     'uuid': userid
                 },
@@ -847,6 +850,9 @@ class Writing(util.LoRATestCase):
                 },
                 "org_unit_type": {
                     'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                },
+                "org": {
+                    'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
                 "validity": {
                     "from": "2016-02-04",

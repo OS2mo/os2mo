@@ -43,6 +43,7 @@ class Writing(util.LoRATestCase):
                 'status': 400,
                 'obj': {
                     'itsystem': None,
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     'type': 'it',
                     'validity': {
                         'from': '2017-12-01', 'to': None
@@ -53,6 +54,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": None,
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": "2017-12-01",
                         "to": None,
@@ -76,6 +78,7 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '00000000-0000-0000-0000-000000000000',
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": "2017-12-01",
                         "to": None,
@@ -99,6 +102,7 @@ class Writing(util.LoRATestCase):
                 'status': 400,
                 'obj': {
                     'itsystem': None,
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     'type': 'it',
                     'validity': {
                         'from': '2017-12-01',
@@ -110,6 +114,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": None,
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": "2017-12-01",
                         "to": None,
@@ -129,6 +134,7 @@ class Writing(util.LoRATestCase):
                 'obj': {
                     'itsystem': {
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb'},
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     'type': 'it',
                     'validity': {
                         'from': None, 'to': None
@@ -141,6 +147,7 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": None,
                         "to": None,
@@ -162,6 +169,7 @@ class Writing(util.LoRATestCase):
                 {
                     "type": "it",
                     "itsystem": {},
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": None,
                         "to": None,
@@ -186,6 +194,7 @@ class Writing(util.LoRATestCase):
                     "itsystem": {
                         'uuid': '42',
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "validity": {
                         "from": "2017-12-01",
                         "to": None,
@@ -313,6 +322,7 @@ class Writing(util.LoRATestCase):
                     "person": {
                         "uuid": userid,
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "itsystem": {
                         "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
                     },
@@ -507,6 +517,7 @@ class Writing(util.LoRATestCase):
                     "org_unit": {
                         "uuid": unitid,
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "itsystem": {
                         "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
                     },

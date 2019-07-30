@@ -488,6 +488,7 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "addresses": [
                 {
                     "address_type": {
@@ -1077,6 +1078,7 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "addresses": [
                 {
                     "address_type": {
@@ -1259,6 +1261,7 @@ class Tests(util.LoRATestCase):
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
             },
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "addresses": [],
             "validity": {
                 "from": "2017-01-01",
@@ -1269,13 +1272,11 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/create',
             {
-                'description':
-                'Corresponding parent unit or organisation not found.',
+                'description': 'Org unit not found.',
                 'error': True,
-                'error_key': 'V_PARENT_NOT_FOUND',
-                'org_unit_uuid': 'ec93e37e-774e-40b4-953c-05ca41b80372',
-                'parent_uuid': '00000000-0000-0000-0000-000000000000',
-                'status': 404,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
+                'status': 404
             },
             json=payload,
             status_code=404,
@@ -1315,6 +1316,7 @@ class Tests(util.LoRATestCase):
                 "org_unit_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "validity": {
                     "from": "2017-01-01",
                     "to": "2018-01-01",

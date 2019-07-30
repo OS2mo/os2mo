@@ -140,12 +140,7 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
         # TODO: Figure out what to do with this
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=False)
-        if not org_uuid:
-            org_uuid = (
-                c.organisationenhed.get(org_unit_uuid)
-                ['relationer']['tilhoerer'][0]['uuid']
-            )
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
         manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
         manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)

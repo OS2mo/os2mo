@@ -217,6 +217,7 @@ class Tests(util.LoRATestCase):
                 "type": "association",
                 "uuid": association_uuid,
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -383,6 +384,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -431,6 +433,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -495,6 +498,7 @@ class Tests(util.LoRATestCase):
                 {
                     "type": "association",
                     "org_unit": {'uuid': unitid},
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "person": {'uuid': userid},
                     "association_type": {
                         'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -537,6 +541,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -792,6 +797,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -958,6 +964,7 @@ class Tests(util.LoRATestCase):
             {
                 "type": "association",
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "person": {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -1509,6 +1516,7 @@ class Tests(util.LoRATestCase):
         payload = {
             "type": "association",
             "org_unit": {'uuid': unitid},
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "person": {'uuid': userid},
             "association_type": {
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -2527,6 +2535,9 @@ class AddressTests(util.LoRATestCase):
             "primary": True,
             "user_key": "kaflaflibob",
             "org_unit": {"uuid": unitid},
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            },
             "association_type": {
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             "validity": {
@@ -2757,6 +2768,9 @@ class AddressTests(util.LoRATestCase):
             "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
             "primary": True,
             "org_unit": {"uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"},
+            "org": {
+                'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
+            },
             "association_type": {
                 "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             "validity": {

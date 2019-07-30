@@ -177,6 +177,7 @@ class Tests(util.LoRATestCase):
                 "type": "engagement",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
@@ -307,6 +308,7 @@ class Tests(util.LoRATestCase):
                 "type": "engagement",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
@@ -436,6 +438,7 @@ class Tests(util.LoRATestCase):
                 "type": "engagement",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "engagement_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
@@ -1839,6 +1842,7 @@ class Tests(util.LoRATestCase):
             "primary": True,
             "fraction": 10,
             "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "job_function": {
                 "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
             "engagement_type": {
@@ -2108,6 +2112,7 @@ class Tests(util.LoRATestCase):
             "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
             "primary": True,
             "org_unit": {"uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"},
+            "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
             "job_function": {
                 "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
             "engagement_type": {

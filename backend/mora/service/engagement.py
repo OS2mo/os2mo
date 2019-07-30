@@ -55,10 +55,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 self.function_key, valid_from, valid_to, employee_uuid,
             )
 
-        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=False)
-        if not org_uuid:
-            org_unit_obj = c.organisationenhed.get(org_unit_uuid)
-            org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
         job_function_uuid = util.get_mapping_uuid(req,
                                                   mapping.JOB_FUNCTION)
         engagement_type_uuid = util.get_mapping_uuid(req,

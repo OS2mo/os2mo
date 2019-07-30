@@ -305,6 +305,7 @@ class Tests(util.LoRATestCase):
                     "org_unit": {
                         'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
                     },
+                    "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                     "job_function": {
                         'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"
                     },

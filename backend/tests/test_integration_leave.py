@@ -141,6 +141,7 @@ class Tests(util.LoRATestCase):
                 "person": {
                     "uuid": userid,
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "leave_type": {
                     'uuid': leave_type
                 },
@@ -270,6 +271,7 @@ class Tests(util.LoRATestCase):
                 "person": {
                     "uuid": userid,
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "leave_type": {
                     'uuid': leave_type},
                 "validity": {
@@ -855,6 +857,7 @@ class Tests(util.LoRATestCase):
                 "type": "leave",
                 "person": {'uuid': userid},
                 "org_unit": {'uuid': unitid},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "leave_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
@@ -888,6 +891,7 @@ class Tests(util.LoRATestCase):
                 "person": {
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 },
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "leave_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
                 },
@@ -926,6 +930,7 @@ class Tests(util.LoRATestCase):
                 "uuid": "f1383b2d-d706-4c49-9249-20fa9ef7b55a",
                 "person": {'uuid': "6ee24785-ee9a-4502-81c2-7697009c9053"},
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"},
                 "job_function": {
                     'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
                 "engagement_type": {
