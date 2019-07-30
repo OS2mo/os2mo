@@ -40,10 +40,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
-        system = c.itsystem.get(systemid)
-
-        if not system:
-            exceptions.ErrorCodes.E_NOT_FOUND()
 
         # Get org unit uuid for validation purposes
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
@@ -53,7 +49,12 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = system['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=False)
+        if not org_uuid:
+            system = c.itsystem.get(systemid)
+            if not system:
+                exceptions.ErrorCodes.E_NOT_FOUND()
+            org_uuid = system['relationer']['tilhoerer'][0]['uuid']
 
         valid_from, valid_to = util.get_validities(req)
 

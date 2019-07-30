@@ -29,11 +29,15 @@ class Tests(util.LoRATestCase):
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
+        org_uuid = "2a7b1686-d697-489d-9f02-96d16e1e224b"
         payload = [
             {
                 "type": "association",
                 "uuid": association_uuid,
                 "org_unit": {'uuid': unitid},
+                "org": {
+                    "uuid": org_uuid
+                },
                 'person': {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -82,7 +86,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        "uuid": org_uuid
                     }
                 ],
                 "tilknyttedebrugere": [

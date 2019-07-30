@@ -124,21 +124,23 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
-        organisationenhed_get = c.organisationenhed.get(parent_uuid)
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=False)
+        if not org_uuid:
+            organisationenhed_get = c.organisationenhed.get(parent_uuid)
 
-        if organisationenhed_get:
-            org_uuid = organisationenhed_get['relationer']['tilhoerer'][0][
-                'uuid']
-        else:
-            organisation_get = c.organisation(uuid=parent_uuid)
-
-            if organisation_get:
-                org_uuid = parent_uuid
+            if organisationenhed_get:
+                org_uuid = organisationenhed_get['relationer']['tilhoerer'][0][
+                    'uuid']
             else:
-                exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
-                    parent_uuid=parent_uuid,
-                    org_unit_uuid=unitid,
-                )
+                organisation_get = c.organisation(uuid=parent_uuid)
+
+                if organisation_get:
+                    org_uuid = parent_uuid
+                else:
+                    exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
+                        parent_uuid=parent_uuid,
+                        org_unit_uuid=unitid,
+                    )
 
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)

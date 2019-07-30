@@ -64,11 +64,15 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        org_uuid = "2a7b1686-d697-489d-9f02-96d16e1e224b"
 
         payload = [
             {
                 "type": "manager",
                 "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org": {
+                    "uuid": org_uuid
+                },
                 "person": {'uuid': userid},
                 'address': [{
                     'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
@@ -149,7 +153,7 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01"
                         },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                        "uuid": org_uuid
                     }
                 ],
                 "tilknyttedebrugere": [

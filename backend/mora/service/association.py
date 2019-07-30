@@ -38,14 +38,16 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
+        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=False)
+        if not org_uuid:
+            org_unit_obj = c.organisationenhed.get(org_unit_uuid)
 
-        if not org_unit_obj:
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-                org_unit_uuid=org_unit_uuid,
-            )
+            if not org_unit_obj:
+                exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
+                    org_unit_uuid=org_unit_uuid,
+                )
 
-        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
+            org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         association_type_uuid = util.get_mapping_uuid(
             req,
             mapping.ASSOCIATION_TYPE,

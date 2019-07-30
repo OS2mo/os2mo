@@ -260,6 +260,8 @@ class Tests(util.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
+        org_uuid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
         payload = {
             "name": "Fake Corp",
             "integration_data": {"fakekey": 42},
@@ -268,6 +270,9 @@ class Tests(util.LoRATestCase):
             },
             "parent": {
                 'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            },
+            "org": {
+                "uuid": org_uuid
             },
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
