@@ -134,7 +134,6 @@ export default {
           if (!a.validity) {
             a.validity = this.entry.validity
           }
-          a.org = this.$store.getters['organisation/GET_ORGANISATION']
         })
         this.entry.details = details
 

@@ -57,5 +57,6 @@ export default Vue.extend({
      * Set entry to value.
      */
     this.entry = this.value
+    this.entry.org = this.$store.getters['organisation/GET_ORGANISATION']
   }
 })
