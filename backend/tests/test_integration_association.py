@@ -2304,12 +2304,12 @@ class Tests(util.LoRATestCase):
                 "to": "2017-11-30"
             }
         }
-
         self.assertRequestResponse(
             '/service/e/{}/terminate'.format(userid),
             userid,
             json=payload,
             amqp_topics={
+                'employee.employee.delete' : 1,
                 'employee.association.delete': 1,
                 'employee.engagement.delete': 1,
                 'employee.manager.delete': 1,

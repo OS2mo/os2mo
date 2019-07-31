@@ -181,7 +181,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict(org_unit_uuid=unitid)
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -291,7 +291,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict(org_unit_uuid=unitid)
 
     def prepare_terminate(self, request: dict):
         date = util.get_valid_to(request)
@@ -306,10 +306,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = payload
         self.uuid = util.get_uuid(request)
-        self.org_unit_uuid = self.uuid
+        self.trigger_dict(org_unit_uuid=self.uuid)
 
     def submit(self):
-        super().submit()
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
@@ -322,7 +321,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         else:
             result = c.organisationenhed.update(self.payload, self.uuid)
 
-        return result
+        return super().submit(result=result)
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):

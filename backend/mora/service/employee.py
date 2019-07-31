@@ -32,6 +32,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -117,7 +118,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = user
         self.uuid = userid
-        self.employee_uuid = userid
+        self.trigger_dict(employee_uuid=userid)
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -217,7 +218,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
-        self.employee_uuid = userid
+        self.trigger_dict(employee_uuid=userid)
 
     def submit(self):
         c = lora.Connector()
@@ -229,9 +230,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
-        super().submit()
 
-        return result
+        return super().submit(result)
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
@@ -482,15 +482,31 @@ def terminate_employee(employee_uuid):
             gyldighed='Aktiv',
         )
     ]
+    trigger_dict = {
+        'role_type': mapping.EMPLOYEE,
+        'event_type': Trigger.Event.ON_BEFORE,
+        'request': request,
+        'request_type': handlers.RequestType.TERMINATE,
+        'uuid': employee_uuid,
+        'employee_uuid': employee_uuid
+    }
+
+    Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
+
+    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
+    trigger_dict["result"] = result = flask.jsonify(employee_uuid)
+
+    Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
 
     # TODO:
-    return flask.jsonify(employee_uuid), 200
+
+    return result, 200
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])

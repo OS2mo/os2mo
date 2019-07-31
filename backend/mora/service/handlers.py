@@ -18,12 +18,12 @@ import typing
 import flask
 
 from .validation import validator
-from .. import amqp
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 @enum.unique
@@ -74,6 +74,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
+    def trigger_dict(self, **kwargs):
+        if "uuid" not in self._trigarg or not self._trigarg["uuid"]:
+            self._trigarg["uuid"] = self.uuid
+        self._trigarg.update(kwargs)
+        return self._trigarg
+
     def __init__(self, request: dict, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
@@ -86,8 +92,12 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
-        self.org_unit_uuid = None
-        self.employee_uuid = None
+
+        self._trigarg = {
+            "request_type": request_type,
+            "request": request,
+            "role_type": self.role_type
+        }
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -98,41 +108,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        if self.request_type == RequestType.EDIT:
-            request = request['data']
-        self.prepare_amqp_message(request)
-
-    def prepare_amqp_message(self, request: dict):
-        """Assign and fill ``self.amqp_messages``."""
-        self.amqp_messages = []
-
-        try:  # date = from or to
-            self.date = util.get_valid_from(request)
-        except exceptions.HTTPException:
-            self.date = util.get_valid_to(request)
-        action = {
-            RequestType.CREATE: "create",
-            RequestType.EDIT: "update",
-            RequestType.TERMINATE: "delete",
-        }[self.request_type]
-
-        # both may exist, e.g. for engagement and association
-        if self.employee_uuid:
-            self.amqp_messages.append((
-                'employee',
-                self.role_type,
-                action,
-                self.employee_uuid,
-                self.date,
-            ))
-        if self.org_unit_uuid:
-            self.amqp_messages.append((
-                'org_unit',
-                self.role_type,
-                action,
-                self.org_unit_uuid,
-                self.date,
-            ))
+        Trigger.run(self.trigger_dict(event_type=Trigger.Event.ON_BEFORE))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -162,18 +138,17 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def submit(self) -> str:
+    def submit(self, result=None) -> str:
         """Submit the request to LoRa.
-
-        Subclass overrides *must* invoke this to ensure the message is
-        published to AMQP.
 
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
-        for message in self.amqp_messages:
-            amqp.publish_message(*message)
+        Trigger.run(self.trigger_dict(
+                    result=result,
+                    event_type=Trigger.Event.ON_AFTER))
+
+        return result
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -260,15 +235,17 @@ class OrgFunkRequestHandler(RequestHandler):
             },
         )
 
-        if self.employee_uuid is None:
-            self.employee_uuid = mapping.USER_FIELD.get_uuid(original)
-        if self.org_unit_uuid is None:
-            self.org_unit_uuid = (
-                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+        if self.trigger_dict().get("employee_uuid", None) is None:
+            self.trigger_dict(employee_uuid=mapping.USER_FIELD.get_uuid(
+                              original))
+        if self.trigger_dict().get("org_unit_uuid", None) is None:
+            self.trigger_dict(
+                org_unit_uuid=mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(
+                    original
+                )
             )
 
     def submit(self) -> str:
-        super().submit()
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
@@ -276,7 +253,7 @@ class OrgFunkRequestHandler(RequestHandler):
         else:
             r = c.organisationfunktion.update(self.payload, self.uuid)
 
-        return r
+        return super().submit(result=r)
 
 
 class OrgFunkReadingRequestHandler(ReadingRequestHandler,

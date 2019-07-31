@@ -1705,6 +1705,7 @@ class Tests(util.LoRATestCase):
             userid,
             json=payload,
             amqp_topics={
+                'employee.employee.delete':1,
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
                 'employee.engagement.delete': 1,

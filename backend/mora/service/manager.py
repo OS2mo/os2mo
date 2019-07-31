@@ -14,7 +14,6 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 import operator
-import flask
 
 from . import address
 from . import handlers
@@ -92,15 +91,15 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             mapping.USER_KEY: props['brugervendtnoegle'],
         }
 
-        for uuid in addresses:
-            orgfunc = c.organisationfunktion.get(uuid=uuid)
+        for _uuid in addresses:
+            orgfunc = c.organisationfunktion.get(uuid=_uuid)
             try:
                 addr = address.get_one_address(orgfunc)
-            except IndexError as e:
+            except IndexError:
                 # empty ["relationer"]["adresser"]
                 continue
             addr["address_type"] = address.get_address_type(orgfunc)
-            addr["uuid"] = uuid
+            addr["uuid"] = _uuid
             func[mapping.ADDRESS].append(addr)
 
         func[mapping.ADDRESS] = sorted(
@@ -217,8 +216,10 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = manager
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict(
+            employee_uuid=employee_uuid,
+            org_unit_uuid=org_unit_uuid
+        )
 
     def submit(self):
         if hasattr(self, 'addresses'):
@@ -370,10 +371,12 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = manager_uuid
-        self.org_unit_uuid = util.get_uuid(org_unit, required=False)
-        self.employee_uuid = (
-            util.get_mapping_uuid(data, mapping.PERSON) or
-            mapping.USER_FIELD.get_uuid(original)
+        self.trigger_dict(
+            org_unit_uuid=util.get_uuid(org_unit, required=False),
+            employee_uuid=(
+                util.get_mapping_uuid(data, mapping.PERSON) or
+                mapping.USER_FIELD.get_uuid(original)
+            )
         )
 
     def prepare_terminate(self, request: dict):

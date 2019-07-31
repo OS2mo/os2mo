@@ -19,6 +19,8 @@ from . import settings
 from . import util
 from .auth import base
 from .integrations import serviceplatformen
+from .triggers import mora_triggers  # noqa - activates amgp etc.
+from . import customer  # noqa - activates customizations
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
