@@ -1,6 +1,12 @@
 In development
 ==============
 
+New features
+------------
+
+* #27213: AMQP messages are sent whenever an object is created, edited or
+  deleted which allows anyone to build custom & powerful integrations.
+
 Bug fixes
 ---------
 
