@@ -14,9 +14,6 @@ from mora.service.handlers import (
     RequestHandler,
 )
 
-# make registry local to this test
-class Trigger(Trigger):
-    registry={}
 
 class MockHandler(RequestHandler):
     role_type = "mock"
@@ -37,9 +34,15 @@ class MockHandler(RequestHandler):
 class Tests(util.TestCase):
     maxDiff = None
 
+    def tearDown(self):
+        del Trigger.registry["mock"]
+        super().tearDown()
+
     def setUp(self):
+        if "mock" in Trigger.registry:
+            self.fail("No role_type named 'mock' allowed in "
+                      "Trigger.registry outside this test")
         super().setUp()
-        self.trigger_called = False
 
     def test_handler_trigger_before_edit(self):
         @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
