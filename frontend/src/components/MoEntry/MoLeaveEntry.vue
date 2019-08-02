@@ -1,5 +1,11 @@
 <template>
   <div>
+    <mo-input-date-range
+      v-model="entry.validity"
+      :initially-hidden="datePickerHidden"
+      :disabled-dates="{disabledDates}"
+    />
+
     <div class="form-row">
       <mo-facet-picker
         facet="leave_type"
@@ -7,12 +13,6 @@
         required
       />
     </div>
-
-    <mo-input-date-range
-      v-model="entry.validity"
-      :initially-hidden="datePickerHidden"
-      :disabled-dates="{disabledDates}"
-    />
   </div>
 </template>
 

@@ -1,13 +1,13 @@
 <template>
   <form @submit.stop.prevent="createLeave">
+    <mo-leave-entry v-model="leave"/>
+
     <mo-employee-picker
       v-model="employee"
       required
       :validity="leave.validity"
       :extra-validations="validations"
     />
-
-    <mo-leave-entry class="mt-3" v-model="leave"/>
 
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError)}}

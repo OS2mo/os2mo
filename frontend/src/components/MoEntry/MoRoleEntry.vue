@@ -1,5 +1,11 @@
 <template>
   <div>
+    <mo-input-date-range
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
+    />
+
     <div class="form-row">
       <mo-organisation-unit-picker
         class="col unit-role"
@@ -16,12 +22,6 @@
         required
       />
     </div>
-
-    <mo-input-date-range
-      v-model="entry.validity"
-      :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
-    />
   </div>
 </template>
 

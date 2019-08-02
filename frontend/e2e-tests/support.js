@@ -4,5 +4,10 @@ export let baseURL = process.env.BASE_URL ?
   process.env.BASE_URL.replace(/\/+$/, '') : 'http://localhost:8080'
 
 export async function reset(test) {
-  await axios.get(baseURL + '/reset-db')
+  await test.eval(() => {
+    let request = new XMLHttpRequest();
+    request.open('GET', '/reset-db', false);
+    request.send(null);
+    location.reload()
+  });
 }

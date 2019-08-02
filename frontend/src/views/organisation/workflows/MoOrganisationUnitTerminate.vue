@@ -11,20 +11,20 @@
   >
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
-        <mo-organisation-unit-picker
-          :label="$t('input_fields.select_unit')"
-          class="col"
-          v-model="org_unit"
-          required
-          :validity="validity"
-        />
-
         <mo-input-date
           class="from-date"
           :label="$t('input_fields.end_date')"
           :valid-dates="validDates"
           v-model="terminate.validity.to"
           required
+        />
+
+        <mo-organisation-unit-picker
+          :label="$t('input_fields.select_unit')"
+          class="col"
+          v-model="org_unit"
+          required
+          :validity="validity"
         />
       </div>
 

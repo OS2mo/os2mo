@@ -1,5 +1,14 @@
 <template>
   <form @submit.stop.prevent="moveEmployee">
+    <div class="form-row">
+      <mo-input-date
+        class="col from-date"
+        :label="$t('input_fields.move_date')"
+        v-model="from"
+        required
+      />
+    </div>
+
     <mo-employee-picker
       class="search-employee"
       v-model="person"
@@ -23,15 +32,6 @@
         v-model="org_unit"
         required
         :validity="validity"
-      />
-    </div>
-
-    <div class="form-row">
-      <mo-input-date
-        class="col from-date"
-        :label="$t('input_fields.move_date')"
-        v-model="from"
-        required
       />
     </div>
 

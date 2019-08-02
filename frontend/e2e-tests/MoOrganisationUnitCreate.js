@@ -19,7 +19,7 @@ const unitOption = unitSelect.find('option')
 const addressInput = dialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
 const addressItem = addressInput.find('.v-autocomplete-list-item label')
 
-const addressVisibility = dialog.find('.form-row .phone select[data-vv-as="Synlighed"]')
+const addressVisibility = dialog.find('select[data-vv-as="Synlighed"]')
 const addressVisibilityOption = addressVisibility.find('option')
 
 const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')

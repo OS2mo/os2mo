@@ -243,7 +243,7 @@ export default {
      * Re-render the tree when the date changes.
      */
     atDate () {
-      this.updateTree()
+      this.updateTree(true)
     }
   },
 
