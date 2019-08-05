@@ -154,6 +154,12 @@ def update_payload(
         if field_tuple.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
             updated_props = _merge_obj_effects(props, vals)
+            for p in updated_props:
+                if len(p) == 1 and 'virkning' in p:
+                    # Change periods with no UUID or URN to correct
+                    # link-changing syntax.
+                    p['uuid'] = ''
+                    p['urn'] = ''
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
             updated_props = vals
