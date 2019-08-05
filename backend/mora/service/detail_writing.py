@@ -52,7 +52,7 @@ def handle_requests(
 
 
 @blueprint.route('/details/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create():
     """Creates new relations on employees and units
 
@@ -418,7 +418,7 @@ def create():
 
 
 @blueprint.route('/details/edit', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def edit():
     """Edits a relation or attribute on an employee or unit
 
@@ -883,7 +883,7 @@ def edit():
 
 
 @blueprint.route('/details/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate():
     '''Terminate a relation as of a given day.
 

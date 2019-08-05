@@ -964,7 +964,7 @@ def list_orgunit_tree(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1020,7 +1020,7 @@ def create_org_unit():
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 

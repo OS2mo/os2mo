@@ -75,10 +75,11 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
     def trigger_dict(self, **kwargs):
-        if "uuid" not in self._trigarg or not self._trigarg["uuid"]:
-            self._trigarg["uuid"] = self.uuid
-        self._trigarg.update(kwargs)
-        return self._trigarg
+        if self.do_triggers:
+            if "uuid" not in self._trigarg or not self._trigarg["uuid"]:
+                self._trigarg["uuid"] = self.uuid
+            self._trigarg.update(kwargs)
+            return self._trigarg
 
     def __init__(self, request: dict, request_type: RequestType):
         """
@@ -93,11 +94,14 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.payload = None
         self.uuid = None
 
-        self._trigarg = {
-            "request_type": request_type,
-            "request": request,
-            "role_type": self.role_type
-        }
+        self.do_triggers = not flask.request.args.get('triggerless', False)
+        if self.do_triggers:
+            self._trigarg = {
+                "request_type": request_type,
+                "request": request,
+                "role_type": self.role_type,
+                "event_type": Trigger.Event.ON_BEFORE
+            }
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -108,7 +112,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        Trigger.run(self.trigger_dict(event_type=Trigger.Event.ON_BEFORE))
+        if self.do_triggers:
+            Trigger.run(self.trigger_dict())
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -144,9 +149,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
-        Trigger.run(self.trigger_dict(
-                    result=result,
-                    event_type=Trigger.Event.ON_AFTER))
+        if self.do_triggers:
+            Trigger.run(self.trigger_dict(
+                        result=result,
+                        event_type=Trigger.Event.ON_AFTER))
 
         return result
 

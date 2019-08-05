@@ -424,7 +424,7 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -482,24 +482,26 @@ def terminate_employee(employee_uuid):
             gyldighed='Aktiv',
         )
     ]
-    trigger_dict = {
-        'role_type': mapping.EMPLOYEE,
-        'event_type': Trigger.Event.ON_BEFORE,
-        'request': request,
-        'request_type': handlers.RequestType.TERMINATE,
-        'uuid': employee_uuid,
-        'employee_uuid': employee_uuid
-    }
 
-    Trigger.run(trigger_dict)
+    if not flask.request.args.get('triggerless'):
+        trigger_dict = {
+            'role_type': mapping.EMPLOYEE,
+            'event_type': Trigger.Event.ON_BEFORE,
+            'request': request,
+            'request_type': handlers.RequestType.TERMINATE,
+            'uuid': employee_uuid,
+            'employee_uuid': employee_uuid
+        }
+
+        Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
 
-    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
-    trigger_dict["result"] = result = flask.jsonify(employee_uuid)
-
-    Trigger.run(trigger_dict)
+    if not flask.request.args.get('triggerless'):
+        trigger_dict["event_type"] = Trigger.Event.ON_AFTER
+        trigger_dict["result"] = result = flask.jsonify(employee_uuid)
+        Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
@@ -570,7 +572,7 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create_employee():
     """Create a new employee
 
