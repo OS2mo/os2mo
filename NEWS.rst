@@ -7,6 +7,8 @@ Bug fixes
 * #29761: Date pickers moved to the top of the various forms
 * #30093: The shown units in the organisation unit pickers now reflect
     the dates selected in the date pickers
+* #29669: Fix terminating units past any date they've been changed in
+  the future.
 
 New features
 ------------
