@@ -21,6 +21,8 @@ Bug fixes
   rather than e.g. the creation date of an old unit.
 * #30095: Address missing error in CPR search by automatically
   performing said search. And filter out any dashes while at it.
+* #29569: Validate addresses related to their unit and employee when
+  editing rather than merely at creation.
 
 New features
 ------------
