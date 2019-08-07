@@ -566,15 +566,19 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            # NB: not a helpful error :(
             {
-                'description': "'NoneType' object is not subscriptable",
+                'description': "Missing data",
                 'error': True,
-                'error_key': 'E_UNKNOWN',
-                'status': 500,
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
+                'status': 400,
+                'key': 'data',
+                'obj': {
+                    'type': 'engagement',
+                    'uuid': '00000000-0000-0000-0000-000000000000',
+                },
             },
             json=payload,
-            status_code=500,
+            status_code=400,
         )
 
     def test_create_engagement_fails_on_missing_unit(self):
