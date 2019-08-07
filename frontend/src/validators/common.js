@@ -1,8 +1,11 @@
 import i18n from '../i18n.js'
 
-const getMessage = (field, args, key) => {
+const getMessage = (field, args, error_data) => {
+  let key = error_data && error_data.error_key
   let messages = i18n.messages[i18n.locale]
-  let error = messages.alerts.error[key]
+
+  let error =  i18n.t(`alerts.error.${key}`, error_data)
+
   if (error) {
     return error
   } else {
