@@ -247,10 +247,8 @@ export default {
     handle (response) {
       this.isLoading = false
       if (response.error) {
-        let messages = this.$i18n.messages[this.$i18n.locale]
-
         this.backendValidationMessage =
-            messages.alerts.error[response.error_key]
+            this.$t('alerts.error.' + response.error_key, response)
 
         if (!this.backendValidationMessage) {
           this.backendValidationMessage = this.$t('alerts.fallback', response)
