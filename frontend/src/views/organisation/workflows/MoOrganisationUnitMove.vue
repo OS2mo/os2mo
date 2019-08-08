@@ -18,9 +18,7 @@
           :valid-dates="currentDateValidity"
           required
         />
-      </div>
 
-      <div class="form-row">
         <div class="col">
           <mo-organisation-unit-picker
             class="currentUnit"
@@ -30,7 +28,9 @@
             required
           />
         </div>
+      </div>
 
+      <div class="form-row">
         <div class="form-group col">
           <label>{{$t('input_fields.current_super_unit')}}</label>
           <input

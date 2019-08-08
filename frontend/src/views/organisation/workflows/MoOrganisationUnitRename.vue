@@ -12,7 +12,7 @@
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
         <mo-input-date
-          class="col"
+          class="from-date"
           :label="$t('input_fields.start_date')"
           v-model="rename.data.validity.from"
           :valid-dates="currentDateValidity"
