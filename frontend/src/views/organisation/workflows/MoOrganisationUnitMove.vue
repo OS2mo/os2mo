@@ -96,6 +96,7 @@ export default {
         type: 'org_unit',
         data: {
           uuid: '',
+          clamp: true,
           validity: {}
         }
       },
