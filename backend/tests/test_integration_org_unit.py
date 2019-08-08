@@ -12,7 +12,6 @@ import freezegun
 import notsouid
 
 from mora import lora
-
 from . import util
 
 mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
@@ -1054,6 +1053,96 @@ class Tests(util.LoRATestCase):
             404,
             "should not exist before start",
             amqp_topics={'org_unit.org_unit.update': 1},
+        )
+
+    @freezegun.freeze_time('2016-01-01')
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_edit_org_unit_extending_end(self, m):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        topics = {}
+
+        def check_future_names(*names):
+            self.assertEqual(
+                list(names),
+                [
+                    (d["name"], d["validity"]["from"], d["validity"]["to"])
+                    for d in self.assertRequest(
+                        "/service/ou/{}/details/org_unit?validity=future"
+                        .format(unitid),
+                        amqp_topics=topics,
+                    )
+                ],
+            )
+
+        with self.subTest("prerequisites"):
+            check_future_names(
+                ('Afdeling for Samtidshistorik', '2017-01-01', '2017-12-31'),
+                ('Afdeling for Fortidshistorik', '2018-01-01', '2018-12-31'),
+            )
+
+        self.assertRequestFails(
+            "/service/details/edit",
+            400,
+            "Editing without clamp should fail",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Vrøvl",
+                    "uuid": unitid,
+                    "validity": {
+                        "from": "2018-06-01",
+                    },
+                },
+            },
+        )
+
+        topics = {"org_unit.org_unit.update": 1}
+        self.assertRequestResponse(
+            "/service/details/edit",
+            unitid,
+            "Editing with clamp should succeed",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Vrøvl",
+                    "uuid": unitid,
+                    "clamp": True,
+                    "validity": {
+                        "from": "2018-03-01",
+                    },
+                },
+            },
+            amqp_topics=topics,
+        )
+
+        topics["org_unit.org_unit.update"] += 1
+        self.assertRequestResponse(
+            "/service/details/edit",
+            unitid,
+            "Editing with clamp should succeed",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Sludder",
+                    "uuid": unitid,
+                    "clamp": True,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-09-30",
+                    },
+                },
+            },
+            amqp_topics=topics,
+        )
+
+        check_future_names(
+            ('Afdeling for Samtidshistorik', '2017-01-01', '2017-12-31'),
+            ('Afdeling for Fortidshistorik', '2018-01-01', '2018-02-28'),
+            ('Institut for Vrøvl', '2018-03-01', '2018-05-31'),
+            ('Institut for Sludder', '2018-06-01', '2018-09-30'),
+            ('Institut for Vrøvl', '2018-10-01', '2018-12-31'),
         )
 
     @freezegun.freeze_time('2016-01-01')

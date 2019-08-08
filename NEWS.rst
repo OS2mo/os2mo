@@ -19,6 +19,9 @@ Bug fixes
   the future.
 * #29700: Ensure that date dropdowns always focus a selectable date,
   rather than e.g. the creation date of an old unit.
+* #29245: EAN and P-number validation now behave as expected
+* #29244: We no longer automatically add +45 to phone numbers
+* #29563: Fix renaming or moving units that have a termination date.
 * #30095: Address missing error in CPR search by automatically
   performing said search. And filter out any dashes while at it.
 * #29569: Validate addresses related to their unit and employee when
@@ -34,11 +37,6 @@ New features
 * #30094: Allow organisational units to have no addresses, rather than
   forcing them to have a phone and physical location.
 
-Bug fixes
----------
-
-#29245: EAN and P-number validation now behave as expected
-#29244: We no longer automatically add +45 to phone numbers
 
 Version 0.20.1, 2019-07-15
 ==========================

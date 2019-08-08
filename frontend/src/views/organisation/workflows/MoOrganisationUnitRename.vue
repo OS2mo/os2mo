@@ -84,6 +84,7 @@ export default {
         data: {
           name: '',
           uuid: '',
+          clamp: true,
           validity: {}
         }
       },

@@ -101,6 +101,7 @@ export default {
             uuid: ''
           },
           uuid: '',
+          clamp: true,
           validity: {}
         }
       },
