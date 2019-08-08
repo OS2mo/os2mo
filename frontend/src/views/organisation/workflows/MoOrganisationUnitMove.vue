@@ -10,13 +10,15 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="moveOrganisationUnit">
-      <mo-input-date
-        class="moveDate"
-        :label="$t('input_fields.move_date')"
-        v-model="move.data.validity.from"
-        :valid-dates="currentDateValidity"
-        required
-      />
+      <div class="form-row">
+        <mo-input-date
+          class="moveDate"
+          :label="$t('input_fields.move_date')"
+          v-model="move.data.validity.from"
+          :valid-dates="currentDateValidity"
+          required
+        />
+      </div>
 
       <div class="form-row">
         <div class="col">
