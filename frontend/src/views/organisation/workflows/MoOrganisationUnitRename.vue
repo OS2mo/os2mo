@@ -11,20 +11,18 @@
   >
     <form @submit.stop.prevent="renameOrganisationUnit">
       <div class="form-row">
-        <mo-input-date-range
+        <mo-input-date
           class="col"
-          v-model="rename.data.validity"
-          :disabled-dates="{orgUnitValidity, disabledDates}"
+          :label="$t('input_fields.start_date')"
+          v-model="rename.data.validity.from"
+          :valid-dates="currentDateValidity"
         />
-      </div>
-
-      <div class="form-row">
         <mo-organisation-unit-picker
           :label="$t('input_fields.select_unit')"
           class="col"
           v-model="original"
           required
-          :validity="rename.data.validity"
+          :validity="validity"
         />
       </div>
 
@@ -53,8 +51,9 @@
 
 import OrganisationUnit from '@/api/OrganisationUnit'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import { MoInputText, MoInputDateRange } from '@/components/MoInput'
+import { MoInputText, MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
+import CurrentDateValidity from "@/mixins/CurrentDateValidity";
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
@@ -64,10 +63,10 @@ import MoEntryBase from '@/components/MoEntry/MoEntryBase'
 export default {
   extends: MoEntryBase,
 
-  mixins: [ValidateForm, ModalBase],
+  mixins: [CurrentDateValidity, ValidateForm, ModalBase],
 
   components: {
-    MoInputDateRange,
+    MoInputDate,
     MoOrganisationUnitPicker,
     MoInputText,
     ButtonSubmit
@@ -112,19 +111,12 @@ export default {
       return false
     },
 
-    /**
-     * Valid dates for orgUnit.
-     */
-    orgUnitValidity () {
-      return this.disabledToTodaysDate
-    },
-
-    /**
-     * Disabled dates to todays date for the date picker.
-     */
-    disabledToTodaysDate () {
+    validity () {
       return {
-        'from': new Date().toISOString().substring(0, 10)
+        // Validation is meant to check an instant in time,
+        // which is why 'to' is duplicated
+        'from': this.rename.data.validity.to,
+        'to': this.rename.data.validity.to
       }
     }
   },
