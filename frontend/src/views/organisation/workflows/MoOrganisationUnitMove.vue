@@ -24,8 +24,7 @@
             class="currentUnit"
             v-model="original"
             :label="$t('input_fields.select_unit')"
-            :date="move.data.validity.from"
-            :validity="validity"
+            :validity="requiredValidity"
             required
           />
         </div>
@@ -45,8 +44,7 @@
         class="parentUnit"
         v-model="move.data.parent"
         :label="$t('input_fields.select_new_super_unit')"
-        :date="move.data.validity.from"
-        :validity="validity"
+        :validity="requiredValidity"
         :extra-validations="parentValidations"
         required
       />
@@ -105,18 +103,21 @@ export default {
   },
 
   computed: {
-    validity () {
+    /**
+     * A validity of one day, corresponding to the required validity
+     * of units: They only need to be valid on the date of the operation.
+     */
+    requiredValidity () {
       return {
-        'from': this.move.data.validity.from
+        from: this.move.data.validity.from,
+        to: this.move.data.validity.from
       }
     },
-
     parentValidations () {
       return {
-        candidate_parent_org_unit: [this.original, this.move.data.parent, this.validity]
+        candidate_parent_org_unit: [this.original, this.move.data.parent, this.move.data.validity]
       }
     }
-
   },
 
   watch: {
