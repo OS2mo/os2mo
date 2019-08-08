@@ -55,6 +55,7 @@
  * A organisation unit terminate component.
  */
 
+import moment from 'moment'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -97,7 +98,10 @@ export default {
      * Check if the organisation date are valid.
      */
     validDates () {
-      return this.org_unit ? this.org_unit.validity : {}
+      return {
+          from: moment().format('YYYY-MM-DD'),
+          to: null
+      }
     },
 
     ...mapGetters({
