@@ -1086,12 +1086,10 @@ def terminate_org_unit(unitid):
         {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
     )
 
-    children = c.organisationenhed.paged_get(
-        get_one_orgunit,
+    children = set(c.organisationenhed(
         overordnet=unitid,
         gyldighed='Aktiv',
-        limit=5,
-    )
+    ))
 
     roles = set(c.organisationfunktion(
         tilknyttedeenheder=unitid,
@@ -1104,13 +1102,25 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    relevant = roles - addresses
+    role_counts = set(
+        mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
+        for objid, obj in c.organisationfunktion.get_all(
+            uuid=roles - addresses,
+        ),
+    )
 
-    if children['total'] or relevant:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
-            child_units=children['items'],
-            child_count=children['total'],
-            role_count=len(relevant),
+    if children and role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
+            child_count=len(children),
+            roles=', '.join(sorted(role_counts)),
+        )
+    elif children:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
+            child_count=len(children),
+        )
+    elif role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
+            roles=', '.join(sorted(role_counts)),
         )
 
     request[mapping.UUID] = unitid
