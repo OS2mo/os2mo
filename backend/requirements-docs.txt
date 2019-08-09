@@ -6,4 +6,3 @@ sphinxcontrib-httpdomain>=1.6.0
 sphinxcontrib-apidoc>=0.2.1
 sphinx-click>=1.0.3
 recommonmark>=0.4.0
-pika==0.13.0
