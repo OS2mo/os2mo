@@ -9,6 +9,8 @@ Bug fixes
     the dates selected in the date pickers
 * #29669: Fix terminating units past any date they've been changed in
   the future.
+* #29700: Ensure that date dropdowns always focus a selectable date,
+  rather than e.g. the creation date of an old unit.
 
 New features
 ------------
