@@ -7,7 +7,7 @@
       </h4>
       <span v-for="(q, index) in queries" :key="index">
         <icon name="download"/>
-      <a href="#" @click="downloadFile(q)">{{q}}</a>
+      <a href="#" @click="download(q)">{{q}}</a>
       </span>
     </div>
   </div>
