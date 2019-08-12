@@ -28,10 +28,6 @@ export default {
     value: Object,
     facet: { type: String, required: true },
     required: Boolean,
-    preselectedUserKey: {
-      type: String,
-      default: null
-    }
   },
 
   data () {
@@ -47,21 +43,12 @@ export default {
     sortedOptions () {
       return sortBy(this.facetData.classes, 'name')
     },
-    isDisabled () {
-      return this.preselectedUserKey !== undefined
-    },
     labelText () {
       return this.facetData.user_key ? this.$t(`input_fields.${this.facetData.user_key}`) : ''
     },
     preselected () {
       let preselected = null
       if (!this.facetData.classes) return preselected
-
-      this.facetData.classes.filter(data => {
-        if (data.user_key === this.preselectedUserKey) {
-          preselected = data
-        }
-      })
 
       return preselected
     }
@@ -87,7 +74,7 @@ export default {
   mounted () {
     this.setInternalValue()
 
-    if (this.value && this.preselectedUserKey == null) {
+    if (this.value) {
       this.internalValue = this.value
     }
   },

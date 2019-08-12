@@ -8,11 +8,9 @@
     />
     <div class="form-row">
       <mo-facet-picker
-        v-show="noPreselectedType"
         class="col"
         :facet="facet"
         v-model="entry.address_type"
-        :preselected-user-key="preselectedType"
         required
       />
 
@@ -45,7 +43,6 @@
         v-if="isPhone"
         facet="visibility"
         v-model="entry.visibility"
-        :preselected-user-key="preselectedType"
       />
     </div>
 
@@ -93,13 +90,7 @@ export default {
     label: String,
 
     /**
-     * Defines a preselectedType.
-     * @type {String}
-     */
-    preselectedType: String,
-
-    /**
-     * Defines a preselectedType.
+     * The facet of the addresses.
      * @type {String}
      */
     facet: {
@@ -138,14 +129,6 @@ export default {
     isPhone () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
       return false
-    },
-
-    /**
-     * If it has not a preselectedType.
-     * @type {Boolean}
-     */
-    noPreselectedType () {
-      return this.preselectedType == null
     },
 
     /**
