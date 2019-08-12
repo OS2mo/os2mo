@@ -1,6 +1,14 @@
 In development
 ==============
 
+API changes
+-----------
+
+``/service/e/create``:
+
+Our validation now prevents creating an employee without a CPR number.
+To bypass this check, specify ``force=1``.
+
 Bug fixes
 ---------
 
