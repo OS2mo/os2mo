@@ -7,6 +7,9 @@
         :name="nameId"
         :data-vv-as="label"
         v-model="cprNo"
+        autocomplete="off"
+        required
+        spellcheck="false"
         class="form-control"
         type="text"
         maxlength="10"
