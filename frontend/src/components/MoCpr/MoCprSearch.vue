@@ -6,7 +6,7 @@
       <input
         :name="nameId"
         :data-vv-as="label"
-        v-model="cprNo"
+        v-model.trim="cprNo"
         autocomplete="off"
         spellcheck="false"
         class="form-control"
@@ -91,7 +91,7 @@ export default {
 
       this.isLoading = true
 
-      let response = await Search.cprLookup(cprNo)
+      let response = await Search.cprLookup(cprNo && cprNo.replace(/-/g, ''))
 
       this.isLoading = false
 
