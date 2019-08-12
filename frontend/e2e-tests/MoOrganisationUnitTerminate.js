@@ -16,9 +16,6 @@ const createTimeOption = createTimeSelect.find('option')
 const createUnitSelect = createDialog.find('select[data-vv-as="Enhedstype"]')
 const createUnitOption = createUnitSelect.find('option')
 
-const createAddressInput = createDialog.find('.v-autocomplete[data-vv-as="Postadresse"]')
-const createAddressItem = createAddressInput.find('.v-autocomplete-list-item label')
-
 const createParentInput = createDialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const createFromInput = createDialog.find('.from-date input.form-control')
@@ -53,15 +50,6 @@ test('Workflow: terminate org unit', async t => {
     .hover(createDialog.find('.vdp-datepicker .day:not(.blank)'))
     .click(createDialog.find('.vdp-datepicker .day:not(.blank)'))
     .expect(createFromInput.value).eql(today.format('01-MM-YYYY'))
-
-    .click(createAddressInput)
-    .typeText(createAddressInput.find('input'), 'hjør')
-    .expect(createAddressItem.withText('Hjørringgade').visible).ok()
-    .pressKey('down enter')
-    .expect(createAddressInput.find('input').value)
-    .eql('Hjørringgade 1, 9850 Hirtshals')
-
-    .typeText(createDialog.find('input[data-vv-as="Telefon"]'), '44772000')
 
     .click(createDialog.find('.btn-primary'))
 
