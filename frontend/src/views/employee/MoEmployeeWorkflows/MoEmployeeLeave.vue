@@ -10,7 +10,7 @@
     />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError)}}
+      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
     </div>
 
     <div class="float-right">
@@ -93,7 +93,7 @@ export default {
         this.$store.dispatch(`${STORE_KEY}/leaveEmployee`)
           .then(response => {
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$emit('submitted')
             }

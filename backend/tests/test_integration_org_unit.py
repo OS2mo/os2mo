@@ -2474,24 +2474,11 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 1,
+                'roles': 'Relateret Enhed',
                 'child_count': 1,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Afdeling for Samtidshistorik',
-                        'user_key': 'frem',
-                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2508,35 +2495,13 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 5,
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
                 'child_count': 2,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Filosofisk Institut',
-                        'user_key': 'fil',
-                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
-                        },
-                    },
-                    {
-                        'child_count': 1,
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2553,25 +2518,13 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 5,
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
                 'child_count': 1,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Filosofisk Institut',
-                        'user_key': 'fil',
-                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2604,13 +2557,10 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
-                'description': 'Cannot terminate unit with '
-                               'active children and roles.',
-                'role_count': 5,
-                'child_count': 0,
-
-                'child_units': [],
+                'error_key': 'V_TERMINATE_UNIT_WITH_ROLES',
+                'description': 'Cannot terminate unit with active roles.',
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
             },
             status_code=400,
             json={

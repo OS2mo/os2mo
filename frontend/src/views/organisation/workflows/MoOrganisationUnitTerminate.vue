@@ -14,7 +14,7 @@
         <mo-input-date
           class="from-date"
           :label="$t('input_fields.end_date')"
-          :valid-dates="validDates"
+          :valid-dates="currentDateValidity"
           v-model="terminate.validity.to"
           required
         />
@@ -40,7 +40,7 @@
       </div>
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
+        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
       </div>
 
       <div class="float-right">
@@ -55,12 +55,12 @@
  * A organisation unit terminate component.
  */
 
-import moment from 'moment'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
@@ -69,7 +69,7 @@ import orgUnitStore from '@/store/modules/organisationUnit'
 const STORE_KEY = '_organisationUnitTerminate'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [CurrentDateValidity, ValidateForm, ModalBase],
 
   components: {
     MoInputDate,
@@ -94,16 +94,6 @@ export default {
   },
 
   computed: {
-    /**
-     * Check if the organisation date are valid.
-     */
-    validDates () {
-      return {
-          from: moment().format('YYYY-MM-DD'),
-          to: null
-      }
-    },
-
     ...mapGetters({
       orgUnitDetails: STORE_KEY + '/GET_DETAILS'
     }),
@@ -159,7 +149,7 @@ export default {
           .then(response => {
             vm.isLoading = false
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$refs.orgUnitTerminate.hide()
             }
