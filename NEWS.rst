@@ -17,6 +17,8 @@ New features
 
 * #27213: AMQP messages are sent whenever an object is created, edited or
   deleted which allows anyone to build custom & powerful integrations.
+* #30094: Allow organisational units to have no addresses, rather than
+  forcing them to have a phone and physical location.
 
 Bug fixes
 ---------

@@ -11,7 +11,6 @@
       "engagement": "Engagement",
       "it_system": "@:shared.it_system",
       "manager": "@:shared.manager",
-      "other_addresses": "Øvrige adresser",
       "role": "@:shared.role"
     },
     "messages": {
@@ -23,6 +22,9 @@
     "rename_unit": "Omdøb enhed",
     "move_unit": "Flyt enhed",
     "terminate_unit": "Afslut enhed",
+    "labels": {
+      "address": "@:shared.address"
+    },
     "messages": {
       "following_will_be_terminated": "Følgende vil blive afsluttet for enheden:"
     }

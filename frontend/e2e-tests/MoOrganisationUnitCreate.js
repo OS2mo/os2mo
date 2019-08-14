@@ -26,7 +26,7 @@ const parentInput = dialog.find('input[data-vv-as="Angiv overenhed"]')
 
 const fromInput = dialog.find('.from-date input.form-control')
 
-const addressTypeSelect = dialog.find('.address select[data-vv-as="Adressetype"]')
+const addressTypeSelect = dialog.find('.address select[data-vv-as="Adressetype"]').nth(-1)
 const addressTypeOption = addressTypeSelect.find('option')
 
 const addressEmailInput = dialog.find('input[data-vv-as="Email"]')
@@ -77,12 +77,22 @@ test('Workflow: create unit', async t => {
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
+    .click(dialog.find('.btn-outline-success'))
+
+    .click(addressTypeSelect)
+    .click(addressTypeOption.withText('Postadresse'))
+
     .click(addressInput)
     .typeText(addressInput.find('input'), 'hovedvejen 2')
     .expect(addressItem.withText(' ').visible).ok()
     .pressKey('down enter')
     .expect(addressInput.find('input').value)
     .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
+
+    .click(dialog.find('.btn-outline-success'))
+
+    .click(addressTypeSelect)
+    .click(addressTypeOption.withText('Telefon'))
 
     .typeText(dialog.find('input[data-vv-as="Telefon"]'), '44772000')
 
