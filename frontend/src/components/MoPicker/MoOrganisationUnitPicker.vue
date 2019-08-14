@@ -17,6 +17,7 @@
 
     <div class="mo-input-group" v-show="showTree">
       <mo-tree-view v-model="selectedSuperUnitUuid"
+                    :disabled-unit="disabledUnit && disabledUnit.uuid"
                     :at-date="validity && validity.from"/>
     </div>
 
@@ -78,6 +79,11 @@ export default {
       type: [Object, undefined],
       required: false
     },
+
+    /**
+     * Unselectable unit.
+     */
+    disabledUnit: Object,
 
     /**
      * An object of additional validations to be performed

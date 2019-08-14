@@ -48,6 +48,7 @@
         :label="$t('input_fields.select_new_super_unit')"
         :date="move.data.validity.from"
         :validity="validity"
+        :disabled-unit="original"
         :extra-validations="parentValidations"
         required
       />
