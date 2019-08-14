@@ -82,13 +82,15 @@ export default {
      * are valid. Then throw a error if not.
      */
     async cprNo (cprNo) {
-      this.backendValidationError = null
-
-      if (cprNo.length == 0) {
+      if (cprNo.length < 10) {
+        this.backendValidationError = (
+          cprNo ? { error_key: "V_CPR_NOT_VALID" } : null
+        )
         this.$emit('input', {})
         return
       }
 
+      this.backendValidationError = null
       this.isLoading = true
 
       let response = await Search.cprLookup(cprNo && cprNo.replace(/-/g, ''))
