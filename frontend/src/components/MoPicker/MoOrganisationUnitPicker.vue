@@ -146,11 +146,16 @@ export default {
 
       this.orgName = unit.name
       this.orgUnitUuid = unit.uuid
-      this.$validator.validate(this.nameId)
       this.$refs[this.nameId].blur()
       this.showTree = false
 
-      this.$emit('input', unit)
+      await this.$emit('input', unit)
+
+      // NB: we don't perform validations until _after_ we've notified
+      // the model using the event above. this avoids a race condition
+      // where the extraValidations refer to our model (see #29570)
+      this.$validator.validate(this.nameId)
+
     },
 
     async validity (newVal, oldVal) {
