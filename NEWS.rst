@@ -23,6 +23,8 @@ Bug fixes
   performing said search. And filter out any dashes while at it.
 * #29569: Validate addresses related to their unit and employee when
   editing rather than merely at creation.
+* #29570: Ensure the error messages when validating a unit move are correct
+  and in the correct locations.
 
 New features
 ------------
