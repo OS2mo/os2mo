@@ -270,8 +270,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
-            validator.is_candidate_parent_valid(unitid,
-                                                parent_uuid, new_from)
+
+            if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
+                validator.is_movable_org_unit(unitid)
+
+            validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
+
             update_fields.append((
                 mapping.PARENT_FIELD,
                 {'uuid': parent_uuid}

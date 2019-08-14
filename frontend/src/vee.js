@@ -16,6 +16,7 @@ import Employee from './validators/Employee'
 import ExistingAssociations from './validators/ExistingAssociations'
 import DateInRange from './validators/DateInRange'
 import OrgUnit from './validators/OrgUnit'
+import MovableOrgUnit from "./validators/MovableOrgUnit";
 
 /**
  * See configuration options here:
@@ -46,6 +47,7 @@ Validator.extend('cpr', Cpr)
 Validator.extend('employee', Employee)
 Validator.extend('existing_associations', ExistingAssociations)
 Validator.extend('date_in_range', DateInRange)
+Validator.extend('movable_org_unit', MovableOrgUnit)
 Validator.extend('orgunit', OrgUnit)
 
 Vue.use(VeeValidate, veeConfig)

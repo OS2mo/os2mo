@@ -26,6 +26,7 @@
             :label="$t('input_fields.select_unit')"
             :date="move.data.validity.from"
             :validity="validity"
+            :extra-validations="unitValidations"
             required
           />
         </div>
@@ -108,6 +109,12 @@ export default {
     validity () {
       return {
         'from': this.move.data.validity.from
+      }
+    },
+
+    unitValidations () {
+      return {
+        movable_org_unit: [this.original]
       }
     },
 

@@ -78,6 +78,19 @@ export default {
       })
   },
 
+  isMovableOrgUnit (orgUnit) {
+    const payload = {
+      'org_unit': orgUnit,
+    }
+
+    return Validate
+      .post('/movable-org-unit/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
+  },
+
   candidateParentOrgUnit (orgUnit, parent, validity) {
     const payload = {
       'org_unit': orgUnit,
