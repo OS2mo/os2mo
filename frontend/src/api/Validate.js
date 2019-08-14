@@ -78,7 +78,7 @@ export default {
       })
   },
 
-  candidateParentOrgUnit (orgUnit, parent, validity, associationUuid) {
+  candidateParentOrgUnit (orgUnit, parent, validity) {
     const payload = {
       'org_unit': orgUnit,
       'parent': parent,
