@@ -1,6 +1,14 @@
 In development
 ==============
 
+API changes
+-----------
+
+``/service/e/create``:
+
+Our validation now prevents creating an employee without a CPR number.
+To bypass this check, specify ``force=1``.
+
 Bug fixes
 ---------
 
@@ -11,6 +19,8 @@ Bug fixes
   the future.
 * #29700: Ensure that date dropdowns always focus a selectable date,
   rather than e.g. the creation date of an old unit.
+* #30095: Address missing error in CPR search by automatically
+  performing said search. And filter out any dashes while at it.
 
 New features
 ------------

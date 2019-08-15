@@ -394,6 +394,12 @@ def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
     """
+    if not util.is_cpr_number(cpr):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CPR_NOT_VALID,
+            cpr=cpr,
+        )
+
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)

@@ -139,7 +139,13 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/e/create',
-            userid,
+            {
+                "cpr": "",
+                "description": "Not a valid CPR number.",
+                "error": True,
+                "error_key": "V_CPR_NOT_VALID",
+                "status": 400,
+            },
             json={
                 'givenname': 'Teodor',
                 'surname': 'Testfætter',
@@ -149,24 +155,7 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': userid,
             },
-            amqp_topics={'employee.employee.create': 1},
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/'.format(userid),
-            {
-                'givenname': 'Teodor',
-                'surname': 'Testfætter',
-                'name': 'Teodor Testfætter',
-                'user_key': 'testfætter',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                },
-                'uuid': userid,
-            },
-            amqp_topics={'employee.employee.create': 1},
+            status_code=400,
         )
 
     def test_create_employee_fails_on_empty_payload(self):

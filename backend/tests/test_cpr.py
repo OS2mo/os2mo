@@ -60,6 +60,19 @@ class Tests(util.TestCase):
                 status_code=404,
             )
 
+        with self.subTest('not a cpr number'):
+            self.assertRequestResponse(
+                '/service/e/cpr_lookup/?q=1337',
+                {
+                    'cpr': '1337',
+                    'error_key': 'V_CPR_NOT_VALID',
+                    'description': 'Not a valid CPR number.',
+                    'error': True,
+                    'status': 400,
+                },
+                status_code=400,
+            )
+
     def test_cpr_lookup_raises_on_wrong_length(self, m):
         # Arrange
 
@@ -68,6 +81,18 @@ class Tests(util.TestCase):
             '/service/e/cpr_lookup/?q=1234/',
             {
                 'cpr': '1234/',
+                'error_key': 'V_CPR_NOT_VALID',
+                'description': 'Not a valid CPR number.',
+                'error': True,
+                'status': 400,
+            },
+            status_code=400,
+        )
+
+        self.assertRequestResponse(
+            '/service/e/cpr_lookup/?q=111111111',
+            {
+                'cpr': '111111111',
                 'error_key': 'V_CPR_NOT_VALID',
                 'description': 'Not a valid CPR number.',
                 'error': True,

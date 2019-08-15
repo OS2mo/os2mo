@@ -6,28 +6,15 @@
       <input
         :name="nameId"
         :data-vv-as="label"
-        v-model="cprNo"
+        v-model.trim="cprNo"
+        autocomplete="off"
+        spellcheck="false"
         class="form-control"
         type="text"
-        maxlength="10"
-        v-validate="{digits: 10, required: true, cpr: orgUuid}"
       />
-
-      <button
-        type="button"
-        class="btn btn-outline-primary"
-        @click="cprLookup()"
-        :disabled="errors.has(nameId) || !cprNo"
-        v-show="!isLoading">
-        <icon name="search"/>
-      </button>
-
-      <mo-loader v-show="isLoading"/>
     </div>
 
-    <span v-show="errors.has(nameId)" class="text-danger">
-      {{ errors.first(nameId) }}
-    </span>
+    <mo-loader v-show="isLoading"/>
 
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
@@ -79,7 +66,7 @@ export default {
   data () {
     return {
       /**
-       * The nameId, cprNo, isloading, backendValidationError component value.
+       * The nameId, cprNo, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
       nameId: 'cpr-search',
@@ -91,10 +78,31 @@ export default {
 
   watch: {
     /**
-     * Whenever cprNo change update.
+     * Whenever cprNo change look up cpr number and check if the data fields
+     * are valid. Then throw a error if not.
      */
-    cprNo () {
-      this.$emit('input', {})
+    async cprNo (cprNo) {
+      if (cprNo.length < 10) {
+        this.backendValidationError = (
+          cprNo ? { error_key: "V_CPR_NOT_VALID" } : null
+        )
+        this.$emit('input', {})
+        return
+      }
+
+      this.backendValidationError = null
+      this.isLoading = true
+
+      let response = await Search.cprLookup(cprNo && cprNo.replace(/-/g, ''))
+
+      this.isLoading = false
+
+      if (response.error) {
+        this.backendValidationError = response
+        this.$emit('input', {})
+      } else {
+        this.$emit('input', response)
+      }
     }
   },
 
@@ -105,27 +113,6 @@ export default {
     ...mapGetters({
       orgUuid: Organisation.getters.GET_UUID
     })
-  },
-
-  methods: {
-    /**
-     * Lookup cpr number and check if the data fields are valid.
-     * Then throw a error if not.
-     */
-    cprLookup () {
-      let vm = this
-      vm.isLoading = true
-      return Search.cprLookup(this.cprNo)
-        .then(response => {
-          vm.isLoading = false
-          if (response.error) {
-            vm.backendValidationError = response
-          } else {
-            vm.backendValidationError = null
-            this.$emit('input', response)
-          }
-        })
-    }
   }
 }
 </script>

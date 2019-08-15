@@ -330,7 +330,7 @@ def is_uuid(v):
 
 def is_cpr_number(v):
     try:
-        return v and bool(get_cpr_birthdate(v))
+        return v and len(v) == 10 and bool(get_cpr_birthdate(v))
     except ValueError:
         return False
 
