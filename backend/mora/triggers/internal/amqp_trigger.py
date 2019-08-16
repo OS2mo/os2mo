@@ -7,12 +7,12 @@
 #
 
 import logging
-from .. import amqp
-from .. import exceptions
-from .. import util
-from .. import mapping
-from ..triggers import Trigger
-from ..service.handlers import RequestType
+from mora import amqp
+from mora import exceptions
+from mora import util
+from mora import mapping
+from mora.triggers import Trigger
+from mora.service.handlers import RequestType
 
 logger = logging.getLogger("amqp")
 
@@ -56,19 +56,24 @@ def amqp_sender(trigger_dict):
         amqp.publish_message(*message)
 
 
-ROLE_TYPES = [
-    mapping.ORG_UNIT,
-    mapping.EMPLOYEE,
-    *mapping.RELATION_TRANSLATIONS.keys(),
-]
+def register(app):
+    """ Register amqp triggers on:
+        any ROLE_TYPE
+        any RequestType
+        but only after submit (ON_AFTER)
+    """
 
-trigger_combinations = [
-    (role_type, request_type, Trigger.Event.ON_AFTER)
-    for role_type in ROLE_TYPES
-    for request_type in RequestType
-]
+    ROLE_TYPES = [
+        mapping.ORG_UNIT,
+        mapping.EMPLOYEE,
+        *mapping.RELATION_TRANSLATIONS.keys(),
+    ]
 
-amqp_senders = [
-    Trigger.on(*combi)(amqp_sender)
-    for combi in trigger_combinations
-]
+    trigger_combinations = [
+        (role_type, request_type, Trigger.Event.ON_AFTER)
+        for role_type in ROLE_TYPES
+        for request_type in RequestType
+    ]
+
+    for combi in trigger_combinations:
+        Trigger.on(*combi)(amqp_sender)

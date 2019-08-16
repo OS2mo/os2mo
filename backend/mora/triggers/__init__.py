@@ -8,8 +8,16 @@
 
 import enum
 import logging
+import importlib
+import traceback
 
 logger = logging.getLogger("triggers")
+
+
+def register(app):
+    for m in app.config.get("TRIGGER_MODULES", []):
+        trigger_module = importlib.import_module(m)
+        trigger_module.register(app)
 
 
 class Trigger:

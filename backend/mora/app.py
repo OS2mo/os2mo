@@ -19,8 +19,7 @@ from . import settings
 from . import util
 from .auth import base
 from .integrations import serviceplatformen
-from .triggers import mora_triggers  # noqa - activates amgp etc.
-from . import customer  # noqa - activates customizations
+from . import triggers
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -96,4 +95,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     serviceplatformen.check_config(app)
+    triggers.register(app)
+
     return app
