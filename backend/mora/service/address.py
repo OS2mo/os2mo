@@ -266,10 +266,10 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = func
         self.uuid = util.get_uuid(req, required=False)
-        self.trigger_dict(
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid
-        )
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -395,7 +395,9 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
-        self.trigger_dict(
-            org_unit_uuid=mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original),
-            employee_uuid=mapping.USER_FIELD.get_uuid(original)
-        )
+        self.trigger_dict.update({
+            "org_unit_uuid": mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(
+                original
+            ),
+            "employee_uuid": mapping.USER_FIELD.get_uuid(original)
+        })

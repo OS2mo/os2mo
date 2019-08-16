@@ -1,37 +1,53 @@
 Customization and Triggers
 ==========================
 
-In order to keep customizations out of the main code base os2mo includes 
+In order to keep customizations out of the main code base os2mo makes use of
 a 'customer' directory meant to be used as a mount point for importing
 customer specific code into the os2mo runtime.
 
 The intended way of customizing code is through the use of triggers.
 
-Functions can be decorated so they fired at different stages in the request life cycle. 
+A Trigger is a function decorated using ``mora.triggers.Trigger.on``. This decorator ensures that the decorated function is called on a certain stage of the lifecycle of a certin kind of request for a certain role type. There are currently two such stages:
 
  * ``ON_BEFORE``: this is typically fired after the request's prepare phase
  * ``ON_AFTER``: this is typically fired after the request's commit phase
 
+Currently all Role Types (Organizational unit, Employee, Address to name a few) and Request Types (Create, Edit, Terminate) can be decorated, so it is possible to have functions triggered for example:
+
+* After creating an organizational unit
+* Before creating an employee
+* After editing an address
+
+
 Triggers deployed in OS2mo
 --------------------------
 
-OS2mo itself uses triggers for internal purposes.
+OS2mo itself uses triggers for internal purposes. They reside in ``mora.triggers.internal`` module. See the ``amqp_trigger.py`` for an example.
 
-All OS2mo internal triggers should be defined beneath in scripts inside the mora/triggers module and then these scripts must be imported by the file ``mora_triggers.py`` in order for the triggers to be activated. See the ``amqp_trigger.py`` in that module for an example.
+
+Trigger configuration
+---------------------
+
+Inclusion of Triggers in OS2mo are handled through a single configuration value called ``TRIGGER_MODULES`` which is a list of fully qualified names for trigger modules. In order for OS2mo to support triggering of the amqp module the default value of ``TRIGGER_MODULES`` is ``["mora.triggers.internal.amqp_trigger"]``
+
+In order to convey settings directly to triggers we suggest using the fully qualified path as a prefix for configuration values which address that trigger, for example:
+
+lets say ``TRIGGER_MODULES`` is ``["customer.triggers.andeby"]`` and we want to supply a ``FACTOR`` value to the ``duck_function`` inside that module, we could specify it in the configuration like:
+
+``customer.trigger.andeby.duck_function.FACTOR``
+
+Trigger modules must have a function called register which does the actual decoration of the trigger functions. It may alsa access the supplied app's configuration to determine of specific triggers have been disabled through the use of above mentioned prefixed configuration values.   
 
 
 The customer module
 -------------------
 
-A directory placed on the host machine (outside the container / module path) is mounted over the os2mo/backend/mora/customer
+A directory placed on the host machine (outside the container / module path) is mounted inside container (when running in a container) and a symlink called ``customer`` points to that directory.
 
-Development and test should be performed with the directory mounted in, so relative imports work: ::
-
-    from ..triggers import Trigger
-
-The ``__init__.py`` in the customer module directory must import any code that is needed for the customizations, and it must all reside in this directory or be available in the python environment as the directory is unaware of its physical surroundings once it is mounted inside the OS2mo container.
+This directory will typically contain the contents of the ``os2mo-data-import-and-export`` repository because some proposed triggers share code with other integrations.
 
 Once mounted this module has access to any and all code inside the customer module as well as any code in OS2mo's python environment including os2mo itself.
+
 
 The Trigger function
 --------------------
@@ -67,6 +83,7 @@ For an ``ON_AFTER`` trigger_dict an additional key is added - the result: ::
         'uuid': '' # the uuid of the object being manipulated
     }
 
+
 Triggerless mode
 ----------------
 
@@ -75,51 +92,3 @@ It can be reasonable to turn off trigger-functionality when for example loading 
 Using triggerless requests also disables amqp-messages.
 
 
-A customer module example
--------------------------
-
-An example implementation of a supermounted directory: ::
-
-    customer
-    ├── __init__.py
-    ├── employee.py
-    └── org_unit.py
-
-The __init__.py file: ::
-
-    from . import org_unit
-    from . import employee
-
-The org_unit.py looks like this: ::
-
-    import logging
-    from ..triggers import Trigger
-    from ..mapping import ORG_UNIT
-    from ..service.handlers import RequestType
-
-    logger = logging.getLogger("org_unit_trigger")
-
-    @Trigger.on(ORG_UNIT, RequestType.CREATE, Trigger.Event.ON_BEFORE)
-    def ou_before_create(trigger_dict):
-        logger.warning(trigger_dict)
-
-    @Trigger.on(ORG_UNIT, RequestType.CREATE, Trigger.Event.ON_AFTER)
-    def ou_after_create(trigger_dict):
-        logger.warning(trigger_dict)
-
-The empoyee.py file looks like this: ::
-
-    import logging
-    from ..triggers import Trigger
-    from ..mapping import EMPLOYEE
-    from ..service.handlers import RequestType
-
-    logger = logging.getLogger("employee_trigger")
-
-    @Trigger.on(EMPLOYEE, RequestType.EDIT, Trigger.Event.ON_BEFORE)
-    def e_before_edit(trigger_dict):
-        logger.warning(trigger_dict)
-
-    @Trigger.on(EMPLOYEE, RequestType.TERMINATE, Trigger.Event.ON_AFTER)
-    def e_after_delete(trigger_dict):
-        logger.warning(trigger_dict)

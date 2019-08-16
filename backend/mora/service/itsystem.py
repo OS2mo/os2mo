@@ -87,10 +87,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = func
         self.uuid = func_id
-        self.trigger_dict(
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid
-        )
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -174,15 +174,15 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
-        self.trigger_dict(
-            org_unit_uuid=(
+        self.trigger_dict.update({
+            "org_unit_uuid": (
                 mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
             ),
-            employee_uuid=(
+            "employee_uuid": (
                 util.get_mapping_uuid(data, mapping.PERSON) or
                 mapping.USER_FIELD.get_uuid(original)
             )
-        )
+        })
 
 
 @blueprint.route('/o/<uuid:orgid>/it/')

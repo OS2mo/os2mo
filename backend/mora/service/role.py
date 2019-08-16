@@ -72,10 +72,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = role
         self.uuid = func_id
-        self.trigger_dict(
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid
-        )
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
@@ -160,10 +160,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = role_uuid
-        self.trigger_dict(
-            org_unit_uuid=util.get_uuid(org_unit, required=False),
-            employee_uuid=(
+        self.trigger_dict.update({
+            "org_unit_uuid": util.get_uuid(org_unit, required=False),
+            "employee_uuid": (
                 util.get_mapping_uuid(data, mapping.PERSON) or
                 mapping.USER_FIELD.get_uuid(original)
             )
-        )
+        })

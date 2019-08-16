@@ -118,7 +118,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = user
         self.uuid = userid
-        self.trigger_dict(employee_uuid=userid)
+        self.trigger_dict["employee_uuid"] = userid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -218,7 +218,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
-        self.trigger_dict(employee_uuid=userid)
+        self.trigger_dict["employee_uuid"] = userid
 
     def submit(self):
         c = lora.Connector()

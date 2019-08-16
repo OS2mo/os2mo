@@ -16,8 +16,12 @@ logger = logging.getLogger("triggers")
 
 def register(app):
     for m in app.config.get("TRIGGER_MODULES", []):
-        trigger_module = importlib.import_module(m)
-        trigger_module.register(app)
+        try:
+            trigger_module = importlib.import_module(m)
+            trigger_module.register(app)
+        except Exception:
+            logger.error("trigger code or registration error for %s", m)
+            raise
 
 
 class Trigger:

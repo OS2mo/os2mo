@@ -81,10 +81,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = func_id
-        self.trigger_dict(
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid
-        )
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -204,7 +204,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = engagement_uuid
-        self.trigger_dict(
-            employee_uuid=employee_uuid,
-            org_unit_uuid=org_unit_uuid
-        )
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
