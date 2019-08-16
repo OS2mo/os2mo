@@ -36,17 +36,19 @@ lets say ``TRIGGER_MODULES`` is ``["customer.triggers.andeby"]`` and we want to 
 
 ``customer.trigger.andeby.duck_function.FACTOR``
 
-Trigger modules must have a function called register which does the actual decoration of the trigger functions. It may alsa access the supplied app's configuration to determine of specific triggers have been disabled through the use of above mentioned prefixed configuration values.   
+Trigger modules must have a function called register which does the actual decoration of the trigger functions. It may also access the supplied app's configuration to determine if specific triggers have been disabled through the use of above mentioned prefixed configuration values as well as obtain other configuration directly meant for the trigger/module.   
 
 
 The customer module
 -------------------
 
-A directory placed on the host machine (outside the container / module path) is mounted inside container (when running in a container) and a symlink called ``customer`` points to that directory.
+A directory placed on the host machine (outside the container / module path) is mounted inside the container (when running in a container) and a symlink called ``customer`` points to that directory.
+
+In case of running os2mo directly on the host machine the symlink is just pointed directly at the location of the customer directory on the host machine
 
 This directory will typically contain the contents of the ``os2mo-data-import-and-export`` repository because some proposed triggers share code with other integrations.
 
-Once mounted this module has access to any and all code inside the customer module as well as any code in OS2mo's python environment including os2mo itself.
+Once positioned this way triggers included from this module has access to any and all code inside OS2mo's python environment as well as any code inside the customer directory
 
 
 The Trigger function
