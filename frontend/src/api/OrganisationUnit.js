@@ -10,8 +10,10 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Object} organisation unit object
    */
-  get (uuid) {
-    return Service.get(`/ou/${uuid}/`)
+  get (uuid, atDate) {
+    atDate = atDate || new Date()
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    return Service.get(`/ou/${uuid}/?at=${atDate}`)
       .then(response => {
         EventBus.$emit(Events.ORGANISATION_CHANGED, response.data.org)
         return response.data

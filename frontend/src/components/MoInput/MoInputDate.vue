@@ -4,6 +4,7 @@
 
     <date-time-picker
       v-model="internalValue"
+      :open-date="initialValue"
       format="dd-MM-yyyy"
       :language="da"
       monday-first
@@ -63,6 +64,23 @@ export default {
   },
 
   computed: {
+    /**
+     * The initially focused value. Use either the current value or the
+     * closest allowed value.
+     */
+    initialValue () {
+      let currentDate = this.internalValue ? new Date(this.internalValue) :
+      new Date()
+      let disabled = this.disabledDates
+
+      if (disabled.to && currentDate <= disabled.to)
+        return disabled.to
+      else if (disabled.from && currentDate < disabled.from)
+        return disabled.from
+      else
+        return currentDate
+    },
+
     /**
      * Date interval to disable.
      * We flip the validTo dates, as we want to disable anything outside of the range.

@@ -1,6 +1,35 @@
 In development
 ==============
 
+API changes
+-----------
+
+``/service/e/create``:
+
+Our validation now prevents creating an employee without a CPR number.
+To bypass this check, specify ``force=1``.
+
+Bug fixes
+---------
+
+* #29761: Date pickers moved to the top of the various forms
+* #30093: The shown units in the organisation unit pickers now reflect
+    the dates selected in the date pickers
+* #29669: Fix terminating units past any date they've been changed in
+  the future.
+* #29700: Ensure that date dropdowns always focus a selectable date,
+  rather than e.g. the creation date of an old unit.
+* #30095: Address missing error in CPR search by automatically
+  performing said search. And filter out any dashes while at it.
+
+New features
+------------
+
+* #27213: AMQP messages are sent whenever an object is created, edited or
+  deleted which allows anyone to build custom & powerful integrations.
+* #30094: Allow organisational units to have no addresses, rather than
+  forcing them to have a phone and physical location.
+
 Bug fixes
 ---------
 
@@ -149,9 +178,9 @@ Bug fixes
 
 * #25671: Organisation is now properly set when creating new employee.
 * #25694: Changed table columns layout to align between table future, present and past.
-* #26886: Fixed duplicate for addresses in create organisation unit and 
+* #26886: Fixed duplicate for addresses in create organisation unit and
   employee move many workflow now works again.
-* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and 
+* #27149: Dont show terminate button for employee detail tabs for workflows - employeeTerminate and
   employeeMoveMany.
 * #27218: Fixed exception being thrown when creating new DAR addreses, where the address lookup fails.
 * #27155: Ensure that we show all unit roots when reloading a unit page.
@@ -172,7 +201,7 @@ Version 0.14.0, 2019-01-30
 New features
 ------------
 
-* #25405: Submit button for create new and edit modals for organisation 
+* #25405: Submit button for create new and edit modals for organisation
   units and employees is no longer disabled if the form is invalid
 * #25394: It is now no longer possible to perform edits taking effect before
   the current date.
@@ -223,7 +252,7 @@ Bug fixes
 * #26788: Fixed the manager edit popup to submit with a blank employee picker field.
 * #26801: Adjust styling of missing address note for associations such
   that it no longer appears as an error.
-* #26787: Added check for org unit valid dates in the datepicker. 
+* #26787: Added check for org unit valid dates in the datepicker.
 * #26874: Added scrollbar overflow-x for table.
 * #25697: Added scrollbars to the dropdown menu when choosing Unit in Create Employee
 * #24493: Added indication of where a value is missing in Create Unit
@@ -271,8 +300,8 @@ New features
   Session is now shared between OS2MO and LoRa.
 * #22382: Manager hierarchy - the service returns all managers in a
   hierarchical order
-* #24077: We now support access addresses in addition to regular 
-  addresses from Dansk Adresseregister, with combined autocompletion 
+* #24077: We now support access addresses in addition to regular
+  addresses from Dansk Adresseregister, with combined autocompletion
   of the two.
 
 
@@ -296,7 +325,7 @@ Internal changes
   https://mora.readthedocs.io/en/master/README.html#kodestandarder
 * #24665: Process plan for the implementation of the solution
   https://mora.readthedocs.io/en/master/cookbook.html#best-practices-for-implementering
-* #24655: Open Source license criteria are met 
+* #24655: Open Source license criteria are met
   https://mora.readthedocs.io/en/master/README.html#licens-og-copyright
 
 
@@ -316,7 +345,7 @@ Version 0.11.1 2018-11-02
 Bug fixes
 ---------
 
-* #25028: Timemachine now shows and updates the organisation unit 
+* #25028: Timemachine now shows and updates the organisation unit
   view when changing organisation unit
 
 
@@ -453,7 +482,7 @@ New features
 ------------
 
 * #23778: Support for IT-systems on units
-  
+
 Internal changes
 ----------------
 

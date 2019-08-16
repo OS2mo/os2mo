@@ -7,7 +7,8 @@ let moment = require('moment')
 const dialog = Selector('#employeeCreate')
 
 // CPR Number
-const checkbox = Selector('input[data-vv-as="checkbox"]')
+const checkbox = dialog.find('input[data-vv-as="checkbox"]')
+const cprInput = dialog.find('input[data-vv-as="CPR nummer"]')
 
 // Engagement
 const engagementCheckbox = dialog.find('.container')
@@ -81,8 +82,17 @@ test('Workflow: create employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     // CPR Number
-    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920008')
-    .click(dialog.find('.btn-outline-primary'))
+    .typeText(cprInput, '010101')
+    .expect(dialog.find('.alert-danger').withText('Ugyldigt').exists).ok()
+
+    .typeText(cprInput, '-0000')
+    .expect(dialog.find('.alert-danger').withText('ikke i registret').exists).ok()
+
+    .selectText(cprInput)
+    .pressKey('delete')
+    .expect(dialog.find('.alert').visible).notOk()
+
+    .typeText(cprInput, '2003920008')
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
@@ -189,7 +199,6 @@ test('Workflow: create employee with role only', async t => {
 
     // CPR Number
     .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
-    .click(dialog.find('.btn-outline-primary'))
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
@@ -251,7 +260,6 @@ test('Workflow: create employee with association to unit lacking address', async
 
     // CPR Number
     .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920010')
-    .click(dialog.find('.btn-outline-primary'))
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
@@ -322,7 +330,6 @@ test('Workflow: create employee with itsystem only', async t => {
 
     // CPR Number
     .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
-    .click(dialog.find('.btn-outline-primary'))
     .click(checkbox)
     .expect(checkbox.checked).ok()
 

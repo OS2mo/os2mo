@@ -11,20 +11,20 @@
   >
     <form @submit.stop.prevent="endOrganisationUnit">
       <div class="form-row">
+        <mo-input-date
+          class="from-date"
+          :label="$t('input_fields.end_date')"
+          :valid-dates="currentDateValidity"
+          v-model="terminate.validity.to"
+          required
+        />
+
         <mo-organisation-unit-picker
           :label="$t('input_fields.select_unit')"
           class="col"
           v-model="org_unit"
           required
           :validity="validity"
-        />
-
-        <mo-input-date
-          class="from-date"
-          :label="$t('input_fields.end_date')"
-          :valid-dates="validDates"
-          v-model="terminate.validity.to"
-          required
         />
       </div>
 
@@ -40,7 +40,7 @@
       </div>
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
+        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
       </div>
 
       <div class="float-right">
@@ -60,6 +60,7 @@ import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
+import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
@@ -68,7 +69,7 @@ import orgUnitStore from '@/store/modules/organisationUnit'
 const STORE_KEY = '_organisationUnitTerminate'
 
 export default {
-  mixins: [ValidateForm, ModalBase],
+  mixins: [CurrentDateValidity, ValidateForm, ModalBase],
 
   components: {
     MoInputDate,
@@ -93,13 +94,6 @@ export default {
   },
 
   computed: {
-    /**
-     * Check if the organisation date are valid.
-     */
-    validDates () {
-      return this.org_unit ? this.org_unit.validity : {}
-    },
-
     ...mapGetters({
       orgUnitDetails: STORE_KEY + '/GET_DETAILS'
     }),
@@ -155,7 +149,7 @@ export default {
           .then(response => {
             vm.isLoading = false
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$refs.orgUnitTerminate.hide()
             }

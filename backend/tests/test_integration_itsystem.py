@@ -6,10 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import logging
 import copy
+import logging
 
 import freezegun
+
 from mora import lora
 from tests import util
 
@@ -32,22 +33,16 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
+                'description': 'Missing itsystem',
                 'error': True,
-                'error_key': 'E_INVALID_TYPE',
-                'description': (
-                    'Invalid \'itsystem\', expected dict, got: null'
-                ),
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
                 'key': 'itsystem',
-                'expected': 'dict',
-                'actual': None,
-                'status': 400,
                 'obj': {
                     'itsystem': None,
                     'type': 'it',
-                    'validity': {
-                        'from': '2017-12-01', 'to': None
-                    }
+                    'validity': {'from': '2017-12-01', 'to': None},
                 },
+                'status': 400,
             },
             json=[
                 {
@@ -88,23 +83,16 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
+                'description': 'Missing itsystem',
                 'error': True,
-                'error_key': 'E_INVALID_TYPE',
-                'description': (
-                    'Invalid \'itsystem\', expected dict, got: null'
-                ),
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
                 'key': 'itsystem',
-                'expected': 'dict',
-                'actual': None,
-                'status': 400,
                 'obj': {
                     'itsystem': None,
                     'type': 'it',
-                    'validity': {
-                        'from': '2017-12-01',
-                        'to': None
-                    }
+                    'validity': {'from': '2017-12-01', 'to': None},
                 },
+                'status': 400,
             },
             json=[
                 {

@@ -1,5 +1,11 @@
 <template>
   <div>
+    <mo-input-date-range
+      v-model="entry.validity"
+      :initially-hidden="datePickerHidden"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
+    />
+
     <mo-input-checkbox
       v-model="entry.primary"
       :data-vv-as="$t('input_fields.primary_engagement')"
@@ -26,12 +32,6 @@
         required
       />
     </div>
-
-    <mo-input-date-range
-      v-model="entry.validity"
-      :initially-hidden="datePickerHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
-    />
   </div>
 </template>
 
