@@ -37,6 +37,10 @@ class Trigger:
 
     @classmethod
     def run(cls, trigger_dict):
+        """find relevant triggers for supplied
+        role type, request type, and event type
+        and call each triggerfunction with the argument
+        """
         triggers = cls.registry.get(
             trigger_dict["role_type"], {}
         ).get(
@@ -44,11 +48,15 @@ class Trigger:
         ).get(
             trigger_dict["event_type"], []
         )
-        [t(trigger_dict) for t in triggers]
+        for t in triggers:
+            t(trigger_dict)
 
     @classmethod
     def on(cls, role_type, request_type, event_type):
-        "find relevant registry-list"
+        """find relevant registry-list for supplied
+        role type, request type, and event type
+        then append this trigger function to the list
+        """
         registry = cls.registry.setdefault(
             role_type, {}
         ).setdefault(
