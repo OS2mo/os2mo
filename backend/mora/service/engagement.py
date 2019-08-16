@@ -92,16 +92,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         original = c.organisationfunktion.get(uuid=engagement_uuid)
 
         # Get org unit uuid for validation purposes
-        org_unit = util.get_obj_value(
-            original, mapping.ASSOCIATED_ORG_UNIT_FIELD.path)[-1]
-        org_unit_uuid = util.get_uuid(org_unit)
+        org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
         # Get employee uuid for validation purposes
-        employee = util.get_obj_value(
-            original, mapping.USER_FIELD.path)[-1]
-        employee_uuid = util.get_uuid(employee, required=True)
+        employee_uuid = mapping.USER_FIELD.get_uuid(original)
 
-        data = req.get('data')
+        data = util.checked_get(req, 'data', {}, required=True)
         new_from, new_to = util.get_validities(data)
 
         validator.is_edit_from_date_before_today(new_from)
@@ -150,11 +146,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             ))
 
         if mapping.ORG_UNIT in data:
-            org_unit_uuid = data.get(mapping.ORG_UNIT).get('uuid')
-            update_fields.append((
-                mapping.ASSOCIATED_ORG_UNIT_FIELD,
-                {'uuid': org_unit_uuid},
-            ))
+            org_unit_uuid = util.get_mapping_uuid(data, mapping.ORG_UNIT,
+                                                  required=True)
+            update_fields.append((mapping.ASSOCIATED_ORG_UNIT_FIELD,
+                                  {'uuid': org_unit_uuid}))
 
         # Attribute extensions
         new_extensions = {}
@@ -195,10 +190,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit, new_from,
-                                                  new_to)
-        validator.is_date_range_in_employee_range(employee, new_from,
-                                                  new_to)
+        validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},
+                                                  new_from, new_to)
+        validator.is_date_range_in_employee_range({'uuid': employee_uuid},
+                                                  new_from, new_to)
 
         self.payload = payload
         self.uuid = engagement_uuid

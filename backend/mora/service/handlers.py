@@ -100,6 +100,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         if self.request_type == RequestType.EDIT:
             request = request['data']
+
         self.prepare_amqp_message(request)
 
     def prepare_amqp_message(self, request: dict):
