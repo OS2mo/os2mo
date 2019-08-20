@@ -93,4 +93,7 @@ It can be reasonable to turn off trigger-functionality when for example loading 
 
 Using triggerless requests also disables amqp-messages.
 
+.. DANGER::
+   using ``triggerless mode`` is discouraged if You are not fully aware of all implications. It is meant to be used solely for purposes like initial data load or for integrations that prefer to do all heavy lifting by themselves.
+
 
