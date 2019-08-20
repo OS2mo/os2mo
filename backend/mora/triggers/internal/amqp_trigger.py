@@ -125,26 +125,30 @@ def register(app):
         any RequestType
         but only after submit (ON_AFTER)
     """
-    if not app.config.get("ENABLE_AMQP"):
-        return
+    if app.config.get("ENABLE_AMQP"):
+        # we cant bail out here, as it seems amqp trigger
+        # tests must be able to run without ENABLE_AMQP
+        # instead we leave the connection object empty
+        # in which case publish_message will bail out
+        # this is the original mode of operation restored
 
-    conn = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            host=app.config["AMQP_HOST"],
-            port=app.config["AMQP_PORT"],
-            heartbeat=0,
+        conn = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=app.config["AMQP_HOST"],
+                port=app.config["AMQP_PORT"],
+                heartbeat=0,
+            )
         )
-    )
-    channel = conn.channel()
-    channel.exchange_declare(
-        exchange=app.config["AMQP_OS2MO_EXCHANGE"],
-        exchange_type="topic",
-    )
+        channel = conn.channel()
+        channel.exchange_declare(
+            exchange=app.config["AMQP_OS2MO_EXCHANGE"],
+            exchange_type="topic",
+        )
 
-    amqp_connection.update({
-        "conn": conn,
-        "channel": channel,
-    })
+        amqp_connection.update({
+            "conn": conn,
+            "channel": channel,
+        })
 
     ROLE_TYPES = [
         mapping.ORG_UNIT,
