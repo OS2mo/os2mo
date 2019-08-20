@@ -483,24 +483,25 @@ def terminate_employee(employee_uuid):
         )
     ]
 
-    if not flask.request.args.get('triggerless'):
-        trigger_dict = {
-            'role_type': mapping.EMPLOYEE,
-            'event_type': Trigger.Event.ON_BEFORE,
-            'request': request,
-            'request_type': handlers.RequestType.TERMINATE,
-            'uuid': employee_uuid,
-            'employee_uuid': employee_uuid
-        }
+    trigger_dict = {
+        'role_type': mapping.EMPLOYEE,
+        'event_type': Trigger.Event.ON_BEFORE,
+        'request': request,
+        'request_type': handlers.RequestType.TERMINATE,
+        'uuid': employee_uuid,
+        'employee_uuid': employee_uuid
+    }
 
+    if not flask.request.args.get('triggerless'):
         Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
 
+    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
+    trigger_dict["result"] = result = flask.jsonify(employee_uuid)
+
     if not flask.request.args.get('triggerless'):
-        trigger_dict["event_type"] = Trigger.Event.ON_AFTER
-        trigger_dict["result"] = result = flask.jsonify(employee_uuid)
         Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
