@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="display:none">
     <select
       class="form-control"
       id="organisation-picker"
