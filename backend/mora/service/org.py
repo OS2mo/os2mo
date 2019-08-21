@@ -26,8 +26,41 @@ from .. import util
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
 
+# The one and only os2mo/lora organisation
 
-def get_one_organisation(c, orgid, org=None):
+
+def organisation():
+    app = flask.current_app
+    return {
+        'name': app.config["OS2MO_ORGANISATION_NAME"],
+        'user_key': app.config["OS2MO_ORGANISATION_USER_KEY"],
+        'uuid': app.config["OS2MO_ORGANISATION_UUID"],
+    }
+
+
+def check_config(app):
+    """ put mora default organization into configuration before doing any work
+        we mean to always set the organisation from the database, and it is
+        safe to do as long as we have only one organization in lora database
+        which satisfies the demands in 'list_organisations'
+    """
+    orglist = get_valid_organisations()
+    if not len(orglist) < 2:
+        raise IndexError("at most one organisation allowed in backend")
+    elif app.config.get("OS2MO_ORGANISATION_UUID", ""):
+        if not app.config["OS2MO_ORGANISATION_UUID"] == orglist[0]["uuid"]:
+            raise KeyError(
+                "OS2MO_ORGANISATION_UUID not == '%s', found in database",
+                orglist[0]["uuid"]
+            )
+    else:
+        # TODO inferral - to be removed
+        app.config["OS2MO_ORGANISATION_UUID"] = orglist[0]["uuid"]
+        app.config["OS2MO_ORGANISATION_NAME"] = orglist[0]["name"]
+        app.config["OS2MO_ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
+
+
+def get_lora_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
@@ -41,6 +74,19 @@ def get_one_organisation(c, orgid, org=None):
         'user_key': attrs['brugervendtnoegle'],
         'uuid': orgid,
     }
+
+
+def get_valid_organisations():
+    """ return all valid organisations, being the ones
+        who have at least one top organisational unit
+    """
+    c = common.lora.Connector()
+    orglist = [
+        get_lora_organisation(c, orgid, org)
+        for orgid, org in c.organisation.get_all(bvn='%')
+        if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
+    ]
+    return orglist
 
 
 @blueprint.route('/o/')
@@ -73,16 +119,8 @@ def list_organisations():
      ]
 
     '''
-    c = common.get_connector()
-
-    return flask.jsonify(sorted(
-        (
-            get_one_organisation(c, orgid, org)
-            for orgid, org in c.organisation.get_all(bvn='%')
-            if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
-        ),
-        key=operator.itemgetter('name'),
-    ))
+    return flask.jsonify(sorted(get_valid_organisations(),
+                         key=operator.itemgetter('name')))
 
 
 @blueprint.route('/o/<uuid:orgid>/')
