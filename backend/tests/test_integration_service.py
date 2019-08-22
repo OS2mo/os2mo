@@ -29,9 +29,9 @@ class Tests(util.LoRATestCase):
         }
 
     @util.override_config(
-        OS2MO_ORGANISATION_NAME='Aarhus Universitet',
-        OS2MO_ORGANISATION_USER_KEY='AU',
-        OS2MO_ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
+        ORGANISATION_NAME='Aarhus Universitet',
+        ORGANISATION_USER_KEY='AU',
+        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
     )
     def test_organisation(self):
 
@@ -486,9 +486,9 @@ class Tests(util.LoRATestCase):
             )
 
     @util.override_config(
-        OS2MO_ORGANISATION_NAME='Aarhus Universitet',
-        OS2MO_ORGANISATION_USER_KEY='AU',
-        OS2MO_ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
+        ORGANISATION_NAME='Aarhus Universitet',
+        ORGANISATION_USER_KEY='AU',
+        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
     )
     def test_orgunit(self):
         self.load_sample_structures(minimal=True)
@@ -642,9 +642,9 @@ class Tests(util.LoRATestCase):
         )
 
     @util.override_config(
-        OS2MO_ORGANISATION_NAME='Aarhus Universitet',
-        OS2MO_ORGANISATION_USER_KEY='AU',
-        OS2MO_ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
+        ORGANISATION_NAME='Aarhus Universitet',
+        ORGANISATION_USER_KEY='AU',
+        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
     )
     def test_employee(self):
         with self.subTest('empty'):
