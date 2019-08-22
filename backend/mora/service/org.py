@@ -30,9 +30,9 @@ blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
 def organisation():
     app = flask.current_app
     return {
-        'name': app.config["OS2MO_ORGANISATION_NAME"],
-        'user_key': app.config["OS2MO_ORGANISATION_USER_KEY"],
-        'uuid': app.config["OS2MO_ORGANISATION_UUID"],
+        'name': app.config["ORGANISATION_NAME"],
+        'user_key': app.config["ORGANISATION_USER_KEY"],
+        'uuid': app.config["ORGANISATION_UUID"],
     }
 
 
@@ -50,13 +50,13 @@ def check_config(app):
     # in prod, all values must be defined
 
     if app.env == 'production' and not (
-        app.config.get("OS2MO_ORGANISATION_NAME") and
-        app.config.get("OS2MO_ORGANISATION_USER_KEY") and
-        app.config.get("OS2MO_ORGANISATION_UUID")
+        app.config.get("ORGANISATION_NAME") and
+        app.config.get("ORGANISATION_USER_KEY") and
+        app.config.get("ORGANISATION_UUID")
     ):
         raise KeyError(
-            "OS2MO_ORGANISATION_NAME, OS2MO_ORGANISATION_USER_KEY, "
-            "and OS2MO_ORGANISATION_UUID must be configured"
+            "ORGANISATION_NAME, ORGANISATION_USER_KEY, "
+            "and ORGANISATION_UUID must be configured"
         )
 
     # if values are defined they must match org in lora
@@ -64,21 +64,15 @@ def check_config(app):
     if len(orglist) == 1:
         expected = orglist[0]
         actual = {
-            'name': app.config.get(
-                "OS2MO_ORGANISATION_NAME", orglist[0]["name"]
-            ),
-            'user_key': app.config.get(
-                "OS2MO_ORGANISATION_USER_KEY", orglist[0]["user_key"]
-            ),
-            'uuid': app.config.get(
-                "OS2MO_ORGANISATION_UUID", orglist[0]["uuid"]
-            ),
+            'name': app.config.get("ORGANISATION_NAME", ""),
+            'user_key': app.config.get("ORGANISATION_USER_KEY", ""),
+            'uuid': app.config.get("ORGANISATION_UUID", ""),
         }
 
         bad_values = [
-            ("OS2MO_ORGANISATION_" + k.upper(), v)
+            ("ORGANISATION_" + k.upper(), v)
             for k, v in actual.items()
-            if not v == expected[k]
+            if v and v != expected[k]
         ]
         if len(bad_values):
             raise ValueError(
@@ -89,9 +83,9 @@ def check_config(app):
     # for test/dev we will pick the organisation already present in os2mo
 
     if app.env != 'production':
-        app.config["OS2MO_ORGANISATION_UUID"] = orglist[0]["uuid"]
-        app.config["OS2MO_ORGANISATION_NAME"] = orglist[0]["name"]
-        app.config["OS2MO_ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
+        app.config["ORGANISATION_UUID"] = orglist[0]["uuid"]
+        app.config["ORGANISATION_NAME"] = orglist[0]["name"]
+        app.config["ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
 
 
 def get_lora_organisation(c, orgid, org=None):
@@ -129,8 +123,7 @@ def list_organisations():
     '''List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
     organisation - namely the one that is defined in the configuration
-    values OS2MO_ORGANISATION_NAME, OS2MO_ORGANISATION_UUID,
-    and OS2MO_ORGANISATION_UUID.
+    values ORGANISATION_NAME, ORGANISATION_UUID, and ORGANISATION_UUID.
 
     .. :quickref: Organisation; List
 
