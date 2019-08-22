@@ -11,11 +11,11 @@ from . import util
 
 IDP_URL = 'mock://idp'
 
-ORG_URL = (
-    'http://mox/organisation/organisation'
-    '?bvn=%25'
+EMPL_URL = (
+    'http://mox/organisation/bruger'
+    '?virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
+    '&uuid=d90862d0-c890-4183-bbc6-c403b125bd5a'
     '&virkningfra=2001-01-01T00%3A00%3A00%2B01%3A00'
-    '&virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
 )
 
 
@@ -23,12 +23,12 @@ ORG_URL = (
 class MockTests(util.TestCase):
     @util.mock()
     def test_access_denied(self, mock):
-        mock.get(ORG_URL, status_code=401, json={
+        mock.get(EMPL_URL, status_code=401, json={
             "message": "No Authorization header present",
         })
 
         self.assertRequestResponse(
-            '/service/o/',
+            '/service/e/d90862d0-c890-4183-bbc6-c403b125bd5a/',
             {
                 'error': True,
                 'error_key': 'E_UNAUTHORIZED',
