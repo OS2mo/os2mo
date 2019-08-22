@@ -24,16 +24,16 @@ class TestConfig(util.TestCase):
         org.get_valid_organisations = self._get_valid_organisations
 
     def test_org_same_as_config(self):
-        "succed if OS2MO_ORGANISATION_UUID is the same as the one in lora"
+        "succed if ORGANISATION_UUID is the same as the one in lora"
         with util.override_config(
-            OS2MO_ORGANISATION_UUID="c5395419-4c76-417f-9939-5a4bf81648d8"
+            ORGANISATION_UUID="c5395419-4c76-417f-9939-5a4bf81648d8"
         ):
             org.check_config(self.app)
 
     def test_org_different_from_config(self):
-        "raise ValueError if OS2MO_ORGANISATION_UUID is different from loras"
+        "raise ValueError if ORGANISATION_UUID is different from loras"
         with util.override_config(
-            OS2MO_ORGANISATION_UUID="1234"
+            ORGANISATION_UUID="1234"
         ):
             with self.assertRaises(ValueError):
                 org.check_config(self.app)
@@ -54,5 +54,5 @@ class TestConfig(util.TestCase):
         org.check_config(self.app)
         self.assertEqual(
             "c5395419-4c76-417f-9939-5a4bf81648d8",
-            self.app.config["OS2MO_ORGANISATION_UUID"]
+            self.app.config["ORGANISATION_UUID"]
         )
