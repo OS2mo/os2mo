@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
-
 import freezegun
 
 from unittest.mock import patch
@@ -129,19 +127,22 @@ class Tests(util.LoRATestCase):
             org_only,
         )
 
-        with self.subTest('deleted'):
-            lora.delete('organisation/organisationenhed',
-                        '2874e1dc-85e6-4269-823a-e1125484dfd3')
-
-            self.assertRequestResponse('/service/o/', [])
-
-            # we don't care much about this case; why would you query
-            # an unlisted organisation? let's test it regardless...
-            org_only['unit_count'] = 5
-            org_only['child_count'] = 0
-            self.assertRequestResponse(
-                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/', org_only,
-            )
+        # The concept of an organisational time span has been
+        # removed from OS2MO when this object was moved into
+        # configuration #31024 on 2019-08-21
+        # with self.subTest('deleted'):
+        #    lora.delete('organisation/organisationenhed',
+        #                '2874e1dc-85e6-4269-823a-e1125484dfd3')
+        #
+        #    self.assertRequestResponse('/service/o/', [])
+        #
+        #    # we don't care much about this case; why would you query
+        #    # an unlisted organisation? let's test it regardless...
+        #    org_only['unit_count'] = 5
+        #    org_only['child_count'] = 0
+        #    self.assertRequestResponse(
+        #        '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/', org_only,
+        #    )
 
     def test_children(self):
         self.load_sample_structures(minimal=True)
