@@ -263,7 +263,6 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
     if details is EmployeeDetails.FULL:
         rels = user['relationer']
-        orgid = rels['tilhoerer'][0]['uuid']
 
         if rels.get('tilknyttedepersoner'):
             r[mapping.CPR_NO] = (
@@ -379,7 +378,7 @@ def get_employee(id):
         in ISO-8601 format.
 
     :<json string name: Full name of the employee (concatenation
-    of givenname and surname).
+        of givenname and surname).
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
     :>json string uuid: Machine-friendly UUID.
