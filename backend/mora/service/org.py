@@ -14,8 +14,6 @@ This section describes how to interact with organisations.
 
 '''
 
-import operator
-
 import flask
 import werkzeug
 
@@ -45,16 +43,52 @@ def check_config(app):
         which satisfies the demands in 'list_organisations'
     """
     orglist = get_valid_organisations()
+
     if not len(orglist) < 2:
         raise IndexError("at most one organisation allowed in backend")
-    elif app.config.get("OS2MO_ORGANISATION_UUID", ""):
-        if not app.config["OS2MO_ORGANISATION_UUID"] == orglist[0]["uuid"]:
-            raise KeyError(
-                "OS2MO_ORGANISATION_UUID not == '%s', found in database",
-                orglist[0]["uuid"]
+
+    # in prod, all values must be defined
+
+    if app.env == 'production' and not (
+        app.config.get("OS2MO_ORGANISATION_NAME") and
+        app.config.get("OS2MO_ORGANISATION_USER_KEY") and
+        app.config.get("OS2MO_ORGANISATION_UUID")
+    ):
+        raise KeyError(
+            "OS2MO_ORGANISATION_NAME, OS2MO_ORGANISATION_USER_KEY, "
+            "and OS2MO_ORGANISATION_UUID must be configured"
+        )
+
+    # if values are defined they must match org in lora
+
+    if len(orglist) == 1:
+        expected = orglist[0]
+        actual = {
+            'name': app.config.get(
+                "OS2MO_ORGANISATION_NAME", orglist[0]["name"]
+            ),
+            'user_key': app.config.get(
+                "OS2MO_ORGANISATION_USER_KEY", orglist[0]["user_key"]
+            ),
+            'uuid': app.config.get(
+                "OS2MO_ORGANISATION_UUID", orglist[0]["uuid"]
+            ),
+        }
+
+        bad_values = [
+            ("OS2MO_ORGANISATION_" + k.upper(), v)
+            for k, v in actual.items()
+            if not v == expected[k]
+        ]
+        if len(bad_values):
+            raise ValueError(
+                "The following configuration values "
+                "do not match database: %r" % bad_values
             )
-    else:
-        # TODO inferral - to be removed
+
+    # for test/dev we will pick the organisation already present in os2mo
+
+    if app.env != 'production':
         app.config["OS2MO_ORGANISATION_UUID"] = orglist[0]["uuid"]
         app.config["OS2MO_ORGANISATION_NAME"] = orglist[0]["name"]
         app.config["OS2MO_ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
@@ -92,13 +126,18 @@ def get_valid_organisations():
 @blueprint.route('/o/')
 @util.restrictargs('at')
 def list_organisations():
-    '''List displayable organisations. We consider anything that has *at
-    least one* root unit 'displayable'.
+    '''List displayable organisations. This endpoint is retained for
+    backwards compatibility. It will always return a list of only one
+    organisation - namely the one that is defined in the configuration
+    values OS2MO_ORGANISATION_NAME, OS2MO_ORGANISATION_UUID,
+    and OS2MO_ORGANISATION_UUID.
 
     .. :quickref: Organisation; List
 
     :queryparam date at: Show organisations at this point in time,
-        in ISO-8601 format.
+        in ISO-8601 format. This parameter is retained for backwards
+        compatibility. There can be only one organisation defined
+        at any point in time
 
     :<jsonarr string name: Human-readable name of the organisation.
     :<jsonarr string user_key: Short, unique key identifying the unit.
@@ -119,8 +158,7 @@ def list_organisations():
      ]
 
     '''
-    return flask.jsonify(sorted(get_valid_organisations(),
-                         key=operator.itemgetter('name')))
+    return flask.jsonify([organisation()])
 
 
 @blueprint.route('/o/<uuid:orgid>/')
