@@ -10,6 +10,11 @@ from . import util
 from mora.service import org
 
 
+class AppProd():
+    env = "production"
+    config = {}
+
+
 class TestConfig(util.TestCase):
 
     def setUp(self):
@@ -30,7 +35,7 @@ class TestConfig(util.TestCase):
         with util.override_config(
             OS2MO_ORGANISATION_UUID="1234"
         ):
-            with self.assertRaises(KeyError):
+            with self.assertRaises(ValueError):
                 org.check_config(self.app)
 
     def test_more_than_one_org_in_mo(self):
@@ -38,6 +43,11 @@ class TestConfig(util.TestCase):
         org.get_valid_organisations = lambda: [{}, {}]
         with self.assertRaises(IndexError):
             org.check_config(self.app)
+
+    def test_missing_conf_values_in_prod(self):
+        "error if not configured in production"
+        with self.assertRaises(KeyError):
+            org.check_config(AppProd)
 
     def test_inferred_org_in_mo(self):
         "succeed if only one org in mo - config is inferred"
