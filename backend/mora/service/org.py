@@ -20,15 +20,75 @@ import werkzeug
 from .. import common
 from .. import mapping
 from .. import util
+from .. import exceptions
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
 
-# The one and only os2mo/lora organisation
+
+class ConfiguredOrganisation:
+    """ OS2mo organisation has been moved into configuration values
+    this class validates the configured values before returning the
+    configured values. Upon successful validation this is remembered
+    until restart of the application. The rules are:
+    - there can be at most 1 organisation in lora database
+    - if the organisation values are configured they must be the same
+      as the organisation in lora, if any
+    - for production environment the organisation must be configured
+    """
+    valid = False
+
+    @classmethod
+    def validate(cls, app):
+        orglist = get_valid_organisations()
+
+        # if running production or no organisation in lora
+        # organisation must be configured
+        if (app.env == 'production' or len(orglist) == 0) and not (
+            app.config.get("ORGANISATION_NAME") and
+            app.config.get("ORGANISATION_USER_KEY") and
+            app.config.get("ORGANISATION_UUID")
+        ):
+            exceptions.ErrorCodes.E_ORG_UNCONFIGURED()
+
+        if len(orglist) > 1:
+            exceptions.ErrorCodes.E_ORG_TOO_MANY(count=len(orglist))
+
+        elif len(orglist) == 0:
+            cls.valid = True
+            return
+
+        elif len(orglist) == 1:
+            # check configuration values - dev/test may be blank
+            # production is sure to be configured (see above)
+            expected = orglist[0]
+            actual = {
+                'name': app.config.get("ORGANISATION_NAME", ""),
+                'user_key': app.config.get("ORGANISATION_USER_KEY", ""),
+                'uuid': app.config.get("ORGANISATION_UUID", ""),
+            }
+            bad_values = {
+                "ORGANISATION_" + k.upper(): v
+                for k, v in actual.items()
+                if v and v != expected[k]
+            }
+
+            if bad_values:
+                exceptions.ErrorCodes.E_ORG_CONFIG_BAD(**bad_values)
+
+            # for blank test/dev values use org present in os2mo
+            if app.env != 'production':
+                app.config["ORGANISATION_UUID"] = orglist[0]["uuid"]
+                app.config["ORGANISATION_NAME"] = orglist[0]["name"]
+                app.config["ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
+            cls.valid = True
+            return
 
 
 def organisation():
     app = flask.current_app
+    if not ConfiguredOrganisation.valid:
+        ConfiguredOrganisation.validate(app)
     return {
         'name': app.config["ORGANISATION_NAME"],
         'user_key': app.config["ORGANISATION_USER_KEY"],
@@ -42,10 +102,6 @@ def check_config(app):
         safe to do as long as we have only one organization in lora database
         which satisfies the demands in 'list_organisations'
     """
-    orglist = get_valid_organisations()
-
-    if not len(orglist) < 2:
-        raise IndexError("at most one organisation allowed in backend")
 
     # in prod, all values must be defined
 
@@ -54,38 +110,7 @@ def check_config(app):
         app.config.get("ORGANISATION_USER_KEY") and
         app.config.get("ORGANISATION_UUID")
     ):
-        raise KeyError(
-            "ORGANISATION_NAME, ORGANISATION_USER_KEY, "
-            "and ORGANISATION_UUID must be configured"
-        )
-
-    # if values are defined they must match org in lora
-
-    if len(orglist) == 1:
-        expected = orglist[0]
-        actual = {
-            'name': app.config.get("ORGANISATION_NAME", ""),
-            'user_key': app.config.get("ORGANISATION_USER_KEY", ""),
-            'uuid': app.config.get("ORGANISATION_UUID", ""),
-        }
-
-        bad_values = [
-            ("ORGANISATION_" + k.upper(), v)
-            for k, v in actual.items()
-            if v and v != expected[k]
-        ]
-        if len(bad_values):
-            raise ValueError(
-                "The following configuration values "
-                "do not match database: %r" % bad_values
-            )
-
-    # for test/dev we will pick the organisation already present in os2mo
-
-    if app.env != 'production':
-        app.config["ORGANISATION_UUID"] = orglist[0]["uuid"]
-        app.config["ORGANISATION_NAME"] = orglist[0]["name"]
-        app.config["ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
+        raise KeyError("Organisation not configured")
 
 
 def get_lora_organisation(c, orgid, org=None):
