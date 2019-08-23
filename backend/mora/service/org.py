@@ -85,10 +85,14 @@ class ConfiguredOrganisation:
             return
 
 
-def organisation():
+def organisation(uuid=None):
     app = flask.current_app
     if not ConfiguredOrganisation.valid:
         ConfiguredOrganisation.validate(app)
+
+    if uuid and uuid != app.config["ORGANISATION_UUID"]:
+        exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
+
     return {
         'name': app.config["ORGANISATION_NAME"],
         'user_key': app.config["ORGANISATION_USER_KEY"],
