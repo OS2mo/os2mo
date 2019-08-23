@@ -117,6 +117,7 @@ class ErrorCodes(Enum):
     E_ORG_UNCONFIGURED = 400, "Organisation has not been configured"
     E_ORG_CONFIG_BAD = 400, "Organisation configuration differs from database"
     E_ORG_TOO_MANY = 400, "Too many organisations in lora, max one allowed"
+    E_ORG_NOT_ALLOWED = 400, "Organisation is not allowed"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):
