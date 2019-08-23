@@ -480,6 +480,11 @@ class Tests(util.LoRATestCase):
             },
         )
 
+    @util.override_config(
+        ORGANISATION_NAME='Aarhus Universitet',
+        ORGANISATION_USER_KEY='AU',
+        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
+    )
     def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range """
