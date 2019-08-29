@@ -87,7 +87,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.payload = None
         self.uuid = None
 
-        self.do_triggers = not flask.request.args.get('triggerless', False)
+        self.do_triggers = not util.get_args_flag('triggerless')
         self.trigger_dict = {
             "request_type": request_type,
             "request": request,

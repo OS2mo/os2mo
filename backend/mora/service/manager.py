@@ -91,15 +91,15 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             mapping.USER_KEY: props['brugervendtnoegle'],
         }
 
-        for _uuid in addresses:
-            orgfunc = c.organisationfunktion.get(uuid=_uuid)
+        for address_uuid in addresses:
+            orgfunc = c.organisationfunktion.get(uuid=address_uuid)
             try:
                 addr = address.get_one_address(orgfunc)
             except IndexError:
                 # empty ["relationer"]["adresser"]
                 continue
             addr["address_type"] = address.get_address_type(orgfunc)
-            addr["uuid"] = _uuid
+            addr["uuid"] = address_uuid
             func[mapping.ADDRESS].append(addr)
 
         func[mapping.ADDRESS] = sorted(

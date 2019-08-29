@@ -10,6 +10,7 @@ import enum
 import logging
 import importlib
 import traceback
+import functools
 
 logger = logging.getLogger("triggers")
 
@@ -70,6 +71,7 @@ class Trigger:
             if function not in registry:
                 registry.append(function)
 
+            @functools.wraps(function)
             def wrapper(trigger_dict):
                 "call wrapped function with arg"
                 return function(trigger_dict)
