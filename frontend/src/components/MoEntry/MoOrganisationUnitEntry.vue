@@ -13,6 +13,12 @@
         required
       />
 
+      <mo-input-text
+        :label="$t('input_fields.user_key')"
+        :placeholder="$t('input_fields.user_key_placeholder')"
+        v-model="entry.user_key"
+      />
+
       <mo-facet-picker
         facet="org_unit_type"
         v-model="entry.org_unit_type"
