@@ -17,6 +17,8 @@
   "name": "Navn",
   "new_name": "Nyt navn",
   "org_unit_type": "@:shared.org_unit_type",
+  "user_key": "Brugervendt nøgle",
+  "user_key_placeholder": "Udfyld eller auto",
   "primary": "@:shared.primary",
   "primary_association": "Primær tilknytning",
   "primary_engagement": "Primær engagement",
