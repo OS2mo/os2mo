@@ -20,7 +20,7 @@ def register(app):
             trigger_module = importlib.import_module(m)
             trigger_module.register(app)
         except Exception:
-            logger.error("trigger code or registration error for %s", m)
+            logger.exception("trigger code or registration error for %s", m)
             raise
 
 
