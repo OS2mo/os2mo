@@ -11,7 +11,6 @@ To bypass this check, specify ``force=1``.
 
 Bug fixes
 ---------
-
 * #29761: Date pickers moved to the top of the various forms
 * #30093: The shown units in the organisation unit pickers now reflect
     the dates selected in the date pickers
@@ -21,10 +20,13 @@ Bug fixes
   rather than e.g. the creation date of an old unit.
 * #30095: Address missing error in CPR search by automatically
   performing said search. And filter out any dashes while at it.
+* #29569: Validate addresses related to their unit and employee when
+  editing rather than merely at creation.
 
 New features
 ------------
 
+* #29741: AMQP messages moved to new Trigger module (on-after)
 * #27213: AMQP messages are sent whenever an object is created, edited or
   deleted which allows anyone to build custom & powerful integrations.
 * #30094: Allow organisational units to have no addresses, rather than
