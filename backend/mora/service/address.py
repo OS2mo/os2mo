@@ -188,7 +188,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
                     end, is_end=True)
             },
             mapping.UUID: funcid,
-            mapping.USER_KEY: props['brugervendtnoegle'],
+            mapping.USER_KEY: props.get('brugervendtnoegle'),
             **handler.get_mo_address_and_properties()
         }
         if person:

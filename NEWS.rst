@@ -28,6 +28,7 @@ Bug fixes
   editing rather than merely at creation.
 * #29570: Ensure the error messages when validating a unit move are correct
   and in the correct locations.
+* #31425: Better handling of addresses with empty 'brugervendtnoegle'
 
 New features
 ------------
