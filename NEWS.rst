@@ -4,10 +4,6 @@ In development
 API changes
 -----------
 
-``/service/ou/create``:
-
-If an empty user_key is supplied, the uuid of the orgunit is used
-
 ``/service/e/create``:
 
 Our validation now prevents creating an employee without a CPR number.
@@ -16,9 +12,6 @@ To bypass this check, specify ``force=1``.
 Bug fixes
 ---------
 
-* #29738: user_key can be entered in UI for organisational units.
-    if none is entered, the uuid of the organisational unit is used
-    like before
 * #29761: Date pickers moved to the top of the various forms
 * #30093: The shown units in the organisation unit pickers now reflect
   the dates selected in the date pickers
@@ -42,6 +35,8 @@ Bug fixes
 New features
 ------------
 
+* #29738: user_key can be entered in UI for organisational units. if none
+  is entered, the uuid of the organisational unit is used like before
 * #27213: AMQP messages are sent whenever an object is created, edited or
   deleted which allows anyone to build custom & powerful integrations.
 * #30094: Allow organisational units to have no addresses, rather than

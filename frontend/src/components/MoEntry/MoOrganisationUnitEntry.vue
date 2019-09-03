@@ -14,8 +14,8 @@
       />
 
       <mo-input-text
-        :label="$t('input_fields.user_key')"
-        :placeholder="$t('input_fields.user_key_placeholder')"
+        :label="$t('input_fields.org_unit_user_key')"
+        :placeholder="$t('input_fields.org_unit_user_key_placeholder')"
         v-model="entry.user_key"
       />
 
