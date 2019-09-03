@@ -485,6 +485,55 @@ def edit():
         }]
 
 
+    **Organisational Unit**:
+
+    :<json string type: **"org_unit"**
+    :<json string uuid: The UUID of the unit,
+    :<json object original: An **optional** object containing the original
+        state of the unit to be overwritten. If supplied, the change
+        will modify the existing registration on the employee object.
+        Detailed below.
+    :<json object data: An object containing the changes to be made to the
+        employee. Detailed below.
+
+    The **original** and **data** objects follow the same structure.
+    Every field in **original** is required, whereas **data** only needs
+    to contain the fields that need to change along with the validity dates.
+
+    :<jsonarr string name: The name of the org unit
+    :<jsonarr string user_key: Short, unique key identifying the unit.
+    :<jsonarr uuid org_unit_type: A class identifying the unit type.
+    :<jsonarr uuid parent: The parent org unit or organisation.m
+    :<jsonarr uuid time_planning: A class identifying the time
+                                  planning strategy.
+    :<jsonarr uuid org_unit_type: The type of org unit
+    :<jsonarr bool clamp: When editing, clamp end date to the unit end
+                          date, if set.
+    :<jsonarr object validity: The validities of the changes.
+
+    .. sourcecode:: json
+
+        [{
+            "type": "employee",
+            "original": {
+                "validity": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "to": null
+                },
+                "cpr_no": "1205320000",
+                "name": "Test 1 Employee"
+            },
+            "data": {
+                "validity": {
+                    "from": "2017-01-01"
+                },
+                "cpr_no": "0202020202",
+                "name": "Test 2 Employee"
+            },
+            "uuid": "de9e7513-1934-481f-f8c8-45336387e9cb"
+        }]
+
+
     **Engagement**:
 
     :<json string type: **"engagement"**
@@ -873,6 +922,7 @@ def edit():
     :<jsonarr object validity: A validity object
 
     See :ref:`Adresses <address>` for more information.
+
     """
 
     reqs = flask.request.get_json()
