@@ -983,6 +983,11 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @util.override_config(
+        ORGANISATION_NAME='Aarhus Universitet',
+        ORGANISATION_USER_KEY='AU',
+        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
+    )
     @freezegun.freeze_time('2010-01-01')
     def test_edit_org_unit_earlier_start(self):
         """ Test setting the start date to something earlier (#23182)

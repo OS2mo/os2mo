@@ -81,7 +81,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         )
         org_uuid_specified = util.get_mapping_uuid(req, mapping.ORG,
                                                    required=True)
-        org_uuid = org.organisation(org_uuid_specified)["uuid"]
+        org_uuid = org.get_configured_organisation(org_uuid_specified)["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
@@ -272,7 +272,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
                 rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             )
 
-        r[mapping.ORG] = org.organisation()
+        r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.USER_KEY] = props['brugervendtnoegle']
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done

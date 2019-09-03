@@ -125,7 +125,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
 
-        org_uuid = org.organisation()["uuid"]
+        org_uuid = org.get_configured_organisation()["uuid"]
         organisationenhed_get = c.organisationenhed.get(parent_uuid)
 
         if not (organisationenhed_get or parent_uuid == org_uuid):
@@ -386,7 +386,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.FULL:
         parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
-        r[mapping.ORG] = org.organisation()
+        r[mapping.ORG] = org.get_configured_organisation()
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
@@ -423,7 +423,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     elif details is UnitDetails.SELF:
-        r[mapping.ORG] = org.organisation()
+        r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.PARENT] = get_one_orgunit(c, parentid,
                                             details=UnitDetails.MINIMAL)
 

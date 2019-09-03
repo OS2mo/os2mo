@@ -85,7 +85,7 @@ class ConfiguredOrganisation:
             return
 
 
-def organisation(uuid=None):
+def get_configured_organisation(uuid=None):
     app = flask.current_app
     if not ConfiguredOrganisation.valid:
         ConfiguredOrganisation.validate(app)
@@ -180,7 +180,7 @@ def list_organisations():
      ]
 
     '''
-    return flask.jsonify([organisation()])
+    return flask.jsonify([get_configured_organisation()])
 
 
 @blueprint.route('/o/<uuid:orgid>/')
