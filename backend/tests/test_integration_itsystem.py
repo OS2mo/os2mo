@@ -622,7 +622,7 @@ class Writing(util.LoRATestCase):
             },
             validity={
                 "from": "2017-06-22",
-                "to": "2018-06-01",
+                "to": "2017-12-31",
             },
         )
 
@@ -641,9 +641,18 @@ class Writing(util.LoRATestCase):
             amqp_topics={'org_unit.it.update': 1},
         )
 
+        future = copy.deepcopy(updated)
+        future.update(
+            validity={
+                "from": "2018-01-01",
+                "to": "2018-06-01",
+            },
+        )
+        future['org_unit']['name'] = 'Afdeling for Fortidshistorik'
+
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=future'.format(unitid),
-            [],
+            [future],
             amqp_topics={'org_unit.it.update': 1},
         )
 
@@ -764,7 +773,7 @@ class Writing(util.LoRATestCase):
             },
             validity={
                 "from": "2017-06-22",
-                "to": "2018-06-01",
+                "to": "2017-12-31",
             },
         )
 
