@@ -29,6 +29,8 @@ Bug fixes
 * #29570: Ensure the error messages when validating a unit move are correct
   and in the correct locations.
 * #31425: Better handling of addresses with empty 'brugervendtnoegle'
+* #31029: We should no longer crash when reading orgfunk effects with more
+  than one attribute
 
 New features
 ------------
