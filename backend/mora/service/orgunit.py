@@ -121,7 +121,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         )
 
         unitid = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, unitid) or unitid
+        bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
         organisationenhed_get = c.organisationenhed.get(parent_uuid)

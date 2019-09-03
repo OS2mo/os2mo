@@ -91,6 +91,10 @@ export default {
      */
     entry: {
       handler (newVal) {
+        if (newVal.user_key === undefined || newVal.user_key === ""){
+          newVal.user_key = null; 
+        }
+        console.log(newVal.user_key);
         this.$emit('input', newVal)
       },
       deep: true
