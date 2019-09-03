@@ -164,15 +164,18 @@ export default {
 
     },
 
-    async validity (newVal, oldVal) {
-      if (this.orgUnitUuid) {
-        let unit = await OrganisationUnit.get(this.orgUnitUuid, newVal && newVal.from)
+    validity: {
+      deep: true,
+      async handler(newVal, oldVal) {
+        if (this.orgUnitUuid) {
+          let unit = await OrganisationUnit.get(this.orgUnitUuid, newVal && newVal.from)
 
-        if (!unit) {
-          this.showTree = false
-          this.orgName = null
-          this.orgUnitUuid = null
-          this.$emit('input', null)
+          if (!unit) {
+            this.showTree = false
+            this.orgName = null
+            this.orgUnitUuid = null
+            this.$emit('input', null)
+          }
         }
       }
     }

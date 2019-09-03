@@ -10,27 +10,28 @@
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="moveOrganisationUnit">
-      <mo-input-date
-        class="moveDate"
-        :label="$t('input_fields.move_date')"
-        v-model="move.data.validity.from"
-        :valid-dates="currentDateValidity"
-        required
-      />
-
       <div class="form-row">
+        <mo-input-date
+          class="moveDate"
+          :label="$t('input_fields.move_date')"
+          v-model="move.data.validity.from"
+          :valid-dates="currentDateValidity"
+          required
+        />
+
         <div class="col">
           <mo-organisation-unit-picker
             class="currentUnit"
             v-model="original"
             :label="$t('input_fields.select_unit')"
-            :date="move.data.validity.from"
-            :validity="validity"
+            :validity="requiredValidity"
             :extra-validations="unitValidations"
             required
           />
         </div>
+      </div>
 
+      <div class="form-row">
         <div class="form-group col">
           <label>{{$t('input_fields.current_super_unit')}}</label>
           <input
@@ -46,8 +47,7 @@
         class="parentUnit"
         v-model="parent"
         :label="$t('input_fields.select_new_super_unit')"
-        :date="move.data.validity.from"
-        :validity="validity"
+        :validity="requiredValidity"
         :disabled-unit="original"
         :extra-validations="parentValidations"
         required
@@ -101,6 +101,7 @@ export default {
             uuid: ''
           },
           uuid: '',
+          clamp: true,
           validity: {}
         }
       },
@@ -110,9 +111,14 @@ export default {
   },
 
   computed: {
-    validity () {
+    /**
+     * A validity of one day, corresponding to the required validity
+     * of units: They only need to be valid on the date of the operation.
+     */
+    requiredValidity () {
       return {
-        'from': this.move.data.validity.from
+        from: this.move.data.validity.from,
+        to: this.move.data.validity.from
       }
     },
 
@@ -124,7 +130,7 @@ export default {
 
     parentValidations () {
       return {
-        candidate_parent_org_unit: [this.original, this.move.data.parent, this.validity]
+        candidate_parent_org_unit: [this.original, this.move.data.parent, this.move.data.validity]
       }
     }
   },
