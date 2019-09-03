@@ -35,17 +35,6 @@ class Tests(util.LoRATestCase):
     )
     def test_organisation(self):
 
-        # The concept of empty does not apply to organisation after
-        # this object has been moved into configuration #31024
-        # on 2019-08-21
-        # with self.subTest('empty'):
-        #     self.assertRequestResponse('/service/o/', [])
-        #
-        #     self.assertRequestFails(
-        #         '/service/o/00000000-0000-0000-0000-000000000000/',
-        #         404,
-        #     )
-
         self.load_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
@@ -84,36 +73,6 @@ class Tests(util.LoRATestCase):
             org_only,
         )
 
-        # The concept of an organisational time span has been
-        # removed from OS2MO when this object was moved into
-        # configuration #31024 on 2019-08-21
-        #
-        # with self.subTest('time machine'):
-        #    old_time = datetime.date(2015, 1, 1).isoformat()
-        #    new_time = datetime.date(2017, 1, 1).isoformat()
-        #
-        #    with freezegun.freeze_time(new_time, tz_offset=1):
-        #        self.assertRequestResponse(
-        #            '/service/o/?at=' + old_time, [],
-        #        )
-        #
-        #        self.assertRequestFails(
-        #            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/?at=' +
-        #            old_time,
-        #            404,
-        #        )
-        #
-        #    with freezegun.freeze_time(old_time, tz_offset=1):
-        #        self.assertRequestResponse(
-        #            '/service/o/?at=' + new_time, org_list,
-        #        )
-        #
-        #        self.assertRequestResponse(
-        #            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/?at=' +
-        #            new_time,
-        #            org_only,
-        #        )
-
         self.load_sample_structures()
         org_only['unit_count'] = 6
 
@@ -126,23 +85,6 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/',
             org_only,
         )
-
-        # The concept of an organisational time span has been
-        # removed from OS2MO when this object was moved into
-        # configuration #31024 on 2019-08-21
-        # with self.subTest('deleted'):
-        #    lora.delete('organisation/organisationenhed',
-        #                '2874e1dc-85e6-4269-823a-e1125484dfd3')
-        #
-        #    self.assertRequestResponse('/service/o/', [])
-        #
-        #    # we don't care much about this case; why would you query
-        #    # an unlisted organisation? let's test it regardless...
-        #    org_only['unit_count'] = 5
-        #    org_only['child_count'] = 0
-        #    self.assertRequestResponse(
-        #        '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/', org_only,
-        #    )
 
     def test_children(self):
         self.load_sample_structures(minimal=True)
