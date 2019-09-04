@@ -4,14 +4,14 @@ A organisation unit move component.
 
 ## data 
 
-- `parentUnit` 
+- `original` 
 
   The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
   Used to detect changes and restore the value. 
 
-**initial value:** `''` 
+**initial value:** `null` 
 
-- `original` 
+- `parent` 
 
 **initial value:** `null` 
 
@@ -29,13 +29,20 @@ A organisation unit move component.
 
 ## computed properties 
 
-- `validity` 
+- `requiredValidity` 
 
-   **dependencies:** `move` 
+  A validity of one day, corresponding to the required validity
+  of units: They only need to be valid on the date of the operation. 
+
+   **dependencies:** `move`, `move` 
+
+- `unitValidations` 
+
+   **dependencies:** `original` 
 
 - `parentValidations` 
 
-   **dependencies:** `original`, `move`, `validity` 
+   **dependencies:** `original`, `move`, `move` 
 
 
 ## methods 
@@ -48,8 +55,4 @@ A organisation unit move component.
 
   Move a organisation unit and check if the data fields are valid.
   Then throw a error if not. 
-
-- `getCurrentUnit(unitUuid)` 
-
-  Get current organisation unit. 
 

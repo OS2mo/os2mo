@@ -18,6 +18,13 @@ A date picker component.
 
 ## computed properties 
 
+- `initialValue` 
+
+  The initially focused value. Use either the current value or the
+  closest allowed value. 
+
+   **dependencies:** `internalValue`, `internalValue`, `disabledDates` 
+
 - `disabledDates` 
 
   Date interval to disable.
