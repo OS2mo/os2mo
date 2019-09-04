@@ -7,25 +7,15 @@
 #
 
 from . import util
+from unittest.mock import patch
 from mora.service import org
 
 
-class Tests(util.LoRATestCase):
+class Tests(util.TestCase):
     maxDiff = None
 
-    def setUp(self):
-        super().setUp()
-        org.ConfiguredOrganisation.valid = False  # force validation each test
-        self._get_valid_organisations = org.get_valid_organisations
-
-    def tearDown(self):
-        super().tearDown()
-        org.get_valid_organisations = self._get_valid_organisations
-        org.ConfiguredOrganisation.valid = False  # force validation each test
-
+    @patch('mora.service.org.get_valid_organisations', new=lambda: [])
     def test_no_orgs_in_mo(self):
-        self.load_sample_structures()
-        org.get_valid_organisations = lambda: []
         r = self.request('/service/o/')
         self.assertEqual({
             'error': True,
@@ -34,9 +24,8 @@ class Tests(util.LoRATestCase):
             'description': 'Organisation has not been configured'
         }, r.json)
 
+    @patch('mora.service.org.get_valid_organisations', new=lambda: [{}, {}])
     def test_more_than_one_org_in_mo(self):
-        self.load_sample_structures()
-        org.get_valid_organisations = lambda: [{}, {}]
         r = self.request('/service/o/')
         self.assertEqual({
             'error': True,
