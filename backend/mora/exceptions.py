@@ -114,6 +114,10 @@ class ErrorCodes(Enum):
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."
     E_SP_SSL_ERROR = 500, "SSL Error connecting to SP"
+    E_ORG_UNCONFIGURED = 400, "Organisation has not been configured"
+    E_ORG_CONFIG_BAD = 400, "Organisation configuration differs from database"
+    E_ORG_TOO_MANY = 400, "Too many organisations in lora, max one allowed"
+    E_ORG_NOT_ALLOWED = 400, "Organisation is not allowed"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):

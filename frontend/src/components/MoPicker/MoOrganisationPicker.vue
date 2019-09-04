@@ -1,5 +1,10 @@
+/**
+ * This component has been hidden. It, however, has sideeffects
+ * which currently prohibit the component from beeing removed
+ * alltogether, so it has been hidden with style="display=none"
+ */
 <template>
-  <div>
+  <div style="display:none">
     <select
       class="form-control"
       id="organisation-picker"

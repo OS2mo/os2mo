@@ -27,7 +27,7 @@ import werkzeug.serving
 
 from oio_rest.utils import test_support
 
-from mora import amqp, app, lora, settings
+from mora import amqp, app, lora, settings, service
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -370,6 +370,10 @@ class TestCaseMixin(object):
 
     def create_app(self, overrides=None):
         os.makedirs(BUILD_DIR, exist_ok=True)
+
+        # make sure the configured organisation is always reset
+        # every before test
+        service.org.ConfiguredOrganisation.valid = False
 
         return app.create_app({
             'ENV': 'testing',

@@ -14,7 +14,7 @@ from mora import exceptions
 from . import util
 
 
-@util.mock('dawa-addresses.json')
+@util.mock('dawa-addresses.json', allow_mox=True)
 class DarAddressHandlerTests(util.TestCase):
     handler = dar.DARAddressHandler
 

@@ -37,6 +37,9 @@ New features
 
 * #29738: user_key can be entered in UI for organisational units. if none
   is entered, the uuid of the organisational unit is used like before
+* #31024: Organisation drop down removed. Organisation has been moved
+  into configuration values. Strictly enforced in 'production', less
+  so in development / testing
 * #27213: AMQP messages are sent whenever an object is created, edited or
   deleted which allows anyone to build custom & powerful integrations.
 * #30094: Allow organisational units to have no addresses, rather than
