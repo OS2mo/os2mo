@@ -78,11 +78,10 @@ def get_valid_organisations():
     """ return all valid organisations, being the ones
         who have at least one top organisational unit
     """
-    c = common.lora.Connector()
+    c = common.lora.Connector(virkningfra='-infinity', virkningtil='infinity')
     orglist = [
         get_lora_organisation(c, orgid, org)
         for orgid, org in c.organisation.get_all(bvn='%')
-        if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
     ]
     return orglist
 
