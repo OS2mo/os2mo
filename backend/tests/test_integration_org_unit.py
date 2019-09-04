@@ -25,11 +25,6 @@ mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_org_unit_temporality(self):
         self.load_sample_structures()
 
@@ -260,11 +255,6 @@ class Tests(util.LoRATestCase):
         )
 
     @util.mock('aabogade.json', allow_mox=True)
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_org_unit(self, m):
         self.load_sample_structures()
 
@@ -480,11 +470,6 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range """
@@ -690,11 +675,6 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_read_root(self):
         self.load_sample_structures(minimal=True)
 
@@ -727,11 +707,6 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_read_many_parents(self):
         self.load_sample_structures()
 
@@ -983,11 +958,6 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     @freezegun.freeze_time('2010-01-01')
     def test_edit_org_unit_earlier_start(self):
         """ Test setting the start date to something earlier (#23182)
@@ -1178,11 +1148,6 @@ class Tests(util.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True)
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_edit_org_unit_earlier_start_on_created(self, m):
         self.load_sample_structures()
 
@@ -1401,11 +1366,6 @@ class Tests(util.LoRATestCase):
             status_code=404,
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_root_unit(self):
         self.load_sample_structures(minimal=True)
 
@@ -1612,11 +1572,6 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_edit_time_planning(self):
         self.load_sample_structures()
 
@@ -1843,11 +1798,6 @@ class Tests(util.LoRATestCase):
 
     @unittest.expectedFailure
     @freezegun.freeze_time('2016-01-01')
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_rename_org_unit_early(self):
         """ This test fails due to validity records being
             fractioned in lora due to integration_data added
@@ -2322,11 +2272,6 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_move_org_unit_wrong_org(self):
         'Verify that we cannot move a unit into another organisation'
 
@@ -2525,11 +2470,6 @@ class Tests(util.LoRATestCase):
             status_code=400,
             json=req)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_terminate_org_unit(self):
         self.load_sample_structures()
 
@@ -2800,11 +2740,6 @@ class Tests(util.LoRATestCase):
 
     @unittest.expectedFailure
     @freezegun.freeze_time('2018-09-11', tz_offset=2)
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_terminating_complex_org_unit(self):
         self.load_sample_structures()
 

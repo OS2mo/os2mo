@@ -27,14 +27,8 @@ blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
 
 
 class ConfiguredOrganisation:
-    """ OS2mo organisation has been moved into configuration values
-    this class validates the configured values before returning the
-    configured values. Upon successful validation this is remembered
-    until restart of the application. The rules are:
-    - there can be at most 1 organisation in lora database
-    - if the organisation values are configured they must be the same
-      as the organisation in lora, if any
-    - for production environment the organisation must be configured
+    """ OS2mo organisation is cached as an attribute on this class
+    hence there must be exactly one organisation in the lora database
     """
     valid = False
 
@@ -42,79 +36,26 @@ class ConfiguredOrganisation:
     def validate(cls, app):
         orglist = get_valid_organisations()
 
-        # if running production or no organisation in lora
-        # organisation must be configured
-        if (app.env == 'production' or len(orglist) == 0) and not (
-            app.config.get("ORGANISATION_NAME") and
-            app.config.get("ORGANISATION_USER_KEY") and
-            app.config.get("ORGANISATION_UUID")
-        ):
-            exceptions.ErrorCodes.E_ORG_UNCONFIGURED()
-
         if len(orglist) > 1:
             exceptions.ErrorCodes.E_ORG_TOO_MANY(count=len(orglist))
 
         elif len(orglist) == 0:
-            cls.valid = True
-            return
+            exceptions.ErrorCodes.E_ORG_UNCONFIGURED()
 
         elif len(orglist) == 1:
-            # check configuration values - dev/test may be blank
-            # production is sure to be configured (see above)
-            expected = orglist[0]
-            actual = {
-                'name': app.config.get("ORGANISATION_NAME", ""),
-                'user_key': app.config.get("ORGANISATION_USER_KEY", ""),
-                'uuid': app.config.get("ORGANISATION_UUID", ""),
-            }
-            bad_values = {
-                "ORGANISATION_" + k.upper(): v
-                for k, v in actual.items()
-                if v and v != expected[k]
-            }
-
-            if bad_values:
-                exceptions.ErrorCodes.E_ORG_CONFIG_BAD(**bad_values)
-
-            # for blank test/dev values use org present in os2mo
-            if app.env != 'production':
-                app.config["ORGANISATION_UUID"] = orglist[0]["uuid"]
-                app.config["ORGANISATION_NAME"] = orglist[0]["name"]
-                app.config["ORGANISATION_USER_KEY"] = orglist[0]["user_key"]
-            cls.valid = True
-            return
+            cls.organisation = orglist[0]
 
 
 def get_configured_organisation(uuid=None):
     app = flask.current_app
     if not ConfiguredOrganisation.valid:
         ConfiguredOrganisation.validate(app)
+    org = ConfiguredOrganisation.organisation
 
-    if uuid and uuid != app.config["ORGANISATION_UUID"]:
+    if uuid and uuid != org["uuid"]:
         exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
 
-    return {
-        'name': app.config["ORGANISATION_NAME"],
-        'user_key': app.config["ORGANISATION_USER_KEY"],
-        'uuid': app.config["ORGANISATION_UUID"],
-    }
-
-
-def check_config(app):
-    """ put mora default organization into configuration before doing any work
-        we mean to always set the organisation from the database, and it is
-        safe to do as long as we have only one organization in lora database
-        which satisfies the demands in 'list_organisations'
-    """
-
-    # in prod, all values must be defined
-
-    if app.env == 'production' and not (
-        app.config.get("ORGANISATION_NAME") and
-        app.config.get("ORGANISATION_USER_KEY") and
-        app.config.get("ORGANISATION_UUID")
-    ):
-        raise KeyError("Organisation not configured")
+    return org
 
 
 def get_lora_organisation(c, orgid, org=None):
@@ -151,8 +92,7 @@ def get_valid_organisations():
 def list_organisations():
     '''List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
-    organisation - namely the one that is defined in the configuration
-    values ORGANISATION_NAME, ORGANISATION_UUID, and ORGANISATION_UUID.
+    organisation as only one organisation is currently allowed.
 
     .. :quickref: Organisation; List
 

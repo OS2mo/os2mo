@@ -17,11 +17,6 @@ from . import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee(self):
         self.load_sample_structures()
 
@@ -133,11 +128,6 @@ class Tests(util.LoRATestCase):
             amqp_topics={'employee.employee.create': 1},
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_like_import(self):
         '''Test creating a user that has no CPR number, but does have a
         user_key and a given UUID.
@@ -186,12 +176,8 @@ class Tests(util.LoRATestCase):
             status_code=400,
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_fails_on_invalid_cpr(self):
+        self.load_sample_structures()
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "1",
@@ -213,11 +199,6 @@ class Tests(util.LoRATestCase):
             status_code=400,
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_existing_cpr_existing_org(self):
         self.load_sample_structures()
 
@@ -245,11 +226,6 @@ class Tests(util.LoRATestCase):
             status_code=409,
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_fail_on_double_naming(self):
         self.load_sample_structures()
 
@@ -278,11 +254,6 @@ class Tests(util.LoRATestCase):
             status_code=400,
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_existing_cpr_new_org(self):
         """
         Should not be able to create employee with same CPR no,
@@ -306,11 +277,6 @@ class Tests(util.LoRATestCase):
             'error': True
         }, r.json)
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.
         Also add three names to a single name parameter and check
@@ -383,11 +349,6 @@ class Tests(util.LoRATestCase):
             employee_uuid))
         self.assertEqual(1, len(r.json), 'One engagement should exist')
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
         self.load_sample_structures()

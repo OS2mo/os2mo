@@ -28,11 +28,6 @@ class Tests(util.LoRATestCase):
             'TZ': 'UTC',
         }
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_organisation(self):
 
         self.load_sample_structures(minimal=True)
@@ -427,11 +422,6 @@ class Tests(util.LoRATestCase):
                 }
             )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_orgunit(self):
         self.load_sample_structures(minimal=True)
 
@@ -583,11 +573,6 @@ class Tests(util.LoRATestCase):
                            'to': None}}],
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_employee(self):
         with self.subTest('empty'):
             self.assertRequestResponse(

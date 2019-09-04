@@ -52,11 +52,6 @@ phone_class = {
 class Writing(util.LoRATestCase):
     maxDiff = None
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_errors(self, mock):
         self.load_sample_structures()
 
@@ -250,11 +245,6 @@ class Writing(util.LoRATestCase):
                 json=req,
             )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_dar_address_fails_correctly(self, mock):
         """Ensure that we fail when creating a DAR address when lookup fails"""
         self.load_sample_structures()
@@ -438,11 +428,6 @@ class Writing(util.LoRATestCase):
             c.organisationfunktion.get(addr_id)
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_add_employee_address(self, mock):
         self.load_sample_structures()
 
@@ -596,11 +581,6 @@ class Writing(util.LoRATestCase):
                 amqp_topics={'employee.address.create': 1},
             )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_employee_with_address(self, mock):
         self.load_sample_structures()
 
@@ -717,11 +697,6 @@ class Writing(util.LoRATestCase):
             c.organisationfunktion.get(addr_id)
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_manager_with_address(self, mock):
         self.load_sample_structures()
 
@@ -853,11 +828,6 @@ class Writing(util.LoRATestCase):
             c.organisationfunktion.get(addr_id)
         )
 
-    @util.override_config(
-        ORGANISATION_NAME='Aarhus Universitet',
-        ORGANISATION_USER_KEY='AU',
-        ORGANISATION_UUID='456362c4-0ee4-4e5e-a72c-751239745e62',
-    )
     def test_create_org_unit_with_address(self, mock):
         self.load_sample_structures()
 
