@@ -154,12 +154,6 @@ def update_payload(
         if field_tuple.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # 'Fake' zero-to-one relation. Merge into existing list.
             updated_props = _merge_obj_effects(props, vals)
-            for p in updated_props:
-                if len(p) == 1 and 'virkning' in p:
-                    # Change periods with no UUID or URN to correct
-                    # link-changing syntax.
-                    p['uuid'] = ''
-                    p['urn'] = ''
         elif field_tuple.type == mapping.FieldTypes.ZERO_TO_MANY:
             # Actual zero-to-many relation. Just append.
             updated_props = vals
@@ -169,6 +163,13 @@ def update_payload(
             assert 0 <= len(vals) <= 1
             updated_props = vals
 
+        for p in updated_props:
+            # TODO: Fix this when the underlying bug in LoRa is resolved
+            # https://redmine.magenta-aps.dk/issues/31576
+            if (len(p) == 1 and 'virkning' in p and 'relationer' in
+                    field_tuple.path[0]):
+                p['uuid'] = ''
+                p['urn'] = ''
         payload = util.set_obj_value(payload, field_tuple.path, updated_props)
 
     return payload
