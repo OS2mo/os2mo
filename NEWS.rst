@@ -1,6 +1,16 @@
 In development
 ==============
 
+Bug fixes
+---------
+
+* #22316: Ensure update payloads sent to LoRa satisfy validation
+  requirements
+
+
+In development
+==============
+
 API changes
 -----------
 
