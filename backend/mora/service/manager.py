@@ -280,11 +280,11 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         if mapping.PERSON in data:
             employee = data.get(mapping.PERSON)
-            employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
+            employee_uuid = util.get_mapping_uuid(data, mapping.PERSON) or ''
 
             update_fields.append((
                 mapping.USER_FIELD,
-                {'uuid': employee_uuid} if employee_uuid else {},
+                {'uuid': employee_uuid},
             ))
         else:
             employee = util.get_obj_value(
