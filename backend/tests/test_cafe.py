@@ -114,9 +114,10 @@ class TestCafeTests(util.LiveLoRATestCase):
         'SKIP_TESTCAFE' in os.environ,
         'TestCafé disabled by $SKIP_TESTCAFE!',
     )
-    def _test_with_testcafe(self, test_file, test_name):
+    def test_with_testcafe(self):
         self.load_sql_fixture()
         p_port = self._create_conf_data()
+        self.add_resetting_endpoint()
 
         # Start the testing process
         print("----------------------")
@@ -144,7 +145,7 @@ class TestCafeTests(util.LiveLoRATestCase):
                 [
                     TESTCAFE_COMMAND,
                     "'{} --no-sandbox'".format(browser),
-                    test_file,
+                    TEST_DIR,
                     "-r", ','.join(["spec",
                                     "xunit:" + xml_report_file,
                                     "json:" + json_report_file]),

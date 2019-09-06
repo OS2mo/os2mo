@@ -25,7 +25,7 @@
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError.error_key)}}
+        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
       </div>
 
       <div class="float-right">

@@ -238,6 +238,18 @@ def employee_existing_associations():
     return flask.jsonify(success=True)
 
 
+@blueprint.route('/movable-org-unit/', methods=['POST'])
+@util.restrictargs()
+def movable_org_unit():
+    req = flask.request.get_json()
+
+    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
+
+    validator.is_movable_org_unit(org_unit_uuid)
+
+    return flask.jsonify(success=True)
+
+
 @blueprint.route('/candidate-parent-org-unit/', methods=['POST'])
 @util.restrictargs()
 def candidate_parent_org_unit():

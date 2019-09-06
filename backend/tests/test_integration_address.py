@@ -178,14 +178,10 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
+                    'description': 'Missing address_type',
                     'error': True,
-                    'error_key': 'E_INVALID_TYPE',
-                    'description': (
-                        "Invalid 'address_type', expected dict, got: null"
-                    ),
+                    'error_key': 'V_MISSING_REQUIRED_VALUE',
                     'key': 'address_type',
-                    'expected': 'dict',
-                    'actual': None,
                     'status': 400,
                     "obj": req[0],
                 },
@@ -352,6 +348,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics={'org_unit.address.create': 1},
         )
 
         expected = {
@@ -462,6 +459,7 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics={'employee.address.create': 1},
         )
 
         expected = {
@@ -580,6 +578,7 @@ class Writing(util.LoRATestCase):
                         "value": "root@example.com",
                     },
                 ],
+                amqp_topics={'employee.address.create': 1},
             )
 
     def test_create_employee_with_address(self, mock):
@@ -610,7 +609,11 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics={
+                'employee.address.create': 1,
+                'employee.employee.create': 1,
+            },
         )
 
         expected = {
@@ -737,7 +740,11 @@ class Writing(util.LoRATestCase):
                         'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
                 }],
-            }]
+            }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         expected = {
@@ -855,7 +862,11 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 ]
-            }
+            },
+            amqp_topics={
+                'org_unit.address.create': 1,
+                'org_unit.org_unit.create': 1,
+            },
         )
 
         expected = {
@@ -962,7 +973,8 @@ class Writing(util.LoRATestCase):
                         },
                     },
                 }
-            ]
+            ],
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         expected = {
@@ -1094,7 +1106,8 @@ class Writing(util.LoRATestCase):
                         'validity': {'from': '2018-01-01', 'to': '2019-12-31'},
                     },
                 }
-            ]
+            ],
+            amqp_topics={'org_unit.address.update': 1},
         )
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
@@ -1312,7 +1325,7 @@ class Reading(util.LoRATestCase):
                     {
                         "href": "tel:+4587150000",
                         "name": "+4587150000",
-                        "value": "87150000",
+                        "value": "+4587150000",
                         "user_key": "8715 0000",
                         "address_type": {
                             "example": "20304060",

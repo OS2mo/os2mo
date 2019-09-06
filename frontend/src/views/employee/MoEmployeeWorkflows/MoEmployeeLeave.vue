@@ -1,5 +1,7 @@
 <template>
   <form @submit.stop.prevent="createLeave">
+    <mo-leave-entry v-model="leave"/>
+
     <mo-employee-picker
       v-model="employee"
       required
@@ -7,10 +9,8 @@
       :extra-validations="validations"
     />
 
-    <mo-leave-entry class="mt-3" v-model="leave"/>
-
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError)}}
+      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
     </div>
 
     <div class="float-right">
@@ -93,7 +93,7 @@ export default {
         this.$store.dispatch(`${STORE_KEY}/leaveEmployee`)
           .then(response => {
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$emit('submitted')
             }

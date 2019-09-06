@@ -21,10 +21,6 @@ class PhoneAddressHandler(base.AddressHandler):
     prefix = 'urn:magenta.dk:telefon:'
 
     def __init__(self, value, visibility):
-        value = re.sub(r'\s+', '', value)
-        if not value.startswith('+'):
-            value = '+45' + value
-
         self.visibility = visibility
 
         super().__init__(value)
@@ -47,10 +43,6 @@ class PhoneAddressHandler(base.AddressHandler):
         visibility = util.get_mapping_uuid(request, mapping.VISIBILITY)
 
         return cls(value, visibility)
-
-    @property
-    def value(self):
-        return self._value[3:]
 
     @property
     def href(self):

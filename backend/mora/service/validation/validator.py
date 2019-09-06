@@ -216,6 +216,20 @@ def is_contained_in_range(candidate_from, candidate_to, valid_from, valid_to,
 
 
 @forceable
+def is_movable_org_unit(unitid):
+    # Do not allow moving of the root org unit
+    c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+    unit = c.organisationenhed.get(unitid)
+
+    orgid = mapping.BELONGS_TO_FIELD.get_uuid(unit)
+    parentid = mapping.PARENT_FIELD.get_uuid(unit)
+
+    if parentid == orgid:
+        exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT()
+
+
+@forceable
 def is_candidate_parent_valid(unitid: str, parent: str,
                               from_date: datetime.datetime) -> bool:
     """
@@ -235,9 +249,6 @@ def is_candidate_parent_valid(unitid: str, parent: str,
         uuid=unitid
     )['relationer']
     orgid = org_unit_relations['tilhoerer'][0]['uuid']
-
-    if org_unit_relations['overordnet'][0]['uuid'] == orgid:
-        exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT()
 
     if parent == orgid:
         exceptions.ErrorCodes.V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL()
@@ -394,6 +405,12 @@ def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
     """
+    if not util.is_cpr_number(cpr):
+        raise exceptions.HTTPException(
+            exceptions.ErrorCodes.V_CPR_NOT_VALID,
+            cpr=cpr,
+        )
+
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)

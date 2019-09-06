@@ -1,5 +1,12 @@
 <template>
   <div>
+    <mo-input-date-range
+      class="from-date"
+      v-model="entry.validity"
+      :initially-hidden="validityHidden"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
+    />
+
     <mo-input-checkbox
       class="associationCheckbox"
       v-model="entry.primary"
@@ -23,13 +30,6 @@
         required
       />
     </div>
-
-    <mo-input-date-range
-      class="from-date"
-      v-model="entry.validity"
-      :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
-    />
   </div>
 </template>
 

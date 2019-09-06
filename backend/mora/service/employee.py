@@ -50,7 +50,6 @@ class EmployeeDetails(enum.Enum):
 
 
 class EmployeeRequestHandler(handlers.RequestHandler):
-    __slots__ = ('details_requests',)
     role_type = "employee"
 
     def prepare_create(self, req):
@@ -80,7 +79,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {},
             required=False
         )
-        org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+        org_uuid_specified = util.get_mapping_uuid(req, mapping.ORG,
+                                                   required=True)
+        org_uuid = org.get_configured_organisation(org_uuid_specified)["uuid"]
+
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
@@ -118,6 +120,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = user
         self.uuid = userid
+        self.employee_uuid = userid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -217,6 +220,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
+        self.employee_uuid = userid
 
     def submit(self):
         c = lora.Connector()
@@ -228,6 +232,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
+        super().submit()
 
         return result
 
@@ -261,14 +266,13 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
     if details is EmployeeDetails.FULL:
         rels = user['relationer']
-        orgid = rels['tilhoerer'][0]['uuid']
 
         if rels.get('tilknyttedepersoner'):
             r[mapping.CPR_NO] = (
                 rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             )
 
-        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.USER_KEY] = props['brugervendtnoegle']
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
@@ -377,7 +381,7 @@ def get_employee(id):
         in ISO-8601 format.
 
     :<json string name: Full name of the employee (concatenation
-    of givenname and surname).
+        of givenname and surname).
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
     :>json string uuid: Machine-friendly UUID.

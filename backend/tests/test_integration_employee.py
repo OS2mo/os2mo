@@ -125,6 +125,7 @@ class Tests(util.LoRATestCase):
                 'cpr_no': '0101501234',
                 'uuid': userid,
             },
+            amqp_topics={'employee.employee.create': 1},
         )
 
     def test_create_employee_like_import(self):
@@ -138,7 +139,13 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/e/create',
-            userid,
+            {
+                "cpr": "",
+                "description": "Not a valid CPR number.",
+                "error": True,
+                "error_key": "V_CPR_NOT_VALID",
+                "status": 400,
+            },
             json={
                 'givenname': 'Teodor',
                 'surname': 'Testfætter',
@@ -148,22 +155,7 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': userid,
             },
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/'.format(userid),
-            {
-                'givenname': 'Teodor',
-                'surname': 'Testfætter',
-                'name': 'Teodor Testfætter',
-                'user_key': 'testfætter',
-                'org': {
-                    'name': 'Aarhus Universitet',
-                    'user_key': 'AU',
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                },
-                'uuid': userid,
-            },
+            status_code=400,
         )
 
     def test_create_employee_fails_on_empty_payload(self):
@@ -185,6 +177,7 @@ class Tests(util.LoRATestCase):
         )
 
     def test_create_employee_fails_on_invalid_cpr(self):
+        self.load_sample_structures()
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "1",
@@ -263,8 +256,8 @@ class Tests(util.LoRATestCase):
 
     def test_create_employee_existing_cpr_new_org(self):
         """
-        Should be able to create employee with same CPR no,
-        but in different organisation
+        Should not be able to create employee with same CPR no,
+        in different organisation, as only one is allowed
         """
         self.load_sample_structures()
 
@@ -275,12 +268,14 @@ class Tests(util.LoRATestCase):
                 'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
             }
         }
-
-        uuid = self.request('/service/e/create', json=payload).json
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        self.assertTrue(c.bruger.get(uuid))
+        r = self.request('/service/e/create', json=payload)
+        self.assertEqual({
+            'description': 'Organisation is not allowed',
+            'uuid': '3dcb1072-482e-491e-a8ad-647991d0bfcf',
+            'status': 400,
+            'error_key': 'E_ORG_NOT_ALLOWED',
+            'error': True
+        }, r.json)
 
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.
@@ -317,8 +312,16 @@ class Tests(util.LoRATestCase):
             "uuid": employee_uuid
         }
 
-        self.assertRequestResponse('/service/e/create', employee_uuid,
-                                   json=payload)
+        self.assertRequestResponse(
+            '/service/e/create',
+            employee_uuid,
+            json=payload,
+            amqp_topics={
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
+                'employee.employee.create': 1,
+            },
+        )
 
         self.assertRequestResponse(
             '/service/e/{}/'.format(employee_uuid),
@@ -334,6 +337,11 @@ class Tests(util.LoRATestCase):
                 'user_key': employee_uuid,
                 'cpr_no': '0101501234',
                 'uuid': employee_uuid,
+            },
+            amqp_topics={
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
+                'employee.employee.create': 1,
             },
         )
 
@@ -541,6 +549,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [userid],
             json=req,
+            amqp_topics={'employee.employee.update': 1},
         )
 
         # there must be a registration of the new name
@@ -671,6 +680,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [userid],
             json=req,
+            amqp_topics={'employee.employee.update': 1},
         )
 
         # there must be a registration of the new name
@@ -821,6 +831,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             employee_uuid,
             json=req,
+            amqp_topics={'employee.employee.update': 1},
         )
 
         self.assertRequestResponse(
@@ -835,7 +846,8 @@ class Tests(util.LoRATestCase):
                 'givenname': 'Andersine',
                 'name': 'Andersine And',
                 'uuid': employee_uuid
-            }
+            },
+            amqp_topics={'employee.employee.update': 1},
         )
 
     def test_edit_employee_in_the_past_fails(self):

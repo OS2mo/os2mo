@@ -11,3 +11,4 @@ Technical Documentation
    api
    backend
    frontend
+   amqp

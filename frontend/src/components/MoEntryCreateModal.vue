@@ -25,7 +25,7 @@
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
+        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
       </div>
 
       <div class="float-right">
@@ -177,7 +177,7 @@ export default {
         .then(response => {
           vm.isLoading = false
           if (response.error) {
-            vm.backendValidationError = response.error_key
+            vm.backendValidationError = response
           } else {
             vm.$refs[this.nameId].hide()
             this.$emit('submit')
@@ -203,7 +203,7 @@ export default {
         .then(response => {
           vm.isLoading = false
           if (response.error) {
-            vm.backendValidationError = response.error_key
+            vm.backendValidationError = response
           } else {
             vm.$refs[this.nameId].hide()
             this.$emit('submit')

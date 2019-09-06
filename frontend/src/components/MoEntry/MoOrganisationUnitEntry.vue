@@ -1,38 +1,43 @@
 <template>
   <div>
-      <div class="form-row">
-        <mo-input-text
-          :label="$t('input_fields.name')"
-          v-model="entry.name"
-          required
-        />
+    <mo-input-date-range
+      v-model="entry.validity"
+      :disable-to-date="!creatingDate"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
+    />
 
-        <mo-facet-picker
-          facet="org_unit_type"
-          v-model="entry.org_unit_type"
-          required
-        />
-
-        <mo-facet-picker
-          facet="time_planning"
-          v-model="entry.time_planning"
-          preselectedType
-          required
-        />
-      </div>
-
-      <mo-organisation-unit-picker
-        v-model="entry.parent"
-        :label="$t('input_fields.select_super_unit')"
+    <div class="form-row">
+      <mo-input-text
+        :label="$t('input_fields.name')"
+        v-model="entry.name"
         required
-        :validity="entry.validity"
       />
 
-      <mo-input-date-range
-        v-model="entry.validity"
-        :disable-to-date="!creatingDate"
-        :disabled-dates="{orgUnitValidity, disabledDates}"
+      <mo-input-text
+        :label="$t('input_fields.org_unit_user_key')"
+        :placeholder="$t('input_fields.org_unit_user_key_placeholder')"
+        v-model="entry.user_key"
       />
+
+      <mo-facet-picker
+        facet="org_unit_type"
+        v-model="entry.org_unit_type"
+        required
+      />
+
+      <mo-facet-picker
+        facet="time_planning"
+        v-model="entry.time_planning"
+        required
+      />
+    </div>
+
+    <mo-organisation-unit-picker
+      v-model="entry.parent"
+      :label="$t('input_fields.select_super_unit')"
+      required
+      :validity="entry.validity"
+    />
   </div>
 </template>
 
@@ -86,6 +91,9 @@ export default {
      */
     entry: {
       handler (newVal) {
+        if (newVal.user_key === undefined || newVal.user_key === ""){
+          newVal.user_key = null; 
+        }
         this.$emit('input', newVal)
       },
       deep: true

@@ -18,6 +18,7 @@ import typing
 import flask
 
 from .validation import validator
+from .. import amqp
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -61,9 +62,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     implements all relevant methods, i.e. they're no longer abstract.
 
     '''
-
-    __slots__ = 'request', 'request_type', 'payload', 'uuid'
-
     role_type = None
     '''
     The `role_type` for corresponding details to this attribute.
@@ -88,6 +86,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
+        self.org_unit_uuid = None
+        self.employee_uuid = None
 
         if request_type == RequestType.CREATE:
             self.prepare_create(request)
@@ -97,6 +97,43 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             self.prepare_terminate(request)
         else:
             raise NotImplementedError
+
+        if self.request_type == RequestType.EDIT:
+            request = request['data']
+
+        self.prepare_amqp_message(request)
+
+    def prepare_amqp_message(self, request: dict):
+        """Assign and fill ``self.amqp_messages``."""
+        self.amqp_messages = []
+
+        try:  # date = from or to
+            self.date = util.get_valid_from(request)
+        except exceptions.HTTPException:
+            self.date = util.get_valid_to(request)
+        action = {
+            RequestType.CREATE: "create",
+            RequestType.EDIT: "update",
+            RequestType.TERMINATE: "delete",
+        }[self.request_type]
+
+        # both may exist, e.g. for engagement and association
+        if self.employee_uuid:
+            self.amqp_messages.append((
+                'employee',
+                self.role_type,
+                action,
+                self.employee_uuid,
+                self.date,
+            ))
+        if self.org_unit_uuid:
+            self.amqp_messages.append((
+                'org_unit',
+                self.role_type,
+                action,
+                self.org_unit_uuid,
+                self.date,
+            ))
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -130,10 +167,14 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     def submit(self) -> str:
         """Submit the request to LoRa.
 
+        Subclass overrides *must* invoke this to ensure the message is
+        published to AMQP.
+
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
-
         """
+        for message in self.amqp_messages:
+            amqp.publish_message(*message)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -151,8 +192,6 @@ class ReadingRequestHandler(RequestHandler):
 class OrgFunkRequestHandler(RequestHandler):
     '''Abstract base class for automatically registering
     `organisationsfunktion`-based handlers.'''
-
-    __slots__ = ()
 
     function_key = None
     '''
@@ -222,13 +261,23 @@ class OrgFunkRequestHandler(RequestHandler):
             },
         )
 
+        if self.employee_uuid is None:
+            self.employee_uuid = mapping.USER_FIELD.get_uuid(original)
+        if self.org_unit_uuid is None:
+            self.org_unit_uuid = (
+                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            )
+
     def submit(self) -> str:
+        super().submit()
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            return c.organisationfunktion.create(self.payload, self.uuid)
+            r = c.organisationfunktion.create(self.payload, self.uuid)
         else:
-            return c.organisationfunktion.update(self.payload, self.uuid)
+            r = c.organisationfunktion.update(self.payload, self.uuid)
+
+        return r
 
 
 class OrgFunkReadingRequestHandler(ReadingRequestHandler,

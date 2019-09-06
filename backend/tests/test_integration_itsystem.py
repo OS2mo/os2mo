@@ -6,10 +6,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import logging
 import copy
+import logging
 
 import freezegun
+
 from mora import lora
 from tests import util
 
@@ -32,22 +33,16 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
+                'description': 'Missing itsystem',
                 'error': True,
-                'error_key': 'E_INVALID_TYPE',
-                'description': (
-                    'Invalid \'itsystem\', expected dict, got: null'
-                ),
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
                 'key': 'itsystem',
-                'expected': 'dict',
-                'actual': None,
-                'status': 400,
                 'obj': {
                     'itsystem': None,
                     'type': 'it',
-                    'validity': {
-                        'from': '2017-12-01', 'to': None
-                    }
+                    'validity': {'from': '2017-12-01', 'to': None},
                 },
+                'status': 400,
             },
             json=[
                 {
@@ -88,23 +83,16 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
+                'description': 'Missing itsystem',
                 'error': True,
-                'error_key': 'E_INVALID_TYPE',
-                'description': (
-                    'Invalid \'itsystem\', expected dict, got: null'
-                ),
+                'error_key': 'V_MISSING_REQUIRED_VALUE',
                 'key': 'itsystem',
-                'expected': 'dict',
-                'actual': None,
-                'status': 400,
                 'obj': {
                     'itsystem': None,
                     'type': 'it',
-                    'validity': {
-                        'from': '2017-12-01',
-                        'to': None
-                    }
+                    'validity': {'from': '2017-12-01', 'to': None},
                 },
+                'status': 400,
             },
             json=[
                 {
@@ -322,16 +310,19 @@ class Writing(util.LoRATestCase):
                     }
                 },
             ],
+            amqp_topics={'employee.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it?validity=past'.format(userid),
             [],
+            amqp_topics={'employee.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(userid),
             [],
+            amqp_topics={'employee.it.create': 1},
         )
 
         self.assertRequestResponse(
@@ -364,6 +355,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics={'employee.it.create': 1},
         )
 
     @freezegun.freeze_time('2018-01-01', tz_offset=1)
@@ -425,6 +417,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics={'employee.it.update': 1},
         )
 
         updated = copy.deepcopy(original)
@@ -446,16 +439,19 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/it?validity=past'.format(user_id),
             [],
+            amqp_topics={'employee.it.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it'.format(user_id),
             [updated],
+            amqp_topics={'employee.it.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/it?validity=future'.format(user_id),
             [],
+            amqp_topics={'employee.it.update': 1},
         )
 
     def test_create_unit_itsystem(self):
@@ -508,16 +504,19 @@ class Writing(util.LoRATestCase):
                     }
                 },
             ],
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [],
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [],
+            amqp_topics={'org_unit.it.create': 1},
         )
 
         self.assertRequestResponse(
@@ -550,6 +549,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics={'org_unit.it.create': 1},
         )
 
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
@@ -607,6 +607,7 @@ class Writing(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics={'org_unit.it.update': 1},
         )
 
         updated = copy.deepcopy(original)
@@ -621,7 +622,7 @@ class Writing(util.LoRATestCase):
             },
             validity={
                 "from": "2017-06-22",
-                "to": "2018-06-01",
+                "to": "2017-12-31",
             },
         )
 
@@ -631,16 +632,28 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [original],
+            amqp_topics={'org_unit.it.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [updated],
+            amqp_topics={'org_unit.it.update': 1},
         )
+
+        future = copy.deepcopy(updated)
+        future.update(
+            validity={
+                "from": "2018-01-01",
+                "to": "2018-06-01",
+            },
+        )
+        future['org_unit']['name'] = 'Afdeling for Fortidshistorik'
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=future'.format(unitid),
-            [],
+            [future],
+            amqp_topics={'org_unit.it.update': 1},
         )
 
     def test_edit_itsystem_in_the_past_fails(self):
@@ -737,6 +750,10 @@ class Writing(util.LoRATestCase):
                     },
                 },
             ],
+            amqp_topics={
+                'employee.it.update': 1,
+                'org_unit.it.update': 1,
+            },
         )
 
         updated = copy.deepcopy(original)
@@ -756,23 +773,35 @@ class Writing(util.LoRATestCase):
             },
             validity={
                 "from": "2017-06-22",
-                "to": "2018-06-01",
+                "to": "2017-12-31",
             },
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it?validity=past'.format(unitid),
             [],
+            amqp_topics={
+                'employee.it.update': 1,
+                'org_unit.it.update': 1,
+            },
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(unitid),
             [updated],
+            amqp_topics={
+                'employee.it.update': 1,
+                'org_unit.it.update': 1,
+            },
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/it'.format(new_unitid),
             [updated],
+            amqp_topics={
+                'employee.it.update': 1,
+                'org_unit.it.update': 1,
+            },
         )
 
 

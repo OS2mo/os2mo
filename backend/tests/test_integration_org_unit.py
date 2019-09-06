@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+
 import unittest
 from unittest.mock import patch
 
@@ -12,7 +13,6 @@ import freezegun
 import notsouid
 
 from mora import lora
-
 from . import util
 
 mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
@@ -464,6 +464,10 @@ class Tests(util.LoRATestCase):
                     "to": "2017-10-21"
                 }
             },
+            amqp_topics={
+                'org_unit.org_unit.create': 1,
+                'org_unit.address.create': 2,
+            },
         )
 
     def test_create_org_unit_fails_validation_outside_org_unit(self):
@@ -520,14 +524,25 @@ class Tests(util.LoRATestCase):
             'wanted_valid_to': '2017-10-21'
         }
 
-        self.assertRequestResponse('/service/ou/create', expected,
-                                   json=payload, status_code=400)
+        self.assertRequestResponse(
+            '/service/ou/create',
+            expected,
+            json=payload,
+            status_code=400,
+        )
 
-        self.assertRequestResponse('/service/ou/create?force=0', expected,
-                                   json=payload, status_code=400)
+        self.assertRequestResponse(
+            '/service/ou/create?force=0',
+            expected,
+            json=payload,
+            status_code=400,
+        )
 
-        self.assertRequest('/service/ou/create?force=1',
-                           json=payload)
+        self.assertRequest(
+            '/service/ou/create?force=1',
+            json=payload,
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
 
     def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
@@ -567,6 +582,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         expected = {
@@ -849,6 +865,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [org_unit_uuid],
             json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         expected = {
@@ -1020,20 +1037,113 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequest(
             '/service/ou/' + org_unit_uuid +
             '/?at=2016-06-01',
             200,
-            "should exist on 2016-06-01"
+            "should exist on 2016-06-01",
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequest(
             '/service/ou/' + org_unit_uuid +
             '/?at=2016-05-31',
             404,
-            "should not exist before start"
+            "should not exist before start",
+            amqp_topics={'org_unit.org_unit.update': 1},
+        )
+
+    @freezegun.freeze_time('2016-01-01')
+    @util.mock('aabogade.json', allow_mox=True)
+    def test_edit_org_unit_extending_end(self, m):
+        self.load_sample_structures()
+
+        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        topics = {}
+
+        def check_future_names(*names):
+            self.assertEqual(
+                list(names),
+                [
+                    (d["name"], d["validity"]["from"], d["validity"]["to"])
+                    for d in self.assertRequest(
+                        "/service/ou/{}/details/org_unit?validity=future"
+                        .format(unitid),
+                        amqp_topics=topics,
+                    )
+                ],
+            )
+
+        with self.subTest("prerequisites"):
+            check_future_names(
+                ('Afdeling for Samtidshistorik', '2017-01-01', '2017-12-31'),
+                ('Afdeling for Fortidshistorik', '2018-01-01', '2018-12-31'),
+            )
+
+        self.assertRequestFails(
+            "/service/details/edit",
+            400,
+            "Editing without clamp should fail",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Vrøvl",
+                    "uuid": unitid,
+                    "validity": {
+                        "from": "2018-06-01",
+                    },
+                },
+            },
+        )
+
+        topics = {"org_unit.org_unit.update": 1}
+        self.assertRequestResponse(
+            "/service/details/edit",
+            unitid,
+            "Editing with clamp should succeed",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Vrøvl",
+                    "uuid": unitid,
+                    "clamp": True,
+                    "validity": {
+                        "from": "2018-03-01",
+                    },
+                },
+            },
+            amqp_topics=topics,
+        )
+
+        topics["org_unit.org_unit.update"] += 1
+        self.assertRequestResponse(
+            "/service/details/edit",
+            unitid,
+            "Editing with clamp should succeed",
+            json={
+                "type": "org_unit",
+                "data": {
+                    "name": "Institut for Sludder",
+                    "uuid": unitid,
+                    "clamp": True,
+                    "validity": {
+                        "from": "2018-06-01",
+                        "to": "2018-09-30",
+                    },
+                },
+            },
+            amqp_topics=topics,
+        )
+
+        check_future_names(
+            ('Afdeling for Samtidshistorik', '2017-01-01', '2017-12-31'),
+            ('Afdeling for Fortidshistorik', '2018-01-01', '2018-02-28'),
+            ('Institut for Vrøvl', '2018-03-01', '2018-05-31'),
+            ('Institut for Sludder', '2018-06-01', '2018-09-30'),
+            ('Institut for Vrøvl', '2018-10-01', '2018-12-31'),
         )
 
     @freezegun.freeze_time('2016-01-01')
@@ -1080,7 +1190,13 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        org_unit_uuid = self.assertRequest('/service/ou/create', json=payload)
+        org_unit_uuid = self.assertRequest(
+            '/service/ou/create',
+            json=payload,
+            amqp_topics={
+                'org_unit.org_unit.create': 1,
+            },
+        )
 
         req = {
             "type": "org_unit",
@@ -1096,6 +1212,10 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
+            amqp_topics={
+                'org_unit.org_unit.create': 1,
+                'org_unit.org_unit.update': 1,
+            },
         )
 
         expected = {
@@ -1200,7 +1320,8 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             json=req,
-            status_code=400)
+            status_code=400,
+        )
 
         self.assertRequestResponse(
             '/service/details/edit?force=1',
@@ -1208,6 +1329,7 @@ class Tests(util.LoRATestCase):
                 org_unit_uuid,
             ],
             json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
     @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
@@ -1264,48 +1386,57 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse('/service/o/{}/children'.format(orgid),
                                        roots)
 
-        self.assertRequestResponse('/service/ou/create', unitid, json={
-            "name": "Fake Corp",
-            "uuid": unitid,
-            "user_key": "fakefakefake",
-            "parent": {
-                'uuid': orgid,
+        self.assertRequestResponse(
+            '/service/ou/create',
+            unitid,
+            json={
+                "name": "Fake Corp",
+                "uuid": unitid,
+                "user_key": "fakefakefake",
+                "parent": {
+                    'uuid': orgid,
+                },
+                'time_planning': None,
+                "org_unit_type": {
+                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01",
+                }
             },
-            'time_planning': None,
-            "org_unit_type": {
-                'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
-            },
-            "validity": {
-                "from": "2017-01-01",
-                "to": "2018-01-01",
-            }
-        })
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
 
-        self.assertRequestResponse('/service/ou/{}/'.format(unitid), {
-            "location": "",
-            "name": "Fake Corp",
-            "user_key": "fakefakefake",
-            "uuid": unitid,
-            "org": {
-                "name": "Aarhus Universitet",
-                "user_key": "AU",
-                "uuid": orgid
+        self.assertRequestResponse(
+            '/service/ou/{}/'.format(unitid),
+            {
+                "location": "",
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": orgid
+                },
+                'time_planning': None,
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Afdeling",
+                    "scope": None,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                },
+                "parent": None,
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01"
+                },
+                "user_settings": {'orgunit': {}},
             },
-            'time_planning': None,
-            "org_unit_type": {
-                "example": None,
-                "name": "Afdeling",
-                "scope": None,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-            },
-            "parent": None,
-            "validity": {
-                "from": "2017-01-01",
-                "to": "2018-01-01"
-            },
-            "user_settings": {"orgunit": {}}
-        })
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
 
         roots.insert(0, {
             "child_count": 0,
@@ -1318,8 +1449,11 @@ class Tests(util.LoRATestCase):
             }
         })
 
-        self.assertRequestResponse('/service/o/{}/children'.format(orgid),
-                                   roots)
+        self.assertRequestResponse(
+            '/service/o/{}/children'.format(orgid),
+            roots,
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
 
     def test_rename_org_unit(self):
         # A generic example of editing an org unit
@@ -1342,7 +1476,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
+        )
 
         expected = {
             "note": "Rediger organisationsenhed",
@@ -1499,7 +1636,8 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json={
+            org_unit_uuid,
+            json={
                 "type": "org_unit",
                 "data": {
                     "time_planning": {
@@ -1511,6 +1649,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequestResponse(
@@ -1527,6 +1666,7 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics={'org_unit.org_unit.update': 2},
         )
 
         actual = c.organisationenhed.get(org_unit_uuid)
@@ -1570,6 +1710,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
+                amqp_topics={'org_unit.org_unit.update': 2},
             )
 
         with self.subTest('reading future'):
@@ -1652,6 +1793,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 ],
+                amqp_topics={'org_unit.org_unit.update': 2},
             )
 
     @unittest.expectedFailure
@@ -1687,12 +1829,14 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=past'.format(org_unit_uuid),
             [],
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequestResponse(
@@ -1727,12 +1871,14 @@ class Tests(util.LoRATestCase):
                     'from': '2016-01-01', 'to': None,
                 },
             }],
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}/details/org_unit'
             '?validity=future'.format(org_unit_uuid),
             [],
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
     def test_rename_root_org_unit(self):
@@ -1755,7 +1901,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
+        )
 
         expected = {
             'attributter': {
@@ -1865,7 +2014,10 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/details/edit',
-            org_unit_uuid, json=req)
+            org_unit_uuid,
+            json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
+        )
 
         expected = {
             "note": "Rediger organisationsenhed",
@@ -1990,7 +2142,8 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             status_code=400,
-            json=req)
+            json=req,
+        )
 
     def test_move_org_unit_to_root_fails(self):
         """Should fail validation when trying to move an org unit to the root
@@ -2331,7 +2484,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
-            json=payload)
+            json=payload,
+            amqp_topics={'org_unit.org_unit.delete': 1},
+        )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -2369,6 +2524,7 @@ class Tests(util.LoRATestCase):
                     }
                 }
             ],
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         # Verify that we are no longer able to see org unit
@@ -2376,6 +2532,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=present',
             [],
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
     def test_terminate_org_unit_validations(self):
@@ -2407,24 +2564,11 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
-                'role_count': 1,
+                'roles': 'Relateret Enhed',
                 'child_count': 1,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Afdeling for Samtidshistorik',
-                        'user_key': 'frem',
-                        'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2441,35 +2585,13 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 5,
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
                 'child_count': 2,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Filosofisk Institut',
-                        'user_key': 'fil',
-                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
-                        },
-                    },
-                    {
-                        'child_count': 1,
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2486,25 +2608,13 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
+                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
                 'description': 'Cannot terminate unit with '
                                'active children and roles.',
 
-                'role_count': 5,
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
                 'child_count': 1,
-
-                'child_units': [
-                    {
-                        'child_count': 0,
-                        'name': 'Filosofisk Institut',
-                        'user_key': 'fil',
-                        'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': None,
-                        },
-                    },
-                ],
             },
             status_code=400,
             json={
@@ -2527,6 +2637,7 @@ class Tests(util.LoRATestCase):
                         "to": "2018-12-31"
                     }
                 },
+                amqp_topics={'org_unit.org_unit.delete': 1},
             )
 
         self.assertRequestResponse(
@@ -2536,13 +2647,10 @@ class Tests(util.LoRATestCase):
             {
                 'error': True,
                 'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES',
-                'description': 'Cannot terminate unit with '
-                               'active children and roles.',
-                'role_count': 5,
-                'child_count': 0,
-
-                'child_units': [],
+                'error_key': 'V_TERMINATE_UNIT_WITH_ROLES',
+                'description': 'Cannot terminate unit with active roles.',
+                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
+                         'Tilknytning',
             },
             status_code=400,
             json={
@@ -2551,6 +2659,7 @@ class Tests(util.LoRATestCase):
                     "to": "2018-12-31T00:00:00+01"
                 }
             },
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         self.assertRequestResponse(
@@ -2575,6 +2684,7 @@ class Tests(util.LoRATestCase):
                     "to": "1999-12-31"
                 }
             },
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         self.assertRequestResponse(
@@ -2599,6 +2709,7 @@ class Tests(util.LoRATestCase):
                     "to": "2099-12-31"
                 }
             },
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         self.assertRequestResponse(
@@ -2623,6 +2734,7 @@ class Tests(util.LoRATestCase):
                     "to": "2015-12-31"
                 }
             },
+            amqp_topics={'org_unit.org_unit.delete': 1},
             message='No terminating on creation date!'
         )
 
@@ -2791,7 +2903,9 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
             unitid,
-            json=payload)
+            json=payload,
+            amqp_topics={'org_unit.org_unit.delete': 1},
+        )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
@@ -2828,12 +2942,14 @@ class Tests(util.LoRATestCase):
                     "to": "2018-09-30",
                 }
             }],
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=future',
             [],
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
@@ -2876,6 +2992,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             org_unit_uuid,
             json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
         expected_organisationenhedegenskaber = [{

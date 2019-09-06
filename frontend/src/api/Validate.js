@@ -17,7 +17,7 @@ const Validate = axios.create({
 const createErrorPayload = err => {
   return {
     valid: false,
-    data: err.response.data.error_key
+    data: err.response.data
   }
 }
 
@@ -78,7 +78,20 @@ export default {
       })
   },
 
-  candidateParentOrgUnit (orgUnit, parent, validity, associationUuid) {
+  isMovableOrgUnit (orgUnit) {
+    const payload = {
+      'org_unit': orgUnit,
+    }
+
+    return Validate
+      .post('/movable-org-unit/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
+  },
+
+  candidateParentOrgUnit (orgUnit, parent, validity) {
     const payload = {
       'org_unit': orgUnit,
       'parent': parent,

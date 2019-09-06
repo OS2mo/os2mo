@@ -26,8 +26,6 @@ from .. import util
 
 
 class RoleRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'role'
     function_key = mapping.ROLE_KEY
 
@@ -74,6 +72,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = role
         self.uuid = func_id
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
@@ -158,3 +158,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = role_uuid
+        self.org_unit_uuid = util.get_uuid(org_unit, required=False)
+        self.employee_uuid = (
+            util.get_mapping_uuid(data, mapping.PERSON) or
+            mapping.USER_FIELD.get_uuid(original)
+        )

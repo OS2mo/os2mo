@@ -11,39 +11,6 @@
   >
     <form @submit.stop.prevent="moveOrganisationUnit">
       <div class="form-row">
-        <div class="col">
-          <mo-organisation-unit-picker
-            class="currentUnit"
-            v-model="original"
-            :label="$t('input_fields.select_unit')"
-            :date="move.data.validity.from"
-            :validity="validity"
-            required
-          />
-        </div>
-
-        <div class="form-group col">
-          <label>{{$t('input_fields.current_super_unit')}}</label>
-          <input
-            type="text"
-            class="form-control"
-            :value="parentUnit"
-            disabled
-          >
-        </div>
-      </div>
-
-      <mo-organisation-unit-picker
-        class="parentUnit"
-        v-model="move.data.parent"
-        :label="$t('input_fields.select_new_super_unit')"
-        :date="move.data.validity.from"
-        :validity="validity"
-        :extra-validations="parentValidations"
-        required
-      />
-
-      <div class="form-row">
         <mo-input-date
           class="moveDate"
           :label="$t('input_fields.move_date')"
@@ -51,10 +18,43 @@
           :valid-dates="currentDateValidity"
           required
         />
+
+        <div class="col">
+          <mo-organisation-unit-picker
+            class="currentUnit"
+            v-model="original"
+            :label="$t('input_fields.select_unit')"
+            :validity="requiredValidity"
+            :extra-validations="unitValidations"
+            required
+          />
+        </div>
       </div>
 
+      <div class="form-row">
+        <div class="form-group col">
+          <label>{{$t('input_fields.current_super_unit')}}</label>
+          <input
+            type="text"
+            class="form-control"
+            :value="original && original.parent && original.parent.name"
+            disabled
+          >
+        </div>
+      </div>
+
+      <mo-organisation-unit-picker
+        class="parentUnit"
+        v-model="parent"
+        :label="$t('input_fields.select_new_super_unit')"
+        :validity="requiredValidity"
+        :disabled-unit="original"
+        :extra-validations="parentValidations"
+        required
+      />
+
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError)}}
+        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
       </div>
 
       <div class="float-right">
@@ -92,12 +92,16 @@ export default {
        * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
-      parentUnit: '',
       original: null,
+      parent: null,
       move: {
         type: 'org_unit',
         data: {
+          parent: {
+            uuid: ''
+          },
           uuid: '',
+          clamp: true,
           validity: {}
         }
       },
@@ -107,32 +111,39 @@ export default {
   },
 
   computed: {
-    validity () {
+    /**
+     * A validity of one day, corresponding to the required validity
+     * of units: They only need to be valid on the date of the operation.
+     */
+    requiredValidity () {
       return {
-        'from': this.move.data.validity.from
+        from: this.move.data.validity.from,
+        to: this.move.data.validity.from
+      }
+    },
+
+    unitValidations () {
+      return {
+        movable_org_unit: [this.original]
       }
     },
 
     parentValidations () {
       return {
-        candidate_parent_org_unit: [this.original, this.move.data.parent, this.validity]
+        candidate_parent_org_unit: [this.original, this.move.data.parent, this.move.data.validity]
       }
     }
-
   },
 
   watch: {
     /**
      * If original exist show its parent.
      */
-    original: {
-      handler (newVal) {
-        if (this.original) {
-          this.move.data.uuid = newVal.uuid
-          return this.getCurrentUnit(newVal.uuid)
-        }
-      },
-      deep: true
+    "original.uuid" (newVal) {
+      this.move.data.uuid = newVal
+    },
+    "parent.uuid" (newVal) {
+      this.move.data.parent.uuid = newVal
     }
   },
 
@@ -158,7 +169,7 @@ export default {
           .then(response => {
             vm.isLoading = false
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$refs.orgUnitMove.hide()
             }
@@ -166,18 +177,6 @@ export default {
       } else {
         this.$validator.validateAll()
       }
-    },
-
-    /**
-     * Get current organisation unit.
-     */
-    getCurrentUnit (unitUuid) {
-      let vm = this
-      if (!unitUuid) return
-      OrganisationUnit.get(unitUuid)
-        .then(response => {
-          vm.parentUnit = response.parent ? response.parent.name : ''
-        })
     }
   }
 }

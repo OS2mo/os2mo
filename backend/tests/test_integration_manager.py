@@ -104,8 +104,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        managerid, = self.assertRequest('/service/details/create',
-                                        json=payload)
+        managerid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'employee.manager.create': 1,
+                'org_unit.manager.create': 1,
+            },
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -225,6 +231,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [],
+            amqp_topics={
+                'employee.manager.create': 1,
+                'org_unit.manager.create': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -288,6 +298,10 @@ class Tests(util.LoRATestCase):
                     'to': '2017-12-01',
                 },
             }],
+            amqp_topics={
+                'employee.manager.create': 1,
+                'org_unit.manager.create': 1,
+            },
         )
 
     def test_create_vacant_manager(self):
@@ -326,6 +340,7 @@ class Tests(util.LoRATestCase):
         function_id, = self.assertRequest(
             '/service/details/create',
             json=payload,
+            amqp_topics={'org_unit.manager.create': 1},
         )
 
         self.assertRequestResponse(
@@ -364,6 +379,7 @@ class Tests(util.LoRATestCase):
                 'user_key': mock_uuid,
                 'validity': {'from': '2016-12-01', 'to': '2017-12-02'},
             }],
+            amqp_topics={'org_unit.manager.create': 1},
         )
 
     def test_edit_manager_on_unit(self):
@@ -442,6 +458,10 @@ class Tests(util.LoRATestCase):
                     "to": "2017-12-02",
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         with self.subTest('results'):
@@ -450,17 +470,29 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager?validity=past'.format(unit_id),
                 [],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'
                 '?validity=future'.format(unit_id),
                 [],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                },
             )
 
         with self.subTest('change to vacant'):
@@ -478,6 +510,12 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 }],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
+                },
             )
 
             future = expected.copy()
@@ -490,12 +528,24 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'
                 '?validity=future'.format(unit_id),
                 [future],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 1,
+                    'employee.manager.update': 1,
+                },
             )
 
         with self.subTest('change back'):
@@ -515,6 +565,12 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 }],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
+                },
             )
 
             far_future = future.copy()
@@ -532,12 +588,24 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'.format(unit_id),
                 [expected],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
+                },
             )
 
             self.assertRequestResponse(
                 '/service/ou/{}/details/manager'
                 '?validity=future'.format(unit_id),
                 [future, far_future],
+                amqp_topics={
+                    'org_unit.manager.create': 1,
+                    'employee.manager.create': 1,
+                    'org_unit.manager.update': 2,
+                    'employee.manager.update': 2,
+                },
             )
 
     def test_create_manager_no_valid_to(self):
@@ -568,8 +636,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        managerid, = self.assertRequest('/service/details/create',
-                                        json=payload)
+        managerid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -678,6 +752,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -727,6 +805,10 @@ class Tests(util.LoRATestCase):
                     'from': '2017-12-01', 'to': None,
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
     def test_create_manager_minimal(self):
@@ -749,8 +831,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        managerid, = self.assertRequest('/service/details/create',
-                                        json=payload)
+        managerid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -827,11 +915,19 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'
             '?validity=past'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -864,6 +960,10 @@ class Tests(util.LoRATestCase):
                     'to': '2017-12-01',
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
@@ -900,11 +1000,22 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        self.assertRequest('/service/details/create', json=payload)
+        self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
+        )
 
         # Check that we have no address in present (and that we don't fail)
         present = self.assertRequest(
             '/service/e/{}/details/manager'.format(userid),
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )[-1]
 
         self.assertEqual([], present.get('address'))
@@ -912,6 +1023,10 @@ class Tests(util.LoRATestCase):
         # Ensure that the address exists when we go far enough into the future
         future = self.assertRequest(
             '/service/e/{}/details/manager?at=2018-01-01'.format(userid),
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )[-1]
 
         expected_future_address = [{
@@ -961,8 +1076,14 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        managerid, = self.assertRequest('/service/details/create',
-                                        json=payload)
+        managerid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -1081,6 +1202,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -1140,6 +1265,10 @@ class Tests(util.LoRATestCase):
                     'to': '2017-12-01',
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.create': 1,
+                'employee.manager.create': 1,
+            },
         )
 
     def test_edit_manager_no_overwrite(self):
@@ -1175,8 +1304,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [manager_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [manager_uuid],
+            json=req,
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
+        )
 
         expected_manager = {
             "note": "Rediger leder",
@@ -1421,6 +1557,10 @@ class Tests(util.LoRATestCase):
                     'to': '2018-03-31',
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -1483,6 +1623,10 @@ class Tests(util.LoRATestCase):
                     'from': '2018-04-01', 'to': None,
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
     @util.mock('dawa-addresses.json', allow_mox=True)
@@ -1515,8 +1659,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [manager_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [manager_uuid],
+            json=req,
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
+        )
 
         expected_manager = {
             'attributter': {
@@ -1653,8 +1804,8 @@ class Tests(util.LoRATestCase):
                         'user_key': 'Telefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                     },
-                    'href': 'tel:+4512341234',
-                    'name': '+4512341234',
+                    'href': 'tel:12341234',
+                    'name': '12341234',
                     'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
                     'value': '12341234'
                 }],
@@ -1694,7 +1845,11 @@ class Tests(util.LoRATestCase):
                 'uuid': '05609702-977f-4869-9fb4-50ad74c6999a',
                 'user_key': 'be736ee5-5c44-4ed9-b4a4-15ffa19e2848',
                 'validity': {'from': '2018-04-01', 'to': None}
-            }]
+            }],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
     @util.mock('dawa-addresses.json', allow_mox=True)
@@ -1748,8 +1903,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [manager_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [manager_uuid],
+            json=req,
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
+        )
 
         expected_manager = {
             "note": "Rediger leder",
@@ -1917,6 +2079,10 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
         self.assertRequestResponse(
@@ -1981,6 +2147,10 @@ class Tests(util.LoRATestCase):
                     'from': '2018-04-01', 'to': None,
                 },
             }],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
     @unittest.expectedFailure
@@ -2006,8 +2176,15 @@ class Tests(util.LoRATestCase):
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit',
-                                   [manager_uuid], json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [manager_uuid],
+            json=req,
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
+        )
 
         expected_manager = {
             "note": "Rediger leder",
@@ -2352,6 +2529,10 @@ class Tests(util.LoRATestCase):
                     },
                 },
             },
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
         # adjust the data as expected
@@ -2395,16 +2576,28 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/details/manager'.format(userid),
             expected_mora,
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager?validity=past'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
         self.assertRequestResponse(
             '/service/e/{}/details/manager?validity=future'.format(userid),
             [],
+            amqp_topics={
+                'org_unit.manager.update': 1,
+                'employee.manager.update': 1,
+            },
         )
 
     def test_edit_manager_in_the_past_fails(self):
@@ -2436,7 +2629,8 @@ class Tests(util.LoRATestCase):
                 'status': 400
             },
             json=req,
-            status_code=400)
+            status_code=400,
+        )
 
     def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''

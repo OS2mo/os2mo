@@ -16,7 +16,9 @@
     >
 
     <div class="mo-input-group" v-show="showTree">
-      <mo-tree-view v-model="selectedSuperUnitUuid"/>
+      <mo-tree-view v-model="selectedSuperUnitUuid"
+                    :disabled-unit="disabledUnit && disabledUnit.uuid"
+                    :at-date="validity && validity.from"/>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -73,7 +75,15 @@ export default {
     /**
      * An object of the validities, used for validation
      */
-    validity: Object,
+    validity: {
+      type: [Object, undefined],
+      required: false
+    },
+
+    /**
+     * Unselectable unit.
+     */
+    disabledUnit: Object,
 
     /**
      * An object of additional validations to be performed
@@ -138,15 +148,36 @@ export default {
         return
       }
 
-      let unit = await OrganisationUnit.get(newVal)
+      let unit = await OrganisationUnit.get(newVal, this.validity && this.validity.from)
 
       this.orgName = unit.name
       this.orgUnitUuid = unit.uuid
-      this.$validator.validate(this.nameId)
       this.$refs[this.nameId].blur()
       this.showTree = false
 
-      this.$emit('input', unit)
+      await this.$emit('input', unit)
+
+      // NB: we don't perform validations until _after_ we've notified
+      // the model using the event above. this avoids a race condition
+      // where the extraValidations refer to our model (see #29570)
+      this.$validator.validate(this.nameId)
+
+    },
+
+    validity: {
+      deep: true,
+      async handler(newVal, oldVal) {
+        if (this.orgUnitUuid) {
+          let unit = await OrganisationUnit.get(this.orgUnitUuid, newVal && newVal.from)
+
+          if (!unit) {
+            this.showTree = false
+            this.orgName = null
+            this.orgUnitUuid = null
+            this.$emit('input', null)
+          }
+        }
+      }
     }
   },
 

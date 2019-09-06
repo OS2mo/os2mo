@@ -25,8 +25,6 @@ from .. import util
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
-    __slots__ = ()
-
     role_type = 'association'
     function_key = mapping.ASSOCIATION_KEY
 
@@ -89,6 +87,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = association
         self.uuid = func_id
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         association_uuid = req.get('uuid')
@@ -204,3 +204,5 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = association_uuid
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid

@@ -1,5 +1,14 @@
 <template>
   <form @submit.stop.prevent="moveEmployee">
+    <div class="form-row">
+      <mo-input-date
+        class="col from-date"
+        :label="$t('input_fields.move_date')"
+        v-model="from"
+        required
+      />
+    </div>
+
     <mo-employee-picker
       class="search-employee"
       v-model="person"
@@ -26,15 +35,6 @@
       />
     </div>
 
-    <div class="form-row">
-      <mo-input-date
-        class="col from-date"
-        :label="$t('input_fields.move_date')"
-        v-model="from"
-        required
-      />
-    </div>
-
     <mo-confirm-checkbox
       :entry-date="from"
       :engagement-name="original.engagement_type.name"
@@ -44,7 +44,7 @@
     />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError)}}
+      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
     </div>
 
     <div class="float-right">
@@ -164,7 +164,7 @@ export default {
           .then(response => {
             vm.isLoading = false
             if (response.error) {
-              vm.backendValidationError = response.error_key
+              vm.backendValidationError = response
             } else {
               vm.$emit('submitted')
             }

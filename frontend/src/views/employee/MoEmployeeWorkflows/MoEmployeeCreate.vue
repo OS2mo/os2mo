@@ -46,7 +46,7 @@
     />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError)}}
+      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
     </div>
 
     <div class="float-right">
@@ -161,7 +161,7 @@ export default {
           .then(employeeUuid => {
             vm.isLoading = false
             if (employeeUuid.error) {
-              vm.backendValidationError = employeeUuid.error_key
+              vm.backendValidationError = employeeUuid
             } else {
               vm.$emit('submitted')
               vm.$router.push({ name: 'EmployeeDetail', params: { uuid: employeeUuid } })

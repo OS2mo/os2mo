@@ -158,9 +158,6 @@ def address_autocomplete(orgid):
 
 
 class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
-
-    __slots__ = ()
-
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
 
@@ -180,8 +177,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-        person = list(mapping.USER_FIELD.get_uuids(effect))
-        org_unit = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
+        person = mapping.USER_FIELD.get_uuid(effect)
+        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
         func = {
             mapping.ADDRESS_TYPE: address_type,
@@ -191,15 +188,15 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
                     end, is_end=True)
             },
             mapping.UUID: funcid,
-            mapping.USER_KEY: props['brugervendtnoegle'],
+            mapping.USER_KEY: props.get('brugervendtnoegle'),
             **handler.get_mo_address_and_properties()
         }
         if person:
             func[mapping.PERSON] = employee.get_one_employee(
-                c, person[0])
+                c, person)
         if org_unit:
             func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
-                c, org_unit[0],
+                c, org_unit,
                 details=orgunit.UnitDetails.MINIMAL)
 
         if props.get('integrationsdata') is not None:
@@ -269,6 +266,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = func
         self.uuid = util.get_uuid(req, required=False)
+        self.employee_uuid = employee_uuid
+        self.org_unit_uuid = org_unit_uuid
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -279,6 +278,12 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
+
+        # Get org unit uuid for validation purposes
+        org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+
+        # Get employee uuid for validation purposes
+        employee_uuid = mapping.USER_FIELD.get_uuid(original)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -319,20 +324,21 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         ]
 
         if mapping.PERSON in data:
+            employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
             update_fields.append((
                 mapping.USER_FIELD,
                 {
-                    'uuid':
-                        util.get_mapping_uuid(data, mapping.PERSON),
+                    'uuid': employee_uuid,
                 },
             ))
 
         if mapping.ORG_UNIT in data:
+            org_unit_uuid = util.get_mapping_uuid(data, mapping.ORG_UNIT)
+
             update_fields.append((
                 mapping.ASSOCIATED_ORG_UNIT_FIELD,
                 {
-                    'uuid':
-                        util.get_mapping_uuid(data, mapping.ORG_UNIT),
+                    'uuid': org_unit_uuid,
                 },
             ))
 
@@ -394,3 +400,13 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
+        self.org_unit_uuid = org_unit_uuid
+        self.employee_uuid = employee_uuid
+
+        if org_unit_uuid:
+            validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},
+                                                      new_from, new_to)
+
+        if employee_uuid:
+            validator.is_date_range_in_employee_range({'uuid': employee_uuid},
+                                                      new_from, new_to)

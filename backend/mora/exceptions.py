@@ -53,8 +53,12 @@ class ErrorCodes(Enum):
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."
     V_ORG_UNIT_MOVE_TO_CHILD = \
         400, "Org unit cannot be moved to one of its own child units"
-    V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES = \
+    V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES = \
         400, "Cannot terminate unit with active children and roles."
+    V_TERMINATE_UNIT_WITH_CHILDREN = \
+        400, "Cannot terminate unit with active children."
+    V_TERMINATE_UNIT_WITH_ROLES = \
+        400, "Cannot terminate unit with active roles."
     V_DATE_OUTSIDE_ORG_UNIT_RANGE = \
         400, "Date range exceeds validity range of associated org unit."
     V_DATE_OUTSIDE_EMPL_RANGE = \
@@ -110,6 +114,10 @@ class ErrorCodes(Enum):
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."
     E_SP_SSL_ERROR = 500, "SSL Error connecting to SP"
+    E_ORG_UNCONFIGURED = 400, "Organisation has not been configured"
+    E_ORG_CONFIG_BAD = 400, "Organisation configuration differs from database"
+    E_ORG_TOO_MANY = 400, "Too many organisations in lora, max one allowed"
+    E_ORG_NOT_ALLOWED = 400, "Organisation is not allowed"
 
 
 class HTTPException(werkzeug.exceptions.HTTPException):

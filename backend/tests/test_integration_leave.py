@@ -45,8 +45,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        leaveid, = self.assertRequest('/service/details/create',
-                                      json=payload)
+        leaveid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={'employee.leave.create': 1},
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -143,7 +146,11 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        leaveid, = self.assertRequest('/service/details/create', json=payload)
+        leaveid, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={'employee.leave.create': 1},
+        )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -304,6 +311,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
+            amqp_topics={'employee.leave.update': 1},
         )
 
         expected_leave = {
@@ -430,6 +438,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             [leave_uuid],
             json=req,
+            amqp_topics={'employee.leave.update': 1},
         )
 
         expected_leave = {
@@ -531,7 +540,6 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                     "to": None
                 },
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
                 "leave_type": {
                     'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
             },
@@ -539,17 +547,18 @@ class Tests(util.LoRATestCase):
                 "leave_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
-                "org_unit": {
-                    'uuid': "5991f9c2-9d82-45d5-9818-edf26fcc6d8b"
-                },
                 "validity": {
                     "from": "2018-04-01",
                 },
             },
         }]
 
-        self.assertRequestResponse('/service/details/edit', [leave_uuid],
-                                   json=req)
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [leave_uuid],
+            json=req,
+            amqp_topics={'employee.leave.update': 1},
+        )
 
         expected_leave = {
             "note": "Rediger orlov",
@@ -724,8 +733,24 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        self.assertRequestResponse('/service/e/{}/terminate'.format(userid),
-                                   userid, json=payload)
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics={
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.it.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
+            },
+        )
 
         expected = {
             "note": "Afsluttet",
@@ -867,6 +892,7 @@ class Tests(util.LoRATestCase):
                     "from": "2017-01-01",
                 },
             },
+            amqp_topics={'employee.leave.create': 1},
         )
 
         with self.subTest('failing without any'):
@@ -885,6 +911,7 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
+                amqp_topics={'employee.leave.create': 1},
             )
 
         # first, create an engagement for the other user
@@ -904,6 +931,11 @@ class Tests(util.LoRATestCase):
                     "from": "2018-01-01",
                 }
             },
+            amqp_topics={
+                'employee.leave.create': 1,
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
+            },
         )
 
         with self.subTest('failing too soon'):
@@ -922,6 +954,11 @@ class Tests(util.LoRATestCase):
                         },
                     },
                 },
+                amqp_topics={
+                    'employee.leave.create': 1,
+                    'employee.engagement.create': 1,
+                    'org_unit.engagement.create': 1,
+                },
             )
 
         self.assertRequestResponse(
@@ -938,6 +975,12 @@ class Tests(util.LoRATestCase):
                         "from": "2018-06-01",
                     },
                 },
+            },
+            amqp_topics={
+                'employee.leave.create': 1,
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
+                'employee.leave.update': 1,
             },
         )
 

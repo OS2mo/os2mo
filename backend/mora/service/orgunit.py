@@ -62,8 +62,6 @@ class UnitDetails(enum.Enum):
 
 
 class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
-    __slots__ = ()
-
     role_type = 'org_unit'
 
     @classmethod
@@ -126,21 +124,15 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
+
+        org_uuid = org.get_configured_organisation()["uuid"]
         organisationenhed_get = c.organisationenhed.get(parent_uuid)
 
-        if organisationenhed_get:
-            org_uuid = organisationenhed_get['relationer']['tilhoerer'][0][
-                'uuid']
-        else:
-            organisation_get = c.organisation(uuid=parent_uuid)
-
-            if organisation_get:
-                org_uuid = parent_uuid
-            else:
-                exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
-                    parent_uuid=parent_uuid,
-                    org_unit_uuid=unitid,
-                )
+        if not (organisationenhed_get or parent_uuid == org_uuid):
+            exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
+                parent_uuid=parent_uuid,
+                org_unit_uuid=unitid,
+            )
 
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
@@ -183,6 +175,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
+        self.org_unit_uuid = unitid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -200,6 +193,15 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         new_from, new_to = util.get_validities(data)
 
         validator.is_edit_from_date_before_today(new_from)
+
+        clamp = util.checked_get(data, 'clamp', False)
+
+        if clamp:
+            new_to = min(new_to, max(
+                util.get_effect_to(effect)
+                for effect in mapping.ORG_UNIT_GYLDIGHED_FIELD.get(original)
+                if effect["gyldighed"] == "Aktiv"
+            ))
 
         # Get org unit uuid for validation purposes
         parent = util.get_obj_value(
@@ -271,8 +273,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
-            validator.is_candidate_parent_valid(unitid,
-                                                parent_uuid, new_from)
+
+            if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
+                validator.is_movable_org_unit(unitid)
+
+            validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
+
             update_fields.append((
                 mapping.PARENT_FIELD,
                 {'uuid': parent_uuid}
@@ -292,8 +298,25 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
+        self.org_unit_uuid = unitid
+
+    def prepare_terminate(self, request: dict):
+        date = util.get_valid_to(request)
+        obj_path = ('tilstande', 'organisationenhedgyldighed')
+        val_inactive = {
+            'gyldighed': 'Inaktiv',
+            'virkning': common._create_virkning(date, 'infinity')
+        }
+
+        payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+        payload['note'] = 'Afslut enhed'
+
+        self.payload = payload
+        self.uuid = util.get_uuid(request)
+        self.org_unit_uuid = self.uuid
 
     def submit(self):
+        super().submit()
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
@@ -303,9 +326,10 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 for r in self.details_requests:
                     r.submit()
 
-            return result
         else:
-            return c.organisationenhed.update(self.payload, self.uuid)
+            result = c.organisationenhed.update(self.payload, self.uuid)
+
+        return result
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -362,9 +386,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.FULL:
         parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
-        r[mapping.ORG] = org.get_one_organisation(
-            c, orgid,
-        )
+        r[mapping.ORG] = org.get_configured_organisation()
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
@@ -401,7 +423,7 @@ def get_one_orgunit(c, unitid, unit=None,
         )
 
     elif details is UnitDetails.SELF:
-        r[mapping.ORG] = org.get_one_organisation(c, orgid)
+        r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.PARENT] = get_one_orgunit(c, parentid,
                                             details=UnitDetails.MINIMAL)
 
@@ -1060,7 +1082,8 @@ def terminate_org_unit(unitid):
       }
 
     """
-    date = util.get_valid_to(flask.request.get_json())
+    request = flask.request.get_json()
+    date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
 
@@ -1068,12 +1091,10 @@ def terminate_org_unit(unitid):
         {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
     )
 
-    children = c.organisationenhed.paged_get(
-        get_one_orgunit,
+    children = set(c.organisationenhed(
         overordnet=unitid,
         gyldighed='Aktiv',
-        limit=5,
-    )
+    ))
 
     roles = set(c.organisationfunktion(
         tilknyttedeenheder=unitid,
@@ -1086,29 +1107,30 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    relevant = roles - addresses
+    role_counts = set(
+        mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
+        for objid, obj in c.organisationfunktion.get_all(
+            uuid=roles - addresses,
+        ),
+    )
 
-    if children['total'] or relevant:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_OR_ROLES(
-            child_units=children['items'],
-            child_count=children['total'],
-            role_count=len(relevant),
+    if children and role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
+            child_count=len(children),
+            roles=', '.join(sorted(role_counts)),
+        )
+    elif children:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
+            child_count=len(children),
+        )
+    elif role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
+            roles=', '.join(sorted(role_counts)),
         )
 
-    obj_path = ('tilstande', 'organisationenhedgyldighed')
-    val_inactive = {
-        'gyldighed': 'Inaktiv',
-        'virkning': common._create_virkning(date, 'infinity')
-    }
-
-    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-    payload['note'] = 'Afslut enhed'
-
-    c.organisationenhed.update(payload, unitid)
-
-    return flask.jsonify(unitid)
-
-    # TODO: Afkort adresser?
+    request[mapping.UUID] = unitid
+    handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
+    return flask.jsonify(handler.submit())
 
 
 @blueprint.route('/ou/<uuid:unitid>/history/', methods=['GET'])

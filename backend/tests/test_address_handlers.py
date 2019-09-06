@@ -14,7 +14,7 @@ from mora import exceptions
 from . import util
 
 
-@util.mock('dawa-addresses.json')
+@util.mock('dawa-addresses.json', allow_mox=True)
 class DarAddressHandlerTests(util.TestCase):
     handler = dar.DARAddressHandler
 
@@ -271,11 +271,15 @@ class EANAddressHandlerTests(util.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = '1234'  # Not a valid EAN
+        invalid_values = [
+            '1234',
+            '12341234123412341234'
+        ]  # Not a valid EAN
 
         # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+        for value in invalid_values:
+            with self.assertRaises(exceptions.HTTPException):
+                self.handler.validate_value(value)
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
@@ -452,7 +456,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         }
         address_handler = self.handler.from_request(request)
 
-        expected_value = '+4512345678'
+        expected_value = '12345678'
 
         # Act
         actual_value = address_handler._value
@@ -469,8 +473,8 @@ class PhoneAddressHandlerTests(util.TestCase):
         address_handler = self.handler(value, visibility)
 
         expected = {
-            'href': 'tel:+4512345678',
-            'name': '+4512345678',
+            'href': 'tel:12345678',
+            'name': '12345678',
             'value': '12345678',
             'visibility': {
                 'uuid': visibility
@@ -495,7 +499,7 @@ class PhoneAddressHandlerTests(util.TestCase):
 
         expected = {
             'objekttype': 'PHONE',
-            'urn': 'urn:magenta.dk:telefon:+4512345678'
+            'urn': 'urn:magenta.dk:telefon:12345678'
         }
 
         # Act
@@ -636,11 +640,15 @@ class PNumberAddressHandlerTests(util.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = '1234'  # Not a valid P-number
+        invalid_values = [
+            '1234',
+            '12341234123412341234'
+        ]  # Not a valid P-number
 
         # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+        for value in invalid_values:
+            with self.assertRaises(exceptions.HTTPException):
+                self.handler.validate_value(value)
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange

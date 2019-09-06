@@ -5,7 +5,6 @@
     :validityHidden="validityHidden"
     :required="required"
     :label="label"
-    :preselectedType="preselectedType"
     :disabled-dates="{disabledDates}"
   />
 </template>

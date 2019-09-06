@@ -7,6 +7,7 @@
 #
 
 
+from collections import Counter
 import contextlib
 import json
 import os
@@ -26,7 +27,7 @@ import werkzeug.serving
 
 from oio_rest.utils import test_support
 
-from mora import app, lora, settings
+from mora import amqp, app, lora, settings, service
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -111,7 +112,7 @@ def load_sql_fixture(fixture_name):
 def add_resetting_endpoint(app, fixture_name):
     @app.route('/reset-db')
     def reset_db():
-        app.logger.warn('RESETTING DATABASE!!!')
+        app.logger.warning('RESETTING DATABASE!!!')
 
         load_sql_fixture(fixture_name)
 
@@ -358,8 +359,21 @@ class TestCaseMixin(object):
 
     maxDiff = None
 
+    def setUp(self):
+        self.amqp_counter = Counter()
+
+        def amqp_publish_message_mock(service, object_type, action, __, ___):
+            topic = '{}.{}.{}'.format(service, object_type, action)
+            self.amqp_counter[topic] += 1
+        amqp.publish_message = amqp_publish_message_mock
+        super().setUp()
+
     def create_app(self, overrides=None):
         os.makedirs(BUILD_DIR, exist_ok=True)
+
+        # make sure the configured organisation is always reset
+        # every before test
+        service.org.ConfiguredOrganisation.valid = False
 
         return app.create_app({
             'ENV': 'testing',
@@ -377,7 +391,7 @@ class TestCaseMixin(object):
         return settings.LORA_URL
 
     def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), **kwargs):
+                      drop_keys=(), amqp_topics=(), **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -431,9 +445,18 @@ class TestCaseMixin(object):
             except (IndexError, KeyError, TypeError):
                 pass
 
+        # example:
+        # {
+        #     'employee.create.it': 3,
+        #     'organisation.edit.association': 1,
+        # }
+        amqp_recieved = Counter(amqp_topics)
+        self.assertEqual(self.amqp_counter, amqp_recieved)
+
         return actual
 
-    def assertRequestResponse(self, path, expected, message=None, **kwargs):
+    def assertRequestResponse(self, path, expected, message=None,
+                              amqp_topics=(), **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -446,7 +469,8 @@ class TestCaseMixin(object):
 
         '''
 
-        actual = self.assertRequest(path, message=message, **kwargs)
+        actual = self.assertRequest(path, message=message,
+                                    amqp_topics=amqp_topics, **kwargs)
 
         if actual != expected:
             pprint.pprint(actual)
