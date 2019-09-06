@@ -1,3 +1,13 @@
+In development
+==============
+
+Bug fixes
+---------
+
+* #22316: Ensure update payloads sent to LoRa satisfy validation
+  requirements
+
+
 Version 0.21.0, 2019-09-04
 ==========================
 

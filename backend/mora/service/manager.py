@@ -282,9 +282,19 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             employee = data.get(mapping.PERSON)
             employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
 
+            if employee_uuid:
+                update_payload = {
+                    'uuid': employee_uuid,
+                }
+            else:
+                update_payload = {
+                    'uuid': '',
+                    'urn': ''
+                }
+
             update_fields.append((
                 mapping.USER_FIELD,
-                {'uuid': employee_uuid} if employee_uuid else {},
+                update_payload,
             ))
         else:
             employee = util.get_obj_value(
