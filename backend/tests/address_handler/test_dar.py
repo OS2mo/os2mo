@@ -59,9 +59,8 @@ class DarAddressHandlerTests(util.TestCase):
         address_handler = self.handler.from_request(request)
 
         expected = {
-            'href': 'https://www.openstreetmap.org/?mlon=12.57924839'
-                    '&mlat=55.68113676&zoom=16',
-            'name': 'Pilestræde 43, 3., 1112 København K',
+            'href': None,
+            'name': '0a3f50a0-23c9-32b8-e044-0003ba298018',
             'value': '0a3f50a0-23c9-32b8-e044-0003ba298018'
         }
 
@@ -144,17 +143,39 @@ class DarAddressHandlerTests(util.TestCase):
             self.handler.validate_value(value)
 
     def test_failed_lookup_from_request(self, mock):
-        """Ensure that failed request lookups are handled appropriately"""
+        """Ensure that invalid DAR UUIDs fail validation on request"""
         # Arrange
         # Nonexisting DAR UUID should fail
         value = '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
 
         # Act & Assert
-        with self.assertRaisesRegex(exceptions.HTTPException, "DAR Address"):
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "Invalid address"):
             request = {
                 'value': value
             }
             self.handler.from_request(request)
+
+    def test_lookup_from_request_with_force_succeeds(self, mock):
+        """Ensure that validation is skipped when force is True"""
+        # Arrange
+        # Nonexisting DAR UUID
+        value = '00000000-0000-0000-0000-000000000000'
+
+        expected = {
+            'href': None,
+            'name': '00000000-0000-0000-0000-000000000000',
+            'value': '00000000-0000-0000-0000-000000000000'
+        }
+
+        # Act & Assert
+        with self.create_app().test_request_context('?force=1'):
+            request = {
+                'value': value
+            }
+            handler = self.handler.from_request(request)
+            actual = handler.get_mo_address_and_properties()
+            self.assertEqual(expected, actual)
 
     def test_failed_lookup_from_effect(self, mock):
         """Ensure that failed effect lookups are handled appropriately"""
