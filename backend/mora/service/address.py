@@ -12,6 +12,7 @@ import re
 
 import flask
 import requests
+import uuid
 
 from . import employee
 from . import facet
@@ -238,6 +239,9 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         handler = base.get_handler_for_scope(scope).from_request(req)
 
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = handler.name or func_id
+
         # Validation
         if org_unit_uuid:
             validator.is_date_range_in_org_unit_range(req[mapping.ORG_UNIT],
@@ -253,7 +257,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
             funktionsnavn=mapping.ADDRESS_KEY,
             valid_from=valid_from,
             valid_to=valid_to,
-            brugervendtnoegle=handler.name,
+            brugervendtnoegle=bvn,
             funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
@@ -265,7 +269,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         )
 
         self.payload = func
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
         self.employee_uuid = employee_uuid
         self.org_unit_uuid = org_unit_uuid
 

@@ -250,13 +250,11 @@ class Writing(util.LoRATestCase):
         self.load_sample_structures()
 
         expected_msg = {
-            'description': 'DAR Address lookup failed',
+            'description': 'Invalid address',
             'error': True,
-            'error_key': 'E_INVALID_INPUT',
-            'e': 'No mock address: GET https://dawa.aws.dk/adresser?'
-                 'id=4dbf94f1-350f-4f52-bf0f-050b6b1072c0'
-                 '&noformat=1&struktur=mini',
-            'status': 400
+            'error_key': 'V_INVALID_ADDRESS_DAR',
+            'status': 400,
+            'value': '4dbf94f1-350f-4f52-bf0f-050b6b1072c0'
         }
 
         msg = self.assertRequest(
@@ -365,7 +363,7 @@ class Writing(util.LoRATestCase):
                     }
                 }]
             },
-            'livscykluskode': 'Opstaaet',
+            'livscykluskode': 'Importeret',
             'note': 'Oprettet i MO',
             'relationer': {
                 'adresser': [{
@@ -480,7 +478,7 @@ class Writing(util.LoRATestCase):
                     }
                 }]
             },
-            'livscykluskode': 'Opstaaet',
+            'livscykluskode': 'Importeret',
             'note': 'Oprettet i MO',
             'relationer': {
                 'adresser': [{
@@ -630,7 +628,7 @@ class Writing(util.LoRATestCase):
                     }
                 }]
             },
-            'livscykluskode': 'Opstaaet',
+            'livscykluskode': 'Importeret',
             'note': 'Oprettet i MO',
             'relationer': {
                 'adresser': [{
@@ -883,7 +881,7 @@ class Writing(util.LoRATestCase):
                     }
                 }]
             },
-            'livscykluskode': 'Opstaaet',
+            'livscykluskode': 'Importeret',
             'note': 'Oprettet i MO',
             'relationer': {
                 'adresser': [{
