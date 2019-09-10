@@ -7,6 +7,13 @@ Bug fixes
 * #22316: Ensure update payloads sent to LoRa satisfy validation
   requirements
 
+Internal changes
+----------------
+
+* #29626: DAR address objects can now be inserted regardless of whether DAR is
+  up, using ``force``. DAR address objects in LoRa no longer include the
+  'pretty' address, to simplify saving the object.
+
 
 Version 0.21.0, 2019-09-04
 ==========================
