@@ -61,11 +61,11 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
 
-    .click(createTimeSelect)
-    .click(createTimeOption.withText('Tjenestetid'))
-
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(createDialog.find('.btn-primary'))
 
@@ -198,11 +198,11 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
 
-    .click(createTimeSelect)
-    .click(createTimeOption.withText('Tjenestetid'))
-
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(createFromInput)
 

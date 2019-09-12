@@ -25,7 +25,7 @@
         required
       />
 
-      <mo-facet-picker
+      <mo-facet-picker v-if="showTimePlanning"
         facet="time_planning"
         v-model="entry.time_planning"
         required
@@ -82,6 +82,13 @@ export default {
         return this.entry.parent.validity
       }
       return this.disabledDates
+    },
+    showTimePlanning () {
+      if (this.entry.parent) {
+        let showTimePlanning = this.entry.parent.user_settings.orgunit.show_time_planning
+        return showTimePlanning
+      }
+      return false
     }
   },
 

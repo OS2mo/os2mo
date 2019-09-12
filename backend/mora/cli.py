@@ -554,7 +554,8 @@ def initdb(wait):
         INSERT INTO orgunit_settings ( object, setting, value ) VALUES
             ( Null, 'show_roles', 'True' ),
             ( Null, 'show_user_key', 'True' ),
-            ( Null, 'show_location', 'True' );
+            ( Null, 'show_location', 'True' ),
+            ( Null, 'show_time_planning', 'True' );
         """
 
         click.echo("Initializing configuration database.")
