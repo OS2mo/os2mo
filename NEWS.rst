@@ -11,6 +11,8 @@ Bug fixes
 
 * #22316: Ensure update payloads sent to LoRa satisfy validation
   requirements
+* #31663: ``org`` is now correctly an optional (deprecated) parameter on
+  creation of various objects
 
 Internal changes
 ----------------

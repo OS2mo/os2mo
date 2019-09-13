@@ -17,6 +17,7 @@ import uuid
 from . import employee
 from . import facet
 from . import handlers
+from . import org
 from . import orgunit
 from .address_handler import base
 from .validation import validator
@@ -227,7 +228,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                                   required=True)
@@ -261,7 +263,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
             funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
-            tilknyttedeorganisationer=[orgid],
+            tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
             opgaver=handler.get_lora_properties(),

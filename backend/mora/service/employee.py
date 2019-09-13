@@ -79,9 +79,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {},
             required=False
         )
-        org_uuid_specified = util.get_mapping_uuid(req, mapping.ORG,
-                                                   required=True)
-        org_uuid = org.get_configured_organisation(org_uuid_specified)["uuid"]
+
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())

@@ -1354,13 +1354,11 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/create',
             {
-                'description':
-                'Corresponding parent unit or organisation not found.',
+                'description': 'Org unit not found.',
                 'error': True,
-                'error_key': 'V_PARENT_NOT_FOUND',
-                'org_unit_uuid': 'ec93e37e-774e-40b4-953c-05ca41b80372',
-                'parent_uuid': '00000000-0000-0000-0000-000000000000',
-                'status': 404,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
+                'status': 404
             },
             json=payload,
             status_code=404,

@@ -17,6 +17,7 @@ This section describes how to interact with employee roles.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -30,8 +31,6 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ROLE_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -47,10 +46,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         validator.is_date_range_in_employee_range(employee, valid_from,
                                                   valid_to)
 
-        org_uuid = (
-            c.organisationenhed.get(org_unit_uuid)
-            ['relationer']['tilhoerer'][0]['uuid']
-        )
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
                                                required=True)
