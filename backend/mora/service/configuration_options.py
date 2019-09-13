@@ -66,9 +66,9 @@ def get_configuration(unitid=None):
         rows = cur.fetchall()
         for row in rows:
             setting = row[0]
-            if row[1] == 'True':
+            if str(row[1]).lower() == 'true':
                 value = True
-            elif row[1] == 'False':
+            elif str(row[1]).lower() == 'false':
                 value = False
             else:
                 value = row[1]

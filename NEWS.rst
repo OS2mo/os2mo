@@ -1,6 +1,11 @@
 In development
 ==============
 
+New features
+------------
+
+* #30983: Make time planning field on org units hidden based on configuration
+
 Bug fixes
 ---------
 
