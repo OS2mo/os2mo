@@ -16,6 +16,7 @@ This section describes how to interact with employee leave.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -29,17 +30,13 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.LEAVE_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        userobj = c.bruger.get(employee_uuid)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
-        if not userobj:
-            exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
-
-        org_uuid = userobj['relationer']['tilhoerer'][0]['uuid']
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
         valid_from, valid_to = util.get_validities(req)

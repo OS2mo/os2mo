@@ -66,9 +66,6 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": ean_class,
                     "value": '1234567890',
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -102,9 +99,6 @@ class Writing(util.LoRATestCase):
                     "org_unit": {
                         'uuid': unitid,
                     },
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
                     "validity": {
                         "from": "2013-01-01",
                         "to": None,
@@ -132,9 +126,6 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": email_class,
                     "org_unit": {"uuid": unitid},
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
                     # NB: no value
                     "validity": {
                         "from": "2017-01-01",
@@ -164,9 +155,6 @@ class Writing(util.LoRATestCase):
                     # NB: no type!
                     "address_type": None,
                     "value": "hallo@exmaple.com",
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    },
                     "org_unit": {"uuid": unitid},
                     "validity": {
                         "from": "2013-01-01",
@@ -195,9 +183,6 @@ class Writing(util.LoRATestCase):
                 "address_type": address_class,
                 "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "org_unit": {"uuid": nothingid},
-                "org": {
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                },
                 "validity": {
                     "from": "2013-01-01",
                     "to": None,
@@ -223,9 +208,6 @@ class Writing(util.LoRATestCase):
                 "address_type": address_class,
                 "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                 "person": {"uuid": nothingid},
-                "org": {
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                },
                 "validity": {
                     "from": "2013-01-01",
                     "to": None,
@@ -271,9 +253,6 @@ class Writing(util.LoRATestCase):
                     "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
                     "validity": {
                         "from": "2017-01-02",
-                    },
-                    "org": {
-                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
                 }
             ]
@@ -337,9 +316,6 @@ class Writing(util.LoRATestCase):
                     'value': 'root@example.com',
                     "org_unit": {
                         "uuid": unitid
-                    },
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     },
                     "validity": {
                         "from": "2017-01-02",
@@ -444,9 +420,6 @@ class Writing(util.LoRATestCase):
                     'value': 'root@example.com',
                     "person": {
                         "uuid": employee_id
-                    },
-                    "org": {
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     },
                     "validity": {
                         "from": "2017-01-02",
@@ -589,9 +562,6 @@ class Writing(util.LoRATestCase):
             json={
                 "name": "Torkild Testperson",
                 "cpr_no": "0101501234",
-                "org": {
-                    'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
-                },
                 "details": [
                     {
                         "type": "address",
@@ -601,9 +571,6 @@ class Writing(util.LoRATestCase):
                         'value': 'root@example.com',
                         "validity": {
                             "from": "2017-01-02",
-                        },
-                        "org": {
-                            'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
                     },
                 ]
@@ -734,9 +701,6 @@ class Writing(util.LoRATestCase):
                     "validity": {
                         "from": "2017-01-02",
                     },
-                    "org": {
-                        'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
-                    },
                 }],
             }],
             amqp_topics={
@@ -854,9 +818,6 @@ class Writing(util.LoRATestCase):
                         'value': 'root@example.com',
                         "validity": {
                             "from": "2017-01-02",
-                        },
-                        "org": {
-                            'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
                         },
                     },
                 ]

@@ -107,8 +107,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         ])
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         req = flask.request.get_json()
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
@@ -126,13 +124,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
 
         org_uuid = org.get_configured_organisation()["uuid"]
-        organisationenhed_get = c.organisationenhed.get(parent_uuid)
-
-        if not (organisationenhed_get or parent_uuid == org_uuid):
-            exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
-                parent_uuid=parent_uuid,
-                org_unit_uuid=unitid,
-            )
 
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)

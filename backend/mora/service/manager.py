@@ -12,15 +12,15 @@
 This section describes how to interact with employee manager roles.
 
 """
-import uuid
 import operator
-import flask
+import uuid
 
 from . import address
-from . import handlers
-from . import orgunit
-from . import facet
 from . import employee
+from . import facet
+from . import handlers
+from . import org
+from . import orgunit
 from .validation import validator
 from .. import common
 from .. import lora
@@ -128,8 +128,6 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid """
-        c = lora.Connector()
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -137,13 +135,10 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        # TODO: Figure out what to do with this
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = (
-            c.organisationenhed.get(org_unit_uuid)
-            ['relationer']['tilhoerer'][0]['uuid']
-        )
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
         manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
