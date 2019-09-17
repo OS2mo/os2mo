@@ -381,7 +381,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
-                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '\\' +
                                        parent[mapping.NAME])
             elif parent:
                 r[mapping.LOCATION] = parent[mapping.NAME]
