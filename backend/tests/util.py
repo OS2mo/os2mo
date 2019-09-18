@@ -95,25 +95,12 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     return r
 
 
-def load_sql_fixture(fixture_name):
-    '''Load an SQL fixture, directly into the database.
-    into LoRA at the given path & UUID.
-
-    '''
-    fixture_path = os.path.join(FIXTURE_DIR, 'sql', fixture_name)
-
-    assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
-    assert os.path.isfile(fixture_path), 'no such SQL fixture found!'
-
-    test_support.load_sql_fixture(fixture_path)
-
-
 def add_resetting_endpoint(app, fixture_name):
     @app.route('/reset-db')
     def reset_db():
         app.logger.warning('RESETTING DATABASE!!!')
 
-        load_sql_fixture(fixture_name)
+        # TODO reset db
 
         return '', 200
 
@@ -565,21 +552,13 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         pkgutil.get_data('mora', 'db_extensions.json').decode(),
     )
 
-    def load_sample_structures(self, minimal=False):
-        if minimal:
-            load_sql_fixture('minimal.sql')
-        else:
-            load_sql_fixture('simple.sql')
+    def load_sample_structures(self, **kwargs):
+        load_sample_structures(**kwargs)
 
-    def load_sql_fixture(self, fixture_name='normal.sql'):
-        '''Load an SQL fixture'''
-
-        load_sql_fixture(fixture_name)
-
-    def add_resetting_endpoint(self, fixture_name='normal.sql'):
+    def add_resetting_endpoint(self):
         '''Add an endpoint for resetting the database'''
 
-        add_resetting_endpoint(self.app, fixture_name)
+        add_resetting_endpoint(self.app)
 
     def setUp(self):
         lora_server = werkzeug.serving.make_server(
