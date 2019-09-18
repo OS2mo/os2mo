@@ -77,7 +77,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         return flask.jsonify([
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.SELF,
+                c, objid, effect, details=UnitDetails.FULL,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
@@ -381,7 +381,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
-                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '\\' +
                                        parent[mapping.NAME])
             elif parent:
                 r[mapping.LOCATION] = parent[mapping.NAME]
