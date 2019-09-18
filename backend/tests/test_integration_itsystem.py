@@ -8,6 +8,7 @@
 
 import copy
 import logging
+import pytest
 
 import freezegun
 
@@ -27,7 +28,12 @@ class Writing(util.LoRATestCase):
             'TZ': 'UTC',
         }
 
+    @pytest.mark.psql_9_dependent
     def test_errors(self):
+        # In Postgres 10.0 the messages mentioning type names was changed. See
+        # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
+        # This test will fail if run against postgres >=10.0. We can ignore it
+        # with `pytest -m "not psql_9_dependent"`.
         self.load_sample_structures(minimal=True)
 
         self.assertRequestResponse(
