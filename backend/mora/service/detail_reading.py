@@ -738,6 +738,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
             {
                 'attributter': (
                     'organisationfunktionudvidelser',
+                    'organisationfunktionegenskaber',
                 ),
                 'relationer': (
                     'opgaver',
@@ -752,9 +753,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
                 ),
             },
             {
-                'attributter': (
-                    'organisationfunktionegenskaber',
-                ),
                 'relationer': (
                     'tilhoerer',
                     'tilknyttedeorganisationer',
@@ -880,7 +878,13 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
         func[mapping.UUID] = funcid
 
         # this field is required by LoRA, so use tuple unpacking
-        props, = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
+        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)
+        if len(props) > 1:
+            flask.current_app.logger.warning(
+                'More than one prop found when '
+                'only one was expected: {}'.format(
+                    props))
+        props = props[0]
 
         func[mapping.USER_KEY] = props['brugervendtnoegle']
 

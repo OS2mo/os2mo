@@ -21,6 +21,7 @@ import uuid
 import flask
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -45,15 +46,14 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         if not system:
             exceptions.ErrorCodes.E_NOT_FOUND()
 
-        # Get org unit uuid for validation purposes
-        org_unit = util.checked_get(req, mapping.ORG_UNIT,
-                                    {}, required=False)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=False)
         org_unit_uuid = util.get_uuid(org_unit, required=False)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = system['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         valid_from, valid_to = util.get_validities(req)
 

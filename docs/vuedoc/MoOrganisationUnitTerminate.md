@@ -25,12 +25,6 @@ A organisation unit terminate component.
 
 ## computed properties 
 
-- `validDates` 
-
-  Check if the organisation date are valid. 
-
-   **dependencies:** `org_unit`, `org_unit` 
-
 - `validity` 
 
    **dependencies:** `terminate`, `terminate` 

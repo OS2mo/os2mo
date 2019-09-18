@@ -28,15 +28,10 @@ A organisation unit rename component.
 
    **dependencies:** `rename`, `original`, `original`, `rename`, `original` 
 
-- `orgUnitValidity` 
+- `validity` 
 
-  Valid dates for orgUnit. 
+   **dependencies:** `rename`, `rename` 
 
-   **dependencies:** `disabledToTodaysDate` 
-
-- `disabledToTodaysDate` 
-
-  Disabled dates to todays date for the date picker. 
 
 ## methods 
 

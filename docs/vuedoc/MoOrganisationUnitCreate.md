@@ -15,14 +15,6 @@ A organisation unit create component
 
 **initial value:** `[object Object]` 
 
-- `postAddress` 
-
-**initial value:** `[object Object]` 
-
-- `phone` 
-
-**initial value:** `[object Object]` 
-
 - `isLoading` 
 
 **initial value:** `false` 

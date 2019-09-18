@@ -163,6 +163,13 @@ def update_payload(
             assert 0 <= len(vals) <= 1
             updated_props = vals
 
+        for p in updated_props:
+            # TODO: Fix this when the underlying bug in LoRa is resolved
+            # https://redmine.magenta-aps.dk/issues/31576
+            if (len(p) == 1 and 'virkning' in p and 'relationer' in
+                    field_tuple.path[0]):
+                p['uuid'] = ''
+                p['urn'] = ''
         payload = util.set_obj_value(payload, field_tuple.path, updated_props)
 
     return payload

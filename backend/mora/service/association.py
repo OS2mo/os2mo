@@ -16,9 +16,9 @@ This section describes how to interact with employee associations.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
-from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
@@ -29,8 +29,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -38,14 +36,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
-        if not org_unit_obj:
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-                org_unit_uuid=org_unit_uuid,
-            )
-
-        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         association_type_uuid = util.get_mapping_uuid(
             req,
             mapping.ASSOCIATION_TYPE,

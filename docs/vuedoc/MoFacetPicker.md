@@ -10,8 +10,6 @@ A facet picker component.
 
 - `required` ***Boolean*** (*optional*) 
 
-- `preselected-user-key` ***String*** (*optional*) `default: null` 
-
 ## data 
 
 - `internalValue` 
@@ -28,17 +26,13 @@ A facet picker component.
 
    **dependencies:** `facetData` 
 
-- `isDisabled` 
-
-   **dependencies:** `preselectedUserKey` 
-
 - `labelText` 
 
    **dependencies:** `facetData`, `$t`, `facetData` 
 
 - `preselected` 
 
-   **dependencies:** `facetData`, `facetData`, `preselectedUserKey` 
+   **dependencies:** `facetData` 
 
 
 ## methods 

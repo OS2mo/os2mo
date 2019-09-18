@@ -17,6 +17,7 @@ employees and organisational units.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import lora
@@ -29,8 +30,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -55,9 +54,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 self.function_key, valid_from, valid_to, employee_uuid,
             )
 
-        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
-        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         job_function_uuid = util.get_mapping_uuid(req,
                                                   mapping.JOB_FUNCTION)
         engagement_type_uuid = util.get_mapping_uuid(req,

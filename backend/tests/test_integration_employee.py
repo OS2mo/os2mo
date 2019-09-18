@@ -177,6 +177,7 @@ class Tests(util.LoRATestCase):
         )
 
     def test_create_employee_fails_on_invalid_cpr(self):
+        self.load_sample_structures()
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "1",
@@ -255,8 +256,8 @@ class Tests(util.LoRATestCase):
 
     def test_create_employee_existing_cpr_new_org(self):
         """
-        Should be able to create employee with same CPR no,
-        but in different organisation
+        Should not be able to create employee with same CPR no,
+        in different organisation, as only one is allowed
         """
         self.load_sample_structures()
 
@@ -267,12 +268,14 @@ class Tests(util.LoRATestCase):
                 'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
             }
         }
-
-        uuid = self.request('/service/e/create', json=payload).json
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        self.assertTrue(c.bruger.get(uuid))
+        r = self.request('/service/e/create', json=payload)
+        self.assertEqual({
+            'description': 'Organisation is not allowed',
+            'uuid': '3dcb1072-482e-491e-a8ad-647991d0bfcf',
+            'status': 400,
+            'error_key': 'E_ORG_NOT_ALLOWED',
+            'error': True
+        }, r.json)
 
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.

@@ -20,9 +20,13 @@ A organisation unit picker component.
 
   This boolean property requires a valid name. 
 
-- `validity` ***Object*** (*optional*) 
+- `validity` ***Object|undefined*** (*optional*) 
 
   An object of the validities, used for validation 
+
+- `disabled-unit` ***Object*** (*optional*) 
+
+  Unselectable unit. 
 
 - `extra-validations` ***Object*** (*optional*) 
 

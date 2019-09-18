@@ -14,20 +14,51 @@ This section describes how to interact with organisations.
 
 '''
 
-import operator
-
 import flask
 import werkzeug
 
 from .. import common
 from .. import mapping
 from .. import util
+from .. import exceptions
 
 blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_one_organisation(c, orgid, org=None):
+class ConfiguredOrganisation:
+    """ OS2mo organisation is cached as an attribute on this class
+    hence there must be exactly one organisation in the lora database
+    """
+    valid = False
+
+    @classmethod
+    def validate(cls, app):
+        orglist = get_valid_organisations()
+
+        if len(orglist) > 1:
+            exceptions.ErrorCodes.E_ORG_TOO_MANY(count=len(orglist))
+
+        elif len(orglist) == 0:
+            exceptions.ErrorCodes.E_ORG_UNCONFIGURED()
+
+        elif len(orglist) == 1:
+            cls.organisation = orglist[0]
+
+
+def get_configured_organisation(uuid=None):
+    app = flask.current_app
+    if not ConfiguredOrganisation.valid:
+        ConfiguredOrganisation.validate(app)
+    org = ConfiguredOrganisation.organisation
+
+    if uuid and uuid != org["uuid"]:
+        exceptions.ErrorCodes.E_ORG_NOT_ALLOWED(uuid=uuid)
+
+    return org
+
+
+def get_lora_organisation(c, orgid, org=None):
     if not org:
         org = c.organisation.get(orgid)
 
@@ -43,16 +74,31 @@ def get_one_organisation(c, orgid, org=None):
     }
 
 
+def get_valid_organisations():
+    """ return all valid organisations, being the ones
+        who have at least one top organisational unit
+    """
+    c = common.lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+    orglist = [
+        get_lora_organisation(c, orgid, org)
+        for orgid, org in c.organisation.get_all(bvn='%')
+    ]
+    return orglist
+
+
 @blueprint.route('/o/')
 @util.restrictargs('at')
 def list_organisations():
-    '''List displayable organisations. We consider anything that has *at
-    least one* root unit 'displayable'.
+    '''List displayable organisations. This endpoint is retained for
+    backwards compatibility. It will always return a list of only one
+    organisation as only one organisation is currently allowed.
 
     .. :quickref: Organisation; List
 
     :queryparam date at: Show organisations at this point in time,
-        in ISO-8601 format.
+        in ISO-8601 format. This parameter is retained for backwards
+        compatibility. There can be only one organisation defined
+        at any point in time
 
     :<jsonarr string name: Human-readable name of the organisation.
     :<jsonarr string user_key: Short, unique key identifying the unit.
@@ -73,16 +119,7 @@ def list_organisations():
      ]
 
     '''
-    c = common.get_connector()
-
-    return flask.jsonify(sorted(
-        (
-            get_one_organisation(c, orgid, org)
-            for orgid, org in c.organisation.get_all(bvn='%')
-            if c.organisationenhed(overordnet=orgid, gyldighed='Aktiv')
-        ),
-        key=operator.itemgetter('name'),
-    ))
+    return flask.jsonify([get_configured_organisation()])
 
 
 @blueprint.route('/o/<uuid:orgid>/')

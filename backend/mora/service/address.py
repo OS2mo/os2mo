@@ -12,10 +12,12 @@ import re
 
 import flask
 import requests
+import uuid
 
 from . import employee
 from . import facet
 from . import handlers
+from . import org
 from . import orgunit
 from .address_handler import base
 from .validation import validator
@@ -226,7 +228,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        orgid = util.get_mapping_uuid(req, mapping.ORG, required=True)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                                   required=True)
@@ -237,6 +240,9 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
         handler = base.get_handler_for_scope(scope).from_request(req)
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = handler.name or func_id
 
         # Validation
         if org_unit_uuid:
@@ -253,11 +259,11 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
             funktionsnavn=mapping.ADDRESS_KEY,
             valid_from=valid_from,
             valid_to=valid_to,
-            brugervendtnoegle=handler.name,
+            brugervendtnoegle=bvn,
             funktionstype=address_type_uuid,
             adresser=[handler.get_lora_address()],
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
-            tilknyttedeorganisationer=[orgid],
+            tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
             opgaver=handler.get_lora_properties(),
@@ -265,7 +271,7 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         )
 
         self.payload = func
-        self.uuid = util.get_uuid(req, required=False)
+        self.uuid = func_id
         self.trigger_dict.update({
             "employee_uuid": employee_uuid,
             "org_unit_uuid": org_unit_uuid

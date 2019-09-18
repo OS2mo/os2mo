@@ -12,13 +12,9 @@ A address entry component.
 
   Defines a label. 
 
-- `preselected-type` ***String*** (*optional*) 
-
-  Defines a preselectedType. 
-
 - `facet` ***String*** (*required*) 
 
-  Defines a preselectedType. 
+  The facet of the addresses. 
 
 ## data 
 
@@ -54,12 +50,6 @@ A address entry component.
   If the address is a PHONE. 
 
    **dependencies:** `entry`, `entry` 
-
-- `noPreselectedType` 
-
-  If it has not a preselectedType. 
-
-   **dependencies:** `preselectedType` 
 
 - `validityRules` 
 

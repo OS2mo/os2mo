@@ -61,14 +61,14 @@ test('Workflow: create unit', async t => {
 
     .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
 
-    .click(timeSelect)
-    .click(timeOption.withText('Tjenestetid'))
-
     .click(unitSelect)
     .click(unitOption.withText('Fagligt center'))
 
     .click(parentInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))
+
+    .click(timeSelect)
+    .click(timeOption.withText('Tjenestetid'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

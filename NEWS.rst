@@ -1,6 +1,31 @@
 In development
 ==============
 
+New features
+------------
+
+* #29741: AMQP messages moved to new Trigger module (on-after)
+* #30983: Make time planning field on org units hidden based on configuration
+
+Bug fixes
+---------
+
+* #22316: Ensure update payloads sent to LoRa satisfy validation
+  requirements
+* #31663: ``org`` is now correctly an optional (deprecated) parameter on
+  creation of various objects
+
+Internal changes
+----------------
+
+* #29626: DAR address objects can now be inserted regardless of whether DAR is
+  up, using ``force``. DAR address objects in LoRa no longer include the
+  'pretty' address, to simplify saving the object.
+
+
+Version 0.21.0, 2019-09-04
+==========================
+
 API changes
 -----------
 
@@ -8,6 +33,19 @@ API changes
 
 Our validation now prevents creating an employee without a CPR number.
 To bypass this check, specify ``force=1``.
+
+New features
+------------
+
+* #29738: user_key can be entered in UI for organisational units. if none
+  is entered, the uuid of the organisational unit is used like before
+* #31024: Organisation drop down removed. Organisation has been moved
+  into configuration values. Strictly enforced in 'production', less
+  so in development / testing
+* #27213: AMQP messages are sent whenever an object is created, edited or
+  deleted which allows anyone to build custom & powerful integrations.
+* #30094: Allow organisational units to have no addresses, rather than
+  forcing them to have a phone and physical location.
 
 Bug fixes
 ---------
@@ -28,15 +66,8 @@ Bug fixes
 * #29570: Ensure the error messages when validating a unit move are correct
   and in the correct locations.
 * #31425: Better handling of addresses with empty 'brugervendtnoegle'
-
-New features
-------------
-
-* #29741: AMQP messages moved to new Trigger module (on-after)
-* #27213: AMQP messages are sent whenever an object is created, edited or
-  deleted which allows anyone to build custom & powerful integrations.
-* #30094: Allow organisational units to have no addresses, rather than
-  forcing them to have a phone and physical location.
+* #31029: We should no longer crash when reading orgfunk effects with more
+  than one attribute
 
 
 Version 0.20.1, 2019-07-15

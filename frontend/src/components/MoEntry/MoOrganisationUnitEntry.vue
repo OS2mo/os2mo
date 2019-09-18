@@ -13,13 +13,19 @@
         required
       />
 
+      <mo-input-text
+        :label="$t('input_fields.org_unit_user_key')"
+        :placeholder="$t('input_fields.org_unit_user_key_placeholder')"
+        v-model="entry.user_key"
+      />
+
       <mo-facet-picker
         facet="org_unit_type"
         v-model="entry.org_unit_type"
         required
       />
 
-      <mo-facet-picker
+      <mo-facet-picker v-if="showTimePlanning"
         facet="time_planning"
         v-model="entry.time_planning"
         required
@@ -76,6 +82,13 @@ export default {
         return this.entry.parent.validity
       }
       return this.disabledDates
+    },
+    showTimePlanning () {
+      if (this.entry.parent) {
+        let showTimePlanning = this.entry.parent.user_settings.orgunit.show_time_planning
+        return showTimePlanning
+      }
+      return false
     }
   },
 
@@ -85,6 +98,9 @@ export default {
      */
     entry: {
       handler (newVal) {
+        if (newVal.user_key === undefined || newVal.user_key === ""){
+          newVal.user_key = null; 
+        }
         this.$emit('input', newVal)
       },
       deep: true
