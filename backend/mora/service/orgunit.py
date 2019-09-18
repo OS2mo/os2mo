@@ -77,7 +77,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         return flask.jsonify([
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.SELF,
+                c, objid, effect, details=UnitDetails.FULL,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
