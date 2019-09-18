@@ -5,6 +5,7 @@ New features
 ------------
 
 * #30983: Make time planning field on org units hidden based on configuration
+* #29129: Org unit location delimiter is now backslash
 
 Bug fixes
 ---------
@@ -13,6 +14,8 @@ Bug fixes
   requirements
 * #31663: ``org`` is now correctly an optional (deprecated) parameter on
   creation of various objects
+* #29129: Fix org unit details modal not reacting to errors from backend when
+  creating new objects
 
 Internal changes
 ----------------
