@@ -107,30 +107,11 @@ def add_resetting_endpoint(app, fixture_name):
     return app
 
 
-def load_sample_structures(*, verbose=False, minimal=False, check=False,
-                           delete=False):
+def load_sample_structures(minimal=False):
     '''Inject our test data into LoRA.
 
     '''
     orgid = '456362c4-0ee4-4e5e-a72c-751239745e62'
-
-    if delete:
-        c = lora.Connector()
-
-        print('deleting', c.organisation.path, orgid, file=sys.stderr)
-        c.organisation.delete(orgid)
-
-        for scope, rel in (
-            (c.facet, 'ansvarlig'),
-            (c.klasse, 'ansvarlig'),
-            (c.organisationenhed, 'tilhoerer'),
-            (c.organisationfunktion, 'tilknyttedeorganisationer'),
-            (c.bruger, 'tilhoerer'),
-            (c.itsystem, 'tilhoerer'),
-        ):
-            for objid in scope.fetch(**{rel: orgid}):
-                print('deleting', scope.path, objid, file=sys.stderr)
-                scope.delete(objid)
 
     fixtures = [(
         'organisation/organisation',
@@ -248,13 +229,7 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
         ))
 
     for path, fixture_name, uuid in fixtures:
-        if check:
-            if lora.get(path, uuid):
-                raise Exception('{} already exists at {}!'.format(
-                    uuid, path,
-                ))
-        else:
-            load_fixture(path, fixture_name, uuid)
+        load_fixture(path, fixture_name, uuid)
 
 
 @contextlib.contextmanager
@@ -552,8 +527,8 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         pkgutil.get_data('mora', 'db_extensions.json').decode(),
     )
 
-    def load_sample_structures(self, **kwargs):
-        load_sample_structures(**kwargs)
+    def load_sample_structures(self, minimal=False):
+        load_sample_structures(minimal)
 
     def add_resetting_endpoint(self):
         '''Add an endpoint for resetting the database'''
