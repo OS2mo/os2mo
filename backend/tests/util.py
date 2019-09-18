@@ -313,8 +313,7 @@ class mock(requests_mock.Mocker):
             self.__overrider.__exit__(None, None, None)
 
 
-class TestCaseMixin(object):
-
+class _BaseTestCase(flask_testing.TestCase):
     '''Base class for MO testcases w/o LoRA access.
     '''
 
@@ -518,7 +517,11 @@ class TestCaseMixin(object):
         return self.assertNotEqual(expected, actual, message)
 
 
-class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
+class TestCase(_BaseTestCase):
+    pass
+
+
+class LoRATestCase(test_support.TestCaseMixin, _BaseTestCase):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
@@ -558,15 +561,9 @@ class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
         super().setUp()
 
 
-class TestCase(TestCaseMixin, flask_testing.TestCase):
-    pass
+class LiveLoRATestCase(LoRATestCase, flask_testing.LiveServerTestCase):
+    # TODO For Test cafe. This is properly broken.
 
-
-class LoRATestCase(LoRATestCaseMixin, flask_testing.TestCase):
-    pass
-
-
-class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
     #
     # The two methods below force the WSGI server to run in a thread
     # rather than a process. This enables easy coverage gathering as
