@@ -116,7 +116,7 @@ test('Workflow: move unit', async t => {
     .eql('Social Indsats')
     .expect(Selector('.orgunit-location').textContent
            )
-    .eql('Hjørring Kommune/Social og sundhed')
+    .eql('Hjørring Kommune\\Social og sundhed')
     .expect(Selector('.detail-present .parent-name').textContent)
     .match(/Social og sundhed/)
 
