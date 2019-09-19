@@ -19,6 +19,7 @@ from mora.mapping import ORG_UNIT
 
 class MockHandler(RequestHandler):
     role_type = "mock"
+    result = "okidoki"
 
     def prepare_edit(self, req):
         self.uuid = "edit"
@@ -30,7 +31,7 @@ class MockHandler(RequestHandler):
         self.uuid = "terminate"
 
     def submit(self):
-        super().submit(result="okidoki")
+        super().submit()
 
 
 class Tests(util.TestCase):

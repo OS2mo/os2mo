@@ -274,8 +274,8 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
         self.payload = func
         self.uuid = func_id
         self.trigger_dict.update({
-            Triggers.EMPLOYEE_UUID: employee_uuid,
-            Triggers.ORG_UNIT_UUID: org_unit_uuid
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
     def prepare_edit(self, req: dict):

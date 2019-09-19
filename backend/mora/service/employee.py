@@ -227,14 +227,14 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
-            result = c.bruger.create(self.payload, self.uuid)
+            self.result = c.bruger.create(self.payload, self.uuid)
         else:
-            result = c.bruger.update(self.payload, self.uuid)
+            self.result = c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
 
-        return super().submit(result)
+        return super().submit()
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):

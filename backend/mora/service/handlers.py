@@ -143,13 +143,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
                  request to LoRa, typically a UUID.
         """
         self.trigger_dict.update({
-            Trigger.RESULT: getattr(self,Trigger.RESULT, None),
+            Trigger.RESULT: getattr(self, Trigger.RESULT, None),
             Trigger.EVENT_TYPE: Trigger.Event.ON_AFTER,
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
         Trigger.run(self.trigger_dict)
 
-        return getattr(self,Trigger.RESULT, None)
+        return getattr(self, Trigger.RESULT, None)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -249,9 +249,11 @@ class OrgFunkRequestHandler(RequestHandler):
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            self.result = c.organisationfunktion.create(self.payload, self.uuid)
+            self.result = c.organisationfunktion.create(self.payload,
+                                                        self.uuid)
         else:
-            self.result = c.organisationfunktion.update(self.payload, self.uuid)
+            self.result = c.organisationfunktion.update(self.payload,
+                                                        self.uuid)
 
         return super().submit()
 

@@ -311,16 +311,16 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
-            result = c.organisationenhed.create(self.payload, self.uuid)
+            self.result = c.organisationenhed.create(self.payload, self.uuid)
 
             if self.details_requests:
                 for r in self.details_requests:
                     r.submit()
 
         else:
-            result = c.organisationenhed.update(self.payload, self.uuid)
+            self.result = c.organisationenhed.update(self.payload, self.uuid)
 
-        return super().submit(result=result)
+        return super().submit()
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
