@@ -26,6 +26,12 @@ services:
     volumes:
       - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
       - db_extensions:/db_extensions
+    command: [
+    "gunicorn",
+    "--config", "docker/gunicorn-settings.py",
+    "--workers", "1", # We run single-threaded as the testing_api is not
+                      # threadsafe.
+    "oio_rest:app"]
     ports:
       - "8080:8080"
     depends_on:
