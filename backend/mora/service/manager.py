@@ -26,6 +26,7 @@ from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 SEARCH_FIELDS = {
     'e': 'tilknyttedebrugere',
@@ -213,8 +214,8 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
         self.payload = manager
         self.uuid = func_id
         self.trigger_dict.update({
-            "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
     def submit(self):
@@ -378,8 +379,8 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
         self.payload = payload
         self.uuid = manager_uuid
         self.trigger_dict.update({
-            "org_unit_uuid": util.get_uuid(org_unit, required=False),
-            "employee_uuid": (
+            Trigger.ORG_UNIT_UUID: util.get_uuid(org_unit, required=False),
+            Trigger.EMPLOYEE_UUID: (
                 util.get_mapping_uuid(data, mapping.PERSON) or
                 mapping.USER_FIELD.get_uuid(original)
             )

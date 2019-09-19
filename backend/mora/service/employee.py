@@ -121,7 +121,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = user
         self.uuid = userid
-        self.trigger_dict["employee_uuid"] = userid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -221,7 +221,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
-        self.trigger_dict["employee_uuid"] = userid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def submit(self):
         c = lora.Connector()
@@ -486,27 +486,25 @@ def terminate_employee(employee_uuid):
     ]
 
     trigger_dict = {
-        'role_type': mapping.EMPLOYEE,
-        'event_type': Trigger.Event.ON_BEFORE,
-        'request': request,
-        'request_type': handlers.RequestType.TERMINATE,
-        'uuid': employee_uuid,
-        'employee_uuid': employee_uuid
+        Trigger.ROLE_TYPE: mapping.EMPLOYEE,
+        Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE,
+        Trigger.REQUEST: request,
+        Trigger.REQUEST_TYPE: handlers.RequestType.TERMINATE,
+        Trigger.EMPLOYEE_UUID: employee_uuid,
+        Trigger.UUID: employee_uuid
     }
 
-    if not util.get_args_flag('triggerless'):
-        Trigger.run(trigger_dict)
+    Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
 
     result = flask.jsonify(employee_uuid)
 
-    trigger_dict["event_type"] = Trigger.Event.ON_AFTER
-    trigger_dict["result"] = result
+    trigger_dict[Trigger.EVENT_TYPE] = Trigger.Event.ON_AFTER
+    trigger_dict[Trigger.RESULT] = result
 
-    if not util.get_args_flag('triggerless'):
-        Trigger.run(trigger_dict)
+    Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")

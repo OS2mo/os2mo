@@ -7,6 +7,7 @@
 #
 
 import enum
+from .. import util
 import logging
 import importlib
 import traceback
@@ -30,6 +31,16 @@ class Trigger:
     """
     registry = {}
 
+    # mapping
+    EMPLOYEE_UUID = "employee_uuid"
+    ORG_UNIT_UUID = "org_unit_uuid"
+    UUID = "uuid"
+    ROLE_TYPE = "role_type"
+    REQUEST_TYPE = "request_type"
+    EVENT_TYPE = "event_type"
+    REQUEST = "request"
+    RESULT = "result"
+
     @enum.unique
     class Event(enum.Enum):
         """ EventType for trigger registry
@@ -42,12 +53,14 @@ class Trigger:
         role type, request type, and event type
         and call each triggerfunction with the argument
         """
+        if util.get_args_flag('triggerless'):
+            return
         triggers = cls.registry.get(
-            trigger_dict["role_type"], {}
+            trigger_dict[cls.ROLE_TYPE], {}
         ).get(
-            trigger_dict["request_type"], {}
+            trigger_dict[cls.REQUEST_TYPE], {}
         ).get(
-            trigger_dict["event_type"], []
+            trigger_dict[cls.EVENT_TYPE], []
         )
         for t in triggers:
             t(trigger_dict)

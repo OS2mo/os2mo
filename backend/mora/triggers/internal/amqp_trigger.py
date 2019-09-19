@@ -81,8 +81,8 @@ def publish_message(service, object_type, action, service_uuid, date):
 
 
 def amqp_sender(trigger_dict):
-    request = trigger_dict["request"]
-    if trigger_dict["request_type"] == RequestType.EDIT:
+    request = trigger_dict[Trigger.REQUEST]
+    if trigger_dict[Trigger.REQUEST_TYPE] == RequestType.EDIT:
         request = request['data']
 
     try:  # date = from or to
@@ -93,25 +93,25 @@ def amqp_sender(trigger_dict):
         RequestType.CREATE: "create",
         RequestType.EDIT: "update",
         RequestType.TERMINATE: "delete",
-    }[trigger_dict["request_type"]]
+    }[trigger_dict[Trigger.REQUEST_TYPE]]
 
     amqp_messages = []
 
-    if trigger_dict.get("employee_uuid"):
+    if trigger_dict.get(Trigger.EMPLOYEE_UUID):
         amqp_messages.append((
             'employee',
-            trigger_dict["role_type"],
+            trigger_dict[Trigger.ROLE_TYPE],
             action,
-            trigger_dict["employee_uuid"],
+            trigger_dict[Trigger.EMPLOYEE_UUID],
             date
         ))
 
-    if trigger_dict.get("org_unit_uuid"):
+    if trigger_dict.get(Trigger.ORG_UNIT_UUID):
         amqp_messages.append((
             'org_unit',
-            trigger_dict["role_type"],
+            trigger_dict[Trigger.ROLE_TYPE],
             action,
-            trigger_dict["org_unit_uuid"],
+            trigger_dict[Trigger.ORG_UNIT_UUID],
             date
         ))
 

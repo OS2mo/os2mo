@@ -22,6 +22,7 @@ from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):

@@ -23,6 +23,7 @@ from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
@@ -81,8 +82,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         self.payload = payload
         self.uuid = func_id
         self.trigger_dict.update({
-            "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
     def prepare_edit(self, req: dict):
@@ -199,6 +200,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         self.payload = payload
         self.uuid = engagement_uuid
         self.trigger_dict.update({
-            "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
         })

@@ -38,6 +38,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -166,7 +167,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
-        self.trigger_dict["org_unit_uuid"] = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -289,7 +290,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
-        self.trigger_dict["org_unit_uuid"] = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
         date = util.get_valid_to(request)
@@ -304,7 +305,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = payload
         self.uuid = util.get_uuid(request)
-        self.trigger_dict["org_unit_uuid"] = self.uuid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
     def submit(self):
         c = lora.Connector()

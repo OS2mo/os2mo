@@ -28,6 +28,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -88,8 +89,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         self.payload = func
         self.uuid = func_id
         self.trigger_dict.update({
-            "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
     def prepare_edit(self, req: dict):
@@ -175,10 +176,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         self.payload = payload
         self.uuid = function_uuid
         self.trigger_dict.update({
-            "org_unit_uuid": (
+            Trigger.ORG_UNIT_UUID: (
                 mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
             ),
-            "employee_uuid": (
+            Trigger.EMPLOYEE_UUID: (
                 util.get_mapping_uuid(data, mapping.PERSON) or
                 mapping.USER_FIELD.get_uuid(original)
             )

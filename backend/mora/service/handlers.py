@@ -87,12 +87,11 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.payload = None
         self.uuid = None
 
-        self.do_triggers = not util.get_args_flag('triggerless')
         self.trigger_dict = {
-            "request_type": request_type,
-            "request": request,
-            "role_type": self.role_type,
-            "event_type": Trigger.Event.ON_BEFORE
+            Trigger.REQUEST_TYPE: request_type,
+            Trigger.REQUEST: request,
+            Trigger.ROLE_TYPE: self.role_type,
+            Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE
         }
 
         if request_type == RequestType.CREATE:
@@ -104,11 +103,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        if self.do_triggers:
-            self.trigger_dict.update({
-                "uuid": self.trigger_dict.get("uuid", "") or self.uuid
-            })
-            Trigger.run(self.trigger_dict)
+        self.trigger_dict.update({
+            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
+        })
+        Trigger.run(self.trigger_dict)
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -138,20 +136,20 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    def submit(self, result=None) -> str:
+    def submit(self) -> str:
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
-        if self.do_triggers:
-            self.trigger_dict.update({
-                "result": result,
-                "event_type": Trigger.Event.ON_AFTER,
-                "uuid": self.trigger_dict.get("uuid", "") or self.uuid
-            })
-            Trigger.run(self.trigger_dict)
-        return result
+        self.trigger_dict.update({
+            Trigger.RESULT: getattr(self,Trigger.RESULT, None),
+            Trigger.EVENT_TYPE: Trigger.Event.ON_AFTER,
+            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
+        })
+        Trigger.run(self.trigger_dict)
+
+        return getattr(self,Trigger.RESULT, None)
 
 
 class ReadingRequestHandler(RequestHandler):
@@ -238,25 +236,24 @@ class OrgFunkRequestHandler(RequestHandler):
             },
         )
 
-        if self.do_triggers:
-            if self.trigger_dict.get("employee_uuid", None) is None:
-                self.trigger_dict[
-                    "employee_uuid"
-                ] = mapping.USER_FIELD.get_uuid(original)
-            if self.trigger_dict.get("org_unit_uuid", None) is None:
-                self.trigger_dict[
-                    "org_unit_uuid"
-                ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+        if self.trigger_dict.get(Trigger.EMPLOYEE_UUID, None) is None:
+            self.trigger_dict[
+                Trigger.EMPLOYEE_UUID
+            ] = mapping.USER_FIELD.get_uuid(original)
+        if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
+            self.trigger_dict[
+                Trigger.ORG_UNIT_UUID
+            ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
     def submit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            r = c.organisationfunktion.create(self.payload, self.uuid)
+            self.result = c.organisationfunktion.create(self.payload, self.uuid)
         else:
-            r = c.organisationfunktion.update(self.payload, self.uuid)
+            self.result = c.organisationfunktion.update(self.payload, self.uuid)
 
-        return super().submit(result=r)
+        return super().submit()
 
 
 class OrgFunkReadingRequestHandler(ReadingRequestHandler,
