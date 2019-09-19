@@ -21,12 +21,13 @@ from unittest.mock import patch
 import flask
 import flask_testing
 import jinja2
+import requests
 import requests_mock
 import time
 import werkzeug.serving
 
-from oio_rest.utils import test_support
 from mora import triggers, app, lora, settings, service
+from mora.exceptions import ImproperlyConfigured
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -46,6 +47,16 @@ jinja_env = jinja2.Environment(
         searchpath=FIXTURE_DIR,
     ),
 )
+
+
+def _mox_testing_api(method):
+    """Calls MOX `testing/<method>` REST API."""
+    r = requests.get(settings.LORA_URL + "testing/" + method)
+    if r.status_code == 404:
+        raise ImproperlyConfigured(
+            "LORAs testing API returned 404. Is it enabled?"
+        )
+    r.raise_for_status()
 
 
 def is_frontend_built():
@@ -521,7 +532,7 @@ class TestCase(_BaseTestCase):
     pass
 
 
-class LoRATestCase(test_support.TestCaseMixin, _BaseTestCase):
+class LoRATestCase(_BaseTestCase):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
@@ -538,26 +549,18 @@ class LoRATestCase(test_support.TestCaseMixin, _BaseTestCase):
 
         add_resetting_endpoint(self.app)
 
+    @classmethod
+    def setUpClass(cls):
+        _mox_testing_api("db-setup")
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        _mox_testing_api("db-teardown")
+        super().tearDownClass()
+
     def setUp(self):
-        lora_server = werkzeug.serving.make_server(
-            'localhost', 0, self.get_lora_app(),
-        )
-        (_, self.lora_port) = lora_server.socket.getsockname()
-
-        # apply patches, then start the server -- so they're active
-        # while it's running
-        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
-        p.start()
-        self.addCleanup(p.stop)
-
-        threading.Thread(
-            target=lora_server.serve_forever,
-            args=(),
-        ).start()
-
-        # likewise, stop it, and *then* pop the patches
-        self.addCleanup(lora_server.shutdown)
-
+        _mox_testing_api("db-reset")
         super().setUp()
 
 
