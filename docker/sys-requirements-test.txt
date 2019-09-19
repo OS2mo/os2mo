@@ -1,5 +1,0 @@
-# This file contains system package dependencies for testing. It is used for
-# `apt-get` in Dockerfile and .gitlab-ci.yml. It is intended for the
-# ubuntu:18.04 docker image.
-
-postgresql

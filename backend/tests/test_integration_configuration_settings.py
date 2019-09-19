@@ -8,7 +8,6 @@
 import psycopg2
 
 import mora.settings as settings
-from oio_rest.utils import test_support
 from . import util
 
 
