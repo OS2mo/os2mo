@@ -166,3 +166,8 @@ class HTTPException(werkzeug.exceptions.HTTPException):
                 self.response.status_code = self.key.code
         except RuntimeError:
             pass
+
+
+class ImproperlyConfigured(Exception):
+    """MO is somehow improperly configured."""
+    pass

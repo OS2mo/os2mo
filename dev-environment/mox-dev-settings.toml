@@ -7,3 +7,7 @@ db_name = "mox"
 
 [db_extensions]
 path = "/db_extensions/db_extensions.json"
+
+
+[testing_api]
+enable = true
