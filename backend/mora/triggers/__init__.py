@@ -8,6 +8,7 @@
 
 import enum
 from .. import util
+from ..exceptions import ErrorCodes
 import logging
 import importlib
 import traceback
@@ -30,6 +31,11 @@ class Trigger:
     """ Trigger registry, retrieval, and decorator methods
     """
     registry = {}
+
+    class Error(Exception):
+        def __init__(self, message, **extra):
+            super().__init__(message)
+            self.extra = extra
 
     # mapping
     EMPLOYEE_UUID = "employee_uuid"
@@ -63,7 +69,12 @@ class Trigger:
             trigger_dict[cls.EVENT_TYPE], []
         )
         for t in triggers:
-            t(trigger_dict)
+            try:
+                t(trigger_dict)
+            except cls.Error as e:
+                ErrorCodes.E_INTEGRATION_ERROR(str(e), **e.extra)
+            except Exception as e:
+                ErrorCodes.E_INTEGRATION_ERROR(str(e))
 
     @classmethod
     def on(cls, role_type, request_type, event_type):

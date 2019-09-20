@@ -15,6 +15,7 @@ from mora.service.handlers import (
     RequestHandler,
 )
 from mora.mapping import ORG_UNIT
+from mora.exceptions import HTTPException
 
 
 class MockHandler(RequestHandler):
@@ -46,6 +47,31 @@ class Tests(util.TestCase):
             self.fail("No role_type named 'mock' allowed in "
                       "Trigger.registry outside this test")
         super().setUp()
+
+    def test_handler_trigger_any_exception(self):
+        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            raise Exception("Bummer")
+        with self.assertRaisesRegex(HTTPException, "400 Bad Request: Bummer"):
+            MockHandler({}, RequestType.EDIT)
+        self.assertTrue(self.trigger_called)
+
+    def test_handler_trigger_own_error(self):
+        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
+        def trigger(trigger_dict):
+            self.trigger_called = True
+            raise Trigger.Error("Bummer", stage="final")
+        with self.assertRaises(HTTPException) as ctxt:
+            MockHandler({}, RequestType.EDIT)
+        self.assertEqual({
+            'error': True,
+            'error_key': 'E_INTEGRATION_ERROR',
+            'stage': 'final',
+            'description': 'Bummer',
+            'status': 400
+        }, ctxt.exception.body)
+        self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_edit(self):
         @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
