@@ -107,12 +107,16 @@ export default {
         this.entry.details = this.addresses
 
         OrganisationUnit.create(this.entry)
-          .then(response => {
+          .then(organisationUuid => {
             vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response
+            if (organisationUuid.error) {
+              vm.backendValidationError = organisationUuid
             } else {
               vm.$refs.orgUnitCreate.hide()
+              vm.$router.push({
+                name: 'OrganisationDetail',
+                params: { uuid: organisationUuid }
+              })
             }
           })
       } else {
