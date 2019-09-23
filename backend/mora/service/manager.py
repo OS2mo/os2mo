@@ -26,6 +26,7 @@ from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 SEARCH_FIELDS = {
     'e': 'tilknyttedebrugere',
@@ -92,15 +93,15 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             mapping.USER_KEY: props['brugervendtnoegle'],
         }
 
-        for uuid in addresses:
-            orgfunc = c.organisationfunktion.get(uuid=uuid)
+        for address_uuid in addresses:
+            orgfunc = c.organisationfunktion.get(uuid=address_uuid)
             try:
                 addr = address.get_one_address(orgfunc)
-            except IndexError as e:
+            except IndexError:
                 # empty ["relationer"]["adresser"]
                 continue
             addr["address_type"] = address.get_address_type(orgfunc)
-            addr["uuid"] = uuid
+            addr["uuid"] = address_uuid
             func[mapping.ADDRESS].append(addr)
 
         func[mapping.ADDRESS] = sorted(
@@ -212,8 +213,10 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = manager
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict.update({
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })
 
     def submit(self):
         if hasattr(self, 'addresses'):
@@ -375,11 +378,13 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = manager_uuid
-        self.org_unit_uuid = util.get_uuid(org_unit, required=False)
-        self.employee_uuid = (
-            util.get_mapping_uuid(data, mapping.PERSON) or
-            mapping.USER_FIELD.get_uuid(original)
-        )
+        self.trigger_dict.update({
+            Trigger.ORG_UNIT_UUID: util.get_uuid(org_unit, required=False),
+            Trigger.EMPLOYEE_UUID: (
+                util.get_mapping_uuid(data, mapping.PERSON) or
+                mapping.USER_FIELD.get_uuid(original)
+            )
+        })
 
     def prepare_terminate(self, request: dict):
         """Initialize a 'termination' request. Performs validation and all

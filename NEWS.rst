@@ -4,6 +4,7 @@ In development
 New features
 ------------
 
+* #29741: AMQP messages moved to new Trigger module (on-after)
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
 
@@ -51,7 +52,6 @@ New features
 
 Bug fixes
 ---------
-
 * #29761: Date pickers moved to the top of the various forms
 * #30093: The shown units in the organisation unit pickers now reflect
   the dates selected in the date pickers

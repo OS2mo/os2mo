@@ -36,7 +36,6 @@ from . import facet
 from . import handlers
 from . import itsystem
 from . import orgunit
-from . import manager
 from .. import common
 from .. import exceptions
 from .. import mapping

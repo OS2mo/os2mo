@@ -27,6 +27,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 session = requests.Session()
 session.headers = {
@@ -272,8 +273,10 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = func
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict.update({
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -406,8 +409,10 @@ class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
-        self.org_unit_uuid = org_unit_uuid
-        self.employee_uuid = employee_uuid
+        self.trigger_dict.update({
+            Trigger.ORG_UNIT_UUID: org_unit_uuid,
+            Trigger.EMPLOYEE_UUID: employee_uuid
+        })
 
         if org_unit_uuid:
             validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},

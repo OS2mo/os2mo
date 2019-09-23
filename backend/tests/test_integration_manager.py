@@ -2770,8 +2770,6 @@ class Tests(util.LoRATestCase):
     def test_read_no_inherit_manager(self):
         self.load_sample_structures()
         # Anders And is manager at humfak
-        humfak = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-        # There is no manager at filins
         filins = '85715fc7-925d-401b-822d-467eb4b163b6'
         # We are NOT allowed to inherit Anders And
         inherited_managers = self.assertRequest(
@@ -2796,8 +2794,6 @@ class Tests(util.LoRATestCase):
 
     def test_read_inherit_manager_none_found_all_the_way_up(self):
         self.load_sample_structures()
-        # There is no manager at ovnenh
-        ovnenh = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         # There is no manager at samfak
         samfak = 'b688513d-11f7-4efc-b679-ab082a2055d0'
         # We must not find no managers

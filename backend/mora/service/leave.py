@@ -23,6 +23,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
@@ -64,7 +65,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = leave
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
 
     def prepare_edit(self, req: dict):
         leave_uuid = req.get('uuid')
@@ -139,4 +140,4 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = leave_uuid
-        self.employee_uuid = employee_uuid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid

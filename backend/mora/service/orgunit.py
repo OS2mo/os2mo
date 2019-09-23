@@ -38,6 +38,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -166,7 +167,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = org_unit
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -289,7 +290,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
         date = util.get_valid_to(request)
@@ -304,23 +305,22 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = payload
         self.uuid = util.get_uuid(request)
-        self.org_unit_uuid = self.uuid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
     def submit(self):
-        super().submit()
         c = lora.Connector()
 
         if self.request_type == handlers.RequestType.CREATE:
-            result = c.organisationenhed.create(self.payload, self.uuid)
+            self.result = c.organisationenhed.create(self.payload, self.uuid)
 
             if self.details_requests:
                 for r in self.details_requests:
                     r.submit()
 
         else:
-            result = c.organisationenhed.update(self.payload, self.uuid)
+            self.result = c.organisationenhed.update(self.payload, self.uuid)
 
-        return result
+        return super().submit()
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -961,7 +961,7 @@ def list_orgunit_tree(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1017,7 +1017,7 @@ def create_org_unit():
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 
