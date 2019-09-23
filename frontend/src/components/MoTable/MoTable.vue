@@ -293,11 +293,17 @@ export default {
 
 <style scoped>
   table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 0;
   }
 
-  td {
-    max-width: 10vh;
+  th, td {
+    text-align: left;
+    max-width: 18vh;
+    padding: .5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .scroll {
