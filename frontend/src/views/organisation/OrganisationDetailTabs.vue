@@ -143,17 +143,14 @@ export default {
       ],
       engagement: [
         { label: 'person', data: 'person' },
-        { label: 'engagement_id', data: 'user_key', field: null },
         { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' },
-        { label: 'org_unit', data: 'org_unit' }
+        { label: 'engagement_type', data: 'engagement_type' }
       ],
       association: [
         { label: 'person', data: 'person' },
         { label: 'association_type', data: 'association_type' },
         { label: 'primary', data: 'primary', field: null },
-        { label: 'org_unit', data: 'org_unit' }
       ],
       role: [
         { label: 'person', data: 'person' },
