@@ -26,8 +26,7 @@ import time
 import werkzeug.serving
 
 from oio_rest.utils import test_support
-
-from mora import amqp, app, lora, settings, service
+from mora import triggers, app, lora, settings, service
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -365,7 +364,9 @@ class TestCaseMixin(object):
         def amqp_publish_message_mock(service, object_type, action, __, ___):
             topic = '{}.{}.{}'.format(service, object_type, action)
             self.amqp_counter[topic] += 1
-        amqp.publish_message = amqp_publish_message_mock
+        triggers.internal.amqp_trigger.publish_message = (
+            amqp_publish_message_mock
+        )
         super().setUp()
 
     def create_app(self, overrides=None):
