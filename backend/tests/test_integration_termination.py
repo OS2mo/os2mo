@@ -70,6 +70,7 @@ class Tests(util.LoRATestCase):
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
                 'employee.engagement.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
@@ -172,6 +173,7 @@ class Tests(util.LoRATestCase):
             amqp_topics={
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.engagement.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
@@ -257,7 +259,6 @@ class Tests(util.LoRATestCase):
                 "to": "2017-11-30"
             }
         }
-
         self.assertRequestResponse(
             '/service/e/{}/terminate'.format(userid),
             userid,
@@ -266,6 +267,7 @@ class Tests(util.LoRATestCase):
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
                 'employee.engagement.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
                 'employee.it.delete': 1,
@@ -373,6 +375,7 @@ class Tests(util.LoRATestCase):
             amqp_topics={
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.engagement.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
@@ -396,6 +399,7 @@ class Tests(util.LoRATestCase):
             amqp_topics={
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.engagement.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
@@ -432,6 +436,7 @@ class Tests(util.LoRATestCase):
             amqp_topics={
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.engagement.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,
