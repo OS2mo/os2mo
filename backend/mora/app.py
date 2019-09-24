@@ -13,7 +13,9 @@ import flask
 import flask_saml_sso
 import werkzeug
 
+from mora import __version__
 from . import exceptions
+from . import lora
 from . import service
 from . import settings
 from . import util
@@ -81,6 +83,14 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         """Serve index.html on `/` and unknown paths.
         """
         return flask.send_file("index.html")
+
+    @app.route("/version")
+    def version():
+        lora_version = lora.get_version()
+        return flask.jsonify({
+            "mo_version": __version__,
+            "lora_version": lora_version,
+        })
 
     @app.route("/favicon.ico")
     def favicon(path=""):
