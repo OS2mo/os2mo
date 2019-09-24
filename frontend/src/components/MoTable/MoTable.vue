@@ -22,24 +22,24 @@
             v-for="(col, index) in columns"
             :key="index"
           >
-            <span class="link" @click="sortData(col.label, open)" v-if="hasSorting(col)">
+            <span @click="sortData(col.label, open)" v-if="hasSorting(col)">
               {{$t('table_headers.'+col.label)}}
-              <icon :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
+              <icon class="link" :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
             </span>
             <span v-if="!hasSorting(col)">
               {{$t('table_headers.'+col.label)}}
             </span>
           </th>
-          <th>
-            <span class="link" @click="sortDate(open.from, 'from')">
+          <th class="date-width">
+            <span @click="sortDate(open.from, 'from')">
               {{$t('table_headers.start_date')}}
-              <icon :name="open.from ? 'sort-up' : 'sort-down'"/>
+              <icon class="link" :name="open.from ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
-          <th>
-            <span class="link" @click="sortDate(open.to, 'to')">
+          <th class="date-width">
+            <span @click="sortDate(open.to, 'to')">
               {{$t('table_headers.end_date')}}
-              <icon :name="open.to ? 'sort-up' : 'sort-down'"/>
+              <icon class="link" :name="open.to ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
           <th class="table-actions" v-if="editComponent"></th>
@@ -67,7 +67,7 @@
           </td>
           <td class="column-from">{{c.validity.from | date}}</td>
           <td class="column-to">{{c.validity.to | date}}</td>
-          <td v-if="editComponent">
+          <td class="column-edit" v-if="editComponent">
             <mo-entry-edit-modal
               class="edit-entry"
               :type="type"
@@ -78,7 +78,7 @@
               @submit="$emit('update')"
             />
           </td>
-          <td v-if="isDeletable && editComponent">
+          <td class="column-edit" v-if="isDeletable && editComponent">
             <mo-entry-terminate-modal
               class="terminate-entry"
               :type="contentType"
@@ -293,11 +293,17 @@ export default {
 
 <style scoped>
   table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 0;
   }
 
-  td {
-    max-width: 5vh;
+  th, td {
+    text-align: left;
+    max-width: 18vh;
+    padding: .5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .scroll {
@@ -306,7 +312,20 @@ export default {
     overflow-y: auto;
   }
 
-  .link{
+  .link {
     cursor: pointer;
+    margin-top: -10px;
+  }
+
+  .column-edit {
+    width: 3vh;
+  }
+
+  .column-from {
+    max-width: 6vh;
+  }
+
+  .column-to {
+    max-width: 6vh;
   }
 </style>

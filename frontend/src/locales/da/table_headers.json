@@ -5,7 +5,7 @@
   "association_type": "@:shared.association_type",
   "end_date": "Slutdato",
   "engagement_type": "@:shared.engagement_type",
-  "engagement_id": "Medarbejder-ID",
+  "engagement_id": "ID",
   "it_system": "IT system",
   "job_function": "@:shared.job_function",
   "leave_type": "@:shared.leave_type",
