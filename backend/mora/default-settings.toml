@@ -1,0 +1,94 @@
+# Copyright (c) Magenta ApS
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+
+# DO NOT CHANGE. This file contains the default configuration for OS2MO.
+# DO NOT CHANGE. You can configure OS2MO in the dev-settings.toml file.
+
+
+dummy_mode = false
+ca_bundle = ""
+
+
+[lora]
+url = "http://localhost:8080/"
+max_request_length = 4096
+default_page_size = 2000
+tree_search_limit = 100
+
+
+[autocomplete]
+access_address_count = 5
+address_count = 10
+
+
+[organisation]
+name = ""
+user_key = ""
+uuid = ""
+
+
+[session]
+permanent = true
+permanent_lifetime = 3600
+
+[session.database]
+sqlalchemy_uri = ""
+sqlalchemy_table = "sessions"
+name = "sessions"
+user = "sessions"
+password = "sessions"
+host = "localhost"
+port = 5432
+
+
+[saml_sso]
+enable = false
+idp_metadata_url = "/url/to/sso/metadata"
+idp_metadata_file = ""
+idp_insecure = false
+username_from_nameid = true
+username_attr = ""
+key_file = ""
+cert_file = ""
+requests_signed = false
+duplicate_attributes = true
+api_token_restrict = false
+api_token_restrict_attr = ""
+api_token_restrict_value = ""
+
+
+[query_export]
+directory = ""
+
+
+[service_platformen]
+uuid = ""
+agreement_uuid = ""
+municipality_uuid = ""
+system_uuid = ""
+certificate_path = ""
+
+
+[configuration.database]
+name = "mora"
+user = "mora"
+password = "mora"
+host = "localhost"
+port = 5432
+
+
+[amqp]
+enable = false
+os2mo_exchange = "os2mo_queue"
+host = "localhost"
+port = 5672
+
+
+[triggers]
+modules = [
+    "mora.triggers.internal.amqp_trigger"
+]

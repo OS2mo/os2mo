@@ -37,7 +37,9 @@ LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1 \
-    FLASK_APP=mora.app:create_app
+    FLASK_APP=mora.app:create_app \
+    OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
+    OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 
 WORKDIR /code/

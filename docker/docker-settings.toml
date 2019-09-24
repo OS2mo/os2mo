@@ -1,0 +1,8 @@
+[lora]
+url = "http://mox:8080/"
+
+[session.database]
+host = "mox-db"
+
+[configuration.database]
+host = "mox-db"
