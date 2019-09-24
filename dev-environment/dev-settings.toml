@@ -1,0 +1,3 @@
+# Change your os2mo configuration in this file. A reference of valid
+# parameters can be found in ``./backend/mora/default-settings.toml``.
+dummy_mode = true
