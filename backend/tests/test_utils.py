@@ -758,21 +758,6 @@ class TestUtils(TestCase):
             ctxt.exception.response.json,
         )
 
-    def test_update_config(self):
-        tf = tempfile.NamedTemporaryFile()
-        config = {}
-        tf.write(
-            json.dumps({
-                "MONKEYS_ALLOWED": False,
-                "ELEPHANTS_ALLOWED": False
-            }).encode("utf-8")
-        )
-        tf.flush()
-        os.environ["OS2MO_ELEPHANTS_ALLOWED"] = "true"
-        util.update_config(config, tf.name, allow_environment=True)
-        self.assertEquals(config["MONKEYS_ALLOWED"], False)
-        self.assertEquals(config["ELEPHANTS_ALLOWED"], "true")
-
 
 class TestAppUtils(unittest.TestCase):
     def test_restrictargs(self):
