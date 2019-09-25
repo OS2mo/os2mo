@@ -3,7 +3,7 @@
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{disabledDates}"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
 
     <div class="form-row">
@@ -30,8 +30,11 @@
 import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
 import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
   name: 'MoItSystemEntry',
   components: {

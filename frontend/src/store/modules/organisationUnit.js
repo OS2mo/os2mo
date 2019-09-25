@@ -13,6 +13,7 @@ const defaultState = () => {
     location: undefined,
     user_settings: {},
     details: {},
+    validity: {},
     isLoading: false
   }
 }
@@ -75,6 +76,7 @@ const mutations = {
     state.org_uuid = payload.org.uuid
     state.location = payload.location
     state.user_settings = payload.user_settings
+    state.validity = payload.validity
     state.parents = []
 
     for (let current = payload.parent; current; current = current.parent) {
