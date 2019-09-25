@@ -254,7 +254,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if mapping.TIME_PLANNING in data:
+        if mapping.TIME_PLANNING in data and data.get(mapping.TIME_PLANNING):
             update_fields.append((
                 mapping.ORG_UNIT_TIME_PLANNING_FIELD,
                 {

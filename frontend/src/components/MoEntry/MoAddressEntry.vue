@@ -4,7 +4,7 @@
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="disabledDates"
+      :disabled-dates="{orgUnitValidity, disabledDates}"
     />
     <div class="form-row">
       <mo-facet-picker
@@ -58,8 +58,11 @@ import MoAddressSearch from '@/components/MoAddressSearch'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
+import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 
 export default {
+  mixins: [OrgUnitValidity],
+
   extends: MoEntryBase,
   name: 'MoAddressEntry',
 

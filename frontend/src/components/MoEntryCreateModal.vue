@@ -132,6 +132,15 @@ export default {
     this.$root.$on('bv::modal::hidden', () => {
       Object.assign(this.$data, this.$options.data())
     })
+
+    switch (this.type) {
+      case 'EMPLOYEE':
+        this.entry.person = { uuid: this.uuid }
+        break
+      case 'ORG_UNIT':
+        this.entry.org_unit = this.$store.getters['organisationUnit/GET_ORG_UNIT']
+        break
+    }
   },
 
   beforeDestroy () {

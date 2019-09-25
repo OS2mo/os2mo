@@ -13,25 +13,25 @@ const defaultState = () => {
     location: undefined,
     user_settings: {},
     details: {},
+    validity: {},
     isLoading: false
   }
 }
 
 const state = defaultState
 
-const ShowIfInherited=(org_unit_uuid, content) => {
-    if (content.key !== 'manager') return content
-    /* for managers show if inherited */
-    for (var i=0; i < content.value.length; i++){
-        if (content.value[i].org_unit.uuid !== org_unit_uuid){
-            if (content.value[i].person){
-                content.value[i].person.name += " (*)";
-            }
-        }
+const ShowIfInherited = (orgUnitUuid, content) => {
+  if (content.key !== 'manager') return content
+  /* for managers show if inherited */
+  for (let i = 0; i < content.value.length; i++) {
+    if (content.value[i].org_unit.uuid !== orgUnitUuid) {
+      if (content.value[i].person) {
+        content.value[i].person.name += ' (*)'
+      }
     }
-    return content;
+  }
+  return content
 }
-
 
 const actions = {
   async [_orgUnit.actions.SET_ORG_UNIT] ({ commit }, payload) {
@@ -49,10 +49,10 @@ const actions = {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
     let atDate = payload.atDate || new Date()
-    let inherit_manager_flag = ''
+    let inheritManagerFlag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    if (payload.detail === 'manager') inherit_manager_flag = '&inherit_manager=1'
-    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inherit_manager_flag}`)
+    if (payload.detail === 'manager') inheritManagerFlag = '&inherit_manager=1'
+    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inheritManagerFlag}`)
       .then(response => {
         let content = ShowIfInherited(state.uuid, {
           key: payload.detail,
@@ -76,6 +76,7 @@ const mutations = {
     state.org_uuid = payload.org.uuid
     state.location = payload.location
     state.user_settings = payload.user_settings
+    state.validity = payload.validity
     state.parents = []
 
     for (let current = payload.parent; current; current = current.parent) {
