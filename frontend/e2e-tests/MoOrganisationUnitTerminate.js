@@ -125,12 +125,6 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
       .withText(today.date().toString()))
     .expect(renameFromInput.value).eql(today.format('DD-MM-YYYY'))
 
-    .click(renameDialog.find('input[data-vv-as="Angiv enhed"]'))
-    .click(renameDialog.find('.tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
-    .click(renameDialog.find('.tree-anchor').withText('VM 2018'))
-
     .typeText(renameDialog.find('input[data-vv-as="Nyt navn"]'),
       'Hjørring VM 2019')
 
@@ -263,12 +257,6 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .click('.btn-unit-rename')
 
     .expect(renameDialog.exists).ok('Opened dialog')
-
-    .click(renameDialog.find('input[data-vv-as="Angiv enhed"]'))
-    .click(renameDialog.find('.tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
-    .click(renameDialog.find('.tree-anchor').withText('VM 2018'))
 
     .click(renameFromInput)
     .click(renameDialog.find('.vdp-datepicker .next'))

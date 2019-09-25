@@ -17,6 +17,9 @@ Bug fixes
   creation of various objects
 * #29129: Fix org unit details modal not reacting to errors from backend when
   creating new objects
+* #31851: Creating relations for org units now correctly takes the org unit
+  validity into account when limiting the date pickers.
+* #29604: Redirect to the page of a newly created org unit
 
 Internal changes
 ----------------
