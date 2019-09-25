@@ -139,9 +139,21 @@ def load_sample_structures(minimal=False):
     }
 
     facets = {
-        'enhedstype': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
-        'adressetype': 'e337bab4-635f-49ce-aa31-b44047a43aa1',
-        'tilknytningstype': 'ef71fe9c-7901-48e2-86d8-84116e210202',
+        'address_property': '9e75ab88-7027-4f85-abf4-aac78f797159',
+        'association_type': 'ef71fe9c-7901-48e2-86d8-84116e210202',
+        'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
+        'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
+        'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
+        'leave_type': '99a9d0ab-615e-4e99-8a43-bc9d3cea8438',
+        'manager_address_type': '228cc216-2ca3-45bd-a743-86506d13976f',
+        'manager_level': 'd56f174d-c45d-4b55-bdc6-c57bf68238b9',
+        'manager_type': 'a22f8575-89b4-480b-a7ba-b3f1372e25a4',
+        'org_unit_address_type': '3c44e5d2-7fef-4448-9bf6-449bf414ec49',
+        'org_unit_type': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
+        'responsibility': '452e1dd0-658b-477a-8dd8-efba105c06d6',
+        'role_type': '68ba77bc-4d57-43e2-9c24-0c9eda5fddc7',
+        'time_planning': 'c4ad4c87-28a8-4d5c-afeb-b59de9c9f549',
+        'visibility': 'c9f103c7-3d53-47c0-93bf-ccb34d044a3f',
     }
 
     # TODO: add classifications, etc.
