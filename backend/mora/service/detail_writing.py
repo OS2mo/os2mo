@@ -26,6 +26,7 @@ import flask
 from . import handlers
 from .. import exceptions
 from .. import util
+from .. import mapping
 
 blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
                             url_prefix='/service')
@@ -33,7 +34,7 @@ blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
 
 def handle_requests(
     reqs: typing.List[dict],
-    request_type: handlers.RequestType
+    request_type: mapping.RequestType
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -412,7 +413,7 @@ def create():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, handlers.RequestType.CREATE)),
+        flask.jsonify(handle_requests(reqs, mapping.RequestType.CREATE)),
         201
     )
 
@@ -927,7 +928,7 @@ def edit():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, handlers.RequestType.EDIT)),
+        flask.jsonify(handle_requests(reqs, mapping.RequestType.EDIT)),
         200
     )
 
@@ -979,6 +980,6 @@ def terminate():
 
     reqs = flask.request.get_json()
     return (
-        flask.jsonify(handle_requests(reqs, handlers.RequestType.TERMINATE)),
+        flask.jsonify(handle_requests(reqs, mapping.RequestType.TERMINATE)),
         200
     )

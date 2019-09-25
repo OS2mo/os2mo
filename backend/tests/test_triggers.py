@@ -11,10 +11,8 @@ import freezegun
 from . import util
 from mora.triggers import Trigger
 from mora.service.handlers import (
-    RequestType,
-    RequestHandler,
+    RequestHandler
 )
-from mora.mapping import ORG_UNIT
 from mora.exceptions import HTTPException
 
 
@@ -49,21 +47,21 @@ class Tests(util.TestCase):
         super().setUp()
 
     def test_handler_trigger_any_exception(self):
-        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
+        @Trigger.on("mock", Trigger.RequestType.EDIT, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Exception("Bummer")
         with self.assertRaisesRegex(HTTPException, "400 Bad Request: Bummer"):
-            MockHandler({}, RequestType.EDIT)
+            MockHandler({}, Trigger.RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_own_error(self):
-        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
+        @Trigger.on("mock", Trigger.RequestType.EDIT, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Trigger.Error("Bummer", stage="final")
         with self.assertRaises(HTTPException) as ctxt:
-            MockHandler({}, RequestType.EDIT)
+            MockHandler({}, Trigger.RequestType.EDIT)
         self.assertEqual({
             'error': True,
             'error_key': 'E_INTEGRATION_ERROR',
@@ -74,90 +72,93 @@ class Tests(util.TestCase):
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_BEFORE)
+        @Trigger.on("mock", Trigger.RequestType.EDIT, Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
-                'request_type': RequestType.EDIT,
+                'request_type': Trigger.RequestType.EDIT,
                 'role_type': 'mock',
                 'uuid': 'edit'
             }, trigger_dict)
-        MockHandler({}, RequestType.EDIT)
+        MockHandler({}, Trigger.RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, Trigger.Event.ON_AFTER)
+        @Trigger.on("mock", Trigger.RequestType.EDIT, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
-                'request_type': RequestType.EDIT,
+                'request_type': Trigger.RequestType.EDIT,
                 'role_type': 'mock',
                 'uuid': 'edit',
                 'result': 'okidoki'
             }, trigger_dict)
-        MockHandler({}, RequestType.EDIT).submit()
+        MockHandler({}, Trigger.RequestType.EDIT).submit()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_create(self):
-        @Trigger.on("mock", RequestType.CREATE, Trigger.Event.ON_BEFORE)
+        @Trigger.on("mock", Trigger.RequestType.CREATE,
+                    Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
-                'request_type': RequestType.CREATE,
+                'request_type': Trigger.RequestType.CREATE,
                 'role_type': 'mock',
                 'uuid': 'create'
             }, trigger_dict)
-        MockHandler({}, RequestType.CREATE)
+        MockHandler({}, Trigger.RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_create(self):
-        @Trigger.on("mock", RequestType.CREATE, Trigger.Event.ON_AFTER)
+        @Trigger.on("mock", Trigger.RequestType.CREATE, Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
-                'request_type': RequestType.CREATE,
+                'request_type': Trigger.RequestType.CREATE,
                 'uuid': 'create',
                 'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
-        MockHandler({}, RequestType.CREATE).submit()
+        MockHandler({}, Trigger.RequestType.CREATE).submit()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, Trigger.Event.ON_BEFORE)
+        @Trigger.on("mock", Trigger.RequestType.TERMINATE,
+                    Trigger.Event.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_BEFORE,
                 'request': {},
-                'request_type': RequestType.TERMINATE,
+                'request_type': Trigger.RequestType.TERMINATE,
                 'role_type': 'mock',
                 'uuid': 'terminate'
             }, trigger_dict)
-        MockHandler({}, RequestType.TERMINATE)
+        MockHandler({}, Trigger.RequestType.TERMINATE)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, Trigger.Event.ON_AFTER)
+        @Trigger.on("mock", Trigger.RequestType.TERMINATE,
+                    Trigger.Event.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': Trigger.Event.ON_AFTER,
                 'request': {},
-                'request_type': RequestType.TERMINATE,
+                'request_type': Trigger.RequestType.TERMINATE,
                 'uuid': 'terminate',
                 'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
-        MockHandler({}, RequestType.TERMINATE).submit()
+        MockHandler({}, Trigger.RequestType.TERMINATE).submit()
         self.assertTrue(self.trigger_called)
 
 
@@ -175,7 +176,9 @@ class TriggerlessTests(util.LoRATestCase):
         super().setUp()
         self.trigger_called = False
         self.trigger_before = Trigger.on(
-            ORG_UNIT, RequestType.TERMINATE, Trigger.Event.ON_AFTER
+            Trigger.ORG_UNIT,
+            Trigger.RequestType.TERMINATE,
+            Trigger.Event.ON_AFTER
         )(self.trigger)
 
     def tearDown(self):

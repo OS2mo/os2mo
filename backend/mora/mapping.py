@@ -98,6 +98,14 @@ RELATION_TRANSLATIONS = {
 #
 
 @enum.unique
+class RequestType(enum.Enum):
+    '''
+    Support requests for :class:`RequestHandler`.
+    '''
+    CREATE, EDIT, TERMINATE = range(3)
+
+
+@enum.unique
 class FieldTypes(enum.IntEnum):
     '''The different kinds of fields we support'''
     ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
