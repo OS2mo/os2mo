@@ -12,7 +12,6 @@ handlers for the various detail types.
 '''
 
 import abc
-import enum
 import inspect
 import typing
 import flask
@@ -24,14 +23,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger
-
-
-@enum.unique
-class RequestType(enum.Enum):
-    '''
-    Support requests for :class:`RequestHandler`.
-    '''
-    CREATE, EDIT, TERMINATE = range(3)
+from ..mapping import RequestType
 
 
 # The handler mappings are populated by each individual active

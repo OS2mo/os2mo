@@ -46,6 +46,11 @@ class Trigger:
     EVENT_TYPE = "event_type"
     REQUEST = "request"
     RESULT = "result"
+    from ..mapping import ORG_UNIT
+    from ..mapping import EMPLOYEE
+
+    # RequestType Enum
+    from ..mapping import RequestType
 
     @enum.unique
     class Event(enum.Enum):

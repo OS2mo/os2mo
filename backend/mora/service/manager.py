@@ -175,7 +175,7 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
             self.addresses.append(
                 address.AddressRequestHandler(
                     address_obj,
-                    handlers.RequestType.CREATE
+                    mapping.RequestType.CREATE
                 )
             )
 
@@ -332,7 +332,7 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                         },
                         'uuid': address_obj.get(mapping.UUID)
                     },
-                    handlers.RequestType.EDIT
+                    mapping.RequestType.EDIT
                 )
             else:
                 addr_uuid = str(uuid.uuid4())
@@ -345,7 +345,7 @@ class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
                         'validity': data.get(mapping.VALIDITY),
                         **address_obj,
                     },
-                    handlers.RequestType.CREATE
+                    mapping.RequestType.CREATE
                 )
 
             update_fields.append((

@@ -13,7 +13,6 @@ from mora import exceptions
 from mora import util
 from mora import mapping
 from mora.triggers import Trigger
-from mora.service.handlers import RequestType
 
 logger = logging.getLogger("amqp")
 amqp_connection = {}
@@ -82,7 +81,7 @@ def publish_message(service, object_type, action, service_uuid, date):
 
 def amqp_sender(trigger_dict):
     request = trigger_dict[Trigger.REQUEST]
-    if trigger_dict[Trigger.REQUEST_TYPE] == RequestType.EDIT:
+    if trigger_dict[Trigger.REQUEST_TYPE] == Trigger.RequestType.EDIT:
         request = request['data']
 
     try:  # date = from or to
@@ -90,9 +89,9 @@ def amqp_sender(trigger_dict):
     except exceptions.HTTPException:
         date = util.get_valid_to(request)
     action = {
-        RequestType.CREATE: "create",
-        RequestType.EDIT: "update",
-        RequestType.TERMINATE: "delete",
+        Trigger.RequestType.CREATE: "create",
+        Trigger.RequestType.EDIT: "update",
+        Trigger.RequestType.TERMINATE: "delete",
     }[trigger_dict[Trigger.REQUEST_TYPE]]
 
     amqp_messages = []
@@ -151,15 +150,15 @@ def register(app):
         })
 
     ROLE_TYPES = [
-        mapping.ORG_UNIT,
-        mapping.EMPLOYEE,
+        Trigger.ORG_UNIT,
+        Trigger.EMPLOYEE,
         *mapping.RELATION_TRANSLATIONS.keys(),
     ]
 
     trigger_combinations = [
         (role_type, request_type, Trigger.Event.ON_AFTER)
         for role_type in ROLE_TYPES
-        for request_type in RequestType
+        for request_type in Trigger.RequestType
     ]
 
     for combi in trigger_combinations:

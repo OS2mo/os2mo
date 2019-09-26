@@ -116,7 +116,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         # Validate the creation requests
         self.details_requests = handlers.generate_requests(
             details_with_persons,
-            handlers.RequestType.CREATE
+            mapping.RequestType.CREATE
         )
 
         self.payload = user
@@ -226,7 +226,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     def submit(self):
         c = lora.Connector()
 
-        if self.request_type == handlers.RequestType.CREATE:
+        if self.request_type == mapping.RequestType.CREATE:
             self.result = c.bruger.create(self.payload, self.uuid)
         else:
             self.result = c.bruger.update(self.payload, self.uuid)
@@ -477,7 +477,7 @@ def terminate_employee(employee_uuid):
                     ),
                 },
             },
-            handlers.RequestType.TERMINATE,
+            mapping.RequestType.TERMINATE,
         )
         for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
@@ -489,7 +489,7 @@ def terminate_employee(employee_uuid):
         Trigger.ROLE_TYPE: mapping.EMPLOYEE,
         Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE,
         Trigger.REQUEST: request,
-        Trigger.REQUEST_TYPE: handlers.RequestType.TERMINATE,
+        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
         Trigger.EMPLOYEE_UUID: employee_uuid,
         Trigger.UUID: employee_uuid
     }
@@ -640,7 +640,7 @@ def create_employee():
 
     """
     req = flask.request.get_json()
-    request = EmployeeRequestHandler(req, handlers.RequestType.CREATE)
+    request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
     return flask.jsonify(request.submit()), 201
 
 

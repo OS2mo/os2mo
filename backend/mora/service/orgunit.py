@@ -162,7 +162,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.details_requests = handlers.generate_requests(
             details_with_org_units,
-            handlers.RequestType.CREATE
+            mapping.RequestType.CREATE
         )
 
         self.payload = org_unit
@@ -310,7 +310,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
     def submit(self):
         c = lora.Connector()
 
-        if self.request_type == handlers.RequestType.CREATE:
+        if self.request_type == mapping.RequestType.CREATE:
             self.result = c.organisationenhed.create(self.payload, self.uuid)
 
             if self.details_requests:
@@ -1011,7 +1011,7 @@ def create_org_unit():
     """
 
     req = flask.request.get_json()
-    request = OrgUnitRequestHandler(req, handlers.RequestType.CREATE)
+    request = OrgUnitRequestHandler(req, mapping.RequestType.CREATE)
 
     return flask.jsonify(request.submit()), 201
 
@@ -1120,7 +1120,7 @@ def terminate_org_unit(unitid):
         )
 
     request[mapping.UUID] = unitid
-    handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
+    handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
     return flask.jsonify(handler.submit())
 
 
