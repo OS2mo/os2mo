@@ -104,8 +104,10 @@ export default {
      * Check if the organisation date are valid.
      */
     validDates () {
+      let today = moment().format('YYYY-MM-DD')
+
       return {
-        from: moment().format('YYYY-MM-DD'),
+        from: this.content.validity.from < today ? today : this.content.validity.from,
         to: this.content.validity.to
       }
     }
@@ -143,6 +145,7 @@ export default {
           })
           .catch(err => {
             this.backendValidationError = err.response.data
+            this.isLoading = false
           })
       } else {
         this.$validator.validateAll()
