@@ -27,6 +27,7 @@ const ShowIfInherited = (orgUnitUuid, content) => {
     if (content.value[i].org_unit.uuid !== orgUnitUuid) {
       if (content.value[i].person) {
         content.value[i].person.name += ' (*)'
+        content.value[i].inherited = true
       }
     }
   }

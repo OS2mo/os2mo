@@ -67,7 +67,7 @@
           </td>
           <td class="column-from">{{c.validity.from | date}}</td>
           <td class="column-to">{{c.validity.to | date}}</td>
-          <td class="column-edit" v-if="editComponent">
+          <td class="column-edit" v-if="isEditable(c) && editComponent">
             <mo-entry-edit-modal
               class="edit-entry"
               :type="type"
@@ -222,6 +222,16 @@ export default {
   },
 
   methods: {
+    /**
+     * Determine whether a specific row is editable or not
+     */
+    isEditable (content) {
+      if (content.inherited) {
+        return !content.inherited
+      }
+      return true
+    },
+
     /**
      * Columns that not contain sorting.
      */
