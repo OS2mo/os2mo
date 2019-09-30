@@ -7,6 +7,7 @@ New features
 * #29741: AMQP messages moved to new Trigger module (on-after)
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
+* #29417: Prevent users from editing inherited managers
 
 Bug fixes
 ---------
