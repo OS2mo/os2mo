@@ -1,8 +1,3 @@
-[lora]
-url = "http://mox:8080/"
-
-[session.database]
-host = "mox-db"
-
-[configuration.database]
-host = "mox-db"
+# This file contains the docker-specific configuration. If you want to
+# configure OS2MO in development setting, refer to
+# ``dev-environment/dev-settings.toml``.
