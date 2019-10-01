@@ -13,12 +13,6 @@
         required
       />
 
-      <mo-input-text
-        :label="$t('input_fields.org_unit_user_key')"
-        :placeholder="$t('input_fields.org_unit_user_key_placeholder')"
-        v-model="entry.user_key"
-      />
-
       <mo-facet-picker
         facet="org_unit_type"
         v-model="entry.org_unit_type"
@@ -98,9 +92,6 @@ export default {
      */
     entry: {
       handler (newVal) {
-        if (newVal.user_key === undefined || newVal.user_key === ""){
-          newVal.user_key = null; 
-        }
         this.$emit('input', newVal)
       },
       deep: true

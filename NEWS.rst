@@ -8,6 +8,7 @@ New features
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
 * #29417: Prevent users from editing inherited managers
+* #30597: Removed user_key from org unit dialogs in UI
 
 Bug fixes
 ---------
@@ -30,7 +31,7 @@ Internal changes
 * #29626: DAR address objects can now be inserted regardless of whether DAR is
   up, using ``force``. DAR address objects in LoRa no longer include the
   'pretty' address, to simplify saving the object.
-* #31732: Adjusted table and removed org_unit and engagement-ID from engagement 
+* #31732: Adjusted table and removed org_unit and engagement-ID from engagement
   and associatied tabs for organisation.
 
 
