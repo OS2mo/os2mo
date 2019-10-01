@@ -14,7 +14,8 @@
 
     The variables available and their defaults are defined in
     ``default-settings.toml``. Furthermore, $OS2MO_SYSTEM_CONFIG_PATH and
-    $OS2MO_USER_CONFIG_PATH can be used to point at other config files.
+    $OS2MO_USER_CONFIG_PATH are environment variables, that can be used
+    to point at other config files.
 
     The config file precedens is:
         default-settings.toml
