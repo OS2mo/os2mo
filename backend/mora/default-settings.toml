@@ -6,7 +6,7 @@
 
 
 # DO NOT CHANGE. This file contains the default configuration for OS2MO.
-# DO NOT CHANGE. You can configure OS2MO in the dev-settings.toml file.
+# DO NOT CHANGE. You can configure OS2MO in the mo-dev-settings.toml file.
 
 
 dummy_mode = false
