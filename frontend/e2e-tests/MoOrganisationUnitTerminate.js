@@ -275,8 +275,6 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .expect(lastLogMessage.innerText)
     .eql(`Organisationsenheden med UUID ${unitID} er blevet omdøbt.`)
 
-    .navigateTo(`/organisation/${unitID}`)
-
     .expect(Selector('.orgunit .orgunit-name').innerText).eql(
       "Hjørring VM 2018"
     )
