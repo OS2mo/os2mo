@@ -28,7 +28,16 @@ export default Vue.extend({
      * @default null
      * @type {Object}
      */
-    disabledDates: Object
+    disabledDates: Object,
+
+    /**
+     * Whether we are using the entry for editing the entry
+     * true if editing, false if creating
+     */
+    isEdit: {
+      type: Boolean,
+      default: false
+    }
   },
 
   data () {

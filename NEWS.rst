@@ -8,6 +8,7 @@ New features
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
 * #29417: Prevent users from editing inherited managers
+* #32048: Prevent users from editing org unit user keys
 
 Bug fixes
 ---------

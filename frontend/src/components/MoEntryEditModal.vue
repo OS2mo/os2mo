@@ -23,6 +23,7 @@
         :hide-org-picker="hideOrgPicker"
         :hide-employee-picker="hideEmployeePicker"
         :disabled-dates="disabledDates"
+        :is-edit="true"
       />
 
       <div class="alert alert-danger" v-if="backendValidationMessage">
