@@ -1256,12 +1256,6 @@ class Tests(util.LoRATestCase):
                 },
                 {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/manager_address_type/",
-                    "user_key": "manager_address_type",
-                    "uuid": "228cc216-2ca3-45bd-a743-86506d13976f",
-                },
-                {
-                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
                     "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
@@ -1289,12 +1283,6 @@ class Tests(util.LoRATestCase):
                     "/f/leave_type/",
                     "user_key": "leave_type",
                     "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
-                },
-                {
-                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/address_property/",
-                    "user_key": "address_property",
-                    "uuid": "9e75ab88-7027-4f85-abf4-aac78f797159",
                 },
                 {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"

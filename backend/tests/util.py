@@ -139,13 +139,11 @@ def load_sample_structures(minimal=False):
     }
 
     facets = {
-        'address_property': '9e75ab88-7027-4f85-abf4-aac78f797159',
         'association_type': 'ef71fe9c-7901-48e2-86d8-84116e210202',
         'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
         'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
         'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
         'leave_type': '99a9d0ab-615e-4e99-8a43-bc9d3cea8438',
-        'manager_address_type': '228cc216-2ca3-45bd-a743-86506d13976f',
         'manager_level': 'd56f174d-c45d-4b55-bdc6-c57bf68238b9',
         'manager_type': 'a22f8575-89b4-480b-a7ba-b3f1372e25a4',
         'org_unit_address_type': '3c44e5d2-7fef-4448-9bf6-449bf414ec49',
