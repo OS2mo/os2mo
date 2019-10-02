@@ -3,7 +3,7 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "AdressePost",
+                "brugervendtnoegle": "BrugerAdressePost",
                 "eksempel": "<UUID>",
                 "omfang": "DAR",
                 "titel": "Adresse",
@@ -32,7 +32,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

@@ -75,7 +75,7 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
+                        'user_key': 'BrugerAdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     "org": {
@@ -245,7 +245,7 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
+                        'user_key': 'BrugerAdressePost',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -258,7 +258,7 @@ class Tests(util.LoRATestCase):
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
                     'scope': 'EMAIL',
-                    'user_key': 'Email',
+                    'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'manager_type': {
@@ -350,7 +350,7 @@ class Tests(util.LoRATestCase):
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
                     'scope': 'EMAIL',
-                    'user_key': 'Email',
+                    'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'manager_type': {
@@ -401,7 +401,7 @@ class Tests(util.LoRATestCase):
                 'example': 'test@example.com',
                 'name': 'Emailadresse',
                 'scope': 'EMAIL',
-                'user_key': 'Email',
+                'user_key': 'BrugerEmail',
                 'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
             },
             'manager_type': {
@@ -766,7 +766,7 @@ class Tests(util.LoRATestCase):
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
                     'scope': 'EMAIL',
-                    'user_key': 'Email',
+                    'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'manager_type': {
@@ -1033,7 +1033,7 @@ class Tests(util.LoRATestCase):
                 'example': 'test@example.com',
                 'name': 'Emailadresse',
                 'scope': 'EMAIL',
-                'user_key': 'Email',
+                'user_key': 'BrugerEmail',
                 'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
             },
             'href': 'mailto:root@example.com',
@@ -1216,7 +1216,7 @@ class Tests(util.LoRATestCase):
                     'example': 'test@example.com',
                     'name': 'Emailadresse',
                     'scope': 'EMAIL',
-                    'user_key': 'Email',
+                    'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'manager_type': {
@@ -1504,8 +1504,8 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        'user_key': 'OrgEnhedAdressePost',
+                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -1571,8 +1571,8 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        'user_key': 'OrgEnhedAdressePost',
+                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -1585,7 +1585,7 @@ class Tests(util.LoRATestCase):
                     'example': '20304060',
                     'name': 'Telefonnummer',
                     'scope': 'PHONE',
-                    'user_key': 'Telefon',
+                    'user_key': 'OrgEnhedTelefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'manager_type': {
@@ -1800,7 +1800,7 @@ class Tests(util.LoRATestCase):
                         'example': '20304060',
                         'name': 'Telefonnummer',
                         'scope': 'PHONE',
-                        'user_key': 'Telefon',
+                        'user_key': 'OrgEnhedTelefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
                     },
                     'href': 'tel:12341234',
@@ -2094,8 +2094,8 @@ class Tests(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                            'user_key': 'OrgEnhedAdressePost',
+                            'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                         },
                         'href': 'https://www.openstreetmap.org/'
                                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -2108,7 +2108,7 @@ class Tests(util.LoRATestCase):
                     'example': '20304060',
                     'name': 'Telefonnummer',
                     'scope': 'PHONE',
-                    'user_key': 'Telefon',
+                    'user_key': 'OrgEnhedTelefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
                 },
                 'manager_type': {
@@ -2446,8 +2446,8 @@ class Tests(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                    'user_key': 'OrgEnhedAdressePost',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -2670,8 +2670,8 @@ class Tests(util.LoRATestCase):
                             'example': '<UUID>',
                             'name': 'Adresse',
                             'scope': 'DAR',
-                            'user_key': 'AdressePost',
-                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                            'user_key': 'OrgEnhedAdressePost',
+                            'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                         },
                         'href': 'https://www.openstreetmap.org/'
                                 '?mlon=10.19938084&mlat=56.17102843&zoom=16',

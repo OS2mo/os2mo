@@ -192,10 +192,11 @@ def load_sample_structures(minimal=False):
         classes.update({
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
-            'email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            'telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-            'adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-            'ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+            'bruger_email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            'bruger_adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            'org_unit_adresse': '28d71012-2919-4b67-a2f0-7b59ed52561e',
+            'org_unit_ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
         })
 
