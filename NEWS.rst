@@ -23,6 +23,8 @@ Bug fixes
 * #29604: Redirect to the page of a newly created org unit
 * #29548: We now prevent the user from terminating managers (and other
   relations), before they are active.
+* #32053: Return all klasser belonging to a facet, regardless of the page limit
+  set in configuration
 
 Internal changes
 ----------------
