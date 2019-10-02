@@ -1113,8 +1113,8 @@ class Tests(util.LoRATestCase):
                         'example': '<UUID>',
                         'name': 'Adresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        'user_key': 'OrgEnhedAdressePost',
+                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -1247,18 +1247,98 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
-            [{'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                      '/f/address_type/',
-              'user_key': 'address_type',
-              'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
-             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/association_type/',
-              'user_key': 'association_type',
-              'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'},
-             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                      '/f/org_unit_type/',
-              'user_key': 'org_unit_type',
-              'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
+            [
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/engagement_job_function/",
+                    "user_key": "engagement_job_function",
+                    "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/manager_address_type/",
+                    "user_key": "manager_address_type",
+                    "uuid": "228cc216-2ca3-45bd-a743-86506d13976f",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_address_type/",
+                    "user_key": "org_unit_address_type",
+                    "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/engagement_type/",
+                    "user_key": "engagement_type",
+                    "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/responsibility/",
+                    "user_key": "responsibility",
+                    "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/role_type/",
+                    "user_key": "role_type",
+                    "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/leave_type/",
+                    "user_key": "leave_type",
+                    "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/address_property/",
+                    "user_key": "address_property",
+                    "uuid": "9e75ab88-7027-4f85-abf4-aac78f797159",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/manager_type/",
+                    "user_key": "manager_type",
+                    "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/employee_address_type/",
+                    "user_key": "employee_address_type",
+                    "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/time_planning/",
+                    "user_key": "time_planning",
+                    "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/visibility/",
+                    "user_key": "visibility",
+                    "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/manager_level/",
+                    "user_key": "manager_level",
+                    "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/association_type/",
+                    "user_key": "association_type",
+                    "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_type/",
+                    "user_key": "org_unit_type",
+                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                },
+            ],
         )
 
         self.assertRequestResponse(
@@ -1289,26 +1369,22 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/',
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/' +
+            'org_unit_address_type/',
             {'data': {
                 'offset': 0,
-                'total': 4,
+                'total': 3,
                 'items': [
                     {'example': '20304060',
                      'name': 'Telefonnummer',
                      'scope': 'PHONE',
-                     'user_key': 'Telefon',
+                     'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                     {'example': '<UUID>',
                      'name': 'Adresse',
                      'scope': 'DAR',
-                     'user_key': 'AdressePost',
-                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
-                    {'example': 'test@example.com',
-                     'name': 'Emailadresse',
-                     'scope': 'EMAIL',
-                     'user_key': 'Email',
-                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'},
+                     'user_key': 'OrgEnhedAdressePost',
+                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
                     {'example': '5712345000014',
                      'name': 'EAN',
                      'scope': 'EAN',
@@ -1316,9 +1392,9 @@ class Tests(util.LoRATestCase):
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                        '/f/address_type/',
-                'user_key': 'address_type',
-                'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
+                        '/f/org_unit_address_type/',
+                'user_key': 'org_unit_address_type',
+                'uuid': '3c44e5d2-7fef-4448-9bf6-449bf414ec49'}
         )
 
     def test_details_multiple(self):
