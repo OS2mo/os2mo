@@ -316,8 +316,8 @@ class Tests(util.LoRATestCase):
                     'example': '<UUID>',
                     'name': 'Adresse',
                     'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                    'user_key': 'OrgEnhedAdressePost',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',

@@ -3,10 +3,10 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "Email",
-                "eksempel": "test@example.com",
-                "omfang": "EMAIL",
-                "titel": "Emailadresse",
+                "brugervendtnoegle": "OrgEnhedTelefon",
+                "eksempel": "20304060",
+                "omfang": "PHONE",
+                "titel": "Telefonnummer",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +32,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
