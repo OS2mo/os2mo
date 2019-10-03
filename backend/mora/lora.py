@@ -338,7 +338,8 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
-        params['maximalantalresultater'] = limit
+        if limit > 0:
+            params['maximalantalresultater'] = limit
         params['foersteresultat'] = start
 
         if 'uuid' in params:
