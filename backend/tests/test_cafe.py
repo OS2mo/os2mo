@@ -149,9 +149,13 @@ class TestCafeTests(util.LiveLoRATestCase):
                     TESTCAFE_COMMAND,
                     "'{} --no-sandbox'".format(browser),
                     TEST_DIR,
-                    "-r", ','.join(["spec",
-                                    "xunit:" + xml_report_file,
-                                    "json:" + json_report_file]),
+                    "-S", "-s", "/tmp",
+                    "-r",
+                    ','.join([
+                        "spec",
+                        "xunit:" + xml_report_file,
+                        "json:" + json_report_file
+                    ]),
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
