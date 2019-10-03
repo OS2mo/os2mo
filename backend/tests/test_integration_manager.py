@@ -1583,7 +1583,7 @@ class Tests(util.LoRATestCase):
                 ],
                 'manager_level': {
                     'example': '20304060',
-                    'name': 'Telefonnummer',
+                    'name': 'Telefon',
                     'scope': 'PHONE',
                     'user_key': 'OrgEnhedTelefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
@@ -1798,7 +1798,7 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '20304060',
-                        'name': 'Telefonnummer',
+                        'name': 'Telefon',
                         'scope': 'PHONE',
                         'user_key': 'OrgEnhedTelefon',
                         'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'
@@ -2106,7 +2106,7 @@ class Tests(util.LoRATestCase):
                 ],
                 'manager_level': {
                     'example': '20304060',
-                    'name': 'Telefonnummer',
+                    'name': 'Telefon',
                     'scope': 'PHONE',
                     'user_key': 'OrgEnhedTelefon',
                     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',

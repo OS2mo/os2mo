@@ -3,10 +3,9 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "OrgEnhedTelefon",
-                "eksempel": "20304060",
-                "omfang": "PHONE",
-                "titel": "Telefon",
+                "brugervendtnoegle": "specialist",
+                "omfang": "TEXT",
+                "titel": "Specialist",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +31,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

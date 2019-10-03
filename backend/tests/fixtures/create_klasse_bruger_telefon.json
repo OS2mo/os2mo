@@ -3,7 +3,7 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "OrgEnhedTelefon",
+                "brugervendtnoegle": "BrugerTelefon",
                 "eksempel": "20304060",
                 "omfang": "PHONE",
                 "titel": "Telefon",
@@ -32,7 +32,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
