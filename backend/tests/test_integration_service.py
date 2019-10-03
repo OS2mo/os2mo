@@ -69,7 +69,8 @@ class Tests(util.LoRATestCase):
         )
 
         self.load_sample_structures()
-        org_only['unit_count'] = 6
+        org_only['unit_count'] = 7
+        org_only['child_count'] = 2
 
         self.assertRequestResponse(
             '/service/o/',
@@ -141,6 +142,16 @@ class Tests(util.LoRATestCase):
                         'to': None,
                     },
                 },
+                {
+                    'child_count': 0,
+                    'user_key': 'social-sundhed',
+                    'name': 'Social og sundhed',
+                    'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+                    'validity': {
+                        'from': '2017-01-01',
+                        'to': None
+                    }
+                },
             ],
         )
 
@@ -211,6 +222,15 @@ class Tests(util.LoRATestCase):
                 },
             },
             {
+                'user_key': 'social-sundhed',
+                'name': 'Social og sundhed',
+                'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None
+                }
+            },
+            {
                 'user_key': 'samf',
                 'name': 'Samfundsvidenskabelige fakultet',
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
@@ -235,7 +255,7 @@ class Tests(util.LoRATestCase):
             {
                 'items': result_list,
                 'offset': 0,
-                'total': 6
+                'total': 7
             }
         )
 
@@ -265,7 +285,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 6
+                    'total': 7
                 }
             )
 
@@ -304,7 +324,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 1,
-                    'total': 6
+                    'total': 7
                 }
             )
 
@@ -343,7 +363,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 6
+                    'total': 7
                 }
             )
 
@@ -381,7 +401,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 3,
-                    'total': 6
+                    'total': 7
                 }
             )
 
@@ -1364,7 +1384,7 @@ class Tests(util.LoRATestCase):
                 'total': 3,
                 'items': [
                     {'example': '20304060',
-                     'name': 'Telefonnummer',
+                     'name': 'Telefon',
                      'scope': 'PHONE',
                      'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},

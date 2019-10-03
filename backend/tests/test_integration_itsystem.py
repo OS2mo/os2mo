@@ -828,6 +828,12 @@ class Reading(util.LoRATestCase):
                 },
                 {
                     'system_type': None,
+                    'user_key': 'SAP',
+                    'uuid': '14466fb0-f9de-439c-a6c2-b3262c367da7',
+                    'name': 'SAP',
+                },
+                {
+                    'system_type': None,
                     'user_key': 'AD',
                     'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
                     'name': 'Active Directory',

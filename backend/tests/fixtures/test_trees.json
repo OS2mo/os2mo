@@ -38,6 +38,15 @@
         }
       },
       {
+        "name": "Social og sundhed",
+        "user_key": "social-sundhed",
+        "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
         "name": "Samfundsvidenskabelige fakultet",
         "user_key": "samf",
         "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
@@ -57,7 +66,7 @@
       }
     ],
     "offset": 0,
-    "total": 6
+    "total": 7
   },
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak&at=2017-06-01": {
     "items": [
@@ -158,6 +167,15 @@
         "from": "2016-01-01",
         "to": null
       }
+    },
+    {
+      "name": "Social og sundhed",
+      "user_key": "social-sundhed",
+      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+      "validity": {
+        "from": "2017-01-01",
+        "to": null
+      }
     }
   ],
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?query=fak&at=2017-06-01": [
@@ -223,6 +241,16 @@
         "from": "2016-01-01",
         "to": null
       }
+    },
+    {
+      "child_count": 0,
+      "name": "Social og sundhed",
+      "user_key": "social-sundhed",
+      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+      "validity": {
+        "from": "2017-01-01",
+        "to": null
+      }
     }
   ],
   "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
@@ -254,6 +282,16 @@
       "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
       "validity": {
         "from": "2016-01-01",
+        "to": null
+      }
+    },
+    {
+      "child_count": 0,
+      "name": "Social og sundhed",
+      "user_key": "social-sundhed",
+      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+      "validity": {
+        "from": "2017-01-01",
         "to": null
       }
     }

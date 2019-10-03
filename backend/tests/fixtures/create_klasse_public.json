@@ -3,10 +3,8 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "OrgEnhedTelefon",
-                "eksempel": "20304060",
-                "omfang": "PHONE",
-                "titel": "Telefon",
+                "brugervendtnoegle": "pPublic",
+                "titel": "Må vises ekternt",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +30,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

@@ -176,6 +176,7 @@ def load_sample_structures(minimal=False):
     itsystems = {
         'ad': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
         'lora': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+        'sap': '14466fb0-f9de-439c-a6c2-b3262c367da7',
     }
 
     if not minimal:
@@ -185,17 +186,39 @@ def load_sample_structures(minimal=False):
             'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
             'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
             'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+            'social_og_sundhed': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
         })
 
         classes.update({
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
-            'bruger_email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            # association_type
+            'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
+            'projektleder': '8eea787c-c2c7-46ca-bd84-2dd50f47801e',
+            # engagement_job_function
+            'specialist': '890d4ff0-b453-4900-b79b-dbb461eda3ee',
+            'skolepsykolog': '07cea156-1aaf-4c89-bf1b-8e721f704e22',
+            'bogopsaetter': 'f42dd694-f1fd-42a6-8a97-38777b73adc4',
+            # engagement_type
+            'ansat': '06f95678-166a-455a-a2ab-121a8d92ea23',
+            # employee_address_type
             'bruger_adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            'bruger_email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'bruger_telefon': 'cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d',
+            # org_unit_address_type
             'org_unit_adresse': '28d71012-2919-4b67-a2f0-7b59ed52561e',
             'org_unit_ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
-            'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
+            'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            # visibility
+            'public': 'f63ad763-0e53-4972-a6a9-63b42a0f8cb7',
+            # role_type
+            'tillidsrepraesentant': '0fa6073f-32c0-4f82-865f-adb622ca0b04',
+            # manager_type
+            'direktoer': '0d72900a-22a4-4390-a01e-fd65d0e0999d',
+            # manager_level
+            'niveau3': '991915c0-f4f4-4337-95fa-dbeb9da13247',
+            # responsibility
+            'beredskabsledelse': '93ea44f9-127c-4465-a34c-77d149e3e928',
         })
 
         functions.update({
