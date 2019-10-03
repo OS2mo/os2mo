@@ -6,13 +6,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from unittest.mock import patch
+
 from mora import exceptions
 from mora.service.address_handler import email
 from .. import util
 
 
+@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
 class EmailAddressHandlerTests(util.TestCase):
     handler = email.EmailAddressHandler
+    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+    value = 'mail@mail.dk'
 
     def test_from_effect(self):
         # Arrange
@@ -51,13 +56,13 @@ class EmailAddressHandlerTests(util.TestCase):
 
     def test_get_mo_address(self):
         # Arrange
-        value = 'mail@mail.dk'
-        address_handler = self.handler(value)
+        address_handler = self.handler(self.value, self.visibility)
 
         expected = {
             'href': 'mailto:mail@mail.dk',
             'name': 'mail@mail.dk',
-            'value': 'mail@mail.dk'
+            'value': 'mail@mail.dk',
+            'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 
         # Act
@@ -69,7 +74,7 @@ class EmailAddressHandlerTests(util.TestCase):
     def test_get_lora_address(self):
         # Arrange
         value = 'mail@mail.dk'
-        address_handler = self.handler(value)
+        address_handler = self.handler(value, None)
 
         expected = {
             'objekttype': 'EMAIL',
@@ -78,19 +83,6 @@ class EmailAddressHandlerTests(util.TestCase):
 
         # Act
         actual = address_handler.get_lora_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_lora_properties(self):
-        # Arrange
-        value = 'mail@mail.dk'
-        address_handler = self.handler(value)
-
-        expected = []
-
-        # Act
-        actual = address_handler.get_lora_properties()
 
         # Assert
         self.assertEqual(expected, actual)

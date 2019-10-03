@@ -10,11 +10,14 @@ from unittest.mock import patch
 
 from mora import exceptions
 from mora.service.address_handler import phone
-from .. import util
+from . import base
 
 
-class PhoneAddressHandlerTests(util.TestCase):
+@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
+class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
     handler = phone.PhoneAddressHandler
+    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+    value = '+4512345678'
 
     def test_from_effect(self):
         # Arrange
@@ -80,11 +83,7 @@ class PhoneAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        with patch(
-            'mora.service.address_handler.phone.facet.get_one_class',
-            new=lambda x, y: {'uuid': y}
-        ):
-            actual = address_handler.get_mo_address_and_properties()
+        actual = address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
@@ -102,23 +101,6 @@ class PhoneAddressHandlerTests(util.TestCase):
 
         # Act
         actual = address_handler.get_lora_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_lora_properties(self):
-        # Arrange
-        value = '12345678'
-        visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
-        address_handler = self.handler(value, visibility)
-
-        expected = [{
-            'objekttype': 'synlighed',
-            'uuid': 'd99b500c-34b4-4771-9381-5c989eede969'
-        }]
-
-        # Act
-        actual = address_handler.get_lora_properties()
 
         # Assert
         self.assertEqual(expected, actual)

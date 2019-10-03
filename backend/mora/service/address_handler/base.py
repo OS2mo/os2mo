@@ -7,6 +7,8 @@
 #
 import abc
 
+from mora import lora
+from mora.service import facet
 from ... import exceptions
 from ... import mapping
 from ... import util
@@ -35,7 +37,8 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     def _register(cls):
         ADDRESS_HANDLERS[cls.scope] = cls
 
-    def __init__(self, value):
+    def __init__(self, value, visibility):
+        self.visibility = visibility
         self._value = value
 
     @classmethod
@@ -44,14 +47,22 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         # Cut off the prefix
         urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
         value = urn[len(cls.prefix):]
-        return cls(value)
+
+        visibility_field = mapping.VISIBILITY_FIELD(effect)
+        visibility = visibility_field[0]['uuid'] if visibility_field else None
+
+        return cls(value, visibility)
 
     @classmethod
     def from_request(cls, request):
         """Initialize handler from MO object"""
         value = util.checked_get(request, mapping.VALUE, "", required=True)
         cls.validate_value(value)
-        return cls(value)
+
+        visibility = util.get_mapping_uuid(
+            request, mapping.VISIBILITY, required=False)
+
+        return cls(value, visibility)
 
     @staticmethod
     @abc.abstractmethod
@@ -93,7 +104,15 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             'uuid': 'd99b500c-34b4-4771-9381-5c989eede969'
           }]
         """
-        return []
+        properties = []
+        if self.visibility:
+            properties.append(
+                {
+                    'objekttype': 'synlighed',
+                    'uuid': self.visibility
+                }
+            )
+        return properties
 
     def get_lora_address(self):
         """
@@ -126,7 +145,13 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             }
           }
         """
-        return {}
+        properties = {}
+        if self.visibility:
+            c = lora.Connector()
+            properties.update({
+                mapping.VISIBILITY: facet.get_one_class(c, self.visibility)
+            })
+        return properties
 
     def get_mo_address_and_properties(self):
         """

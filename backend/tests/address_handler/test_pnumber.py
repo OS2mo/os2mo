@@ -6,13 +6,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from unittest.mock import patch
+
 from mora import exceptions
 from mora.service.address_handler import pnumber
 from .. import util
 
 
+@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
 class PNumberAddressHandlerTests(util.TestCase):
     handler = pnumber.PNumberAddressHandler
+    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+    value = '1234567890'
 
     def test_from_effect(self):
         # Arrange
@@ -52,12 +57,13 @@ class PNumberAddressHandlerTests(util.TestCase):
     def test_get_mo_address(self):
         # Arrange
         value = '1234567890'
-        address_handler = self.handler(value)
+        address_handler = self.handler(value, self.visibility)
 
         expected = {
             'href': None,
-            'name': value,
-            'value': value
+            'name': '1234567890',
+            'value': '1234567890',
+            'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 
         # Act
@@ -69,7 +75,7 @@ class PNumberAddressHandlerTests(util.TestCase):
     def test_get_lora_address(self):
         # Arrange
         value = '1234567890'
-        address_handler = self.handler(value)
+        address_handler = self.handler(value, None)
 
         expected = {
             'objekttype': 'PNUMBER',
@@ -78,19 +84,6 @@ class PNumberAddressHandlerTests(util.TestCase):
 
         # Act
         actual = address_handler.get_lora_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_lora_properties(self):
-        # Arrange
-        value = '1234567890'
-        address_handler = self.handler(value)
-
-        expected = []
-
-        # Act
-        actual = address_handler.get_lora_properties()
 
         # Assert
         self.assertEqual(expected, actual)

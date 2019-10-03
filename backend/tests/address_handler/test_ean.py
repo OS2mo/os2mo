@@ -6,23 +6,29 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from unittest.mock import patch
 
 from mora import exceptions
 from mora.service.address_handler import ean
-from .. import util
+from . import base
 
 
-class EANAddressHandlerTests(util.TestCase):
+@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
+class EANAddressHandlerTests(base.AddressHandlerTestCase):
     handler = ean.EANAddressHandler
+    value = '1234567890123'
+    visibility = '1f6295e8-9000-43ec-b694-4d288fa158bb'
 
     def test_from_effect(self):
         # Arrange
-        value = '1234567890123'
-
         effect = {
             'relationer': {
                 'adresser': [{
-                    'urn': 'urn:magenta.dk:ean:{}'.format(value)
+                    'urn': 'urn:magenta.dk:ean:{}'.format(self.value)
+                }],
+                'opgaver': [{
+                    'objekttype': 'synlighed',
+                    'uuid': self.visibility
                 }]
             }
         }
@@ -30,10 +36,12 @@ class EANAddressHandlerTests(util.TestCase):
         address_handler = self.handler.from_effect(effect)
 
         # Act
-        actual_value = address_handler.value
+        actual_value = address_handler._value
+        actual_visibility = address_handler.visibility
 
         # Assert
-        self.assertEqual(value, actual_value)
+        self.assertEqual(self.value, actual_value)
+        self.assertEqual(self.visibility, actual_visibility)
 
     def test_from_request(self):
         # Arrange
@@ -53,12 +61,13 @@ class EANAddressHandlerTests(util.TestCase):
     def test_get_mo_address(self):
         # Arrange
         value = '1234567890123'
-        address_handler = self.handler(value)
+        address_handler = self.handler(self.value, self.visibility)
 
         expected = {
             'href': None,
-            'name': value,
-            'value': value
+            'name': '1234567890123',
+            'value': '1234567890123',
+            'visibility': {'uuid': '1f6295e8-9000-43ec-b694-4d288fa158bb'}
         }
 
         # Act
@@ -70,7 +79,7 @@ class EANAddressHandlerTests(util.TestCase):
     def test_get_lora_address(self):
         # Arrange
         value = '1234567890123'
-        address_handler = self.handler(value)
+        address_handler = self.handler(self.value, None)
 
         expected = {
             'objekttype': 'EAN',
@@ -79,19 +88,6 @@ class EANAddressHandlerTests(util.TestCase):
 
         # Act
         actual = address_handler.get_lora_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_lora_properties(self):
-        # Arrange
-        value = '1234567890123'
-        address_handler = self.handler(value)
-
-        expected = []
-
-        # Act
-        actual = address_handler.get_lora_properties()
 
         # Assert
         self.assertEqual(expected, actual)
