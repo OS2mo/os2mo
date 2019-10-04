@@ -36,12 +36,10 @@ class DARAddressHandler(base.AddressHandler):
         gracefully and return _some_ kind of result
         """
         # Cut off the prefix
-        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
-        value = urn[len(cls.prefix):]
-        handler = cls(value)
+        handler = super().from_effect(effect)
 
         try:
-            address_object = handler._fetch_from_dar(value)
+            address_object = handler._fetch_from_dar(handler.value)
             handler._name = ''.join(
                 handler._address_string_chunks(address_object))
             handler._href = (
@@ -54,7 +52,7 @@ class DARAddressHandler(base.AddressHandler):
             flask.current_app.logger.warning(
                 'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
                     flask.request.url,
-                    value,
+                    handler.value,
                 ),
             )
 
@@ -72,11 +70,9 @@ class DARAddressHandler(base.AddressHandler):
         to save an invalid object to LoRa.
         This lookup can be circumvented if the 'force' flag is used.
         """
-        value = util.checked_get(request, mapping.VALUE, "", required=True)
-        cls.validate_value(value)
-        handler = cls(value)
+        handler = super().from_request(request)
         handler._href = None
-        handler._name = value
+        handler._name = handler._value
         return handler
 
     @property

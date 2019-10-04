@@ -8,6 +8,13 @@
     />
     <div class="form-row">
       <mo-facet-picker
+        class="form-group col"
+        facet="visibility"
+        v-model="entry.visibility"
+      />
+    </div>
+    <div class="form-row">
+      <mo-facet-picker
         class="col"
         :facet="facet"
         v-model="entry.address_type"
@@ -38,14 +45,7 @@
           {{ errors.first(identifier) }}
         </span>
       </div>
-
-      <mo-facet-picker
-        v-if="isPhone"
-        facet="visibility"
-        v-model="entry.visibility"
-      />
     </div>
-
   </div>
 </template>
 

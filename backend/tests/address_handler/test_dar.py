@@ -8,12 +8,15 @@
 
 from mora import exceptions
 from mora.service.address_handler import dar
+from . import base
 from .. import util
 
 
 @util.mock('dawa-addresses.json', allow_mox=True)
-class DarAddressHandlerTests(util.TestCase):
+class DarAddressHandlerTests(base.AddressHandlerTestCase):
     handler = dar.DARAddressHandler
+    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+    value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
     def test_from_effect(self, mock):
         # Arrange
@@ -73,7 +76,8 @@ class DarAddressHandlerTests(util.TestCase):
     def test_get_lora_address(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
-        address_handler = self.handler(value)
+        visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
+        address_handler = self.handler(value, visibility)
 
         expected = {
             'objekttype': 'DAR',
@@ -82,19 +86,6 @@ class DarAddressHandlerTests(util.TestCase):
 
         # Act
         actual = address_handler.get_lora_address()
-
-        # Assert
-        self.assertEqual(expected, actual)
-
-    def test_get_lora_properties(self, mock):
-        # Arrange
-        value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
-        address_handler = self.handler(value)
-
-        expected = []
-
-        # Act
-        actual = address_handler.get_lora_properties()
 
         # Assert
         self.assertEqual(expected, actual)

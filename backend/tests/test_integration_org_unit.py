@@ -632,7 +632,7 @@ class Tests(util.LoRATestCase):
                         "from": "2016-02-04",
                         "to": "2017-10-21",
                     },
-                    "value": "11 22 33 44"
+                    "value": "11223344"
                 },
                 {
                     "type": "address",
