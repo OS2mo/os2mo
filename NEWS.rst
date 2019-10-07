@@ -4,6 +4,18 @@ In development
 New features
 ------------
 
+Bug fixes
+---------
+
+Internal changes
+----------------
+
+Version 1.0.0, 2019-10-04
+=========================
+
+New features
+------------
+
 * #29741: AMQP messages moved to new Trigger module (on-after)
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
@@ -16,7 +28,7 @@ Bug fixes
 
 * #22316: Ensure update payloads sent to LoRa satisfy validation
   requirements
-* #31663: ``org`` is now correctly an optional (deprecated) parameter on
+* #31661: ``org`` is now correctly an optional (deprecated) parameter on
   creation of various objects
 * #29129: Fix org unit details modal not reacting to errors from backend when
   creating new objects
