@@ -133,15 +133,9 @@ export default {
       // keep track of the latest tap shown
       latestTab: [],
       /**
-       * The org_unit, address, engagement, association, role, manager component value.
+       * The address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
        */
-      org_unit: [
-        { label: 'org_unit', data: null },
-        { label: 'org_unit_type', data: 'org_unit_type' },
-        { label: 'time_planning', data: 'time_planning' },
-        { label: 'parent', data: 'parent' }
-      ],
       address: [
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
@@ -149,17 +143,14 @@ export default {
       ],
       engagement: [
         { label: 'person', data: 'person' },
-        { label: 'engagement_id', data: 'user_key', field: null },
         { label: 'primary', data: 'primary', field: null },
         { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' },
-        { label: 'org_unit', data: 'org_unit' }
+        { label: 'engagement_type', data: 'engagement_type' }
       ],
       association: [
         { label: 'person', data: 'person' },
         { label: 'association_type', data: 'association_type' },
         { label: 'primary', data: 'primary', field: null },
-        { label: 'org_unit', data: 'org_unit' }
       ],
       role: [
         { label: 'person', data: 'person' },
@@ -194,6 +185,23 @@ export default {
         itSystem: MoItSystemEntry,
         manager: MoManagerEntry
       }
+    }
+  },
+  computed: {
+    org_unit () {
+      let columns = [
+        { label: 'org_unit', data: null },
+        { label: 'org_unit_type', data: 'org_unit_type' },
+        { label: 'parent', data: 'parent' }
+      ]
+
+      if (this.orgUnitInfo.user_settings.orgunit.show_time_planning) {
+        columns.splice(2, 0,
+          { label: 'time_planning', data: 'time_planning' }
+        )
+      }
+
+      return columns
     }
   },
   watch: {

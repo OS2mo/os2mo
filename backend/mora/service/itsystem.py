@@ -21,12 +21,14 @@ import uuid
 import flask
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
@@ -45,15 +47,14 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         if not system:
             exceptions.ErrorCodes.E_NOT_FOUND()
 
-        # Get org unit uuid for validation purposes
-        org_unit = util.checked_get(req, mapping.ORG_UNIT,
-                                    {}, required=False)
+        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=False)
         org_unit_uuid = util.get_uuid(org_unit, required=False)
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = system['relationer']['tilhoerer'][0]['uuid']
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -87,8 +88,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = func
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict.update({
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
@@ -172,13 +175,15 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = function_uuid
-        self.org_unit_uuid = (
-            mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
-        )
-        self.employee_uuid = (
-            util.get_mapping_uuid(data, mapping.PERSON) or
-            mapping.USER_FIELD.get_uuid(original)
-        )
+        self.trigger_dict.update({
+            Trigger.ORG_UNIT_UUID: (
+                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            ),
+            Trigger.EMPLOYEE_UUID: (
+                util.get_mapping_uuid(data, mapping.PERSON) or
+                mapping.USER_FIELD.get_uuid(original)
+            )
+        })
 
 
 @blueprint.route('/o/<uuid:orgid>/it/')

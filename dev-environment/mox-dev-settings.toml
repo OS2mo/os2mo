@@ -1,0 +1,9 @@
+[database]
+host = "mox-db"
+user = "mox"
+password = "mox"
+db_name = "mox"
+
+
+[db_extensions]
+path = "/db_extensions/db_extensions.json"

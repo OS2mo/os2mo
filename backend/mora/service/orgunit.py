@@ -38,6 +38,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
@@ -77,7 +78,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         return flask.jsonify([
             get_one_orgunit(
-                c, objid, effect, details=UnitDetails.SELF,
+                c, objid, effect, details=UnitDetails.FULL,
                 validity={
                     mapping.FROM: util.to_iso_date(start),
                     mapping.TO: util.to_iso_date(end, is_end=True),
@@ -107,8 +108,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         ])
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         req = flask.request.get_json()
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
@@ -126,13 +125,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
 
         org_uuid = org.get_configured_organisation()["uuid"]
-        organisationenhed_get = c.organisationenhed.get(parent_uuid)
-
-        if not (organisationenhed_get or parent_uuid == org_uuid):
-            exceptions.ErrorCodes.V_PARENT_NOT_FOUND(
-                parent_uuid=parent_uuid,
-                org_unit_uuid=unitid,
-            )
 
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
@@ -170,12 +162,12 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.details_requests = handlers.generate_requests(
             details_with_org_units,
-            handlers.RequestType.CREATE
+            mapping.RequestType.CREATE
         )
 
         self.payload = org_unit
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -262,7 +254,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if mapping.TIME_PLANNING in data:
+        if mapping.TIME_PLANNING in data and data.get(mapping.TIME_PLANNING):
             update_fields.append((
                 mapping.ORG_UNIT_TIME_PLANNING_FIELD,
                 {
@@ -298,7 +290,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                                                       new_to)
         self.payload = payload
         self.uuid = unitid
-        self.org_unit_uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
         date = util.get_valid_to(request)
@@ -313,23 +305,22 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
 
         self.payload = payload
         self.uuid = util.get_uuid(request)
-        self.org_unit_uuid = self.uuid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
     def submit(self):
-        super().submit()
         c = lora.Connector()
 
-        if self.request_type == handlers.RequestType.CREATE:
-            result = c.organisationenhed.create(self.payload, self.uuid)
+        if self.request_type == mapping.RequestType.CREATE:
+            self.result = c.organisationenhed.create(self.payload, self.uuid)
 
             if self.details_requests:
                 for r in self.details_requests:
                     r.submit()
 
         else:
-            result = c.organisationenhed.update(self.payload, self.uuid)
+            self.result = c.organisationenhed.update(self.payload, self.uuid)
 
-        return result
+        return super().submit()
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -390,7 +381,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
-                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '/' +
+                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '\\' +
                                        parent[mapping.NAME])
             elif parent:
                 r[mapping.LOCATION] = parent[mapping.NAME]
@@ -970,7 +961,7 @@ def list_orgunit_tree(orgid):
 
 
 @blueprint.route('/ou/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1020,13 +1011,13 @@ def create_org_unit():
     """
 
     req = flask.request.get_json()
-    request = OrgUnitRequestHandler(req, handlers.RequestType.CREATE)
+    request = OrgUnitRequestHandler(req, mapping.RequestType.CREATE)
 
     return flask.jsonify(request.submit()), 201
 
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 
@@ -1129,7 +1120,7 @@ def terminate_org_unit(unitid):
         )
 
     request[mapping.UUID] = unitid
-    handler = OrgUnitRequestHandler(request, handlers.RequestType.TERMINATE)
+    handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
     return flask.jsonify(handler.submit())
 
 

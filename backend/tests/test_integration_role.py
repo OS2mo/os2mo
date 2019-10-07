@@ -1072,6 +1072,7 @@ class Tests(util.LoRATestCase):
                 'employee.address.delete': 1,
                 'employee.association.delete': 1,
                 'employee.engagement.delete': 1,
+                'employee.employee.delete': 1,
                 'employee.it.delete': 1,
                 'employee.leave.delete': 1,
                 'employee.manager.delete': 1,

@@ -31,215 +31,556 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
             '/details/org_unit?validity=past',
-            [
-                {
-                    "name": "Afdeling for Fremtidshistorik",
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    'time_planning': None,
+
+            [{
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Fremtidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                    },
                     'org_unit_type': {
                         'example': None,
-                        'name': 'Afdeling',
+                        'name': 'Institut',
                         'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
                     'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                         },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                    },
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": "2016-12-31"
-                    }
-                }
-            ],
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2016-01-01', 'to': '2016-12-31'}
+            }],
         )
 
         self.assertRequestResponse(
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
             '/details/org_unit?validity=present',
-            [
-                {
-                    "name": "Afdeling for Samtidshistorik",
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+            [{
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Samtidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
-                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
-                        'name': 'Afdeling',
+                        'name': 'Institut',
                         'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
                     'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                         },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
-                    "validity": {
-                        "from": "2017-01-01",
-                        "to": "2017-12-31"
-                    }
-                }
-            ],
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2017-01-01', 'to': '2017-12-31'}
+            }],
         )
 
         self.assertRequestResponse(
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
             '/details/org_unit?validity=future',
-            [
-                {
-                    "name": "Afdeling for Fortidshistorik",
-                    "user_key": "frem",
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+            [{
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Fortidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
-                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
-                        'name': 'Afdeling',
+                        'name': 'Institut',
                         'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
                     'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                         },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
-                    "validity": {
-                        "from": "2018-01-01",
-                        "to": "2018-12-31"
-                    }
-                }
-            ],
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2018-01-01', 'to': '2018-12-31'}
+            }],
         )
 
         self.assertRequestResponse(
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
             '/details/org_unit?validity=past&at=2020-01-01',
-            [
-                {
-                    'name': 'Afdeling for Fremtidshistorik',
-                    'user_key': 'frem',
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                    },
-                    'time_planning': None,
-                    'org_unit_type': {
-                        'example': None,
-                        'name': 'Afdeling',
-                        'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
-                    },
-                    'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': '2016-12-31'
-                    }
+            [{
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Fremtidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                 },
-                {
-                    'name': 'Afdeling for Samtidshistorik',
-                    'user_key': 'frem',
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                    },
-                    'time_planning': None,
-                    'org_unit_type': {
-                        'example': None,
-                        'name': 'Afdeling',
-                        'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
-                    },
-                    'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
-                        },
-                    },
-                    'validity': {
-                        'from': '2017-01-01',
-                        'to': '2017-12-31'
-                    }
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
-                {
-                    'name': 'Afdeling for Fortidshistorik',
-                    'user_key': 'frem',
-                    'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
-                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
-                        'name': 'Afdeling',
+                        'name': 'Institut',
                         'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
                     'parent': {
-                        'name': 'Historisk Institut',
-                        'user_key': 'hist',
-                        'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                        'validity': {
-                            'from': '2016-01-01',
-                            'to': '2018-12-31',
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                         },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
-                    'validity': {
-                        'from': '2018-01-01',
-                        'to': '2018-12-31'
-                    }
-                }
-            ],
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2016-01-01', 'to': '2016-12-31'}
+            }, {
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Samtidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                    },
+                    'parent': {
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
+                    },
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2017-01-01', 'to': '2017-12-31'}
+            }, {
+                'location': 'Overordnet Enhed\\Humanistisk fakultet'
+                            '\\Historisk Institut',
+                'name': 'Afdeling for Fortidshistorik',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                    'name': 'Historisk Institut',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                    },
+                    'parent': {
+                        'location': 'Overordnet Enhed',
+                        'name': 'Humanistisk fakultet',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Institut',
+                            'scope': None,
+                            'user_key': 'inst',
+                            'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                        },
+                        'parent': {
+                            'location': '',
+                            'name': 'Overordnet Enhed',
+                            'org': {
+                                'name': 'Aarhus Universitet',
+                                'user_key': 'AU',
+                                'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                            },
+                            'org_unit_type': {
+                                'example': None,
+                                'name': 'Afdeling',
+                                'scope': None,
+                                'user_key': 'afd',
+                                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                            },
+                            'parent': None,
+                            'time_planning': None,
+                            'user_key': 'root',
+                            'user_settings': {'orgunit': {}},
+                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                            'validity': {
+                                'from': '2016-01-01',
+                                'to': None
+                            }
+                        },
+                        'time_planning': None,
+                        'user_key': 'hum',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                        'validity': {'from': '2016-01-01', 'to': None}
+                    },
+                    'time_planning': None,
+                    'user_key': 'hist',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
+                    'validity': {'from': '2016-01-01', 'to': '2018-12-31'}
+                },
+                'time_planning': None,
+                'user_key': 'frem',
+                'user_settings': {'orgunit': {}},
+                'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
+                'validity': {'from': '2018-01-01', 'to': '2018-12-31'}
+            }],
         )
 
         self.assertRequestResponse(
@@ -291,7 +632,7 @@ class Tests(util.LoRATestCase):
                         "from": "2016-02-04",
                         "to": "2017-10-21",
                     },
-                    "value": "11 22 33 44"
+                    "value": "11223344"
                 },
                 {
                     "type": "address",
@@ -713,8 +1054,8 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/',
             {
-                "location": "Overordnet Enhed/Humanistisk fakultet"
-                "/Historisk Institut",
+                "location": "Overordnet Enhed\\Humanistisk fakultet"
+                            "\\Historisk Institut",
                 "name": "Afdeling for Samtidshistorik",
                 "org": {
                     "name": "Aarhus Universitet",
@@ -730,7 +1071,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
                 "parent": {
-                    "location": "Overordnet Enhed/Humanistisk fakultet",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet",
                     "name": "Historisk Institut",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -1354,13 +1695,11 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/create',
             {
-                'description':
-                'Corresponding parent unit or organisation not found.',
+                'description': 'Org unit not found.',
                 'error': True,
-                'error_key': 'V_PARENT_NOT_FOUND',
-                'org_unit_uuid': 'ec93e37e-774e-40b4-953c-05ca41b80372',
-                'parent_uuid': '00000000-0000-0000-0000-000000000000',
-                'status': 404,
+                'error_key': 'E_ORG_UNIT_NOT_FOUND',
+                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
+                'status': 404
             },
             json=payload,
             status_code=404,
@@ -1577,63 +1916,6 @@ class Tests(util.LoRATestCase):
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        expected = c.organisationenhed.get(org_unit_uuid)
-
-        expected['livscykluskode'] = 'Rettet'
-        expected['note'] = 'Rediger organisationsenhed'
-        expected['relationer']['opgaver'] = [
-            {
-                'objekttype': 'tidsregistrering',
-                'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                'virkning': {
-                    'from': '2018-01-01 00:00:00+01',
-                    'from_included': True,
-                    'to': '2019-01-01 00:00:00+01',
-                    'to_included': False,
-                },
-            },
-            {
-                'objekttype': 'tidsregistrering',
-                'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                'virkning': {
-                    'from': '2019-01-01 00:00:00+01',
-                    'from_included': True,
-                    'to': 'infinity',
-                    'to_included': False,
-                },
-            },
-        ]
-        expected['tilstande']['organisationenhedgyldighed'] = [
-            {
-                'gyldighed': 'Aktiv',
-                'virkning': {
-                    'from_included': True,
-                    'to_included': False,
-                    'from': '2016-01-01 00:00:00+01',
-                    'to': '2018-01-01 00:00:00+01'
-                },
-            },
-            {
-                'gyldighed': 'Aktiv',
-                'virkning': {
-                    'from_included': True,
-                    'to_included': False,
-                    'from': '2018-01-01 00:00:00+01',
-                    'to': '2019-01-01 00:00:00+01',
-                },
-            },
-            {
-                'gyldighed': 'Aktiv',
-                'virkning': {
-                    'from_included': True,
-                    'to_included': False,
-                    'from': '2019-01-01 00:00:00+01',
-                    'to': 'infinity'
-                },
-            },
-        ]
-
         self.assertRequestResponse(
             '/service/details/edit',
             org_unit_uuid,
@@ -1645,156 +1927,30 @@ class Tests(util.LoRATestCase):
                     },
                     "uuid": org_unit_uuid,
                     "validity": {
-                        "from": "2018-01-01",
+                        "from": "2017-01-01",
                     },
                 },
             },
             amqp_topics={'org_unit.org_unit.update': 1},
         )
 
-        self.assertRequestResponse(
-            '/service/details/edit',
-            org_unit_uuid, json={
-                "type": "org_unit",
-                "data": {
-                    "time_planning": {
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                    },
-                    "uuid": org_unit_uuid,
-                    "validity": {
-                        "from": "2019-01-01",
-                    },
-                },
-            },
-            amqp_topics={'org_unit.org_unit.update': 2},
+        response = self.assertRequest(
+            '/service/ou/{}/details/org_unit?validity=present'
+            .format(org_unit_uuid),
+            amqp_topics={'org_unit.org_unit.update': 1},
         )
 
-        actual = c.organisationenhed.get(org_unit_uuid)
+        expected = {
+            'example': None,
+            'name': 'Fakultet',
+            'scope': None,
+            'user_key': 'fak',
+            'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+        }
 
-        self.assertRegistrationsEqual(expected, actual)
+        actual = response[-1].get('time_planning')
 
-        with self.subTest('reading present'):
-            self.assertRequestResponse(
-                '/service/ou/{}/details/org_unit?validity=present'
-                .format(org_unit_uuid),
-                [
-                    {
-                        "name": "Filosofisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_type": {
-                            "example": None,
-                            "name": "Institut",
-                            "scope": None,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None,
-                            },
-                        },
-                        "time_planning": None,
-                        "user_key": "fil",
-                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": "2017-12-31",
-                        },
-                    },
-                ],
-                amqp_topics={'org_unit.org_unit.update': 2},
-            )
-
-        with self.subTest('reading future'):
-            self.assertRequestResponse(
-                '/service/ou/{}/details/org_unit?validity=future'
-                .format(org_unit_uuid),
-                [
-                    {
-                        "name": "Filosofisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_type": {
-                            "example": None,
-                            "name": "Institut",
-                            "scope": None,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None,
-                            },
-                        },
-                        "time_planning": {
-                            "example": None,
-                            "name": "Fakultet",
-                            "scope": None,
-                            "user_key": "fak",
-                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        },
-                        "user_key": "fil",
-                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-                        "validity": {
-                            "from": "2018-01-01",
-                            "to": "2018-12-31",
-                        },
-                    },
-                    {
-                        "name": "Filosofisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_type": {
-                            "example": None,
-                            "name": "Institut",
-                            "scope": None,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None,
-                            },
-                        },
-                        "time_planning": {
-                            "example": None,
-                            "name": "Institut",
-                            "scope": None,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "user_key": "fil",
-                        "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-                        "validity": {
-                            "from": "2019-01-01",
-                            "to": None,
-                        },
-                    },
-                ],
-                amqp_topics={'org_unit.org_unit.update': 2},
-            )
+        self.assertEqual(expected, actual)
 
     @unittest.expectedFailure
     @freezegun.freeze_time('2016-01-01')
@@ -2491,39 +2647,70 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/ou/{}'.format(unitid) +
             '/details/org_unit?validity=past',
-            [
-                {
-                    "name": "Filosofisk Institut",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+            [{
+                'location': 'Overordnet Enhed\\Humanistisk fakultet',
+                'name': 'Filosofisk Institut',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'org_unit_type': {
+                    'example': None,
+                    'name': 'Institut',
+                    'scope': None,
+                    'user_key': 'inst',
+                    'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                },
+                'parent': {
+                    'location': 'Overordnet Enhed',
+                    'name': 'Humanistisk fakultet',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                    },
+                    'org_unit_type': {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
+                    },
+                    'parent': {
+                        'location': '',
+                        'name': 'Overordnet Enhed',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                        },
+                        'org_unit_type': {
+                            'example': None,
+                            'name': 'Afdeling',
+                            'scope': None,
+                            'user_key': 'afd',
+                            'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                        },
+                        'parent': None,
+                        'time_planning': None,
+                        'user_key': 'root',
+                        'user_settings': {'orgunit': {}},
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'validity': {'from': '2016-01-01', 'to': None}
                     },
                     'time_planning': None,
-                    "org_unit_type": {
-                        "example": None,
-                        "name": "Institut",
-                        "scope": None,
-                        "user_key": "inst",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
-                    },
-                    "parent": {
-                        "name": "Humanistisk fakultet",
-                        "user_key": "hum",
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        }
-                    },
-                    "user_key": "fil",
-                    "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": "2016-10-21"
-                    }
-                }
-            ],
+                    'user_key': 'hum',
+                    'user_settings': {'orgunit': {}},
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'time_planning': None,
+                'user_key': 'fil',
+                'user_settings': {'orgunit': {}},
+                'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
+                'validity': {'from': '2016-01-01', 'to': '2016-10-21'}
+            }],
             amqp_topics={'org_unit.org_unit.delete': 1},
         )
 

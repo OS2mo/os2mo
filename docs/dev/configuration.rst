@@ -33,6 +33,8 @@ available options are:
   in the top of the page.
 * ``show_roles`` Indicates whether the column ``Roller`` should be shown in
   the OU overview
+* ``show_time_planning`` Indicates whether the time planning field should be
+  enabled for OUs
 
 If a option is identicated for a given unit, this will be used. If the option
 is not available, it will inherit the value from the nearest parent in the
@@ -60,7 +62,8 @@ Included in the response will be the options:
             "orgunit":{
                 "show_location":"True",
                 "show_roles":"True",
-                "show_user_key":"True"
+                "show_user_key":"True",
+                "show_time_planning":"True"
             }
         }
     }

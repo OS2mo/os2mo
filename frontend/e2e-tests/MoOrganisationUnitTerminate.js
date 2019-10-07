@@ -61,11 +61,11 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
 
-    .click(createTimeSelect)
-    .click(createTimeOption.withText('Tjenestetid'))
-
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(createDialog.find('.btn-primary'))
 
@@ -124,12 +124,6 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .click(renameDialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(renameFromInput.value).eql(today.format('DD-MM-YYYY'))
-
-    .click(renameDialog.find('input[data-vv-as="Angiv enhed"]'))
-    .click(renameDialog.find('.tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
-    .click(renameDialog.find('.tree-anchor').withText('VM 2018'))
 
     .typeText(renameDialog.find('input[data-vv-as="Nyt navn"]'),
       'Hjørring VM 2019')
@@ -198,11 +192,11 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .click(createUnitSelect)
     .click(createUnitOption.withText('Fagligt center'))
 
-    .click(createTimeSelect)
-    .click(createTimeOption.withText('Tjenestetid'))
-
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(createFromInput)
 
@@ -264,12 +258,6 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .expect(renameDialog.exists).ok('Opened dialog')
 
-    .click(renameDialog.find('input[data-vv-as="Angiv enhed"]'))
-    .click(renameDialog.find('.tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
-    .click(renameDialog.find('.tree-anchor').withText('VM 2018'))
-
     .click(renameFromInput)
     .click(renameDialog.find('.vdp-datepicker .next'))
     .hover(renameDialog.find('.vdp-datepicker .day:not(.blank)'))
@@ -286,8 +274,6 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .expect(lastLogMessage.innerText)
     .eql(`Organisationsenheden med UUID ${unitID} er blevet omdøbt.`)
-
-    .navigateTo(`/organisation/${unitID}`)
 
     .expect(Selector('.orgunit .orgunit-name').innerText).eql(
       "Hjørring VM 2018"

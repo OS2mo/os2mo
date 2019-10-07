@@ -27,29 +27,6 @@ class DARAddressHandler(base.AddressHandler):
     scope = 'DAR'
     prefix = 'urn:dar:'
 
-    def _fetch_and_initialize(self, value):
-        try:
-            self.address_object = self._fetch_from_dar(value)
-            self._name = ''.join(
-                self._address_string_chunks(self.address_object))
-            self._href = (
-                'https://www.openstreetmap.org/'
-                '?mlon={x}&mlat={y}&zoom=16'.format(**self.address_object)
-                if 'x' in self.address_object and 'y' in self.address_object
-                else None
-            )
-        except LookupError as e:
-            flask.current_app.logger.warning(
-                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
-                    flask.request.url,
-                    value,
-                ),
-            )
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                "DAR Address lookup failed",
-                e=str(e),
-            )
-
     @classmethod
     def from_effect(cls, effect):
         """
@@ -59,16 +36,26 @@ class DARAddressHandler(base.AddressHandler):
         gracefully and return _some_ kind of result
         """
         # Cut off the prefix
-        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
-        value = urn[len(cls.prefix):]
-        handler = cls(value)
+        handler = super().from_effect(effect)
 
         try:
-            handler._fetch_and_initialize(value)
-        # Suppress lookup exception, as we want to handle this specific case
-        # without dying
-        except exceptions.HTTPException:
-            handler.address_object = {}
+            address_object = handler._fetch_from_dar(handler.value)
+            handler._name = ''.join(
+                handler._address_string_chunks(address_object))
+            handler._href = (
+                'https://www.openstreetmap.org/'
+                '?mlon={x}&mlat={y}&zoom=16'.format(**address_object)
+                if 'x' in address_object and 'y' in address_object
+                else None
+            )
+        except LookupError:
+            flask.current_app.logger.warning(
+                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
+                    flask.request.url,
+                    handler.value,
+                ),
+            )
+
             handler._name = NOT_FOUND
             handler._href = None
 
@@ -80,11 +67,12 @@ class DARAddressHandler(base.AddressHandler):
         Initialize handler from MO object
 
         If lookup in DAR fails, this will raise an exception as we do not want
-        to save a partial object to LoRa
+        to save an invalid object to LoRa.
+        This lookup can be circumvented if the 'force' flag is used.
         """
-        value = util.checked_get(request, mapping.VALUE, "", required=True)
-        handler = cls(value)
-        handler._fetch_and_initialize(value)
+        handler = super().from_request(request)
+        handler._href = None
+        handler._name = handler._value
         return handler
 
     @property

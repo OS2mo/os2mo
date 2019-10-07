@@ -17,11 +17,13 @@ employees and organisational units.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
@@ -29,8 +31,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -55,9 +55,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 self.function_key, valid_from, valid_to, employee_uuid,
             )
 
-        org_unit_obj = c.organisationenhed.get(org_unit_uuid)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
-        org_uuid = org_unit_obj['relationer']['tilhoerer'][0]['uuid']
         job_function_uuid = util.get_mapping_uuid(req,
                                                   mapping.JOB_FUNCTION)
         engagement_type_uuid = util.get_mapping_uuid(req,
@@ -81,8 +81,10 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict.update({
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -197,5 +199,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = engagement_uuid
-        self.employee_uuid = employee_uuid
-        self.org_unit_uuid = org_unit_uuid
+        self.trigger_dict.update({
+            Trigger.EMPLOYEE_UUID: employee_uuid,
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })

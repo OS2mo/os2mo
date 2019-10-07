@@ -202,7 +202,7 @@ def get_classes(orgid: uuid.UUID, facet: str):
     c = common.get_connector()
 
     start = int(flask.request.args.get('start') or 0)
-    limit = int(flask.request.args.get('limit') or settings.DEFAULT_PAGE_SIZE)
+    limit = int(flask.request.args.get('limit') or 0)
 
     facetids = c.facet(
         bvn=facet,

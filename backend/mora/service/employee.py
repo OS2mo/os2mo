@@ -32,6 +32,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..triggers import Trigger
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
                             url_prefix='/service')
@@ -79,9 +80,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             {},
             required=False
         )
-        org_uuid_specified = util.get_mapping_uuid(req, mapping.ORG,
-                                                   required=True)
-        org_uuid = org.get_configured_organisation(org_uuid_specified)["uuid"]
+
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
@@ -115,12 +116,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         # Validate the creation requests
         self.details_requests = handlers.generate_requests(
             details_with_persons,
-            handlers.RequestType.CREATE
+            mapping.RequestType.CREATE
         )
 
         self.payload = user
         self.uuid = userid
-        self.employee_uuid = userid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
@@ -220,21 +221,20 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         self.payload = payload
         self.uuid = userid
-        self.employee_uuid = userid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def submit(self):
         c = lora.Connector()
 
-        if self.request_type == handlers.RequestType.CREATE:
-            result = c.bruger.create(self.payload, self.uuid)
+        if self.request_type == mapping.RequestType.CREATE:
+            self.result = c.bruger.create(self.payload, self.uuid)
         else:
-            result = c.bruger.update(self.payload, self.uuid)
+            self.result = c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
-        super().submit()
 
-        return result
+        return super().submit()
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
@@ -426,7 +426,7 @@ def get_employee(id):
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -477,7 +477,7 @@ def terminate_employee(employee_uuid):
                     ),
                 },
             },
-            handlers.RequestType.TERMINATE,
+            mapping.RequestType.TERMINATE,
         )
         for objid, obj in c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
@@ -485,14 +485,33 @@ def terminate_employee(employee_uuid):
         )
     ]
 
+    trigger_dict = {
+        Trigger.ROLE_TYPE: mapping.EMPLOYEE,
+        Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE,
+        Trigger.REQUEST: request,
+        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
+        Trigger.EMPLOYEE_UUID: employee_uuid,
+        Trigger.UUID: employee_uuid
+    }
+
+    Trigger.run(trigger_dict)
+
     for handler in request_handlers:
         handler.submit()
+
+    result = flask.jsonify(employee_uuid)
+
+    trigger_dict[Trigger.EVENT_TYPE] = Trigger.Event.ON_AFTER
+    trigger_dict[Trigger.RESULT] = result
+
+    Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
 
     # TODO:
-    return flask.jsonify(employee_uuid), 200
+
+    return result, 200
 
 
 @blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
@@ -556,7 +575,7 @@ def get_employee_history(employee_uuid):
 
 
 @blueprint.route('/e/create', methods=['POST'])
-@util.restrictargs('force')
+@util.restrictargs('force', 'triggerless')
 def create_employee():
     """Create a new employee
 
@@ -621,7 +640,7 @@ def create_employee():
 
     """
     req = flask.request.get_json()
-    request = EmployeeRequestHandler(req, handlers.RequestType.CREATE)
+    request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
     return flask.jsonify(request.submit()), 201
 
 

@@ -262,7 +262,7 @@ def make_dummy_instance(idp_url=None):
 
     import psycopg2
 
-    from oio_rest import app as lora_app
+    from oio_rest import views as lora_app
     from oio_rest.utils import test_support
     from oio_rest import settings as lora_settings
 
@@ -311,7 +311,7 @@ def make_dummy_instance(idp_url=None):
             "oio_rest.settings.DB_HOST": psql.dsn()["host"],
             "oio_rest.settings.DB_PORT": psql.dsn()["port"],
             "oio_rest.settings.LOG_AMQP_SERVER": None,
-            "oio_rest.db.pool": psycopg2.pool.PersistentConnectionPool(
+            "oio_rest.db.pool": psycopg2.pool.ThreadedConnectionPool(
                 0, 100, **psql.dsn(database=lora_settings.DATABASE)
             ),
         }.items():
@@ -554,7 +554,8 @@ def initdb(wait):
         INSERT INTO orgunit_settings ( object, setting, value ) VALUES
             ( Null, 'show_roles', 'True' ),
             ( Null, 'show_user_key', 'True' ),
-            ( Null, 'show_location', 'True' );
+            ( Null, 'show_location', 'True' ),
+            ( Null, 'show_time_planning', 'True' );
         """
 
         click.echo("Initializing configuration database.")

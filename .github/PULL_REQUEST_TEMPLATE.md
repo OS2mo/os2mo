@@ -1,7 +1,5 @@
 https://redmine.magenta-aps.dk/issues/INSERT_ISSUE_NUMBER
 
-- [ ] This is a trivial change (and the rest of the list can be ignored)
-
 **Please ensure the following is true:**
 
 - [ ] The application can be built and installed without errors

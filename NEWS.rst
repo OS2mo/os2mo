@@ -1,3 +1,43 @@
+Version 1.0.0, 2019-10-04
+=========================
+
+New features
+------------
+
+* #29741: AMQP messages moved to new Trigger module (on-after)
+* #30983: Make time planning field on org units hidden based on configuration
+* #29129: Org unit location delimiter is now backslash
+* #29417: Prevent users from editing inherited managers
+* #32048: Prevent users from editing org unit user keys
+* #32059: Visibility is now enabled for all address types
+
+Bug fixes
+---------
+
+* #22316: Ensure update payloads sent to LoRa satisfy validation
+  requirements
+* #31661: ``org`` is now correctly an optional (deprecated) parameter on
+  creation of various objects
+* #29129: Fix org unit details modal not reacting to errors from backend when
+  creating new objects
+* #31851: Creating relations for org units now correctly takes the org unit
+  validity into account when limiting the date pickers.
+* #29604: Redirect to the page of a newly created org unit
+* #29548: We now prevent the user from terminating managers (and other
+  relations), before they are active.
+* #32053: Return all klasser belonging to a facet, regardless of the page limit
+  set in configuration
+
+Internal changes
+----------------
+
+* #29626: DAR address objects can now be inserted regardless of whether DAR is
+  up, using ``force``. DAR address objects in LoRa no longer include the
+  'pretty' address, to simplify saving the object.
+* #31732: Adjusted table and removed org_unit and engagement-ID from engagement
+  and associatied tabs for organisation.
+
+
 Version 0.21.0, 2019-09-04
 ==========================
 
@@ -24,7 +64,6 @@ New features
 
 Bug fixes
 ---------
-
 * #29761: Date pickers moved to the top of the various forms
 * #30093: The shown units in the organisation unit pickers now reflect
   the dates selected in the date pickers

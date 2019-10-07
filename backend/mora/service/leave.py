@@ -16,12 +16,14 @@ This section describes how to interact with employee leave.
 import uuid
 
 from . import handlers
+from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..triggers import Trigger
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
@@ -29,17 +31,13 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.LEAVE_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        userobj = c.bruger.get(employee_uuid)
+        org_uuid = org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
-        if not userobj:
-            exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
-
-        org_uuid = userobj['relationer']['tilhoerer'][0]['uuid']
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
         valid_from, valid_to = util.get_validities(req)
@@ -67,7 +65,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = leave
         self.uuid = func_id
-        self.employee_uuid = employee_uuid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
 
     def prepare_edit(self, req: dict):
         leave_uuid = req.get('uuid')
@@ -142,4 +140,4 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = payload
         self.uuid = leave_uuid
-        self.employee_uuid = employee_uuid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid

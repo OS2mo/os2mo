@@ -46,9 +46,12 @@ class TestCafeTests(util.LiveLoRATestCase):
 
     def _create_conf_data(self):
 
-        defaults = {'show_roles': 'True',
-                    'show_user_key': 'False',
-                    'show_location': 'True'}
+        defaults = {
+            'show_roles': 'True',
+            'show_user_key': 'False',
+            'show_location': 'True',
+            'show_time_planning': 'True',
+        }
 
         p_url = test_support.psql().url()
         p_port = p_url[p_url.rfind(':') + 1:p_url.rfind('/')]
@@ -146,9 +149,13 @@ class TestCafeTests(util.LiveLoRATestCase):
                     TESTCAFE_COMMAND,
                     "'{} --no-sandbox'".format(browser),
                     TEST_DIR,
-                    "-r", ','.join(["spec",
-                                    "xunit:" + xml_report_file,
-                                    "json:" + json_report_file]),
+                    "-S", "-s", "/tmp",
+                    "-r",
+                    ','.join([
+                        "spec",
+                        "xunit:" + xml_report_file,
+                        "json:" + json_report_file
+                    ]),
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

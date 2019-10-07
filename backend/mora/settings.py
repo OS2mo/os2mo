@@ -79,4 +79,6 @@ AMQP_OS2MO_EXCHANGE = 'os2mo_queue'
 AMQP_HOST = 'localhost'
 AMQP_PORT = 5672
 
+TRIGGER_MODULES = ["mora.triggers.internal.amqp_trigger"]
+
 _util.update_config(globals(), CONFIG_FILE)
