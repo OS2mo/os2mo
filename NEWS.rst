@@ -25,6 +25,7 @@ New features
 Bug fixes
 ---------
 
+* #28830: Small update of configuration documentation
 * #22316: Ensure update payloads sent to LoRa satisfy validation
   requirements
 * #31661: ``org`` is now correctly an optional (deprecated) parameter on
