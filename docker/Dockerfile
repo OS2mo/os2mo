@@ -83,8 +83,7 @@ RUN pip3 install -e backend
 COPY --from=frontend-builder /code/frontend/package.json ./frontend/package.json
 COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
 
-RUN install -g mora -o mora -d /var/log/mox
-RUN install -g mora -o mora /dev/null /var/log/mox/activity.log
+RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora
