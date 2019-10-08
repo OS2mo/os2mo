@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #29760: Best practises updated concerning OS2Sync integration
+
 Bug fixes
 ---------
 
