@@ -71,14 +71,28 @@ Best practices for implementering
      - Tilvejebringelse af SSL certifikater
      - OS2MO 2.0 skal udstilles på Kundens interne netværk (skyen eller lokalt) via HTTPS.
      - Kunde
+
    * - 5.
      - Tilvejebringelse af certifikater til Serviceplatformen
+     - Se de enkelte trin nedenfor.
+     - Kunde
+   * - 5. 1
+     - OS2MO som anvendersystem på Serviceplatformen
      - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
-       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning1_>`_.
+       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning5_1_>`_.
 
-       .. _vejledning1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
+       .. _vejledning5_1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
-       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'erne fra serviceaftalen til leverandøren
+       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
+     - Kunde
+   * - 5. 2
+     - OS2MO som anvendersystem på Støttesystemet Organisation
+     - OS2MO kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES. 
+       Se `vejledning til opsætning af STSOrgSync med OS2MO <vejledning5_2_>`_.
+
+       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
+
+       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
      - Kunde
    * - 6.
      - Installation af OS2MO og tilhørende agenter
