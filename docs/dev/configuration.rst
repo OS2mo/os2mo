@@ -134,7 +134,7 @@ Global options
 
 To update a global options: ::
 
-  curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/o/configuration
+  curl -X POST -H "Content-Type: application/json" --data '{"org_units": {"show_roles": "False"}}' http://localhost/service/configuration
 
 OU specific options
 ^^^^^^^^^^^^^^^^^^^^
