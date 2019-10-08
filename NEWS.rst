@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #29760: Best practises updated concerning OS2Sync integration
+
 Bug fixes
 ---------
 
@@ -16,7 +18,6 @@ Version 1.0.0, 2019-10-04
 New features
 ------------
 
-* #29760: Best practises updated concerning OS2Sync integration
 * #29741: AMQP messages moved to new Trigger module (on-after)
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash
