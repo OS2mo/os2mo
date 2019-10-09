@@ -1,3 +1,12 @@
+Version 1.1.0, 2019-10-09
+=========================
+
+New features
+------------
+
+* #32200: Implement configuration option to hide CPR numbers, so CPR values
+  aren't returned from backend, and cannot be searched for.
+
 Version 1.0.0, 2019-10-04
 =========================
 
