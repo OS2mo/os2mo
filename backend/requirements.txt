@@ -9,3 +9,4 @@ service_person_stamdata_udvidet @ https://github.com/magenta-aps/service_person_
 flask_saml_sso @ https://github.com/magenta-aps/flask_saml_sso/archive/master.tar.gz#egg=flask_saml_sso&branch=master
 oio_rest @ https://github.com/magenta-aps/mox/archive/development.tar.gz#egg=oio-rest&subdirectory=oio_rest&branch=development
 pika==0.13.0
+toml==0.10.0
