@@ -84,7 +84,8 @@ Best practices for implementering
        * Tilføjelse af OS2MO server til Windows domænet
        * Powershell remote server opsætning
        * Skjult CPR-nummer i AD
-       Se `AD - OS2MO opsætnings guide <vejledning3_>`_.   
+
+       Se `AD - OS2MO opsætnings guide <vejledning3_>`_.
 
        .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf 
 
@@ -100,6 +101,7 @@ Best practices for implementering
        Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
 
        .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
+
        * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata 
 	 i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, 
 	 som de kan give til IdP'en. Derefter sker konfigurationen automatisk
