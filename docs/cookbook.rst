@@ -68,6 +68,11 @@ Best practices for implementering
    * - 1. 4
      - Tilvejebringelse af SSL certifikater
      - Vi vil gerne udstille OS2mo brugergrænsefladen via HTTPS inden for kommunens netværk. Dertil skal vi bruge SSL-certifikater
+
+       Se `SSL-certifikat\ vejledning <vejledning1_4_>`_.
+
+       .. _vejledning1_4: _static/SSL-certifikat\ vejledning.pdf 
+
      - Kunde
    * - 2.
      - Installation af OS2mo
