@@ -7,6 +7,7 @@ New features
 * #32200: Implement configuration option to hide CPR numbers, so CPR values
   aren't returned from backend, and cannot be searched for.
 * #32174: Update documentation for authentication and authorization
+* #33033: Best practises expanded to cover payroll systems integration
 * #29760: Best practises updated concerning OS2Sync integration
 
 
@@ -16,7 +17,6 @@ Version 1.0.0, 2019-10-04
 New features
 ------------
 
-* #29760: Best practises updated concerning OS2Sync integration
 * #29741: AMQP messages moved to new Trigger module (on-after)
 * #30983: Make time planning field on org units hidden based on configuration
 * #29129: Org unit location delimiter is now backslash

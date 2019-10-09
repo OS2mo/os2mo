@@ -27,6 +27,10 @@ Best practices for implementering
      - Beskrivelse
      - Ansvarlig/ udførende
    * - 1.
+     - Projektopstart
+     - 
+     -
+   * - 1. 1
      - Tilvejebringelse af servermiljø
      - Der er behov for fire servere:
 
@@ -40,16 +44,12 @@ Best practices for implementering
        Servere:
 
        * Produktions-VM bestykket med 4 cores, 8GB Ram og 60 GB SSD harddisk
-
        * Andre VM’er (udvikling og test): 2 cores, 4GB Ram og 30 GB SSD harddisk
-
        * Ubuntu 16.04
-
        * Tillade udgående trafik på portene 22, 80, 443, 4505 og 4506
-
        * Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
      - Kunde
-   * - 2.
+   * - 1. 2
      - Adgange til servermiljø
      -
        * VPN-forbindelse tilvejebringes
@@ -58,107 +58,131 @@ Best practices for implementering
 
        * Deploymentserverens IP-adresse er ``178.23.177.238``, og dens værtsnavn er ``ctrl1.magenta.dk``.
      - Kunde
-   * - 3.
+   * - 1. 3
      - Indgåelse af aftaler
      -
-       * Databehandleraftale.
-
-       * Fortrolighedsaftale, om nødvendigt.
+       * Samarbejdsaftale om krav til fortrolighed og sikkerhed (tavsheds/fortrolighedserklæring)
+       * Evt. databehandleraftale
+       * Drifts- og SLA-aftale
      - Kunde
-   * -
-     -
-     -
-       * Kontrakt
-     - Leverandør
-   * - 4.
+   * - 1. 4
      - Tilvejebringelse af SSL certifikater
-     - OS2MO 2.0 skal udstilles på Kundens interne netværk (skyen eller lokalt) via HTTPS.
+     - Vi vil gerne udstille OS2mo brugergrænsefladen via HTTPS inden for kommunens netværk. Dertil skal vi bruge SSL-certifikater
      - Kunde
-
-   * - 5.
-     - Tilvejebringelse af certifikater til Serviceplatformen
-     - Se de enkelte trin nedenfor.
-     - Kunde
-   * - 5. 1
-     - OS2MO som anvendersystem på Serviceplatformen
-     - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
-       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning5_1_>`_.
-
-       .. _vejledning5_1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
-
-       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
-     - Kunde
-   * - 5. 2
-     - OS2MO som anvendersystem på Støttesystemet Organisation
-     - OS2MO kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES. 
-       Se `vejledning til opsætning af STSOrgSync med OS2MO <vejledning5_2_>`_.
-
-       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
-
-       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
-     - Kunde
-   * - 6.
-     - Installation af OS2MO og tilhørende agenter
-     - Se de enkelte trin nedenfor.
+   * - 2.
+     - Installation af OS2mo
+     -
+     -
+   * - 2. 1
+     - OS2mo installeres på de tilvejebragte servere.
+     - Installationen sikrer at kunden har OS2mo til rådighed med et sæt test-data, der i størrelse ligner kundens egen organisation
      - Leverandør
-   * - 6. 1
-     - Agent til autentificering (SAML 2.0 SSO)
-     - Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
-       Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
-
-       .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
-
-       * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, som de kan give til IdP'en. Derefter sker konfigurationen automatisk
-
-       * Kunden sender en URL til IdP'ens metadata for SAML SSO
-
-       * Brugerens navn, og eventuelle roller skal i IdP'en tilføjes til de claims, der kommer tilbage i SAML-token
-
-       Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
-
-       Opgaven forudsætter, at Kunden har en IdP, der understøtter SAML 2.0 SSO.
-     - Kunde / Leverandør
-   * - 6. 2
-     - Agent til Dansk Adresse Register (DAR)
-     - Implementeringen foregår normalt automatisk, men en konfiguration i OS2MO 2.0 skal informere brugergrænsefladen om, at den nu befinder sig i given kommune og skal slå adresser op inden for kommunegrænsen
-     - Leverandør
-   * - 6. 3
-     - Agent til Serviceplatformens CPR-data
-     - Se også ID 5
-       Der er behov for to services:
-       1.Opslag på Serviceplatformen ved ansættelse af en medarbejder (LaesPerson)
-       2.Løbende synkronisering mellem databasen (LoRa) og Serviceplatformens CPR-service (LaesPersonAendringer)
-     - Leverandør
-   * - 7.
-     - Data i OS2MO
-     - OS2MO populeres med Kundens organisaions- og medarbejderdata.
-       Se de enkelte trin nedenfor.
-     - Kunde / Leverandør
-   * - 7. 1
-     - Tilvejebringelse af data
-     - Kunden tilvejebringer adgang til API eller et databasedump med myndighedens organisations- og medarbejderdata
-     - Kunde
-   * - 7. 2
-     - Indlæsning af data
-     - Leverandøren mapper data til OIO-standarden og indlæser dem i OS2MO’s database, LoRa
-     - Leverandør
-   * - 8.
-     - Integration med øvrig infrastruktur
-     - Kommuner binder OS2MO sammen med øvrig infrastruktur på både system- og dataniveau 
-       Se eksempler og guides nedenfor
-     - Kunde / Leverandør
-   * - 8. 1
-     - OS2MO i et Windows Domæneme
+   * - 2. 2
+     - OS2mo servere indbindes evt i Windows-domæne
      - Viborg har tilføjet OS2MO-serveren til deres Windows-domæne og har i den forbindelse lavet en guide, der beskriver:
 
        * Tilføjelse af OS2MO server til Windows domænet
-
        * Powershell remote server opsætning
-
        * Skjult CPR-nummer i AD
-
        Se `AD - OS2MO opsætnings guide <vejledning3_>`_.   
 
        .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf 
 
      - Kunde
+   * - 3.
+     - Integration med Dansk Adresse Register (DAR)
+     - OS2MOs addresseopslag konfigureres til at foretrække adresser inden for kommunen
+     - Leverandør
+   * - 4.
+     - Integration med SAML SSO 2.0 
+     - Opgaven forudsætter, at Kunden har en IdP, der understøtter SAML 2.0 SSO.
+       Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
+       Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
+
+       .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
+       * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata 
+	 i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, 
+	 som de kan give til IdP'en. Derefter sker konfigurationen automatisk
+       * Kunden sender en URL til IdP'ens metadata for SAML SSO
+       * Brugerens navn, og eventuelle roller skal i IdP'en tilføjes til de claims, der kommer tilbage i SAML-token
+
+       Hvis det er påkrævet at forespørgsler er signerede, kræves et sæt certifikater (public certificate og private key)
+     - Kunde / Leverandør
+   * - 5.
+     - Integration med Serviceplatformen
+     -
+     -
+   * - 5. 1
+     - OS2mo som anvendersystem på Serviceplatformen
+     - Der skal laves en aftale til at aktivere integration med og opslag i Serviceplatformens CPR-service samt evt til hændelsesdata, hvis personoplysninger skal ajourføres i OS2MO.
+       Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning5_1_>`_.
+
+       .. _vejledning5_1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
+
+       Kunde overdrager de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
+     - Kunde
+   * - 6.
+     - Indlæsning af organisationsdata
+     -
+     -
+   * - 6. 1
+     - Tilvejebringelse af data 
+     - Kunden tilvejebringer data med kundens organisations- og medarbejderdata
+       efter aftale om datakilde og format. Data kommer sædvanligvis fra lønsystemet.
+
+       Hvis organisations- og medarbejderdata kommer fra SD-løn må oplysninger om ledere fremskaffes på anden vis, for eksempel via regneark.
+     - Kunde
+   * - 6. 2
+     - Indlæsning af data i OS2mo
+     - Leverandøren indlæser data i OS2mo. 
+     - Leverandør
+   * - 7.
+     - Integration med Lønsystem
+     - 
+     - 
+   * - 7. 1
+     - Integration med KMD OPUS
+     - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
+
+       Integration med OPUS forgår typisk via XML-dump fra KMD, som hver nat placeret på KFS LAN.
+
+       For at OS2mo skal kunne opdateres hver nat, skal følgende ske - se afsnittet Opsætning: https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#id4
+     - Kunde / Leverandør
+   * - 7. 2
+     - Integration med Silkeborgdata SD-Løn
+     - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
+
+       Integration med SD-løn kræver adgang via oplysning om:  
+
+       * Institution Identifer
+       * Brugernavn
+       * Password
+     - Leverandør
+   * - 8.
+     - Integration med Active Directory
+     - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
+
+       Agenten skriver data fra AD til OS2mo, se afsnittet Opsætning: https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#integration-til-active-directory
+     - Kunde
+   * - 9.
+     - Integration med Støttesystemet Organisation
+     - OS2mo kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES. 
+       Se `vejledning til opsætning af STSOrgSync med OS2mo <vejledning5_2_>`_.
+
+       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
+
+       Kunde overdrager de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
+     - Kunde
+   * - 10.
+     - Integration med OS2rollekatalog
+     - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
+
+       Agenten skal skrive data fra OS2mo til OS2rollekatalog ved natlige kørsler
+     - Leverandør
+   * - 11.
+     - Integration med Telefonbogen
+     - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
+
+       Data fra OS2mo kan sendes til en telefonbog, som medarbejdere kan tilgå via intranet.
+     - Leverandør
+
