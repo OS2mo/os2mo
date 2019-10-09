@@ -73,18 +73,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
         return error.get_response(flask.request.environ)
 
-    # We serve index.html and favicon.ico here. For the other static files,
-    # Flask automatically adds a static view that takes a path relative to the
-    # `flaskr/static` directory.
-
-    @app.route("/")
-    @app.route("/<path:path>")
-    def index(path=""):
-        """Serve index.html on `/` and unknown paths.
-        """
-        return flask.send_file("index.html")
-
-    @app.route("/version")
+    @app.route("/version/")
     def version():
         lora_version = lora.get_version()
         return flask.jsonify({
@@ -92,8 +81,26 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
             "lora_version": lora_version,
         })
 
+    # We serve index.html and favicon.ico here. For the other static files,
+    # Flask automatically adds a static view that takes a path relative to the
+    # `flaskr/static` directory.
+
+    @app.route("/")
+    @app.route("/organisation/")
+    @app.route("/organisation/<path:path>")
+    @app.route("/medarbejder/")
+    @app.route("/medarbejder/<path:path>")
+    @app.route("/hjaelp/")
+    @app.route("/organisationssammenkobling/")
+    @app.route("/forespoergsler/")
+    @app.route("/tidsmaskine/")
+    def index(path=""):
+        """Serve index.html on `/` and unknown paths.
+        """
+        return flask.send_file("index.html")
+
     @app.route("/favicon.ico")
-    def favicon(path=""):
+    def favicon():
         """Serve favicon.ico on `/favicon.ico`.
         """
         return flask.send_file("favicon.ico")
