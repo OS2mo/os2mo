@@ -1,5 +1,5 @@
-Configuration module
-=====================
+User configuration module
+=========================
 
 This section describes the runtime configuration of the frontend, to see the
 configuration of the application on startup see :ref:`konfiguration`.

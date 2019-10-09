@@ -77,6 +77,7 @@ MOCK_MODULES = [
     'psycopg2',
     'sqlalchemy',
     'pika',
+    'toml',
 
     'onelogin',
     'onelogin.saml2',
