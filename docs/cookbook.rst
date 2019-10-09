@@ -162,7 +162,7 @@ Best practices for implementering
      - Integration med Active Directory
      - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
 
-       Agenten skriver data fra AD til OS2mo, se afsnittet Opsætning: https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#integration-til-active-directory
+       Integrationen overfører data fra AD til OS2mo, se afsnittet Opsætning: https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#integration-til-active-directory
      - Kunde
    * - 9.
      - Integration med Støttesystemet Organisation
@@ -177,7 +177,7 @@ Best practices for implementering
      - Integration med OS2rollekatalog
      - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
 
-       Agenten skal skrive data fra OS2mo til OS2rollekatalog ved natlige kørsler
+       Integrationen overfører data fra OS2mo til OS2rollekatalog ved natlige kørsler
      - Leverandør
    * - 11.
      - Integration med Telefonbogen
