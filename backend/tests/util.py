@@ -28,6 +28,7 @@ import werkzeug.serving
 
 from mora import triggers, app, lora, settings, service
 from mora.exceptions import ImproperlyConfigured
+from mora.util import restrictargs
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -104,18 +105,6 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     print('creating', path, uuid, file=sys.stderr)
     r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
     return r
-
-
-def add_resetting_endpoint(app, fixture_name):
-    @app.route('/reset-db')
-    def reset_db():
-        app.logger.warning('RESETTING DATABASE!!!')
-
-        # TODO reset db
-
-        return '', 200
-
-    return app
 
 
 def load_sample_structures(minimal=False):
@@ -275,6 +264,40 @@ def load_sample_structures(minimal=False):
 
     for path, fixture_name, uuid in fixtures:
         load_fixture(path, fixture_name, uuid)
+
+
+def create_app():
+    """
+    Returns a flask app with testing API for e2e-test enabled. It is a superset
+    to `mora.app.create_app()`.
+
+    """
+    app_object = app.create_app()
+
+    @app_object.route("/testing/testcafe-db-setup")
+    @restrictargs()
+    def _testcafe_db_setup():
+        _mox_testing_api("db-setup")
+
+        return flask.jsonify({"testcafe-db-setup": True})
+
+    @app_object.route("/testing/testcafe-db-reset")
+    @restrictargs()
+    def _testcafe_db_reset():
+        _mox_testing_api("db-reset")
+
+        load_sample_structures()
+
+        return flask.jsonify({"testcafe-db-reset": True})
+
+    @app_object.route("/testing/testcafe-db-teardown")
+    @restrictargs()
+    def _testcafe_db_teardown():
+        _mox_testing_api("db-teardown")
+
+        return flask.jsonify({"testcafe-db-teardown": True})
+
+    return app_object
 
 
 @contextlib.contextmanager
@@ -578,11 +601,6 @@ class LoRATestCase(_BaseTestCase):
     def load_sample_structures(self, minimal=False):
         load_sample_structures(minimal)
 
-    def add_resetting_endpoint(self):
-        '''Add an endpoint for resetting the database'''
-
-        add_resetting_endpoint(self.app)
-
     @classmethod
     def setUpClass(cls):
         _mox_testing_api("db-setup")
@@ -596,46 +614,3 @@ class LoRATestCase(_BaseTestCase):
     def setUp(self):
         _mox_testing_api("db-reset")
         super().setUp()
-
-
-class LiveLoRATestCase(LoRATestCase, flask_testing.LiveServerTestCase):
-    # TODO For Test cafe. This is properly broken.
-
-    #
-    # The two methods below force the WSGI server to run in a thread
-    # rather than a process. This enables easy coverage gathering as
-    # output buffering.
-    #
-    def _spawn_live_server(self):
-        self._server = werkzeug.serving.make_server(
-            'localhost', self._port_value.value, self.app,
-        )
-
-        self._port_value.value = self._server.socket.getsockname()[1]
-
-        self._thread = threading.Thread(
-            target=self._server.serve_forever,
-            args=(),
-        )
-        self._thread.start()
-
-        # Copied from flask_testing
-
-        # We must wait for the server to start listening, but give up
-        # after a specified maximum timeout
-        timeout = self.app.config.get('LIVESERVER_TIMEOUT', 5)
-        start_time = time.time()
-
-        while True:
-            elapsed_time = (time.time() - start_time)
-            if elapsed_time > timeout:
-                raise RuntimeError(
-                    "Failed to start the server after %d seconds. " % timeout
-                )
-
-            if self._can_ping_server():
-                break
-
-    def _terminate_live_server(self):
-        self._server.shutdown()
-        self._thread.join()
