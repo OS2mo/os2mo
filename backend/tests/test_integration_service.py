@@ -1193,9 +1193,9 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'OrgEnhedAdressePost',
+                        'user_key': 'OrgEnhedPostadresse',
                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -1443,7 +1443,7 @@ class Tests(util.LoRATestCase):
             'org_unit_address_type/',
             {'data': {
                 'offset': 0,
-                'total': 3,
+                'total': 4,
                 'items': [
                     {'example': '20304060',
                      'name': 'Telefon',
@@ -1451,10 +1451,15 @@ class Tests(util.LoRATestCase):
                      'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                     {'example': '<UUID>',
-                     'name': 'Adresse',
+                     'name': 'Postadresse',
                      'scope': 'DAR',
-                     'user_key': 'OrgEnhedAdressePost',
+                     'user_key': 'OrgEnhedPostadresse',
                      'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
+                    {'example': 'test@example.com',
+                     'name': 'Email',
+                     'scope': 'EMAIL',
+                     'user_key': 'OrgEnhedEmail',
+                     'uuid': '73360db1-bad3-4167-ac73-8d827c0c8751'},
                     {'example': '5712345000014',
                      'name': 'EAN',
                      'scope': 'EAN',

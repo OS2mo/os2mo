@@ -111,7 +111,7 @@ class Writing(util.LoRATestCase):
                     "type": "address",
                     "address_type": {
                         'example': 'test@example.com',
-                        'name': 'Emailadresse',
+                        'name': 'Email',
                         'scope': 'EMAIL',
                         'user_key': 'BrugerEmail',
                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -173,9 +173,9 @@ class Writing(util.LoRATestCase):
                 "type": "address",
                 "address_type": {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'OrgEnhedAdressePost',
+                    'user_key': 'OrgEnhedPostadresse',
                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e',
                 },
                 "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
@@ -204,9 +204,9 @@ class Writing(util.LoRATestCase):
                 "type": "address",
                 "address_type": {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'BrugerAdressePost',
+                    'user_key': 'BrugerPostadresse',
                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                 },
                 "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
@@ -526,7 +526,7 @@ class Writing(util.LoRATestCase):
                     {
                         "address_type": {
                             "example": "test@example.com",
-                            "name": "Emailadresse",
+                            "name": "Email",
                             "scope": "EMAIL",
                             "user_key": "BrugerEmail",
                             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
@@ -1162,7 +1162,7 @@ class Reading(util.LoRATestCase):
                         'uuid': '64ea02e2-8469-4c54-a523-3d46729e86a7',
                         'address_type': {
                             'example': 'test@example.com',
-                            'name': 'Emailadresse',
+                            'name': 'Email',
                             'scope': 'EMAIL',
                             'user_key': 'BrugerEmail',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -1186,9 +1186,9 @@ class Reading(util.LoRATestCase):
                         'uuid': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
                         'address_type': {
                             'example': '<UUID>',
-                            'name': 'Adresse',
+                            'name': 'Postadresse',
                             'scope': 'DAR',
-                            'user_key': 'BrugerAdressePost',
+                            'user_key': 'BrugerPostadresse',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/?mlon='
@@ -1220,7 +1220,7 @@ class Reading(util.LoRATestCase):
                         'uuid': 'fba61e38-b553-47cc-94bf-8c7c3c2a6887',
                         'address_type': {
                             'example': 'test@example.com',
-                            'name': 'Emailadresse',
+                            'name': 'Email',
                             'scope': 'EMAIL',
                             'user_key': 'BrugerEmail',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -1256,9 +1256,9 @@ class Reading(util.LoRATestCase):
                         "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
-                            "name": "Adresse",
+                            "name": "Postadresse",
                             "scope": "DAR",
-                            "user_key": "OrgEnhedAdressePost",
+                            "user_key": "OrgEnhedPostadresse",
                             "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e"
                         },
                         "org_unit": {
@@ -1353,9 +1353,9 @@ class Reading(util.LoRATestCase):
                         "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
                         "address_type": {
                             "example": "<UUID>",
-                            "name": "Adresse",
+                            "name": "Postadresse",
                             "scope": "DAR",
-                            "user_key": "OrgEnhedAdressePost",
+                            "user_key": "OrgEnhedPostadresse",
                             "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e"
                         },
                         "org_unit": {
@@ -1532,9 +1532,9 @@ class Reading(util.LoRATestCase):
             [{
                 'address_type': {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'OrgEnhedAdressePost',
+                    'user_key': 'OrgEnhedPostadresse',
                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
@@ -1595,9 +1595,9 @@ class Reading(util.LoRATestCase):
                 [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'OrgEnhedAdressePost',
+                        'user_key': 'OrgEnhedPostadresse',
                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': None,

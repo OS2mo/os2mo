@@ -3,10 +3,10 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "OrgEnhedAdressePost",
+                "brugervendtnoegle": "OrgEnhedPostadresse",
                 "eksempel": "<UUID>",
                 "omfang": "DAR",
-                "titel": "Adresse",
+                "titel": "Postadresse",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
