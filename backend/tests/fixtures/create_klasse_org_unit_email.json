@@ -3,10 +3,10 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "BrugerPostadresse",
-                "eksempel": "<UUID>",
-                "omfang": "DAR",
-                "titel": "Postadresse",
+                "brugervendtnoegle": "OrgEnhedEmail",
+                "eksempel": "test@example.com",
+                "omfang": "EMAIL",
+                "titel": "Email",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +32,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

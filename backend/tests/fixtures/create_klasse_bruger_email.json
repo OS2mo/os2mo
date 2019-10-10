@@ -6,7 +6,7 @@
                 "brugervendtnoegle": "BrugerEmail",
                 "eksempel": "test@example.com",
                 "omfang": "EMAIL",
-                "titel": "Emailadresse",
+                "titel": "Email",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

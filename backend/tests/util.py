@@ -203,6 +203,7 @@ def load_sample_structures(minimal=False):
             # org_unit_address_type
             'org_unit_adresse': '28d71012-2919-4b67-a2f0-7b59ed52561e',
             'org_unit_ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+            'org_unit_email': '73360db1-bad3-4167-ac73-8d827c0c8751',
             'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
             # visibility
             'public': 'f63ad763-0e53-4972-a6a9-63b42a0f8cb7',
@@ -217,6 +218,8 @@ def load_sample_structures(minimal=False):
             'beredskabsledelse': '93ea44f9-127c-4465-a34c-77d149e3e928',
             # leave_type
             'barselsorlov': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
+            # time_planning
+            'tjenestetid': 'ebce5c35-4e30-4ba8-9a08-c34592650b04',
         })
 
         functions.update({
