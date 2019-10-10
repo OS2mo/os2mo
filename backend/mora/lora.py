@@ -503,3 +503,8 @@ klasse.delete = functools.partial(delete, 'klassifikation/klasse')
 # organisation = Connector('organisation/organisation')
 # organisationenhed = Connector('organisation/organisationenhed')
 # klasse = Connector('klassifikation/klasse')
+
+
+def get_version():
+    r = session.get(settings.LORA_URL + "version")
+    return r.text

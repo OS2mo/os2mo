@@ -23,7 +23,9 @@ RUN yarn build
 FROM ubuntu:18.04 AS dist
 ENV DEBIAN_FRONTEND=noninteractive \
   LC_ALL=C.UTF-8 \
-  LANG=C.UTF-8
+  LANG=C.UTF-8 \
+  OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
+  OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
