@@ -52,7 +52,7 @@ class Tests(util.LoRATestCase):
             'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
             'user_key': 'AU',
             'unit_count': 1,
-            'person_count': 2,
+            'person_count': 3,
             'engagement_count': 1,
             'association_count': 1,
             'leave_count': 1,
@@ -632,9 +632,13 @@ class Tests(util.LoRATestCase):
                        {'name': 'Fedtmule Hund',
                         'givenname': 'Fedtmule',
                         'surname': 'Hund',
-                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'}],
+                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
+                       {'name': 'Lis Jensen',
+                        'givenname': 'Lis',
+                        'surname': 'Jensen',
+                        'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'}],
              'offset': 0,
-             'total': 2}
+             'total': 3}
         )
 
         self.assertRequestResponse(
@@ -705,6 +709,12 @@ class Tests(util.LoRATestCase):
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
                         },
                         {
+                            'name': 'Lis Jensen',
+                            'givenname': 'Lis',
+                            'surname': 'Jensen',
+                            'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'
+                        },
+                        {
                             'name': 'Andersine And',
                             'givenname': 'Andersine',
                             'surname': 'And',
@@ -712,7 +722,7 @@ class Tests(util.LoRATestCase):
                         }
                     ],
                 'offset': 0,
-                'total': 3
+                'total': 4
             }
         )
 
@@ -729,7 +739,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 0,
-                'total': 3
+                'total': 4
             }
         )
 
@@ -746,7 +756,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 1,
-                'total': 3
+                'total': 4
             }
         )
 
