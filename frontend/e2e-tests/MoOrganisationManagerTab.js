@@ -1,11 +1,13 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, reset, teardown } from './support';
 
 let moment = require('moment')
 
 fixture('MoOrganisationManagerTab')
+  .before(setup)
   .beforeEach(reset)
+  .after(teardown)
   .page(`${baseURL}/organisation/a6773531-6c0a-4c7b-b0e2-77992412b610`)
 
 const dialog = Selector('.modal-content')
