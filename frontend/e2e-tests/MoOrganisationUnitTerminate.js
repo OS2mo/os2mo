@@ -1,11 +1,13 @@
 import {Selector} from 'testcafe'
-import {baseURL, reset} from './support'
+import { baseURL, setup, reset, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitTerminate')
+  .before(setup)
   .beforeEach(reset)
+  .after(teardown)
   .page(`${baseURL}/organisation`)
 
 const createDialog = Selector('#orgUnitCreate')

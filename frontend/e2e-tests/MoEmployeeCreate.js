@@ -1,5 +1,5 @@
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, reset, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
@@ -68,7 +68,9 @@ const searchField = Selector('.search-bar')
 const searchFieldItem = searchField.find('.v-autocomplete-list-item')
 
 fixture('MoEmployeeCreate')
+  .before(setup)
   .beforeEach(reset)
+  .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 
 test('Workflow: create employee', async t => {
