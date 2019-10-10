@@ -124,6 +124,7 @@ def load_sample_structures(minimal=False):
     }
 
     classes = {
+        # org_unit_type
         'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
@@ -146,10 +147,11 @@ def load_sample_structures(minimal=False):
     # TODO: add classifications, etc.
 
     functions = {
-        'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
+        'engagement_andersand': 'd000591f-8705-4324-897a-075e3623f37b',
+        'engagement_eriksmidthansen': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
         'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
-        'orlov': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+        'orlov_andersand': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
         'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
@@ -161,6 +163,7 @@ def load_sample_structures(minimal=False):
         'andersand': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
         'fedtmule': '6ee24785-ee9a-4502-81c2-7697009c9053',
         'lis_jensen': '7626ad64-327d-481f-8b32-36c78eb12f8c',
+        'erik_smidt_hansen': '236e0a78-11a0-4ed9-8545-6286bb8611c7',
     }
 
     itsystems = {
@@ -180,6 +183,7 @@ def load_sample_structures(minimal=False):
         })
 
         classes.update({
+            # org_unit_type
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
             # association_type
@@ -210,6 +214,8 @@ def load_sample_structures(minimal=False):
             'niveau3': '991915c0-f4f4-4337-95fa-dbeb9da13247',
             # responsibility
             'beredskabsledelse': '93ea44f9-127c-4465-a34c-77d149e3e928',
+            # leave_type
+            'barselsorlov': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
         })
 
         functions.update({

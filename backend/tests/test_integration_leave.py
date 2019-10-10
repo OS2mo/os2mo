@@ -318,21 +318,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
+                        }
+                    },
+                    {
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
                         }
                     },
                 ],
@@ -445,7 +445,7 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -540,7 +540,7 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "leave_type": {
-                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
+                    'uuid': "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
             },
             "data": {
                 "leave_type": {
@@ -564,21 +564,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
+                        }
+                    },
+                    {
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
                         }
                     },
                 ],
@@ -725,7 +725,7 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,

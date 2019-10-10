@@ -52,7 +52,7 @@ class Tests(util.LoRATestCase):
             'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
             'user_key': 'AU',
             'unit_count': 1,
-            'person_count': 3,
+            'person_count': 4,
             'engagement_count': 1,
             'association_count': 1,
             'leave_count': 1,
@@ -625,7 +625,11 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
-            {'items': [{'name': 'Anders And',
+            {'items': [{'name': 'Erik Smidt Hansen',
+                        'givenname': 'Erik Smidt',
+                        'surname': 'Hansen',
+                        'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'},
+                       {'name': 'Anders And',
                         'givenname': 'Anders',
                         'surname': 'And',
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
@@ -638,7 +642,7 @@ class Tests(util.LoRATestCase):
                         'surname': 'Jensen',
                         'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'}],
              'offset': 0,
-             'total': 3}
+             'total': 4}
         )
 
         self.assertRequestResponse(
@@ -697,6 +701,12 @@ class Tests(util.LoRATestCase):
                 'items':
                     [
                         {
+                            'name': 'Erik Smidt Hansen',
+                            'givenname': 'Erik Smidt',
+                            'surname': 'Hansen',
+                            'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
+                        },
+                        {
                             'name': 'Anders And',
                             'givenname': 'Anders',
                             'surname': 'And',
@@ -722,7 +732,7 @@ class Tests(util.LoRATestCase):
                         }
                     ],
                 'offset': 0,
-                'total': 4
+                'total': 5
             }
         )
 
@@ -739,7 +749,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 0,
-                'total': 4
+                'total': 5
             }
         )
 
@@ -756,7 +766,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 1,
-                'total': 4
+                'total': 5
             }
         )
 
@@ -893,7 +903,7 @@ class Tests(util.LoRATestCase):
     def test_engagement(self):
         self.load_sample_structures()
 
-        func = [
+        andersand = [
             {
                 'job_function': {
                     'example': None,
@@ -935,11 +945,53 @@ class Tests(util.LoRATestCase):
             },
         ]
 
+        eriksmidthansen = [
+            {
+                'engagement_type': {
+                    'example': None,
+                    'name': 'Afdeling',
+                    'scope': None,
+                    'user_key': 'afd',
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                },
+                'fraction': None,
+                'job_function': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01',
+                        'to': None
+                    }
+                },
+                'person': {
+                    'givenname': 'Erik Smidt',
+                    'name': 'Erik Smidt Hansen',
+                    'surname': 'Hansen',
+                    'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
+                },
+                'primary': None,
+                'user_key': 'bvn',
+                'uuid': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
+                'validity': {
+                    'from': '2005-12-01',
+                    'to': None
+                }
+            },
+        ]
+
         with self.subTest('user'):
             self.assertRequestResponse(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 '/details/engagement',
-                func,
+                andersand,
             )
 
         with self.subTest('past'):
@@ -959,13 +1011,13 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 '/details/engagement?at=2016-01-01&validity=future',
-                func,
+                andersand,
             )
 
         self.assertRequestResponse(
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
             '/details/engagement',
-            func,
+            eriksmidthansen + andersand,
         )
 
         self.assertRequestResponse(
@@ -1074,10 +1126,10 @@ class Tests(util.LoRATestCase):
                 },
                 'leave_type': {
                     'example': None,
-                    'name': 'Afdeling',
+                    'name': 'Barselsorlov',
                     'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'user_key': 'barselsorlov',
+                    'uuid': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
                 },
                 'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
                 'user_key': 'bvn',
