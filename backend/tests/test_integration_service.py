@@ -929,10 +929,10 @@ class Tests(util.LoRATestCase):
                 },
                 'engagement_type': {
                     'example': None,
-                    'name': 'Afdeling',
+                    'name': 'Ansat',
                     'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'user_key': 'ansat',
+                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23',
                 },
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'user_key': 'bvn',
@@ -949,10 +949,10 @@ class Tests(util.LoRATestCase):
             {
                 'engagement_type': {
                     'example': None,
-                    'name': 'Afdeling',
+                    'name': 'Ansat',
                     'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                    'user_key': 'ansat',
+                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
                 },
                 'fraction': None,
                 'job_function': {
@@ -1552,10 +1552,10 @@ class Tests(util.LoRATestCase):
         expected = [{
             'engagement_type': {
                 'example': None,
-                'name': 'Afdeling',
+                'name': 'Ansat',
                 'scope': None,
-                'user_key': 'afd',
-                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                'user_key': 'ansat',
+                'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
             },
             'job_function': {
                 'example': None,
