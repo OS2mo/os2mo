@@ -8,7 +8,7 @@ fixture('MoOrganisationManagerTab')
   .before(setup)
   .beforeEach(reset)
   .after(teardown)
-  .page(`${baseURL}/organisation/a6773531-6c0a-4c7b-b0e2-77992412b610`)
+  .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
 
 const dialog = Selector('.modal-content')
 
