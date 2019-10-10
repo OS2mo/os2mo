@@ -1,8 +1,10 @@
 import VueSelector from 'testcafe-vue-selectors'
-import { baseURL, reset } from './support'
+import { baseURL, setup, reset, teardown } from './support'
 
 fixture('MoOrganisationUnitITSystem')
+  .before(setup)
   .beforeEach(reset)
+  .after(teardown)
   .page(`${baseURL}/organisation/97337de5-6096-41f9-921e-5bed7a140d85`)
 
 // skip: test data lacks units with IT systems

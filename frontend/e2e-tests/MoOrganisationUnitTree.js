@@ -1,6 +1,6 @@
 import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
-import { baseURL, reset } from './support'
+import { baseURL, setup, reset, teardown } from './support';
 
 const dialog = Selector('#orgUnitTerminate')
 
@@ -61,7 +61,9 @@ let selected = treeNode.filter('.selected')
 let currentUnitName = Selector('.orgunit .orgunit-name')
 
 fixture('MoOrganisationUnitTree')
+  .before(setup)
   .beforeEach(reset)
+  .after(teardown)
 
 for (const [selection, contents] of trees.entries()) {
   test
