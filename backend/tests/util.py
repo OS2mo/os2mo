@@ -160,6 +160,7 @@ def load_sample_structures(minimal=False):
     users = {
         'andersand': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
         'fedtmule': '6ee24785-ee9a-4502-81c2-7697009c9053',
+        'lis_jensen': '7626ad64-327d-481f-8b32-36c78eb12f8c',
     }
 
     itsystems = {
@@ -184,6 +185,7 @@ def load_sample_structures(minimal=False):
             # association_type
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
             'projektleder': '8eea787c-c2c7-46ca-bd84-2dd50f47801e',
+            'teammedarbejder': '45751985-321f-4d4f-ae16-847f0a633360',
             # engagement_job_function
             'specialist': '890d4ff0-b453-4900-b79b-dbb461eda3ee',
             'skolepsykolog': '07cea156-1aaf-4c89-bf1b-8e721f704e22',
