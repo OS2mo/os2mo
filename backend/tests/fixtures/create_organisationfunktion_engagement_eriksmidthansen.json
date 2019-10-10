@@ -1,0 +1,73 @@
+{
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "bvn",
+                "funktionsnavn": "Engagement",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning",
+    "relationer": {
+        "organisatoriskfunktionstype": [
+            {
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "opgaver": [
+            {
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedebrugere": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedeenheder": [
+            {
+                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    }
+}
