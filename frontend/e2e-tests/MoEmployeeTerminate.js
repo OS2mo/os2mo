@@ -38,16 +38,16 @@ test('Workflow: terminate employee by search', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeField)
-    .typeText(searchEmployeeInput, 'jens')
+    .typeText(searchEmployeeInput, 'erik')
 
     // FIXME: this is wrong...
     .expect(searchEmployeeInput.value)
-    .eql('ens', 'Have you fixed a bug so that it retains the first letter?')
+    .eql('rik', 'Have you fixed a bug so that it retains the first letter?')
 
     .expect(searchEmployeeItem.withText(' ').visible)
     .ok('no user found - did test data change?')
     .pressKey('down enter')
-    .expect(searchEmployeeInput.value).match(/Jens/)
+    .expect(searchEmployeeInput.value).match(/Erik/)
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -75,12 +75,12 @@ test('Workflow: terminate employee from page', async t => {
 
   await t
     .click(mainSearchField)
-    .typeText(mainSearchField, 'jens')
+    .typeText(mainSearchField, 'erik')
     .expect(mainSearchInput.value)
-    .eql('jens')
+    .eql('erik')
     .expect(mainSearchItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(mainSearchInput.value).match(/Jens/)
+    .expect(mainSearchInput.value).match(/Erik/)
 
   let userID = await t.eval(() => window.location.pathname.split('/').slice(-1))
   let name = await mainSearchInput.value
@@ -97,7 +97,7 @@ test('Workflow: terminate employee from page', async t => {
 
     // TODO: we shouldn't need to fill in the employee
     .click(searchEmployeeField)
-    .typeText(searchEmployeeInput, 'jens')
+    .typeText(searchEmployeeInput, 'erik')
     .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
     .expect(searchEmployeeInput.value).eql(name)
@@ -134,10 +134,10 @@ test('Workflow: terminate employee role', async t => {
 
   await t
     .click(mainSearchField)
-    .typeText(mainSearchField, 'jens')
+    .typeText(mainSearchField, 'Anders')
     .expect(mainSearchItem.withText(' ').visible).ok()
     .pressKey('down enter')
-    .expect(mainSearchInput.value).match(/Jens/)
+    .expect(mainSearchInput.value).match(/Anders/)
 
     .click(VueSelector('employee-detail-tabs bTabButtonHelper')
            .withText('Roller'))
