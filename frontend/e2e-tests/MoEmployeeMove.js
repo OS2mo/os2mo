@@ -34,7 +34,7 @@ test('Workflow: move employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeInput)
-    .typeText(searchEmployeeInput.find('input'), 'jens')
+    .typeText(searchEmployeeInput.find('input'), 'erik')
     .expect(searchEmployeeItem.withText(' ').visible)
     .ok("no employee found")
     .pressKey('down enter')
