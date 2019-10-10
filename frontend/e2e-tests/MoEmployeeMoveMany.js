@@ -37,15 +37,15 @@ test('Workflow: moveMany employee', async t => {
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(parentFromInput)
+    .click(dialog.find('.from-unit .tree-node')
+           .withText('Overordnet Enhed')
+           .find('.tree-arrow'))
     .click(dialog.find('.from-unit span.tree-anchor')
-      .withText('Hjørring Kommune'))
+           .withText('Humanistisk fakultet'))
 
     .click(parentToInput)
-    .click(dialog.find('.to-unit .tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
     .click(dialog.find('.to-unit span.tree-anchor')
-      .withText('Social og sundhed'))
+           .withText('Social og sundhed'))
 
     .click(checkboxInput)
 
