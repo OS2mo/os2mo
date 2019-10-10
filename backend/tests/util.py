@@ -211,6 +211,7 @@ def load_sample_structures(minimal=False):
             # manager_type
             'direktoer': '0d72900a-22a4-4390-a01e-fd65d0e0999d',
             # manager_level
+            'niveau1': '3c791935-2cfa-46b5-a12e-66f7f54e70fe',
             'niveau3': '991915c0-f4f4-4337-95fa-dbeb9da13247',
             # responsibility
             'beredskabsledelse': '93ea44f9-127c-4465-a34c-77d149e3e928',
