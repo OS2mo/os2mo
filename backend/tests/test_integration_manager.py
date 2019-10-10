@@ -74,9 +74,9 @@ class Tests(util.LoRATestCase):
                     'value': '44c532e1-f617-4174-b144-d37ce9fda2bd',
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'BrugerAdressePost',
+                        'user_key': 'BrugerPostadresse',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                     },
                     "org": {
@@ -244,9 +244,9 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'BrugerAdressePost',
+                        'user_key': 'BrugerPostadresse',
                         'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -257,7 +257,7 @@ class Tests(util.LoRATestCase):
                 }],
                 'manager_level': {
                     'example': 'test@example.com',
-                    'name': 'Emailadresse',
+                    'name': 'Email',
                     'scope': 'EMAIL',
                     'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -349,7 +349,7 @@ class Tests(util.LoRATestCase):
                 'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
-                    'name': 'Emailadresse',
+                    'name': 'Email',
                     'scope': 'EMAIL',
                     'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -400,7 +400,7 @@ class Tests(util.LoRATestCase):
             'address': [],
             'manager_level': {
                 'example': 'test@example.com',
-                'name': 'Emailadresse',
+                'name': 'Email',
                 'scope': 'EMAIL',
                 'user_key': 'BrugerEmail',
                 'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -765,7 +765,7 @@ class Tests(util.LoRATestCase):
                 'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
-                    'name': 'Emailadresse',
+                    'name': 'Email',
                     'scope': 'EMAIL',
                     'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -1032,7 +1032,7 @@ class Tests(util.LoRATestCase):
         expected_future_address = [{
             'address_type': {
                 'example': 'test@example.com',
-                'name': 'Emailadresse',
+                'name': 'Email',
                 'scope': 'EMAIL',
                 'user_key': 'BrugerEmail',
                 'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'
@@ -1215,7 +1215,7 @@ class Tests(util.LoRATestCase):
                 'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
-                    'name': 'Emailadresse',
+                    'name': 'Email',
                     'scope': 'EMAIL',
                     'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
@@ -1503,9 +1503,9 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'OrgEnhedAdressePost',
+                        'user_key': 'OrgEnhedPostadresse',
                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -1570,9 +1570,9 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'OrgEnhedAdressePost',
+                        'user_key': 'OrgEnhedPostadresse',
                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
@@ -2093,9 +2093,9 @@ class Tests(util.LoRATestCase):
                     {
                         'address_type': {
                             'example': '<UUID>',
-                            'name': 'Adresse',
+                            'name': 'Postadresse',
                             'scope': 'DAR',
-                            'user_key': 'OrgEnhedAdressePost',
+                            'user_key': 'OrgEnhedPostadresse',
                             'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                         },
                         'href': 'https://www.openstreetmap.org/'
@@ -2445,9 +2445,9 @@ class Tests(util.LoRATestCase):
             'address': [{
                 'address_type': {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'OrgEnhedAdressePost',
+                    'user_key': 'OrgEnhedPostadresse',
                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'href': 'https://www.openstreetmap.org/'
@@ -2701,9 +2701,9 @@ class Tests(util.LoRATestCase):
                     'address': [{
                         'address_type': {
                             'example': '<UUID>',
-                            'name': 'Adresse',
+                            'name': 'Postadresse',
                             'scope': 'DAR',
-                            'user_key': 'OrgEnhedAdressePost',
+                            'user_key': 'OrgEnhedPostadresse',
                             'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                         },
                         'href': 'https://www.openstreetmap.org/'

@@ -8,7 +8,7 @@ fixture('MoOrganisationUnitCreate')
   .before(setup)
   .beforeEach(reset)
   .after(teardown)
-  .page(`${baseURL}/organisation/f06ee470-9f17-566f-acbe-e938112d46d9`)
+  .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
 
 const dialog = Selector('#orgUnitCreate')
 
@@ -64,7 +64,7 @@ test('Workflow: create unit', async t => {
     .typeText(dialog.find('input[data-vv-as="Navn"]'), 'Økonomi')
 
     .click(unitSelect)
-    .click(unitOption.withText('Fagligt center'))
+    .click(unitOption.withText('Fakultet'))
 
     .click(parentInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))
@@ -89,7 +89,7 @@ test('Workflow: create unit', async t => {
     .expect(addressItem.withText(' ').visible).ok()
     .pressKey('down enter')
     .expect(addressInput.find('input').value)
-    .eql('Hovedvejen 2A, Tornby, 9850 Hirtshals')
+    .eql('Hovedvejen 27, 8361 Hasselager')
 
     .click(dialog.find('.btn-outline-success'))
 

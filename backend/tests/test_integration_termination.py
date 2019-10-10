@@ -314,9 +314,9 @@ class Tests(util.LoRATestCase):
             'address': [{
                 'address_type': {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'OrgEnhedAdressePost',
+                    'user_key': 'OrgEnhedPostadresse',
                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'href': 'https://www.openstreetmap.org/'
