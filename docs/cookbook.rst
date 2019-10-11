@@ -1,3 +1,6 @@
+
+.. _cookbook:
+
 Best practices for implementering
 =================================
 

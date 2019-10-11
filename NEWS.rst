@@ -6,6 +6,8 @@ New features
 
 * #32200: Implement configuration option to hide CPR numbers, so CPR values
   aren't returned from backend, and cannot be searched for.
+* #32174: Update documentation for authentication and authorization
+
 
 Version 1.0.0, 2019-10-04
 =========================
