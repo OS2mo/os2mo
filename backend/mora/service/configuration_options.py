@@ -18,6 +18,17 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
                             url_prefix='/service')
 
 
+# This is the default key-value configuration pairs. They are used to
+# initialize the configuration database through the cli and in health_check to
+# verify that there exist default values for all expected keys.
+default = (
+    ('show_roles', 'True'),
+    ('show_user_key', 'True'),
+    ('show_location', 'True'),
+    ('show_time_planning', 'True'),
+)
+
+
 if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
         settings.CONF_DB_HOST and settings.CONF_DB_PORT and
         settings.CONF_DB_PASSWORD):
@@ -48,6 +59,45 @@ def _get_connection():
         logger.error('Database connection error')
         raise
     return conn
+
+
+def health_check():
+    """Return a tuple (healthy, msg) where healthy is a boolean and msg
+    is the potential error message.
+
+    The configuration database is healthy iff a connection can be
+    established and the database contains all expected default values.
+
+    This is intended to be used whenever an app object is created.
+    """
+    try:
+        conn = _get_connection()
+    except psycopg2.Error as e:
+        error_msg = "Configuration database connnection error: %s"
+        return False, error_msg % e.pgerror
+
+    # all settings that have a global (uuid = null) value
+    query = """
+        select setting
+          from orgunit_settings
+         where object is not distinct from null;"""
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        settings_in_db = set(key for (key,) in cursor.fetchall())
+    finally:
+        conn.close()
+
+    missing = set()
+    for key, __ in default:
+        if key not in settings_in_db:
+            missing.add(key)
+    if missing:
+        error_msg = ("Configuration database is missing default"
+                     " settings for keys: %s." % ", ".join(missing))
+        return False, error_msg
+
+    return True, "Success"
 
 
 def get_configuration(unitid=None):
