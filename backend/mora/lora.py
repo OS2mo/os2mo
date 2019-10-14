@@ -507,4 +507,7 @@ klasse.delete = functools.partial(delete, 'klassifikation/klasse')
 
 def get_version():
     r = session.get(settings.LORA_URL + "version")
-    return r.text
+    try:
+        return r.json()["lora_version"]
+    except ValueError:
+        return "Could not find lora version: %s" % r.text
