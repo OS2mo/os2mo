@@ -137,7 +137,7 @@ app_config = {
     "SESSIONS_DB_NAME": config["session"]["database"]["name"],
     "PERMANENT_SESSION_LIFETIME": config["session"]["permanent"],
     "SAML_SERVICE_SESSION_LIFETIME": config["session"]["permanent_lifetime"],
-    # SESSION_COOKIE_NAME
+    "SESSION_COOKIE_NAME": config["session_cookie_name"],
     "SAML_API_TOKEN_RESTRICT": config["saml_sso"]["api_token_restrict"],
     "SAML_API_TOKEN_RESTRICT_ATTR": config["saml_sso"]["api_token_restrict_attr"],
     "SAML_API_TOKEN_RESTRICT_VALUE": config["saml_sso"]["api_token_restrict_value"],

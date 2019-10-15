@@ -10,6 +10,7 @@
 
 
 hide_cpr_numbers = false
+session_cookie_name = "session"
 dummy_mode = false
 ca_bundle = ""
 
