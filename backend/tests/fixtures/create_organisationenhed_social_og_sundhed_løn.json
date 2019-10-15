@@ -2,7 +2,7 @@
   "attributter": {
     "organisationenhedegenskaber": [
       {
-        "brugervendtnoegle": "social-sundhed",
+        "brugervendtnoegle": "social_og_sundhed-løn",
         "enhedsnavn": "Social og sundhed",
         "virkning": {
           "from": "2017-01-01 00:00:00+01:00",
@@ -23,20 +23,20 @@
     ]
   },
   "relationer": {
-    "overordnet": [
-      {
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-        "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ],
     "tilhoerer": [
       {
         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
         "virkning": {
-          "from": "2016-01-01 00:00:00+01:00",
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }

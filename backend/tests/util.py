@@ -120,6 +120,7 @@ def load_sample_structures(minimal=False):
     )]
 
     units = {
+        # L1
         'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
     }
 
@@ -174,12 +175,25 @@ def load_sample_structures(minimal=False):
 
     if not minimal:
         units.update({
+            # L2
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-            'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+            # L3
             'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
+            # L2
+            'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+            'social_og_sundhed': '68c5d78e-ae26-441f-a143-0103eca8b62a',
+            'skole_og_børn': 'dad7d0ad-c7a9-4a94-969d-464337e31fec',
+            # L3
+            'it_sup': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+
+            # L1
+            'løn': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+            # L2
+            'social_og_sundhed_løn': '5942ce50-2be8-476f-914b-6769a888a7c8',
+
+
             'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
             'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-            'social_og_sundhed': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
         })
 
         classes.update({

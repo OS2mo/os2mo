@@ -69,7 +69,7 @@ class Tests(util.LoRATestCase):
         )
 
         self.load_sample_structures()
-        org_only['unit_count'] = 7
+        org_only['unit_count'] = 11
         org_only['child_count'] = 2
 
         self.assertRequestResponse(
@@ -133,7 +133,17 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children',
             [
                 {
-                    'child_count': 2,
+                    'child_count': 1,
+                    'user_key': 'løn',
+                    'name': 'Lønorganisation',
+                    'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+                    'validity': {
+                        'from': '2017-01-01',
+                        'to': None
+                    }
+                },
+                {
+                    'child_count': 4,
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -141,16 +151,6 @@ class Tests(util.LoRATestCase):
                         'from': '2016-01-01',
                         'to': None,
                     },
-                },
-                {
-                    'child_count': 0,
-                    'user_key': 'social-sundhed',
-                    'name': 'Social og sundhed',
-                    'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
-                    'validity': {
-                        'from': '2017-01-01',
-                        'to': None
-                    }
                 },
             ],
         )
@@ -177,7 +177,27 @@ class Tests(util.LoRATestCase):
                         "to": None,
                     },
                     "child_count": 0,
-                }
+                },
+                {
+                    "name": "Skole og Børn",
+                    "user_key": "skole-børn",
+                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    },
+                    "child_count": 1,
+                },
+                {
+                    "name": "Social og sundhed",
+                    "user_key": "social-sundhed",
+                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    },
+                    "child_count": 0,
+                },
             ],
         )
 
@@ -204,6 +224,24 @@ class Tests(util.LoRATestCase):
                 },
             },
             {
+                'user_key': 'social_og_sundhed-løn',
+                'name': 'Social og sundhed',
+                'uuid': '5942ce50-2be8-476f-914b-6769a888a7c8',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
+                'user_key': 'social-sundhed',
+                'name': 'Social og sundhed',
+                'uuid': '68c5d78e-ae26-441f-a143-0103eca8b62a',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
                 'user_key': 'fil',
                 'name': 'Filosofisk Institut',
                 'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
@@ -222,8 +260,8 @@ class Tests(util.LoRATestCase):
                 },
             },
             {
-                'user_key': 'social-sundhed',
-                'name': 'Social og sundhed',
+                'user_key': 'løn',
+                'name': 'Lønorganisation',
                 'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
                 'validity': {
                     'from': '2017-01-01',
@@ -248,6 +286,24 @@ class Tests(util.LoRATestCase):
                     'to': '2018-12-31',
                 },
             },
+            {
+                'user_key': 'skole-børn',
+                'name': 'Skole og Børn',
+                'uuid': 'dad7d0ad-c7a9-4a94-969d-464337e31fec',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
+                'user_key': 'it_sup',
+                'name': 'IT-Support',
+                'uuid': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+                'validity': {
+                    'from': '2016-01-01',
+                    'to': None,
+                },
+            },
         ]
 
         self.assertRequestResponse(
@@ -255,7 +311,7 @@ class Tests(util.LoRATestCase):
             {
                 'items': result_list,
                 'offset': 0,
-                'total': 7
+                'total': 11
             }
         )
 
@@ -285,7 +341,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 7
+                    'total': 11,
                 }
             )
 
@@ -324,7 +380,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 1,
-                    'total': 7
+                    'total': 11,
                 }
             )
 
@@ -363,7 +419,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 7
+                    'total': 11,
                 }
             )
 
@@ -372,15 +428,6 @@ class Tests(util.LoRATestCase):
                 '?limit=3&start=3',
                 {
                     'items': [
-                        {
-                            'user_key': 'root',
-                            'name': 'Overordnet Enhed',
-                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
                         {
                             'user_key': 'hum',
                             'name': 'Humanistisk fakultet',
@@ -391,17 +438,26 @@ class Tests(util.LoRATestCase):
                             },
                         },
                         {
-                            'user_key': 'samf',
-                            'name': 'Samfundsvidenskabelige fakultet',
-                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'user_key': 'løn',
+                            'name': 'Lønorganisation',
+                            'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
                             'validity': {
                                 'from': '2017-01-01',
+                                'to': None
+                            }
+                        },
+                        {
+                            'user_key': 'it_sup',
+                            'name': 'IT-Support',
+                            'uuid': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+                            'validity': {
+                                'from': '2016-01-01',
                                 'to': None,
                             },
                         },
                     ],
                     'offset': 3,
-                    'total': 7
+                    'total': 11,
                 }
             )
 
@@ -594,7 +650,19 @@ class Tests(util.LoRATestCase):
               'user_key': 'samf',
               'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
               'validity': {'from': '2017-01-01',
-                           'to': None}}],
+                           'to': None}},
+             {"child_count": 1,
+              "name": "Skole og Børn",
+              "user_key": "skole-børn",
+              "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+              "validity": {"from": "2017-01-01",
+                           "to": None}},
+             {"child_count": 0,
+              "name": "Social og sundhed",
+              "user_key": "social-sundhed",
+              "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+              "validity": {"from": "2017-01-01",
+                           "to": None}}],
         )
 
     def test_employee(self):
