@@ -119,7 +119,7 @@ app_config = {
     # SAML_WANT_ATTRIBUTE_STATEMENT
     # SAML_REQUESTED_AUTHN_CONTEXT
     # SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON
-    # SAML_LOWERCASE_URL_ENCODING
+    "SAML_LOWERCASE_URLENCODING": config["saml_sso"]["lowercase_urlencoding"],
     "SAML_REQUESTS_SIGNED": config["saml_sso"]["requests_signed"],
     "SAML_CERT_FILE": config["saml_sso"]["cert_file"],
     "SAML_KEY_FILE": config["saml_sso"]["key_file"],
