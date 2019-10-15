@@ -124,7 +124,7 @@ app_config = {
     "SAML_CERT_FILE": config["saml_sso"]["cert_file"],
     "SAML_KEY_FILE": config["saml_sso"]["key_file"],
     "SAML_SIGNATURE_ALGORITHM": config["saml_sso"]["signature_algorithm"],
-    # SAML_DIGEST_ALGORITHM
+    "SAML_DIGEST_ALGORITHM": config["saml_sso"]["digest_algorithm"],
     "SAML_IDP_METADATA_URL": config["saml_sso"]["idp_metadata_url"],
     "SAML_IDP_METADATA_FILE": config["saml_sso"]["idp_metadata_file"],
     "SAML_DUPLICATE_ATTRIBUTES": config["saml_sso"]["duplicate_attributes"],
