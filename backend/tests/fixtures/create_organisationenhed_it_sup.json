@@ -2,10 +2,10 @@
   "attributter": {
     "organisationenhedegenskaber": [
       {
-        "brugervendtnoegle": "social-sundhed",
-        "enhedsnavn": "Social og sundhed",
+        "brugervendtnoegle": "it_sup",
+        "enhedsnavn": "IT-Support",
         "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }
@@ -16,8 +16,9 @@
       {
         "gyldighed": "Aktiv",
         "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
-          "to": "infinity"
+          "from": "2016-01-01 00:00:00+01:00",
+          "to": "infinity",
+          "from_included": true
         }
       }
     ]
@@ -25,7 +26,7 @@
   "relationer": {
     "overordnet": [
       {
-        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
         "virkning": {
           "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
@@ -43,9 +44,9 @@
     ],
     "enhedstype": [
       {
-        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
         "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
+          "from": "2016-01-01 00:00:00+01:00",
           "to": "infinity"
         }
       }

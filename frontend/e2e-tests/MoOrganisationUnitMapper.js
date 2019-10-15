@@ -43,71 +43,65 @@ test('View no mapping', async t => {
     .expect(leftTree.exists, {timout: 3000}).ok()
     .expect(rightTree.exists).notOk()
 
-    .expect(leftNodes.withText('Hjørring Kommune').exists, {timout: 3000}).ok()
+    .expect(leftNodes.withText('Overordnet Enhed').exists, {timout: 3000}).ok()
 
   // ...and it's just empty
     .expect(leftTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> Hjørring Kommune",
-      "> Lønorganisation"
+      "> Lønorganisation",
+      "> Overordnet Enhed",
     ])
 
-    .click(leftNodes.withText('Hjørring Kommune'))
+    .click(leftNodes.withText('Lønorganisation'))
 
   // the right tree appears now that we selected something
     .expect(rightTree.exists, {timeout: 3000}).ok()
 
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> ~~~ Hjørring Kommune ~~~",
-      "> Lønorganisation"
+      "> ~~~ Lønorganisation ~~~",
+      "> Overordnet Enhed",
     ])
 
-    .click(leftNodes.withText('Hjørring Kommune').find('.tree-arrow'))
-    .click(leftNodes.withText('Borgmesterens Afdeling'))
+    .click(leftNodes.withText('Lønorganisation').find('.tree-arrow'))
+    .click(leftNodes.withText('Social og sundhed'))
 
   // selecting a unit doesn't reveal it in the right tree
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> Hjørring Kommune",
-      "> Lønorganisation"
+      "> Lønorganisation",
+      "> Overordnet Enhed",
     ])
 
-    .click(rightNodes.withText('Hjørring Kommune').find('.tree-arrow'))
+    .click(rightNodes.withText('Lønorganisation').find('.tree-arrow'))
 
   // but revealing it ensures that it's disabled!
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
       {
-        "Hjørring Kommune": [
-          "> ~~~ Borgmesterens Afdeling ~~~",
-          "> Skole og Børn",
-          "Social og sundhed",
-          "> Teknik og Miljø"
+        "Lønorganisation": [
+          "~~~ Social og sundhed ~~~",
         ]
       },
-      "> Lønorganisation"
+      "> Overordnet Enhed",
     ])
 
   // verify that it has no relation
-    .click(rightNodes.withText('Lønorganisation').find('.tree-arrow'))
+    .click(rightNodes.withText('Overordnet Enhed').find('.tree-arrow'))
 
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
       {
-        "Hjørring Kommune": [
-          "> ~~~ Borgmesterens Afdeling ~~~",
-          "> Skole og Børn",
-          "Social og sundhed",
-          "> Teknik og Miljø"
+        "Lønorganisation": [
+          "~~~ Social og sundhed ~~~",
         ]
       },
       {
-        "Lønorganisation": [
-          "Borgmesterens Afdeling",
+        "Overordnet Enhed": [
+          "> Humanistisk fakultet",
+          "Samfundsvidenskabelige fakultet",
           "> Skole og Børn",
           "Social og sundhed",
-          "Teknik og Miljø"
         ]
       }
     ])})
@@ -120,30 +114,30 @@ test('Writing mapping', async t => {
 
     .expect(leftTree.exists, {timout: 3000}).ok()
 
-    .click(leftNodes.withText('Hjørring Kommune').find('.tree-arrow'))
-    .click(leftNodes.withText('Borgmesterens Afdeling'))
+    .click(leftNodes.withText('Lønorganisation').find('.tree-arrow'))
+    .click(leftNodes.withText('Social og sundhed'))
     .expect(rightTree.exists).ok()
 
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> Hjørring Kommune",
-      "> Lønorganisation"
+      "> Lønorganisation",
+      "> Overordnet Enhed",
     ])
 
     .expect(saveButton.getAttribute('disabled')).ok()
 
-    .click(rightNodes.withText('Lønorganisation').find('.tree-arrow'))
-    .click(rightNodes.withText('Borgmesterens Afdeling').find('.tree-checkbox'))
+    .click(rightNodes.withText('Overordnet Enhed').find('.tree-arrow'))
+    .click(rightNodes.withText('Social og sundhed').find('.tree-checkbox'))
 
   // verify that the button becomes clickable with outstanding
   // changes, and isn't when we manually revert them
     .expect(saveButton.getAttribute('disabled')).notOk()
 
-    .click(rightNodes.withText('Borgmesterens Afdeling').find('.tree-checkbox'))
+    .click(rightNodes.withText('Social og sundhed').find('.tree-checkbox'))
 
     .expect(saveButton.getAttribute('disabled')).ok()
 
-    .click(rightNodes.withText('Borgmesterens Afdeling').find('.tree-checkbox'))
+    .click(rightNodes.withText('Social og sundhed').find('.tree-checkbox'))
 
     .expect(saveButton.getAttribute('disabled')).notOk()
 
@@ -155,21 +149,19 @@ test('Writing mapping', async t => {
 
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> Hjørring Kommune",
+      "> Lønorganisation",
       {
-        "Lønorganisation": [
-          "✓ Borgmesterens Afdeling",
+        "Overordnet Enhed": [
+          "> Humanistisk fakultet",
+          "Samfundsvidenskabelige fakultet",
           {
             "Skole og Børn": [
               "✓ IT-Support",
-              "> Skoler og børnehaver",
-              "Social Indsats"
             ]
           },
-          "Social og sundhed",
-          "Teknik og Miljø"
+          "✓ Social og sundhed",
         ]
-      }
+      },
     ])
 
     .click(saveButton)
@@ -189,24 +181,22 @@ test('Writing mapping', async t => {
   // assert that the selection has reset
     .expect(leftTree.exists).ok()
     .expect(rightTree.exists).notOk()
-    .expect(leftNodes.withText('Hjørring Kommune').exists).ok()
+    .expect(leftNodes.withText('Overordnet Enhed').exists).ok()
 
     .expect(leftTree.getVue(({ computed }) => computed.contents))
     .eql([
-      "> Hjørring Kommune",
-      "> Lønorganisation"
+      "> Lønorganisation",
+      "> Overordnet Enhed",
     ])
 
-    .click(leftNodes.withText('Hjørring Kommune').find('.tree-arrow'))
-    .click(leftNodes.withText('Borgmesterens Afdeling'))
+    .click(leftNodes.withText('Overordnet Enhed').find('.tree-arrow'))
+    .click(leftNodes.withText('Social og sundhed'))
     .expect(rightTree.exists).ok()
 
   // assert that the selection has reset
     .click(leftNodes.withText('Lønorganisation').find('.tree-arrow'))
-    .click(leftNodes.withText('Borgmesterens Afdeling'))
+    .click(leftNodes.withText('Social og sundhed'))
     .expect(rightTree.exists).ok()
-
-    .click(rightNodes.withText('Hjørring Kommune').find('.tree-arrow'))
 
   // we shouldn't have made any changes
     .expect(saveButton.getAttribute('disabled')).ok()
@@ -220,31 +210,26 @@ test('Writing mapping', async t => {
     .expect(rightTree.getVue(({ computed }) => computed.contents))
     .eql([
       {
-        "Hjørring Kommune": [
-          "> ~~~ Borgmesterens Afdeling ~~~",
-          "> Skole og Børn",
-          "Social og sundhed",
-          "> Teknik og Miljø"
+        "Lønorganisation": [
+          "~~~ Social og sundhed ~~~",
         ]
       },
       {
-        "Lønorganisation": [
-          "✓ Borgmesterens Afdeling",
+        "Overordnet Enhed": [
+          "> Humanistisk fakultet",
+          "Samfundsvidenskabelige fakultet",
           {
             "Skole og Børn": [
               "✓ IT-Support",
-              "> Skoler og børnehaver",
-              "Social Indsats"
             ]
           },
-          "Social og sundhed",
-          "Teknik og Miljø"
+          "✓ Social og sundhed",
         ]
-      }
+      },
     ])
 
     // now verify that we can actually render these units
-    .navigateTo('/organisation/b6c11152-0645-4712-a207-ba2c53b391ab')
+    .navigateTo('/organisation/5942ce50-2be8-476f-914b-6769a888a7c8')
     .expect(tabs.withText('Relateret').exists)
     .ok()
     .click(tabs.withText('Relateret'))
@@ -257,14 +242,14 @@ test('Writing mapping', async t => {
     .eql(1)
 
     // two too many :(
-    .expect(links.withText('Borgmesterens Afdeling').count)
+    .expect(links.withText('Social og sundhed').count)
     .eql(3)
 
   // now go to the other one
 
     .navigateTo('/organisation')
 
-    .click(allNodes.withText('Lønorganisation').find('.tree-arrow'))
+    .click(allNodes.withText('Overordnet Enhed').find('.tree-arrow'))
     .click(allNodes.withText('Skole og Børn').find('.tree-arrow'))
     .click(allNodes.withText('IT-Support'))
 
@@ -276,7 +261,7 @@ test('Writing mapping', async t => {
     .ok()
 
     // is there a backreference?
-    .expect(links.withText('Borgmesterens Afdeling').count)
+    .expect(links.withText('Social og sundhed').count)
     .eql(1)
 
     // this is wrong  :(

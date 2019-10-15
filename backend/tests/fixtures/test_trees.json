@@ -20,6 +20,24 @@
         }
       },
       {
+        "name": "Social og sundhed",
+        "user_key": "social_og_sundhed-løn",
+        "uuid": "5942ce50-2be8-476f-914b-6769a888a7c8",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "Social og sundhed",
+        "user_key": "social-sundhed",
+        "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
         "name": "Filosofisk Institut",
         "user_key": "fil",
         "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
@@ -38,8 +56,8 @@
         }
       },
       {
-        "name": "Social og sundhed",
-        "user_key": "social-sundhed",
+        "name": "Lønorganisation",
+        "user_key": "løn",
         "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
         "validity": {
           "from": "2017-01-01",
@@ -63,10 +81,28 @@
           "from": "2016-01-01",
           "to": "2018-12-31"
         }
+      },
+      {
+        "name": "Skole og Børn",
+        "user_key": "skole-børn",
+        "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+        "validity": {
+          "from": "2017-01-01",
+          "to": null
+        }
+      },
+      {
+        "name": "IT-Support",
+        "user_key": "it_sup",
+        "uuid": "fa2e23c9-860a-4c90-bcc6-2c0721869a25",
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
       }
     ],
     "offset": 0,
-    "total": 7
+    "total": 11
   },
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/?query=fak&at=2017-06-01": {
     "items": [
@@ -108,6 +144,26 @@
     "total": 1
   },
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?at=2017-06-01": [
+    {
+      "children": [
+        {
+          "name": "Social og sundhed",
+          "user_key": "social_og_sundhed-løn",
+          "uuid": "5942ce50-2be8-476f-914b-6769a888a7c8",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
+        }
+      ],
+      "name": "Lønorganisation",
+      "user_key": "løn",
+      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+      "validity": {
+        "from": "2017-01-01",
+        "to": null
+      }
+    },
     {
       "children": [
         {
@@ -158,6 +214,35 @@
             "from": "2017-01-01",
             "to": null
           }
+        },
+        {
+          "children": [
+            {
+              "name": "IT-Support",
+              "user_key": "it_sup",
+              "uuid": "fa2e23c9-860a-4c90-bcc6-2c0721869a25",
+              "validity": {
+                "from": "2016-01-01",
+                "to": null
+              }
+            }
+          ],
+          "name": "Skole og Børn",
+          "user_key": "skole-børn",
+          "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
+        },
+        {
+          "name": "Social og sundhed",
+          "user_key": "social-sundhed",
+          "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
         }
       ],
       "name": "Overordnet Enhed",
@@ -165,15 +250,6 @@
       "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
       "validity": {
         "from": "2016-01-01",
-        "to": null
-      }
-    },
-    {
-      "name": "Social og sundhed",
-      "user_key": "social-sundhed",
-      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
-      "validity": {
-        "from": "2017-01-01",
         "to": null
       }
     }
@@ -233,7 +309,17 @@
   ],
   "/service/ou/ancestor-tree?uuid=2874e1dc-85e6-4269-823a-e1125484dfd3&at=2017-06-01": [
     {
-      "child_count": 2,
+      "child_count": 1,
+      "name": "Lønorganisation",
+      "user_key": "løn",
+      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+      "validity": {
+        "from": "2017-01-01",
+        "to": null
+      }
+    },
+    {
+      "child_count": 4,
       "name": "Overordnet Enhed",
       "user_key": "root",
       "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -241,19 +327,19 @@
         "from": "2016-01-01",
         "to": null
       }
-    },
+    }
+  ],
+  "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
     {
-      "child_count": 0,
-      "name": "Social og sundhed",
-      "user_key": "social-sundhed",
+      "child_count": 1,
+      "name": "Lønorganisation",
+      "user_key": "løn",
       "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
       "validity": {
         "from": "2017-01-01",
         "to": null
       }
-    }
-  ],
-  "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
+    },
     {
       "children": [
         {
@@ -275,6 +361,26 @@
             "from": "2017-01-01",
             "to": null
           }
+        },
+        {
+          "child_count": 1,
+          "name": "Skole og Børn",
+          "user_key": "skole-børn",
+          "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
+        },
+        {
+          "child_count": 0,
+          "name": "Social og sundhed",
+          "user_key": "social-sundhed",
+          "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+          "validity": {
+            "from": "2017-01-01",
+            "to": null
+          }
         }
       ],
       "name": "Overordnet Enhed",
@@ -282,16 +388,6 @@
       "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
       "validity": {
         "from": "2016-01-01",
-        "to": null
-      }
-    },
-    {
-      "child_count": 0,
-      "name": "Social og sundhed",
-      "user_key": "social-sundhed",
-      "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
-      "validity": {
-        "from": "2017-01-01",
         "to": null
       }
     }

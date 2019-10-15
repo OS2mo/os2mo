@@ -2,8 +2,8 @@
   "attributter": {
     "organisationenhedegenskaber": [
       {
-        "brugervendtnoegle": "social-sundhed",
-        "enhedsnavn": "Social og sundhed",
+        "brugervendtnoegle": "skole-børn",
+        "enhedsnavn": "Skole og Børn",
         "virkning": {
           "from": "2017-01-01 00:00:00+01:00",
           "to": "infinity"

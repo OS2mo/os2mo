@@ -44,6 +44,9 @@ test('Workflow: moveMany employee', async t => {
            .withText('Humanistisk fakultet'))
 
     .click(parentToInput)
+    .click(dialog.find('.to-unit .tree-node')
+           .withText('Overordnet Enhed')
+           .find('.tree-arrow'))
     .click(dialog.find('.to-unit span.tree-anchor')
            .withText('Social og sundhed'))
 
