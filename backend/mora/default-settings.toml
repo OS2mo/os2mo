@@ -51,6 +51,7 @@ enable = false
 idp_metadata_url = "/url/to/sso/metadata"
 idp_metadata_file = ""
 idp_insecure = false
+name_id_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
 username_from_nameid = true
 username_attr = ""
 key_file = ""

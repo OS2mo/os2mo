@@ -114,7 +114,7 @@ app_config = {
     "SAML_AUTH_ENABLE": config["saml_sso"]["enable"],
     "SAML_IDP_INSECURE": config["saml_sso"]["idp_insecure"],
     # SAML_FORCE_HTTPS
-    # SAML_NAME_ID_FORMAT
+    "SAML_NAME_ID_FORMAT": config["saml_sso"]["name_id_format"],
     # SAML_WANT_NAME_ID
     # SAML_WANT_ATTRIBUTE_STATEMENT
     # SAML_REQUESTED_AUTHN_CONTEXT
