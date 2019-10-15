@@ -57,6 +57,7 @@ lowercase_urlencoding = true
 want_name_id = true
 want_attribute_statement = false
 requested_authn_context = true
+requested_authn_context_comparison = "exact"
 username_from_nameid = true
 username_attr = ""
 key_file = ""
