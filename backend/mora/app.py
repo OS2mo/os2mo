@@ -37,7 +37,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     '''
     app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
-    app.config.from_object(settings)
+    app.config.update(settings.app_config)
 
     app.url_map.converters['uuid'] = util.StrUUIDConverter
 

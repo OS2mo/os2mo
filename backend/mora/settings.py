@@ -91,6 +91,59 @@ logger.info("Config: %s.", safe_config)
 del safe_config  # could get out of sync
 
 
+# This object is used with ``app.config.update`` in app.py.
+app_config = {
+    "DUMMY_MODE": config["dummy_mode"],
+    "QUERY_EXPORT_DIR": config["query_export"]["directory"],
+    "ENABLE_AMQP": config["amqp"]["enable"],
+    "AMQP_OS2MO_EXCHANGE": config["amqp"]["os2mo_exchange"],
+    "AMQP_HOST": config["amqp"]["host"],
+    "AMQP_PORT": config["amqp"]["port"],
+    "TRIGGER_MODULES": config["triggers"]["modules"],
+
+    # These two are *not* used by flask_saml_sso:
+    "SAML_USERNAME_FROM_NAMEID": config["saml_sso"]["username_from_nameid"],
+    "SAML_USERNAME_ATTR": config["saml_sso"]["username_attr"],
+
+    # The remaining key/value pairs are for flask_saml_sso. flask_saml_sso has
+    # many configuration parameters. The module reads its' configuration from
+    # keys on the app.config object. Here is the mapping between the module's
+    # settings and their names in the os2mo configuration. You can read what
+    # all the options do in the official documentation:
+    # https://flask-saml-sso.readthedocs.io/en/latest/README.html#configuration
+    "SAML_AUTH_ENABLE": config["saml_sso"]["enable"],
+    "SAML_IDP_INSECURE": config["saml_sso"]["idp_insecure"],
+    # SAML_FORCE_HTTPS
+    # SAML_NAME_ID_FORMAT
+    # SAML_WANT_NAME_ID
+    # SAML_WANT_ATTRIBUTE_STATEMENT
+    # SAML_REQUESTED_AUTHN_CONTEXT
+    # SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON
+    # SAML_LOWERCASE_URL_ENCODING
+    "SAML_REQUESTS_SIGNED": config["saml_sso"]["requests_signed"],
+    "SAML_CERT_FILE": config["saml_sso"]["cert_file"],
+    "SAML_KEY_FILE": config["saml_sso"]["key_file"],
+    # SAML_SIGNATURE_ALGORITHM
+    # SAML_DIGEST_ALGORITHM
+    "SAML_IDP_METADATA_URL": config["saml_sso"]["idp_metadata_url"],
+    "SAML_IDP_METADATA_FILE": config["saml_sso"]["idp_metadata_file"],
+    "SAML_DUPLICATE_ATTRIBUTES": config["saml_sso"]["duplicate_attributes"],
+    "SQLALCHEMY_DATABASE_URI": config["session"]["database"]["sqlalchemy_uri"],
+    "SESSION_SQLALCHEMY_TABLE": config["session"]["database"]["sqlalchemy_table"],
+    "SESSIONS_DB_USER": config["session"]["database"]["user"],
+    "SESSIONS_DB_PASSWORD": config["session"]["database"]["password"],
+    "SESSIONS_DB_HOST": config["session"]["database"]["host"],
+    "SESSIONS_DB_PORT": config["session"]["database"]["port"],
+    "SESSIONS_DB_NAME": config["session"]["database"]["name"],
+    "PERMANENT_SESSION_LIFETIME": config["session"]["permanent"],
+    "SAML_SERVICE_SESSION_LIFETIME": config["session"]["permanent_lifetime"],
+    # SESSION_COOKIE_NAME
+    "SAML_API_TOKEN_RESTRICT": config["saml_sso"]["api_token_restrict"],
+    "SAML_API_TOKEN_RESTRICT_ATTR": config["saml_sso"]["api_token_restrict_attr"],
+    "SAML_API_TOKEN_RESTRICT_VALUE": config["saml_sso"]["api_token_restrict_value"],
+}
+
+
 # All these variables are kept for backward compatibility / to change the least
 # code. From now on, use the ``config`` object in this module. At this point,
 # it would be fine to go through the code and get rid of the old variables,
