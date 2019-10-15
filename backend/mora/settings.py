@@ -116,7 +116,7 @@ app_config = {
     "SAML_FORCE_HTTPS": config["saml_sso"]["force_https"],
     "SAML_NAME_ID_FORMAT": config["saml_sso"]["name_id_format"],
     "SAML_WANT_NAME_ID": config["saml_sso"]["want_name_id"],
-    # SAML_WANT_ATTRIBUTE_STATEMENT
+    "SAML_WANT_ATTRIBUTE_STATEMENT": config["saml_sso"]["want_attribute_statement"],
     # SAML_REQUESTED_AUTHN_CONTEXT
     # SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON
     "SAML_LOWERCASE_URLENCODING": config["saml_sso"]["lowercase_urlencoding"],
