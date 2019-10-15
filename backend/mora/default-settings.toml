@@ -54,6 +54,7 @@ idp_insecure = false
 force_https = false
 name_id_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
 lowercase_urlencoding = true
+want_name_id = true
 username_from_nameid = true
 username_attr = ""
 key_file = ""
