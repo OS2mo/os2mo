@@ -63,6 +63,7 @@ username_from_nameid = true
 username_attr = ""
 key_file = ""
 cert_file = ""
+signature_algorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 requests_signed = false
 duplicate_attributes = true
 api_token_restrict = false
