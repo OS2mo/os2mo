@@ -48,6 +48,9 @@ port = 5432
 
 
 [saml_sso]
+# flask_saml_sso reads many of these off of app.config. Please refer to
+# settings.py to see exactly which are used and what flask_saml_sso
+# configuration parameter they map to.
 enable = false
 idp_metadata_url = "/url/to/sso/metadata"
 idp_metadata_file = ""
