@@ -1,3 +1,20 @@
+In development
+==============
+
+New features
+------------
+
+* #29760: Best practises updated concerning OS2Sync integration
+
+Bug fixes
+---------
+
+* #28830: Small update of configuration documentation
+
+Internal changes
+----------------
+
+
 Version 1.1.0, 2019-10-09
 =========================
 

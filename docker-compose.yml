@@ -11,15 +11,10 @@ services:
     # reloads on file changes. This is very useful when developing the backend.
     volumes:
       - ./backend:/code/backend
+      - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
     command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
     ports:
       - "5000:5000"
-    environment:
-      - OS2MO_LORA_URL=http://mox:8080/
-      - OS2MO_DUMMY_MODE=True
-      - OS2MO_CONF_DB_HOST=mox-db
-      - OS2MO_SESSIONS_DB_HOST=mox-db
-      - OS2MO_SESSIONS_DB_PORT=5432
     depends_on:
       - mox
 

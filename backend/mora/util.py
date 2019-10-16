@@ -274,36 +274,6 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
     return wrap
 
 
-def update_config(mapping, config_path, allow_environment=True):
-    """load the JSON configuration at the given path """
-
-    try:
-        with open(config_path) as fp:
-            overrides = json.load(fp)
-
-        for key in overrides.keys():
-            mapping[key] = overrides[key]
-
-    except IOError:
-        logger.error('Unable to read config {}'.format(config_path))
-
-    if allow_environment:
-        overrides = {
-            k[6:]: v
-            for k, v in os.environ.items()
-            if k.startswith('OS2MO_')
-        }
-
-        for key in overrides.keys():
-            logger.warning(
-                ' * Using configuration override {}={!r}'.format(
-                    key,
-                    overrides[key]
-                )
-            )
-            mapping[key] = overrides[key]
-
-
 def splitlist(xs, size):
     if size <= 0:
         exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE()
