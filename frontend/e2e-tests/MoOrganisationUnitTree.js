@@ -6,56 +6,49 @@ const dialog = Selector('#orgUnitTerminate')
 
 const trees = new Map([
   ["", [
-    "> Hjørring Kommune",
-    "> Lønorganisation"
+    "> Lønorganisation",
+    "> Overordnet Enhed"
   ]],
-  ["f06ee470-9f17-566f-acbe-e938112d46d9", [
-    "> =+= Hjørring Kommune =+=",
-    "> Lønorganisation"
+  ["2874e1dc-85e6-4269-823a-e1125484dfd3", [
+    "> Lønorganisation",
+    "> =+= Overordnet Enhed =+="
   ]],
-  ["535ba446-d618-4e51-8dae-821d63e26560",  [
+  ["85715fc7-925d-401b-822d-467eb4b163b6",  [
+    "> Lønorganisation",
     {
-      "Hjørring Kommune": [
-        "> Borgmesterens Afdeling",
+      "Overordnet Enhed": [
         {
-          "Skole og Børn": [
-            "IT-Support",
-            "> Skoler og børnehaver",
-            "=+= Social Indsats =+="
+          "Humanistisk fakultet": [
+            "=+= Filosofisk Institut =+="
           ]
         },
-        "Social og sundhed",
-        "> Teknik og Miljø"
+        "Samfundsvidenskabelige fakultet",
+        "> Skole og Børn",
+        "Social og sundhed"
       ]
-    },
-    "> Lønorganisation"
+    }
   ]],
-  ["96a4715c-f4df-422f-a4b0-9dcc686753f7", [
+  ["fa2e23c9-860a-4c90-bcc6-2c0721869a25", [
+    "> Lønorganisation",
     {
-        "Hjørring Kommune": [
-            {
-                "Borgmesterens Afdeling": [
-                    "Budget og Planlægning",
-                    "Byudvikling",
-                    "Erhverv",
-                    "=+= HR og organisation =+=",
-                    "IT-Support"
-                ]
-            },
-            "> Skole og Børn",
-            "Social og sundhed",
-            "> Teknik og Miljø"
-        ]
-    },
-    "> Lønorganisation"
-]
-],
+      "Overordnet Enhed": [
+        "> Humanistisk fakultet",
+        "Samfundsvidenskabelige fakultet",
+        {
+          "Skole og Børn": [
+            "=+= IT-Support =+="
+          ]
+        },
+        "Social og sundhed"
+      ]
+    }
+  ]]
 ])
 
 let tree = Selector('.orgunit-tree').with({ visibilityCheck: true})
 let treeNode = tree.find('.tree-node')
 let treeAnchor = treeNode.find('.tree-anchor')
-let rootNode = treeNode.withText('Hjørring Kommune')
+let rootNode = treeNode.withText('Overordnet Enhed')
 let selected = treeNode.filter('.selected')
 
 let currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck: true})
@@ -97,7 +90,7 @@ test
     .notOk()
     .click(rootNode)
     .expect(currentUnitName.innerText)
-    .eql('Hjørring Kommune')
+    .eql('Overordnet Enhed')
     .expect(rootNode.find('.tree-children').exists)
     .notOk()
     .click(rootNode.find('.tree-arrow'))
@@ -108,5 +101,5 @@ test
     .expect(currentUnitName.innerText)
     .eql('Social og sundhed')
     .expect(t.eval(() => location.pathname))
-    .eql('/organisation/a6773531-6c0a-4c7b-b0e2-77992412b610')
+    .eql('/organisation/68c5d78e-ae26-441f-a143-0103eca8b62a')
 })
