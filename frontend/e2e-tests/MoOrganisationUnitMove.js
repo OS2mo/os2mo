@@ -20,14 +20,12 @@ const fromInput = dialog.find('.moveDate input.form-control')
 
 const tree = VueSelector('mo-tree-view')
 
-let currentUnitName = Selector('.orgunit .orgunit-name')
+const currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck: true})
 
 test('Workflow: move unit', async t => {
   let today = moment()
 
   await t
-    .expect(currentUnitName.visible)
-    .ok()
     .expect(currentUnitName.innerText)
     .eql('Social Indsats')
     .expect(tree.find('.selected').exists)
