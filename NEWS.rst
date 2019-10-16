@@ -9,8 +9,24 @@ New features
 Bug fixes
 ---------
 
+* #28830: Small update of configuration documentation
+
 Internal changes
 ----------------
+
+
+Version 1.1.0, 2019-10-09
+=========================
+
+New features
+------------
+
+* #32200: Implement configuration option to hide CPR numbers, so CPR values
+  aren't returned from backend, and cannot be searched for.
+* #32174: Update documentation for authentication and authorization
+* #33033: Best practises expanded to cover payroll systems integration
+* #29760: Best practises updated concerning OS2Sync integration
+
 
 Version 1.0.0, 2019-10-04
 =========================
@@ -28,7 +44,6 @@ New features
 Bug fixes
 ---------
 
-* #28830: Small update of configuration documentation
 * #22316: Ensure update payloads sent to LoRa satisfy validation
   requirements
 * #31661: ``org`` is now correctly an optional (deprecated) parameter on

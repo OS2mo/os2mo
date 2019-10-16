@@ -9,6 +9,7 @@
 # DO NOT CHANGE. You can configure OS2MO in the mo-dev-settings.toml file.
 
 
+hide_cpr_numbers = false
 dummy_mode = false
 ca_bundle = ""
 
