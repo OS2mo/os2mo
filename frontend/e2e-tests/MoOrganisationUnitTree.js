@@ -52,13 +52,13 @@ const trees = new Map([
 ],
 ])
 
-let tree = Selector('.orgunit-tree')
+let tree = Selector('.orgunit-tree').with({ visibilityCheck: true})
 let treeNode = tree.find('.tree-node')
 let treeAnchor = treeNode.find('.tree-anchor')
 let rootNode = treeNode.withText('Hjørring Kommune')
 let selected = treeNode.filter('.selected')
 
-let currentUnitName = Selector('.orgunit .orgunit-name')
+let currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck: true})
 
 fixture('MoOrganisationUnitTree')
   .before(setup)
