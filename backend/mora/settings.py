@@ -65,6 +65,7 @@ SP_SYSTEM_UUID = ""
 SP_CERTIFICATE_PATH = ""
 
 DUMMY_MODE = False
+HIDE_CPR_NUMBERS = False
 
 CONF_DB_NAME = 'mora'
 CONF_DB_USER = 'mora'

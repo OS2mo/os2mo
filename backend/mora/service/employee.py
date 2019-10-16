@@ -238,6 +238,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
 
 def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
+    config = flask.current_app.config
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
     if only_primary_uuid:
         return {
@@ -268,9 +269,11 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
         rels = user['relationer']
 
         if rels.get('tilknyttedepersoner'):
-            r[mapping.CPR_NO] = (
-                rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
-            )
+            if config.get('HIDE_CPR_NUMBERS'):
+                cpr = 'XXXXXXXXXX'
+            else:
+                cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+            r[mapping.CPR_NO] = cpr
 
         r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.USER_KEY] = props['brugervendtnoegle']
@@ -343,6 +346,7 @@ def list_employees(orgid):
     # TODO: share code with list_orgunits?
 
     c = common.get_connector()
+    config = flask.current_app.config
 
     args = flask.request.args
 
@@ -354,7 +358,8 @@ def list_employees(orgid):
     )
 
     if 'query' in args:
-        if util.is_cpr_number(args['query']):
+        if util.is_cpr_number(args['query']) and not config.get(
+                'HIDE_CPR_NUMBERS'):
             kwargs.update(
                 tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
             )
