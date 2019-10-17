@@ -45,6 +45,12 @@ services:
       - dev-environment/db.env
       - dev-environment/sessions_db.env
       - dev-environment/conf_db.env
+    # The following will mount the database data directory to RAM. It
+    # significantly speeds up the database at the cost of dataloss on shutdown.
+    # This is useful for running tests, but should never be used if you want to
+    # save the data.
+    # tmpfs:
+    #   - /var/lib/postgresql/data
     volumes:
       - postgres-initdb.d:/docker-entrypoint-initdb.d
       - ./dev-environment/postgres-initdb.d/30-upgrade-to-superuser.sh:/docker-entrypoint-initdb.d/30-upgrade-to-superuser.sh
