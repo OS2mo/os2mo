@@ -297,7 +297,7 @@ class TestAddressLookup(util.TestCase):
                     },
                 )
 
-                self.assertEquals(actual, expected)
+                self.assertEqual(actual, expected)
 
     @util.mock()
     def test_bad_scope(self, m):
