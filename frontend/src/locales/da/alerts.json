@@ -44,7 +44,8 @@
     "V_INVALID_ADDRESS_EAN": "Feltet skal indeholde 13 cifre.",
     "V_INVALID_ADDRESS_PNUMBER": "Feltet skal indeholde 10 cifre.",
     "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en gyldig webadresse.",
-    "E_UNKNOWN": "Uspecificeret fejl"
+    "E_UNKNOWN": "Uspecificeret fejl",
+    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",
