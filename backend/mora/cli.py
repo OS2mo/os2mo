@@ -30,6 +30,7 @@ In addition, we have ``docs`` for building the documentation.
 import contextlib
 import doctest
 import json
+import logging
 import os
 import pkgutil
 import random
@@ -49,6 +50,9 @@ import werkzeug.serving
 from . import settings
 from . import app as mora_app
 from .service import configuration_options
+
+
+logger = logging.getLogger(__name__)
 
 basedir = os.path.dirname(__file__)
 backenddir = os.path.dirname(basedir)
@@ -550,18 +554,16 @@ def initdb(wait):
         value varchar(255) NOT NULL
         );"""
 
+        DEFAULT_CONF_DATA = ",\n".join("( Null, '%s', '%s' )" % (k, v) for k, v
+                                       in configuration_options.default)
         DEFAULT_CONF_DATA_QUERY = """
-        INSERT INTO orgunit_settings ( object, setting, value ) VALUES
-            ( Null, 'show_roles', 'True' ),
-            ( Null, 'show_user_key', 'True' ),
-            ( Null, 'show_location', 'True' ),
-            ( Null, 'show_time_planning', 'True' );
-        """
+        insert into orgunit_settings ( object, setting, value )
+             values %s;"""
 
         click.echo("Initializing configuration database.")
         cursor = conf_conn.cursor()
         cursor.execute(CREATE_CONF_QUERY)
-        cursor.execute(DEFAULT_CONF_DATA_QUERY)
+        cursor.execute(DEFAULT_CONF_DATA_QUERY % DEFAULT_CONF_DATA)
         conf_conn.commit()
         conf_conn.close()
         click.echo("Configuration database initialised.")
@@ -594,6 +596,16 @@ def _wait_and_init_db(init_db_fn, db_exception, wait):
             if i >= attempts:
                 sys.exit(1)
             time.sleep(_SLEEPING_TIME)
+
+
+@group.command()
+def check_configuration_db_status():
+    success, error_msg = configuration_options.health_check()
+    if success:
+        logger.info("Configuration database passed health check")
+    else:
+        logger.critical(error_msg)
+        sys.exit(3)
 
 
 if __name__ == '__main__':
