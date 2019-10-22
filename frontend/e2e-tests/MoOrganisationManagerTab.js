@@ -1,12 +1,11 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support';
+import { baseURL, setup, teardown } from './support';
 
 let moment = require('moment')
 
 fixture('MoOrganisationManagerTab')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
 
@@ -117,4 +116,3 @@ test('Workflow: organisation manager tab', async t => {
       /Leder med UUID [-0-9a-f]* er blevet afsluttet pr./
     )
 })
-

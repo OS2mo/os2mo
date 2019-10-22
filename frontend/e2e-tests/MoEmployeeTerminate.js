@@ -1,12 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support'
+import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeTerminate')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 
@@ -38,16 +37,16 @@ test('Workflow: terminate employee by search', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeField)
-    .typeText(searchEmployeeInput, 'erik')
+    .typeText(searchEmployeeInput, 'Lis')
 
     // FIXME: this is wrong...
     .expect(searchEmployeeInput.value)
-    .eql('rik', 'Have you fixed a bug so that it retains the first letter?')
+    .eql('is', 'Have you fixed a bug so that it retains the first letter?')
 
     .expect(searchEmployeeItem.withText(' ').visible)
     .ok('no user found - did test data change?')
     .pressKey('down enter')
-    .expect(searchEmployeeInput.value).match(/Erik/)
+    .expect(searchEmployeeInput.value).match(/Lis/)
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')

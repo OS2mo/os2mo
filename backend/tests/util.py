@@ -305,16 +305,9 @@ def create_app():
     def _testcafe_db_setup():
         _mox_testing_api("db-setup")
 
-        return flask.jsonify({"testcafe-db-setup": True})
-
-    @app_object.route("/testing/testcafe-db-reset")
-    @restrictargs()
-    def _testcafe_db_reset():
-        _mox_testing_api("db-reset")
-
         load_sample_structures()
 
-        return flask.jsonify({"testcafe-db-reset": True})
+        return flask.jsonify({"testcafe-db-setup": True})
 
     @app_object.route("/testing/testcafe-db-teardown")
     @restrictargs()

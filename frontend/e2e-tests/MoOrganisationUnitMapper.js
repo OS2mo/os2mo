@@ -1,12 +1,11 @@
 import { ClientFunction, Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support';
+import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMapper')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}`)
 
