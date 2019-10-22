@@ -33,9 +33,12 @@ the SP with correct configuration.
 Configuration
 ^^^^^^^^^^^^^
 
-Detailed instructions for configuring OS2mo authentication can be found at the
+Detailed instructions for configuring OS2mo authentication can be found in the
 documentation for
-`Flask SAML SSO <https://flask-saml-sso.readthedocs.io/en/latest/>`_
+`Flask SAML SSO <https://flask-saml-sso.readthedocs.io/en/latest/>`_. For the
+exact mapping between ``flask_saml_sso`` configuration options and OS2MO
+configuration options, please refer to the ``app_config`` object in
+``backend/mora/settings.py``.
 
 The following additional configuration entries exist for auth in OS2MO.
 
@@ -43,6 +46,9 @@ The following additional configuration entries exist for auth in OS2MO.
   from the NameID returned from the IdP. This is the default.
 * ``"SAML_USERNAME_ATTR"``: If username is not read from NameID, the username
   will be read from an attribute with this name.
+
+All configuration of OS2MO is done as described in :ref:`settings`. The
+relevant section for authentication is called ``[saml_sso]``.
 
 Minimal example
 """""""""""""""
