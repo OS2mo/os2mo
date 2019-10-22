@@ -3,8 +3,9 @@ import _ from 'lodash';
 
 export let baseURL = process.env.BASE_URL || 'http://localhost:5000';
 
-export function setup(ctx) {
+export async function setup(ctx) {
   let request = axios.get(`${baseURL}/testing/testcafe-db-setup`);
+  await request;
   request
     .then(response => {
       if (_.isEqual(response.data, { 'testcafe-db-setup': true })) {
@@ -27,34 +28,13 @@ export function setup(ctx) {
     });
 };
 
-export async function reset(test) {
-
-  await test.expect(test.fixtureCtx.setup_error)
-    .notOk("The database setup failed. Failing this test early.");
-
-  let request = axios.get(`${baseURL}/testing/testcafe-db-reset`);
-  request
-    .then(response => {
-      if (_.isEqual(response.data, { 'testcafe-db-reset': true })) {
-        console.log("Resetting database for testcafe.");
-      } else {
-        console.error(
-          "MOs testing API reset did not return the expected value. It returned: %s",
-          response.data);
-      }
-    })
-    .catch(error => {
-      console.error("Call to MOs testing API reset failed: %s",
-                    error.message);
-    });
-}
-
-export function teardown(ctx) {
+export async function teardown(ctx) {
 
   if (ctx.setup_error) {
     console.warn("Setup of the test database failed. Skipping teardown.");
   } else {
     let request = axios.get(`${baseURL}/testing/testcafe-db-teardown`);
+    await request;
 
     request
       .then(response => {

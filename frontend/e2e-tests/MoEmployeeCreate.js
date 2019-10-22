@@ -1,5 +1,5 @@
 import { Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support'
+import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
@@ -69,7 +69,6 @@ const searchFieldItem = searchField.find('.v-autocomplete-list-item')
 
 fixture('MoEmployeeCreate')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 
@@ -331,7 +330,7 @@ test('Workflow: create employee with itsystem only', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     // CPR Number
-    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2003920009')
+    .typeText(dialog.find('input[data-vv-as="CPR nummer"]'), '2104930010')
     .click(checkbox)
     .expect(checkbox.checked).ok()
 
@@ -371,7 +370,7 @@ test('Workflow: create employee with itsystem only', async t => {
       /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
     )
     .expect(Selector('.card-title').textContent)
-    .match(/Oliver Jensen \(200392-0009\)/)
+    .match(/Nanna Jensen \(210493-0010\)/)
     .expect(VueSelector('bTabButtonHelper').exists)
     .ok()
     .expect(VueSelector('bTabButtonHelper').withText('IT').exists)

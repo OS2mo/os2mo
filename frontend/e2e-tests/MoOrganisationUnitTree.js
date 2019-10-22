@@ -1,6 +1,6 @@
 import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
-import { baseURL, setup, reset, teardown } from './support';
+import { baseURL, setup, teardown } from './support';
 
 const dialog = Selector('#orgUnitTerminate')
 
@@ -55,7 +55,6 @@ let currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck:
 
 fixture('MoOrganisationUnitTree')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
 
 for (const [selection, contents] of trees.entries()) {
