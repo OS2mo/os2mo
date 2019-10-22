@@ -1,12 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support';
+import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeMove')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 

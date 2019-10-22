@@ -1,12 +1,11 @@
 import { Selector } from 'testcafe'
-import { baseURL, setup, reset, teardown } from './support'
+import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitCreate')
   .before(setup)
-  .beforeEach(reset)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
 
