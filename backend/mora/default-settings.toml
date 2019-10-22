@@ -10,7 +10,6 @@
 
 
 hide_cpr_numbers = false
-session_cookie_name = "session"
 dummy_mode = false
 ca_bundle = ""
 
@@ -34,6 +33,7 @@ uuid = ""
 
 
 [session]
+cookie_name = "session"
 permanent = true
 permanent_lifetime = 3600
 
