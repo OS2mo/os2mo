@@ -725,15 +725,11 @@ def get_validities(obj, fallback=None) -> typing.Tuple[
     return valid_from, valid_to
 
 
-def get_validity_effect(entry, fallback=None):
-    if mapping.VALIDITY not in entry and fallback is None:
-        return None
-
-    valid_from, valid_to = get_validities(entry, fallback)
-
+def get_validity_object(start, end):
     return {
-        mapping.FROM: to_lora_time(valid_from),
-        mapping.TO: to_lora_time(valid_to),
+        mapping.FROM: to_iso_date(start),
+        mapping.TO: to_iso_date(
+            end, is_end=True)
     }
 
 
