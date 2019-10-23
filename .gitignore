@@ -108,3 +108,4 @@ yarn-error.log*
 
 # configuration
 setup/mora.json
+docker-compose.override.yml
