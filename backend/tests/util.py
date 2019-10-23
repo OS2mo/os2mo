@@ -102,7 +102,6 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     into LoRA at the given path & UUID.
 
     '''
-    print('creating', path, uuid, file=sys.stderr)
     r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
     return r
 
