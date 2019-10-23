@@ -6,6 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import psycopg2
+from psycopg2.extras import execute_values
+from psycopg2.sql import SQL
 import flask
 import logging
 from mora import exceptions
@@ -19,9 +21,9 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
 
 
 # This is the default key-value configuration pairs. They are used to
-# initialize the configuration database through the cli and in health_check to
+# initialize the configuration database through and in health_check to
 # verify that there exist default values for all expected keys.
-default = (
+_DEFAULT_CONF = (
     ('show_roles', 'True'),
     ('show_user_key', 'True'),
     ('show_location', 'True'),
@@ -29,8 +31,10 @@ default = (
 )
 
 
-if not all(c in config["configuration"]["database"] for c in (
-        "name", "user", "password", "host", "port")):
+if not all(
+    c in config["configuration"]["database"]
+    for c in ("name", "user", "password", "host", "port")
+):
     error_msgs = [
         'Configuration error of user settings connection information',
         'CONF_DB_USER: {}'.format(config["configuration"]["database"]["user"]),
@@ -46,11 +50,13 @@ if not all(c in config["configuration"]["database"] for c in (
     raise Exception(error_msgs[0])
 
 
-def _get_connection():
+_DBNAME = config["configuration"]["database"]["name"]
+
+def _get_connection(dbname):
     logger.debug('Open connection to database')
     try:
         conn = psycopg2.connect(
-            dbname=config["configuration"]["database"]["name"],
+            dbname=dbname,
             user=config["configuration"]["database"]["user"],
             password=config["configuration"]["database"]["password"],
             host=config["configuration"]["database"]["host"],
@@ -60,6 +66,32 @@ def _get_connection():
         logger.error('Database connection error')
         raise
     return conn
+
+
+def create_db_table():
+    """Initialize the config database with a table and default values."""
+
+    CREATE_CONF_QUERY = SQL(
+        "CREATE TABLE IF NOT EXISTS orgunit_settings("
+        "id serial PRIMARY KEY,"
+        "object UUID,"
+        "setting varchar(255) NOT NULL,"
+        "value varchar(255) NOT NULL"
+        ");"
+    )
+
+    DEFAULT_CONF_DATA_QUERY = SQL(
+        "INSERT INTO orgunit_settings ( object, setting, value ) VALUES %s;"
+    )
+
+    logger.info("Initializing configuration database.")
+    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
+        cursor.execute(CREATE_CONF_QUERY)
+        execute_values(cursor,
+                       DEFAULT_CONF_DATA_QUERY,
+                       _DEFAULT_CONF,
+                       "( Null, %s, %s)")
+    logger.info("Configuration database initialised.")
 
 
 def health_check():
@@ -72,7 +104,7 @@ def health_check():
     This is intended to be used whenever an app object is created.
     """
     try:
-        conn = _get_connection()
+        conn = _get_connection(_DBNAME)
     except psycopg2.Error as e:
         error_msg = "Configuration database connnection error: %s"
         return False, error_msg % e.pgerror
@@ -90,7 +122,7 @@ def health_check():
         conn.close()
 
     missing = set()
-    for key, __ in default:
+    for key, __ in _DEFAULT_CONF:
         if key not in settings_in_db:
             missing.add(key)
     if missing:
@@ -108,7 +140,7 @@ def get_configuration(unitid=None):
         query_suffix = " IS %s"
 
     configuration = {}
-    conn = _get_connection()
+    conn = _get_connection(_DBNAME)
     query = ("SELECT setting, value FROM orgunit_settings WHERE object" +
              query_suffix)
     try:
@@ -139,7 +171,7 @@ def set_configuration(configuration, unitid=None):
     else:
         query_suffix = ' IS %s'
 
-    conn = _get_connection()
+    conn = _get_connection(_DBNAME)
     try:
         cur = conn.cursor()
         orgunit_conf = configuration['org_units']
