@@ -9,10 +9,12 @@ services:
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
+    # We also change the Flask app to one where a testing API for testcafe
+    # e2e-tests is enabled.
     volumes:
       - ./backend:/code/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
-    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
+    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
     ports:
       - "5000:5000"
     depends_on:
@@ -46,6 +48,15 @@ services:
     volumes:
       - postgres-initdb.d:/docker-entrypoint-initdb.d
       - ./dev-environment/postgres-initdb.d/30-upgrade-to-superuser.sh:/docker-entrypoint-initdb.d/30-upgrade-to-superuser.sh
+
+  testcafe:
+    build:
+      context: dev-environment/testcafe
+    volumes:
+      - ./frontend/e2e-tests:/tests
+      - ./testcafe-artifacts:/artifacts
+    environment:
+      - BASE_URL=http://mo:5000
 
   # The following services is to copy the `db_extension.json` and the scrript
   # needed to initialize the database to volumes.

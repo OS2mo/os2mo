@@ -1,11 +1,12 @@
 import {Selector} from 'testcafe'
-import {baseURL, reset} from './support'
+import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitTerminate')
-  .beforeEach(reset)
+  .before(setup)
+  .after(teardown)
   .page(`${baseURL}/organisation`)
 
 const createDialog = Selector('#orgUnitCreate')
@@ -59,7 +60,7 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .typeText(createDialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
 
     .click(createUnitSelect)
-    .click(createUnitOption.withText('Fagligt center'))
+    .click(createUnitOption.withText('Institut'))
 
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
@@ -98,7 +99,7 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
 
     .click(parentInput)
     .click(dialog.find('.tree-node')
-      .withText('Hjørring Kommune')
+      .withText('Lønorganisation')
       .find('.tree-arrow'))
     .click(dialog.find('.tree-anchor').withText('VM 2018'))
 
@@ -158,11 +159,11 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
   let actualPresent = present.split(/[\n\t]+/).map(s => s.trim()).join("|")
 
   let expectedPast = [
-    "Hjørring VM 2018", "Fagligt center", "Tjenestetid", "Hjørring Kommune",
+    "Hjørring VM 2018", "Institut", "Tjenestetid", "Lønorganisation",
     lastMonth.format("DD-MM-YYYY"), yesterday.format("DD-MM-YYYY"), ""
   ].join("|")
   let expectedPresent = [
-    "Hjørring VM 2019", "Fagligt center", "Tjenestetid", "Hjørring Kommune",
+    "Hjørring VM 2019", "Institut", "Tjenestetid", "Lønorganisation",
     today.format("DD-MM-YYYY"), twoMonths.format("DD-MM-YYYY"), ""
   ].join("|")
 
@@ -188,7 +189,7 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .typeText(createDialog.find('input[data-vv-as="Navn"]'), 'Hjørring VM 2018')
 
     .click(createUnitSelect)
-    .click(createUnitOption.withText('Fagligt center'))
+    .click(createUnitOption.withText('Institut'))
 
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
@@ -225,7 +226,7 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .click(parentInput)
     .click(dialog.find('.tree-node')
-      .withText('Hjørring Kommune')
+      .withText('Lønorganisation')
       .find('.tree-arrow'))
     .click(dialog.find('.tree-anchor').withText('VM 2018'))
 
@@ -296,11 +297,11 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
   let actualFuture = future.split(/[\n\t]+/).map(s => s.trim()).join("|")
 
   let expectedPresent = [
-    "Hjørring VM 2018", "Fagligt center", "Tjenestetid", "Hjørring Kommune",
+    "Hjørring VM 2018", "Institut", "Tjenestetid", "Lønorganisation",
     lastMonth.format("DD-MM-YYYY"), lastDayOfThisMonth.format("DD-MM-YYYY"), ""
   ].join("|")
   let expectedFuture = [
-    "Hjørring VM 2019", "Fagligt center", "Tjenestetid", "Hjørring Kommune",
+    "Hjørring VM 2019", "Institut", "Tjenestetid", "Lønorganisation",
     nextMonth.format("DD-MM-YYYY"), twoMonths.format("DD-MM-YYYY"), ""
   ].join("|")
 

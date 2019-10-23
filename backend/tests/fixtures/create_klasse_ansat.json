@@ -3,10 +3,8 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "EAN",
-                "eksempel": "5712345000014",
-                "omfang": "EAN",
-                "titel": "EAN",
+                "brugervendtnoegle": "ansat",
+                "titel": "Ansat",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +30,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

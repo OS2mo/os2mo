@@ -1,39 +1,9 @@
 {
   "attributter": {
-    "organisationfunktionegenskaber": [
+    "organisationenhedegenskaber": [
       {
-        "brugervendtnoegle": "bvn",
-        "funktionsnavn": "Orlov",
-        "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ]
-  },
-  "note": "Automatisk indl\u00e6sning",
-  "relationer": {
-    "organisatoriskfunktionstype": [
-      {
-        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-        "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ],
-    "tilknyttedebrugere": [
-      {
-        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-        "virkning": {
-          "from": "2017-01-01 00:00:00+01:00",
-          "to": "infinity"
-        }
-      }
-    ],
-    "tilknyttedeorganisationer": [
-      {
-        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "brugervendtnoegle": "social_og_sundhed-løn",
+        "enhedsnavn": "Social og sundhed",
         "virkning": {
           "from": "2017-01-01 00:00:00+01:00",
           "to": "infinity"
@@ -42,7 +12,7 @@
     ]
   },
   "tilstande": {
-    "organisationfunktiongyldighed": [
+    "organisationenhedgyldighed": [
       {
         "gyldighed": "Aktiv",
         "virkning": {
@@ -51,5 +21,35 @@
         }
       }
     ]
-  }
+  },
+  "relationer": {
+    "tilhoerer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning"
 }

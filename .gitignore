@@ -108,3 +108,7 @@ yarn-error.log*
 
 # configuration
 setup/mora.json
+
+# Test artifacts
+testcafe-artifacts
+.pytest_cache

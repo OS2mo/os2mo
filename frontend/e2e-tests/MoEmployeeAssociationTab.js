@@ -1,11 +1,12 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, teardown } from './support'
 
 let moment = require('moment')
 
 fixture('MoEmployeeAssociationTab')
-  .beforeEach(reset)
+  .before(setup)
+  .after(teardown)
   .page(`${baseURL}/medarbejder/`)
 
 const dialog = Selector('.modal-content')
@@ -100,4 +101,3 @@ test('Workflow: employee association tab', async t => {
       /Tilknytning med UUID [-0-9a-f]* er blevet afsluttet pr./
     )
 })
-
