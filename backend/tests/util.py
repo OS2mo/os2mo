@@ -36,13 +36,6 @@ BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
-TOP_DIR = os.path.dirname(BASE_DIR)
-FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
-DOCS_DIR = os.path.join(TOP_DIR, 'docs')
-
-BUILD_DIR = os.path.join(BASE_DIR, 'build')
-REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
-
 jinja_env = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
         searchpath=FIXTURE_DIR,
@@ -417,8 +410,6 @@ class _BaseTestCase(flask_testing.TestCase):
         super().setUp()
 
     def create_app(self, overrides=None):
-        os.makedirs(BUILD_DIR, exist_ok=True)
-
         # make sure the configured organisation is always reset
         # every before test
         service.org.ConfiguredOrganisation.valid = False
