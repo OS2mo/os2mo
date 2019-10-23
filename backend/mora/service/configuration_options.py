@@ -9,7 +9,7 @@ import psycopg2
 import flask
 import logging
 from mora import exceptions
-from .. import settings
+from mora.settings import config
 from .. import util
 
 logger = logging.getLogger("mo_configuration")
@@ -29,17 +29,16 @@ default = (
 )
 
 
-if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
-        settings.CONF_DB_HOST and settings.CONF_DB_PORT and
-        settings.CONF_DB_PASSWORD):
+if not all(c in config["configuration"]["database"] for c in (
+        "name", "user", "password", "host", "port")):
     error_msgs = [
         'Configuration error of user settings connection information',
-        'CONF_DB_USER: {}'.format(settings.CONF_DB_USER),
-        'CONF_DB_NAME: {}'.format(settings.CONF_DB_NAME),
-        'CONF_DB_HOST: {}'.format(settings.CONF_DB_HOST),
-        'CONF_DB_PORT: {}'.format(settings.CONF_DB_PORT),
+        'CONF_DB_USER: {}'.format(config["configuration"]["database"]["user"]),
+        'CONF_DB_NAME: {}'.format(config["configuration"]["database"]["name"]),
+        'CONF_DB_HOST: {}'.format(config["configuration"]["database"]["host"]),
+        'CONF_DB_PORT: {}'.format(config["configuration"]["database"]["port"]),
         'Length of CONF_DB_PASSWORD: {}'.format(
-            len(settings.CONF_DB_PASSWORD)
+            len(config["configuration"]["database"]["password"])
         )
     ]
     for msg in error_msgs:
@@ -50,11 +49,13 @@ if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
 def _get_connection():
     logger.debug('Open connection to database')
     try:
-        conn = psycopg2.connect(user=settings.CONF_DB_USER,
-                                dbname=settings.CONF_DB_NAME,
-                                host=settings.CONF_DB_HOST,
-                                port=settings.CONF_DB_PORT,
-                                password=settings.CONF_DB_PASSWORD)
+        conn = psycopg2.connect(
+            dbname=config["configuration"]["database"]["name"],
+            user=config["configuration"]["database"]["user"],
+            password=config["configuration"]["database"]["password"],
+            host=config["configuration"]["database"]["host"],
+            port=config["configuration"]["database"]["port"],
+        )
     except psycopg2.OperationalError:
         logger.error('Database connection error')
         raise
