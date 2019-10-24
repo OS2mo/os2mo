@@ -7,7 +7,7 @@
 #
 import psycopg2
 from psycopg2.extras import execute_values
-from psycopg2.sql import SQL
+from psycopg2.sql import SQL, Identifier
 import flask
 import logging
 from mora import exceptions
@@ -51,6 +51,10 @@ if not all(
 
 
 _DBNAME = config["configuration"]["database"]["name"]
+_DBNAME_BACKUP = _DBNAME + "_backup"
+# The postgres default (empty) template for CREATE DATABASE.
+_DBNAME_SYS_TEMPLATE = "template1"
+
 
 def _get_connection(dbname):
     logger.debug('Open connection to database')
@@ -68,6 +72,79 @@ def _get_connection(dbname):
     return conn
 
 
+def _cpdb(dbname_from, dbname_to):
+    """Copy a pg database object.
+
+    This creates a new database and uses `dbname_from` as a template for that
+    database. It copys all structures and data.
+
+    Requires CREATEDB or SUPERUSER privileges.
+
+    """
+    logger.debug("Copying database from %s to %s", dbname_from, dbname_to)
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn:
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+        )
+        with conn.cursor() as curs:
+            curs.execute(
+                SQL("create database {} with template {};").format(
+                    Identifier(dbname_to), Identifier(dbname_from)
+                )
+            )
+
+
+def _dropdb(dbname):
+    """Deletes a pg database object.
+
+    Requires OWNER or SUPERUSER privileges.
+    """
+    logger.debug("Dropping database %s", dbname)
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn:
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+        )
+        with conn.cursor() as curs:
+            curs.execute(
+                SQL("DROP DATABASE IF EXISTS {};").format(Identifier(dbname))
+            )
+
+
+def _createdb():
+    """Create a new database and initialize table.
+
+    Requires CREATEDB or SUPERUSER privileges.
+
+    """
+    _cpdb(_DBNAME_SYS_TEMPLATE, _DBNAME)
+    create_db_table()
+
+
+def _check_database(dbname):
+    """Checks if a pg database object exists."""
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn, conn.cursor() as curs:
+        curs.execute(
+            "select datname from pg_catalog.pg_database where datname=%s",
+            [dbname],
+        )
+        return bool(curs.fetchone())
+
+
+def set_global_conf(conf):
+    """Load a global configuration directly into the database. It does not
+    check for duplicates.
+
+    """
+    DEFAULT_CONF_DATA_QUERY = SQL(
+        "INSERT INTO orgunit_settings ( object, setting, value ) VALUES %s;"
+    )
+
+    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
+        execute_values(
+            cursor, DEFAULT_CONF_DATA_QUERY, conf, "( Null, %s, %s)"
+        )
+
+
 def create_db_table():
     """Initialize the config database with a table and default values."""
 
@@ -80,17 +157,11 @@ def create_db_table():
         ");"
     )
 
-    DEFAULT_CONF_DATA_QUERY = SQL(
-        "INSERT INTO orgunit_settings ( object, setting, value ) VALUES %s;"
-    )
-
     logger.info("Initializing configuration database.")
     with _get_connection(_DBNAME) as con, con.cursor() as cursor:
         cursor.execute(CREATE_CONF_QUERY)
-        execute_values(cursor,
-                       DEFAULT_CONF_DATA_QUERY,
-                       _DEFAULT_CONF,
-                       "( Null, %s, %s)")
+
+    set_global_conf(_DEFAULT_CONF)
     logger.info("Configuration database initialised.")
 
 
@@ -131,6 +202,54 @@ def health_check():
         return False, error_msg
 
     return True, "Success"
+
+
+def testdb_setup():
+    """Move the database specified in settings to a backup location and reset
+    the database specified in the settings. This makes the database ready for
+    testing while still preserving potential data written to the database. Use
+    `testdb_teardown()` to reverse this.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+    logger.info("Setting up test database: %s", _DBNAME)
+    if _check_database(_DBNAME_BACKUP):
+        raise Exception(
+            "The backup location used for the database while running tests is "
+            "not empty. You have to make sure no data is lost and manually "
+            "remove the database: %s" % _DBNAME_BACKUP
+        )
+
+    _cpdb(_DBNAME, _DBNAME_BACKUP)
+
+    testdb_reset()
+
+
+def testdb_reset():
+    """Reset the database specified in settings from the template. Requires the
+    template database to be created.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+
+    logger.info("Resetting test database: %s", _DBNAME)
+    _dropdb(_DBNAME)
+    _createdb()
+
+
+def testdb_teardown():
+    """Move the database at the backup location back to database location
+    specified in the settings. Remove the changes made by `testdb_setup()`.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+    logger.info("Removing test database: %s", _DBNAME)
+    _dropdb(_DBNAME)
+    _cpdb(_DBNAME_BACKUP, _DBNAME)
+    _dropdb(_DBNAME_BACKUP)
 
 
 def get_configuration(unitid=None):
