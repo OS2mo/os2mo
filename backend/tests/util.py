@@ -28,6 +28,7 @@ import werkzeug.serving
 
 from mora import triggers, app, lora, settings, service
 from mora.exceptions import ImproperlyConfigured
+from mora.service import configuration_options
 from mora.util import restrictargs
 
 
@@ -622,4 +623,27 @@ class LoRATestCase(_BaseTestCase):
 
     def setUp(self):
         _mox_testing_api("db-reset")
+        super().setUp()
+
+
+class ConfigTestCase(LoRATestCase):
+    """Testcase with configuration database support.
+
+    """
+
+    def set_global_conf(self, conf):
+        configuration_options.set_global_conf(conf)
+
+    @classmethod
+    def setUpClass(cls):
+        configuration_options.testdb_setup()
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        configuration_options.testdb_teardown()
+        super().tearDownClass()
+
+    def setUp(self):
+        configuration_options.testdb_reset()
         super().setUp()
