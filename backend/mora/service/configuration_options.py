@@ -177,7 +177,7 @@ def health_check():
     try:
         conn = _get_connection(_DBNAME)
     except psycopg2.Error as e:
-        error_msg = "Configuration database connnection error: %s"
+        error_msg = "Configuration database connection error: %s"
         return False, error_msg % e.pgerror
 
     # all settings that have a global (uuid = null) value
