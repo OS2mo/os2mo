@@ -57,13 +57,14 @@ The auth module contains sane defaults for a large number of the parameters,
 which should work with *most* IdPs. The following is a minimal example for
 configuring SAML auth and sessions::
 
-  {
-    "SAML_AUTH_ENABLE": true,
-    "SAML_IDP_METADATA_URL": "http://url-to-adfs.com/fs/metadata.xml",
-    "SQLALCHEMY_DATABASE_URI": "postgresql://127.0.0.1/sessions",
-    "SESSIONS_DB_NAME": "sessions",
-    "SESSIONS_DB_PASSWORD": "sessions"
-  }
+  [saml_sso]
+  enable = true
+  idp_metadata_url = "http://url-to-adfs.com/fs/metadata.xml"
+
+  [session.database]
+  host = "localhost"
+  name = "sessions"
+  password = "sessions"
 
 Testing
 ^^^^^^^
