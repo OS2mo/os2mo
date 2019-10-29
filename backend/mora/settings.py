@@ -99,7 +99,8 @@ app_config = {
     # serviceplatformen
     "DUMMY_MODE": config["dummy_mode"],
     "SP_SERVICE_UUID": config['service_platformen']['uuid'],
-    "SP_SERVICE_AGREEMENT_UUID": config['service_platformen']['agreement_uuid'],
+    "SP_SERVICE_AGREEMENT_UUID":
+        config['service_platformen']['agreement_uuid'],
     "SP_MUNICIPALITY_UUID": config['service_platformen']['municipality_uuid'],
     "SP_SYSTEM_UUID": config['service_platformen']['system_uuid'],
     "SP_CERTIFICATE_PATH": config['service_platformen']['certificate_path'],
@@ -125,9 +126,12 @@ app_config = {
     "SAML_FORCE_HTTPS": config["saml_sso"]["force_https"],
     "SAML_NAME_ID_FORMAT": config["saml_sso"]["name_id_format"],
     "SAML_WANT_NAME_ID": config["saml_sso"]["want_name_id"],
-    "SAML_WANT_ATTRIBUTE_STATEMENT": config["saml_sso"]["want_attribute_statement"],
-    "SAML_REQUESTED_AUTHN_CONTEXT": config["saml_sso"]["requested_authn_context"],
-    "SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON": config["saml_sso"]["requested_authn_context_comparison"],
+    "SAML_WANT_ATTRIBUTE_STATEMENT":
+        config["saml_sso"]["want_attribute_statement"],
+    "SAML_REQUESTED_AUTHN_CONTEXT":
+        config["saml_sso"]["requested_authn_context"],
+    "SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON":
+        config["saml_sso"]["requested_authn_context_comparison"],
     "SAML_LOWERCASE_URLENCODING": config["saml_sso"]["lowercase_urlencoding"],
     "SAML_REQUESTS_SIGNED": config["saml_sso"]["requests_signed"],
     "SAML_CERT_FILE": config["saml_sso"]["cert_file"],
@@ -138,7 +142,8 @@ app_config = {
     "SAML_IDP_METADATA_FILE": config["saml_sso"]["idp_metadata_file"],
     "SAML_DUPLICATE_ATTRIBUTES": config["saml_sso"]["duplicate_attributes"],
     "SQLALCHEMY_DATABASE_URI": config["session"]["database"]["sqlalchemy_uri"],
-    "SESSION_SQLALCHEMY_TABLE": config["session"]["database"]["sqlalchemy_table"],
+    "SESSION_SQLALCHEMY_TABLE":
+        config["session"]["database"]["sqlalchemy_table"],
     "SESSIONS_DB_USER": config["session"]["database"]["user"],
     "SESSIONS_DB_PASSWORD": config["session"]["database"]["password"],
     "SESSIONS_DB_HOST": config["session"]["database"]["host"],
@@ -146,11 +151,14 @@ app_config = {
     "SESSIONS_DB_NAME": config["session"]["database"]["name"],
     "SESSION_PERMANENT": config["session"]["permanent"],
     "PERMANENT_SESSION_LIFETIME": config["session"]["permanent_lifetime"],
-    "SAML_SERVICE_SESSION_LIFETIME": config["session"]["service_session_lifetime"],
+    "SAML_SERVICE_SESSION_LIFETIME":
+        config["session"]["service_session_lifetime"],
     "SESSION_COOKIE_NAME": config["session"]["cookie_name"],
     "SAML_API_TOKEN_RESTRICT": config["saml_sso"]["api_token_restrict"],
-    "SAML_API_TOKEN_RESTRICT_ATTR": config["saml_sso"]["api_token_restrict_attr"],
-    "SAML_API_TOKEN_RESTRICT_VALUE": config["saml_sso"]["api_token_restrict_value"],
+    "SAML_API_TOKEN_RESTRICT_ATTR":
+        config["saml_sso"]["api_token_restrict_attr"],
+    "SAML_API_TOKEN_RESTRICT_VALUE":
+        config["saml_sso"]["api_token_restrict_value"],
 }
 
 
