@@ -12,6 +12,7 @@ import pika
 from mora import exceptions
 from mora import util
 from mora import mapping
+from mora import settings
 from mora.triggers import Trigger
 
 logger = logging.getLogger("amqp")
