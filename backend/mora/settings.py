@@ -93,13 +93,22 @@ del safe_config  # could get out of sync
 
 # This object is used with ``app.config.update`` in app.py.
 app_config = {
-    "DUMMY_MODE": config["dummy_mode"],
     "QUERY_EXPORT_DIR": config["query_export"]["directory"],
+    "TRIGGER_MODULES": config["triggers"]["modules"],
+
+    # serviceplatformen
+    "DUMMY_MODE": config["dummy_mode"],
+    "SP_SERVICE_UUID": config['service_platformen']['uuid'],
+    "SP_SERVICE_AGREEMENT_UUID": config['service_platformen']['agreement_uuid'],
+    "SP_MUNICIPALITY_UUID": config['service_platformen']['municipality_uuid'],
+    "SP_SYSTEM_UUID": config['service_platformen']['system_uuid'],
+    "SP_CERTIFICATE_PATH": config['service_platformen']['certificate_path'],
+
+    # amqp
     "ENABLE_AMQP": config["amqp"]["enable"],
     "AMQP_OS2MO_EXCHANGE": config["amqp"]["os2mo_exchange"],
     "AMQP_HOST": config["amqp"]["host"],
     "AMQP_PORT": config["amqp"]["port"],
-    "TRIGGER_MODULES": config["triggers"]["modules"],
 
     # These two are *not* used by flask_saml_sso:
     "SAML_USERNAME_FROM_NAMEID": config["saml_sso"]["username_from_nameid"],
