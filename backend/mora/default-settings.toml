@@ -36,6 +36,7 @@ uuid = ""
 cookie_name = "session"
 permanent = true
 permanent_lifetime = 3600
+service_session_lifetime = 2678400
 
 [session.database]
 sqlalchemy_uri = ""
