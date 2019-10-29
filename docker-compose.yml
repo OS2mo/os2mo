@@ -20,6 +20,7 @@ services:
       - "5000:5000"
     depends_on:
       - mox
+      - msg_broker
 
   mox:
     image: magentalabs/mox:dev-latest
@@ -51,6 +52,21 @@ services:
     # save the data.
     # tmpfs:
     #   - /var/lib/postgresql/data
+
+  msg_broker:
+    # Normally, we expect the `rabbitmq` image. The -management images come
+    # with a set of management plugins installed and enabled by default. They
+    # can be accessed through the web interface on port 15672. The credentials
+    # are guest/guest.
+    image: rabbitmq:3-management
+    # RabbitMQ stores data based on what it calls the "Node Name", which
+    # defaults to the hostname. We set this, so we can keep track of our data.
+    hostname: msg_broker
+    # We expose the ports here, so decoupled agents can be developed with more
+    # ease.
+    ports:
+      - "5672:5672"    # amqp port
+      - "15672:15672"  # management port
 
   testcafe:
     image: magentalabs/testcafe:latest
