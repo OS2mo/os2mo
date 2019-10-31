@@ -543,31 +543,6 @@ def initdb(wait):
     on an already initialized database.
     """
 
-    def init_configuration():
-        conf_conn = configuration_options._get_connection()
-
-        CREATE_CONF_QUERY = """
-        CREATE TABLE IF NOT EXISTS orgunit_settings(
-            id serial PRIMARY KEY,
-        object UUID,
-        setting varchar(255) NOT NULL,
-        value varchar(255) NOT NULL
-        );"""
-
-        DEFAULT_CONF_DATA = ",\n".join("( Null, '%s', '%s' )" % (k, v) for k, v
-                                       in configuration_options.default)
-        DEFAULT_CONF_DATA_QUERY = """
-        insert into orgunit_settings ( object, setting, value )
-             values %s;"""
-
-        click.echo("Initializing configuration database.")
-        cursor = conf_conn.cursor()
-        cursor.execute(CREATE_CONF_QUERY)
-        cursor.execute(DEFAULT_CONF_DATA_QUERY % DEFAULT_CONF_DATA)
-        conf_conn.commit()
-        conf_conn.close()
-        click.echo("Configuration database initialised.")
-
     def get_init_sessions():
         app = mora_app.create_app()
 
@@ -577,7 +552,7 @@ def initdb(wait):
 
         return init_sessions
 
-    time_left = _wait_and_init_db(init_configuration,
+    time_left = _wait_and_init_db(configuration_options.create_db_table,
                                   psycopg2.OperationalError, wait)
     if settings.SAML_AUTH_ENABLE:
         _wait_and_init_db(get_init_sessions(),
