@@ -85,8 +85,9 @@ export default {
     },
     showTimePlanning () {
       if (this.entry.parent) {
-        let showTimePlanning = this.entry.parent.user_settings.orgunit.show_time_planning
-        return showTimePlanning
+        return this.entry.parent.user_settings.orgunit.show_time_planning
+      } else if (this.entry.user_settings) {
+        return this.entry.user_settings.orgunit.show_time_planning
       }
       return false
     },
