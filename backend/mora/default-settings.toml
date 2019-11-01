@@ -33,8 +33,10 @@ uuid = ""
 
 
 [session]
+cookie_name = "session"
 permanent = true
 permanent_lifetime = 3600
+service_session_lifetime = 2678400
 
 [session.database]
 sqlalchemy_uri = ""
@@ -47,14 +49,26 @@ port = 5432
 
 
 [saml_sso]
+# flask_saml_sso reads many of these off of app.config. Please refer to
+# settings.py to see exactly which are used and what flask_saml_sso
+# configuration parameter they map to.
 enable = false
 idp_metadata_url = "/url/to/sso/metadata"
 idp_metadata_file = ""
 idp_insecure = false
+force_https = false
+name_id_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+lowercase_urlencoding = true
+want_name_id = true
+want_attribute_statement = false
+requested_authn_context = true
+requested_authn_context_comparison = "exact"
 username_from_nameid = true
 username_attr = ""
 key_file = ""
 cert_file = ""
+signature_algorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+digest_algorithm = "http://www.w3.org/2001/04/xmlenc#sha256"
 requests_signed = false
 duplicate_attributes = true
 api_token_restrict = false
