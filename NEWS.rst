@@ -10,6 +10,8 @@ Bug fixes
 ---------
 
 * #28830: Small update of configuration documentation
+* #30983: Fixed editing org units not taking time planning user settings into
+  account
 
 Internal changes
 ----------------
