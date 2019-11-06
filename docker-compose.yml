@@ -14,6 +14,7 @@ services:
     volumes:
       - ./backend:/code/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
+      - ./.pytest_cache:/code/.pytest_cache
     command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
     ports:
       - "5000:5000"
@@ -51,8 +52,6 @@ services:
     # save the data.
     # tmpfs:
     #   - /var/lib/postgresql/data
-    volumes:
-      - ./.pytest_cache:/code/.pytest_cache
 
   testcafe:
     build:
