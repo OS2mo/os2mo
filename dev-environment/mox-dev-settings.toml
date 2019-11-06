@@ -6,7 +6,7 @@ db_name = "mox"
 
 
 [db_extensions]
-path = "/db_extensions/db_extensions.json"
+path = "oio_rest/oio_rest/db_extensions/mo-01.json"
 
 
 [testing_api]

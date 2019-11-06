@@ -63,14 +63,18 @@ med MO skal disse tilretninger afspejles i databasen.
 MO-tilretninger af datamodellen i LoRa
 --------------------------------------
 
-For at få datamodellen i LoRa til at afspejle datamodellen i MO skal
-LoRAs konfiguration justeres så den anvender en anden
-databaseopsætning::
+For at få datamodellen i LoRa til at afspejle datamodellen i MO skal LoRAs
+konfiguration justeres så den anvender en anden databaseopsætning. MOs model
+findes i LoRa repositoriet under ``oio_rest/oio_rest/db_extensions/mo-01.json``.
+LoRa kan konfigureres med følgende for at bruge MOs datamodeludviddelse:
 
-  DB_STRUCTURE_EXTENSIONS=/path/to/os2mo/backend/mora/db_extensions.json
+.. code-block:: toml
+
+   [db_extensions]
+   path = "oio_rest/oio_rest/db_extensions/mo-01.json"
 
 Dette skal sættes som en del af konfigurationen af LoRA inden
-databasen oprettes og ``initdb.sh`` afvikles. Derudover skal det være
+databasen initialiseres. Derudover skal det være
 sat under kørslen.
 
 Uden denne indstilling vil eksempelvis kaldenavn og primære
