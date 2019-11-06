@@ -30,11 +30,6 @@ setuptools.setup(
     version=version,
     url="https://os2mo.readthedocs.io/",
     packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
-    package_data={
-        'mora': [
-            'db_extensions.json',
-        ],
-    },
     test_loader='unittest:TestLoader',
 
     classifiers=[

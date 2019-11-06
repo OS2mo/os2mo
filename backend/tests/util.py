@@ -11,7 +11,6 @@ from collections import Counter
 import contextlib
 import json
 import os
-import pkgutil
 import pprint
 import re
 import sys
@@ -603,10 +602,6 @@ class LoRATestCase(_BaseTestCase):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
-
-    db_structure_extensions = json.loads(
-        pkgutil.get_data('mora', 'db_extensions.json').decode(),
-    )
 
     def load_sample_structures(self, minimal=False):
         load_sample_structures(minimal)
