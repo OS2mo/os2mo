@@ -28,7 +28,6 @@ services:
     #   dockerfile: docker/Dockerfile
     volumes:
       - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
-      - db_extensions:/db_extensions
     command: [
     "gunicorn",
     "--config", "docker/gunicorn-settings.py",
@@ -61,22 +60,3 @@ services:
       - ./testcafe-artifacts:/artifacts
     environment:
       - BASE_URL=http://mo:5000
-
-  # The following services is to copy the `db_extension.json`.
-  mo-cp:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    user: root
-    entrypoint: []
-    command:
-      - sh
-      - -c
-      - >
-        cp /code/backend/mora/db_extensions.json /db_extensions/db_extensions.json
-    volumes:
-      - db_extensions:/db_extensions
-
-
-volumes:
-  db_extensions:
