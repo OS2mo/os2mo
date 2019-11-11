@@ -6,13 +6,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import datetime
 import unittest
 
+import datetime
 import freezegun
 import requests_mock
 
-from mora import lora, exceptions
+from mora import lora
 from mora import settings
 from mora import util as mora_util
 from mora.service.validation import validator
@@ -181,37 +181,3 @@ class TestGetEndpointDate(unittest.TestCase):
         self.startdate = datetime.datetime(
             2017, 1, 1, 0, 0, 0,
             tzinfo=datetime.timezone(datetime.timedelta(0), '+00:00'))
-
-
-@freezegun.freeze_time("2017-01-01")
-class TestIsEditDateBeforeToday(util.TestCase):
-
-    def test_past_dates_raises_exception(self):
-        """Assert that using a date before today raises an exception"""
-
-        test_date = datetime.datetime(
-            2016, 12, 31, 0, 0, 0,
-            tzinfo=datetime.timezone(datetime.timedelta(0), '+00:00'))
-
-        with self.assertRaises(exceptions.HTTPException):
-            validator.is_edit_from_date_before_today(test_date)
-
-    def test_today_does_not_raise_exception(self):
-        """Assert that today's date does not raise an exception"""
-
-        test_date = datetime.datetime(
-            2017, 1, 1, 0, 0, 0,
-            tzinfo=datetime.timezone(datetime.timedelta(0), '+00:00'))
-
-        # We expect this method to not raise an exception
-        validator.is_edit_from_date_before_today(test_date)
-
-    def test_future_date_does_not_raise_exception(self):
-        """Assert that a future date does not raise an exception"""
-
-        test_date = datetime.datetime(
-            2020, 1, 1, 0, 0, 0,
-            tzinfo=datetime.timezone(datetime.timedelta(0), '+00:00'))
-
-        # We expect this method to not raise an exception
-        validator.is_edit_from_date_before_today(test_date)

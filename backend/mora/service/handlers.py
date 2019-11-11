@@ -14,17 +14,16 @@ handlers for the various detail types.
 import abc
 import inspect
 import typing
+
 import flask
 
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..triggers import Trigger
 from ..mapping import RequestType
-
+from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active
 # RequestHandler
@@ -197,8 +196,6 @@ class OrgFunkRequestHandler(RequestHandler):
     def prepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
         date = util.get_valid_to(request, required=True)
-
-        validator.is_edit_from_date_before_today(date)
 
         original = (
             lora.Connector(effective_date=date)

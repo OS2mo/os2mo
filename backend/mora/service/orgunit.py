@@ -27,10 +27,10 @@ import uuid
 
 import flask
 
+from . import configuration_options
 from . import facet
 from . import handlers
 from . import org
-from . import configuration_options
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -183,8 +183,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
-
-        validator.is_edit_from_date_before_today(new_from)
 
         clamp = util.checked_get(data, 'clamp', False)
 

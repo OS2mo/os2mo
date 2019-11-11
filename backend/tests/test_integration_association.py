@@ -2259,38 +2259,6 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    def test_edit_association_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
-
-        req = [{
-            "type": "association",
-            "uuid": association_uuid,
-            "data": {
-                "association_type": {
-                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                },
-                "validity": {
-                    "from": "2000-01-01",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2000-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400,
-        )
-
     def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
@@ -2498,13 +2466,17 @@ class AddressTests(util.LoRATestCase):
         associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
         self.assertRequestFails(
-            '/service/details/terminate', 400,
+            '/service/details/terminate', 200,
             json={
                 "type": "association",
                 "uuid": associationid,
                 "validity": {
                     "to": "2017-11-30"
                 }
+            },
+            amqp_topics={
+                'employee.association.delete': 1,
+                'org_unit.association.delete': 1,
             },
         )
 

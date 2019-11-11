@@ -22,7 +22,6 @@
         :disable-org-unit-picker="disableOrgUnitPicker"
         :hide-org-picker="hideOrgPicker"
         :hide-employee-picker="hideEmployeePicker"
-        :disabled-dates="disabledDates"
         :is-edit="true"
       />
 
@@ -146,15 +145,6 @@ export default {
      */
     hasEntryComponent () {
       return this.entryComponent !== undefined
-    },
-
-    /**
-     * The valid dates for the entry component date pickers
-     */
-    disabledDates () {
-      return {
-        'from': new Date().toISOString().substring(0, 10)
-      }
     }
   },
 
