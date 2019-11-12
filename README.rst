@@ -9,7 +9,6 @@ Om OS2MO 2.0
    :alt: Build Status
    :target: https://lorajenkins.magenta.dk/job/mora/job/development/
 
-
 Introduktion
 ============
 
