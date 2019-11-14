@@ -19,7 +19,6 @@ from . import handlers
 from . import org
 from .validation import validator
 from .. import common
-from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
@@ -75,8 +74,6 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
-
-        validator.is_edit_from_date_before_today(new_from)
 
         payload = dict()
         payload['note'] = 'Rediger orlov'

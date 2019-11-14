@@ -135,8 +135,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         original = c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
-        validator.is_edit_from_date_before_today(new_from)
-
         payload = dict()
         if original_data:
             # We are performing an update
@@ -463,8 +461,6 @@ def terminate_employee(employee_uuid):
     """
     request = flask.request.get_json()
     date = util.get_valid_to(request)
-
-    validator.is_edit_from_date_before_today(date)
 
     c = lora.Connector(effective_date=date, virkningtil='infinity')
 

@@ -7,10 +7,10 @@
 #
 
 import copy
-import uuid
 
 import freezegun
 import notsouid
+import uuid
 
 from mora import lora
 from tests import util
@@ -1660,35 +1660,6 @@ class Tests(util.LoRATestCase):
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
-
-    def test_edit_engagement_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
-                "validity": {
-                    "from": "2000-01-01",
-                }
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2000-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400)
 
     def test_terminate_engagement(self):
         self.load_sample_structures()

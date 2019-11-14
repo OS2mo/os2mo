@@ -849,34 +849,3 @@ class Tests(util.LoRATestCase):
             },
             amqp_topics={'employee.employee.update': 1},
         )
-
-    def test_edit_employee_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        req = [{
-            "type": "employee",
-            "original": None,
-            "data": {
-                "validity": {
-                    "from": "2000-01-01",
-                },
-                "cpr_no": "0101010101",
-                "name": "Test 1 Employee",
-            },
-            "uuid": userid
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2000-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400)

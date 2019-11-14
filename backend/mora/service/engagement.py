@@ -102,8 +102,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         data = util.checked_get(req, 'data', {}, required=True)
         new_from, new_to = util.get_validities(data)
 
-        validator.is_edit_from_date_before_today(new_from)
-
         try:
             exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
         except (TypeError, LookupError):

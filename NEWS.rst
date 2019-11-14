@@ -5,6 +5,7 @@ New features
 ------------
 
 * #29760: Best practises updated concerning OS2Sync integration
+* #32467: We now once again allow performing edits in the past
 
 Bug fixes
 ---------
