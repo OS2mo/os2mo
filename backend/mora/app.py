@@ -81,6 +81,18 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
             "lora_version": lora_version,
         })
 
+    @app.before_first_request
+    def register_triggers():
+        """Register all triggers on the app object.
+
+        The reason we cannot do this when creating the app object is
+        that the amqp trigger tries to connect to rabbitmq when
+        registrered. App objects are also created when we wait for
+        rabbitmq in the docker entrypoint. A bit of a code smell/design
+        flaw, that we do not know how to fix yet.
+        """
+        triggers.register(app)
+
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
     # `flaskr/static` directory.
@@ -112,6 +124,5 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     serviceplatformen.check_config(app)
-    triggers.register(app)
 
     return app
