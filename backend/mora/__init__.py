@@ -14,6 +14,7 @@ from . import settings
 
 
 logging.getLogger("urllib3").setLevel(logging.INFO)
+logging.getLogger("pika").setLevel(logging.INFO)
 
 log_format = logging.Formatter(
     "[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s"
