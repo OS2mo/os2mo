@@ -132,6 +132,7 @@ def register(app):
         # in which case publish_message will bail out
         # this is the original mode of operation restored
 
+        # Please crash if rabbitmq is unavailable.
         conn = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=app.config["AMQP_HOST"],
