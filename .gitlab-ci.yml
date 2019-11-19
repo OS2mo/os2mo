@@ -96,24 +96,12 @@ build:
 # Test stage
 ############
 
-
-unit-test:
+.test-default: &test-default
   stage: test
-  image:
-    name: ${IMAGE_SHA}
+  services: []
   tags:
     - docker
     - network-per-build
-  services:
-    - name: magentaaps/postgres-os2mo:9.6.15-2-test
-      alias: mox-db
-    - name: magentalabs/mox:t3
-      alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
   variables:
     FF_NETWORK_PER_BUILD: 1
     # for postgres-os2mo service
@@ -129,8 +117,25 @@ unit-test:
     # for mox service
     MOX_USER_CONFIG_PATH: /code/dev-environment/settings-for-mo-test.toml
     # for mo
-    OS2MO_USER_CONFIG_PATH: $CI_PROJECT_DIR/dev-environment/mo-dev-settings.toml
+    OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-dev-settings.toml
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
+    # for testcafe
+    BASE_URL: http://mo:5000
+
+unit-test:
+  <<: *test-default
+  image:
+    name: ${IMAGE_SHA}
+  services:
+    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+      alias: mox-db
+    - name: magentalabs/mox:t3
+      alias: mox
+      command: [
+      "gunicorn",
+      "--config", "docker/gunicorn-settings.py",
+      "--workers", "1", # Single threaded in dev
+      "oio_rest:app"]
   script:
     - pytest
       --cov=mora
@@ -140,7 +145,6 @@ unit-test:
       -p no:cacheprovider
       --color=yes
       backend/tests/
-
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
@@ -149,6 +153,31 @@ unit-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
+e2e-test:
+  <<: *test-default
+  image:
+    name: magentalabs/testcafe:latest
+    entrypoint: ["/bin/sh", "-c"]
+  services:
+    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+      alias: mox-db
+    - name: magentalabs/mox:t3
+      alias: mox
+      command: [
+      "gunicorn",
+      "--config", "docker/gunicorn-settings.py",
+      "--workers", "1", # Single threaded in dev
+      "oio_rest:app"]
+    - name: ${IMAGE_SHA}
+      alias: mo
+      command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
+  script:
+    - "cd /"
+    - "/opt/testcafe/docker/testcafe-docker.sh chromium:headless $CI_PROJECT_DIR/frontend/e2e-tests"
+  artifacts:
+    when: always
+    paths:
+      - /artifacts
 
 # Release stage
 ###############

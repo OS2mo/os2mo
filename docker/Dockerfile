@@ -74,6 +74,7 @@ RUN pip3 install \
 
 
 # Copy and install backend code.
+COPY dev-environment/mo-dev-settings.toml ./dev-environment/mo-dev-settings.toml
 COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
