@@ -53,8 +53,7 @@ services:
     #   - /var/lib/postgresql/data
 
   testcafe:
-    build:
-      context: dev-environment/testcafe
+    image: magentalabs/testcafe:latest
     volumes:
       - ./frontend/e2e-tests:/tests
       - ./testcafe-artifacts:/artifacts

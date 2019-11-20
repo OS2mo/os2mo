@@ -63,12 +63,18 @@ RUN set -ex \
 # Install requirements
 COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
+COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
 COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install -r backend/requirements.txt -r backend/requirements-test.txt
+RUN pip3 install \
+  -r backend/requirements.txt \
+  -r backend/requirements-test.txt \
+  -r backend/requirements-lint.txt \
+  -r backend/requirements-docs.txt
 
 
 # Copy and install backend code.
+COPY dev-environment/mo-dev-settings.toml ./dev-environment/mo-dev-settings.toml
 COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
