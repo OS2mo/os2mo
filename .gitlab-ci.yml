@@ -103,6 +103,12 @@ build:
     - docker
     - network-per-build
   variables:
+    # Enable one docker network per job on the runner. This enables services to
+    # reach each other over the network. It requires a special runner with this
+    # feature. The feature is introduced in
+    # https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/1569, but not
+    # officially released in any Gitlab runner. It should hopefully be released
+    # with 12.6 on 2019-12-22.
     FF_NETWORK_PER_BUILD: 1
     # for postgres-os2mo service
     DB_NAME: mox
