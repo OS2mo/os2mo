@@ -178,12 +178,16 @@ e2e-test:
       alias: mo
       command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
   script:
-    - "cd /"
-    - "/opt/testcafe/docker/testcafe-docker.sh chromium:headless $CI_PROJECT_DIR/frontend/e2e-tests"
+    - cd /
+    - /opt/testcafe/docker/testcafe-docker.sh
+        chromium:headless
+        $CI_PROJECT_DIR/frontend/e2e-tests
+        --screenshot $CI_PROJECT_DIR/artifacts
+        --video $CI_PROJECT_DIR/artifacts
   artifacts:
     when: always
     paths:
-      - /artifacts
+      - $CI_PROJECT_DIR/artifacts
 
 # Release stage
 ###############
