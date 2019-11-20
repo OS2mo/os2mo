@@ -1,0 +1,76 @@
+{
+    "attributter": {
+        "brugeregenskaber": [
+            {
+                "brugernavn": "Lis Jensen",
+                "brugervendtnoegle": "lisjensen",
+                "virkning": {
+                    "from": "1973-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Lis",
+                "efternavn": "Jensen",
+                "virkning": {
+                    "from": "1973-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "brugertyper": [
+            {
+                "urn": "urn:email",
+                "virkning": {
+                    "from": "1973-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "tilhoerer": [
+            {
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "1973-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "tilknyttedepersoner": [
+            {
+                "urn": "urn:dk:cpr:person:0906730000",
+                "virkning": {
+                    "from": "1973-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "brugergyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "1934-06-09T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}

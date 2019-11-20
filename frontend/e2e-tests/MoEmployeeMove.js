@@ -1,11 +1,12 @@
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeMove')
-  .beforeEach(reset)
+  .before(setup)
+  .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeMove')
@@ -32,7 +33,7 @@ test('Workflow: move employee', async t => {
     .expect(dialog.exists).ok('Opened dialog')
 
     .click(searchEmployeeInput)
-    .typeText(searchEmployeeInput.find('input'), 'jens')
+    .typeText(searchEmployeeInput.find('input'), 'erik')
     .expect(searchEmployeeItem.withText(' ').visible)
     .ok("no employee found")
     .pressKey('down enter')

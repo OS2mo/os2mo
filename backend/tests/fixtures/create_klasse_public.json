@@ -3,10 +3,8 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "Email",
-                "eksempel": "test@example.com",
-                "omfang": "EMAIL",
-                "titel": "Emailadresse",
+                "brugervendtnoegle": "pPublic",
+                "titel": "Må vises ekternt",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +30,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

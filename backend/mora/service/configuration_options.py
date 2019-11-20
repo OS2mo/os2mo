@@ -6,10 +6,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import psycopg2
+from psycopg2.extras import execute_values
+from psycopg2.sql import SQL, Identifier
 import flask
 import logging
 from mora import exceptions
-from .. import settings
+from mora.settings import config
 from .. import util
 
 logger = logging.getLogger("mo_configuration")
@@ -19,9 +21,9 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
 
 
 # This is the default key-value configuration pairs. They are used to
-# initialize the configuration database through the cli and in health_check to
+# initialize the configuration database through and in health_check to
 # verify that there exist default values for all expected keys.
-default = (
+_DEFAULT_CONF = (
     ('show_roles', 'True'),
     ('show_user_key', 'True'),
     ('show_location', 'True'),
@@ -29,17 +31,18 @@ default = (
 )
 
 
-if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
-        settings.CONF_DB_HOST and settings.CONF_DB_PORT and
-        settings.CONF_DB_PASSWORD):
+if not all(
+    c in config["configuration"]["database"]
+    for c in ("name", "user", "password", "host", "port")
+):
     error_msgs = [
         'Configuration error of user settings connection information',
-        'CONF_DB_USER: {}'.format(settings.CONF_DB_USER),
-        'CONF_DB_NAME: {}'.format(settings.CONF_DB_NAME),
-        'CONF_DB_HOST: {}'.format(settings.CONF_DB_HOST),
-        'CONF_DB_PORT: {}'.format(settings.CONF_DB_PORT),
+        'CONF_DB_USER: {}'.format(config["configuration"]["database"]["user"]),
+        'CONF_DB_NAME: {}'.format(config["configuration"]["database"]["name"]),
+        'CONF_DB_HOST: {}'.format(config["configuration"]["database"]["host"]),
+        'CONF_DB_PORT: {}'.format(config["configuration"]["database"]["port"]),
         'Length of CONF_DB_PASSWORD: {}'.format(
-            len(settings.CONF_DB_PASSWORD)
+            len(config["configuration"]["database"]["password"])
         )
     ]
     for msg in error_msgs:
@@ -47,18 +50,119 @@ if not (settings.CONF_DB_USER and settings.CONF_DB_NAME and
     raise Exception(error_msgs[0])
 
 
-def _get_connection():
+_DBNAME = config["configuration"]["database"]["name"]
+_DBNAME_BACKUP = _DBNAME + "_backup"
+# The postgres default (empty) template for CREATE DATABASE.
+_DBNAME_SYS_TEMPLATE = "template1"
+
+
+def _get_connection(dbname):
     logger.debug('Open connection to database')
     try:
-        conn = psycopg2.connect(user=settings.CONF_DB_USER,
-                                dbname=settings.CONF_DB_NAME,
-                                host=settings.CONF_DB_HOST,
-                                port=settings.CONF_DB_PORT,
-                                password=settings.CONF_DB_PASSWORD)
+        conn = psycopg2.connect(
+            dbname=dbname,
+            user=config["configuration"]["database"]["user"],
+            password=config["configuration"]["database"]["password"],
+            host=config["configuration"]["database"]["host"],
+            port=config["configuration"]["database"]["port"],
+        )
     except psycopg2.OperationalError:
         logger.error('Database connection error')
         raise
     return conn
+
+
+def _cpdb(dbname_from, dbname_to):
+    """Copy a pg database object.
+
+    This creates a new database and uses `dbname_from` as a template for that
+    database. It copys all structures and data.
+
+    Requires CREATEDB or SUPERUSER privileges.
+
+    """
+    logger.debug("Copying database from %s to %s", dbname_from, dbname_to)
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn:
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+        )
+        with conn.cursor() as curs:
+            curs.execute(
+                SQL("create database {} with template {};").format(
+                    Identifier(dbname_to), Identifier(dbname_from)
+                )
+            )
+
+
+def _dropdb(dbname):
+    """Deletes a pg database object.
+
+    Requires OWNER or SUPERUSER privileges.
+    """
+    logger.debug("Dropping database %s", dbname)
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn:
+        conn.set_isolation_level(
+            psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+        )
+        with conn.cursor() as curs:
+            curs.execute(
+                SQL("DROP DATABASE IF EXISTS {};").format(Identifier(dbname))
+            )
+
+
+def _createdb():
+    """Create a new database and initialize table.
+
+    Requires CREATEDB or SUPERUSER privileges.
+
+    """
+    _cpdb(_DBNAME_SYS_TEMPLATE, _DBNAME)
+    create_db_table()
+
+
+def _check_database(dbname):
+    """Checks if a pg database object exists."""
+    with _get_connection(_DBNAME_SYS_TEMPLATE) as conn, conn.cursor() as curs:
+        curs.execute(
+            "select datname from pg_catalog.pg_database where datname=%s",
+            [dbname],
+        )
+        return bool(curs.fetchone())
+
+
+def set_global_conf(conf):
+    """Load a global configuration directly into the database. It does not
+    check for duplicates.
+
+    """
+    DEFAULT_CONF_DATA_QUERY = SQL(
+        "INSERT INTO orgunit_settings ( object, setting, value ) VALUES %s;"
+    )
+
+    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
+        execute_values(
+            cursor, DEFAULT_CONF_DATA_QUERY, conf, "( Null, %s, %s)"
+        )
+
+
+def create_db_table():
+    """Initialize the config database with a table and default values."""
+
+    CREATE_CONF_QUERY = SQL(
+        "CREATE TABLE IF NOT EXISTS orgunit_settings("
+        "id serial PRIMARY KEY,"
+        "object UUID,"
+        "setting varchar(255) NOT NULL,"
+        "value varchar(255) NOT NULL"
+        ");"
+    )
+
+    logger.info("Initializing configuration database.")
+    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
+        cursor.execute(CREATE_CONF_QUERY)
+
+    set_global_conf(_DEFAULT_CONF)
+    logger.info("Configuration database initialised.")
 
 
 def health_check():
@@ -71,9 +175,9 @@ def health_check():
     This is intended to be used whenever an app object is created.
     """
     try:
-        conn = _get_connection()
+        conn = _get_connection(_DBNAME)
     except psycopg2.Error as e:
-        error_msg = "Configuration database connnection error: %s"
+        error_msg = "Configuration database connection error: %s"
         return False, error_msg % e.pgerror
 
     # all settings that have a global (uuid = null) value
@@ -89,7 +193,7 @@ def health_check():
         conn.close()
 
     missing = set()
-    for key, __ in default:
+    for key, __ in _DEFAULT_CONF:
         if key not in settings_in_db:
             missing.add(key)
     if missing:
@@ -100,6 +204,54 @@ def health_check():
     return True, "Success"
 
 
+def testdb_setup():
+    """Move the database specified in settings to a backup location and reset
+    the database specified in the settings. This makes the database ready for
+    testing while still preserving potential data written to the database. Use
+    `testdb_teardown()` to reverse this.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+    logger.info("Setting up test database: %s", _DBNAME)
+    if _check_database(_DBNAME_BACKUP):
+        raise Exception(
+            "The backup location used for the database while running tests is "
+            "not empty. You have to make sure no data is lost and manually "
+            "remove the database: %s" % _DBNAME_BACKUP
+        )
+
+    _cpdb(_DBNAME, _DBNAME_BACKUP)
+
+    testdb_reset()
+
+
+def testdb_reset():
+    """Reset the database specified in settings from the template. Requires the
+    template database to be created.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+
+    logger.info("Resetting test database: %s", _DBNAME)
+    _dropdb(_DBNAME)
+    _createdb()
+
+
+def testdb_teardown():
+    """Move the database at the backup location back to database location
+    specified in the settings. Remove the changes made by `testdb_setup()`.
+
+    Requires CREATEDB and OWNER or SUPERUSER privileges.
+
+    """
+    logger.info("Removing test database: %s", _DBNAME)
+    _dropdb(_DBNAME)
+    _cpdb(_DBNAME_BACKUP, _DBNAME)
+    _dropdb(_DBNAME_BACKUP)
+
+
 def get_configuration(unitid=None):
     if unitid:
         query_suffix = " = %s"
@@ -107,7 +259,7 @@ def get_configuration(unitid=None):
         query_suffix = " IS %s"
 
     configuration = {}
-    conn = _get_connection()
+    conn = _get_connection(_DBNAME)
     query = ("SELECT setting, value FROM orgunit_settings WHERE object" +
              query_suffix)
     try:
@@ -138,7 +290,7 @@ def set_configuration(configuration, unitid=None):
     else:
         query_suffix = ' IS %s'
 
-    conn = _get_connection()
+    conn = _get_connection(_DBNAME)
     try:
         cur = conn.cursor()
         orgunit_conf = configuration['org_units']

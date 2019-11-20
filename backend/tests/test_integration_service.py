@@ -52,7 +52,7 @@ class Tests(util.LoRATestCase):
             'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
             'user_key': 'AU',
             'unit_count': 1,
-            'person_count': 2,
+            'person_count': 4,
             'engagement_count': 1,
             'association_count': 1,
             'leave_count': 1,
@@ -69,7 +69,8 @@ class Tests(util.LoRATestCase):
         )
 
         self.load_sample_structures()
-        org_only['unit_count'] = 6
+        org_only['unit_count'] = 11
+        org_only['child_count'] = 2
 
         self.assertRequestResponse(
             '/service/o/',
@@ -132,7 +133,17 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children',
             [
                 {
-                    'child_count': 2,
+                    'child_count': 1,
+                    'user_key': 'løn',
+                    'name': 'Lønorganisation',
+                    'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+                    'validity': {
+                        'from': '2017-01-01',
+                        'to': None
+                    }
+                },
+                {
+                    'child_count': 4,
                     'name': 'Overordnet Enhed',
                     'user_key': 'root',
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -166,7 +177,27 @@ class Tests(util.LoRATestCase):
                         "to": None,
                     },
                     "child_count": 0,
-                }
+                },
+                {
+                    "name": "Skole og Børn",
+                    "user_key": "skole-børn",
+                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    },
+                    "child_count": 1,
+                },
+                {
+                    "name": "Social og sundhed",
+                    "user_key": "social-sundhed",
+                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+                    "validity": {
+                        "from": "2017-01-01",
+                        "to": None
+                    },
+                    "child_count": 0,
+                },
             ],
         )
 
@@ -193,6 +224,24 @@ class Tests(util.LoRATestCase):
                 },
             },
             {
+                'user_key': 'social_og_sundhed-løn',
+                'name': 'Social og sundhed',
+                'uuid': '5942ce50-2be8-476f-914b-6769a888a7c8',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
+                'user_key': 'social-sundhed',
+                'name': 'Social og sundhed',
+                'uuid': '68c5d78e-ae26-441f-a143-0103eca8b62a',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
                 'user_key': 'fil',
                 'name': 'Filosofisk Institut',
                 'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
@@ -209,6 +258,15 @@ class Tests(util.LoRATestCase):
                     'from': '2016-01-01',
                     'to': None,
                 },
+            },
+            {
+                'user_key': 'løn',
+                'name': 'Lønorganisation',
+                'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None
+                }
             },
             {
                 'user_key': 'samf',
@@ -228,6 +286,24 @@ class Tests(util.LoRATestCase):
                     'to': '2018-12-31',
                 },
             },
+            {
+                'user_key': 'skole-børn',
+                'name': 'Skole og Børn',
+                'uuid': 'dad7d0ad-c7a9-4a94-969d-464337e31fec',
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            },
+            {
+                'user_key': 'it_sup',
+                'name': 'IT-Support',
+                'uuid': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+                'validity': {
+                    'from': '2016-01-01',
+                    'to': None,
+                },
+            },
         ]
 
         self.assertRequestResponse(
@@ -235,7 +311,7 @@ class Tests(util.LoRATestCase):
             {
                 'items': result_list,
                 'offset': 0,
-                'total': 6
+                'total': 11
             }
         )
 
@@ -265,7 +341,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 6
+                    'total': 11,
                 }
             )
 
@@ -304,7 +380,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 1,
-                    'total': 6
+                    'total': 11,
                 }
             )
 
@@ -343,7 +419,7 @@ class Tests(util.LoRATestCase):
                         },
                     ],
                     'offset': 0,
-                    'total': 6
+                    'total': 11,
                 }
             )
 
@@ -352,15 +428,6 @@ class Tests(util.LoRATestCase):
                 '?limit=3&start=3',
                 {
                     'items': [
-                        {
-                            'user_key': 'root',
-                            'name': 'Overordnet Enhed',
-                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
                         {
                             'user_key': 'hum',
                             'name': 'Humanistisk fakultet',
@@ -371,17 +438,26 @@ class Tests(util.LoRATestCase):
                             },
                         },
                         {
-                            'user_key': 'samf',
-                            'name': 'Samfundsvidenskabelige fakultet',
-                            'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                            'user_key': 'løn',
+                            'name': 'Lønorganisation',
+                            'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
                             'validity': {
                                 'from': '2017-01-01',
+                                'to': None
+                            }
+                        },
+                        {
+                            'user_key': 'it_sup',
+                            'name': 'IT-Support',
+                            'uuid': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+                            'validity': {
+                                'from': '2016-01-01',
                                 'to': None,
                             },
                         },
                     ],
                     'offset': 3,
-                    'total': 6
+                    'total': 11,
                 }
             )
 
@@ -574,7 +650,19 @@ class Tests(util.LoRATestCase):
               'user_key': 'samf',
               'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
               'validity': {'from': '2017-01-01',
-                           'to': None}}],
+                           'to': None}},
+             {"child_count": 1,
+              "name": "Skole og Børn",
+              "user_key": "skole-børn",
+              "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+              "validity": {"from": "2017-01-01",
+                           "to": None}},
+             {"child_count": 0,
+              "name": "Social og sundhed",
+              "user_key": "social-sundhed",
+              "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+              "validity": {"from": "2017-01-01",
+                           "to": None}}],
         )
 
     def test_employee(self):
@@ -605,16 +693,24 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
-            {'items': [{'name': 'Anders And',
+            {'items': [{'name': 'Erik Smidt Hansen',
+                        'givenname': 'Erik Smidt',
+                        'surname': 'Hansen',
+                        'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'},
+                       {'name': 'Anders And',
                         'givenname': 'Anders',
                         'surname': 'And',
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
                        {'name': 'Fedtmule Hund',
                         'givenname': 'Fedtmule',
                         'surname': 'Hund',
-                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'}],
+                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
+                       {'name': 'Lis Jensen',
+                        'givenname': 'Lis',
+                        'surname': 'Jensen',
+                        'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'}],
              'offset': 0,
-             'total': 2}
+             'total': 4}
         )
 
         self.assertRequestResponse(
@@ -673,6 +769,12 @@ class Tests(util.LoRATestCase):
                 'items':
                     [
                         {
+                            'name': 'Erik Smidt Hansen',
+                            'givenname': 'Erik Smidt',
+                            'surname': 'Hansen',
+                            'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
+                        },
+                        {
                             'name': 'Anders And',
                             'givenname': 'Anders',
                             'surname': 'And',
@@ -685,6 +787,12 @@ class Tests(util.LoRATestCase):
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
                         },
                         {
+                            'name': 'Lis Jensen',
+                            'givenname': 'Lis',
+                            'surname': 'Jensen',
+                            'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'
+                        },
+                        {
                             'name': 'Andersine And',
                             'givenname': 'Andersine',
                             'surname': 'And',
@@ -692,7 +800,7 @@ class Tests(util.LoRATestCase):
                         }
                     ],
                 'offset': 0,
-                'total': 3
+                'total': 5
             }
         )
 
@@ -709,7 +817,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 0,
-                'total': 3
+                'total': 5
             }
         )
 
@@ -726,7 +834,7 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 'offset': 1,
-                'total': 3
+                'total': 5
             }
         )
 
@@ -863,7 +971,7 @@ class Tests(util.LoRATestCase):
     def test_engagement(self):
         self.load_sample_structures()
 
-        func = [
+        andersand = [
             {
                 'job_function': {
                     'example': None,
@@ -889,10 +997,10 @@ class Tests(util.LoRATestCase):
                 },
                 'engagement_type': {
                     'example': None,
-                    'name': 'Afdeling',
+                    'name': 'Ansat',
                     'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'user_key': 'ansat',
+                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23',
                 },
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'user_key': 'bvn',
@@ -905,11 +1013,53 @@ class Tests(util.LoRATestCase):
             },
         ]
 
+        eriksmidthansen = [
+            {
+                'engagement_type': {
+                    'example': None,
+                    'name': 'Ansat',
+                    'scope': None,
+                    'user_key': 'ansat',
+                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
+                },
+                'fraction': None,
+                'job_function': {
+                    'example': None,
+                    'name': 'Fakultet',
+                    'scope': None,
+                    'user_key': 'fak',
+                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
+                },
+                'org_unit': {
+                    'name': 'Humanistisk fakultet',
+                    'user_key': 'hum',
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    'validity': {
+                        'from': '2016-01-01',
+                        'to': None
+                    }
+                },
+                'person': {
+                    'givenname': 'Erik Smidt',
+                    'name': 'Erik Smidt Hansen',
+                    'surname': 'Hansen',
+                    'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
+                },
+                'primary': None,
+                'user_key': 'bvn',
+                'uuid': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
+                'validity': {
+                    'from': '2005-12-01',
+                    'to': None
+                }
+            },
+        ]
+
         with self.subTest('user'):
             self.assertRequestResponse(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 '/details/engagement',
-                func,
+                andersand,
             )
 
         with self.subTest('past'):
@@ -929,13 +1079,13 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
                 '/details/engagement?at=2016-01-01&validity=future',
-                func,
+                andersand,
             )
 
         self.assertRequestResponse(
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
             '/details/engagement',
-            func,
+            eriksmidthansen + andersand,
         )
 
         self.assertRequestResponse(
@@ -1044,10 +1194,10 @@ class Tests(util.LoRATestCase):
                 },
                 'leave_type': {
                     'example': None,
-                    'name': 'Afdeling',
+                    'name': 'Barselsorlov',
                     'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'user_key': 'barselsorlov',
+                    'uuid': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
                 },
                 'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
                 'user_key': 'bvn',
@@ -1111,10 +1261,10 @@ class Tests(util.LoRATestCase):
                 'address': [{
                     'address_type': {
                         'example': '<UUID>',
-                        'name': 'Adresse',
+                        'name': 'Postadresse',
                         'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                        'user_key': 'OrgEnhedPostadresse',
+                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },
                     'href': 'https://www.openstreetmap.org/'
                             '?mlon=10.19938084&mlat=56.17102843&zoom=16',
@@ -1247,18 +1397,86 @@ class Tests(util.LoRATestCase):
 
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
-            [{'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                      '/f/address_type/',
-              'user_key': 'address_type',
-              'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'},
-             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-              '/f/association_type/',
-              'user_key': 'association_type',
-              'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'},
-             {'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                      '/f/org_unit_type/',
-              'user_key': 'org_unit_type',
-              'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}],
+            [
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/engagement_job_function/",
+                    "user_key": "engagement_job_function",
+                    "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_address_type/",
+                    "user_key": "org_unit_address_type",
+                    "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/engagement_type/",
+                    "user_key": "engagement_type",
+                    "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/responsibility/",
+                    "user_key": "responsibility",
+                    "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/role_type/",
+                    "user_key": "role_type",
+                    "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/leave_type/",
+                    "user_key": "leave_type",
+                    "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/manager_type/",
+                    "user_key": "manager_type",
+                    "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/employee_address_type/",
+                    "user_key": "employee_address_type",
+                    "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/time_planning/",
+                    "user_key": "time_planning",
+                    "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/visibility/",
+                    "user_key": "visibility",
+                    "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/manager_level/",
+                    "user_key": "manager_level",
+                    "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/association_type/",
+                    "user_key": "association_type",
+                    "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
+                },
+                {
+                    "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_type/",
+                    "user_key": "org_unit_type",
+                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                },
+            ],
         )
 
         self.assertRequestResponse(
@@ -1289,26 +1507,27 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/',
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/' +
+            'org_unit_address_type/',
             {'data': {
                 'offset': 0,
                 'total': 4,
                 'items': [
                     {'example': '20304060',
-                     'name': 'Telefonnummer',
+                     'name': 'Telefon',
                      'scope': 'PHONE',
-                     'user_key': 'Telefon',
+                     'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                     {'example': '<UUID>',
-                     'name': 'Adresse',
+                     'name': 'Postadresse',
                      'scope': 'DAR',
-                     'user_key': 'AdressePost',
-                     'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'},
+                     'user_key': 'OrgEnhedPostadresse',
+                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
                     {'example': 'test@example.com',
-                     'name': 'Emailadresse',
+                     'name': 'Email',
                      'scope': 'EMAIL',
-                     'user_key': 'Email',
-                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0'},
+                     'user_key': 'OrgEnhedEmail',
+                     'uuid': '73360db1-bad3-4167-ac73-8d827c0c8751'},
                     {'example': '5712345000014',
                      'name': 'EAN',
                      'scope': 'EAN',
@@ -1316,9 +1535,9 @@ class Tests(util.LoRATestCase):
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
-                        '/f/address_type/',
-                'user_key': 'address_type',
-                'uuid': 'e337bab4-635f-49ce-aa31-b44047a43aa1'}
+                        '/f/org_unit_address_type/',
+                'user_key': 'org_unit_address_type',
+                'uuid': '3c44e5d2-7fef-4448-9bf6-449bf414ec49'}
         )
 
     def test_details_multiple(self):
@@ -1406,10 +1625,10 @@ class Tests(util.LoRATestCase):
         expected = [{
             'engagement_type': {
                 'example': None,
-                'name': 'Afdeling',
+                'name': 'Ansat',
                 'scope': None,
-                'user_key': 'afd',
-                'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                'user_key': 'ansat',
+                'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
             },
             'job_function': {
                 'example': None,

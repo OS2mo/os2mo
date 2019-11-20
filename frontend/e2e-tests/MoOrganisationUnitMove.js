@@ -1,12 +1,13 @@
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoOrganisationUnitMove')
-  .beforeEach(reset)
-  .page(`${baseURL}/organisation/535ba446-d618-4e51-8dae-821d63e26560`)
+  .before(setup)
+  .after(teardown)
+  .page(`${baseURL}/organisation/fa2e23c9-860a-4c90-bcc6-2c0721869a25`)
 
 const dialog = Selector('#orgUnitMove')
 
@@ -18,35 +19,31 @@ const fromInput = dialog.find('.moveDate input.form-control')
 
 const tree = VueSelector('mo-tree-view')
 
-let currentUnitName = Selector('.orgunit .orgunit-name')
+const currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck: true})
 
 test('Workflow: move unit', async t => {
   let today = moment()
 
   await t
-    .expect(currentUnitName.visible)
-    .ok()
     .expect(currentUnitName.innerText)
-    .eql('Social Indsats')
+    .eql('IT-Support')
     .expect(tree.find('.selected').exists)
     .ok()
     .expect(tree.getVue(({ computed }) => computed.contents))
     .eql([
+      "> Lønorganisation",
       {
-        "Hjørring Kommune": [
-          "> Borgmesterens Afdeling",
+        "Overordnet Enhed": [
+          "> Humanistisk fakultet",
+          "Samfundsvidenskabelige fakultet",
           {
             "Skole og Børn": [
-              "IT-Support",
-              "> Skoler og børnehaver",
-              "=+= Social Indsats =+="
+              "=+= IT-Support =+="
             ]
           },
-          "Social og sundhed",
-          "> Teknik og Miljø"
+          "Social og sundhed"
         ]
-      },
-      "> Lønorganisation"
+      }
     ])
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 90 })
@@ -56,19 +53,17 @@ test('Workflow: move unit', async t => {
 
     .click(unitInput)
     .click(dialog.find('.currentUnit .tree-content')
-      .withText('Hjørring Kommune').find('.tree-arrow'))
-    .click(dialog.find('.currentUnit .tree-content')
-      .withText('Borgmesterens Afdeling').find('.tree-arrow'))
+       .withText('Overordnet Enhed').find('.tree-arrow'))
     .click(dialog.find('.currentUnit .tree-content')
       .withText('Skole og Børn').find('.tree-arrow'))
     .click(dialog.find('.currentUnit .tree-anchor')
-      .withText('Social Indsats'))
+      .withText('IT-Support'))
     .expect(dialog.find('.currentUnit input[data-vv-as="Angiv enhed"]').value)
-    .eql('Social Indsats')
+    .eql('IT-Support')
 
     .click(parentInput)
     .click(dialog.find('.parentUnit .tree-content')
-      .withText('Hjørring Kommune')
+      .withText('Overordnet Enhed')
       .find('.tree-arrow'))
     .click(dialog.find('.parentUnit .tree-anchor')
       .withText('Social og sundhed'))
@@ -98,25 +93,25 @@ test('Workflow: move unit', async t => {
   await t
     .expect(tree.getVue(({ computed }) => computed.contents))
     .eql([
+      "> Lønorganisation",
       {
-        "Hjørring Kommune": [
-          "> Borgmesterens Afdeling",
-          "> Skole og Børn",
+        "Overordnet Enhed": [
+          "> Humanistisk fakultet",
+          "Samfundsvidenskabelige fakultet",
+          "Skole og Børn",
           {
             "Social og sundhed": [
-              "=+= Social Indsats =+="
+              "=+= IT-Support =+="
             ]
-          },
-          "> Teknik og Miljø"
+          }
         ]
-      },
-      "> Lønorganisation"
+      }
     ])
     .expect(Selector('.orgunit-name').textContent)
-    .eql('Social Indsats')
+    .eql('IT-Support')
     .expect(Selector('.orgunit-location').textContent
            )
-    .eql('Hjørring Kommune\\Social og sundhed')
+    .eql('Overordnet Enhed\\Social og sundhed')
     .expect(Selector('.detail-present .parent-name').textContent)
     .match(/Social og sundhed/)
 

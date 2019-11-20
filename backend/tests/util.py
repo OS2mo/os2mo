@@ -11,7 +11,6 @@ from collections import Counter
 import contextlib
 import json
 import os
-import pkgutil
 import pprint
 import re
 import sys
@@ -21,12 +20,15 @@ from unittest.mock import patch
 import flask
 import flask_testing
 import jinja2
+import requests
 import requests_mock
 import time
 import werkzeug.serving
 
-from oio_rest.utils import test_support
 from mora import triggers, app, lora, settings, service
+from mora.exceptions import ImproperlyConfigured
+from mora.service import configuration_options
+from mora.util import restrictargs
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -34,18 +36,21 @@ BASE_DIR = os.path.dirname(TESTS_DIR)
 FIXTURE_DIR = os.path.join(TESTS_DIR, 'fixtures')
 MOCKING_DIR = os.path.join(TESTS_DIR, 'mocking')
 
-TOP_DIR = os.path.dirname(BASE_DIR)
-FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
-DOCS_DIR = os.path.join(TOP_DIR, 'docs')
-
-BUILD_DIR = os.path.join(BASE_DIR, 'build')
-REPORTS_DIR = os.path.join(BUILD_DIR, 'reports')
-
 jinja_env = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
         searchpath=FIXTURE_DIR,
     ),
 )
+
+
+def _mox_testing_api(method):
+    """Calls MOX `testing/<method>` REST API."""
+    r = requests.get(settings.LORA_URL + "testing/" + method)
+    if r.status_code == 404:
+        raise ImproperlyConfigured(
+            "LORAs testing API returned 404. Is it enabled?"
+        )
+    r.raise_for_status()
 
 
 def is_frontend_built():
@@ -90,60 +95,15 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     into LoRA at the given path & UUID.
 
     '''
-    print('creating', path, uuid, file=sys.stderr)
     r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
     return r
 
 
-def load_sql_fixture(fixture_name):
-    '''Load an SQL fixture, directly into the database.
-    into LoRA at the given path & UUID.
-
-    '''
-    fixture_path = os.path.join(FIXTURE_DIR, 'sql', fixture_name)
-
-    assert fixture_name.endswith('.sql'), 'not a valid SQL fixture name!'
-    assert os.path.isfile(fixture_path), 'no such SQL fixture found!'
-
-    test_support.load_sql_fixture(fixture_path)
-
-
-def add_resetting_endpoint(app, fixture_name):
-    @app.route('/reset-db')
-    def reset_db():
-        app.logger.warning('RESETTING DATABASE!!!')
-
-        load_sql_fixture(fixture_name)
-
-        return '', 200
-
-    return app
-
-
-def load_sample_structures(*, verbose=False, minimal=False, check=False,
-                           delete=False):
+def load_sample_structures(minimal=False):
     '''Inject our test data into LoRA.
 
     '''
     orgid = '456362c4-0ee4-4e5e-a72c-751239745e62'
-
-    if delete:
-        c = lora.Connector()
-
-        print('deleting', c.organisation.path, orgid, file=sys.stderr)
-        c.organisation.delete(orgid)
-
-        for scope, rel in (
-            (c.facet, 'ansvarlig'),
-            (c.klasse, 'ansvarlig'),
-            (c.organisationenhed, 'tilhoerer'),
-            (c.organisationfunktion, 'tilknyttedeorganisationer'),
-            (c.bruger, 'tilhoerer'),
-            (c.itsystem, 'tilhoerer'),
-        ):
-            for objid in scope.fetch(**{rel: orgid}):
-                print('deleting', scope.path, objid, file=sys.stderr)
-                scope.delete(objid)
 
     fixtures = [(
         'organisation/organisation',
@@ -152,26 +112,39 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
     )]
 
     units = {
+        # L1
         'root': '2874e1dc-85e6-4269-823a-e1125484dfd3',
     }
 
     classes = {
+        # org_unit_type
         'afdeling': '32547559-cfc1-4d97-94c6-70b192eff825',
     }
 
     facets = {
-        'enhedstype': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
-        'adressetype': 'e337bab4-635f-49ce-aa31-b44047a43aa1',
-        'tilknytningstype': 'ef71fe9c-7901-48e2-86d8-84116e210202',
+        'association_type': 'ef71fe9c-7901-48e2-86d8-84116e210202',
+        'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
+        'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
+        'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
+        'leave_type': '99a9d0ab-615e-4e99-8a43-bc9d3cea8438',
+        'manager_level': 'd56f174d-c45d-4b55-bdc6-c57bf68238b9',
+        'manager_type': 'a22f8575-89b4-480b-a7ba-b3f1372e25a4',
+        'org_unit_address_type': '3c44e5d2-7fef-4448-9bf6-449bf414ec49',
+        'org_unit_type': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
+        'responsibility': '452e1dd0-658b-477a-8dd8-efba105c06d6',
+        'role_type': '68ba77bc-4d57-43e2-9c24-0c9eda5fddc7',
+        'time_planning': 'c4ad4c87-28a8-4d5c-afeb-b59de9c9f549',
+        'visibility': 'c9f103c7-3d53-47c0-93bf-ccb34d044a3f',
     }
 
     # TODO: add classifications, etc.
 
     functions = {
-        'engagement': 'd000591f-8705-4324-897a-075e3623f37b',
+        'engagement_andersand': 'd000591f-8705-4324-897a-075e3623f37b',
+        'engagement_eriksmidthansen': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
         'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
-        'orlov': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+        'orlov_andersand': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
         'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
@@ -182,30 +155,77 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
     users = {
         'andersand': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
         'fedtmule': '6ee24785-ee9a-4502-81c2-7697009c9053',
+        'lis_jensen': '7626ad64-327d-481f-8b32-36c78eb12f8c',
+        'erik_smidt_hansen': '236e0a78-11a0-4ed9-8545-6286bb8611c7',
     }
 
     itsystems = {
         'ad': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
         'lora': '0872fb72-926d-4c5c-a063-ff800b8ee697',
+        'sap': '14466fb0-f9de-439c-a6c2-b3262c367da7',
     }
 
     if not minimal:
         units.update({
+            # L2
             'hum': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-            'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+            # L3
             'fil': '85715fc7-925d-401b-822d-467eb4b163b6',
+            # L2
+            'samf': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+            'social_og_sundhed': '68c5d78e-ae26-441f-a143-0103eca8b62a',
+            'skole_og_børn': 'dad7d0ad-c7a9-4a94-969d-464337e31fec',
+            # L3
+            'it_sup': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
+
+            # L1
+            'løn': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
+            # L2
+            'social_og_sundhed_løn': '5942ce50-2be8-476f-914b-6769a888a7c8',
+
+
             'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
             'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
         })
 
         classes.update({
+            # org_unit_type
             'fakultet': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
             'institut': 'ca76a441-6226-404f-88a9-31e02e420e52',
-            'email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-            'telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
-            'adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-            'ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+            # association_type
             'medlem': '62ec821f-4179-4758-bfdf-134529d186e9',
+            'projektleder': '8eea787c-c2c7-46ca-bd84-2dd50f47801e',
+            'teammedarbejder': '45751985-321f-4d4f-ae16-847f0a633360',
+            # engagement_job_function
+            'specialist': '890d4ff0-b453-4900-b79b-dbb461eda3ee',
+            'skolepsykolog': '07cea156-1aaf-4c89-bf1b-8e721f704e22',
+            'bogopsaetter': 'f42dd694-f1fd-42a6-8a97-38777b73adc4',
+            # engagement_type
+            'ansat': '06f95678-166a-455a-a2ab-121a8d92ea23',
+            # employee_address_type
+            'bruger_adresse': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+            'bruger_email': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+            'bruger_telefon': 'cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d',
+            # org_unit_address_type
+            'org_unit_adresse': '28d71012-2919-4b67-a2f0-7b59ed52561e',
+            'org_unit_ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
+            'org_unit_email': '73360db1-bad3-4167-ac73-8d827c0c8751',
+            'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            # visibility
+            'public': 'f63ad763-0e53-4972-a6a9-63b42a0f8cb7',
+            # role_type
+            'tillidsrepraesentant': '0fa6073f-32c0-4f82-865f-adb622ca0b04',
+            # manager_type
+            'direktoer': '0d72900a-22a4-4390-a01e-fd65d0e0999d',
+            # manager_level
+            'niveau1': '3c791935-2cfa-46b5-a12e-66f7f54e70fe',
+            'niveau3': '991915c0-f4f4-4337-95fa-dbeb9da13247',
+            # responsibility
+            'beredskabsledelse': '93ea44f9-127c-4465-a34c-77d149e3e928',
+            # leave_type
+            'barselsorlov': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
+            # time_planning
+            'tjenestetid': 'ebce5c35-4e30-4ba8-9a08-c34592650b04',
         })
 
         functions.update({
@@ -261,13 +281,34 @@ def load_sample_structures(*, verbose=False, minimal=False, check=False,
         ))
 
     for path, fixture_name, uuid in fixtures:
-        if check:
-            if lora.get(path, uuid):
-                raise Exception('{} already exists at {}!'.format(
-                    uuid, path,
-                ))
-        else:
-            load_fixture(path, fixture_name, uuid)
+        load_fixture(path, fixture_name, uuid)
+
+
+def create_app():
+    """
+    Returns a flask app with testing API for e2e-test enabled. It is a superset
+    to `mora.app.create_app()`.
+
+    """
+    app_object = app.create_app()
+
+    @app_object.route("/testing/testcafe-db-setup")
+    @restrictargs()
+    def _testcafe_db_setup():
+        _mox_testing_api("db-setup")
+
+        load_sample_structures()
+
+        return flask.jsonify({"testcafe-db-setup": True})
+
+    @app_object.route("/testing/testcafe-db-teardown")
+    @restrictargs()
+    def _testcafe_db_teardown():
+        _mox_testing_api("db-teardown")
+
+        return flask.jsonify({"testcafe-db-teardown": True})
+
+    return app_object
 
 
 @contextlib.contextmanager
@@ -351,8 +392,7 @@ class mock(requests_mock.Mocker):
             self.__overrider.__exit__(None, None, None)
 
 
-class TestCaseMixin(object):
-
+class _BaseTestCase(flask_testing.TestCase):
     '''Base class for MO testcases w/o LoRA access.
     '''
 
@@ -370,8 +410,6 @@ class TestCaseMixin(object):
         super().setUp()
 
     def create_app(self, overrides=None):
-        os.makedirs(BUILD_DIR, exist_ok=True)
-
         # make sure the configured organisation is always reset
         # every before test
         service.org.ConfiguredOrganisation.valid = False
@@ -556,98 +594,51 @@ class TestCaseMixin(object):
         return self.assertNotEqual(expected, actual, message)
 
 
-class LoRATestCaseMixin(test_support.TestCaseMixin, TestCaseMixin):
+class TestCase(_BaseTestCase):
+    pass
+
+
+class LoRATestCase(_BaseTestCase):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     '''
 
-    db_structure_extensions = json.loads(
-        pkgutil.get_data('mora', 'db_extensions.json').decode(),
-    )
-
     def load_sample_structures(self, minimal=False):
-        if minimal:
-            load_sql_fixture('minimal.sql')
-        else:
-            load_sql_fixture('simple.sql')
+        load_sample_structures(minimal)
 
-    def load_sql_fixture(self, fixture_name='normal.sql'):
-        '''Load an SQL fixture'''
+    @classmethod
+    def setUpClass(cls):
+        _mox_testing_api("db-setup")
+        super().setUpClass()
 
-        load_sql_fixture(fixture_name)
-
-    def add_resetting_endpoint(self, fixture_name='normal.sql'):
-        '''Add an endpoint for resetting the database'''
-
-        add_resetting_endpoint(self.app, fixture_name)
+    @classmethod
+    def tearDownClass(cls):
+        _mox_testing_api("db-teardown")
+        super().tearDownClass()
 
     def setUp(self):
-        lora_server = werkzeug.serving.make_server(
-            'localhost', 0, self.get_lora_app(),
-        )
-        (_, self.lora_port) = lora_server.socket.getsockname()
-
-        # apply patches, then start the server -- so they're active
-        # while it's running
-        p = override_lora_url('http://localhost:{}/'.format(self.lora_port))
-        p.start()
-        self.addCleanup(p.stop)
-
-        threading.Thread(
-            target=lora_server.serve_forever,
-            args=(),
-        ).start()
-
-        # likewise, stop it, and *then* pop the patches
-        self.addCleanup(lora_server.shutdown)
-
+        _mox_testing_api("db-reset")
         super().setUp()
 
 
-class TestCase(TestCaseMixin, flask_testing.TestCase):
-    pass
+class ConfigTestCase(LoRATestCase):
+    """Testcase with configuration database support.
 
+    """
 
-class LoRATestCase(LoRATestCaseMixin, flask_testing.TestCase):
-    pass
+    def set_global_conf(self, conf):
+        configuration_options.set_global_conf(conf)
 
+    @classmethod
+    def setUpClass(cls):
+        configuration_options.testdb_setup()
+        super().setUpClass()
 
-class LiveLoRATestCase(LoRATestCaseMixin, flask_testing.LiveServerTestCase):
-    #
-    # The two methods below force the WSGI server to run in a thread
-    # rather than a process. This enables easy coverage gathering as
-    # output buffering.
-    #
-    def _spawn_live_server(self):
-        self._server = werkzeug.serving.make_server(
-            'localhost', self._port_value.value, self.app,
-        )
+    @classmethod
+    def tearDownClass(cls):
+        configuration_options.testdb_teardown()
+        super().tearDownClass()
 
-        self._port_value.value = self._server.socket.getsockname()[1]
-
-        self._thread = threading.Thread(
-            target=self._server.serve_forever,
-            args=(),
-        )
-        self._thread.start()
-
-        # Copied from flask_testing
-
-        # We must wait for the server to start listening, but give up
-        # after a specified maximum timeout
-        timeout = self.app.config.get('LIVESERVER_TIMEOUT', 5)
-        start_time = time.time()
-
-        while True:
-            elapsed_time = (time.time() - start_time)
-            if elapsed_time > timeout:
-                raise RuntimeError(
-                    "Failed to start the server after %d seconds. " % timeout
-                )
-
-            if self._can_ping_server():
-                break
-
-    def _terminate_live_server(self):
-        self._server.shutdown()
-        self._thread.join()
+    def setUp(self):
+        configuration_options.testdb_reset()
+        super().setUp()

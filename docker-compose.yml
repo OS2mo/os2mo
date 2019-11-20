@@ -9,10 +9,13 @@ services:
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
+    # We also change the Flask app to one where a testing API for testcafe
+    # e2e-tests is enabled.
     volumes:
       - ./backend:/code/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
-    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
+      - ./.pytest_cache:/code/.pytest_cache
+    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
     ports:
       - "5000:5000"
     depends_on:
@@ -25,54 +28,34 @@ services:
     #   dockerfile: docker/Dockerfile
     volumes:
       - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
-      - db_extensions:/db_extensions
+    command: [
+    "gunicorn",
+    "--config", "docker/gunicorn-settings.py",
+    "--workers", "1", # We run single-threaded as the testing_api is not
+                      # threadsafe.
+    "oio_rest:app"]
     ports:
       - "8080:8080"
     depends_on:
       - mox-db
 
   mox-db:
-    image: postgres:9.6
+    image: magentaaps/postgres-os2mo:9.6.15-2-test
     env_file:
       - dev-environment/db.env
       - dev-environment/sessions_db.env
       - dev-environment/conf_db.env
-    volumes:
-      - postgres-initdb.d:/docker-entrypoint-initdb.d
-      - ./dev-environment/postgres-initdb.d/30-upgrade-to-superuser.sh:/docker-entrypoint-initdb.d/30-upgrade-to-superuser.sh
+    # The following will mount the database data directory to RAM. It
+    # significantly speeds up the database at the cost of dataloss on shutdown.
+    # This is useful for running tests, but should never be used if you want to
+    # save the data.
+    # tmpfs:
+    #   - /var/lib/postgresql/data
 
-  # The following services is to copy the `db_extension.json` and the scrript
-  # needed to initialize the database to volumes.
-  mo-cp:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    user: root
-    entrypoint: []
-    command:
-      - sh
-      - -c
-      - >
-        cp /code/backend/mora/db_extensions.json /db_extensions/db_extensions.json &&
-        cp -r /code/docker/postgres-initdb.d/. /postgres-initdb.d
+  testcafe:
+    image: magentalabs/testcafe:latest
     volumes:
-      - postgres-initdb.d:/postgres-initdb.d
-      - db_extensions:/db_extensions
-
-  # The following services is to copy the scripts needed to initialize the
-  # database with user and extentions to a volume. See
-  # https://mox.readthedocs.io/en/development/user/database/#db-user-ext-init
-  mox-cp:
-    image: magentalabs/mox:dev-latest
-    # build:
-    #   context: ../mox
-    #   dockerfile: docker/Dockerfile
-    user: root
-    entrypoint: []
-    command: ["cp", "-r", "/code/docker/postgres-initdb.d/.", "/postgres-initdb.d"]
-    volumes:
-      - postgres-initdb.d:/postgres-initdb.d
-
-volumes:
-  db_extensions:
-  postgres-initdb.d:
+      - ./frontend/e2e-tests:/tests
+      - ./testcafe-artifacts:/artifacts
+    environment:
+      - BASE_URL=http://mo:5000

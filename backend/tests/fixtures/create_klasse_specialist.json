@@ -3,10 +3,9 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "AdressePost",
-                "eksempel": "<UUID>",
-                "omfang": "DAR",
-                "titel": "Adresse",
+                "brugervendtnoegle": "specialist",
+                "omfang": "TEXT",
+                "titel": "Specialist",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
@@ -32,7 +31,7 @@
         "facet": [
             {
                 "objekttype": "facet",
-                "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
+                "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 "virkning": {
                     "from": "2016-01-01 00:00:00+01",
                     "from_included": true,

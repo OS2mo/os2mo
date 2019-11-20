@@ -1,0 +1,56 @@
+{
+    "note": "Automatisk indl\u00e6st fra JSON",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "tjenestetid",
+                "titel": "Tjenestetid",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}
