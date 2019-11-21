@@ -13,6 +13,8 @@ Bug fixes
 * #28830: Small update of configuration documentation
 * #30983: Fixed editing org units not taking time planning user settings into
   account
+* #31851: Date pickers are now properly locked to the validities of the
+  associated org units
 
 Internal changes
 ----------------
