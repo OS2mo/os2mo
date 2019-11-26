@@ -1,0 +1,17 @@
+# os2mo configuration for gitlab-ci.
+
+dummy_mode = true
+
+[lora]
+url = "http://mox:8080/"
+
+[session.database]
+host = "mox-db"
+
+[configuration.database]
+host = "mox-db"
+
+[amqp]
+# Disabled. We have many tests that check that the correct messages are sent
+# when they should be, but these tests do not require rabbitmq to be up.
+enable = false

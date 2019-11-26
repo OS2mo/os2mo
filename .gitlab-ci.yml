@@ -123,7 +123,7 @@ build:
     # for mox service
     MOX_USER_CONFIG_PATH: /code/dev-environment/settings-for-mo-test.toml
     # for mo
-    OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-dev-settings.toml
+    OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-ci-settings.toml
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     # for testcafe
     BASE_URL: http://mo:5000

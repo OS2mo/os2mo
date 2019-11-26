@@ -73,6 +73,10 @@ RUN pip3 install \
   -r backend/requirements-docs.txt
 
 
+# CI settings
+COPY dev-environment/mo-ci-settings.toml ./dev-environment/mo-ci-settings.toml
+
+
 # Copy and install backend code.
 COPY dev-environment/mo-dev-settings.toml ./dev-environment/mo-dev-settings.toml
 COPY docker ./docker
