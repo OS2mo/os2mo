@@ -16,7 +16,7 @@ from mora import settings
 from mora import triggers
 
 logger = logging.getLogger("amqp")
-amqp_connection = {}
+_amqp_connection = {}
 
 _SERVICES = ("employee", "org_unit")
 _OBJECT_TYPES = (
@@ -44,7 +44,8 @@ def publish_message(service, object_type, action, service_uuid, date):
     should not throw a HTTPError in the case where lora writting is
     successful, but amqp is down. Therefore, the try/except block.
     """
-    if not amqp_connection:
+
+    if not settings.config['amqp']['enable']:
         return
 
     # we are strict about the topic format to avoid programmer errors.
@@ -65,8 +66,10 @@ def publish_message(service, object_type, action, service_uuid, date):
         "time": date.isoformat(),
     }
 
+    connection = get_connection()
+
     try:
-        amqp_connection["channel"].basic_publish(
+        connection["channel"].basic_publish(
             exchange=settings.AMQP_OS2MO_EXCHANGE,
             routing_key=topic,
             body=json.dumps(message),
@@ -120,20 +123,15 @@ def amqp_sender(trigger_dict):
         publish_message(*message)
 
 
-def register():
-    """ Register amqp triggers on:
-        any ROLE_TYPE
-        any RequestType
-        but only after submit (ON_AFTER)
-    """
-    if settings.config['amqp']['enable']:
-        # we cant bail out here, as it seems amqp trigger
-        # tests must be able to run without ENABLE_AMQP
-        # instead we leave the connection object empty
-        # in which case publish_message will bail out
-        # this is the original mode of operation restored
+def get_connection():
+    # we cant bail out here, as it seems amqp trigger
+    # tests must be able to run without ENABLE_AMQP
+    # instead we leave the connection object empty
+    # in which case publish_message will bail out
+    # this is the original mode of operation restored
 
-        # Please crash if rabbitmq is unavailable.
+    # Please crash if rabbitmq is unavailable.
+    if not _amqp_connection:
         conn = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=settings.config["amqp"]["host"],
@@ -147,11 +145,20 @@ def register():
             exchange_type="topic",
         )
 
-        amqp_connection.update({
+        _amqp_connection.update({
             "conn": conn,
             "channel": channel,
         })
 
+    return _amqp_connection
+
+
+def register():
+    """ Register amqp triggers on:
+        any ROLE_TYPE
+        any RequestType
+        but only after submit (ON_AFTER)
+    """
     ROLE_TYPES = [
         triggers.Trigger.ORG_UNIT,
         triggers.Trigger.EMPLOYEE,
