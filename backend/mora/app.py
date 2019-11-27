@@ -14,6 +14,7 @@ import flask_saml_sso
 import werkzeug
 
 from mora import __version__
+from mora.triggers.internal import amqp_trigger
 from . import exceptions
 from . import lora
 from . import service
@@ -80,6 +81,18 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
             "mo_version": __version__,
             "lora_version": lora_version,
         })
+
+    @app.before_first_request
+    def register_triggers():
+        """Register all triggers on the app object.
+
+        The reason we cannot do this when creating the app object is
+        that the amqp trigger tries to connect to rabbitmq when
+        registrered. App objects are also created when we wait for
+        rabbitmq in the docker entrypoint. A bit of a code smell/design
+        flaw, that we do not know how to fix yet.
+        """
+        amqp_trigger.register()
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the

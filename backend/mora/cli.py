@@ -552,22 +552,26 @@ def initdb(wait):
 
         return init_sessions
 
-    time_left = _wait_and_init_db(configuration_options.create_db_table,
-                                  psycopg2.OperationalError, wait)
+    time_left = _wait_for_service(
+        "Configuration database",
+        configuration_options.create_db_table,
+        psycopg2.OperationalError,
+        wait,
+    )
     if settings.SAML_AUTH_ENABLE:
-        _wait_and_init_db(get_init_sessions(),
+        _wait_for_service("Sessions database", get_init_sessions(),
                           sqlalchemy.exc.OperationalError, time_left)
 
 
-def _wait_and_init_db(init_db_fn, db_exception, wait):
+def _wait_for_service(name, wait_fn, unavailable_exception, wait):
     attempts = int(wait // _SLEEPING_TIME) or 1
     for i in range(1, attempts + 1):
         try:
-            init_db_fn()
+            wait_fn()
             return int(wait - (i * _SLEEPING_TIME))
-        except db_exception:
+        except unavailable_exception:
             click.echo(
-                "Database is unavailable - attempt %s/%s" % (i, attempts))
+                "%s is unavailable - attempt %s/%s" % (name, i, attempts))
             if i >= attempts:
                 sys.exit(1)
             time.sleep(_SLEEPING_TIME)
@@ -581,6 +585,34 @@ def check_configuration_db_status():
     else:
         logger.critical(error_msg)
         sys.exit(3)
+
+
+@group.command()
+@click.option("--seconds", default=_SLEEPING_TIME, type=int,
+              help="Wait up to n seconds for rabbitmq.")
+def wait_for_rabbitmq(seconds):
+    if not settings.config["amqp"]["enable"]:
+        logger.info("AMQP is disabled. MO will not send messages.")
+        return 0
+
+    import pika
+    def connector():
+        conn = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=settings.config["amqp"]["host"],
+                port=settings.config["amqp"]["port"],
+                heartbeat=0,
+            )
+        )
+
+    _wait_for_service(
+        "rabbitmq",
+        connector,
+        pika.exceptions.ConnectionClosed,
+        seconds,
+    )
+
+    return 8
 
 
 if __name__ == '__main__':

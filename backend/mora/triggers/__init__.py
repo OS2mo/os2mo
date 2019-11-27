@@ -14,6 +14,9 @@ import importlib
 import traceback
 import functools
 
+from . import internal
+
+
 logger = logging.getLogger("triggers")
 
 
