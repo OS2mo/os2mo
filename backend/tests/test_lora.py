@@ -324,7 +324,7 @@ class Tests(util.TestCase):
                     ctxt.exception.response.json,
                 )
 
-    @util.override_config(DEBUG=True)
+    @util.override_app_config(DEBUG=True)
     def test_error_debug(self, m):
         m.get(
             'http://mox/organisation/organisationenhed?uuid=42',
