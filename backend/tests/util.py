@@ -358,7 +358,7 @@ class mock(requests_mock.Mocker):
                 for url, value in get_mock_data(name).items():
                     self.get(url, json=value, complete_qs=True)
 
-        if allow_mox:
+        if not allow_mox:
             self.__overrider = override_lora_url()
         else:
             self.__overrider = None

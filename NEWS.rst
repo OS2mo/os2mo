@@ -27,6 +27,8 @@ New features
 * #29760: Best practises updated concerning OS2Sync integration
 * #32467: We now once again allow performing edits in the past
 * #31978: Better logs.
+* #32838: Health endpoints have been implemented to show the status of OS2mo
+  and the various systems on which it depends.
 
 Bug fixes
 ---------
