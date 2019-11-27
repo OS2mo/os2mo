@@ -14,6 +14,7 @@ import flask_saml_sso
 import werkzeug
 
 from mora import __version__
+from mora.triggers.internal import amqp_trigger
 from . import exceptions
 from . import lora
 from . import service
@@ -91,7 +92,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         rabbitmq in the docker entrypoint. A bit of a code smell/design
         flaw, that we do not know how to fix yet.
         """
-        triggers.register(app)
+        amqp_trigger.register()
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
@@ -124,5 +125,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     serviceplatformen.check_config(app)
+    triggers.register(app)
 
     return app
