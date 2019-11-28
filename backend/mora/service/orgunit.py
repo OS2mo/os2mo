@@ -1096,12 +1096,12 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    role_counts = set(
+    role_counts = set((
         mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
         for objid, obj in c.organisationfunktion.get_all(
-            uuid=roles - addresses,
-        ),
-    )
+            uuid=(roles - addresses)
+        )
+    ))
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
