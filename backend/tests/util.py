@@ -13,8 +13,6 @@ import json
 import os
 import pprint
 import re
-import sys
-import threading
 from unittest.mock import patch
 
 import flask
@@ -22,8 +20,6 @@ import flask_testing
 import jinja2
 import requests
 import requests_mock
-import time
-import werkzeug.serving
 
 from mora import triggers, app, lora, settings, service
 from mora.exceptions import ImproperlyConfigured

@@ -8,7 +8,6 @@
 
 from . import util
 from unittest.mock import patch
-from mora.service import org
 
 
 class Tests(util.TestCase):
