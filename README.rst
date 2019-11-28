@@ -174,7 +174,7 @@ Du kan bruge ``docker-compose`` til at starte OS2MO, LoRa og relaterede services
 op.
 
 En :file:`docker-compose.yml` til udvikling er inkluderet. Den starter
-automatisk OS2MO og `LoRa <https://hub.docker.com/r/magentaaps/mox>` med
+automatisk OS2MO og `LoRa`_ med
 tilhørende `postgres <https://hub.docker.com/_/postgres>`_ op. Den sætter
 desuden også miljøvariablerne til at forbinde dem.
 
@@ -195,7 +195,7 @@ OS2MO imageet fra den lokale :file:`Dockerfile`.
 
 For at stoppe servicene igen, kør ``docker-compose stop``. Servicene vil blive
 stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
-, kør ``docker-compose down``.
+, kør ``docker-compose down -v``.
 
 
 Testsuiten
