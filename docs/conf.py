@@ -108,6 +108,30 @@ source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
 
+
+# https://stackoverflow.com/a/30624034
+nitpick_ignore = [
+    ("http:obj", "object"),
+    ("http:obj", "array"),
+    ("http:obj", "Array"),
+    ("http:obj", "uuid"),
+    ("http:obj", "str"),
+    ("http:obj", "string"),
+    ("http:obj", "bool"),
+    ("http:obj", "boolean"),
+    ("http:obj", "date"),
+    ("http:obj", "list"),
+    ("http:obj", "int"),
+    ("http:obj", "integer"),
+    ("http:obj", "dict"),
+
+    ("py:class", "RequestHandler"),
+    ("py:class", "click.exceptions.ClickException"),
+    ("py:class", "string"),
+    ("py:class", "uuid"),
+]
+
+
 #
 # References to other Sphinx documentation sites.
 #
