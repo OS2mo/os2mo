@@ -107,7 +107,6 @@ Opsætning af udviklingsmiljø
 
       git clone https://github.com/OS2mo/os2mo.git
       cd os2mo
-      docker-compose up mox-cp
       docker-compose up -d --build mo
 
 
@@ -179,14 +178,6 @@ desuden også miljøvariablerne til at forbinde dem.
 
 Den mounter også din host maskines :file:`./backend` til den tilsvarende mappe
 inde i containeren og automatisk genstarter serveren ved kodeændringer.
-
-
-For at kopiere :ref:`MOX database filer til
-initialisering <mox:db_user_ext_init>` kør:
-
-.. code-block:: bash
-
-   docker-compose up -d --build mox-cp mo-cp
 
 For at hente og bygge images og starte de tre services, kør:
 
