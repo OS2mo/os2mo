@@ -126,26 +126,28 @@ installationen af denne, referere vi til `den officielle dokumentation
 <https://docs.docker.com/install/>`_.
 
 Containeren kræver en forbindelse til en `LoRa instans
-<https://github.com/magenta-aps/mox>`_. Den kan sættes via miljøvairablen
-``OS2MO_LORA_URL``. Desuden kræves enten en forbindelse til Serviceplatformen
-som sættes via miljøvariablerne ``OS2MO_SP_*``. Alternativt kan OS2MO lave en
-attrap af Serviceplatformen. Det gøres ved at sætte miljøvariablen
-``OS2MO_DUMMY_MODE=True``.
+<https://github.com/magenta-aps/mox>`_. Den kan sættes via :ref:`indstillingen
+<settings>` ``[lora] url``. Desuden kræves enten en forbindelse til
+Serviceplatformen som indstilles under ``[service_platformen]``. Alternativt kan
+OS2MO lave en attrap af Serviceplatformen. Det gøres ved at sætte indstillingen
+``dummy_mode = false``.
 
-For at starte en OS2MO container med en attrap af Serviceplatform, køres
-følgende:
+Disse indstiller laves i en TOML fil der bindes til ``/user-settings.toml`` i
+containeren.
+
+For at starte en OS2MO container køres følgende:
 
 .. code-block:: bash
 
-    docker run -p 5000:5000 -e OS2MO_LORA_URL=http://<LoRa-IP>:8080/ -e OS2MO_DUMMY_MODE=True magentaaps/os2mo:latest
+    docker run -p 5000:5000 -v /path/to/user-settings.toml:/user-settings.toml magentaaps/os2mo:latest
 
 Den henter docker imaget fra Docker Hub og starter en container i forgrunden.
 ``-p 5000:5000`` `binds port
 <https://docs.docker.com/engine/reference/commandline/run/#publish-or-expose-port--p---expose>`_
-``5000`` på host maskinen til port ``5000`` i containeren. ``-e`` `sætter den
-efterfølgende miljøvariabel
-<https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file>`_
-i containeren.
+``5000`` på host maskinen til port ``5000`` i containeren. ``-v`` `binder
+<https://docs.docker.com/engine/reference/commandline/run/#mount-volume--v---read-only>`_
+``/path/to/user-settings.toml`` på host maskinen til ``/user-settings.toml``
+inde i containeren.
 
 Hvis serveren starter rigtigt op skulle du kunne tilgå den på fra din host
 maskine på ``http://localhost:5000``.
