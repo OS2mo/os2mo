@@ -199,32 +199,38 @@ stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
 Testsuiten
 ==========
 
-Der arbejdes i proktet med tre typer af tests:
+Der arbejdes i projektet med tre typer af tests:
 
 1. Unit tests
 2. Integration tests
 3. End-to-end tests
 
-En del af integrationstestene er sat op til at køre på en sådan måde, at der
-startes en LoRa-instans før de enkelte test cases kører. Hver test case
-køres derefter op imod LoRa-instansen, idet der ryddes op i LoRa mellem hver
-test case, så testene effektivt set køres isoleret. For at anvende denne test
-feature kræver det følgende afhængigheder::
+------------------------
+Unit og Integration test
+------------------------
 
-  $ sudo apt install libxmlsec1-dev libxmlsec1-openssl postgresql-contrib
+Hver test case køres op imod en LoRa-instans, der ryddes mellem hver test case
+så testene effektivt set køres isoleret. LoRa instansen kopiere eventuelle data
+i databasen til en backup lokation og gendanner disse efter testkørslen.
 
-Testsuiten kan køres med kommandoen::
+Efter udviklingsmiljøet er startet med ``docker-compose up -d mo`` kan
+testsuiten kan køres med kommandoen:
 
-  $ ./flask.sh test
+.. code-block:: bash
 
+   docker-compose exec mo pytest
+
+----------------
 End-to-end tests
-================
+----------------
 
-Vores end-to-end tests køres typisk som en del af testsuiten. For at
-køre den direkte mod en udviklingsmaskine anvendes eksempelvis::
+Vores end-to-end tests køres ikke som en del af testsuiten. De kan ikke køre
+parallelt med integrationsstestene da de anvender samme LoRa instans mes samme
+database. For at køre dem kaldes:
 
-  cd frontend
-  BASE_URL=http://localhost:5000/ yarn testcafe --speed 0.5 firefox e2e-tests
+.. code-block:: bash
+
+   docker-compose up testcafe
 
 Dokumentation
 =============
