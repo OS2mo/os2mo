@@ -596,8 +596,9 @@ def wait_for_rabbitmq(seconds):
         return 0
 
     import pika
+
     def connector():
-        conn = pika.BlockingConnection(
+        pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=settings.config["amqp"]["host"],
                 port=settings.config["amqp"]["port"],

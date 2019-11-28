@@ -11,10 +11,7 @@ from .. import util
 from ..exceptions import ErrorCodes
 import logging
 import importlib
-import traceback
 import functools
-
-from . import internal
 
 
 logger = logging.getLogger("triggers")

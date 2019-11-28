@@ -12,8 +12,6 @@ import uuid
 from . import base
 from ..validation.validator import forceable
 from ... import exceptions
-from ... import mapping
-from ... import util
 
 session = requests.Session()
 session.headers = {

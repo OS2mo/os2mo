@@ -8,12 +8,8 @@
 import re
 
 from . import base
-from .. import facet
 from ..validation.validator import forceable
 from ... import exceptions
-from ... import lora
-from ... import mapping
-from ... import util
 
 
 class PhoneAddressHandler(base.AddressHandler):

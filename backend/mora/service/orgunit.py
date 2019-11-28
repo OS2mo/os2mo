@@ -359,7 +359,6 @@ def get_one_orgunit(c, unitid, unit=None,
     unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     parentid = rels['overordnet'][0]['uuid']
-    orgid = rels['tilhoerer'][0]['uuid']
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -1096,12 +1095,12 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    role_counts = set(
+    role_counts = set((
         mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
         for objid, obj in c.organisationfunktion.get_all(
-            uuid=roles - addresses,
-        ),
-    )
+            uuid=(roles - addresses)
+        )
+    ))
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
