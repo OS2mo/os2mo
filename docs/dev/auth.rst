@@ -34,9 +34,8 @@ Configuration
 ^^^^^^^^^^^^^
 
 Detailed instructions for configuring OS2mo authentication can be found in the
-documentation for
-`Flask SAML SSO <https://flask-saml-sso.readthedocs.io/en/latest/>`_. For the
-exact mapping between ``flask_saml_sso`` configuration options and OS2MO
+`Flask SAML SSO docs <https://flask-saml-sso.readthedocs.io/en/latest/>`_. For
+the exact mapping between ``flask_saml_sso`` configuration options and OS2MO
 configuration options, please refer to the ``app_config`` object in
 ``backend/mora/settings.py``.
 

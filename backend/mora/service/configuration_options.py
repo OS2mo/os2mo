@@ -31,25 +31,6 @@ _DEFAULT_CONF = (
 )
 
 
-if not all(
-    c in config["configuration"]["database"]
-    for c in ("name", "user", "password", "host", "port")
-):
-    error_msgs = [
-        'Configuration error of user settings connection information',
-        'CONF_DB_USER: {}'.format(config["configuration"]["database"]["user"]),
-        'CONF_DB_NAME: {}'.format(config["configuration"]["database"]["name"]),
-        'CONF_DB_HOST: {}'.format(config["configuration"]["database"]["host"]),
-        'CONF_DB_PORT: {}'.format(config["configuration"]["database"]["port"]),
-        'Length of CONF_DB_PASSWORD: {}'.format(
-            len(config["configuration"]["database"]["password"])
-        )
-    ]
-    for msg in error_msgs:
-        logger.error(msg)
-    raise Exception(error_msgs[0])
-
-
 _DBNAME = config["configuration"]["database"]["name"]
 _DBNAME_BACKUP = _DBNAME + "_backup"
 # The postgres default (empty) template for CREATE DATABASE.

@@ -24,7 +24,7 @@ refererer til hhv. `OS2MO <https://os2.eu/projekt/os2mo>`_ og den
 `Lokale Rammearkitektur <https://digitaliser.dk/group/3101080/members>`_.
 Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 
-.. image:: docs/graphics/os2mo-1280.png
+.. image:: ./graphics/os2mo-1280.png
    :width: 100%
 
 Opbygning
@@ -32,7 +32,7 @@ Opbygning
 
 Den modulære opbygning af MORa ses på nedenstående figur.
 
-.. image:: docs/graphics/MOmoduler.png
+.. image:: ./graphics/MOmoduler.png
    :width: 100%
 
 MORa består af frontend og en middleend og sidstnævnte kommunikerer med en LoRa
