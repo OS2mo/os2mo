@@ -75,6 +75,8 @@ MOCK_MODULES = [
     'flask_saml_sso',
     'validators',
     'psycopg2',
+    'psycopg2.extras',
+    'psycopg2.sql',
     'sqlalchemy',
     'pika',
     'toml',
