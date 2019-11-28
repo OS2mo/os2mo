@@ -6,6 +6,7 @@ New features
 
 * #29760: Best practises updated concerning OS2Sync integration
 * #32467: We now once again allow performing edits in the past
+* #31978: Better logs.
 
 Bug fixes
 ---------
@@ -18,6 +19,25 @@ Bug fixes
 
 Internal changes
 ----------------
+
+* #32713: Use Gitlab CI instead of Jenkins.
+* Changed the way test are run:
+
+  * #31797: Letting OS2mo use the LoRa defined in settings insead of creating
+    one internally
+  * #31758: Constructed a new small test dataset in JSON instead of the
+    generated one in SQL for integration test. Update facets in test to reflect
+    reality.
+  * #31912: Use the new JSON test dataset for end-to-end tests and expand it
+    greatly.
+  * #31799: Seperate linting from unit and integration tests.
+  * #31798: Seperate end-to-end test from unit and integration tests.
+
+* Remove copy services by:
+
+  * #32687: Copy :file:`db_extensions.json` to LoRa.
+  * #32677: Move database setup to a new `postgres-os2mo
+    <https://git.magenta.dk/rammearkitektur/postgres-os2mo>`__ image.
 
 
 Version 1.1.0, 2019-10-09
