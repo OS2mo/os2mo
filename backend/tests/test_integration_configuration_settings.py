@@ -31,7 +31,7 @@ class Tests(ConfigTestCase):
         self.set_global_conf((('show_roles', 'True'),
                               ('show_roles', 'True')))
 
-        Url = '/service/configuration'
+        url = '/service/configuration'
         payload = {"org_units": {"show_roles": "False"}}
         assertion_raised = False
         try:
