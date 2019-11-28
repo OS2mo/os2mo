@@ -82,7 +82,8 @@ def publish_message(service, object_type, action, service_uuid, date):
 
 def amqp_sender(trigger_dict):
     request = trigger_dict[triggers.Trigger.REQUEST]
-    if trigger_dict[triggers.Trigger.REQUEST_TYPE] == triggers.Trigger.RequestType.EDIT:
+    if (trigger_dict[triggers.Trigger.REQUEST_TYPE] ==
+            triggers.Trigger.RequestType.EDIT):
         request = request['data']
 
     try:  # date = from or to
