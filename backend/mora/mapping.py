@@ -38,6 +38,7 @@ ERROR = 'error'
 USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
+IS_PRIMARY = 'is_primary'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -329,6 +330,11 @@ ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
 )
 
+PRIMARY_FIELD = FieldTuple(
+    path=('relationer', 'primær'),
+    type=FieldTypes.ZERO_TO_ONE
+)
+
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
     EMPLOYEE_EGENSKABER_FIELD,
@@ -345,7 +351,8 @@ ENGAGEMENT_FIELDS = {
     ORG_FUNK_TYPE_FIELD,
     ASSOCIATED_ORG_UNIT_FIELD,
     ASSOCIATED_ORG_FIELD,
-    USER_FIELD
+    USER_FIELD,
+    PRIMARY_FIELD,
 }
 
 ASSOCIATION_FIELDS = {
@@ -357,6 +364,7 @@ ASSOCIATION_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     SINGLE_ADDRESS_FIELD,
+    PRIMARY_FIELD,
 }
 
 ROLE_FIELDS = {

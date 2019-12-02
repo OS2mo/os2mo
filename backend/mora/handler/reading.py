@@ -106,10 +106,7 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     def get(cls, c, search_fields):
-        object_tuples = c.organisationfunktion.get_all(
-            funktionsnavn=cls.function_key,
-            **search_fields,
-        )
+        object_tuples = cls.get_lora_object(c, search_fields)
         return cls.get_obj_effects(c, object_tuples)
 
     @classmethod
@@ -119,12 +116,15 @@ class OrgFunkReadingHandler(ReadingHandler):
             cls.SEARCH_FIELDS[type]: objid
         }
 
+        return cls.get(c, search_fields)
+
+    @classmethod
+    def get_lora_object(cls, c, search_fields):
         object_tuples = c.organisationfunktion.get_all(
             funktionsnavn=cls.function_key,
             **search_fields,
         )
-
-        return cls.get_obj_effects(c, object_tuples)
+        return object_tuples
 
     @classmethod
     def get_obj_effects(cls, c, object_tuples):
@@ -159,6 +159,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 'tilhoerer',
                 'tilknyttedeorganisationer',
                 'tilknyttedeitsystemer',
+                'primær',
             ),
         }
 

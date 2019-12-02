@@ -108,7 +108,7 @@ def list_details(type, id):
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
 @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
-                   'only_primary_uuid')
+                   'calculate_primary', 'only_primary_uuid')
 def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
@@ -611,4 +611,4 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return flask.jsonify(cls.get(c, search))
+    return flask.jsonify(cls.get_from_type(c, type, id))

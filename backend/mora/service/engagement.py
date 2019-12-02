@@ -48,12 +48,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
-        primary = req.get(mapping.PRIMARY)
-
-        if primary:
-            validator.does_employee_have_existing_primary_function(
-                self.function_key, valid_from, valid_to, employee_uuid,
-            )
+        primary = util.get_mapping_uuid(req, mapping.PRIMARY)
 
         org_uuid = org.get_configured_organisation(
             util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
@@ -151,15 +146,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append((mapping.ASSOCIATED_ORG_UNIT_FIELD,
                                   {'uuid': org_unit_uuid}))
 
+        if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
+            primary = util.get_mapping_uuid(data, mapping.PRIMARY)
+
+            update_fields.append((mapping.PRIMARY_FIELD, {'uuid': primary}))
+
         # Attribute extensions
         new_extensions = {}
-
-        if mapping.PRIMARY in data:
-            primary = util.checked_get(data, mapping.PRIMARY, default=False)
-
-            new_extensions['primær'] = primary
-        else:
-            primary = exts.get('primær')
 
         if mapping.FRACTION in data:
             fraction = util.checked_get(data, mapping.FRACTION, default=100)
@@ -174,12 +167,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                     **new_extensions
                 },
             ))
-
-        if primary:
-            validator.does_employee_have_existing_primary_function(
-                self.function_key, new_from, new_to,
-                employee_uuid, engagement_uuid,
-            )
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)

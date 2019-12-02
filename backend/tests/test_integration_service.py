@@ -1013,48 +1013,6 @@ class Tests(util.LoRATestCase):
             },
         ]
 
-        eriksmidthansen = [
-            {
-                'engagement_type': {
-                    'example': None,
-                    'name': 'Ansat',
-                    'scope': None,
-                    'user_key': 'ansat',
-                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
-                },
-                'fraction': None,
-                'job_function': {
-                    'example': None,
-                    'name': 'Fakultet',
-                    'scope': None,
-                    'user_key': 'fak',
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
-                },
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': None
-                    }
-                },
-                'person': {
-                    'givenname': 'Erik Smidt',
-                    'name': 'Erik Smidt Hansen',
-                    'surname': 'Hansen',
-                    'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
-                },
-                'primary': None,
-                'user_key': 'bvn',
-                'uuid': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
-                'validity': {
-                    'from': '2005-12-01',
-                    'to': None
-                }
-            },
-        ]
-
         with self.subTest('user'):
             self.assertRequestResponse(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
@@ -1082,11 +1040,11 @@ class Tests(util.LoRATestCase):
                 andersand,
             )
 
-        self.assertRequestResponse(
+        r = self.assertRequest(
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
             '/details/engagement',
-            eriksmidthansen + andersand,
         )
+        self.assertEqual(2, len(r))
 
         self.assertRequestResponse(
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'

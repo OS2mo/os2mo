@@ -31,10 +31,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
 
-        extensions = mapping.ORG_FUNK_UDVIDELSER_FIELD(effect)
-        extensions = extensions[0] if extensions else {}
-        primary = extensions.get("primær", None)
-        print(primary)
+        primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
         base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -45,7 +42,8 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
             ),
             mapping.ASSOCIATION_TYPE: facet.get_one_class(c, association_type),
-            mapping.PRIMARY: primary,
+            mapping.PRIMARY: facet.get_one_class(
+                c, primary) if primary else None,
         }
 
         return r

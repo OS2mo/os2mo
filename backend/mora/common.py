@@ -309,7 +309,7 @@ def create_organisationsfunktion_payload(
     tilknyttedefunktioner: typing.List[str] = None,
     tilknyttedeitsystemer: typing.List[str] = None,
     funktionstype: str = None,
-    primær: bool=None,
+    primær: str = None,
     opgaver: typing.List[dict] = None,
     adresser: typing.List[dict] = None,
     integration_data: dict = None,
@@ -378,6 +378,11 @@ def create_organisationsfunktion_payload(
             'uuid': funktionstype
         }]
 
+    if primær:
+        org_funk['relationer']['primær'] = [{
+            'uuid': primær
+        }]
+
     if opgaver:
         org_funk['relationer']['opgaver'] = opgaver
 
@@ -385,9 +390,6 @@ def create_organisationsfunktion_payload(
         org_funk['relationer']['adresser'] = adresser
 
     extensions = {}
-    if primær is not None:
-        extensions['primær'] = primær
-
     if fraktion is not None:
         extensions['fraktion'] = fraktion
 
