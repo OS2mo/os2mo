@@ -130,9 +130,9 @@ Containeren kræver en forbindelse til en `LoRa instans
 <settings>` ``[lora] url``. Desuden kræves enten en forbindelse til
 Serviceplatformen som indstilles under ``[service_platformen]``. Alternativt kan
 OS2MO lave en attrap af Serviceplatformen. Det gøres ved at sætte indstillingen
-``dummy_mode = false``.
+``dummy_mode = true``.
 
-Disse indstiller laves i en TOML fil der bindes til ``/user-settings.toml`` i
+Disse indstillinger laves i en TOML fil der bindes til ``/user-settings.toml`` i
 containeren.
 
 For at starte en OS2MO container køres følgende:
@@ -212,7 +212,7 @@ Unit og Integration test
 ------------------------
 
 Hver test case køres op imod en LoRa-instans, der ryddes mellem hver test case
-så testene effektivt set køres isoleret. LoRa instansen kopiere eventuelle data
+så testene effektivt set køres isoleret. LoRa instansen kopierer eventuelle data
 i databasen til en backup lokation og gendanner disse efter testkørslen.
 
 Efter udviklingsmiljøet er startet med ``docker-compose up -d mo`` kan
@@ -227,7 +227,7 @@ End-to-end tests
 ----------------
 
 Vores end-to-end tests køres ikke som en del af testsuiten. De kan ikke køre
-parallelt med integrationsstestene da de anvender samme LoRa instans mes samme
+parallelt med integrationsstestene da de anvender samme LoRa instans men samme
 database. For at køre dem kaldes:
 
 .. code-block:: bash
