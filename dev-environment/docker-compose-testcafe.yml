@@ -1,0 +1,19 @@
+version: '3'
+
+# We create an additional docker-compose for testcafe as we do not want to start
+# it when we run `docker-compose up` and you are prone to forget to run
+# `docker-compose up mo`.
+#
+# Unfortuenately it is not possible to execlude a service by default and there
+# is as of 2019-12-04 no plan to implement it:
+# https://github.com/docker/compose/issues/1896#issuecomment-322285976
+
+services:
+
+  testcafe:
+    image: magentalabs/testcafe:latest
+    volumes:
+      - ./frontend/e2e-tests:/tests
+      - ./testcafe-artifacts:/artifacts
+    environment:
+      - BASE_URL=http://mo:5000
