@@ -82,6 +82,7 @@ ORG_UNIT_TYPE = 'org_unit_type'
 TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
+ORG_UNIT_LEVEL = 'org_unit_level'
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
@@ -238,6 +239,11 @@ ORG_UNIT_EGENSKABER_FIELD = FieldTuple(
 
 ORG_UNIT_TYPE_FIELD = FieldTuple(
     path=('relationer', 'enhedstype'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+ORG_UNIT_LEVEL_FIELD = FieldTuple(
+    path=('relationer', 'niveau'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
@@ -403,7 +409,8 @@ ORG_UNIT_FIELDS = {
     BELONGS_TO_FIELD,
     ORG_UNIT_TYPE_FIELD,
     ORG_UNIT_TIME_PLANNING_FIELD,
-    PARENT_FIELD
+    PARENT_FIELD,
+    ORG_UNIT_LEVEL_FIELD
 }
 
 ITSYSTEM_FIELDS = {

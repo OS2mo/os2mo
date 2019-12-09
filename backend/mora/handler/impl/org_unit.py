@@ -41,8 +41,11 @@ class OrgUnitReader(reading.ReadingHandler):
             "relationer": ("enhedstype", "opgaver", "overordnet", "tilhoerer"),
             "tilstande": ("organisationenhedgyldighed",),
         }
+        also = {
+            "relationer": ("niveau",)
+        }
 
-        return c.organisationenhed.get_effects(obj, relevant, {}, **params)
+        return c.organisationenhed.get_effects(obj, relevant, also, **params)
 
     @classmethod
     def get_mo_object_from_effect(cls, effect, start, end, obj_id):

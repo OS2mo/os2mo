@@ -411,6 +411,7 @@ def create_organisationsenhed_payload(
     tilhoerer: str,
     enhedstype: str,
     overordnet: str,
+    niveau: str = None,
     opgaver: typing.List[dict] = None,
     integration_data: dict = None,
 ) -> dict:
@@ -451,6 +452,11 @@ def create_organisationsenhed_payload(
             ],
         }
     }
+
+    if niveau:
+        org_unit['relationer']['niveau'] = [{
+            'uuid': niveau
+        }]
 
     if integration_data is not None:
         (
