@@ -8,6 +8,7 @@
 import logging
 import operator
 
+from backend.mora import util
 from .. import reading
 from ... import common
 from ... import mapping
@@ -22,8 +23,39 @@ logger = logging.getLogger(__name__)
 
 
 @reading.register(ROLE_TYPE)
-class EngagementReader(reading.OrgFunkReadingHandler):
+class ManagerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.MANAGER_KEY
+
+    @classmethod
+    def get_from_type(cls, c, type, object_id):
+
+        if util.get_args_flag("inherit_manager"):
+            object_tuples = cls.get_inherited_manager(c, type, object_id)
+            return cls.get_obj_effects(c, object_tuples)
+
+        return super().get_from_type(c, type, object_id)
+
+    @classmethod
+    def get_inherited_manager(cls, c, type, object_id):
+
+        search_fields = {
+            cls.SEARCH_FIELDS[type]: object_id
+        }
+
+        manager = list(super().get_lora_object(c, search_fields))
+
+        if not manager:
+            ou = orgunit.get_one_orgunit(
+                c, object_id, details=orgunit.UnitDetails.FULL
+            )
+            try:
+                parent_id = ou[mapping.PARENT][mapping.UUID]
+            except (TypeError, KeyError):
+                return manager
+
+            return cls.get_inherited_manager(c, type, parent_id)
+
+        return manager
 
     @classmethod
     def get_mo_object_from_effect(cls, effect, start, end, funcid):
