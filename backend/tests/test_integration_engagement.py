@@ -1625,8 +1625,20 @@ class Tests(util.LoRATestCase):
                 'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
                 'person': {'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
                 'primary': None,
+                'is_primary': None,
                 'user_key': 'bvn',
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'validity': {'from': '2017-01-01', 'to': None}
             }]
         )
+
+    def test_reading_engagement_calculate_primary(self):
+        self.load_sample_structures()
+
+        r = self.assertRequest(
+            '/service/e/236e0a78-11a0-4ed9-8545-6286bb8611c7'
+            '/details/engagement?calculate_primary=1'
+        )
+
+        self.assertEqual(False, r[0]['is_primary'])
+        self.assertEqual(True, r[1]['is_primary'])

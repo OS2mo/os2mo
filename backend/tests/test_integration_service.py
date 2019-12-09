@@ -529,6 +529,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -539,7 +540,6 @@ class Tests(util.LoRATestCase):
                 'parent': None,
                 'time_planning': None,
                 'location': '',
-
             },
         )
 
@@ -557,6 +557,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -593,6 +594,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -624,6 +626,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
+                'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Afdeling',
@@ -1005,6 +1008,7 @@ class Tests(util.LoRATestCase):
                 'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
                 'user_key': 'bvn',
                 'primary': None,
+                'is_primary': None,
                 'fraction': None,
                 "validity": {
                     'from': '2017-01-01',
@@ -1044,7 +1048,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
             '/details/engagement',
         )
-        self.assertEqual(2, len(r))
+        self.assertEqual(3, len(r))
 
         self.assertRequestResponse(
             '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
@@ -1363,6 +1367,12 @@ class Tests(util.LoRATestCase):
                     "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 },
                 {
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                            '/f/primary_type/',
+                    'user_key': 'primary_type',
+                    'uuid': '1f6f34d8-d065-4bb7-9af0-738d25dc0fbf'
+                },
+                {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
@@ -1385,6 +1395,12 @@ class Tests(util.LoRATestCase):
                     "/f/role_type/",
                     "user_key": "role_type",
                     "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
+                },
+                {
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                            '/f/org_unit_level/',
+                    'user_key': 'org_unit_level',
+                    'uuid': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455'
                 },
                 {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -1613,6 +1629,7 @@ class Tests(util.LoRATestCase):
             'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
             'user_key': 'bvn',
             'primary': None,
+            'is_primary': None,
             'fraction': None,
             'validity': {
                 'from': '2017-01-01',
@@ -1651,6 +1668,7 @@ class Tests(util.LoRATestCase):
             'uuid': '09e79d96-2904-444f-94b1-0e98b0b07e7c',
             'user_key': 'bvn',
             'primary': None,
+            'is_primary': None,
             'fraction': None,
             'validity': {
                 'from': '2017-01-01',

@@ -14,18 +14,18 @@ from . import util
 HUM = {
     'org_unit': [
         {
-            'name': 'Overordnet Enhed',
-            'user_key': 'root',
-            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+            'name': 'Humanistisk fakultet',
+            'user_key': 'hum',
+            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
             'validity': {
                 'from': '2016-01-01',
                 'to': None,
             },
         },
         {
-            'name': 'Humanistisk fakultet',
-            'user_key': 'hum',
-            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+            'name': 'Overordnet Enhed',
+            'user_key': 'root',
+            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
             'validity': {
                 'from': '2016-01-01',
                 'to': None,
@@ -252,20 +252,20 @@ class Tests(util.LoRATestCase):
         samf = {
             "org_unit": [
                 {
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                },
-                {
                     "name": "Samfundsvidenskabelige fakultet",
                     "user_key": "samf",
                     "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
                     "validity": {
                         "from": "2017-01-01",
+                        "to": None,
+                    },
+                },
+                {
+                    "name": "Overordnet Enhed",
+                    "user_key": "root",
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "validity": {
+                        "from": "2016-01-01",
                         "to": None,
                     },
                 },
