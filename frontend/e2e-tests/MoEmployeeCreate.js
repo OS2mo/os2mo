@@ -98,8 +98,6 @@ test('Workflow: create employee', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
-    .click(engagementCheckbox)
-
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
@@ -132,8 +130,6 @@ test('Workflow: create employee', async t => {
 
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
-
-    .click(associationCheckbox)
 
     .click(parentAssociationInput)
     .click(dialog.find('.unit-association span.tree-anchor'))
