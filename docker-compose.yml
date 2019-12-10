@@ -23,7 +23,7 @@ services:
       - msg_broker
 
   mox:
-    image: magentalabs/mox:dev-latest
+    image: magentaaps/lora:rc
     # build:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile

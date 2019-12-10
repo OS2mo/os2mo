@@ -49,12 +49,6 @@ def _mox_testing_api(method):
     r.raise_for_status()
 
 
-def is_frontend_built():
-    return os.path.isfile(
-        os.path.join(app.distdir, 'index.html'),
-    )
-
-
 def jsonfile_to_dict(path):
     """
     Reads JSON from resources folder and converts to Python dictionary
@@ -79,11 +73,6 @@ def get_fixture(fixture_name, **kwargs):
 
 def get_mock_data(mock_name):
     return jsonfile_to_dict(os.path.join(MOCKING_DIR, mock_name))
-
-
-def get_mock_text(mock_name, mode='r'):
-    with open(os.path.join(MOCKING_DIR, mock_name), mode) as fp:
-        return fp.read()
 
 
 def load_fixture(path, fixture_name, uuid=None, **kwargs):
@@ -305,16 +294,6 @@ def create_app():
         return flask.jsonify({"testcafe-db-teardown": True})
 
     return app_object
-
-
-@contextlib.contextmanager
-def override_settings(**overrides):
-    stack = contextlib.ExitStack()
-    with stack:
-        for k, v in overrides.items():
-            stack.enter_context(patch('mora.settings.{}'.format(k), v))
-
-        yield
 
 
 def override_lora_url(lora_url='http://mox/'):

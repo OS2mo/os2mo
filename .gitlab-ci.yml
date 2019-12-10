@@ -37,9 +37,9 @@ variables:
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   IMAGE_DEV: ${CI_REGISTRY_IMAGE}:dev
 
-  IMAGE: magentaaps/os2mo
-  IMAGE_TAG: ${IMAGE}:${CI_COMMIT_TAG}
-  IMAGE_LATEST: ${IMAGE}:latest
+  IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
+  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
 
 # Lint stage
 #############
@@ -134,7 +134,7 @@ unit-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentalabs/mox:t3
+    - name: magentaaps/lora:rc
       alias: mox
       command: [
       "gunicorn",
@@ -166,7 +166,7 @@ e2e-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentalabs/mox:t3
+    - name: magentaaps/lora:rc
       alias: mox
       command: [
       "gunicorn",
@@ -220,9 +220,9 @@ release-rc:
   script:
     # Login to Docker Hub registry
     - docker login -u ${RELEASE_REGISTRY_USER} -p ${RELEASE_REGISTRY_PASSWORD} ${RELEASE_REGISTRY}
-    - echo Tagging with ${IMAGE_TAG}
-    - docker tag ${IMAGE_SHA} ${IMAGE_TAG}
-    - docker push ${IMAGE_TAG}
+    - echo Tagging with ${IMAGE_RC}
+    - docker tag ${IMAGE_SHA} ${IMAGE_RC}
+    - docker push ${IMAGE_RC}
 
 release-master:
   <<: *release-default
@@ -232,9 +232,9 @@ release-master:
   script:
     # Login to Docker Hub registry
     - docker login -u ${RELEASE_REGISTRY_USER} -p ${RELEASE_REGISTRY_PASSWORD} ${RELEASE_REGISTRY}
-    - echo Tagging with ${IMAGE_TAG}
-    - docker tag ${IMAGE_SHA} ${IMAGE_TAG}
+    - echo Tagging with ${IMAGE_VERSION}
+    - docker tag ${IMAGE_SHA} ${IMAGE_VERSION}
     - echo Tagging with ${IMAGE_LATEST}
     - docker tag ${IMAGE_SHA} ${IMAGE_LATEST}
-    - docker push ${IMAGE_TAG}
+    - docker push ${IMAGE_VERSION}
     - docker push ${IMAGE_LATEST}
