@@ -15,6 +15,7 @@
   "related_org_unit": "Relateret enhed",
   "time_planning": "@:shared.time_planning",
   "org_unit_type": "@:shared.org_unit_type",
+  "org_unit_level": "@:shared.org_unit_level",
   "parent": "Overenhed",
   "person": "Navn",
   "primary": "@:shared.primary",

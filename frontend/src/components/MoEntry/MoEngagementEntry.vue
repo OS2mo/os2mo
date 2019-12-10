@@ -6,18 +6,13 @@
       :disabled-dates="{orgUnitValidity, disabledDates}"
     />
 
-    <mo-input-checkbox
-      v-model="entry.primary"
-      :data-vv-as="$t('input_fields.primary_engagement')"
-    />
-
     <div class="form-row">
       <mo-organisation-unit-picker
-        class="col"
-        :label="$t('input_fields.select_unit')"
-        v-model="entry.org_unit"
-        required
-        :validity="entry.validity"
+              class="col"
+              :label="$t('input_fields.select_unit')"
+              v-model="entry.org_unit"
+              required
+              :validity="entry.validity"
       />
 
       <mo-facet-picker
@@ -31,6 +26,12 @@
         v-model="entry.engagement_type"
         required
       />
+
+      <mo-facet-picker v-if="showPrimary"
+                       facet="primary_type"
+                       v-model="entry.primary"
+                       required
+      />
     </div>
   </div>
 </template>
@@ -41,7 +42,6 @@
  */
 
 import { MoInputDateRange } from '@/components/MoInput'
-import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
@@ -55,7 +55,6 @@ export default {
   name: 'MoEngagementEntry',
 
   components: {
-    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
@@ -74,6 +73,11 @@ export default {
      */
     datePickerHidden () {
       return this.validity != null
+    },
+    showPrimary () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+
+      return conf.show_primary_engagement
     }
   },
 

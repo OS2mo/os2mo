@@ -7,13 +7,13 @@
       :disabled-dates="{orgUnitValidity, disabledDates}"
     />
 
-    <mo-input-checkbox
-      class="associationCheckbox"
-      v-model="entry.primary"
-      :data-vv-as="$t('input_fields.primary_association')"
-    />
-
     <div class="form-row">
+      <mo-facet-picker v-if="showPrimary"
+                       facet="primary_type"
+                       v-model="entry.primary"
+                       required
+      />
+
       <mo-organisation-unit-picker
         class="col unit-association"
         :label="$t('input_fields.select_unit')"
@@ -38,7 +38,6 @@
  * A association entry component.
  */
 
-import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
 import { MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -68,11 +67,16 @@ export default {
           this.entry.uuid
         ]
       }
+    },
+
+    showPrimary () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+
+      return conf.show_primary_association
     }
   },
 
   components: {
-    MoInputCheckbox,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker

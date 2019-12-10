@@ -141,17 +141,6 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
-      engagement: [
-        { label: 'person', data: 'person' },
-        { label: 'primary', data: 'primary', field: null },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' }
-      ],
-      association: [
-        { label: 'person', data: 'person' },
-        { label: 'association_type', data: 'association_type' },
-        { label: 'primary', data: 'primary', field: null },
-      ],
       role: [
         { label: 'person', data: 'person' },
         { label: 'role_type', data: 'role_type' }
@@ -198,6 +187,41 @@ export default {
       if (this.orgUnitInfo.user_settings.orgunit.show_time_planning) {
         columns.splice(2, 0,
           { label: 'time_planning', data: 'time_planning' }
+        )
+      }
+
+      if (this.orgUnitInfo.user_settings.orgunit.show_level) {
+        columns.splice(2, 0,
+          { label: 'org_unit_level', data: 'org_unit_level' }
+        )
+      }
+
+      return columns
+    },
+    engagement () {
+      let columns = [
+        { label: 'person', data: 'person' },
+        { label: 'job_function', data: 'job_function' },
+        { label: 'engagement_type', data: 'engagement_type' }
+      ]
+
+      if (this.orgUnitInfo.user_settings.orgunit.show_primary_engagement) {
+        columns.splice(1, 0,
+          { label: 'primary', data: 'primary' }
+        )
+      }
+
+      return columns
+    },
+    association () {
+      let columns = [
+        { label: 'person', data: 'person' },
+        { label: 'association_type', data: 'association_type' }
+      ]
+
+      if (this.orgUnitInfo.user_settings.orgunit.show_primary_association) {
+        columns.splice(2, 0,
+          { label: 'primary', data: 'primary' }
         )
       }
 

@@ -28,6 +28,9 @@ _DEFAULT_CONF = (
     ('show_user_key', 'True'),
     ('show_location', 'True'),
     ('show_time_planning', 'True'),
+    ('show_level', 'False'),
+    ('show_primary_engagement', 'False'),
+    ('show_primary_association', 'False'),
 )
 
 

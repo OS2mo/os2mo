@@ -6,7 +6,11 @@
   </div>
 </template>
 
+
 <script>
+
+import { Conf } from '@/store/actions/conf'
+
 export default {
   name: 'app',
 
@@ -20,6 +24,10 @@ export default {
       var x = document.getElementsByTagName('script')[0]
       x.parentNode.insertBefore(s, x)
     }
+  },
+
+  created () {
+    this.$store.dispatch(Conf.actions.SET_CONF_DB)
   }
 }
 </script>
