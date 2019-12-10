@@ -29,7 +29,6 @@ import collections
 import flask
 
 from . import handlers
-from . import orgunit
 from .. import common
 from .. import util
 

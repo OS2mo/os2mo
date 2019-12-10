@@ -7,11 +7,11 @@
 #
 import logging
 
-from mora import util
-from mora.exceptions import ErrorCodes
 from .. import reading
 from ... import common
 from ... import mapping
+from ... import util
+from ...exceptions import ErrorCodes
 from ...service import employee
 from ...service import facet
 from ...service import orgunit

@@ -12,15 +12,11 @@
 This section describes how to interact with employee manager roles.
 
 """
-import operator
 import uuid
 
 from . import address
-from . import employee
-from . import facet
 from . import handlers
 from . import org
-from . import orgunit
 from .validation import validator
 from .. import common
 from .. import lora

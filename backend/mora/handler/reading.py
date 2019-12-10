@@ -39,6 +39,7 @@ class ReadingHandler:
     def get(cls, c, search_fields):
         """
         Read a list of objects based on the given search parameters
+
         :param c: A LoRa connector
         :param search_fields: A dict containing search parameters
         """
@@ -49,6 +50,7 @@ class ReadingHandler:
     def get_from_type(cls, c, type, obj_uuid):
         """
         Read a list of objects related to a certain object
+
         :param c: A LoRa connector
         :param type: Either 'e' or 'ou' depending on if related to an
             employee or orgunit
@@ -61,6 +63,7 @@ class ReadingHandler:
     def get_effects(cls, c, obj, **params):
         """
         Chunk a LoRa object up into effects
+
         :param c: A LoRa connector
         :param obj: An object to be chunked
         :param params: Additional parameters to be sent along to a LoRa
@@ -73,6 +76,7 @@ class ReadingHandler:
     def get_mo_object_from_effect(cls, effect, start, end, obj_id):
         """
         Convert an effect to a MO object
+
         :param effect: An effect to be convertd
         :param start: The start date for the effect
         :param end: The end date for the effect
@@ -85,6 +89,7 @@ class ReadingHandler:
     def get_obj_effects(cls, c, object_tuples):
         """
         Convert a list of LoRa objects into a list of MO objects
+
         :param c: A LoRa connector
         :param object_tuples: A list of (UUID, object) tuples
         """

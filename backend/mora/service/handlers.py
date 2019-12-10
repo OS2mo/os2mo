@@ -13,9 +13,8 @@ handlers for the various detail types.
 
 import abc
 import inspect
-import typing
 
-import flask
+import typing
 
 from .. import common
 from .. import exceptions

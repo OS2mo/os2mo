@@ -7,18 +7,15 @@
 #
 
 import collections
-import json
-import re
-import uuid
 
 import flask
+import re
 import requests
+import uuid
 
-from . import employee
 from . import facet
 from . import handlers
 from . import org
-from . import orgunit
 from .address_handler import base
 from .validation import validator
 from .. import common
