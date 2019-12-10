@@ -20,11 +20,10 @@ RUN yarn build
 #
 # We also don't use -slim as some python packages are not wheels and needs
 # compiling with the tools for the non -slim image.
-FROM ubuntu:18.04 AS dist
-ENV DEBIAN_FRONTEND=noninteractive \
-  LC_ALL=C.UTF-8 \
-  LANG=C.UTF-8
+FROM python:3.6 AS dist
 
+ENV OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
+    OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
       org.opencontainers.image.vendor="Magenta ApS" \
@@ -37,12 +36,13 @@ LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1 \
-    FLASK_APP=mora.app:create_app
+    FLASK_APP=mora.app:create_app \
+    OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
+    OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 
 WORKDIR /code/
 COPY docker/sys-requirements.txt sys-requirements.txt
-COPY docker/sys-requirements-test.txt sys-requirements-test.txt
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
   # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999, but also above the
@@ -56,7 +56,6 @@ RUN set -ex \
   # Install system dependencies from file.
   && apt-get -y update \
   && apt-get -y install --no-install-recommends $(grep -vE "^\s*#" sys-requirements.txt  | tr "\n" " ") \
-  && apt-get -y install --no-install-recommends $(grep -vE "^\s*#" sys-requirements-test.txt  | tr "\n" " ") \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/man/?? /usr/share/man/??_*
 
@@ -64,12 +63,22 @@ RUN set -ex \
 # Install requirements
 COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
+COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
 COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
 RUN pip3 install --upgrade pip
-RUN pip3 install -r backend/requirements.txt -r backend/requirements-test.txt
+RUN pip3 install \
+  -r backend/requirements.txt \
+  -r backend/requirements-test.txt \
+  -r backend/requirements-lint.txt \
+  -r backend/requirements-docs.txt
+
+
+# CI settings
+COPY dev-environment/mo-ci-settings.toml ./dev-environment/mo-ci-settings.toml
 
 
 # Copy and install backend code.
+COPY dev-environment/mo-dev-settings.toml ./dev-environment/mo-dev-settings.toml
 COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
@@ -84,11 +93,7 @@ RUN pip3 install -e backend
 COPY --from=frontend-builder /code/frontend/package.json ./frontend/package.json
 COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
 
-RUN install -g mora -o mora -d /var/log/mox
-RUN install -g mora -o mora /dev/null /var/log/mox/activity.log
-# # TODO For some reason postgresql.testing puts it database here. This is
-# # obviously very bad, but this testing setup should be very shortlived.
-RUN install -g mora -o mora -d /usr/local/lib/python3.6/dist-packages/build
+RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora

@@ -9,75 +9,69 @@ services:
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
+    # We also change the Flask app to one where a testing API for testcafe
+    # e2e-tests is enabled.
     volumes:
       - ./backend:/code/backend
-    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
+      - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
+      - ./.pytest_cache:/code/.pytest_cache
+    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
     ports:
       - "5000:5000"
-    environment:
-      - OS2MO_LORA_URL=http://mox:8080/
-      - OS2MO_DUMMY_MODE=True
-      - OS2MO_CONF_DB_HOST=mox-db
-      - OS2MO_SESSIONS_DB_HOST=mox-db
-      - OS2MO_SESSIONS_DB_PORT=5432
     depends_on:
       - mox
+      - msg_broker
 
   mox:
-    image: magentalabs/mox:dev-latest
+    image: magentaaps/lora:rc
     # build:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile
     volumes:
       - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
-      - db_extensions:/db_extensions
+    command: [
+    "gunicorn",
+    "--config", "docker/gunicorn-settings.py",
+    "--workers", "1", # We run single-threaded as the testing_api is not
+                      # threadsafe.
+    "oio_rest:app"]
     ports:
       - "8080:8080"
     depends_on:
       - mox-db
 
   mox-db:
-    image: postgres:9.6
+    image: magentaaps/postgres-os2mo:9.6.15-2-test
     env_file:
       - dev-environment/db.env
       - dev-environment/sessions_db.env
       - dev-environment/conf_db.env
-    volumes:
-      - postgres-initdb.d:/docker-entrypoint-initdb.d
-      - ./dev-environment/postgres-initdb.d/30-upgrade-to-superuser.sh:/docker-entrypoint-initdb.d/30-upgrade-to-superuser.sh
+    # The following will mount the database data directory to RAM. It
+    # significantly speeds up the database at the cost of dataloss on shutdown.
+    # This is useful for running tests, but should never be used if you want to
+    # save the data.
+    # tmpfs:
+    #   - /var/lib/postgresql/data
 
-  # The following services is to copy the `db_extension.json` and the scrript
-  # needed to initialize the database to volumes.
-  mo-cp:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    user: root
-    entrypoint: []
-    command:
-      - sh
-      - -c
-      - >
-        cp /code/backend/mora/db_extensions.json /db_extensions/db_extensions.json &&
-        cp -r /code/docker/postgres-initdb.d/. /postgres-initdb.d
-    volumes:
-      - postgres-initdb.d:/postgres-initdb.d
-      - db_extensions:/db_extensions
+  msg_broker:
+    # Normally, we expect the `rabbitmq` image. The -management images come
+    # with a set of management plugins installed and enabled by default. They
+    # can be accessed through the web interface on port 15672. The credentials
+    # are guest/guest.
+    image: rabbitmq:3-management
+    # RabbitMQ stores data based on what it calls the "Node Name", which
+    # defaults to the hostname. We set this, so we can keep track of our data.
+    hostname: msg_broker
+    # We expose the ports here, so decoupled agents can be developed with more
+    # ease.
+    ports:
+      - "5672:5672"    # amqp port
+      - "15672:15672"  # management port
 
-  # The following services is to copy the scripts needed to initialize the
-  # database with user and extentions to a volume. See
-  # https://mox.readthedocs.io/en/development/user/database/#db-user-ext-init
-  mox-cp:
-    image: magentalabs/mox:dev-latest
-    # build:
-    #   context: ../mox
-    #   dockerfile: docker/Dockerfile
-    user: root
-    entrypoint: []
-    command: ["cp", "-r", "/code/docker/postgres-initdb.d/.", "/postgres-initdb.d"]
+  testcafe:
+    image: magentalabs/testcafe:latest
     volumes:
-      - postgres-initdb.d:/postgres-initdb.d
-
-volumes:
-  db_extensions:
-  postgres-initdb.d:
+      - ./frontend/e2e-tests:/tests
+      - ./testcafe-artifacts:/artifacts
+    environment:
+      - BASE_URL=http://mo:5000

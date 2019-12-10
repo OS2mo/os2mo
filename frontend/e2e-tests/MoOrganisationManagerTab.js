@@ -1,12 +1,13 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, teardown } from './support';
 
 let moment = require('moment')
 
 fixture('MoOrganisationManagerTab')
-  .beforeEach(reset)
-  .page(`${baseURL}/organisation/a6773531-6c0a-4c7b-b0e2-77992412b610`)
+  .before(setup)
+  .after(teardown)
+  .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
 
 const dialog = Selector('.modal-content')
 
@@ -115,4 +116,3 @@ test('Workflow: organisation manager tab', async t => {
       /Leder med UUID [-0-9a-f]* er blevet afsluttet pr./
     )
 })
-

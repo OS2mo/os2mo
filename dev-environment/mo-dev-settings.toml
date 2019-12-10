@@ -1,0 +1,19 @@
+# Change your os2mo configuration in this file. A reference of valid
+# parameters can be found in ``./backend/mora/default-settings.toml``.
+# If you do change a value in here, consider if it should also be changed in
+# ``./mo-ci-settings.toml``.
+
+dummy_mode = true
+
+[lora]
+url = "http://mox:8080/"
+
+[session.database]
+host = "mox-db"
+
+[configuration.database]
+host = "mox-db"
+
+[amqp]
+enable = true
+host = "msg_broker"

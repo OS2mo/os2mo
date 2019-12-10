@@ -29,7 +29,6 @@ import flask
 from .. import common
 from .. import exceptions
 from .. import mapping
-from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',

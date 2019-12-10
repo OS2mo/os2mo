@@ -17,7 +17,6 @@ This section describes how to interact with related units.
 import flask
 
 from . import handlers
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -113,8 +112,6 @@ def map_org_units(origin):
     c = lora.Connector(effective_date=date)
     destinations = set(util.checked_get(req, 'destination', [],
                                         required=True))
-
-    validator.is_edit_from_date_before_today(date)
 
     wanted_units = {origin} | destinations
     units = dict(c.organisationenhed.get_all(uuid=sorted(wanted_units)))

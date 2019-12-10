@@ -5,9 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from unittest.mock import patch
-
 import freezegun
+from unittest.mock import patch
 
 from mora import lora
 from tests import util
@@ -319,21 +318,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
+                        }
+                    },
+                    {
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
                         }
                     },
                 ],
@@ -446,7 +445,7 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -541,7 +540,7 @@ class Tests(util.LoRATestCase):
                     "to": None
                 },
                 "leave_type": {
-                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825"},
+                    'uuid': "bf65769c-5227-49b4-97c5-642cfbe41aa1"},
             },
             "data": {
                 "leave_type": {
@@ -565,21 +564,21 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
+                        }
+                    },
+                    {
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
                         }
                     },
                 ],
@@ -687,38 +686,6 @@ class Tests(util.LoRATestCase):
             status_code=400
         )
 
-    @freezegun.freeze_time('2020-01-01')
-    def test_edit_leave_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
-
-        req = [{
-            "type": "leave",
-            "uuid": leave_uuid,
-            "data": {
-                "leave_type": {
-                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                },
-                "validity": {
-                    "from": "2018-01-01",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2018-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400)
-
     def test_terminate_leave(self):
         self.load_sample_structures()
 
@@ -758,7 +725,7 @@ class Tests(util.LoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,

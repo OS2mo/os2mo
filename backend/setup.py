@@ -7,11 +7,19 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import io
 import os
+import re
 
 import setuptools
 
+
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+__init___path = os.path.join(BACKEND_DIR, "mora", "__init__.py")
+# this is the way flask does it
+with io.open(__init___path, "rt", encoding="utf8") as f:
+    version = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
+
 
 setuptools.setup(
     name='OS2mo',
@@ -19,14 +27,9 @@ setuptools.setup(
     author_email='info@magenta.dk',
     description='OS2mo - Medarbejder og Organisation',
     license='MPL 2.0',
-    version='1.1.0',
+    version=version,
     url="https://os2mo.readthedocs.io/",
     packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
-    package_data={
-        'mora': [
-            'db_extensions.json',
-        ],
-    },
     test_loader='unittest:TestLoader',
 
     classifiers=[

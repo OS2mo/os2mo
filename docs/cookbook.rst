@@ -28,7 +28,7 @@ Best practices for implementering
      - Ansvarlig/ udførende
    * - 1.
      - Projektopstart
-     - 
+     -
      -
    * - 1. 1
      - Tilvejebringelse af servermiljø
@@ -71,7 +71,7 @@ Best practices for implementering
 
        Se `SSL-certifikat\ vejledning <vejledning1_4_>`_.
 
-       .. _vejledning1_4: _static/SSL-certifikat\ vejledning.pdf 
+       .. _vejledning1_4: _static/SSL-certifikat\ vejledning.pdf
 
      - Kunde
    * - 2.
@@ -92,7 +92,7 @@ Best practices for implementering
 
        Se `AD - OS2MO opsætnings guide <vejledning3_>`_.
 
-       .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf 
+       .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf
 
      - Kunde
    * - 3.
@@ -100,16 +100,16 @@ Best practices for implementering
      - OS2MOs addresseopslag konfigureres til at foretrække adresser inden for kommunen
      - Leverandør
    * - 4.
-     - Integration med SAML SSO 2.0 
+     - Integration med SAML SSO 2.0
      - Opgaven forudsætter, at Kunden har en IdP, der understøtter SAML 2.0 SSO.
        Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
        Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
 
        .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
 
-       * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata 
-	 i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint, 
-	 som de kan give til IdP'en. Derefter sker konfigurationen automatisk
+       * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata
+         i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint,
+         som de kan give til IdP'en. Derefter sker konfigurationen automatisk
        * Kunden sender en URL til IdP'ens metadata for SAML SSO
        * Brugerens navn, og eventuelle roller skal i IdP'en tilføjes til de claims, der kommer tilbage i SAML-token
 
@@ -120,20 +120,29 @@ Best practices for implementering
      -
      -
    * - 5. 1
-     - OS2mo som anvendersystem på Serviceplatformen
-     - Der skal laves en aftale til at aktivere integration med og opslag i Serviceplatformens CPR-service samt evt til hændelsesdata, hvis personoplysninger skal ajourføres i OS2MO.
+     - OS2MO som anvendersystem på Serviceplatformen
+     - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
        Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning5_1_>`_.
 
        .. _vejledning5_1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
-       Kunde overdrager de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
+       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
+     - Kunde
+   * - 5. 2
+     - OS2MO som anvendersystem på Støttesystemet Organisation
+     - OS2MO kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES.
+       Se `vejledning til opsætning af STSOrgSync med OS2MO <vejledning5_2_>`_.
+
+       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
+
+       * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
      - Kunde
    * - 6.
      - Indlæsning af organisationsdata
      -
      -
    * - 6. 1
-     - Tilvejebringelse af data 
+     - Tilvejebringelse af data
      - Kunden tilvejebringer data med kundens organisations- og medarbejderdata
        efter aftale om datakilde og format. Data kommer sædvanligvis fra lønsystemet.
 
@@ -141,12 +150,12 @@ Best practices for implementering
      - Kunde
    * - 6. 2
      - Indlæsning af data i OS2mo
-     - Leverandøren indlæser data i OS2mo. 
+     - Leverandøren indlæser data i OS2mo.
      - Leverandør
    * - 7.
      - Integration med Lønsystem
-     - 
-     - 
+     -
+     -
    * - 7. 1
      - Integration med KMD OPUS
      - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
@@ -159,7 +168,7 @@ Best practices for implementering
      - Integration med Silkeborgdata SD-Løn
      - Konfiguration og eventuel tilpasning af komponent udviklet i OS2-regi.
 
-       Integration med SD-løn kræver adgang via oplysning om:  
+       Integration med SD-løn kræver adgang via oplysning om:
 
        * Institution Identifer
        * Brugernavn
@@ -173,7 +182,7 @@ Best practices for implementering
      - Kunde
    * - 9.
      - Integration med Støttesystemet Organisation
-     - OS2mo kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES. 
+     - OS2mo kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES.
        Se `vejledning til opsætning af STSOrgSync med OS2mo <vejledning5_2_>`_.
 
        .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf

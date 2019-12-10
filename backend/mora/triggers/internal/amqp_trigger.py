@@ -12,7 +12,8 @@ import pika
 from mora import exceptions
 from mora import util
 from mora import mapping
-from mora.triggers import Trigger
+from mora import settings
+from mora import triggers
 
 logger = logging.getLogger("amqp")
 amqp_connection = {}
@@ -80,8 +81,9 @@ def publish_message(service, object_type, action, service_uuid, date):
 
 
 def amqp_sender(trigger_dict):
-    request = trigger_dict[Trigger.REQUEST]
-    if trigger_dict[Trigger.REQUEST_TYPE] == Trigger.RequestType.EDIT:
+    request = trigger_dict[triggers.Trigger.REQUEST]
+    if (trigger_dict[triggers.Trigger.REQUEST_TYPE] ==
+            triggers.Trigger.RequestType.EDIT):
         request = request['data']
 
     try:  # date = from or to
@@ -89,28 +91,28 @@ def amqp_sender(trigger_dict):
     except exceptions.HTTPException:
         date = util.get_valid_to(request)
     action = {
-        Trigger.RequestType.CREATE: "create",
-        Trigger.RequestType.EDIT: "update",
-        Trigger.RequestType.TERMINATE: "delete",
-    }[trigger_dict[Trigger.REQUEST_TYPE]]
+        triggers.Trigger.RequestType.CREATE: "create",
+        triggers.Trigger.RequestType.EDIT: "update",
+        triggers.Trigger.RequestType.TERMINATE: "delete",
+    }[trigger_dict[triggers.Trigger.REQUEST_TYPE]]
 
     amqp_messages = []
 
-    if trigger_dict.get(Trigger.EMPLOYEE_UUID):
+    if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
         amqp_messages.append((
             'employee',
-            trigger_dict[Trigger.ROLE_TYPE],
+            trigger_dict[triggers.Trigger.ROLE_TYPE],
             action,
-            trigger_dict[Trigger.EMPLOYEE_UUID],
+            trigger_dict[triggers.Trigger.EMPLOYEE_UUID],
             date
         ))
 
-    if trigger_dict.get(Trigger.ORG_UNIT_UUID):
+    if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
         amqp_messages.append((
             'org_unit',
-            trigger_dict[Trigger.ROLE_TYPE],
+            trigger_dict[triggers.Trigger.ROLE_TYPE],
             action,
-            trigger_dict[Trigger.ORG_UNIT_UUID],
+            trigger_dict[triggers.Trigger.ORG_UNIT_UUID],
             date
         ))
 
@@ -118,29 +120,30 @@ def amqp_sender(trigger_dict):
         publish_message(*message)
 
 
-def register(app):
+def register():
     """ Register amqp triggers on:
         any ROLE_TYPE
         any RequestType
         but only after submit (ON_AFTER)
     """
-    if app.config.get("ENABLE_AMQP"):
+    if settings.config['amqp']['enable']:
         # we cant bail out here, as it seems amqp trigger
         # tests must be able to run without ENABLE_AMQP
         # instead we leave the connection object empty
         # in which case publish_message will bail out
         # this is the original mode of operation restored
 
+        # Please crash if rabbitmq is unavailable.
         conn = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host=app.config["AMQP_HOST"],
-                port=app.config["AMQP_PORT"],
+                host=settings.config["amqp"]["host"],
+                port=settings.config["amqp"]["port"],
                 heartbeat=0,
             )
         )
         channel = conn.channel()
         channel.exchange_declare(
-            exchange=app.config["AMQP_OS2MO_EXCHANGE"],
+            exchange=settings.config["amqp"]["os2mo_exchange"],
             exchange_type="topic",
         )
 
@@ -150,16 +153,16 @@ def register(app):
         })
 
     ROLE_TYPES = [
-        Trigger.ORG_UNIT,
-        Trigger.EMPLOYEE,
+        triggers.Trigger.ORG_UNIT,
+        triggers.Trigger.EMPLOYEE,
         *mapping.RELATION_TRANSLATIONS.keys(),
     ]
 
     trigger_combinations = [
-        (role_type, request_type, Trigger.Event.ON_AFTER)
+        (role_type, request_type, triggers.Trigger.Event.ON_AFTER)
         for role_type in ROLE_TYPES
-        for request_type in Trigger.RequestType
+        for request_type in triggers.Trigger.RequestType
     ]
 
     for combi in trigger_combinations:
-        Trigger.on(*combi)(amqp_sender)
+        triggers.Trigger.on(*combi)(amqp_sender)

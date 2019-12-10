@@ -7,10 +7,10 @@
 #
 
 import copy
-import uuid
 
 import freezegun
 import notsouid
+import uuid
 
 from mora import lora
 from tests import util
@@ -717,7 +717,7 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -824,7 +824,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        self.assertRegistrationsEqual(actual_engagement, expected_engagement)
+        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     def test_edit_engagement_overwrite(self):
         self.load_sample_structures()
@@ -905,7 +905,7 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -990,7 +990,7 @@ class Tests(util.LoRATestCase):
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        self.assertRegistrationsEqual(actual_engagement, expected_engagement)
+        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     def test_edit_engagement_move(self):
         self.load_sample_structures()
@@ -1037,7 +1037,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -1286,10 +1286,10 @@ class Tests(util.LoRATestCase):
         base = {
             "engagement_type": {
                 "example": None,
-                "name": "Afdeling",
+                "name": "Ansat",
                 "scope": None,
-                "user_key": "afd",
-                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "user_key": "ansat",
+                "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
             },
             "job_function": {
                 "example": None,
@@ -1407,7 +1407,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -1565,7 +1565,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -1661,35 +1661,6 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_edit_engagement_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
-                "validity": {
-                    "from": "2000-01-01",
-                }
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2000-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400)
-
     def test_terminate_engagement(self):
         self.load_sample_structures()
 
@@ -1740,7 +1711,7 @@ class Tests(util.LoRATestCase):
                 ],
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -1826,7 +1797,7 @@ class Tests(util.LoRATestCase):
 
         actual_engagement = c.organisationfunktion.get(engagement_uuid)
 
-        self.assertRegistrationsEqual(actual_engagement, expected)
+        self.assertRegistrationsEqual(expected, actual_engagement)
 
     def test_create_primary(self):
         self.load_sample_structures()
@@ -2186,7 +2157,7 @@ class Tests(util.LoRATestCase):
             '/details/engagement?only_primary_uuid=1',
             [{
                 'engagement_type': {
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
+                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
                 },
                 'fraction': None,
                 'job_function': {

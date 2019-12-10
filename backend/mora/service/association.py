@@ -22,7 +22,6 @@ from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
-from ..triggers import Trigger
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
@@ -94,8 +93,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
-
-        validator.is_edit_from_date_before_today(new_from)
 
         # Get org unit uuid for validation purposes
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]

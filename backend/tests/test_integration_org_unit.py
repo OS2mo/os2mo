@@ -7,10 +7,10 @@
 #
 
 import unittest
-from unittest.mock import patch
 
 import freezegun
 import notsouid
+from unittest.mock import patch
 
 from mora import lora
 from . import util
@@ -618,7 +618,7 @@ class Tests(util.LoRATestCase):
                     "type": "address",
                     "address_type": {
                         "example": "20304060",
-                        "name": "Telefonnummer",
+                        "name": "Telefon",
                         "scope": "PHONE",
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
@@ -828,7 +828,7 @@ class Tests(util.LoRATestCase):
                 {
                     "address_type": {
                         "example": "20304060",
-                        "name": "Telefonnummer",
+                        "name": "Telefon",
                         "scope": "PHONE",
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
@@ -1507,7 +1507,7 @@ class Tests(util.LoRATestCase):
                 {
                     "address_type": {
                         "example": "20304060",
-                        "name": "Telefonnummer",
+                        "name": "Telefon",
                         "scope": "PHONE",
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
@@ -1631,47 +1631,6 @@ class Tests(util.LoRATestCase):
         actual = c.organisationenhed.get(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
-
-    def test_edit_org_unit_in_the_past_fails(self):
-        """It shouldn't be possible to perform an edit in the past"""
-        self.load_sample_structures()
-
-        org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
-
-        req = [{
-            "type": "org_unit",
-            "data": {
-                "uuid": org_unit_uuid,
-                "org_unit_type": {
-                    'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
-                },
-                "validity": {
-                    "from": "2000-01-01",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'date': '2000-01-01T00:00:00+01:00',
-                'status': 400
-            },
-            json=req,
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            '/service/details/edit?force=1',
-            [
-                org_unit_uuid,
-            ],
-            json=req,
-            amqp_topics={'org_unit.org_unit.update': 1},
-        )
 
     @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
     def test_create_missing_parent(self):

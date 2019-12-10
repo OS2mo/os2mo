@@ -1,0 +1,240 @@
+# For the project at https://git.magenta.dk/rammearkitektur/os2mo
+
+# For `docker push` to work, the following envionment variables have to set in
+# the Gitlab UI.
+# RELEASE_REGISTRY_USER
+# RELEASE_REGISTRY_PASSWORD
+
+stages:
+  - lint-build
+  - test
+  - release
+  - deploy
+
+image: docker:19.03
+
+services:
+    - name: docker:19.03-dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+
+variables:
+  # When using dind service we need to instruct docker, to talk with the
+  # daemon started inside of the service. The daemon is available with
+  # a network connection instead of the default /var/run/docker.sock socket.
+  #
+  # The 'docker' hostname is the alias of the service container as described at
+  # https://docs.gitlab.com/ee/ci/docker/using_docker_images.html#accessing-the-services
+  DOCKER_HOST: tcp://docker:2375/
+  # When using dind, it's wise to use the overlayfs driver for
+  # improved performance.
+  DOCKER_DRIVER: overlay2
+
+  # Project variables
+  RELEASE_REGISTRY: docker.io
+  RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
+
+  IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+  IMAGE_DEV: ${CI_REGISTRY_IMAGE}:dev
+
+  IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
+  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
+
+# Lint stage
+#############
+
+# For now we execute the lint and build stage as one stage to speed up the
+# pipeline. When it is possible to use a DAG for describing the relations
+# (https://gitlab.com/gitlab-org/gitlab-ce/issues/47063), the lint jobs can be
+# executed in its own stage where no further jobs depend on them.
+
+.lint-default: &lint-default
+  stage: lint-build
+  image: python:3.7
+  services: []
+  tags:
+    - docker
+
+lint:
+  <<: *lint-default
+  before_script:
+    - pip3 install -r backend/requirements-lint.txt
+  script:
+    - cd backend
+    - flake8
+
+docs:
+  <<: *lint-default
+  before_script:
+    - pip3 install -r backend/requirements-docs.txt
+  script:
+    - sphinx-build -n -W --keep-going docs /doc-build
+  artifacts:
+    paths:
+      - /doc-build
+
+
+# Build stage
+#############
+
+build:
+  stage: lint-build
+  tags:
+    - docker
+    - privileged
+  before_script:
+    # Login to GitLab registry
+    - echo ${CI_REGISTRY_PASSWORD} | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
+    - docker pull ${IMAGE_DEV} || true
+  script:
+    - docker build -f docker/Dockerfile --pull --tag ${IMAGE_SHA} --cache-from ${IMAGE_DEV} .
+    - docker push ${IMAGE_SHA}
+
+
+# Test stage
+############
+
+.test-default: &test-default
+  stage: test
+  services: []
+  tags:
+    - docker
+    - network-per-build
+  variables:
+    # Enable one docker network per job on the runner. This enables services to
+    # reach each other over the network. It requires a special runner with this
+    # feature. The feature is introduced in
+    # https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/1569, but not
+    # officially released in any Gitlab runner. It should hopefully be released
+    # with 12.6 on 2019-12-22.
+    FF_NETWORK_PER_BUILD: 1
+    # for postgres-os2mo service
+    DB_NAME: mox
+    DB_USER: mox
+    DB_PASSWORD: mox
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+    SESSIONS_DB_NAME: sessions
+    SESSIONS_DB_USER: sessions
+    SESSIONS_DB_PASSWORD: sessions
+    # for mox service
+    MOX_USER_CONFIG_PATH: /code/dev-environment/settings-for-mo-test.toml
+    # for mo
+    OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-ci-settings.toml
+    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
+    # for testcafe
+    BASE_URL: http://mo:5000
+
+unit-test:
+  <<: *test-default
+  image:
+    name: ${IMAGE_SHA}
+  services:
+    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+      alias: mox-db
+    - name: magentaaps/lora:rc
+      alias: mox
+      command: [
+      "gunicorn",
+      "--config", "docker/gunicorn-settings.py",
+      "--workers", "1", # Single threaded in dev
+      "oio_rest:app"]
+  script:
+    - pytest
+      --cov=mora
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      -p no:cacheprovider
+      --color=yes
+      backend/tests/
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage-html
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+e2e-test:
+  <<: *test-default
+  image:
+    name: magentalabs/testcafe:latest
+    entrypoint: ["/bin/sh", "-c"]
+  services:
+    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+      alias: mox-db
+    - name: magentaaps/lora:rc
+      alias: mox
+      command: [
+      "gunicorn",
+      "--config", "docker/gunicorn-settings.py",
+      "--workers", "1", # Single threaded in dev
+      "oio_rest:app"]
+    - name: ${IMAGE_SHA}
+      alias: mo
+      command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
+  script:
+    - cd /
+    - /opt/testcafe/docker/testcafe-docker.sh
+        chromium:headless
+        $CI_PROJECT_DIR/frontend/e2e-tests
+        --screenshot $CI_PROJECT_DIR/artifacts
+        --video $CI_PROJECT_DIR/artifacts
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/artifacts
+
+# Release stage
+###############
+
+.release-default: &release-default
+  stage: release
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  tags:
+    - docker
+    - privileged
+  before_script:
+    # Login to GitLab registry
+    - echo ${CI_REGISTRY_PASSWORD} | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
+    - docker pull ${IMAGE_SHA}
+
+
+release-dev:
+  <<: *release-default
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "development"
+  script:
+    - docker tag ${IMAGE_SHA} ${IMAGE_DEV}
+    - docker push ${IMAGE_DEV}
+
+
+release-rc:
+  <<: *release-default
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^release\/.+$/
+  script:
+    # Login to Docker Hub registry
+    - docker login -u ${RELEASE_REGISTRY_USER} -p ${RELEASE_REGISTRY_PASSWORD} ${RELEASE_REGISTRY}
+    - echo Tagging with ${IMAGE_RC}
+    - docker tag ${IMAGE_SHA} ${IMAGE_RC}
+    - docker push ${IMAGE_RC}
+
+release-master:
+  <<: *release-default
+  rules:
+      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+  script:
+    # Login to Docker Hub registry
+    - docker login -u ${RELEASE_REGISTRY_USER} -p ${RELEASE_REGISTRY_PASSWORD} ${RELEASE_REGISTRY}
+    - echo Tagging with ${IMAGE_VERSION}
+    - docker tag ${IMAGE_SHA} ${IMAGE_VERSION}
+    - echo Tagging with ${IMAGE_LATEST}
+    - docker tag ${IMAGE_SHA} ${IMAGE_LATEST}
+    - docker push ${IMAGE_VERSION}
+    - docker push ${IMAGE_LATEST}

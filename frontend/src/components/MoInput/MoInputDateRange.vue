@@ -134,29 +134,40 @@ export default {
 
   methods: {
     /**
-     * Valid from and to dates in the date picker for orgUnitValidity and disabledDates.
+     * Find the earliest from date and latest to date from all disabledDates
      */
     getRanges (disabledDates) {
       let range = {
         from: null,
         to: null
       }
-      let toFrom = [
-        disabledDates['orgUnitValidity'] && disabledDates['orgUnitValidity'].to ? new Date(disabledDates['orgUnitValidity'].to) : null,
-        disabledDates['orgUnitValidity'] && disabledDates['orgUnitValidity'].from ? new Date(disabledDates['orgUnitValidity'].from) : null,
-        disabledDates['disabledDates'] && disabledDates['disabledDates'].to ? new Date(disabledDates['disabledDates'].to) : null,
-        disabledDates['disabledDates'] && disabledDates['disabledDates'].from ? new Date(disabledDates['disabledDates'].from) : null
-      ]
-      if (toFrom[0] > toFrom[2]) {
-        range.to = toFrom[2]
-      } else {
-        range.to = toFrom[0]
+
+      let fromValues = []
+      let toValues = []
+
+      for (let key in disabledDates) {
+        if (disabledDates.hasOwnProperty(key)) {
+          let value = disabledDates[key]
+          if (!value) {
+            continue
+          }
+
+          if (value.from) {
+            fromValues.push(new Date(value.from))
+          }
+          if (value.to) {
+            toValues.push(new Date(value.to))
+          }
+        }
       }
-      if (toFrom[1] > toFrom[3]) {
-        range.from = toFrom[1]
-      } else {
-        range.from = toFrom[3]
+
+      if (fromValues && fromValues.length > 0) {
+        range.from = fromValues.reduce(function (a, b) { return a < b ? a : b })
       }
+      if (toValues && toValues.length > 0) {
+        range.to = toValues.reduce(function (a, b) { return a > b ? a : b })
+      }
+
       return range
     },
 

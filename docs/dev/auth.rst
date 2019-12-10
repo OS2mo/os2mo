@@ -33,9 +33,11 @@ the SP with correct configuration.
 Configuration
 ^^^^^^^^^^^^^
 
-Detailed instructions for configuring OS2mo authentication can be found at the
-documentation for
-`Flask SAML SSO <https://flask-saml-sso.readthedocs.io/en/latest/>`_
+Detailed instructions for configuring OS2mo authentication can be found in the
+`Flask SAML SSO docs <https://flask-saml-sso.readthedocs.io/en/latest/>`_. For
+the exact mapping between ``flask_saml_sso`` configuration options and OS2MO
+configuration options, please refer to the ``app_config`` object in
+``backend/mora/settings.py``.
 
 The following additional configuration entries exist for auth in OS2MO.
 
@@ -44,6 +46,9 @@ The following additional configuration entries exist for auth in OS2MO.
 * ``"SAML_USERNAME_ATTR"``: If username is not read from NameID, the username
   will be read from an attribute with this name.
 
+All configuration of OS2MO is done as described in :ref:`settings`. The
+relevant section for authentication is called ``[saml_sso]``.
+
 Minimal example
 """""""""""""""
 
@@ -51,13 +56,14 @@ The auth module contains sane defaults for a large number of the parameters,
 which should work with *most* IdPs. The following is a minimal example for
 configuring SAML auth and sessions::
 
-  {
-    "SAML_AUTH_ENABLE": true,
-    "SAML_IDP_METADATA_URL": "http://url-to-adfs.com/fs/metadata.xml",
-    "SQLALCHEMY_DATABASE_URI": "postgresql://127.0.0.1/sessions",
-    "SESSIONS_DB_NAME": "sessions",
-    "SESSIONS_DB_PASSWORD": "sessions"
-  }
+  [saml_sso]
+  enable = true
+  idp_metadata_url = "http://url-to-adfs.com/fs/metadata.xml"
+
+  [session.database]
+  host = "localhost"
+  name = "sessions"
+  password = "sessions"
 
 Testing
 ^^^^^^^

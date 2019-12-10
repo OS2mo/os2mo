@@ -1,0 +1,7 @@
+# This file contains the docker-specific configuration. If you want to
+# configure OS2MO in development setting, refer to
+# ``dev-environment/mo-dev-settings.toml``.
+
+[log]
+activity_log_path = "/log/activity.log"
+trace_log_path = "/log/trace.log"

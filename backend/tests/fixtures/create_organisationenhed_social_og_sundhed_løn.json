@@ -1,0 +1,55 @@
+{
+  "attributter": {
+    "organisationenhedegenskaber": [
+      {
+        "brugervendtnoegle": "social_og_sundhed-løn",
+        "enhedsnavn": "Social og sundhed",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationenhedgyldighed": [
+      {
+        "gyldighed": "Aktiv",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "relationer": {
+    "tilhoerer": [
+      {
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "overordnet": [
+      {
+        "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
+    "enhedstype": [
+      {
+        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ]
+  },
+  "note": "Automatisk indl\u00e6sning"
+}

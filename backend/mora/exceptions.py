@@ -80,8 +80,6 @@ class ErrorCodes(Enum):
         404, "Corresponding parent unit or organisation not found."
     V_DUPLICATED_RESPONSIBILITY = \
         400, "Manager has the same responsibility more than once."
-    V_CHANGING_THE_PAST = \
-        400, "Cannot perform changes before current date"
     V_INVALID_ADDRESS_DAR = 400, "Invalid address"
     V_INVALID_ADDRESS_EAN = 400, "Invalid EAN"
     V_INVALID_ADDRESS_EMAIL = 400, "Invalid email"
@@ -168,3 +166,8 @@ class HTTPException(werkzeug.exceptions.HTTPException):
                 self.response.status_code = self.key.code
         except RuntimeError:
             pass
+
+
+class ImproperlyConfigured(Exception):
+    """MO is somehow improperly configured."""
+    pass

@@ -1,0 +1,56 @@
+{
+    "note": "Automatisk indl\u00e6st fra JSON",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "pPublic",
+                "titel": "Må vises ekternt",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}

@@ -1,11 +1,12 @@
 import { Selector } from 'testcafe'
-import { baseURL, reset } from './support'
+import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
 
 let moment = require('moment')
 
 fixture('MoEmployeeMoveMany')
-  .beforeEach(reset)
+  .before(setup)
+  .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
 
 const dialog = Selector('#employeeMoveMany')
@@ -35,15 +36,18 @@ test('Workflow: moveMany employee', async t => {
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
     .click(parentFromInput)
+    .click(dialog.find('.from-unit .tree-node')
+           .withText('Overordnet Enhed')
+           .find('.tree-arrow'))
     .click(dialog.find('.from-unit span.tree-anchor')
-      .withText('Hjørring Kommune'))
+           .withText('Humanistisk fakultet'))
 
     .click(parentToInput)
     .click(dialog.find('.to-unit .tree-node')
-      .withText('Hjørring Kommune')
-      .find('.tree-arrow'))
+           .withText('Overordnet Enhed')
+           .find('.tree-arrow'))
     .click(dialog.find('.to-unit span.tree-anchor')
-      .withText('Social og sundhed'))
+           .withText('Social og sundhed'))
 
     .click(checkboxInput)
 

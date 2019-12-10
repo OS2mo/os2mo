@@ -9,9 +9,7 @@
 import freezegun
 
 from mora import util as mora_util
-
 from . import util
-
 
 HUM = {
     'org_unit': [
@@ -120,11 +118,11 @@ class Tests(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map',
                 {
-                    'description':
-                    'Cannot perform changes before current date',
+                    'description': 'Date range exceeds validity range '
+                                   'of associated org unit.',
                     'error': True,
-                    'error_key': 'V_CHANGING_THE_PAST',
-                    'date': '2017-03-01T00:00:00+01:00',
+                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
+                    'org_unit_uuid': ['da77153e-30f3-4dc2-a611-ee912a28d8aa'],
                     'status': 400,
                 },
                 json={

@@ -11,7 +11,6 @@ import copy
 import freezegun
 
 from mora import lora
-
 from . import util
 
 
@@ -107,31 +106,6 @@ class Tests(util.LoRATestCase):
         with self.subTest('manager'):
             self.assertRegistrationsEqual(expected_manager,
                                           actual_manager)
-
-    @freezegun.freeze_time('2018-01-01')
-    def test_terminate_employee_in_the_past_fails(self):
-        """Terminating employees in the past should fail"""
-        self.load_sample_structures()
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-        payload = {
-            "validity": {
-                "to": "2000-12-01"
-            }
-        }
-
-        self.assertRequestResponse(
-            '/service/e/{}/terminate'.format(userid),
-            {
-                'date': '2000-12-02T00:00:00+01:00',
-                'description': 'Cannot perform changes before current date',
-                'error': True,
-                'error_key': 'V_CHANGING_THE_PAST',
-                'status': 400
-            },
-            status_code=400,
-            json=payload)
 
     @freezegun.freeze_time('2000-12-01')
     def test_terminate_employee_manager_full(self):
@@ -314,10 +288,10 @@ class Tests(util.LoRATestCase):
             'address': [{
                 'address_type': {
                     'example': '<UUID>',
-                    'name': 'Adresse',
+                    'name': 'Postadresse',
                     'scope': 'DAR',
-                    'user_key': 'AdressePost',
-                    'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed'
+                    'user_key': 'OrgEnhedPostadresse',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=10.19938084&mlat=56.17102843&zoom=16',

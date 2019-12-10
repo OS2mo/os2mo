@@ -27,10 +27,10 @@ import uuid
 
 import flask
 
+from . import configuration_options
 from . import facet
 from . import handlers
 from . import org
-from . import configuration_options
 from .validation import validator
 from .. import common
 from .. import exceptions
@@ -183,8 +183,6 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
         new_from, new_to = util.get_validities(data)
-
-        validator.is_edit_from_date_before_today(new_from)
 
         clamp = util.checked_get(data, 'clamp', False)
 
@@ -361,7 +359,6 @@ def get_one_orgunit(c, unitid, unit=None,
     unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     parentid = rels['overordnet'][0]['uuid']
-    orgid = rels['tilhoerer'][0]['uuid']
 
     r = {
         'name': attrs['enhedsnavn'],
@@ -1098,12 +1095,12 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    role_counts = set(
+    role_counts = set((
         mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
         for objid, obj in c.organisationfunktion.get_all(
-            uuid=roles - addresses,
-        ),
-    )
+            uuid=(roles - addresses)
+        )
+    ))
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(

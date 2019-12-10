@@ -386,19 +386,6 @@ def does_employee_have_existing_primary_function(function_key,
 
 
 @forceable
-def is_edit_from_date_before_today(from_date: datetime.datetime):
-    """Check if a given edit date is before today. If so, raise exception"""
-    today = datetime.datetime.combine(
-        datetime.date.today(),
-        datetime.time(0, 0, 0, 0, from_date.tzinfo)
-    )
-    if from_date < today:
-        raise exceptions.ErrorCodes.V_CHANGING_THE_PAST(
-            date=util.to_iso_time(from_date)
-        )
-
-
-@forceable
 def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
                                          allowed_user_id=None):
     """
