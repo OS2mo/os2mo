@@ -29,14 +29,16 @@ class RoleReader(reading.OrgFunkReadingHandler):
 
         base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
 
+        parsed_org_units = [
+            orgunit.get_one_orgunit(c, org_unit_uuid,
+                                    details=orgunit.UnitDetails.MINIMAL)
+            for org_unit_uuid in org_units
+        ]
+        sorted_org_units = sorted(parsed_org_units, key=lambda x: x.get('name'))
+
         r = {
             **base_obj,
-            mapping.ORG_UNIT: [
-                orgunit.get_one_orgunit(
-                    c, org_unit_uuid, details=orgunit.UnitDetails.MINIMAL
-                )
-                for org_unit_uuid in org_units
-            ],
+            mapping.ORG_UNIT: sorted_org_units,
         }
 
         return r

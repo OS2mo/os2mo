@@ -43,21 +43,21 @@ HUM = {
 HIST = {
     "org_unit": [
         {
-            "name": "Overordnet Enhed",
-            "user_key": "root",
-            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-            "validity": {
-                "from": "2016-01-01",
-                "to": None,
-            },
-        },
-        {
             "name": "Historisk Institut",
             "user_key": "hist",
             "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
             "validity": {
                 "from": "2016-01-01",
                 "to": "2018-12-31",
+            },
+        },
+        {
+            "name": "Overordnet Enhed",
+            "user_key": "root",
+            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+            "validity": {
+                "from": "2016-01-01",
+                "to": None,
             },
         },
     ],
@@ -252,20 +252,20 @@ class Tests(util.LoRATestCase):
         samf = {
             "org_unit": [
                 {
-                    "name": "Samfundsvidenskabelige fakultet",
-                    "user_key": "samf",
-                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                    "validity": {
-                        "from": "2017-01-01",
-                        "to": None,
-                    },
-                },
-                {
                     "name": "Overordnet Enhed",
                     "user_key": "root",
                     "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                     "validity": {
                         "from": "2016-01-01",
+                        "to": None,
+                    },
+                },
+                {
+                    "name": "Samfundsvidenskabelige fakultet",
+                    "user_key": "samf",
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {
+                        "from": "2017-01-01",
                         "to": None,
                     },
                 },
@@ -278,11 +278,12 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        self.assertRequestResponse(
+        r = self.assertRequest(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
-            '/details/related_unit',
-            [HUM, samf],
+            '/details/related_unit'
         )
+        self.assertIn(samf, r)
+        self.assertIn(HUM, r)
 
         self.assertRequestResponse(
             '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
