@@ -62,50 +62,8 @@ class UnitDetails(enum.Enum):
     INTEGRATION = 4
 
 
-class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
+class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
-
-    @classmethod
-    def has(cls, scope, reg):
-        return scope.path == 'organisation/organisationenhed' and reg
-
-    @classmethod
-    def get(cls, c, type, objid):
-        if type != 'ou':
-            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
-        scope = c.organisationenhed
-
-        return flask.jsonify([
-            get_one_orgunit(
-                c, objid, effect, details=UnitDetails.FULL,
-                validity={
-                    mapping.FROM: util.to_iso_date(start),
-                    mapping.TO: util.to_iso_date(end, is_end=True),
-                },
-            )
-            for start, end, effect in scope.get_effects(
-                objid,
-                {
-                    'attributter': (
-                        'organisationenhedegenskaber',
-                    ),
-                    'relationer': (
-                        'enhedstype',
-                        'opgaver',
-                        'overordnet',
-                        'tilhoerer',
-                    ),
-                    'tilstande': (
-                        'organisationenhedgyldighed',
-                    ),
-                },
-            )
-            if c.is_effect_relevant({'from': start, 'to': end}) and
-            effect.get('tilstande')
-                  .get('organisationenhedgyldighed')[0]
-                  .get('gyldighed') == 'Aktiv'
-        ])
 
     def prepare_create(self, req):
         req = flask.request.get_json()

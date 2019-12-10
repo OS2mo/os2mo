@@ -160,54 +160,9 @@ def address_autocomplete(orgid):
     ])
 
 
-class AddressRequestHandler(handlers.OrgFunkReadingRequestHandler):
+class AddressRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = 'address'
     function_key = mapping.ADDRESS_KEY
-
-    @classmethod
-    def get_one_mo_object(cls, effect, start, end, funcid):
-        c = common.get_connector()
-
-        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
-
-        address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-
-        try:
-            address_type = facet.get_one_class(c, address_type_uuid)
-        except exceptions.HTTPException:
-            address_type = None
-
-        scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
-        handler = base.get_handler_for_scope(scope).from_effect(effect)
-
-        person = mapping.USER_FIELD.get_uuid(effect)
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
-
-        func = {
-            mapping.ADDRESS_TYPE: address_type,
-            mapping.VALIDITY: {
-                mapping.FROM: util.to_iso_date(start),
-                mapping.TO: util.to_iso_date(
-                    end, is_end=True)
-            },
-            mapping.UUID: funcid,
-            mapping.USER_KEY: props.get('brugervendtnoegle'),
-            **handler.get_mo_address_and_properties()
-        }
-        if person:
-            func[mapping.PERSON] = employee.get_one_employee(
-                c, person)
-        if org_unit:
-            func[mapping.ORG_UNIT] = orgunit.get_one_orgunit(
-                c, org_unit,
-                details=orgunit.UnitDetails.MINIMAL)
-
-        if props.get('integrationsdata') is not None:
-            func[mapping.INTEGRATION_DATA] = json.loads(
-                props['integrationsdata'],
-            )
-
-        return func
 
     def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,

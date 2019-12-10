@@ -90,7 +90,7 @@ def list_details(type, id):
 
     reg = scope.get(id)
 
-    r['org_unit'] = bool(orgunit.OrgUnitRequestHandler.has(scope, reg))
+    r['org_unit'] = bool(scope.path == 'organisation/organisationenhed' and reg)
 
     return flask.jsonify(r)
 
