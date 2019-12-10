@@ -6,11 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import copy
-
 import freezegun
 import notsouid
-import uuid
 
 from mora import lora
 from tests import util

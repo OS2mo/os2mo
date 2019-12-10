@@ -132,7 +132,8 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         time_planning_uuid = util.get_mapping_uuid(req, mapping.TIME_PLANNING,
                                                    required=False)
 
-        org_unit_level = util.get_mapping_uuid(req, mapping.ORG_UNIT_LEVEL, required=False)
+        org_unit_level = util.get_mapping_uuid(req, mapping.ORG_UNIT_LEVEL,
+                                               required=False)
 
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)

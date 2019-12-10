@@ -2501,4 +2501,3 @@ class AddressTests(util.LoRATestCase):
                 'org_unit.association.delete': 1,
             },
         )
-

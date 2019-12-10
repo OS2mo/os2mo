@@ -25,21 +25,12 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-import itertools
-import json
 
 import flask
 
-from . import address
-from . import employee
-from . import facet
 from . import handlers
-from . import itsystem
 from . import orgunit
 from .. import common
-from .. import exceptions
-from .. import mapping
-from .. import settings
 from .. import util
 
 blueprint = flask.Blueprint('detail_reading', __name__, static_url_path='',
@@ -600,13 +591,6 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
 
     '''
     c = common.get_connector()
-
-    info = DETAIL_TYPES[type]
-    search = {
-        info.search: id,
-    }
-
-    # ensure that we report an error correctly
 
     from ..handler import reading
 
