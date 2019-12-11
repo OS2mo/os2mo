@@ -1,3 +1,17 @@
+Version 1.3.0, 2019-12-11
+=========================
+
+New features
+------------
+
+* #32964: Added support for new primary and org unit level fields
+
+Internal changes
+----------------
+
+* #32964: Refactored reading code
+
+
 Version 1.2.0, 2019-12-04
 =========================
 
