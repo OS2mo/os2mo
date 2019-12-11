@@ -86,9 +86,10 @@ class Tests(util.LoRATestCase):
                         "to": "2017-12-01",
                     },
                 }],
-                "responsibility": [{
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-                }],
+                "responsibility": [
+                    {'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"}
+                ],
                 "manager_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
@@ -163,6 +164,16 @@ class Tests(util.LoRATestCase):
                     }
                 ],
                 "opgaver": [
+                    {
+                        "objekttype": "lederansvar",
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    },
                     {
                         "objekttype": "lederansvar",
                         "virkning": {
@@ -283,13 +294,22 @@ class Tests(util.LoRATestCase):
                     'surname': 'Hund',
                     'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 },
-                'responsibility': [{
-                    'example': None,
-                    'name': 'Medlem',
-                    'scope': None,
-                    'user_key': 'medl',
-                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                }],
+                'responsibility': [
+                    {
+                        'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
+                    },
+                    {
+                        'example': None,
+                        'name': 'Medlem',
+                        'scope': None,
+                        'user_key': 'medl',
+                        'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
+                    },
+                ],
                 'uuid': managerid,
                 'user_key': '1234',
                 'validity': {
@@ -1042,233 +1062,6 @@ class Tests(util.LoRATestCase):
             'value': 'root@example.com'
         }]
         self.assertEqual(expected_future_address, future.get('address'))
-
-    @util.mock('aabogade.json', allow_mox=True)
-    def test_create_manager_multiple_responsibilities(self, m):
-        '''Can we create a manager with more than one responsibility?'''
-        self.load_sample_structures()
-
-        # Check the POST request
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        payload = [
-            {
-                "type": "manager",
-                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {'uuid': userid},
-                "responsibility": [
-                    {'uuid': "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"},
-                    {'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"},
-                ],
-                "manager_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "manager_level": {
-                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-                },
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        managerid, = self.assertRequest(
-            '/service/details/create',
-            json=payload,
-            amqp_topics={
-                'org_unit.manager.create': 1,
-                'employee.manager.create': 1,
-            },
-        )
-
-        expected = {
-            "livscykluskode": "Importeret",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "gyldighed": "Aktiv"
-                    }
-                ]
-            },
-            "note": "Oprettet i MO",
-            "relationer": {
-                "tilknyttedeorganisationer": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                    }
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
-                    }
-                ],
-                "opgaver": [
-                    {
-                        "objekttype": "lederansvar",
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
-                    },
-                    {
-                        "objekttype": "lederansvar",
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
-                    },
-                    {
-                        "objekttype": "lederniveau",
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-                    },
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                    }
-                ],
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01"
-                        },
-                        "brugervendtnoegle": mock_uuid,
-                        "funktionsnavn": "Leder"
-                    }
-                ]
-            }
-        }
-
-        actual_manager = c.organisationfunktion.get(managerid)
-
-        self.assertRegistrationsEqual(actual_manager, expected)
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/manager'.format(userid),
-            [],
-            amqp_topics={
-                'org_unit.manager.create': 1,
-                'employee.manager.create': 1,
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/manager'
-            '?validity=future'.format(userid),
-            [{
-                'address': [],
-                'manager_level': {
-                    'example': 'test@example.com',
-                    'name': 'Email',
-                    'scope': 'EMAIL',
-                    'user_key': 'BrugerEmail',
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                },
-                'manager_type': {
-                    'example': None,
-                    'name': 'Medlem',
-                    'scope': None,
-                    'user_key': 'medl',
-                    'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
-                },
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {
-                        'from': '2016-01-01',
-                        'to': None,
-                    },
-                },
-                'person': {
-                    'name': 'Fedtmule Hund',
-                    'givenname': 'Fedtmule',
-                    'surname': 'Hund',
-                    'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
-                },
-                'responsibility': [
-                    {
-                        'example': None,
-                        'name': 'Fakultet',
-                        'scope': None,
-                        'user_key': 'fak',
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
-                    },
-                    {
-                        'example': None,
-                        'name': 'Institut',
-                        'scope': None,
-                        'user_key': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
-                    },
-                ],
-                'uuid': managerid,
-                'user_key': mock_uuid,
-                'validity': {
-                    'from': '2017-12-01',
-                    'to': '2017-12-01',
-                },
-            }],
-            amqp_topics={
-                'org_unit.manager.create': 1,
-                'employee.manager.create': 1,
-            },
-        )
 
     def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()

@@ -114,10 +114,6 @@ export default {
         }
       }
 
-      if (this.column === 'primary') {
-        contents = contents ? '\u2713' : ''
-      }
-
       if (!contents) {
         contents = []
       } else if (!(contents instanceof Array)) {

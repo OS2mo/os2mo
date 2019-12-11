@@ -38,6 +38,7 @@ ERROR = 'error'
 USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
+IS_PRIMARY = 'is_primary'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -81,6 +82,7 @@ ORG_UNIT_TYPE = 'org_unit_type'
 TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
+ORG_UNIT_LEVEL = 'org_unit_level'
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
@@ -240,6 +242,11 @@ ORG_UNIT_TYPE_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+ORG_UNIT_LEVEL_FIELD = FieldTuple(
+    path=('relationer', 'niveau'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
 PARENT_FIELD = FieldTuple(
     path=('relationer', 'overordnet'),
     type=FieldTypes.ZERO_TO_ONE,
@@ -329,6 +336,11 @@ ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
     filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
 )
 
+PRIMARY_FIELD = FieldTuple(
+    path=('relationer', 'primær'),
+    type=FieldTypes.ZERO_TO_ONE
+)
+
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
     EMPLOYEE_EGENSKABER_FIELD,
@@ -345,7 +357,8 @@ ENGAGEMENT_FIELDS = {
     ORG_FUNK_TYPE_FIELD,
     ASSOCIATED_ORG_UNIT_FIELD,
     ASSOCIATED_ORG_FIELD,
-    USER_FIELD
+    USER_FIELD,
+    PRIMARY_FIELD,
 }
 
 ASSOCIATION_FIELDS = {
@@ -357,6 +370,7 @@ ASSOCIATION_FIELDS = {
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
     SINGLE_ADDRESS_FIELD,
+    PRIMARY_FIELD,
 }
 
 ROLE_FIELDS = {
@@ -395,7 +409,8 @@ ORG_UNIT_FIELDS = {
     BELONGS_TO_FIELD,
     ORG_UNIT_TYPE_FIELD,
     ORG_UNIT_TIME_PLANNING_FIELD,
-    PARENT_FIELD
+    PARENT_FIELD,
+    ORG_UNIT_LEVEL_FIELD
 }
 
 ITSYSTEM_FIELDS = {

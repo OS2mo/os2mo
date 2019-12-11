@@ -107,6 +107,7 @@ class ErrorCodes(Enum):
     E_FORBIDDEN = 403, "Forbidden."
     E_CONNECTION_FAILED = 500, "Connection failed."
     E_SAML_AUTH_ERROR = 500, "Internal auth error."
+    E_INTERNAL_ERROR = 500, "Internal error."
     E_NOT_FOUND = 404, "Not found."
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."

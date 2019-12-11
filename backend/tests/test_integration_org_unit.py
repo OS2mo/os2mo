@@ -48,6 +48,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -63,6 +64,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -78,6 +80,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -93,6 +96,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -143,6 +147,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -158,6 +163,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -173,6 +179,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -188,6 +195,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -238,6 +246,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -253,6 +262,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -268,6 +278,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -283,6 +294,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -332,6 +344,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -347,6 +360,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -362,6 +376,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -377,6 +392,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -420,6 +436,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -435,6 +452,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -450,6 +468,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -465,6 +484,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -508,6 +528,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
+                "org_unit_level": None,
                 'parent': {
                     'location': 'Overordnet Enhed\\Humanistisk fakultet',
                     'name': 'Historisk Institut',
@@ -523,6 +544,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
+                    "org_unit_level": None,
                     'parent': {
                         'location': 'Overordnet Enhed',
                         'name': 'Humanistisk fakultet',
@@ -538,6 +560,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
+                        "org_unit_level": None,
                         'parent': {
                             'location': '',
                             'name': 'Overordnet Enhed',
@@ -553,6 +576,7 @@ class Tests(util.LoRATestCase):
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
+                            "org_unit_level": None,
                             'parent': None,
                             'time_planning': None,
                             'user_key': 'root',
@@ -612,6 +636,9 @@ class Tests(util.LoRATestCase):
             },
             "org_unit_type": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+            },
+            "org_unit_level": {
+                'uuid': "0f015b67-f250-43bb-9160-043ec19fad48"
             },
             "details": [
                 {
@@ -728,6 +755,15 @@ class Tests(util.LoRATestCase):
                         "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                     }
                 ],
+                'niveau': [{
+                    'uuid': '0f015b67-f250-43bb-9160-043ec19fad48',
+                    'virkning': {
+                        'from': '2016-02-04 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-10-22 00:00:00+02',
+                        'to_included': False
+                    }
+                }],
             },
             "tilstande": {
                 "organisationenhedgyldighed": [
@@ -758,6 +794,13 @@ class Tests(util.LoRATestCase):
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                 },
+                'org_unit_level': {
+                    'example': None,
+                    'name': 'Niveau 10',
+                    'scope': None,
+                    'user_key': 'orgunitlevel10',
+                    'uuid': '0f015b67-f250-43bb-9160-043ec19fad48'
+                },
                 "time_planning": {
                     "example": None,
                     "name": "Institut",
@@ -780,6 +823,7 @@ class Tests(util.LoRATestCase):
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
                     },
+                    'org_unit_level': None,
                     "time_planning": None,
                     "org_unit_type": {
                         "example": None,
@@ -1030,6 +1074,7 @@ class Tests(util.LoRATestCase):
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 },
                 'time_planning': None,
+                'org_unit_level': None,
                 "org_unit_type": {
                     "example": None,
                     "name": "Afdeling",
@@ -1045,111 +1090,6 @@ class Tests(util.LoRATestCase):
                     "from": "2016-01-01",
                     "to": None,
                 },
-            },
-        )
-
-    def test_read_many_parents(self):
-        self.load_sample_structures()
-
-        self.assertRequestResponse(
-            '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/',
-            {
-                "location": "Overordnet Enhed\\Humanistisk fakultet"
-                            "\\Historisk Institut",
-                "name": "Afdeling for Samtidshistorik",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                },
-                'time_planning': None,
-                "org_unit_type": {
-                    "example": None,
-                    "name": "Afdeling",
-                    "scope": None,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-                },
-                "parent": {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet",
-                    "name": "Historisk Institut",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                    },
-                    'time_planning': None,
-                    "org_unit_type": {
-                        "example": None,
-                        "name": "Institut",
-                        "scope": None,
-                        "user_key": "inst",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed",
-                        "name": "Humanistisk fakultet",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                        },
-                        'time_planning': None,
-                        "org_unit_type": {
-                            "example": None,
-                            "name": "Institut",
-                            "scope": None,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
-                        },
-                        "parent": {
-                            "location": "",
-                            "name": "Overordnet Enhed",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
-                            },
-                            'time_planning': None,
-                            "org_unit_type": {
-                                "example": None,
-                                "name": "Afdeling",
-                                "scope": None,
-                                "user_key": "afd",
-                                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-                            },
-                            "parent": None,
-                            "user_key": "root",
-                            'user_settings': {'orgunit': {}},
-                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None
-                            }
-                        },
-                        "user_key": "hum",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        }
-                    },
-                    "user_key": "hist",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": "2018-12-31"
-                    }
-                },
-                "user_key": "frem",
-                "user_settings": {"orgunit": {}},
-                "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": "2018-12-31"
-                }
             },
         )
 
@@ -1195,6 +1135,9 @@ class Tests(util.LoRATestCase):
                 "uuid": org_unit_uuid,
                 "org_unit_type": {
                     'uuid': "79e15798-7d6d-4e85-8496-dcc8887a1c1a"
+                },
+                "org_unit_level": {
+                    'uuid': "d329c924-0cd1-4599-aca8-1d89cca2bff2"
                 },
                 "validity": {
                     "from": "2017-01-01",
@@ -1270,6 +1213,15 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
+                'niveau': [{
+                    'uuid': 'd329c924-0cd1-4599-aca8-1d89cca2bff2',
+                    'virkning': {
+                        'from': '2017-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
                 "enhedstype": [
                     {
                         "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
@@ -1726,6 +1678,7 @@ class Tests(util.LoRATestCase):
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
+                "org_unit_level": None,
                 "parent": None,
                 "validity": {
                     "from": "2017-01-01",
@@ -2614,6 +2567,7 @@ class Tests(util.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                 },
+                'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
                     'name': 'Institut',
@@ -2629,6 +2583,7 @@ class Tests(util.LoRATestCase):
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                     },
+                    'org_unit_level': None,
                     'org_unit_type': {
                         'example': None,
                         'name': 'Institut',
@@ -2644,6 +2599,7 @@ class Tests(util.LoRATestCase):
                             'user_key': 'AU',
                             'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
                         },
+                        'org_unit_level': None,
                         'org_unit_type': {
                             'example': None,
                             'name': 'Afdeling',

@@ -117,9 +117,10 @@ def get_one_class(c, classid, clazz=None):
         clazz = c.klasse.get(classid)
 
         if not clazz:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                'no such class {!r}'.format(classid),
-            )
+            return None
+            # exceptions.ErrorCodes.E_INVALID_INPUT(
+            #     'no such class {!r}'.format(classid),
+            # )
 
     attrs = clazz['attributter']['klasseegenskaber'][0]
 

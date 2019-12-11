@@ -49,7 +49,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
-        primary = req.get(mapping.PRIMARY)
+        primary = util.get_mapping_uuid(req, mapping.PRIMARY)
 
         # Validation
         validator.is_date_range_in_org_unit_range(org_unit, valid_from,
@@ -59,11 +59,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         validator.does_employee_have_existing_association(employee_uuid,
                                                           org_unit_uuid,
                                                           valid_from)
-
-        if primary:
-            validator.does_employee_have_existing_primary_function(
-                self.function_key, valid_from, valid_to, employee_uuid,
-            )
 
         association = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ASSOCIATION_KEY,
@@ -152,23 +147,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 original, mapping.USER_FIELD.path)[-1]
             employee_uuid = util.get_uuid(employee)
 
-        try:
-            exts = mapping.ORG_FUNK_UDVIDELSER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
-            exts = {}
+        if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
+            primary = util.get_mapping_uuid(data, mapping.PRIMARY)
 
-        if mapping.PRIMARY in data:
-            primary = util.checked_get(data, mapping.PRIMARY, False)
-
-            update_fields.append((
-                mapping.ORG_FUNK_UDVIDELSER_FIELD,
-                {
-                    **exts,
-                    'primær': primary,
-                },
-            ))
-        else:
-            primary = exts.get('primær')
+            update_fields.append((mapping.PRIMARY_FIELD, {'uuid': primary}))
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
@@ -189,11 +171,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                                           org_unit_uuid,
                                                           new_from,
                                                           association_uuid)
-
-        if primary:
-            validator.does_employee_have_existing_primary_function(
-                self.function_key, new_from, new_to, employee_uuid,
-            )
 
         self.payload = payload
         self.uuid = association_uuid

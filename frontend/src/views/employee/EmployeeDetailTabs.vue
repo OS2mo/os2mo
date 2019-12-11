@@ -125,13 +125,6 @@ export default {
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
        */
-      engagement: [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'engagement_id', data: 'user_key', field: null },
-        { label: 'primary', data: 'primary', field: null },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' }
-      ],
       role: [
         { label: 'org_unit', data: 'org_unit' },
         { label: 'role_type', data: 'role_type' }
@@ -139,11 +132,6 @@ export default {
       it: [
         { label: 'it_system', data: 'itsystem' },
         { label: 'user_key', data: null, field: 'user_key' }
-      ],
-      association: [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'primary', data: 'primary', field: null },
-        { label: 'association_type', data: 'association_type' }
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' }
@@ -174,6 +162,43 @@ export default {
         leave: MoLeaveEntry,
         manager: MoManagerEntry
       }
+    }
+  },
+
+  computed: {
+    engagement () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+
+      let columns = [
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'engagement_id', data: 'user_key', field: null },
+        { label: 'job_function', data: 'job_function' },
+        { label: 'engagement_type', data: 'engagement_type' }
+      ]
+
+      if (conf.show_primary_engagement) {
+        columns.splice(2, 0,
+          { label: 'primary', data: 'primary' }
+        )
+      }
+
+      return columns
+    },
+    association () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+
+      let columns = [
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'association_type', data: 'association_type' }
+      ]
+
+      if (conf.show_primary_association) {
+        columns.splice(1, 0,
+          { label: 'primary', data: 'primary' }
+        )
+      }
+
+      return columns
     }
   },
 

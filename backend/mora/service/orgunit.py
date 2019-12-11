@@ -62,50 +62,8 @@ class UnitDetails(enum.Enum):
     INTEGRATION = 4
 
 
-class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
+class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
-
-    @classmethod
-    def has(cls, scope, reg):
-        return scope.path == 'organisation/organisationenhed' and reg
-
-    @classmethod
-    def get(cls, c, type, objid):
-        if type != 'ou':
-            exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
-        scope = c.organisationenhed
-
-        return flask.jsonify([
-            get_one_orgunit(
-                c, objid, effect, details=UnitDetails.FULL,
-                validity={
-                    mapping.FROM: util.to_iso_date(start),
-                    mapping.TO: util.to_iso_date(end, is_end=True),
-                },
-            )
-            for start, end, effect in scope.get_effects(
-                objid,
-                {
-                    'attributter': (
-                        'organisationenhedegenskaber',
-                    ),
-                    'relationer': (
-                        'enhedstype',
-                        'opgaver',
-                        'overordnet',
-                        'tilhoerer',
-                    ),
-                    'tilstande': (
-                        'organisationenhedgyldighed',
-                    ),
-                },
-            )
-            if c.is_effect_relevant({'from': start, 'to': end}) and
-            effect.get('tilstande')
-                  .get('organisationenhedgyldighed')[0]
-                  .get('gyldighed') == 'Aktiv'
-        ])
 
     def prepare_create(self, req):
         req = flask.request.get_json()
@@ -132,6 +90,9 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
         time_planning_uuid = util.get_mapping_uuid(req, mapping.TIME_PLANNING,
                                                    required=False)
 
+        org_unit_level = util.get_mapping_uuid(req, mapping.ORG_UNIT_LEVEL,
+                                               required=False)
+
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -148,6 +109,7 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
                     'uuid': time_planning_uuid,
                 },
             ] if time_planning_uuid else [],
+            niveau=org_unit_level,
             overordnet=parent_uuid,
             integration_data=integration_data,
         )
@@ -250,6 +212,13 @@ class OrgUnitRequestHandler(handlers.ReadingRequestHandler):
             update_fields.append((
                 mapping.ORG_UNIT_TYPE_FIELD,
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
+            ))
+
+        if mapping.ORG_UNIT_LEVEL in data:
+            org_unit_level = util.get_mapping_uuid(data, mapping.ORG_UNIT_LEVEL)
+            update_fields.append((
+                mapping.ORG_UNIT_LEVEL_FIELD,
+                {'uuid': org_unit_level}
             ))
 
         if mapping.TIME_PLANNING in data and data.get(mapping.TIME_PLANNING):
@@ -358,6 +327,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
+    org_unit_level = mapping.ORG_UNIT_LEVEL_FIELD.get_uuid(unit)
     parentid = rels['overordnet'][0]['uuid']
 
     r = {
@@ -410,6 +380,10 @@ def get_one_orgunit(c, unitid, unit=None,
             facet.get_one_class(c, timeplanning) if timeplanning else None
         )
 
+        r[mapping.ORG_UNIT_LEVEL] = (
+            facet.get_one_class(c, org_unit_level) if org_unit_level else None
+        )
+
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = org.get_configured_organisation()
         r[mapping.PARENT] = get_one_orgunit(c, parentid,
@@ -421,6 +395,10 @@ def get_one_orgunit(c, unitid, unit=None,
 
         r[mapping.TIME_PLANNING] = (
             facet.get_one_class(c, timeplanning) if timeplanning else None
+        )
+
+        r[mapping.ORG_UNIT_LEVEL] = (
+            facet.get_one_class(c, org_unit_level) if org_unit_level else None
         )
 
     elif details is UnitDetails.MINIMAL:

@@ -12,15 +12,11 @@
 This section describes how to interact with employee manager roles.
 
 """
-import operator
 import uuid
 
 from . import address
-from . import employee
-from . import facet
 from . import handlers
 from . import org
-from . import orgunit
 from .validation import validator
 from .. import common
 from .. import lora
@@ -34,97 +30,9 @@ SEARCH_FIELDS = {
 }
 
 
-class ManagerRequestHandler(handlers.OrgFunkReadingRequestHandler):
+class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = 'manager'
     function_key = mapping.MANAGER_KEY
-
-    @classmethod
-    def finder(cls, c, type, objid):
-
-        found = super().finder(c, type, objid)
-        if type == "e":
-            return found
-
-        if not found and util.get_args_flag("inherit_manager"):
-            while not found:
-                ou = orgunit.get_one_orgunit(
-                    c, objid, details=orgunit.UnitDetails.FULL
-                )
-                if not ou:
-                    return found
-                upper = ou.get(mapping.PARENT)
-                if not upper:
-                    return found
-                objid = upper.get(mapping.UUID)
-                if not objid:
-                    return found
-                found = super().finder(c, type, objid)
-        return found
-
-    @classmethod
-    def get_one_mo_object(cls, effect, start, end, funcid):
-        c = common.get_connector()
-
-        person = mapping.USER_FIELD.get_uuid(effect)
-        manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
-        manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)
-        addresses = list(mapping.FUNCTION_ADDRESS_FIELD.get_uuids(effect))
-        responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
-        props = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
-
-        func = {
-            mapping.UUID: funcid,
-            mapping.RESPONSIBILITY: sorted([
-                facet.get_one_class(c, classid, classobj)
-                for classid, classobj in c.klasse.get_all(
-                    uuid=responsibilities
-                )
-            ], key=lambda r: r[mapping.NAME]),
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit,
-                details=orgunit.UnitDetails.MINIMAL),
-            mapping.VALIDITY: {
-                mapping.FROM: util.to_iso_date(start),
-                mapping.TO: util.to_iso_date(
-                    end, is_end=True)
-            },
-            mapping.ADDRESS: [],
-            mapping.USER_KEY: props['brugervendtnoegle'],
-        }
-
-        for address_uuid in addresses:
-            orgfunc = c.organisationfunktion.get(uuid=address_uuid)
-            try:
-                addr = address.get_one_address(orgfunc)
-            except IndexError:
-                # empty ["relationer"]["adresser"]
-                continue
-            addr["address_type"] = address.get_address_type(orgfunc)
-            addr["uuid"] = address_uuid
-            func[mapping.ADDRESS].append(addr)
-
-        func[mapping.ADDRESS] = sorted(
-            func[mapping.ADDRESS],
-            key=operator.itemgetter(mapping.NAME)
-        )
-
-        if person:
-            func[mapping.PERSON] = employee.get_one_employee(c, person)
-        else:
-            func[mapping.PERSON] = None
-
-        if manager_type:
-            func[mapping.MANAGER_TYPE] = facet.get_one_class(c, manager_type)
-        else:
-            func[mapping.MANAGER_TYPE] = None
-
-        if manager_level:
-            func[mapping.MANAGER_LEVEL] = facet.get_one_class(c, manager_level)
-        else:
-            func[mapping.MANAGER_LEVEL] = None
-
-        return func
 
     def prepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
