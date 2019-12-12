@@ -114,6 +114,18 @@ def _check_database(dbname):
         return bool(curs.fetchone())
 
 
+def _check_defaults():
+    """Check if the database already contains default values"""
+    EXISTING_DEFAULT_CONF_QUERY = SQL("""
+        SELECT * FROM orgunit_settings
+        WHERE object is Null
+    """)
+    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
+        cursor.execute(EXISTING_DEFAULT_CONF_QUERY)
+        rows = list(cursor.fetchall())
+        return bool(rows)
+
+
 def set_global_conf(conf):
     """Load a global configuration directly into the database. It does not
     check for duplicates.
@@ -145,7 +157,10 @@ def create_db_table():
     with _get_connection(_DBNAME) as con, con.cursor() as cursor:
         cursor.execute(CREATE_CONF_QUERY)
 
-    set_global_conf(_DEFAULT_CONF)
+    if not _check_defaults():
+        logger.info("Inserting default configuration values.")
+        set_global_conf(_DEFAULT_CONF)
+
     logger.info("Configuration database initialised.")
 
 

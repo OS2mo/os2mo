@@ -11,6 +11,8 @@ Bug fixes
 
 * #33569: Changes in the past are now properly reimplemented for terminations,
   renames and moves.
+* #33456: Configuration database initialization now only inserts default
+  values if they are not present
 
 Internal changes
 ----------------
