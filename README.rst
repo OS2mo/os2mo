@@ -107,7 +107,7 @@ Opsætning af udviklingsmiljø
 
       git clone https://github.com/OS2mo/os2mo.git
       cd os2mo
-      docker-compose up -d --build mo
+      docker-compose up -d --build
 
 
 ------
@@ -185,7 +185,7 @@ For at hente og bygge images og starte de tre services, kør:
 
 .. code-block:: bash
 
-   docker-compose up -d --build mo
+   docker-compose up -d --build
 
 
 ``-d`` flaget starter servicene i baggrunden. Du kan se outputtet af dem med
@@ -215,8 +215,8 @@ Hver test case køres op imod en LoRa-instans, der ryddes mellem hver test case
 så testene effektivt set køres isoleret. LoRa instansen kopierer eventuelle data
 i databasen til en backup lokation og gendanner disse efter testkørslen.
 
-Efter udviklingsmiljøet er startet med ``docker-compose up -d mo`` kan
-testsuiten kan køres med kommandoen:
+Efter udviklingsmiljøet er startet med ``docker-compose up -d`` kan
+testsuiten køres med kommandoen:
 
 .. code-block:: bash
 
@@ -227,12 +227,22 @@ End-to-end tests
 ----------------
 
 Vores end-to-end tests køres ikke som en del af testsuiten. De kan ikke køre
-parallelt med integrationsstestene da de anvender samme LoRa instans men samme
-database. For at køre dem kaldes:
+parallelt med integrationsstestene da de anvender samme LoRa instans og samme
+database. ``testcafe`` servicen er defineret i sin egen
+:file:`dev-environment/docker-compose-testcafe.yml` for at den ikke starter op
+når man starter andre services op.
+
+Efter udviklingsmiljøet er startet med ``docker-compose up -d`` kan testcafe
+køres med kommandoen:
 
 .. code-block:: bash
 
-   docker-compose up testcafe
+   docker-compose -f dev-environment/docker-compose-testcafe.yml up
+
+Dette kald skriver en warning om at der er orphan containers. Det er
+forventeligt og kan ignoreres. De normale services defineret i
+:file:`docker-compose.yml` er fra kaldet til ``docker-compose -f
+dev-environment/docker-compose-testcafe.yml`` set som orphans.
 
 Dokumentation
 =============
