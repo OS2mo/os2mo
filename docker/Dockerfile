@@ -76,7 +76,7 @@ COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
 COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
 COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
-RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade pip==19.3.1
 RUN pip3 install \
   -r backend/requirements.txt \
   -r backend/requirements-test.txt \
