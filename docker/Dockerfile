@@ -66,9 +66,9 @@ RUN set -ex \
   && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install system dependencies from file.
   && apt-get -y update \
-  && apt-get -y install --no-install-recommends $(grep -vE "^\s*#" sys-requirements.txt  | tr "\n" " ") \
+  && apt-get -y install --no-install-recommends "$(grep -vE "^\s*#" sys-requirements.txt | tr "\n" " ")" \
   # clean up after apt-get and man-pages
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/man/?? /usr/share/man/??_*
+  && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
 
 # Install requirements
