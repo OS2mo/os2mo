@@ -123,7 +123,8 @@ Alle releases bliver sendt til  Docker Hub på `magentaaps/os2mo
 
 For at køre OS2MO i docker, skal du have en kørende docker instans. For
 installationen af denne, referere vi til `den officielle dokumentation
-<https://docs.docker.com/install/>`_.
+<https://docs.docker.com/install/>`_. Alternativt er her :ref:`en kort guide til
+Ubuntu s<docker-install>`.
 
 Containeren kræver en forbindelse til en `LoRa instans
 <https://github.com/magenta-aps/mox>`_. Den kan sættes via :ref:`indstillingen
@@ -196,6 +197,32 @@ OS2MO imageet fra den lokale :file:`Dockerfile`.
 For at stoppe servicene igen, kør ``docker-compose stop``. Servicene vil blive
 stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
 , kør ``docker-compose down -v``.
+
+
+.. _docker-install:
+
+-----------------------------
+Docker installation på Ubuntu
+-----------------------------
+
+`Den officielle dokumentation til Docker <https://docs.docker.com/install/>`__
+indeholder udførlig dokumentation for installering på all platforme. Den kan dog
+være svær at navigere. Derfor er her en kort guide til at installere nyeste
+version af Docker og docker-compose på Ubuntu:
+
+.. code-block:: bash
+
+   sudo apt-get update
+
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+   sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+   sudo apt-get update
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
 
 
 Testsuiten
