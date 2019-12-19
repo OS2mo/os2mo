@@ -66,6 +66,15 @@ docs:
     paths:
       - /doc-build
 
+hadolint:
+  <<: *lint-default
+  image: hadolint/hadolint:latest-debian
+  before_script:
+    - apt-get -y update
+    - apt-get -y install --no-install-recommends git
+  script:
+    - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
+
 
 # Build stage
 #############
