@@ -73,7 +73,13 @@ hadolint:
     - apt-get -y update
     - apt-get -y install --no-install-recommends git
   script:
-    - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
+    # It is not great that we ignore all these issues, but hadolint
+    # does afaik not have pragmas so it is all or nothing.
+    # If you migrate this elsewhere, start by *not* ignoring anything.
+    - git ls-files --exclude='Dockerfile*' --ignored
+          | xargs --max-lines=1
+            hadolint --ignore SC2039 --ignore DL3008
+                     --ignore DL4006 --ignore DL3013
 
 
 # Build stage
