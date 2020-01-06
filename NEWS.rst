@@ -6,6 +6,12 @@ New features
 
 * #32964: Added support for new primary and org unit level fields
 
+Bug fixes
+---------
+
+* #33569: Changes in the past are now properly reimplemented for terminations,
+  renames and moves.
+
 Internal changes
 ----------------
 
