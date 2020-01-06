@@ -1,5 +1,5 @@
 import requests_mock
-from mock import patch, MagicMock
+from mock import patch
 from requests.exceptions import RequestException
 
 from tests import util
@@ -132,9 +132,9 @@ class DARHealthTests(util.TestCase):
 
         self.assertEqual(True, actual)
 
+
 @requests_mock.Mocker()
 class IdPHealthTests(util.TestCase):
-
     @util.override_config({"saml_sso": {"enable": False}})
     def test_idp_returns_none_if_saml_sso_not_enabled(self, rq_mock):
 

@@ -139,7 +139,7 @@ def dar():
             return True
         else:
             return False
-    except RequestException as e:
+    except RequestException:
         return False
 
 
