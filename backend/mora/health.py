@@ -32,10 +32,10 @@ def register_health_endpoint(fn):
 
 @register_health_endpoint
 def amqp():
-    """
-    Check if AMQP connection is open
-    :return: True if open. False is not open, or if an error occurs.
-             None if AMQP support is disabled.
+    """Check if AMQP connection is open.
+
+    Return `True` if open. `False` if not open or an error occurs.
+    `None` if AMQP support is disabled.
     """
     if not config["amqp"]["enable"]:
         return None
@@ -145,11 +145,12 @@ def dar():
 
 @register_health_endpoint
 def idp():
-    """
-    Check whether the IdP for SAML SSO can be reached.
+    """Check whether the IdP for SAML SSO can be reached.
+
     Works by trying to reach configured IdP metadata endpoint.
-    :return: True if reachable. False if not. None if SAML SSO not enabled,
-             or if metadata configured to come from file.
+
+    Return `True` if reachable. `False` if not. `None` if SAML SSO is
+    not enabled, or if metadata is configured to come from a file.
     """
     if not config["saml_sso"]["enable"] or config["saml_sso"]["idp_metadata_file"]:
         return None
