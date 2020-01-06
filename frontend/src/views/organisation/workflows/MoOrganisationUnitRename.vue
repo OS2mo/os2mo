@@ -15,7 +15,6 @@
           class="from-date"
           :label="$t('input_fields.start_date')"
           v-model="rename.data.validity.from"
-          :valid-dates="currentDateValidity"
         />
         <mo-organisation-unit-picker
           :label="$t('input_fields.select_unit')"
@@ -53,7 +52,6 @@ import OrganisationUnit from '@/api/OrganisationUnit'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import { MoInputText, MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
-import CurrentDateValidity from "@/mixins/CurrentDateValidity";
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
@@ -63,7 +61,7 @@ import MoEntryBase from '@/components/MoEntry/MoEntryBase'
 export default {
   extends: MoEntryBase,
 
-  mixins: [CurrentDateValidity, ValidateForm, ModalBase],
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoInputDate,

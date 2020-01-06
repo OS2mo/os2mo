@@ -65,14 +65,13 @@ import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
 import ValidateForm from '@/mixins/ValidateForm'
-import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import { mapFields } from 'vuex-map-fields'
 import store from './_store/employeeMove.js'
 
 const STORE_KEY = '$_employeeMove'
 
 export default {
-  mixins: [ValidateForm, CurrentDateValidity],
+  mixins: [ValidateForm],
 
   components: {
     MoInputDate,
