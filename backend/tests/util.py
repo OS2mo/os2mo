@@ -5,8 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
-
+import copy
 from collections import Counter
 import contextlib
 import json
@@ -310,7 +309,18 @@ def override_lora_url(lora_url='http://mox/'):
 
 
 @contextlib.contextmanager
-def override_config(**overrides):
+def override_config(overrides: dict):
+    original = copy.deepcopy(settings.config)
+
+    settings.update_config(settings.config, overrides)
+    try:
+        yield
+    finally:
+        settings.update_config(settings.config, original)
+
+
+@contextlib.contextmanager
+def override_app_config(**overrides):
     originals = {}
 
     for k, v in overrides.items():
