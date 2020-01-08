@@ -9326,10 +9326,10 @@ testcafe-reporter-xunit@^2.1.0:
   resolved "https://registry.yarnpkg.com/testcafe-reporter-xunit/-/testcafe-reporter-xunit-2.1.0.tgz#e6d66c572ce15af266706af0fd610b2a841dd443"
   integrity sha1-5tZsVyzhWvJmcGrw/WELKoQd1EM=
 
-testcafe-vue-selectors@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/testcafe-vue-selectors/-/testcafe-vue-selectors-3.0.0.tgz#bb6e8564a2050eef84cfe4fe2ec560af4b2049e9"
-  integrity sha512-ObL2EsACCT/kJ696kMFEQ1H0JB87h+vU5DyOs0+h6G3WAtrEHLog0it/UnfsL/ZxdCQqBM7ajZ4c7S/nZckazw==
+testcafe-vue-selectors@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/testcafe-vue-selectors/-/testcafe-vue-selectors-3.1.0.tgz#3dccfc46b95aaa8455f457472a817cb8c8ae0938"
+  integrity sha512-BdJHD7Stns7ZXdQ1arahp2hcwkZ3u6Q2npYQgFMYHSyWDyExUdNSsYUmXg4EU7MrVXkAv+sE3eTvNmH1XeyrzA==
 
 testcafe@^0.20.2:
   version "0.20.5"
