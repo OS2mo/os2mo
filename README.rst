@@ -105,7 +105,7 @@ Opsætning af udviklingsmiljø
 
    .. code-block:: bash
 
-      git clone https://github.com/OS2mo/os2mo.git
+      git clone git@git.magenta.dk:rammearkitektur/os2mo.git # Or https://github.com/OS2mo/os2mo.git
       cd os2mo
       docker-compose up -d --build
 
