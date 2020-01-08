@@ -52,7 +52,7 @@
     "sass-loader": "^7.3.1",
     "testcafe": "^1.7.1",
     "testcafe-vue-selectors": "^3.1.0",
-    "vue-cli-plugin-i18n": "^0.5.1",
+    "vue-cli-plugin-i18n": "^0.6.0",
     "vue-template-compiler": "^2.5.17",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack": "^4.41.5"
