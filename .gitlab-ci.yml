@@ -187,6 +187,8 @@ e2e-test:
 .release-default: &release-default
   stage: release
   image: docker:19.03.1
+  services:
+    - name: docker:19.03.1-dind
   variables:
     GIT_STRATEGY: none # We do not need the source code
   tags:
