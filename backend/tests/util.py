@@ -5,8 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-
-
+import copy
 from collections import Counter
 import contextlib
 import json
@@ -115,7 +114,9 @@ def load_sample_structures(minimal=False):
         'manager_level': 'd56f174d-c45d-4b55-bdc6-c57bf68238b9',
         'manager_type': 'a22f8575-89b4-480b-a7ba-b3f1372e25a4',
         'org_unit_address_type': '3c44e5d2-7fef-4448-9bf6-449bf414ec49',
+        'org_unit_level': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455',
         'org_unit_type': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280',
+        'primary_type': '1f6f34d8-d065-4bb7-9af0-738d25dc0fbf',
         'responsibility': '452e1dd0-658b-477a-8dd8-efba105c06d6',
         'role_type': '68ba77bc-4d57-43e2-9c24-0c9eda5fddc7',
         'time_planning': 'c4ad4c87-28a8-4d5c-afeb-b59de9c9f549',
@@ -127,6 +128,8 @@ def load_sample_structures(minimal=False):
     functions = {
         'engagement_andersand': 'd000591f-8705-4324-897a-075e3623f37b',
         'engagement_eriksmidthansen': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
+        'engagement_eriksmidthansen_sekundaer': '301a906b-ef51-4d5c-'
+                                                '9c77-386fb8410459',
         'tilknytning': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
         'orlov_andersand': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
@@ -196,8 +199,13 @@ def load_sample_structures(minimal=False):
             'org_unit_ean': 'e34d4426-9845-4c72-b31e-709be85d6fa2',
             'org_unit_email': '73360db1-bad3-4167-ac73-8d827c0c8751',
             'org_unit_telefon': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
+            # org_unit_level
+            'org_unit_level_10': '0f015b67-f250-43bb-9160-043ec19fad48',
             # visibility
             'public': 'f63ad763-0e53-4972-a6a9-63b42a0f8cb7',
+            # primary_level
+            'primaer': '89b6cef8-3d03-49ac-816f-f7530b383411',
+            'sekundaer': '2f16d140-d743-4c9f-9e0e-361da91a06f6',
             # role_type
             'tillidsrepraesentant': '0fa6073f-32c0-4f82-865f-adb622ca0b04',
             # manager_type
@@ -301,7 +309,18 @@ def override_lora_url(lora_url='http://mox/'):
 
 
 @contextlib.contextmanager
-def override_config(**overrides):
+def override_config(overrides: dict):
+    original = copy.deepcopy(settings.config)
+
+    settings.update_config(settings.config, overrides)
+    try:
+        yield
+    finally:
+        settings.update_config(settings.config, original)
+
+
+@contextlib.contextmanager
+def override_app_config(**overrides):
     originals = {}
 
     for k, v in overrides.items():

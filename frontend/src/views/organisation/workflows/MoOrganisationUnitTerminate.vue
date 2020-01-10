@@ -14,7 +14,6 @@
         <mo-input-date
           class="from-date"
           :label="$t('input_fields.end_date')"
-          :valid-dates="currentDateValidity"
           v-model="terminate.validity.to"
           required
         />
@@ -60,7 +59,6 @@ import { MoInputDate } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
-import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
@@ -69,7 +67,7 @@ import orgUnitStore from '@/store/modules/organisationUnit'
 const STORE_KEY = '_organisationUnitTerminate'
 
 export default {
-  mixins: [CurrentDateValidity, ValidateForm, ModalBase],
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoInputDate,

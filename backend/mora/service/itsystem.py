@@ -239,7 +239,7 @@ def list_it_systems(orgid: uuid.UUID):
     )
 
 
-def get_one_itsystem(c, systemid, system):
+def get_one_itsystem(c, systemid, system=None):
     '''Obtain the list of engagements corresponding to a user.
 
     .. :quickref: IT system; Get by user
@@ -309,6 +309,18 @@ def get_one_itsystem(c, systemid, system):
       ]
 
     '''
+
+    if 'only_primary_uuid' in flask.request.args:
+        return {
+            mapping.UUID: systemid
+        }
+
+    if not system:
+        system = c.itsystem.get(systemid)
+
+        if not system or not util.is_reg_valid(system):
+            return None
+
     system_attrs = system['attributter']['itsystemegenskaber'][0]
 
     return {

@@ -13,9 +13,8 @@ handlers for the various detail types.
 
 import abc
 import inspect
-import typing
 
-import flask
+import typing
 
 from .. import common
 from .. import exceptions
@@ -143,18 +142,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         return getattr(self, Trigger.RESULT, None)
 
 
-class ReadingRequestHandler(RequestHandler):
-    @classmethod
-    @abc.abstractmethod
-    def has(cls, scope, registration):
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def get(cls, c, type, objid):
-        pass
-
-
 class OrgFunkRequestHandler(RequestHandler):
     '''Abstract base class for automatically registering
     `organisationsfunktion`-based handlers.'''
@@ -245,92 +232,6 @@ class OrgFunkRequestHandler(RequestHandler):
                                                         self.uuid)
 
         return super().submit()
-
-
-class OrgFunkReadingRequestHandler(ReadingRequestHandler,
-                                   OrgFunkRequestHandler):
-    SEARCH_FIELDS = {
-        'e': 'tilknyttedebrugere',
-        'ou': 'tilknyttedeenheder'
-    }
-
-    @classmethod
-    @abc.abstractmethod
-    def get_one_mo_object(cls, effect, start, end, funcid):
-        pass
-
-    @classmethod
-    def has(cls, scope, objid):
-        pass
-
-    @classmethod
-    def finder(cls, c, type, objid):
-
-        search_fields = {
-            cls.SEARCH_FIELDS[type]: objid
-        }
-
-        return list(c.organisationfunktion.get_all(
-            funktionsnavn=cls.function_key,
-            **search_fields,
-        ))
-
-    @classmethod
-    def get_effects(cls, c, funcobj, relevant=None, also=None, **params):
-        if relevant is None:
-            relevant = {
-                'relationer': (
-                    'opgaver',
-                    'adresser',
-                    'organisatoriskfunktionstype',
-                    'tilknyttedeenheder',
-                    'tilknyttedebrugere',
-                    'tilknyttedefunktioner',
-                ),
-                'tilstande': (
-                    'organisationfunktiongyldighed',
-                ),
-            }
-        if also is None:
-            also = {
-                'attributter': (
-                    'organisationfunktionegenskaber',
-                ),
-                'relationer': (
-                    'tilhoerer',
-                    'tilknyttedeorganisationer',
-                    'tilknyttedeitsystemer',
-                ),
-            }
-
-        return c.organisationfunktion.get_effects(
-            funcobj,
-            relevant,
-            also,
-            **params
-        )
-
-    @classmethod
-    def get_function_effects(cls, c, type, objid):
-        """
-        1. find (id, registrering) for organization functions from lora
-           related to objid using the finder method
-        2. find attributes and relations for these registrations
-           using the get_effects method
-        3. lastly organize them into mora objects
-           using the get_one_mo_object method
-        """
-
-        return [
-            cls.get_one_mo_object(effect, start, end, funcid)
-            for funcid, funcobj in cls.finder(c, type, objid)
-            for start, end, effect in cls.get_effects(c, funcobj)
-            if util.is_reg_valid(effect)
-        ]
-
-    @classmethod
-    def get(cls, c, type, objid):
-        return flask.jsonify(cls.get_function_effects(c, type, objid))
 
 
 def get_key_for_function(obj: dict) -> str:

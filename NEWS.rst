@@ -1,3 +1,25 @@
+Version 1.3.0, 2019-12-11
+=========================
+
+New features
+------------
+
+* #32964: Added support for new primary and org unit level fields
+
+Bug fixes
+---------
+
+* #33569: Changes in the past are now properly reimplemented for terminations,
+  renames and moves.
+* #33456: Configuration database initialization now only inserts default
+  values if they are not present
+
+Internal changes
+----------------
+
+* #32964: Refactored reading code
+
+
 Version 1.2.0, 2019-12-04
 =========================
 
@@ -7,6 +29,8 @@ New features
 * #29760: Best practises updated concerning OS2Sync integration
 * #32467: We now once again allow performing edits in the past
 * #31978: Better logs.
+* #32838: Health endpoints have been implemented to show the status of OS2mo
+  and the various systems on which it depends.
 
 Bug fixes
 ---------

@@ -15,7 +15,6 @@
           class="moveDate"
           :label="$t('input_fields.move_date')"
           v-model="move.data.validity.from"
-          :valid-dates="currentDateValidity"
           required
         />
 
@@ -75,10 +74,9 @@ import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
-import CurrentDateValidity from '@/mixins/CurrentDateValidity'
 
 export default {
-  mixins: [ValidateForm, ModalBase, CurrentDateValidity],
+  mixins: [ValidateForm, ModalBase],
 
   components: {
     MoOrganisationUnitPicker,

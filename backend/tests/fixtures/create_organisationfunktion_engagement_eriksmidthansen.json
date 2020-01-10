@@ -57,7 +57,16 @@
                     "to": "infinity"
                 }
             }
-        ]
+        ],
+      "primær": [
+        {
+          "uuid": "89b6cef8-3d03-49ac-816f-f7530b383411",
+          "virkning": {
+            "from": "2005-12-01 00:00:00+01:00",
+            "to": "infinity"
+          }
+        }
+      ]
     },
     "tilstande": {
         "organisationfunktiongyldighed": [

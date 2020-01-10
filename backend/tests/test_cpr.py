@@ -141,15 +141,15 @@ class TestConfig(util.TestCase):
     def test_serviceplatformen_dummy_true(self):
         "test bad/missing values in config for Serviceplatformen "
         "are not considered in dummy mode"
-        with util.override_config(
+        with util.override_app_config(
             ENV='production',
             DUMMY_MODE=True,
         ):
             self.assertTrue(serviceplatformen.check_config(self.app))
 
     def test_serviceplatformen_missing_path(self):
-        with util.override_config(ENV='production', DUMMY_MODE=False,
-                                  **self.uuids()):
+        with util.override_app_config(ENV='production', DUMMY_MODE=False,
+                                      **self.uuids()):
             with self.assertRaisesRegex(
                 ValueError,
                 "Serviceplatformen certificate path must be configured: "
@@ -159,7 +159,7 @@ class TestConfig(util.TestCase):
 
     def test_serviceplatformen_empty_file(self):
 
-        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+        with tempfile.NamedTemporaryFile() as tf, util.override_app_config(
             ENV='production', DUMMY_MODE=False,
             SP_CERTIFICATE_PATH=tf.name,
             **self.uuids(),
@@ -172,7 +172,7 @@ class TestConfig(util.TestCase):
                 serviceplatformen.check_config(self.app)
 
     def test_serviceplatformen_invalid_values(self):
-        with tempfile.NamedTemporaryFile() as tf, util.override_config(
+        with tempfile.NamedTemporaryFile() as tf, util.override_app_config(
             ENV='production', DUMMY_MODE=False,
             SP_CERTIFICATE_PATH=tf.name,
             **self.uuids(SP_SYSTEM_UUID="some-other-string-with-4dashes",
@@ -185,7 +185,7 @@ class TestConfig(util.TestCase):
             ):
                 serviceplatformen.check_config(self.app)
 
-        with util.override_config(
+        with util.override_app_config(
             ENV='production',
             DUMMY_MODE=False,
             SP_CERTIFICATE_PATH=tf.name,

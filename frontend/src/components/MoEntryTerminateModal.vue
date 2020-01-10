@@ -47,7 +47,6 @@ import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
-import moment from 'moment'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -104,10 +103,8 @@ export default {
      * Check if the organisation date are valid.
      */
     validDates () {
-      let today = moment().format('YYYY-MM-DD')
-
       return {
-        from: this.content.validity.from < today ? today : this.content.validity.from,
+        from: this.content.validity.from,
         to: this.content.validity.to
       }
     }

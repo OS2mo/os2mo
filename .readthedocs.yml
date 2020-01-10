@@ -6,6 +6,6 @@ formats: []
 requirements_file: backend/requirements-docs.txt
 
 python:
-  version: 3.5
+  version: 3.6
   setup_py_install: false
   python.use_system_site_packages: true

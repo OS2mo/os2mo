@@ -25,10 +25,18 @@
         required
       />
 
+    </div>
+    <div class="form-row">
       <mo-facet-picker v-if="showTimePlanning"
         facet="time_planning"
         v-model="entry.time_planning"
         required
+      />
+
+      <mo-facet-picker v-if="showOrgUnitLevel"
+                       facet="org_unit_level"
+                       v-model="entry.org_unit_level"
+                       required
       />
     </div>
 
@@ -88,6 +96,14 @@ export default {
         return this.entry.parent.user_settings.orgunit.show_time_planning
       } else if (this.entry.user_settings) {
         return this.entry.user_settings.orgunit.show_time_planning
+      }
+      return false
+    },
+    showOrgUnitLevel () {
+      if (this.entry.parent) {
+        return this.entry.parent.user_settings.orgunit.show_level
+      } else if (this.entry.user_settings) {
+        return this.entry.user_settings.orgunit.show_level
       }
       return false
     },

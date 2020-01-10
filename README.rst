@@ -105,9 +105,9 @@ Opsætning af udviklingsmiljø
 
    .. code-block:: bash
 
-      git clone https://github.com/OS2mo/os2mo.git
+      git clone git@git.magenta.dk:rammearkitektur/os2mo.git # Or https://github.com/OS2mo/os2mo.git
       cd os2mo
-      docker-compose up -d --build mo
+      docker-compose up -d --build
 
 
 ------
@@ -123,7 +123,8 @@ Alle releases bliver sendt til  Docker Hub på `magentaaps/os2mo
 
 For at køre OS2MO i docker, skal du have en kørende docker instans. For
 installationen af denne, referere vi til `den officielle dokumentation
-<https://docs.docker.com/install/>`_.
+<https://docs.docker.com/install/>`_. Alternativt er her :ref:`en kort guide til
+Ubuntu s<docker-install>`.
 
 Containeren kræver en forbindelse til en `LoRa instans
 <https://github.com/magenta-aps/mox>`_. Den kan sættes via :ref:`indstillingen
@@ -185,7 +186,7 @@ For at hente og bygge images og starte de tre services, kør:
 
 .. code-block:: bash
 
-   docker-compose up -d --build mo
+   docker-compose up -d --build
 
 
 ``-d`` flaget starter servicene i baggrunden. Du kan se outputtet af dem med
@@ -196,6 +197,32 @@ OS2MO imageet fra den lokale :file:`Dockerfile`.
 For at stoppe servicene igen, kør ``docker-compose stop``. Servicene vil blive
 stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
 , kør ``docker-compose down -v``.
+
+
+.. _docker-install:
+
+-----------------------------
+Docker installation på Ubuntu
+-----------------------------
+
+`Den officielle dokumentation til Docker <https://docs.docker.com/install/>`__
+indeholder udførlig dokumentation for installering på all platforme. Den kan dog
+være svær at navigere. Derfor er her en kort guide til at installere nyeste
+version af Docker og docker-compose på Ubuntu:
+
+.. code-block:: bash
+
+   sudo apt-get update
+
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+   sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+   sudo apt-get update
+   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
 
 
 Testsuiten
@@ -215,8 +242,8 @@ Hver test case køres op imod en LoRa-instans, der ryddes mellem hver test case
 så testene effektivt set køres isoleret. LoRa instansen kopierer eventuelle data
 i databasen til en backup lokation og gendanner disse efter testkørslen.
 
-Efter udviklingsmiljøet er startet med ``docker-compose up -d mo`` kan
-testsuiten kan køres med kommandoen:
+Efter udviklingsmiljøet er startet med ``docker-compose up -d`` kan
+testsuiten køres med kommandoen:
 
 .. code-block:: bash
 
@@ -227,12 +254,22 @@ End-to-end tests
 ----------------
 
 Vores end-to-end tests køres ikke som en del af testsuiten. De kan ikke køre
-parallelt med integrationsstestene da de anvender samme LoRa instans men samme
-database. For at køre dem kaldes:
+parallelt med integrationsstestene da de anvender samme LoRa instans og samme
+database. ``testcafe`` servicen er defineret i sin egen
+:file:`dev-environment/docker-compose-testcafe.yml` for at den ikke starter op
+når man starter andre services op.
+
+Efter udviklingsmiljøet er startet med ``docker-compose up -d`` kan testcafe
+køres med kommandoen:
 
 .. code-block:: bash
 
-   docker-compose up testcafe
+   docker-compose -f dev-environment/docker-compose-testcafe.yml up
+
+Dette kald skriver en warning om at der er orphan containers. Det er
+forventeligt og kan ignoreres. De normale services defineret i
+:file:`docker-compose.yml` er fra kaldet til ``docker-compose -f
+dev-environment/docker-compose-testcafe.yml`` set som orphans.
 
 Dokumentation
 =============

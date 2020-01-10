@@ -67,11 +67,3 @@ services:
     ports:
       - "5672:5672"    # amqp port
       - "15672:15672"  # management port
-
-  testcafe:
-    image: magentalabs/testcafe:latest
-    volumes:
-      - ./frontend/e2e-tests:/tests
-      - ./testcafe-artifacts:/artifacts
-    environment:
-      - BASE_URL=http://mo:5000
