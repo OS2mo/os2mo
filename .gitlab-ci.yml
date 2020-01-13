@@ -48,7 +48,7 @@ variables:
   tags:
     - docker
 
-lint:
+python-lint:
   <<: *lint-default
   before_script:
     - pip3 install -r backend/requirements-lint.txt
@@ -66,7 +66,7 @@ docs:
     paths:
       - /doc-build
 
-hadolint:
+docker-lint:
   <<: *lint-default
   image: hadolint/hadolint:latest-debian
   before_script:
