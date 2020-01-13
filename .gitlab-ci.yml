@@ -48,7 +48,7 @@ variables:
   tags:
     - docker
 
-lint:
+python-lint:
   <<: *lint-default
   before_script:
     - pip3 install -r backend/requirements-lint.txt
@@ -65,6 +65,15 @@ docs:
   artifacts:
     paths:
       - /doc-build
+
+docker-lint:
+  <<: *lint-default
+  image: hadolint/hadolint:latest-debian
+  before_script:
+    - apt-get -y update
+    - apt-get -y install --no-install-recommends git
+  script:
+    - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
 
 
 # Build stage
