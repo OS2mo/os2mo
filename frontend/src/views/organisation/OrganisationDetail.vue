@@ -18,6 +18,10 @@
           </div>
         </div>
 
+        <div class="mr-3" v-if="orgUnitIntegration">
+          <mo-integration-button :uuid="route.params.uuid"/>
+        </div>
+
         <div class="mr-3">
           <mo-history :uuid="route.params.uuid" type="ORG_UNIT"/>
         </div>
@@ -45,12 +49,14 @@
 import { mapGetters, mapState } from 'vuex'
 import { EventBus, Events } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
+import MoIntegrationButton from '@/components/MoIntegrationButton'
 import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
 import { OrganisationUnit } from '@/store/actions/organisationUnit'
 
 export default {
   components: {
+    MoIntegrationButton,
     MoHistory,
     MoLoader,
     OrganisationDetailTabs
@@ -71,7 +77,12 @@ export default {
 
     ...mapState({
       route: 'route'
-    })
+    }),
+
+    orgUnitIntegration () {
+      return this.$store.getters['conf/GET_CONF_DB'].show_org_unit_button
+    }
+
   },
   created () {
     this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
