@@ -1137,14 +1137,14 @@
   resolved "https://registry.yarnpkg.com/@vue/web-component-wrapper/-/web-component-wrapper-1.2.0.tgz#bb0e46f1585a7e289b4ee6067dcc5a6ae62f1dd1"
   integrity sha512-Xn/+vdm9CjuC9p3Ae+lTClNutrVhsXpzxvoTXXtoys6kVRX9FkueSUAqSWAyZntmVLlR4DosBV4pH8y5Z/HbUw==
 
-"@vuedoc/md@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@vuedoc/md/-/md-1.5.0.tgz#840d8d774b69661a658ee1b506699164505c6c24"
-  integrity sha512-du0AR/vIoDDXALFvuF6ZXVCO3yebEdgnjtjr/oJmeHOMHt6rDiP0lgyF07tRcD1J2K9VPQS7beoTyTPhJTeepQ==
+"@vuedoc/md@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@vuedoc/md/-/md-1.6.0.tgz#6f423e04bf134589e8bdf580b313928c28a7a37c"
+  integrity sha512-BiWXI1p1ajT1f7cPofHkmcitcDocwu9Si3e6sgPe5fGSB519zO459iuK9EX0BJuguhpEvwkAKM9rT/PyxFd+Zw==
   dependencies:
     "@vuedoc/parser" "^1.4.0"
     ast-to-markdown "^0.2.2"
-    deepmerge "^2.1.1"
+    deepmerge "^3.0.0"
     markdown-to-ast "^6.0.3"
     md-node-inject "^0.1.1"
     mdast-util-to-string "^1.0.5"
@@ -4025,6 +4025,11 @@ deepmerge@^2.1.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-2.2.1.tgz#5d3ff22a01c00f645405a2fbc17d0778a1801170"
   integrity sha512-R9hc1Xa/NOBi9WRVUWg19rl1UB7Tt4kuPd+thNJgFZoxXsTz7ncaPaeIm+40oSGuP33DfMb4sZt1QIGiJzC4EA==
+
+deepmerge@^3.0.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-3.3.0.tgz#d3c47fd6f3a93d517b14426b0628a17b0125f5f7"
+  integrity sha512-GRQOafGHwMHpjPx9iCvTgpu9NojZ49q794EEL94JVEw6VaeA8XTUyBKvAkOOjBX9oJNiV6G3P+T+tihFjo2TqA==
 
 default-gateway@^4.2.0:
   version "4.2.0"
