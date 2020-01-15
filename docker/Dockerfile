@@ -22,6 +22,9 @@ RUN yarn install --frozen-lockfile
 COPY frontend .
 RUN yarn build
 
+# script for `vue-cli-service serve` from frontend/package.json
+CMD ["yarn", "dev"]
+
 
 # We do not use alpine. The resulting image is smaller, but there is currently
 # no support for pip installation of wheels (binary) packages. It falls back to

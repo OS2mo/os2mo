@@ -1,6 +1,31 @@
-version: '3'
+version: '3.4'
 
 services:
+  # We use two images in development. One frontend that runs `vue-cli-service
+  # serve`, named `frontend` and one that runs flask named `mo`. The frontend
+  # image proxies requests to flask.
+
+  # In production only the flask image is run. It will serve the production
+  # ready frontend code, but the files are only updated on docker build.
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: frontend
+    environment:
+      # `vue-cli-service serve` will proxy request to `/service` and `/saml`to
+      # this endpoint. Defined in `frontend/vue.config.js`.
+      - BASE_URL=http://mo:5000
+    # To reload on file changes, we mount the current folder into `/code`.
+    # However we do not want node_modules on the host machine, so we create an
+    # additional volume for it.
+    volumes:
+      - .:/code/
+      - /code/frontend/node_modules
+    depends_on:
+      - mo
+    ports:
+      - "5001:8080"
 
   mo:
     build:
