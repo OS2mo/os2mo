@@ -187,14 +187,16 @@ Du kan bruge ``docker-compose`` til at starte OS2MO, LoRa og relaterede services
 op.
 
 En :file:`docker-compose.yml` til udvikling er inkluderet. Den starter
-automatisk OS2MO og `LoRa`_ med
-tilhørende `postgres <https://hub.docker.com/_/postgres>`_ op. Den sætter
-desuden også miljøvariablerne til at forbinde dem.
+automatisk OS2MO og `LoRa`_ med tilhørende `postgres
+<https://hub.docker.com/_/postgres>`_ op. Den sætter desuden også indstillinger
+til at forbinde dem. Den starter også en Vue.js udviklingsserver op. Se mere
+under :ref:`frontend-udvikling`.
 
-Den mounter også din host maskines :file:`./backend` til den tilsvarende mappe
-inde i containeren og automatisk genstarter serveren ved kodeændringer.
+Din host maskines :file:`./backend` bliver også mounted til den tilsvarende
+mappe inde i backend containeren. Serveren bliver automatisk genstart ved
+kodeændringer.
 
-For at hente og bygge images og starte de tre services, kør:
+For at hente og bygge images og starte de fem services, kør:
 
 .. code-block:: bash
 
@@ -202,13 +204,48 @@ For at hente og bygge images og starte de tre services, kør:
 
 
 ``-d`` flaget starter servicene i baggrunden. Du kan se outputtet af dem med
-``docker-compose logs <name>`` hvor ``<name>`` er navnent på scervicen i
+``docker-compose logs <name>`` hvor ``<name>`` er navnet på servicen i
 :file:`docker-compose.yml`. ``--build`` flaget bygger den nyeste version af
 OS2MO imageet fra den lokale :file:`Dockerfile`.
 
 For at stoppe servicene igen, kør ``docker-compose stop``. Servicene vil blive
 stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
 , kør ``docker-compose down -v``.
+
+Efter servicene er startet op kan du se dem på følgende porte på din
+hostmaskine:
+
+
+http://localhost:5001
+  Frontend udviklingsserveren. Denne opdateres ved kodeændringer til frontenden.
+  Se :ref:`frontend-udvikling`.
+
+http://localhost:5000
+  OS2MO backend og frontend. Denne opdateres *ikke* ved kodeændringer til
+  frontenden, men opdatere ved kodeændringer til backenden.
+
+http://localhost:8080
+  LoRa
+
+
+.. _frontend-udvikling:
+
+Frontend udvikling
+------------------
+
+Du kan tilgå frontend på port ``5000``. Denne frontend er det produktionsklare
+byg fra der sidst blev kørt ``docker-compose build`` eller ``docker-compose up
+--build``. Den bliver altså *ikke* opdateret ved kodeændringer under
+:file:`frontend/`.
+
+For at udvikle på frontend, har :file:`docker-compose.yml` en service med navnet
+`frontend` der kører ``vue-cli-service serve``. Den er bundet til port ``5001``.
+Til denne service er :file:`frontend/` mountet ind og servicen sørger for at
+opdatere ved kodeændringer i denne.
+
+Forespørgelser til ``/service`` og ``/saml`` bliver proxyed videre til backenden i
+`mo` containeren.
+
 
 
 .. _docker-install:
