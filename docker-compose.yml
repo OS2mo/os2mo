@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+      target: dist
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.

@@ -10,7 +10,7 @@
 # Labs as required approval to your MR if you have any changes.                #
 ################################################################################
 
-FROM node:10 AS frontend-builder
+FROM node:10 AS frontend
 
 WORKDIR /code/frontend
 
@@ -102,8 +102,8 @@ RUN pip3 install -e backend
 
 
 # Copy frontend code.
-COPY --from=frontend-builder /code/frontend/package.json ./frontend/package.json
-COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
+COPY --from=frontend /code/frontend/package.json ./frontend/package.json
+COPY --from=frontend /code/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
 
