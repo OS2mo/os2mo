@@ -32,7 +32,7 @@ MO manual
 Denne manual introducerer til centrale begreber og funktionaliteter i OS2mo.
 
 
-`MO manual <https://github.com/OS2mo/os2mo/blob/development/docs/MO manual.pdf>`_
+`MO manual <https://github.com/OS2mo/os2mo/blob/development/docs/static/MO manual.pdf>`_
 
 MOs systemlandskab og eksisterende og kommende integrationer
 ============================================================
