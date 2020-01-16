@@ -27,6 +27,18 @@ Nedenstående figur viser et typisk eksempel på en side i systemet brugerflade:
 .. image:: ./graphics/os2mo-1280.png
    :width: 100%
 
+MO manual
+=========
+Denne manual introducerer til centrale begreber og funktionaliteter i OS2mo.
+
+
+`MO manual <https://github.com/OS2mo/os2mo/blob/development/docs/static/MO manual.pdf>`_
+
+MOs systemlandskab og eksisterende og kommende integrationer
+============================================================
+
+`MOs systemlandskab <https://github.com/OS2mo/os2mo/blob/development/docs/graphics/OS2mo_landskabet.png>`_
+
 Opbygning
 =========
 
