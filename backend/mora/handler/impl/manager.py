@@ -30,8 +30,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     def get_from_type(cls, c, type, object_id):
 
         if util.get_args_flag("inherit_manager"):
-            object_tuples = cls.get_inherited_manager(c, type, object_id)
-            return cls.get_obj_effects(c, object_tuples)
+            return cls.get_inherited_manager(c, type, object_id)
 
         return super().get_from_type(c, type, object_id)
 
@@ -42,7 +41,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             cls.SEARCH_FIELDS[type]: object_id
         }
 
-        manager = list(super().get_lora_object(c, search_fields))
+        manager = list(super().get(c, search_fields))
 
         if not manager:
             ou = orgunit.get_one_orgunit(

@@ -1,9 +1,11 @@
 In development
 ==============
 
+Bug fixes
+---------
 
-
-
+* #34006: Inherited managers are now properly calculated when an existing
+  manager is terminated
 
 
 Version 1.3.0, 2019-12-11
