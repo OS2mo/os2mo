@@ -10,7 +10,7 @@
 # Labs as required approval to your MR if you have any changes.                #
 ################################################################################
 
-FROM node:10 AS frontend-builder
+FROM node:10 AS frontend
 
 WORKDIR /code/frontend
 
@@ -21,6 +21,9 @@ RUN yarn install --frozen-lockfile
 
 COPY frontend .
 RUN yarn build
+
+# script for `vue-cli-service serve` from frontend/package.json
+CMD ["yarn", "dev"]
 
 
 # We do not use alpine. The resulting image is smaller, but there is currently
@@ -102,8 +105,8 @@ RUN pip3 install -e backend
 
 
 # Copy frontend code.
-COPY --from=frontend-builder /code/frontend/package.json ./frontend/package.json
-COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
+COPY --from=frontend /code/frontend/package.json ./frontend/package.json
+COPY --from=frontend /code/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
 
