@@ -11,8 +11,6 @@ fixture('MoOrganisationUnitMove')
 
 const dialog = Selector('#orgUnitMove')
 
-const unitInput = dialog.find('input[data-vv-as="Angiv enhed"]')
-
 const parentInput = dialog.find('.parentUnit input[data-vv-as="Angiv ny overenhed"]')
 
 const fromInput = dialog.find('.moveDate input.form-control')
@@ -50,16 +48,6 @@ test('Workflow: move unit', async t => {
     .click('.btn-unit-move')
 
     .expect(dialog.exists).ok('Opened dialog')
-
-    .click(unitInput)
-    .click(dialog.find('.currentUnit .tree-content')
-       .withText('Overordnet Enhed').find('.tree-arrow'))
-    .click(dialog.find('.currentUnit .tree-content')
-      .withText('Skole og Børn').find('.tree-arrow'))
-    .click(dialog.find('.currentUnit .tree-anchor')
-      .withText('IT-Support'))
-    .expect(dialog.find('.currentUnit input[data-vv-as="Angiv enhed"]').value)
-    .eql('IT-Support')
 
     .click(parentInput)
     .click(dialog.find('.parentUnit .tree-content')
