@@ -1220,15 +1220,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02",
-                        }
-                    },
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
                             "to": "infinity",
                         }
                     },
@@ -1243,15 +1234,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -1558,19 +1540,7 @@ class Tests(util.LoRATestCase):
                     {
                         'gyldighed': 'Aktiv',
                         'virkning': {
-                            'from': '2017-01-01 '
-                                    '00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-04-01 '
-                                  '00:00:00+02',
-                            'to_included': False
-                        }
-                    },
-                    {
-                        'gyldighed': 'Aktiv',
-                        'virkning': {
-                            'from': '2018-04-01 '
-                                    '00:00:00+02',
+                            'from': '2017-01-01 00:00:00+01',
                             'from_included': True,
                             'to': 'infinity',
                             'to_included': False

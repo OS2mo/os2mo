@@ -112,10 +112,23 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        try:
+            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            attributes = {}
+        new_attributes = {}
+
         if mapping.USER_KEY in data:
+            new_attributes['brugervendtnoegle'] = util.checked_get(
+                data, mapping.USER_KEY, "")
+
+        if new_attributes:
             update_fields.append((
                 mapping.ORG_FUNK_EGENSKABER_FIELD,
-                {'brugervendtnoegle': data[mapping.USER_KEY]},
+                {
+                    **attributes,
+                    **new_attributes
+                },
             ))
 
         if mapping.ASSOCIATION_TYPE in data:

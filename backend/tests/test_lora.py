@@ -100,7 +100,7 @@ class Tests(util.TestCase):
             settings.LORA_URL + 'organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00'
-            '&virkningtil=infinity'
+            '&virkningtil=infinity&konsolider=True'
         )
         m.get(
             URL,
@@ -377,7 +377,7 @@ class Tests(util.TestCase):
             settings.LORA_URL + 'organisation/organisationenhed?'
             'uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00'
-            '&virkningtil=infinity'
+            '&virkningtil=infinity&konsolider=True'
         )
         m.get(
             URL,

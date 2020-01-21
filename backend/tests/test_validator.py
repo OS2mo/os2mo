@@ -32,6 +32,7 @@ class TestIsDateRangeValid(util.TestCase):
             'uuid=00000000-0000-0000-0000-000000000000'
             '&virkningfra=2000-01-01T00%3A00%3A00%2B01%3A00'
             '&virkningtil=3000-01-01T00%3A00%3A00%2B01%3A00'
+            '&konsolider=True'
         )
 
         c = lora.Connector(virkningfra='2000-01-01',
