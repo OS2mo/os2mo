@@ -74,6 +74,8 @@ import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
+import { mapGetters } from 'vuex'
+import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -90,7 +92,7 @@ export default {
        * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
-      original: null,
+      original: this.orgUnit,
       parent: null,
       move: {
         type: 'org_unit',
@@ -109,6 +111,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      orgUnit: OrgUnit.getters.GET_ORG_UNIT
+    }),
+
     /**
      * A validity of one day, corresponding to the required validity
      * of units: They only need to be valid on the date of the operation.
@@ -142,7 +148,27 @@ export default {
     },
     "parent.uuid" (newVal) {
       this.move.data.parent.uuid = newVal
+    },
+    orgUnit: {
+      handler (val) {
+        this.original = val
+        if (val) {
+          this.move.data.uuid = val.uuid
+        }
+      },
+      deep: true
+    },
+    original (val) {
+      this.move.data.uuid = val && val.uuid
     }
+  },
+
+  mounted () {
+    /**
+     * After the entire view has been rendered.
+     * Set original to orgUnit.
+     */
+    this.original = this.orgUnit
   },
 
   methods: {
@@ -150,7 +176,9 @@ export default {
      * Resets the data fields.
      */
     resetData () {
-      Object.assign(this.$data, this.$options.data())
+      this.move.data.validity = {}
+      this.move.data.uuid = this.original && this.original.uuid
+      this.parent = null
     },
 
     /**
