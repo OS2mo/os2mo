@@ -5,7 +5,8 @@ New features
 ------------
 
 * #32759: Add support for displaying a button on org units for triggering
-  external integrations
+  external integrations.
+* #33761: Add org unit as auto default for select unit input field in OrganisationUnitMove.
 
 Bug fixes
 ---------
