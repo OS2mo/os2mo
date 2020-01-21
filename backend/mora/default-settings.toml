@@ -110,3 +110,8 @@ modules = []
 [log]
 activity_log_path = "/var/log/os2mo/activity.log"
 trace_log_path = "/var/log/os2mo/trace.log"
+
+
+[external_integration]
+# Path to where the org unit integration is running
+org_unit = ""

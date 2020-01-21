@@ -1,6 +1,12 @@
 In development
 ==============
 
+New features
+------------
+
+* #32759: Add support for displaying a button on org units for triggering
+  external integrations
+
 Bug fixes
 ---------
 

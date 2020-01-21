@@ -31,6 +31,7 @@ _DEFAULT_CONF = (
     ('show_level', 'False'),
     ('show_primary_engagement', 'False'),
     ('show_primary_association', 'False'),
+    ('show_org_unit_button', 'False'),
 )
 
 
