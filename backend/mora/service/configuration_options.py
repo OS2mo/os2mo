@@ -115,16 +115,15 @@ def _check_database(dbname):
         return bool(curs.fetchone())
 
 
-def _check_defaults():
+def _insert_missing_defaults():
     """Check if the database already contains default values"""
-    EXISTING_DEFAULT_CONF_QUERY = SQL("""
-        SELECT * FROM orgunit_settings
-        WHERE object is Null
-    """)
-    with _get_connection(_DBNAME) as con, con.cursor() as cursor:
-        cursor.execute(EXISTING_DEFAULT_CONF_QUERY)
-        rows = list(cursor.fetchall())
-        return bool(rows)
+
+    missing = _find_missing_default_keys()
+    if missing:
+        missing_values = filter(lambda x: x[0] in missing, _DEFAULT_CONF)
+        logger.info("Inserting default configuration values {}.".format(
+            ", ".join(missing)))
+        set_global_conf(missing_values)
 
 
 def set_global_conf(conf):
@@ -158,22 +157,12 @@ def create_db_table():
     with _get_connection(_DBNAME) as con, con.cursor() as cursor:
         cursor.execute(CREATE_CONF_QUERY)
 
-    if not _check_defaults():
-        logger.info("Inserting default configuration values.")
-        set_global_conf(_DEFAULT_CONF)
+    _insert_missing_defaults()
 
     logger.info("Configuration database initialised.")
 
 
-def health_check():
-    """Return a tuple (healthy, msg) where healthy is a boolean and msg
-    is the potential error message.
-
-    The configuration database is healthy iff a connection can be
-    established and the database contains all expected default values.
-
-    This is intended to be used whenever an app object is created.
-    """
+def _find_missing_default_keys():
     try:
         conn = _get_connection(_DBNAME)
     except psycopg2.Error as e:
@@ -196,6 +185,20 @@ def health_check():
     for key, __ in _DEFAULT_CONF:
         if key not in settings_in_db:
             missing.add(key)
+
+    return missing
+
+
+def health_check():
+    """Return a tuple (healthy, msg) where healthy is a boolean and msg
+    is the potential error message.
+
+    The configuration database is healthy iff a connection can be
+    established and the database contains all expected default values.
+
+    This is intended to be used whenever an app object is created.
+    """
+    missing = _find_missing_default_keys()
     if missing:
         error_msg = ("Configuration database is missing default"
                      " settings for keys: %s." % ", ".join(missing))
