@@ -1028,16 +1028,6 @@ class Writing(util.LoRATestCase):
                         'from': '2016-01-01 '
                                 '00:00:00+01',
                         'from_included': True,
-                        'to': '2017-01-02 '
-                              '00:00:00+01',
-                        'to_included': False
-                    }
-                }, {
-                    'gyldighed': 'Aktiv',
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
                         'to': 'infinity',
                         'to_included': False
                     }
