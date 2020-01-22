@@ -15,6 +15,12 @@ Bug fixes
   manager is terminated
 * #29417: It is no longer possible to delete an inherited manager
 
+Internal changes
+----------------
+
+* #32417: Missing defaults for configuration database are now inserted
+  individually during init_db
+
 
 Version 1.3.0, 2019-12-11
 =========================
