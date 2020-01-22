@@ -79,6 +79,8 @@ MOCK_MODULES = [
     'pika.exceptions',
     'toml',
 
+    'logging',
+
     'onelogin',
     'onelogin.saml2',
     'onelogin.saml2.auth',

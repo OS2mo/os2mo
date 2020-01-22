@@ -12,4 +12,4 @@
 
 [log]
 activity_log_path = "/log/activity.log"
-trace_log_path = "/log/trace.log"
+log_path = "/log/os2mo.log"
