@@ -42,8 +42,8 @@
               <icon class="link" :name="open.to ? 'sort-up' : 'sort-down'"/>
             </span>
           </th>
-          <th class="table-actions" v-if="editComponent"></th>
-          <th class="table-actions" v-if="isDeletable && editComponent"></th>
+          <th class="table-actions" v-if="showEditableHeader && editComponent"></th>
+          <th class="table-actions" v-if="showEditableHeader && isDeletable && editComponent"></th>
         </tr>
       </thead>
 
@@ -78,7 +78,7 @@
               @submit="$emit('update')"
             />
           </td>
-          <td class="column-edit" v-if="isDeletable && editComponent">
+          <td class="column-edit" v-if="isEditable(c) && isDeletable && editComponent">
             <mo-entry-terminate-modal
               class="terminate-entry"
               :type="contentType"
@@ -171,7 +171,8 @@ export default {
       selected: [],
       open: {},
       sortableContent: null,
-      isLoading: true
+      isLoading: true,
+      showEditableHeader: false
     }
   },
 
@@ -227,6 +228,7 @@ export default {
      */
     isEditable (content) {
       if (content.inherited) {
+        this.showEditableHeader = !content.inherited
         return !content.inherited
       }
       return true

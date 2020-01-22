@@ -13,6 +13,7 @@ Bug fixes
 
 * #34006: Inherited managers are now properly calculated when an existing
   manager is terminated
+* #29417: It is no longer possible to delete an inherited manager
 
 
 Version 1.3.0, 2019-12-11
