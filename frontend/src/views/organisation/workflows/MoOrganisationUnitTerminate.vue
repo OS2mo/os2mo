@@ -63,6 +63,7 @@ import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
 import orgUnitStore from '@/store/modules/organisationUnit'
+import moment from 'moment'
 
 const STORE_KEY = '_organisationUnitTerminate'
 
@@ -84,7 +85,9 @@ export default {
        */
       org_unit: null,
       terminate: {
-        validity: {}
+        validity: {
+         to: moment(new Date()).format('YYYY-MM-DD')
+        }
       },
       isLoading: false,
       backendValidationError: null
