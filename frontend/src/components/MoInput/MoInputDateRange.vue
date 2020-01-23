@@ -76,7 +76,7 @@ export default {
        * The validFrom, validTo, hidden component value.
        * Used to detect changes and restore the value.
        */
-      // validFrom: null,
+      validFrom: moment(new Date()).format('YYYY-MM-DD'),
       validTo: null,
       hidden: false
     }
@@ -103,15 +103,6 @@ export default {
         range.from = new Date(this.validFrom)
       }
       return range
-    },
-
-    validFrom: {
-      get(){
-        return moment(new Date()).format('YYYY-MM-DD')
-      },
-      set(){
-        return moment(new Date().setDate(new Date())).format('YYYY-MM-DD')
-      }
     }
   },
 
@@ -137,7 +128,7 @@ export default {
      */
     this.hidden = this.initiallyHidden
     if (this.value !== undefined) {
-      this.validFrom = this.value.from
+      this.validFrom = moment(new Date()).format('YYYY-MM-DD')
       this.validTo = this.value.to
     }
   },
