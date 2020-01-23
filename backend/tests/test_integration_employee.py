@@ -731,14 +731,6 @@ class Tests(util.LoRATestCase):
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
                 'from_included': True,
-                'to': '2017-02-02 00:00:00+01',
-                'to_included': False
-            }
-        }, {
-            'gyldighed': 'Aktiv',
-            'virkning': {
-                'from': '2017-02-02 00:00:00+01',
-                'from_included': True,
                 'to': 'infinity',
                 'to_included': False
             }

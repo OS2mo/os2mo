@@ -133,7 +133,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
             ))
 
-        if mapping.PERSON in data:
+        if data.get(mapping.PERSON):
             update_fields.append((
                 mapping.USER_FIELD,
                 {
@@ -142,7 +142,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
-        if mapping.ORG_UNIT in data:
+        if data.get(mapping.ORG_UNIT):
             update_fields.append((
                 mapping.ASSOCIATED_ORG_UNIT_FIELD,
                 {
@@ -151,12 +151,22 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
+        try:
+            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            attributes = {}
+        new_attributes = {}
+
         if mapping.USER_KEY in data:
+            new_attributes['brugervendtnoegle'] = util.checked_get(
+                data, mapping.USER_KEY, "")
+
+        if new_attributes:
             update_fields.append((
                 mapping.ORG_FUNK_EGENSKABER_FIELD,
                 {
-                    'brugervendtnoegle':
-                        util.checked_get(data, mapping.USER_KEY, ''),
+                    **attributes,
+                    **new_attributes
                 },
             ))
 

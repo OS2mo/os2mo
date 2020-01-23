@@ -189,6 +189,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        try:
+            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            attributes = {}
+
         changed_props = {}
 
         if mapping.USER_KEY in data:
@@ -205,7 +210,10 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         if changed_props:
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
-                changed_props,
+                {
+                    **attributes,
+                    **changed_props,
+                }
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
@@ -214,7 +222,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if mapping.ORG_UNIT_LEVEL in data:
+        if data.get(mapping.ORG_UNIT_LEVEL):
             org_unit_level = util.get_mapping_uuid(data, mapping.ORG_UNIT_LEVEL)
             update_fields.append((
                 mapping.ORG_UNIT_LEVEL_FIELD,

@@ -267,6 +267,7 @@ class Connector:
         defaults.update(
             virkningfra=util.to_lora_time(self.start),
             virkningtil=util.to_lora_time(self.end),
+            konsolider=True,
         )
 
         self.__defaults = defaults
