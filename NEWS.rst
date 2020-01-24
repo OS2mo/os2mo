@@ -1,3 +1,17 @@
+In development
+==============
+
+New features
+------------
+
+Bug fixes
+---------
+
+Internal changes
+----------------
+
+
+
 Version 1.4.0, 2020-01-22
 =========================
 
