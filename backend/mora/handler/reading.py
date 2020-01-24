@@ -154,6 +154,8 @@ class OrgFunkReadingHandler(ReadingHandler):
                 'tilknyttedeenheder',
                 'tilknyttedebrugere',
                 'tilknyttedefunktioner',
+                'tilknyttedeitsystemer',
+                'primær',
             ),
             'tilstande': (
                 'organisationfunktiongyldighed',
@@ -163,8 +165,6 @@ class OrgFunkReadingHandler(ReadingHandler):
             'relationer': (
                 'tilhoerer',
                 'tilknyttedeorganisationer',
-                'tilknyttedeitsystemer',
-                'primær',
             ),
         }
 

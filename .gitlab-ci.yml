@@ -138,7 +138,7 @@ unit-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:rc
+    - name: magentaaps/lora:1.6.0
       alias: mox
       command: [
       "gunicorn",
