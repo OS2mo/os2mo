@@ -10,7 +10,7 @@
 # Labs as required approval to your MR if you have any changes.                #
 ################################################################################
 
-FROM node:10 AS frontend-builder
+FROM node:10 AS frontend
 
 WORKDIR /code/frontend
 
@@ -21,6 +21,9 @@ RUN yarn install --frozen-lockfile
 
 COPY frontend .
 RUN yarn build
+
+# script for `vue-cli-service serve` from frontend/package.json
+CMD ["yarn", "dev"]
 
 
 # We do not use alpine. The resulting image is smaller, but there is currently
@@ -54,6 +57,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /code/
 COPY docker/sys-requirements.txt sys-requirements.txt
+# hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
   # UID/GID above the normal SYS_UID_MAX/SYS_GID_MAX of 999, but also above the
@@ -66,9 +70,9 @@ RUN set -ex \
   && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install system dependencies from file.
   && apt-get -y update \
-  && apt-get -y install --no-install-recommends $(grep -vE "^\s*#" sys-requirements.txt  | tr "\n" " ") \
+  && apt-get -y install --no-install-recommends "$(grep -Eo '^(\w|-)+' sys-requirements.txt | paste -sd ' ')" \
   # clean up after apt-get and man-pages
-  && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/man/?? /usr/share/man/??_*
+  && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
 
 # Install requirements
@@ -76,7 +80,6 @@ COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
 COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
 COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
-RUN pip3 install --upgrade pip
 RUN pip3 install \
   -r backend/requirements.txt \
   -r backend/requirements-test.txt \
@@ -97,12 +100,13 @@ COPY NEWS.rst .
 COPY LICENSE .
 # Install the application as editable. This makes it possible to mount
 # `/code/backend` to your host and edit the files during development.
+# hadolint ignore=DL3013
 RUN pip3 install -e backend
 
 
 # Copy frontend code.
-COPY --from=frontend-builder /code/frontend/package.json ./frontend/package.json
-COPY --from=frontend-builder /code/frontend/dist ./frontend/dist
+COPY --from=frontend /code/frontend/package.json ./frontend/package.json
+COPY --from=frontend /code/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
 

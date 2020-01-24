@@ -5,8 +5,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
+import json
 
 import freezegun
+import requests_mock
+from mock import patch
 
 from tests import util
 
@@ -155,3 +158,60 @@ class TestAddressLookup(util.TestCase):
             '/service/ou/' + unitid + '/details/org_unit?validity=past',
             [],
         )
+
+
+class TestTriggerExternalIntegration(util.TestCase):
+    @patch('mora.service.orgunit.get_one_orgunit')
+    def test_returns_404_on_unknown_unit(self, mock):
+        mock.return_value = {}
+
+        r = self.assertRequest(
+            '/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/trigger-external',
+            status_code=404
+        )
+        self.assertIn('NOT_FOUND', r.get('error_key'))
+
+    @util.override_config({"external_integration": {"org_unit": "http://whatever/"}})
+    @patch('mora.service.orgunit.get_one_orgunit')
+    @requests_mock.Mocker()
+    def test_returns_integration_error_on_wrong_status(self, mock, r_mock):
+        mock.return_value = {'whatever': 123}
+
+        error_msg = "Something bad happened"
+
+        r_mock.post(
+            (
+                "http://whatever/"
+            ),
+            text=error_msg,
+            status_code=500
+        )
+
+        r = self.assertRequest(
+            '/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/trigger-external',
+            status_code=400
+        )
+        self.assertIn('INTEGRATION_ERROR', r.get('error_key'))
+        self.assertIn(error_msg, r.get('description'))
+
+    @util.override_config({"external_integration": {"org_unit": "http://whatever/"}})
+    @patch('mora.service.orgunit.get_one_orgunit')
+    @requests_mock.Mocker()
+    def test_returns_message_on_success(self, mock, r_mock):
+        mock.return_value = {'whatever': 123}
+
+        response_msg = "Something good happened"
+
+        r_mock.post(
+            (
+                "http://whatever/"
+            ),
+            text=json.dumps({"output": response_msg}),
+            status_code=201
+        )
+
+        r = self.assertRequest(
+            '/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/trigger-external',
+        )
+        self.assertIn(response_msg, r['message'])
+        self.assertEqual(201, r.get('status_code'))

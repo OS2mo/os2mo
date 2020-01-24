@@ -96,6 +96,9 @@ app_config = {
     "QUERY_EXPORT_DIR": config["query_export"]["directory"],
     "TRIGGER_MODULES": config["triggers"]["modules"],
 
+    # Set to 'None' specifically if unset to retain default behavior in flask
+    "SERVER_NAME": config["server_name"] or None,
+
     # serviceplatformen
     "DUMMY_MODE": config["dummy_mode"],
     "SP_SERVICE_UUID": config['service_platformen']['uuid'],

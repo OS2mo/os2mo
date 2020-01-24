@@ -16,7 +16,6 @@ For more information regarding reading relations involving organisational
 units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-
 import collections
 import copy
 import enum
@@ -25,6 +24,7 @@ import locale
 import operator
 import uuid
 
+import requests
 import flask
 
 from . import configuration_options
@@ -189,6 +189,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             {'gyldighed': "Aktiv"}
         ))
 
+        try:
+            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            attributes = {}
+
         changed_props = {}
 
         if mapping.USER_KEY in data:
@@ -205,7 +210,10 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         if changed_props:
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
-                changed_props,
+                {
+                    **attributes,
+                    **changed_props,
+                }
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
@@ -214,7 +222,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
             ))
 
-        if mapping.ORG_UNIT_LEVEL in data:
+        if data.get(mapping.ORG_UNIT_LEVEL):
             org_unit_level = util.get_mapping_uuid(data, mapping.ORG_UNIT_LEVEL)
             update_fields.append((
                 mapping.ORG_UNIT_LEVEL_FIELD,
@@ -741,6 +749,40 @@ def get_orgunit(unitid):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
     return flask.jsonify(r)
+
+
+@blueprint.route('/ou/<uuid:unitid>/trigger-external')
+@util.restrictargs()
+def trigger_external_integration(unitid):
+    """
+    Trigger external integration for a given org unit UUID
+    :param unitid: The UUID of the org unit to trigger for
+    """
+
+    c = common.get_connector()
+    org_unit = get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+    if not org_unit:
+        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
+
+    external_path = settings.config['external_integration']['org_unit']
+
+    try:
+        r = requests.post(
+            external_path,
+            json=org_unit
+        )
+
+        r.raise_for_status()
+
+        return flask.jsonify(
+            {
+                'message': r.json().get('output'),
+                'status_code': r.status_code
+            }
+        )
+    except requests.RequestException as e:
+        error_msg = e.response.text if e.response is not None else str(e)
+        raise exceptions.ErrorCodes.E_INTEGRATION_ERROR(error_msg)
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')

@@ -368,15 +368,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }
@@ -486,15 +477,6 @@ class Tests(util.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
                         }
                     }

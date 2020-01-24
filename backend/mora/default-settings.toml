@@ -13,6 +13,10 @@ hide_cpr_numbers = false
 dummy_mode = false
 ca_bundle = ""
 
+# If application is deployed behind a proxy. Makes url_for generate URLs for
+# this specific server name regardless of where the request comes from
+server_name = ""
+
 
 [lora]
 url = "http://localhost:8080/"
@@ -110,3 +114,8 @@ modules = []
 [log]
 activity_log_path = "/var/log/os2mo/activity.log"
 trace_log_path = "/var/log/os2mo/trace.log"
+
+
+[external_integration]
+# Path to where the org unit integration is running
+org_unit = ""
