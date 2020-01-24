@@ -49,7 +49,7 @@ services:
       - msg_broker
 
   mox:
-    image: magentaaps/lora:rc
+    image: magentaaps/lora:1.6.0
     # build:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile
