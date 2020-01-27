@@ -38,12 +38,12 @@ class OrgUnitReader(reading.ReadingHandler):
 
         relevant = {
             "attributter": ("organisationenhedegenskaber",),
-            "relationer": ("enhedstype", "opgaver", "overordnet", "tilhoerer"),
+            "relationer": (
+                "enhedstype", "opgaver", "overordnet", "tilhoerer", "niveau"
+            ),
             "tilstande": ("organisationenhedgyldighed",),
         }
-        also = {
-            "relationer": ("niveau",)
-        }
+        also = {}
 
         return c.organisationenhed.get_effects(obj, relevant, also, **params)
 

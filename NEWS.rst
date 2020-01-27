@@ -4,6 +4,20 @@ In development
 New features
 ------------
 
+Bug fixes
+---------
+
+Internal changes
+----------------
+
+
+
+Version 1.4.0, 2020-01-22
+=========================
+
+New features
+------------
+
 * #32759: Add support for displaying a button on org units for triggering
   external integrations.
 * #33761: Add org unit as auto default for select unit input field in
@@ -22,6 +36,8 @@ Internal changes
 
 * #32417: Missing defaults for configuration database are now inserted
   individually during init_db
+* #34178: Add support for specifying Flask `SERVER_NAME` for when the
+  application is deployed behind a proxy
 
 
 Version 1.3.0, 2019-12-11
