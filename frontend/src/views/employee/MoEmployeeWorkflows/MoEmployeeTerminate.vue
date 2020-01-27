@@ -30,7 +30,7 @@
       v-model="confirmCheckbox"
       :entry-date="endDate"
       :employee-name="employee.name"
-      v-if="employee && endDate"
+      v-if="employee.name && endDate"
       required
     />
 

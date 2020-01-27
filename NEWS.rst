@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #33975: Set today's date as default for datepicker.
+
 Bug fixes
 ---------
 

@@ -2,11 +2,12 @@ import Vue from 'vue'
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus, Events } from '@/EventBus'
+import moment from 'moment'
 
 const defaultState = () => {
   return {
     employee: {},
-    endDate: '',
+    endDate: moment(new Date()).format('YYYY-MM-DD'),
     details: {},
     isLoading: false,
     backendValidationError: null

@@ -1,6 +1,7 @@
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus, Events } from '@/EventBus'
+import moment from 'moment'
 
 const defaultState = () => {
   return {
@@ -10,7 +11,7 @@ const defaultState = () => {
       data: {
         person: {},
         validity: {
-          from: ''
+          from: moment(new Date()).format('YYYY-MM-DD')
         }
       }
     },

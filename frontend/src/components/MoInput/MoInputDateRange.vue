@@ -40,6 +40,7 @@
  */
 
 import MoInputDate from './MoInputDate'
+import moment from 'moment'
 
 export default {
   name: 'MoInputDateRange',
@@ -75,7 +76,7 @@ export default {
        * The validFrom, validTo, hidden component value.
        * Used to detect changes and restore the value.
        */
-      validFrom: null,
+      validFrom: moment(new Date()).format('YYYY-MM-DD'),
       validTo: null,
       hidden: false
     }
@@ -127,7 +128,7 @@ export default {
      */
     this.hidden = this.initiallyHidden
     if (this.value !== undefined) {
-      this.validFrom = this.value.from
+      this.validFrom = moment(new Date()).format('YYYY-MM-DD')
       this.validTo = this.value.to
     }
   },
