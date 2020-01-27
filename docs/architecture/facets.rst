@@ -54,5 +54,5 @@ The system currently works with the following facets:
 +------------------------------+-----------------------------------------------------------+
 | ``org_unit_level``           | Levels for org units                                      |
 +------------------------------+-----------------------------------------------------------+
-| ``primary_type``             | Types of primary for org funktions                        |
+| ``primary_type``             | Types of primary for org functions                        |
 +------------------------------+-----------------------------------------------------------+
