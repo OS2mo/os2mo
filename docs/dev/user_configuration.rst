@@ -35,6 +35,10 @@ available options are:
   the OU overview
 * ``show_time_planning`` Indicates whether the time planning field should be
   enabled for OUs
+* ``show_level`` Indicates whether the level field should be enabled for OUs
+* ``show_primary_engagement`` Indicates whether the 'primary' column should be enabled for engagements
+* ``show_primary_association`` Indicates whether the 'primary' column should be enabled for associations
+* ``show_org_unit_button`` Indicates whether to show the external integration button for OUs
 
 If a option is identicated for a given unit, this will be used. If the option
 is not available, it will inherit the value from the nearest parent in the
@@ -53,7 +57,7 @@ for the particular OU: ::
 
   curl http://localhost/service/ou/799aeaa4-129b-4f47-8632-1ee6ce987b21
 
-Included in the response will be the options:
+Included in the response will be an output similar to:
 
 .. code-block:: json
 
