@@ -65,8 +65,6 @@ docs:
   artifacts:
     paths:
       - /doc-build
-  # TODO: remove this when docs build has been fixed
-  allow_failure: true
 
 docker-lint:
   <<: *lint-default

@@ -71,7 +71,7 @@ Best practices for implementering
 
        Se `SSL-certifikat\ vejledning <vejledning1_4_>`_.
 
-       .. _vejledning1_4: _static/SSL-certifikat\ vejledning.pdf
+       .. _vejledning1_4: ../_static/SSL-certifikat\ vejledning.pdf
 
      - Kunde
    * - 2.
@@ -92,7 +92,7 @@ Best practices for implementering
 
        Se `AD - OS2MO opsætnings guide <vejledning3_>`_.
 
-       .. _vejledning3: _static/AD\ -\ OS2MO\ opsætnings\ guide.pdf
+       .. _vejledning3: ../_static/AD\ -\ OS2MO\ opsætnings\ guide.pdf
 
      - Kunde
    * - 3.
@@ -105,7 +105,7 @@ Best practices for implementering
        Simpel rollestyring (rettigheder til at skrive alt, eller så har man ingen rettigheder) styres via oprettelse af en bruger i AD'et.
        Se `OS2MO ADFS Mini Guide <vejledning2_>`_.
 
-       .. _vejledning2: _static/OS2MO\ ADFS\ Mini\ Guide.pdf
+       .. _vejledning2: ../_static/OS2MO\ ADFS\ Mini\ Guide.pdf
 
        * OS2MO 2.0 skal oprettes som en SP (Service Provider) hos IdP'en. OS2MO 2.0 udstiller metadata
          i XML-format, når løsningen er udrullet, så kunden får en URL til et metadata endpoint,
@@ -124,7 +124,7 @@ Best practices for implementering
      - Der skal laves en aftale til at aktivere de to agenter og slå personer op i Serviceplatformens CPR-service samt til hændelsesdata, så personoplysninger forbliver ajourførte i OS2MO.
        Se `vejledning til tilslutning af OS2MO på Serviceplatformen som anvendersystem <vejledning5_1_>`_.
 
-       .. _vejledning5_1: _static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
+       .. _vejledning5_1: ../_static/Vejledning%20til%20tilslutning%20af%20OS2MO%20p%C3%A5%20Serviceplatformen%20som%20anvendersystem.pdf
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
      - Kunde
@@ -133,7 +133,7 @@ Best practices for implementering
      - OS2MO kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES.
        Se `vejledning til opsætning af STSOrgSync med OS2MO <vejledning5_2_>`_.
 
-       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
+       .. _vejledning5_2: ../_static/Vejledning%20til%20STSOrgSync%20v3.pdf
 
        * Send de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
      - Kunde
@@ -185,7 +185,7 @@ Best practices for implementering
      - OS2mo kan opdatere Støttesystemet Organisation igennem OS2-komponenten OS2Sync (tidl. StsOrgSync). Her kræves serviceaftale, oprettet IT-system og FOCES.
        Se `vejledning til opsætning af STSOrgSync med OS2mo <vejledning5_2_>`_.
 
-       .. _vejledning5_2: _static/Vejledning%20til%20STSOrgSync%20v3.pdf
+       .. _vejledning5_2: ../_static/Vejledning%20til%20STSOrgSync%20v3.pdf
 
        Kunde overdrager de respektive FOCES inkl. keystore password, samt de 4 UUID'er fra serviceaftalen til leverandøren
      - Kunde
