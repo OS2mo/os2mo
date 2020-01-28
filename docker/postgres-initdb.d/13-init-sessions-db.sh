@@ -14,6 +14,10 @@ true "${SESSIONS_DB_USER:?SESSIONS_DB_USER is unset. Error!}"
 true "${SESSIONS_DB_PASSWORD:?SESSIONS_DB_PASSWORD is unset. Error!}"
 true "${SESSIONS_DB_NAME:?SESSIONS_DB_NAME is unset. Error!}"
 
+if [[ $# < 1 ]]; then
+    printf "Make sure that shellcheck works\n"
+fi
+
 psql -v ON_ERROR_STOP=1 <<-EOSQL
     create user $SESSIONS_DB_USER with encrypted password '$SESSIONS_DB_PASSWORD';
     create database $SESSIONS_DB_NAME owner $SESSIONS_DB_USER;
