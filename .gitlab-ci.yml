@@ -77,6 +77,15 @@ REUSE-compliance:
   script:
     - reuse lint
 
+shell-lint:
+  <<: *lint-default
+  image: koalaman/shellcheck-alpine:latest
+  before_script:
+    - apk update
+    - apk add git
+  script:
+    - git ls-files --exclude='*.sh' --ignored | xargs shellcheck
+
 
 # Build stage
 #############
