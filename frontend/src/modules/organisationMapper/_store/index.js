@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import isEqual from 'lodash.isequal'
 import moment from 'moment'
 import Service from '@/api/HttpCommon'

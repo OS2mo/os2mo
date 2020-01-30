@@ -32,7 +32,8 @@ Dette værk er frigivet under `Mozilla Public License, version 2.0
 OS2 projekt. Ophavsretten tilhører de individuelle bidragydere.
 
 Der findes en version af core-koden, og den er placeret her:
-`https://github.com/OS2mo <https://github.com/OS2mo>`_.
+`https://github.com/OS2mo <https://github.com/OS2mo>`_. Kodebasen overholder
+version 3.0 af `REUSE specifikationen <https://reuse.software/>`.
 
 Værket anvender følgende Open Source software-komponenter:
 
