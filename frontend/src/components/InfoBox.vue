@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="col-sm-3 box text-white ml-3">
     <icon class="icon-box" :name="icon" scale="3"/>

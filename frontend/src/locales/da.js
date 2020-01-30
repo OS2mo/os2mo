@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 /*eslint-disable */
 import alerts from './da/alerts.json'
 import buttons from './da/buttons.json'

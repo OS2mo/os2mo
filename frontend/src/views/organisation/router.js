@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 const Organisation = () => import(/* webpackChunkName: "organisation" */ './')
 const OrganisationLandingPage = () => import(/* webpackChunkName: "organisation" */ './OrganisationLandingPage')
 const OrganisationDetail = () => import(/* webpackChunkName: "organisation" */ './OrganisationDetail')

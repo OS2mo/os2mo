@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group">
     <label :for="nameId">{{ label }}</label>

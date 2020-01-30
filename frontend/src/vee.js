@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 /**
  * Imports and set up vee-validate.
  * If more filters are needed, remember to import them here!

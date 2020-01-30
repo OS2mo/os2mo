@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <label class="container mb-3 mt-2">{{$t('input_fields.primary')}}

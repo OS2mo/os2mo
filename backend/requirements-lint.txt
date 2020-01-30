@@ -1,2 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 flake8==3.7.9
 flake8-module-name==0.2.0

@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group col">
     <label :for="nameId">{{$tc('shared.it_system', 2)}}</label>

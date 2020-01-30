@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="row">
     <div class="col-sm-12 col-md-4 col-lg-4 col-xl-3">
