@@ -71,6 +71,12 @@ docker-lint:
   script:
     - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
 
+REUSE-compliance:
+  <<: *lint-default
+  image: fsfe/reuse:latest
+  script:
+    - reuse lint
+
 
 # Build stage
 #############
