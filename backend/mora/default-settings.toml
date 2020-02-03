@@ -109,7 +109,6 @@ modules = []
 
 
 [log]
-activity_log_path = "activity.log"
 log_path = "os2mo.log"
 log_level = "WARNING"
 
