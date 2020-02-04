@@ -105,7 +105,6 @@ export default {
      * Defines a required uuid.
      */
     uuid: {
-      type: String,
       required: true
     },
 

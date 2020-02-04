@@ -12,7 +12,7 @@ const defaultState = () => {
     move: {
       type: 'engagement',
       data: {
-        person: {},
+        person: null,
         validity: {
           from: moment(new Date()).format('YYYY-MM-DD')
         }

@@ -94,10 +94,6 @@ export default {
     }
   },
 
-  created () {
-    this.item = this.value
-  },
-
   methods: {
     /**
      * Get employee name.
@@ -117,6 +113,10 @@ export default {
           vm.items = response
         })
     }
+  },
+
+  created () {
+    this.item = this.value
   }
 }
 </script>
