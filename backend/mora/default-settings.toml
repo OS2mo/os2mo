@@ -109,8 +109,8 @@ modules = []
 
 
 [log]
-activity_log_path = "/var/log/os2mo/activity.log"
-trace_log_path = "/var/log/os2mo/trace.log"
+log_path = "os2mo.log"
+log_level = "WARNING"
 
 
 [external_integration]

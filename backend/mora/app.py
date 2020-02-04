@@ -8,7 +8,7 @@ import flask
 import flask_saml_sso
 import werkzeug
 
-from mora import __version__
+from mora import __version__, log
 from mora.triggers.internal import amqp_trigger
 from mora import health
 from . import exceptions
@@ -32,6 +32,9 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
                            instantiation.
 
     '''
+
+    log.init()
+
     app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
     app.config.update(settings.app_config)
