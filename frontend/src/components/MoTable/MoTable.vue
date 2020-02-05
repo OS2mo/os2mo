@@ -58,7 +58,7 @@ SPDX-License-Identifier: MPL-2.0
               :value="c"
             />
           </td>
-          <td v-for="(col, index) in columns" :key="index"
+          <td class="column-data" v-for="(col, index) in columns" :key="index"
               :class="'column-' + col.data">
             <mo-link
               :value="c"
@@ -331,15 +331,19 @@ export default {
     margin-top: -10px;
   }
 
+  .column-data {
+    width: 35vh
+  }
+
   .column-edit {
     width: 3vh;
   }
 
   .column-from {
-    max-width: 6vh;
+    width: 14vh;
   }
 
   .column-to {
-    max-width: 6vh;
+    width: 14vh;
   }
 </style>
