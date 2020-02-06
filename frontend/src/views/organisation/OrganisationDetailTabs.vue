@@ -2,8 +2,8 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div v-if="orgUnitInfo.user_settings.orgunit">
-    <b-tabs lazy>
-      <b-tab :title="$t('tabs.organisation.unit')" active>
+    <b-tabs v-model="tabIndex" lazy>
+      <b-tab to="#org" :title="$t('tabs.organisation.unit')" active>
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -16,7 +16,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.addresses')">
+      <b-tab to="#addresses" :title="$t('tabs.organisation.addresses')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -28,7 +28,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.engagements')">
+      <b-tab to="#engagements" :title="$t('tabs.organisation.engagements')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -39,7 +39,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$tc('tabs.organisation.association', 2)">
+      <b-tab to="#associations" :title="$tc('tabs.organisation.association', 2)">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -50,7 +50,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.it')">
+      <b-tab to="#it" :title="$t('tabs.organisation.it')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -62,7 +62,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
+      <b-tab to="#roles" :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -73,7 +73,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.managers')">
+      <b-tab to="#managers" :title="$t('tabs.organisation.managers')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -85,7 +85,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.related')">
+      <b-tab to="#related" :title="$t('tabs.organisation.related')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -132,6 +132,8 @@ export default {
 
   data () {
     return {
+      tabIndex: 0,
+      tabs: ['#org', '#addresses', '#engagements', '#associations', '#it', '#roles', '#managers', '#related'],
       // keep track of the latest tap shown
       latestTab: [],
       /**
@@ -238,6 +240,10 @@ export default {
     uuid () {
       this.loadContent(this.latestTab.detail, this.latestTab.validity)
     }
+  },
+
+  mounted() {
+    this.tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
   },
 
   methods: {

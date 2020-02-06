@@ -2,8 +2,8 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <b-tabs lazy>
-      <b-tab :title="$t('tabs.employee.engagements')" active>
+    <b-tabs v-model="tabIndex" lazy>
+      <b-tab to="#engagement" :title="$t('tabs.employee.engagements')" active>
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -15,7 +15,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.addresses')">
+      <b-tab to="#address" :title="$t('tabs.employee.addresses')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -27,7 +27,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.roles')">
+      <b-tab to="#role" :title="$t('tabs.employee.roles')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -39,7 +39,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.it')">
+      <b-tab to="#it" :title="$t('tabs.employee.it')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -51,7 +51,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$tc('tabs.employee.association', 2)">
+      <b-tab to="#association" :title="$tc('tabs.employee.association', 2)">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -63,7 +63,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.leave')">
+      <b-tab to="#leave" :title="$t('tabs.employee.leave')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -75,7 +75,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.manager')">
+      <b-tab to="#manager" :title="$t('tabs.employee.manager')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -123,6 +123,8 @@ export default {
 
   data () {
     return {
+      tabIndex: 0,
+      tabs: ['#engagement', '#address', '#role', '#it', '#association', '#leave', '#manager'],
       /**
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
@@ -202,6 +204,10 @@ export default {
 
       return columns
     }
+  },
+
+  mounted () {
+    this.tabIndex = this.tabs.findIndex(tab => tab == this.$route.hash)
   },
 
   methods: {
