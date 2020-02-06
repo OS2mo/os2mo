@@ -409,7 +409,7 @@ def get_one_orgunit(c, unitid, unit=None,
     elif details is UnitDetails.INTEGRATION:
         r["integration_data"] = attrs.get("integrationsdata")
     else:
-        assert False, 'enum is {}!?'.format(details)
+        raise AssertionError('enum is {}!?'.format(details))
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
