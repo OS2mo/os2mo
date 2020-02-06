@@ -285,7 +285,7 @@ class Connector:
         a, b = itertools.tee(sorted(dates))
 
         # drop the first item -- doing a raw next() fails in Python 3.7
-        for x in itertools.islice(b, 1):
+        for __ in itertools.islice(b, 1):
             pass
 
         yield from filter(
