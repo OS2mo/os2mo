@@ -61,7 +61,6 @@ export default {
      * Defines a required employee.
      */
     employee: {
-      type: Object,
       required: true
     },
 

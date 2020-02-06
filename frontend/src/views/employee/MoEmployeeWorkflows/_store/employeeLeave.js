@@ -7,7 +7,7 @@ import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
-    employee: {},
+    employee: null,
     leave: {},
     isLoading: false,
     backendValidationError: null

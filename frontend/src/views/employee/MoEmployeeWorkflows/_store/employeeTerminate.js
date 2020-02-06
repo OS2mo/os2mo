@@ -9,7 +9,7 @@ import moment from 'moment'
 
 const defaultState = () => {
   return {
-    employee: {},
+    employee: null,
     endDate: moment(new Date()).format('YYYY-MM-DD'),
     details: {},
     isLoading: false,

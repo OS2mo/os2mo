@@ -42,9 +42,8 @@ test('Workflow: terminate employee by search', async t => {
     .click(searchEmployeeField)
     .typeText(searchEmployeeInput, 'Lis')
 
-    // FIXME: this is wrong...
     .expect(searchEmployeeInput.value)
-    .eql('is', 'Have you fixed a bug so that it retains the first letter?')
+    .eql('Lis')
 
     .expect(searchEmployeeItem.withText(' ').visible)
     .ok('no user found - did test data change?')
