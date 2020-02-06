@@ -680,7 +680,7 @@ class Tests(util.LoRATestCase):
         with self.subTest('invalid'):
             self.assertRequestFails(
                 '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
-                '?at=1900-01-01T00:00:00Z',
+                '?at=1920-01-01T00:00:00Z',
                 404,
             )
 
