@@ -2,7 +2,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <b-tabs v-model="tabIndex">
+    <b-tabs v-model="tabIndex" lazy>
       <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.employee.engagements')">
         <mo-table-detail
           type="EMPLOYEE"

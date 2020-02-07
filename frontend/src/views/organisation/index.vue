@@ -49,7 +49,7 @@ export default {
     selected: {
       set (val) {
         if (val) {
-          this.$router.push({ name: 'OrganisationDetail', params: { uuid: val } })
+          this.$router.push({ name: 'OrganisationDetail', params: { uuid: val }, hash: this.route.hash })
         } else {
           this.$router.push({ name: 'OrganisationLandingPage' })
         }
