@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+-c requirements.txt
+
+Flask-Testing
+freezegun
+requests-mock
+coverage
+termcolor
+unittest-xml-reporting
+notsouid
+flask-shell-ipython
+python-dotenv
+watchdog
+pytest
+pytest-cov

@@ -189,7 +189,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 )
             except json.JSONDecodeError:
                 flask.current_app.logger.warning(
-                    'invalid integation data for function %s!',
+                    'invalid integration data for function %s!',
                     funcid,
                 )
                 r[mapping.INTEGRATION_DATA] = None

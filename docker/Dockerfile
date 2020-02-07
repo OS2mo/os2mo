@@ -74,13 +74,9 @@ RUN set -ex \
 # Install requirements
 COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
-COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
-COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
 RUN pip3 install \
   -r backend/requirements.txt \
-  -r backend/requirements-test.txt \
-  -r backend/requirements-lint.txt \
-  -r backend/requirements-docs.txt
+  -r backend/requirements-test.txt
 
 
 # CI settings

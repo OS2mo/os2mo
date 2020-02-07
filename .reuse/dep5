@@ -20,3 +20,11 @@ License: MPL-2.0
 Files: setup/* frontend/yarn.lock frontend/.browserslistrc
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
+
+Files: backend/requirements.txt backend/requirements-test.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: backend/requirements-lint.txt docs/requirements-docs.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0

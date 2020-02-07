@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+Flask
+requests
+lxml
+python-dateutil
+Flask-Session
+validators
+psycopg2-binary
+gunicorn
+service_person_stamdata_udvidet @ https://github.com/magenta-aps/service_person_stamdata_udvidet/releases/download/0.1.3/service_person_stamdata_udvidet-0.1.3-py3-none-any.whl#egg=service_person_stamdata_udvidet-0.1.3
+flask_saml_sso @ git+git://github.com/magenta-aps/flask_saml_sso.git@0.8.0#egg=flask_saml_sso
+pika
+toml
+Werkzeug~=0.16.0

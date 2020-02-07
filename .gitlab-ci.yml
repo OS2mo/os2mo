@@ -55,7 +55,7 @@ python-lint:
 docs:
   <<: *lint-default
   before_script:
-    - pip3 install -r backend/requirements-docs.txt
+    - pip3 install -r docs/requirements-docs.txt
   script:
     - sphinx-build -n -W --keep-going docs /doc-build
   artifacts:

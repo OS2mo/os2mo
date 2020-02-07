@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+Flask
+python-dateutil
+sphinx~=1.8.5
+sphinx_rtd_theme
+sphinxcontrib-httpdomain
+sphinxcontrib-apidoc
+sphinx-click
+recommonmark
