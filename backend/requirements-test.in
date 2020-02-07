@@ -3,15 +3,15 @@
 
 -c requirements.txt
 
-Flask-Testing>=0.6.2
-freezegun>=0.3.9
-requests-mock>=1.3.0
-coverage>=4.4.1
-termcolor>=1.1.0
-unittest-xml-reporting==2.5.2
-notsouid>=0.0.3
+Flask-Testing
+freezegun
+requests-mock
+coverage
+termcolor
+unittest-xml-reporting
+notsouid
 flask-shell-ipython
 python-dotenv
 watchdog
-pytest==5.3.5
-pytest-cov==2.8.1
+pytest
+pytest-cov

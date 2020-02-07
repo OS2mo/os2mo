@@ -964,7 +964,7 @@ class Reading(util.LoRATestCase):
             )
 
         self.assertIn(
-            'WARNING:flask.app:invalid integation data for function {}!'
+            'invalid integration data for function {}!'
             .format(funcid),
-            cm.output,
+            cm.output[0],
         )
