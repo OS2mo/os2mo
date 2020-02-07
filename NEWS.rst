@@ -13,6 +13,7 @@ Bug fixes
 Internal changes
 ----------------
 
+* #34430: Update LoRa dependency to 1.6.1
 
 
 Version 1.4.0, 2020-01-22
