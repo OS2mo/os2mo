@@ -69,8 +69,9 @@ SPDX-License-Identifier: MPL-2.0
           </td>
           <td class="column-from">{{c.validity.from | date}}</td>
           <td class="column-to">{{c.validity.to | date}}</td>
-          <td class="column-edit" v-if="isEditable(c) && editComponent">
+          <td>
             <mo-entry-edit-modal
+              v-if="isEditable(c) && editComponent"
               class="edit-entry"
               :type="type"
               :uuid="editUuid"
@@ -79,9 +80,8 @@ SPDX-License-Identifier: MPL-2.0
               :content-type="contentType"
               @submit="$emit('update')"
             />
-          </td>
-          <td class="column-edit" v-if="isEditable(c) && isDeletable && editComponent">
             <mo-entry-terminate-modal
+              v-if="isEditable(c) && isDeletable && editComponent"
               class="terminate-entry"
               :type="contentType"
               :content="c"
@@ -308,6 +308,7 @@ export default {
 <style scoped>
   table {
     width: 100%;
+    width: calc(100% - 0rem);
     border-collapse: collapse;
     margin-top: 0;
   }
@@ -331,18 +332,21 @@ export default {
   }
 
   .column-data {
-    width: 35vh;
-  }
-
-  .column-edit {
-    width: 3vh;
+    min-width: 13rem;
+    max-width: 13rem;
   }
 
   .column-from {
-    width: 14vh;
+    min-width: 7rem;
+    max-width: 7rem;
   }
 
   .column-to {
-    width: 14vh;
+    min-width: 7rem;
+    max-width: 7rem;
+  }
+
+  .terminate-entry {
+    margin-top: 5px;
   }
 </style>
