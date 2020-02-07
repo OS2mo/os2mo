@@ -91,7 +91,7 @@ SPDX-License-Identifier: MPL-2.0
         </tr>
       </tbody>
     </table>
-      </b-form-checkbox-group>
+    </b-form-checkbox-group>
     </div>
   </div>
 </template>
@@ -314,7 +314,6 @@ export default {
 
   th, td {
     text-align: left;
-    max-width: 18vh;
     padding: .5rem;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -332,7 +331,7 @@ export default {
   }
 
   .column-data {
-    width: 35vh
+    width: 35vh;
   }
 
   .column-edit {
