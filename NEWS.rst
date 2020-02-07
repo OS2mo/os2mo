@@ -17,6 +17,7 @@ Internal changes
 
 * #34430: Update LoRa dependency to 1.6.1
 * #27622: Update service_person_stamdata_udvidet dependency to 0.2.0
+* #34481: Add new defaults to config database
 
 
 Version 1.4.0, 2020-01-22
