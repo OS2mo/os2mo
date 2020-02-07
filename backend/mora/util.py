@@ -210,13 +210,16 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-def restrictargs(*allowed: str, required: typing.Iterable[str]=[]):
+def restrictargs(*allowed: str, required: typing.Iterable[str]=None):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,
     the function logs an error and return HTTP 501.
 
     '''
+    if required is None:
+        required = []
+
     allowed_values = {v.lower() for v in allowed}
     required_values = {v.lower() for v in required}
     all_allowed_values = allowed_values | required_values

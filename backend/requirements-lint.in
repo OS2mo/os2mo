@@ -3,3 +3,4 @@
 
 flake8
 flake8-module-name
+flake8-bugbear

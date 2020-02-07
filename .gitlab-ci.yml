@@ -50,6 +50,7 @@ python-lint:
     - pip3 install -r backend/requirements-lint.txt
   script:
     - cd backend
+    - flake8 --version
     - flake8
 
 docs:

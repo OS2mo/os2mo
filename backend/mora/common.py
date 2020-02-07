@@ -272,7 +272,7 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     :return: The LoRa object with the new virkning
 
     """
-    for k, v in lora_obj.items():
+    for v in lora_obj.values():
         if isinstance(v, dict):
             _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
