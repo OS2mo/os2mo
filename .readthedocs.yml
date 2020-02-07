@@ -6,7 +6,7 @@ build:
 
 formats: []
 
-requirements_file: backend/requirements-docs.txt
+requirements_file: docs/requirements-docs.txt
 
 python:
   version: 3.6
