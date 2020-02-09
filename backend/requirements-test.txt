@@ -47,7 +47,7 @@ termcolor==1.1.0
 traitlets==4.3.3          # via ipython
 unittest-xml-reporting==2.5.2
 urllib3==1.25.8           # via requests
-watchdog==0.10.1
+watchdog==0.10.2
 wcwidth==0.1.8            # via prompt-toolkit, pytest
 werkzeug==0.16.1          # via flask
 
