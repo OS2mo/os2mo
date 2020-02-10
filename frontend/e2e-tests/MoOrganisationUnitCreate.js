@@ -14,8 +14,13 @@ fixture('MoOrganisationUnitCreate')
 
 const dialog = Selector('#orgUnitCreate')
 
-const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
-const timeOption = timeSelect.find('option')
+// TODO: Re-enable when TestCafe runs with every config setting
+// https://redmine.magenta-aps.dk/issues/34509
+// const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
+// const timeOption = timeSelect.find('option')
+
+const levelSelect = dialog.find('select[data-vv-as="Enhedsniveau"]')
+const levelOption = levelSelect.find('option')
 
 const unitSelect = dialog.find('select[data-vv-as="Enhedstype"]')
 const unitOption = unitSelect.find('option')
@@ -71,8 +76,13 @@ test('Workflow: create unit', async t => {
     .click(parentInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))
 
-    .click(timeSelect)
-    .click(timeOption.withText('Tjenestetid'))
+  // TODO: Re-enable when TestCafe runs with every config setting
+  // https://redmine.magenta-aps.dk/issues/34509
+  // .click(timeSelect)
+  // .click(timeOption.withText('Tjenestetid'))
+
+    .click(levelSelect)
+    .click(levelOption.withText('Niveau 10'))
 
     .click(fromInput)
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
