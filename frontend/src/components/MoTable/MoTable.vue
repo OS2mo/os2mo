@@ -58,7 +58,7 @@ SPDX-License-Identifier: MPL-2.0
               :value="c"
             />
           </td>
-          <td v-for="(col, index) in columns" :key="index"
+          <td class="column-data" v-for="(col, index) in columns" :key="index"
               :class="'column-' + col.data">
             <mo-link
               :value="c"
@@ -69,8 +69,16 @@ SPDX-License-Identifier: MPL-2.0
           </td>
           <td class="column-from">{{c.validity.from | date}}</td>
           <td class="column-to">{{c.validity.to | date}}</td>
-          <td class="column-edit" v-if="isEditable(c) && editComponent">
+          <td class="column-buttons">
+            <mo-entry-terminate-modal
+              v-if="isEditable(c) && isDeletable && editComponent"
+              class="terminate-entry"
+              :type="contentType"
+              :content="c"
+              @submit="$emit('update')"
+            />
             <mo-entry-edit-modal
+              v-if="isEditable(c) && editComponent"
               class="edit-entry"
               :type="type"
               :uuid="editUuid"
@@ -80,18 +88,10 @@ SPDX-License-Identifier: MPL-2.0
               @submit="$emit('update')"
             />
           </td>
-          <td class="column-edit" v-if="isEditable(c) && isDeletable && editComponent">
-            <mo-entry-terminate-modal
-              class="terminate-entry"
-              :type="contentType"
-              :content="c"
-              @submit="$emit('update')"
-            />
-          </td>
         </tr>
       </tbody>
     </table>
-      </b-form-checkbox-group>
+    </b-form-checkbox-group>
     </div>
   </div>
 </template>
@@ -308,13 +308,13 @@ export default {
 <style scoped>
   table {
     width: 100%;
+    width: calc(100% - 0rem);
     border-collapse: collapse;
     margin-top: 0;
   }
 
   th, td {
     text-align: left;
-    max-width: 18vh;
     padding: .5rem;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -331,15 +331,33 @@ export default {
     margin-top: -10px;
   }
 
-  .column-edit {
-    width: 3vh;
+  .column-data {
+    min-width: 12rem;
+    max-width: 12rem;
   }
 
   .column-from {
-    max-width: 6vh;
+    min-width: 7rem;
+    max-width: 7rem;
   }
 
   .column-to {
-    max-width: 6vh;
+    min-width: 7rem;
+    max-width: 7rem;
+  }
+
+  .column-buttons{
+    min-width: 7rem;
+    max-width: 7rem;
+    margin-right: 2px;
+  }
+  .terminate-entry{
+    float: right;
+    margin-top: 2px;
+  }
+  .edit-entry{
+    float: right;
+    margin-right: 5px;
+    margin-top: 2px;
   }
 </style>
