@@ -69,7 +69,14 @@ SPDX-License-Identifier: MPL-2.0
           </td>
           <td class="column-from">{{c.validity.from | date}}</td>
           <td class="column-to">{{c.validity.to | date}}</td>
-          <td>
+          <td class="column-buttons">
+            <mo-entry-terminate-modal
+              v-if="isEditable(c) && isDeletable && editComponent"
+              class="terminate-entry"
+              :type="contentType"
+              :content="c"
+              @submit="$emit('update')"
+            />
             <mo-entry-edit-modal
               v-if="isEditable(c) && editComponent"
               class="edit-entry"
@@ -78,13 +85,6 @@ SPDX-License-Identifier: MPL-2.0
               :entry-component="editComponent"
               :content="c"
               :content-type="contentType"
-              @submit="$emit('update')"
-            />
-            <mo-entry-terminate-modal
-              v-if="isEditable(c) && isDeletable && editComponent"
-              class="terminate-entry"
-              :type="contentType"
-              :content="c"
               @submit="$emit('update')"
             />
           </td>
@@ -332,8 +332,8 @@ export default {
   }
 
   .column-data {
-    min-width: 13rem;
-    max-width: 13rem;
+    min-width: 12rem;
+    max-width: 12rem;
   }
 
   .column-from {
@@ -346,7 +346,18 @@ export default {
     max-width: 7rem;
   }
 
-  .terminate-entry {
-    margin-top: 5px;
+  .column-buttons{
+    min-width: 7rem;
+    max-width: 7rem;
+    margin-right: 2px;
+  }
+  .terminate-entry{
+    float: right;
+    margin-top: 2px;
+  }
+  .edit-entry{
+    float: right;
+    margin-right: 5px;
+    margin-top: 2px;
   }
 </style>
