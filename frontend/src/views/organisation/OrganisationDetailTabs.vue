@@ -62,7 +62,9 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab @click="navigateToTab('#roller')" href="#roller" :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
+      <b-tab @click="navigateToTab('#roller')" href="#roller"
+             :title="$t('tabs.organisation.roles')"
+             :disabled="!orgUnitInfo.user_settings.orgunit.show_roles">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
