@@ -2,8 +2,8 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div v-if="orgUnitInfo.user_settings.orgunit">
-    <b-tabs lazy>
-      <b-tab :title="$t('tabs.organisation.unit')" active>
+    <b-tabs v-model="tabIndex" lazy>
+      <b-tab @click="navigateToTab('#org-unit')" href="#org-unit" :title="$t('tabs.organisation.unit')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -16,7 +16,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.addresses')">
+      <b-tab @click="navigateToTab('#adresser')" href="#adresser" :title="$t('tabs.organisation.addresses')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -28,7 +28,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.engagements')">
+      <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.organisation.engagements')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -39,7 +39,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$tc('tabs.organisation.association', 2)">
+      <b-tab @click="navigateToTab('#tilknytninger')" href="#tilknytninger" :title="$tc('tabs.organisation.association', 2)">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -50,7 +50,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.it')">
+      <b-tab @click="navigateToTab('#it')" :href="'#it'" :title="$t('tabs.organisation.it')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -62,7 +62,9 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.roles')" v-if="orgUnitInfo.user_settings.orgunit.show_roles">
+      <b-tab @click="navigateToTab('#roller')" href="#roller"
+             :title="$t('tabs.organisation.roles')"
+             :disabled="!orgUnitInfo.user_settings.orgunit.show_roles">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -73,7 +75,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.managers')">
+      <b-tab @click="navigateToTab('#ledere')" href="#ledere" :title="$t('tabs.organisation.managers')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -85,7 +87,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.organisation.related')">
+      <b-tab @click="navigateToTab('#relateret')" href="#relateret" :title="$t('tabs.organisation.related')">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
@@ -121,7 +123,6 @@ export default {
      */
     uuid: { type: String, required: true },
     orgUnitInfo: Object,
-
     content: Object,
 
     /**
@@ -132,6 +133,8 @@ export default {
 
   data () {
     return {
+      tabIndex: 0,
+      tabs: ['#org-unit', '#adresser', '#engagementer', '#tilknytninger', '#it', '#roller', '#ledere', '#relateret'],
       // keep track of the latest tap shown
       latestTab: [],
       /**
@@ -240,6 +243,10 @@ export default {
     }
   },
 
+  mounted() {
+    this.tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
+  },
+
   methods: {
     loadContent (contentType, event) {
       let payload = {
@@ -249,6 +256,9 @@ export default {
       }
       this.latestTab = payload
       this.$emit('show', payload)
+    },
+    navigateToTab (tabTarget) {
+      this.$router.replace(tabTarget)
     }
   }
 }

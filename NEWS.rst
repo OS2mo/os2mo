@@ -6,6 +6,7 @@ New features
 
 * #33975: Set today's date as default for datepicker.
 * #32045: Fixed employee search for the first key press.
+* #34444: Add tab routing for employee and organization.
 
 Bug fixes
 ---------

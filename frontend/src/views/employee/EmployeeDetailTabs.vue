@@ -2,8 +2,8 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <b-tabs lazy>
-      <b-tab :title="$t('tabs.employee.engagements')" active>
+    <b-tabs v-model="tabIndex" lazy>
+      <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.employee.engagements')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -15,7 +15,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.addresses')">
+      <b-tab @click="navigateToTab('#adresser')" href="#adresser" :title="$t('tabs.employee.addresses')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -27,7 +27,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.roles')">
+      <b-tab @click="navigateToTab('#roller')" href="#roller" :title="$t('tabs.employee.roles')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -39,7 +39,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.it')">
+      <b-tab @click="navigateToTab('#it')" href="#it" :title="$t('tabs.employee.it')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -51,7 +51,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$tc('tabs.employee.association', 2)">
+      <b-tab @click="navigateToTab('#tilknytninger')" href="#tilknytninger" :title="$tc('tabs.employee.association', 2)">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -63,7 +63,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.leave')">
+      <b-tab @click="navigateToTab('#orlov')" href="#orlov" :title="$t('tabs.employee.leave')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -75,7 +75,7 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab :title="$t('tabs.employee.manager')">
+      <b-tab @click="navigateToTab('#leder')" href="#leder" :title="$t('tabs.employee.manager')">
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
@@ -123,6 +123,8 @@ export default {
 
   data () {
     return {
+      tabIndex: 0,
+      tabs: ['#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
       /**
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
@@ -204,6 +206,10 @@ export default {
     }
   },
 
+  mounted () {
+    this.tabIndex = this.tabs.findIndex(tab => tab == this.$route.hash)
+  },
+
   methods: {
     loadContent (contentType, event) {
       let payload = {
@@ -212,6 +218,9 @@ export default {
         uuid: this.uuid
       }
       this.$emit('show', payload)
+    },
+    navigateToTab (tabTarget) {
+      this.$router.replace(tabTarget)
     }
   }
 }
