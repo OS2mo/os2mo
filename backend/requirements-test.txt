@@ -39,7 +39,7 @@ pyparsing==2.4.6          # via packaging
 pytest-cov==2.8.1
 pytest==5.3.5
 python-dateutil==2.8.1    # via freezegun
-python-dotenv==0.10.5
+python-dotenv==0.11.0
 requests-mock==1.7.0
 requests==2.22.0          # via requests-mock
 six==1.14.0               # via freezegun, packaging, python-dateutil, requests-mock, traitlets, unittest-xml-reporting
