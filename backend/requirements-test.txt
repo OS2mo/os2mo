@@ -42,10 +42,10 @@ python-dateutil==2.8.1    # via freezegun
 python-dotenv==0.11.0
 requests-mock==1.7.0
 requests==2.22.0          # via requests-mock
-six==1.14.0               # via freezegun, packaging, python-dateutil, requests-mock, traitlets, unittest-xml-reporting
+six==1.14.0               # via freezegun, packaging, python-dateutil, requests-mock, traitlets
 termcolor==1.1.0
 traitlets==4.3.3          # via ipython
-unittest-xml-reporting==2.5.2
+unittest-xml-reporting==3.0.1
 urllib3==1.25.8           # via requests
 watchdog==0.10.2
 wcwidth==0.1.8            # via prompt-toolkit, pytest
