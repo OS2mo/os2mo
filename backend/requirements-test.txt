@@ -14,7 +14,7 @@ decorator==4.4.1          # via ipython, traitlets
 flask-shell-ipython==0.4.1
 flask-testing==0.7.1
 flask==1.1.1              # via flask-shell-ipython, flask-testing
-freezegun==0.3.14
+freezegun==0.3.15
 idna==2.8                 # via requests
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.12.0           # via flask-shell-ipython
