@@ -139,7 +139,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
     'flask': ('http://flask.pocoo.org/docs/', None),
-    'mox': ('https://mox.readthedocs.io/en/latest', None),
+    'mox': ('https://mox.readthedocs.io/en/development/', None),
 }
 
 primary_domain = 'py'
