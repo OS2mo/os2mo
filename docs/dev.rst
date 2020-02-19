@@ -9,5 +9,6 @@ Denne sektion indeholder information for udviklere og brugere af systemet
    :glob:
 
    dev/getting-started
+   dev/install-source
    dev/tests
    dev/conventions

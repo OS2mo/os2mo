@@ -1,5 +1,10 @@
+.. _dev-env:
+
 Opsætning af udviklingsmiljø
 ============================
+
+Denne side beskriver opsætning at et Docker baseret udviklingsmiljø. Hvis du vil
+installerer fra kildekoden, se :ref:`install-source`.
 
 .. tip::
 
