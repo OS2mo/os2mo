@@ -101,7 +101,10 @@ For at hente og bygge images og starte de fem services, kør:
 ``-d`` flaget starter servicene i baggrunden. Du kan se outputtet af dem med
 ``docker-compose logs <name>`` hvor ``<name>`` er navnet på servicen i
 :file:`docker-compose.yml`. ``--build`` flaget bygger den nyeste version af
-OS2MO imageet fra den lokale :file:`Dockerfile`.
+OS2MO imageet fra den lokale :file:`Dockerfile`. Hvis det ikke bliver angivet,
+starter containerne meget hurtigere op, men ændringer til andet end python filer
+kommer ikke med. Det er specielt relevant hvis du ændre i
+:file:`requirements.txt` eller bruger ``git {rebase, pull, merge}``.
 
 For at stoppe servicene igen, kør ``docker-compose stop``. Servicene vil blive
 stoppet, men datane vil blive bevaret. For helt at fjerne containerne og datane
