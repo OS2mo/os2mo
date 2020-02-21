@@ -28,3 +28,7 @@ License: MPL-2.0
 Files: backend/requirements-lint.txt docs/requirements-docs.txt
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
+
+Files: dev-environment/requirements.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
