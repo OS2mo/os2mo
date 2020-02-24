@@ -1,9 +1,9 @@
-Client-side codebase
+Server-side codebase
 ====================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Indhold:
    :glob:
 
-   vuedoc/*
+   ../backend/*
