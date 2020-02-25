@@ -135,9 +135,7 @@ def create():
     :<jsonarr string type: **"engagement"**
     :<jsonarr object org_unit: The associated org unit
     :<jsonarr object person: The associated employee
-    :<jsonarr boolean primary: Mark this one as the “main” engagement
-                               or position of a given employee. There
-                               can only be one.
+    :<jsonarr object primary: The primary class of the engagement
     :<jsonarr integer fraction: An indication of how much this
         engagement constitutes the employee's overall employment
     :<jsonarr object job_function: The job function of the association
@@ -166,6 +164,19 @@ def create():
           "engagement_type": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
+          "primary": {
+            "uuid": "b708d0e2-8b2d-47ed-98b9-6548103f5de3"
+          },
+          "extension_1": "value_1",
+          "extension_2": "value_2",
+          "extension_3": "value_3",
+          "extension_4": "value_4",
+          "extension_5": "value_5",
+          "extension_6": "value_6",
+          "extension_7": "value_7",
+          "extension_8": "value_8",
+          "extension_9": "value_9",
+          "extension_10": "value_10",
           "user_key": "1234",
           "validity": {
               "from": "2016-01-01",

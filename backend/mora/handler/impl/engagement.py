@@ -49,9 +49,24 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 facet.get_one_class(c, primary) if primary else None,
             mapping.IS_PRIMARY: cls._is_primary(c, person, primary),
             mapping.FRACTION: fraction,
+            **cls._get_extension_fields(extensions)
         }
 
         return r
+
+    @classmethod
+    def _get_extension_fields(cls, extensions: dict) -> dict:
+        """
+        Filters all but the generic attribute extension fields, and returns
+        them mapped to the OS2mo data model
+        :param extensions: A dict of all extensions attributes
+        :return: A dict of mapped attribute extension fields
+        """
+
+        return {
+            mo_key: extensions.get(lora_key)
+            for mo_key, lora_key in mapping.EXTENSION_ATTRIBUTE_MAPPING
+        }
 
     @classmethod
     def _is_primary(cls, c, person, primary):
