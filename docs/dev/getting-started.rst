@@ -162,4 +162,3 @@ version af Docker og docker-compose på Ubuntu:
 
    sudo apt-get update
    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
-

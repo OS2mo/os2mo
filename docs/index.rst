@@ -31,6 +31,7 @@ Indholdet er opdelt i følgende sektioner:
    architecture
    dev
    operation
+   api
    news
 
 Indekser og tabeller
