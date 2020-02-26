@@ -9,7 +9,18 @@
                     "to": "infinity"
                 }
             }
-        ]
+        ],
+      "organisationfunktionudvidelser": [
+        {
+          "udvidelse_1": "test1",
+          "udvidelse_2": "test2",
+          "udvidelse_9": "test9",
+          "virkning": {
+            "from": "2017-01-01 00:00:00+01:00",
+            "to": "infinity"
+          }
+        }
+      ]
     },
     "note": "Automatisk indl\u00e6sning",
     "relationer": {

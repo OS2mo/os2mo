@@ -309,6 +309,7 @@ def create_organisationsfunktion_payload(
     adresser: typing.List[dict] = None,
     integration_data: dict = None,
     fraktion: str = None,
+    udvidelse_attributter: dict = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -387,6 +388,9 @@ def create_organisationsfunktion_payload(
     extensions = {}
     if fraktion is not None:
         extensions['fraktion'] = fraktion
+
+    if udvidelse_attributter:
+        extensions.update(udvidelse_attributter)
 
     if extensions:
         org_funk['attributter']['organisationfunktionudvidelser'] = [

@@ -32,6 +32,8 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "user_key": "1234",
                 "fraction": 10,
+                "extension_1": "test1",
+                "extension_7": "test7",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -145,6 +147,8 @@ class Tests(util.LoRATestCase):
                 ],
                 'organisationfunktionudvidelser': [{
                     'fraktion': 10,
+                    'udvidelse_1': 'test1',
+                    'udvidelse_7': 'test7',
                     'virkning': {
                         'from': '2017-12-01 '
                                 '00:00:00+01',
@@ -662,6 +666,10 @@ class Tests(util.LoRATestCase):
             "data": {
                 "primary": {"uuid": "cdb026cc-dea9-45e9-98b3-0ccf50537ce4"},
                 "fraction": 30,
+                "extension_7": "test7",
+                "org_unit": {
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0"
+                },
                 "user_key": "regnormsberiger",
                 "job_function": {
                     'uuid': "cac9c6a8-b432-4e50-b33e-e96f742d4d56"},
@@ -750,14 +758,23 @@ class Tests(util.LoRATestCase):
                 ],
                 "tilknyttedeenheder": [
                     {
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity"
+                        }
+                    },
+                    {
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
+                            "to": "2018-04-01 00:00:00+02"
                         }
-                    },
+                    }
                 ],
                 "tilknyttedebrugere": [
                     {
@@ -813,10 +830,25 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02"
+                        },
+                        "udvidelse_1": "test1",
+                        "udvidelse_2": "test2",
+                        "udvidelse_9": "test9",
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
                             "to": "infinity"
                         },
                         "fraktion": 30,
+                        "udvidelse_1": "test1",
+                        "udvidelse_2": "test2",
+                        "udvidelse_7": "test7",
+                        "udvidelse_9": "test9",
                     },
                 ],
             },
@@ -984,137 +1016,8 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "bvn",
                         "funktionsnavn": "Engagement"
                     }
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
-
-        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
-
-    def test_edit_engagement_move(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
-                "validity": {
-                    "from": "2018-04-01",
-                    "to": "2019-03-31",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [engagement_uuid],
-            json=req,
-            amqp_topics={
-                'employee.engagement.update': 1,
-                'org_unit.engagement.update': 1,
-            },
-        )
-
-        expected_engagement = {
-            "note": "Rediger engagement",
-            "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
                 ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2019-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "2019-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        },
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
+                "organisationfunktionudvidelser": [
                     {
                         "virkning": {
                             "from_included": True,
@@ -1122,284 +1025,11 @@ class Tests(util.LoRATestCase):
                             "from": "2017-01-01 00:00:00+01",
                             "to": "infinity"
                         },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
-                    }
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
-
-        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
-
-    def test_edit_engagement_move_from_unit(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
-                "person": {'uuid': "6ee24785-ee9a-4502-81c2-7697009c9053"},
-                "validity": {
-                    "from": "2018-04-01",
-                    "to": "2019-03-31",
-                },
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [engagement_uuid],
-            json=req,
-            amqp_topics={
-                'employee.engagement.update': 1,
-                'org_unit.engagement.update': 1,
-            },
-        )
-
-        expected_engagement = {
-            "note": "Rediger engagement",
-            "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": unitid,
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2019-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "2019-04-01 00:00:00+02"
-                        }
-                    },
-                    {
-                        "uuid": unitid,
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        },
+                        "udvidelse_1": "test1",
+                        "udvidelse_2": "test2",
+                        "udvidelse_9": "test9",
                     },
                 ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
-                    }
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
-
-        self.assertRegistrationsEqual(expected_engagement, actual_engagement)
-
-    def test_edit_engagement_move_no_valid_to(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-
-        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
-
-        req = [{
-            "type": "engagement",
-            "uuid": engagement_uuid,
-            "data": {
-                "org_unit": {'uuid': "b688513d-11f7-4efc-b679-ab082a2055d0"},
-                "validity": {
-                    "from": "2018-04-01",
-                }
-            },
-        }]
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [engagement_uuid],
-            json=req,
-            amqp_topics={
-                'employee.engagement.update': 1,
-                'org_unit.engagement.update': 1,
-            },
-        )
-
-        expected_engagement = {
-            "note": "Rediger engagement",
-            "relationer": {
-                "opgaver": [
-                    {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
-                    },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        },
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Engagement"
-                    }
-                ]
             },
         }
 
@@ -1536,7 +1166,19 @@ class Tests(util.LoRATestCase):
                         "brugervendtnoegle": "bvn",
                         "funktionsnavn": "Engagement"
                     }
-                ]
+                ],
+                'organisationfunktionudvidelser': [{
+                    'udvidelse_1': 'test1',
+                    'udvidelse_2': 'test2',
+                    'udvidelse_9': 'test9',
+                    'virkning': {
+                        'from': '2017-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
             },
         }
 
@@ -1549,26 +1191,20 @@ class Tests(util.LoRATestCase):
     def test_reading_engagement_only_primary_uuid(self):
         self.load_sample_structures()
 
-        self.assertRequestResponse(
+        actual = self.assertRequest(
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             '/details/engagement?only_primary_uuid=1',
-            [{
-                'engagement_type': {
-                    'uuid': '06f95678-166a-455a-a2ab-121a8d92ea23'
-                },
-                'fraction': None,
-                'job_function': {
-                    'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
-                },
-                'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
-                'person': {'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-                'primary': None,
-                'is_primary': None,
-                'user_key': 'bvn',
-                'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                'validity': {'from': '2017-01-01', 'to': None}
-            }]
-        )
+        )[0]
+
+        engagement_type = actual.get('engagement_type')
+        job_function = actual.get('job_function')
+        org_unit = actual.get('org_unit')
+        person = actual.get('person')
+
+        self.assertListEqual(list(engagement_type.keys()), ['uuid'])
+        self.assertListEqual(list(job_function.keys()), ['uuid'])
+        self.assertListEqual(list(org_unit.keys()), ['uuid'])
+        self.assertListEqual(list(person.keys()), ['uuid'])
 
     def test_reading_engagement_calculate_primary(self):
         self.load_sample_structures()
