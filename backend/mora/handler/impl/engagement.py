@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import logging
+from typing import Tuple, List
 
 from .. import reading
-from ... import common
+from ... import common, lora
 from ... import mapping
 from ... import util
 from ...exceptions import ErrorCodes
@@ -69,7 +69,23 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         }
 
     @classmethod
-    def _is_primary(cls, c, person, primary):
+    def _is_primary(cls, c: lora.Connector, person: str, primary: str) -> bool:
+        """
+        Calculate whether a given primary class is _the_ primary class for a
+        person.
+
+        Primary classes have priorities in the "scope" field, which are
+        used for ranking the classes.
+
+        Compare the primary class to the primary classes of the other
+        engagements of the person, and determine if it has the highest priority
+
+        :param c: A LoRa connector
+        :param person: The UUID of a person
+        :param primary: The UUID of the primary class in question
+
+        :return True if primary, False if not
+        """
 
         if not util.get_args_flag("calculate_primary"):
             return None
@@ -93,7 +109,17 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 return class_id == primary
 
     @classmethod
-    def _get_sorted_primary_class_list(cls, c):
+    def _get_sorted_primary_class_list(cls, c: lora.Connector) -> List[
+            Tuple[str, int]]:
+        """
+        Return a list of primary classes, sorted by priority in the "scope"
+        field
+
+        :param c: A LoRa connector
+
+        :return A sorted list of tuples of (uuid, scope) for all available
+        primary classes
+        """
         facet_id = c.facet(bvn='primary_type')[0]
 
         classes = [
