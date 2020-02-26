@@ -27,7 +27,8 @@ def init():
     logger.addHandler(stdout_log_handler)
 
     file_log_handler = RotatingFileHandler(
-        filename=settings.config["log"]["log_path"],
+        filename=settings.config["log"]["log_path"] or settings.config["log"][
+            "trace_log_path"],
         maxBytes=1000000,
     )
     file_log_handler.setFormatter(log_format)

@@ -109,7 +109,7 @@ modules = []
 
 
 [log]
-log_path = "os2mo.log"
+log_path = ""
 log_level = "WARNING"
 
 
