@@ -33,6 +33,15 @@ import toml
 
 logger = logging.getLogger(__name__)
 
+# TODO: Currently the keys here are matched at every level while checking for
+# deprecated keys. This currently prevents us from reusing these keys in other
+# parts of the settings
+# https://redmine.magenta-aps.dk/issues/34849
+DEPRECATED_SETTINGS_KEYS = [
+    'activity_log_path',
+    'trace_log_path'
+]
+
 
 def read_config(config_path):
     try:
@@ -53,10 +62,12 @@ def update_config(configuration, new_settings):
     # namespace with anything in *new_settings*, just the variables defined in
     # **configuration**.
     for key in new_settings:
-        if key in configuration:
-            if isinstance(configuration[key], dict):
+        if key in set().union(configuration, DEPRECATED_SETTINGS_KEYS):
+            if isinstance(configuration.get(key), dict):
                 update_config(configuration[key], new_settings[key])
             else:
+                if key in DEPRECATED_SETTINGS_KEYS:
+                    logger.warning("Deprecated settings key in config: %s", key)
                 configuration[key] = new_settings[key]
         else:
             logger.warning("Invalid key in config: %s", key)
