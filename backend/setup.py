@@ -27,6 +27,8 @@ setuptools.setup(
     version=version,
     url="https://os2mo.readthedocs.io/",
     packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
+    package_data={'': ['default-settings.toml']},
+    include_package_data=True,
     test_loader='unittest:TestLoader',
 
     classifiers=[

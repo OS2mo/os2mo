@@ -1,3 +1,5 @@
+.. _user_configuration:
+
 User configuration module
 =========================
 
@@ -10,16 +12,15 @@ Front-end configuration
 It is possible to perform simple configuration of the MO frontend using the
 configuration module.
 
-Setup
------
-To use the configuration module, suitable configuration must be set in the MO
-configuration file, this will default to:
 
- * ``CONF_DB_NAME``: mora
- * ``CONF_DB_USER``: mora
- * ``CONF_DB_PASSWORD``: mora
- * ``CONF_DB_HOST``: localhost
- * ``CONF_DB_PORT``: 5432
+.. _configuration_database:
+
+Configuration database
+----------------------
+
+To use the configuration module, MO needs a database to store the configuration.
+The connection parameters must be set in the MO :ref:`settings` under
+``[configuration.database]``.
 
 
 Available options
