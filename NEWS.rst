@@ -1,5 +1,5 @@
-In development
-==============
+Version 1.5.0, 2020-02-27
+=========================
 
 New features
 ------------
@@ -9,9 +9,6 @@ New features
 * #34444: Add tab routing for employee and organization.
 * #31732: Adjust table columns.
 * #34157: Add 10 generic extension fields to engagement objects
-
-Bug fixes
----------
 
 Internal changes
 ----------------
