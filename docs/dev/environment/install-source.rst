@@ -89,11 +89,11 @@ LoRA
 
 .. sidebar:: Reference
 
-   :doc:`LoRa installation <mox:user/installation>`.
+   LoRa :doc:`installation <mox:user/installation>` and :ref:`settings
+   <mox:Settings>`.
 
 The following will clone the LoRa repo, create a :ref:`virtual environment
-<python:tut-venv>` and install the LoRa python requirements. Finally, it will
-initialize the mox database.
+<python:tut-venv>` and install the LoRa python requirements.
 
 .. code-block:: bash
 
@@ -108,6 +108,21 @@ initialize the mox database.
    pip install -r requirements.txt
    pip install .
 
+Create a settings file, :file:`~/mox/user-settings.toml`, with the following
+content. More options are available here: :ref:`LoRa settings <mox:Settings>`.
+
+.. code-block:: toml
+   :caption: :file:`~/mox/user-settings.toml`
+
+   [db_extensions]
+   path = "oio_rest/oio_rest/db_extensions/mo-01.json"
+
+
+Finally, tell LoRa to use the settings file and initialize the mox database.
+
+.. code-block:: bash
+
+   export MOX_USER_CONFIG_PATH=~/mox/user-settings.toml
    python3 -m oio_rest initdb
    deactivate && cd ~
 
@@ -165,6 +180,7 @@ terminals:
 
    cd mox
    source venv/bin/activate
+   export MOX_USER_CONFIG_PATH=~/mox/user-settings.toml
    python3 -m oio_rest run -h 0.0.0.0 -p 8080
 
 .. code-block:: bash
