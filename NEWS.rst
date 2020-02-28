@@ -4,14 +4,24 @@ In development
 New features
 ------------
 
+Bug fixes
+---------
+
+Internal changes
+----------------
+
+
+Version 1.5.0, 2020-02-27
+=========================
+
+New features
+------------
+
 * #33975: Set today's date as default for datepicker.
 * #32045: Fixed employee search for the first key press.
 * #34444: Add tab routing for employee and organization.
 * #31732: Adjust table columns.
 * #34157: Add 10 generic extension fields to engagement objects
-
-Bug fixes
----------
 
 Internal changes
 ----------------
