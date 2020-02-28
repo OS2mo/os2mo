@@ -1,10 +1,6 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 import enum
 import functools
 import operator
@@ -53,6 +49,19 @@ CPR_NO = 'cpr_no'
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
 FRACTION = 'fraction'
+
+EXTENSION_ATTRIBUTE_MAPPING = [
+    ('extension_1', 'udvidelse_1'),
+    ('extension_2', 'udvidelse_2'),
+    ('extension_3', 'udvidelse_3'),
+    ('extension_4', 'udvidelse_4'),
+    ('extension_5', 'udvidelse_5'),
+    ('extension_6', 'udvidelse_6'),
+    ('extension_7', 'udvidelse_7'),
+    ('extension_8', 'udvidelse_8'),
+    ('extension_9', 'udvidelse_9'),
+    ('extension_10', 'udvidelse_10')
+]
 
 # Association
 ASSOCIATION_KEY = 'Tilknytning'

@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="row">
     <div class="col-sm-12 col-md-4 col-lg-4 col-xl-3">
@@ -47,7 +49,7 @@ export default {
     selected: {
       set (val) {
         if (val) {
-          this.$router.push({ name: 'OrganisationDetail', params: { uuid: val } })
+          this.$router.push({ name: 'OrganisationDetail', params: { uuid: val }, hash: this.route.hash })
         } else {
           this.$router.push({ name: 'OrganisationLandingPage' })
         }

@@ -1,10 +1,5 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 '''Reading details
 ---------------
@@ -148,6 +143,13 @@ def get_detail(type, id, function):
 
     **Example engagement response**:
 
+    For engagement the following query paramters exist:
+
+    :queryparam bool calculate_primary: Calculate whether the engagement is
+        the primary engagement or not. If multiple engagements exist for a user
+        we look at the engagement with the associated primary class with the
+        highest _scope_
+
     :<jsonarr object job_function:
         See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object engagement_type:
@@ -158,8 +160,13 @@ def get_detail(type, id, function):
         See :http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string validity: The validity times of the object.
-    :<jsonarr boolean primary: Whether this is the one and only main
-                               position for the relevant person.
+    :<jsonarr object primary:
+        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    :<jsonarr boolean is_primary: Whether this is the primary engagement
+        for the relevant person. **Note** that this option is only returned
+        if ``calculate_primary`` is specificied
+    :<jsonarr string extension_{1-10}: Fields containing custom extension
+        attributes
     :<jsonarr integer fraction: An indication of how much this
         engagement constitutes the employee's overall employment
 
@@ -194,8 +201,28 @@ def get_detail(type, id, function):
            "name": "Martin F\u00e8vre Laustsen",
            "uuid": "7d5cdeec-8333-46e9-8a69-b4a2351f4d01"
          },
-         "primary": true,
+         "primary": {
+           "name": "Primær",
+           "user_key": "primaer",
+           "scope": 100,
+           "uuid": "b708d0e2-8b2d-47ed-98b9-6548103f5de3",
+           "validity": {
+             "from": "1960-01-01",
+             "to": null
+           }
+         },
+         "is_primary": true,
          "fraction": 20,
+         "extension_1": "value_1",
+         "extension_2": "value_2",
+         "extension_3": "value_3",
+         "extension_4": "value_4",
+         "extension_5": "value_5",
+         "extension_6": "value_6",
+         "extension_7": "value_7",
+         "extension_8": "value_8",
+         "extension_9": "value_9",
+         "extension_10": "value_10",
          "user_key": "2368360a-c860-458c-9725-d678c5efbf79",
          "uuid": "6467fbb0-dd62-48ae-90be-abdef7e66aa7",
          "validity": {

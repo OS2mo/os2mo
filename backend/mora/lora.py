@@ -1,10 +1,5 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 from __future__ import generator_stop
 
@@ -290,7 +285,7 @@ class Connector:
         a, b = itertools.tee(sorted(dates))
 
         # drop the first item -- doing a raw next() fails in Python 3.7
-        for x in itertools.islice(b, 1):
+        for __ in itertools.islice(b, 1):
             pass
 
         yield from filter(

@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <button type="button" class="btn btn-primary btn-workflow">
     <icon class="btn-icon" :name="icon"/>

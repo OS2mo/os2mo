@@ -1,13 +1,17 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import { EventBus, Events } from '@/EventBus'
+import moment from 'moment'
 
 const defaultState = () => {
   return {
     employees: [],
     selected: [],
-    moveDate: null,
+    moveDate: moment(new Date()).format('YYYY-MM-DD'),
     orgUnitSource: null,
     orgUnitDestination: null,
     backendValidationError: null,

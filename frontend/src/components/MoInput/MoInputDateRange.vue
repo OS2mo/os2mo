@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-row">
     <span class="btn btn-link" v-if="hidden">
@@ -40,6 +42,7 @@
  */
 
 import MoInputDate from './MoInputDate'
+import moment from 'moment'
 
 export default {
   name: 'MoInputDateRange',
@@ -75,7 +78,7 @@ export default {
        * The validFrom, validTo, hidden component value.
        * Used to detect changes and restore the value.
        */
-      validFrom: null,
+      validFrom: moment(new Date()).format('YYYY-MM-DD'),
       validTo: null,
       hidden: false
     }
@@ -127,7 +130,7 @@ export default {
      */
     this.hidden = this.initiallyHidden
     if (this.value !== undefined) {
-      this.validFrom = this.value.from
+      this.validFrom = moment(new Date()).format('YYYY-MM-DD')
       this.validTo = this.value.to
     }
   },

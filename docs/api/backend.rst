@@ -6,4 +6,4 @@ Server-side codebase
    :caption: Indhold:
    :glob:
 
-   backend/*
+   ../backend/*

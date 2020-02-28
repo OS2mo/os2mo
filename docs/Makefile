@@ -1,5 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 # Minimal makefile for Sphinx documentation
-#
 
 # You can set these variables from the command line.
 PYTHON = python3

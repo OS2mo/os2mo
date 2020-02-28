@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2020-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <button class="btn btn-outline-primary" v-on:click="submit()">

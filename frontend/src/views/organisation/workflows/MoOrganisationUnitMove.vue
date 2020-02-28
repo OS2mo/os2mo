@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <b-modal
     id="orgUnitMove"
@@ -76,6 +78,7 @@ import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
 import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
+import moment from 'moment'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -102,7 +105,9 @@ export default {
           },
           uuid: '',
           clamp: true,
-          validity: {}
+          validity: {
+            from: moment(new Date()).format('YYYY-MM-DD')
+          }
         }
       },
       isLoading: false,
@@ -176,7 +181,7 @@ export default {
      * Resets the data fields.
      */
     resetData () {
-      this.move.data.validity = {}
+      this.move.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
       this.move.data.uuid = this.original && this.original.uuid
       this.parent = null
     },

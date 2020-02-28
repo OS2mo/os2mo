@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import Vue from 'vue'
 import App from './App'
 import router from './router'

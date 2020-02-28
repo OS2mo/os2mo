@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+
+
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 import io
 import os
@@ -30,6 +27,8 @@ setuptools.setup(
     version=version,
     url="https://os2mo.readthedocs.io/",
     packages=setuptools.find_packages(where=BACKEND_DIR, exclude=['tests']),
+    package_data={'': ['default-settings.toml']},
+    include_package_data=True,
     test_loader='unittest:TestLoader',
 
     classifiers=[

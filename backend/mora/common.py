@@ -1,10 +1,5 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 '''Common LoRA logic
 -----------------
@@ -277,7 +272,7 @@ def _set_virkning(lora_obj: dict, virkning: dict, overwrite=False) -> dict:
     :return: The LoRa object with the new virkning
 
     """
-    for k, v in lora_obj.items():
+    for v in lora_obj.values():
         if isinstance(v, dict):
             _set_virkning(v, virkning, overwrite)
         elif isinstance(v, list):
@@ -314,6 +309,7 @@ def create_organisationsfunktion_payload(
     adresser: typing.List[dict] = None,
     integration_data: dict = None,
     fraktion: str = None,
+    udvidelse_attributter: dict = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -392,6 +388,9 @@ def create_organisationsfunktion_payload(
     extensions = {}
     if fraktion is not None:
         extensions['fraktion'] = fraktion
+
+    if udvidelse_attributter:
+        extensions.update(udvidelse_attributter)
 
     if extensions:
         org_funk['attributter']['organisationfunktionudvidelser'] = [

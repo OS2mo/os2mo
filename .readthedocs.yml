@@ -1,9 +1,12 @@
+# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 build:
   image: latest
 
 formats: []
 
-requirements_file: backend/requirements-docs.txt
+requirements_file: docs/requirements-docs.txt
 
 python:
   version: 3.6

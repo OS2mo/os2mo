@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="terminateEmployee">
     <div class="form-row">
@@ -16,7 +18,7 @@
       />
     </div>
 
-    <div class="mb-3" v-if="employee.uuid">
+    <div class="mb-3" v-if="employee">
       <p>{{$t('workflows.employee.messages.following_will_be_terminated')}}</p>
       <employee-detail-tabs
         :uuid="employee.uuid"
@@ -24,15 +26,15 @@
         @show="loadContent($event)"
         hide-actions
       />
-    </div>
 
-    <mo-confirm-checkbox
-      v-model="confirmCheckbox"
-      :entry-date="endDate"
-      :employee-name="employee.name"
-      v-if="employee && endDate"
-      required
-    />
+      <mo-confirm-checkbox
+        v-model="confirmCheckbox"
+        :entry-date="endDate"
+        :employee-name="employee.name"
+        v-if="employee.name && endDate"
+        required
+      />
+    </div>
 
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}

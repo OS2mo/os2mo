@@ -1,0 +1,34 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: OS2MO
+Upstream-Contact: Magenta ApS <info@magenta.dk>
+Source: https://os2mo.readthedocs.io/
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
+
+Files: backend/tests/integration_test_data/* backend/tests/fixtures/* backend/tests/mocking/*.json
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: *.json *.xml *.rst *.odt *.pdf *.md *.docx *.png *.html *.svg *.ico
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: setup/* frontend/yarn.lock frontend/.browserslistrc
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: backend/requirements.txt backend/requirements-test.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: backend/requirements-lint.txt docs/requirements-docs.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0
+
+Files: dev-environment/requirements.txt
+Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
+License: MPL-2.0

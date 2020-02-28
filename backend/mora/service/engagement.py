@@ -1,10 +1,5 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 
 '''Engagements
@@ -59,6 +54,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                                                      mapping.ENGAGEMENT_TYPE,
                                                      required=True)
 
+        extension_attributes = self.get_extension_attribute_fields(req)
+
         payload = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ENGAGEMENT_KEY,
             primær=primary,
@@ -72,6 +69,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             funktionstype=engagement_type_uuid,
             opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else [],
             integration_data=req.get(mapping.INTEGRATION_DATA),
+            udvidelse_attributter=extension_attributes
         )
 
         self.payload = payload
@@ -172,6 +170,9 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
             new_extensions['fraktion'] = fraction
 
+        fields = self.get_extension_attribute_fields(data)
+        new_extensions.update(fields)
+
         if new_extensions:
             update_fields.append((
                 mapping.ORG_FUNK_UDVIDELSER_FIELD,
@@ -201,3 +202,17 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.EMPLOYEE_UUID: employee_uuid,
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
+
+    @staticmethod
+    def get_extension_attribute_fields(req: dict) -> dict:
+        """
+        Filters all but the generic attribute extension fields, and returns
+        them mapped to the LoRa data moedl
+        :param extensions: A dict of all request values
+        :return: A dict of mapped attribute extension fields
+        """
+        return {
+            lora_key: util.checked_get(req, mo_key, "")
+            for mo_key, lora_key in mapping.EXTENSION_ATTRIBUTE_MAPPING
+            if mo_key in req
+        }

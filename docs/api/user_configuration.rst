@@ -1,3 +1,5 @@
+.. _user_configuration:
+
 User configuration module
 =========================
 
@@ -10,16 +12,15 @@ Front-end configuration
 It is possible to perform simple configuration of the MO frontend using the
 configuration module.
 
-Setup
------
-To use the configuration module, suitable configuration must be set in the MO
-configuration file, this will default to:
 
- * ``CONF_DB_NAME``: mora
- * ``CONF_DB_USER``: mora
- * ``CONF_DB_PASSWORD``: mora
- * ``CONF_DB_HOST``: localhost
- * ``CONF_DB_PORT``: 5432
+.. _configuration_database:
+
+Configuration database
+----------------------
+
+To use the configuration module, MO needs a database to store the configuration.
+The connection parameters must be set in the MO :ref:`settings` under
+``[configuration.database]``.
 
 
 Available options
@@ -35,6 +36,10 @@ available options are:
   the OU overview
 * ``show_time_planning`` Indicates whether the time planning field should be
   enabled for OUs
+* ``show_level`` Indicates whether the level field should be enabled for OUs
+* ``show_primary_engagement`` Indicates whether the 'primary' column should be enabled for engagements
+* ``show_primary_association`` Indicates whether the 'primary' column should be enabled for associations
+* ``show_org_unit_button`` Indicates whether to show the external integration button for OUs
 
 If a option is identicated for a given unit, this will be used. If the option
 is not available, it will inherit the value from the nearest parent in the
@@ -53,7 +58,7 @@ for the particular OU: ::
 
   curl http://localhost/service/ou/799aeaa4-129b-4f47-8632-1ee6ce987b21
 
-Included in the response will be the options:
+Included in the response will be an output similar to:
 
 .. code-block:: json
 

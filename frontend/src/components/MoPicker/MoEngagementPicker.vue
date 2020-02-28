@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group col">
     <label>{{$tc('shared.engagement', 2)}}</label>
@@ -59,7 +61,6 @@ export default {
      * Defines a required employee.
      */
     employee: {
-      type: Object,
       required: true
     },
 

@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <b-modal
     id="orgUnitRename"
@@ -57,6 +59,7 @@ import ModalBase from '@/mixins/ModalBase'
 import { mapGetters } from 'vuex'
 import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
 import MoEntryBase from '@/components/MoEntry/MoEntryBase'
+import moment from 'moment'
 
 export default {
   extends: MoEntryBase,
@@ -83,7 +86,9 @@ export default {
           name: '',
           uuid: '',
           clamp: true,
-          validity: {}
+          validity: {
+            from: moment(new Date()).format('YYYY-MM-DD')
+          }
         }
       },
       isLoading: false
@@ -153,7 +158,7 @@ export default {
     resetData () {
       this.rename.data.name = ''
       this.rename.data.uuid = this.original && this.original.uuid
-      this.rename.data.validity = {}
+      this.rename.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
     },
 
     /**

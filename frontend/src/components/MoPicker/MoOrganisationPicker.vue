@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 /**
  * This component has been hidden. It, however, has sideeffects
  * which currently prohibit the component from beeing removed

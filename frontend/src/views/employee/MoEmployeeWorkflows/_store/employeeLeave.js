@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import { getField, updateField } from 'vuex-map-fields'
 import Service from '@/api/HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
-    employee: {},
+    employee: null,
     leave: {},
     isLoading: false,
     backendValidationError: null

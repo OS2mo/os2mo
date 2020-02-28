@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import i18n from '../i18n.js'
 
 const getMessage = (field, args, error_data) => {

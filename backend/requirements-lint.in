@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+flake8
+flake8-module-name
+flake8-bugbear

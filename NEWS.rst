@@ -1,3 +1,23 @@
+Version 1.5.0, 2020-02-27
+=========================
+
+New features
+------------
+
+* #33975: Set today's date as default for datepicker.
+* #32045: Fixed employee search for the first key press.
+* #34444: Add tab routing for employee and organization.
+* #31732: Adjust table columns.
+* #34157: Add 10 generic extension fields to engagement objects
+
+Internal changes
+----------------
+
+* #34430: Update LoRa dependency to 1.6.1
+* #27622: Update service_person_stamdata_udvidet dependency to 0.2.0
+* #34481: Add new defaults to config database
+
+
 Version 1.4.0, 2020-01-22
 =========================
 

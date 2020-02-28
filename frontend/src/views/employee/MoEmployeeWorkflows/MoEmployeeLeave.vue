@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="createLeave">
     <mo-leave-entry v-model="leave"/>

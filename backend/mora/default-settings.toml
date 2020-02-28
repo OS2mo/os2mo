@@ -1,8 +1,5 @@
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 
 # DO NOT CHANGE. This file contains the default configuration for OS2MO.
@@ -112,8 +109,8 @@ modules = []
 
 
 [log]
-activity_log_path = "/var/log/os2mo/activity.log"
-trace_log_path = "/var/log/os2mo/trace.log"
+log_path = ""
+log_level = "WARNING"
 
 
 [external_integration]

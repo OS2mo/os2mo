@@ -1,9 +1,9 @@
-Client-side codebase
+Arkitektur og Design
 ====================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Indhold:
    :glob:
 
-   vuedoc/*
+   architecture/*

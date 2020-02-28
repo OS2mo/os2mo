@@ -1,10 +1,6 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 # OS2MO 2.0 documentation build configuration file, created by
 # sphinx-quickstart on Wed Aug 23 09:52:25 2017.
 #
@@ -83,6 +79,8 @@ MOCK_MODULES = [
     'pika.exceptions',
     'toml',
 
+    'mora.log',
+
     'onelogin',
     'onelogin.saml2',
     'onelogin.saml2.auth',
@@ -141,7 +139,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
     'flask': ('http://flask.pocoo.org/docs/', None),
-    'mox': ('https://mox.readthedocs.io/en/latest', None),
+    'mox': ('https://mox.readthedocs.io/en/development/', None),
 }
 
 primary_domain = 'py'

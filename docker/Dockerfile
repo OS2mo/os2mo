@@ -1,9 +1,5 @@
-# Copyright (C) 2020 Magenta ApS, http://magenta.dk.
-# Contact: info@magenta.dk.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 ################################################################################
 # Changes to this file requires approval from Labs. Please add a person from   #
@@ -79,12 +75,10 @@ RUN set -ex \
 COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
 COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
-COPY backend/requirements-docs.txt /code/backend/requirements-docs.txt
 RUN pip3 install \
   -r backend/requirements.txt \
   -r backend/requirements-test.txt \
-  -r backend/requirements-lint.txt \
-  -r backend/requirements-docs.txt
+  -r backend/requirements-lint.txt
 
 
 # CI settings

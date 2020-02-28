@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 /**
  * imports icon component and globally available icons.
  * Find more here: https://fontawesome.com/icons?d=gallery

@@ -1,10 +1,6 @@
-#
-# Copyright (c) Magenta ApS
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 import abc
 
 import json
@@ -193,7 +189,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 )
             except json.JSONDecodeError:
                 flask.current_app.logger.warning(
-                    'invalid integation data for function %s!',
+                    'invalid integration data for function %s!',
                     funcid,
                 )
                 r[mapping.INTEGRATION_DATA] = None

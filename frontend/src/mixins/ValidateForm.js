@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 export default {
   /**
    * Requesting a new validator scope to its children

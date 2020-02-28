@@ -1,9 +1,5 @@
-# Copyright (C) 2020 Magenta ApS, http://magenta.dk.
-# Contact: info@magenta.dk.
-#
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 
 ################################################################################
 # Changes to this file requires approval from Labs. Please add a person from   #
@@ -54,19 +50,18 @@ python-lint:
     - pip3 install -r backend/requirements-lint.txt
   script:
     - cd backend
+    - flake8 --version
     - flake8
 
 docs:
   <<: *lint-default
   before_script:
-    - pip3 install -r backend/requirements-docs.txt
+    - pip3 install -r docs/requirements-docs.txt
   script:
     - sphinx-build -n -W --keep-going docs /doc-build
   artifacts:
     paths:
       - /doc-build
-  # TODO: remove this when docs build has been fixed
-  allow_failure: true
 
 docker-lint:
   <<: *lint-default
@@ -76,6 +71,21 @@ docker-lint:
     - apt-get -y install --no-install-recommends git
   script:
     - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
+
+REUSE-compliance:
+  <<: *lint-default
+  image: fsfe/reuse:latest
+  script:
+    - reuse lint
+
+shell-lint:
+  <<: *lint-default
+  image: koalaman/shellcheck-alpine:latest
+  before_script:
+    - apk update
+    - apk add git
+  script:
+    - git ls-files --exclude='*.sh' --ignored | xargs shellcheck
 
 
 # Build stage
@@ -138,7 +148,7 @@ unit-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:1.6.0
+    - name: magentaaps/lora:1.7.0
       alias: mox
       command: [
       "gunicorn",

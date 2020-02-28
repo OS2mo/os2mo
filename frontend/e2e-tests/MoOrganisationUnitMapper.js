@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+// SPDX-License-Identifier: MPL-2.0
+
 import { ClientFunction, Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'

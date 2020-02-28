@@ -1,14 +1,13 @@
-Technical Documentation
-=======================
+Udvikler- og brugerguide
+========================
+
+Denne sektion indeholder information for udviklere og brugere af systemet
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Indhold:
    :glob:
 
-   cli
-   dev/*
-   api
-   backend
-   frontend
-   amqp
+   dev/getting-started
+   dev/tests
+   dev/conventions

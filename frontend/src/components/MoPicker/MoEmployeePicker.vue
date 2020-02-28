@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <label v-if="!noLabel">{{$tc('input_fields.employee')}}</label>
@@ -92,10 +94,6 @@ export default {
     }
   },
 
-  created () {
-    this.item = this.value
-  },
-
   methods: {
     /**
      * Get employee name.
@@ -115,6 +113,10 @@ export default {
           vm.items = response
         })
     }
+  },
+
+  created () {
+    this.item = this.value
   }
 }
 </script>

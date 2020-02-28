@@ -1,3 +1,5 @@
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-collapse
@@ -103,7 +105,6 @@ export default {
      * Defines a required uuid.
      */
     uuid: {
-      type: String,
       required: true
     },
 
