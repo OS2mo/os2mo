@@ -12,6 +12,8 @@ Bug fixes
 Internal changes
 ----------------
 
+* #34847: Update documentation for SAML auth
+
 
 Version 1.6.0, 2020-03-24
 =========================
