@@ -58,6 +58,7 @@ idp_metadata_url = "/url/to/sso/metadata"
 idp_metadata_file = ""
 idp_insecure = false
 force_https = false
+sp_domain = ""
 name_id_format = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
 lowercase_urlencoding = true
 want_name_id = true

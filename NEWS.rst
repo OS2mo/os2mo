@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #34943: Add support for specifying SP domain for SAML auth
+
 Bug fixes
 ---------
 
