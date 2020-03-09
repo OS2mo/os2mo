@@ -12,7 +12,8 @@
     "ORGANISATION_RENAME": "Organisationsenheden med UUID {uuid} er blevet omdøbt.",
     "ORGANISATION_MOVE": "Organisationsenheden med UUID {uuid} er blevet flyttet",
     "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet.",
-    "ORGANISATION_EXTERNAL_FUNCTION": "{message}"
+    "ORGANISATION_EXTERNAL_FUNCTION": "{message}",
+    "READ_ONLY_MODE": "OS2mo kører i øjeblikket i skrivebeskyttet tilstand"
   },
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",
@@ -46,7 +47,8 @@
     "V_INVALID_ADDRESS_PNUMBER": "Feltet skal indeholde 10 cifre.",
     "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en gyldig webadresse.",
     "E_UNKNOWN": "Uspecificeret fejl",
-    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}"
+    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}",
+    "E_READ_ONLY": "OS2mo kører i øjeblikket i skrivebeskyttet tilstand"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",

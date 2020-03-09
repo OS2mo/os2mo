@@ -15,6 +15,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.employee.new_employee')"
         icon="user-plus"
         v-b-modal.employeeCreate
+        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -22,6 +23,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.employee.leave')"
         icon="user-md"
         v-b-modal.employeeLeave
+        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -29,6 +31,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.employee.move_engagement')"
         icon="user-tag"
         v-b-modal.employeeMove
+        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -36,6 +39,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.employee.move_many_engagements')"
         icon="users"
         v-b-modal.employeeMoveMany
+        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -43,6 +47,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.employee.terminate_employee')"
         icon="user-times"
         v-b-modal.employeeTerminate
+        :disabled="isDisabled"
       />
     </mo-workflow>
 
@@ -151,6 +156,13 @@ export default {
       showMove: false,
       showMoveMany: false,
       showTerminate: false
+    }
+  },
+
+  computed: {
+    isDisabled () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.read_only
     }
   },
 

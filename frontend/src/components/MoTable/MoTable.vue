@@ -75,6 +75,7 @@ SPDX-License-Identifier: MPL-2.0
               class="terminate-entry"
               :type="contentType"
               :content="c"
+              :disabled="isButtonDisabled"
               @submit="$emit('update')"
             />
             <mo-entry-edit-modal
@@ -85,6 +86,7 @@ SPDX-License-Identifier: MPL-2.0
               :entry-component="editComponent"
               :content="c"
               :content-type="contentType"
+              :disabled="isButtonDisabled"
               @submit="$emit('update')"
             />
           </td>
@@ -194,7 +196,13 @@ export default {
         default:
           return true
       }
+    },
+
+    isButtonDisabled () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.read_only
     }
+
   },
 
   watch: {
