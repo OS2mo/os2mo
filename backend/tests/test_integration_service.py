@@ -9,7 +9,7 @@ from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.configuration_options.get_configuration',
+@patch('mora.conf_db.get_configuration',
        new=lambda *x: {})
 class Tests(util.LoRATestCase):
     maxDiff = None

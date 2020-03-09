@@ -19,7 +19,7 @@ from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
-from . import configuration_options
+from . import configuration
 from .validation import validate
 
 blueprints = (
@@ -36,6 +36,6 @@ blueprints = (
     org.blueprint,
     orgunit.blueprint,
     related.blueprint,
-    configuration_options.blueprint,
+    configuration.blueprint,
     validate.blueprint,
 )

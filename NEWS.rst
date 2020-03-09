@@ -8,6 +8,7 @@ New features
   release notes.
 * #33525: Implement support for KLE annotations in OS2mo
 * #33262: Employee list output now includes CPR numbers
+* #34448: Implement read-only mode for OS2mo UI, toggled through an API.
 
 Bug fixes
 ---------

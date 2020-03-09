@@ -12,7 +12,7 @@ This section describes how to interact with related units.
 import flask
 
 from . import handlers
-from .. import common
+from .. import common, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -41,6 +41,7 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
 
 @blueprint.route('/ou/<uuid:origin>/map', methods=['POST'])
 @util.restrictargs()
+@readonly.check_read_only
 def map_org_units(origin):
     """Mark the given organisational units as related.
 

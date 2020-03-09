@@ -8,7 +8,7 @@ import flask
 import flask_saml_sso
 import werkzeug
 
-from mora import __version__, log
+from mora import __version__, log, readonly
 from mora.triggers.internal import amqp_trigger
 from mora import health
 from . import exceptions
@@ -50,6 +50,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
     app.register_blueprint(health.blueprint)
+    app.register_blueprint(readonly.blueprint)
 
     for blueprint in service.blueprints:
         blueprint.before_request(flask_saml_sso.check_saml_authentication)
