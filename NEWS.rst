@@ -3,6 +3,7 @@ In development
 
 New features
 ------------
+* #27622: enable use of serviceplatformen/cpr exttest
 
 * #28808: UI now shows the versions of OS2mo and LoRa, with links to
   release notes.

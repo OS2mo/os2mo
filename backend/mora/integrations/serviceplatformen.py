@@ -7,10 +7,9 @@ import service_person_stamdata_udvidet
 import pathlib
 import requests
 import flask
-
 from .. import util
-from .. import settings
 from .. import exceptions
+from .. import settings
 
 
 def is_dummy_mode(app):
@@ -22,24 +21,24 @@ def is_dummy_mode(app):
         # source code, wheras that's a big no-no in production
         return True
 
-    return app.config['DUMMY_MODE']
+    return settings.config['dummy_mode']
 
 
 def check_config(app):
     if is_dummy_mode(app):
         return True
 
-    config = app.config
+    config = settings.config
 
     missing = [
         k
         for k in (
-            "SP_SERVICE_UUID",
-            "SP_SERVICE_AGREEMENT_UUID",
-            "SP_MUNICIPALITY_UUID",
-            "SP_SYSTEM_UUID",
+            "uuid",  # "SP_SERVICE_UUID",
+            "agreement_uuid",  # "SP_SERVICE_AGREEMENT_UUID",
+            "municipality_uuid",  # "SP_MUNICIPALITY_UUID",
+            "system_uuid",  # "SP_SYSTEM_UUID",
         )
-        if not util.is_uuid(config.get(k))
+        if not util.is_uuid(config["service_platformen"][k])
     ]
 
     if missing:
@@ -49,29 +48,23 @@ def check_config(app):
             )
         )
 
-    SP_CERTIFICATE_PATH = config.get("SP_CERTIFICATE_PATH", "")
+    SP_CERTIFICATE_PATH = config["service_platformen"]["certificate_path"]
     if not SP_CERTIFICATE_PATH:
         raise ValueError(
-            "Serviceplatformen certificate path must be configured: "
-            "SP_CERTIFICATE_PATH"
+            "Serviceplatformen certificate path must be configured"
         )
 
     p = pathlib.Path(SP_CERTIFICATE_PATH)
     if not p.exists():
-        raise FileNotFoundError(
-            "Serviceplatformen certificate not found: "
-            "SP_CERTIFICATE_PATH"
-        )
+        raise FileNotFoundError("Serviceplatformen certificate not found")
     if not p.stat().st_size:
-        raise ValueError(
-            "Serviceplatformen certificate can not be empty: "
-            "SP_CERTIFICATE_PATH"
-        )
+        raise ValueError("Serviceplatformen certificate can not be empty")
 
     return True
 
 
 def get_citizen(cpr):
+    config = settings.config
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
@@ -79,15 +72,16 @@ def get_citizen(cpr):
         return _get_citizen_stub(cpr)
     else:
         sp_uuids = {
-            'service_agreement': settings.SP_SERVICE_AGREEMENT_UUID,
-            'user_system': settings.SP_SYSTEM_UUID,
-            'user': settings.SP_MUNICIPALITY_UUID,
-            'service': settings.SP_SERVICE_UUID
+            'service_agreement': config["service_platformen"]["agreement_uuid"],
+            'user_system': config["service_platformen"]["system_uuid"],
+            'user': config["service_platformen"]["municipality_uuid"],
+            'service': config["service_platformen"]["uuid"]
         }
-        certificate = settings.SP_CERTIFICATE_PATH
+        certificate = config["service_platformen"]["certificate_path"]
+        sp_production = config["service_platformen"]["sp_production"]
         try:
             return service_person_stamdata_udvidet.get_citizen(
-                sp_uuids, certificate, cpr)
+                sp_uuids, certificate, cpr, production=sp_production)
         except requests.HTTPError as e:
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
