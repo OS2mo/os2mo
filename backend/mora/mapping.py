@@ -41,6 +41,11 @@ ADDRESS_KEY = 'Adresse'
 ADDRESS_TYPE = 'address_type'
 VISIBILITY = 'visibility'
 
+# KLE
+KLE_KEY = 'KLE'
+KLE_ASPECT = 'kle_aspect'
+KLE_NUMBER = 'kle_number'
+
 # Employee
 CPR_NO = 'cpr_no'
 
@@ -97,6 +102,7 @@ RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
     'association': ASSOCIATION_KEY.lower(),
     'it': ITSYSTEM_KEY.lower(),
+    'kle': KLE_KEY.lower(),
     'role': ROLE_KEY.lower(),
     'address': ADDRESS_KEY.lower(),
     'manager': MANAGER_KEY.lower(),
@@ -296,6 +302,10 @@ MANAGER_TYPE_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
+KLE_ASPECT_FIELD = FieldTuple(
+    path=('relationer', 'opgaver'),
+    type=FieldTypes.ADAPTED_ZERO_TO_MANY)
+
 RESPONSIBILITY_FIELD = FieldTuple(
     path=('relationer', 'opgaver'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
@@ -441,4 +451,13 @@ ADDRESS_FIELDS = {
     ADDRESS_TYPE_FIELD,
     # Hard-coded here for now
     VISIBILITY_FIELD
+}
+
+KLE_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    KLE_ASPECT_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
 }

@@ -12,6 +12,7 @@ from . import exports
 from . import facet
 from . import integration_data
 from . import itsystem
+from . import kle
 from . import leave  # noqa
 from . import manager  # noqa
 from . import org
@@ -31,6 +32,7 @@ blueprints = (
     facet.blueprint,
     integration_data.blueprint,
     itsystem.blueprint,
+    kle.blueprint,
     org.blueprint,
     orgunit.blueprint,
     related.blueprint,
