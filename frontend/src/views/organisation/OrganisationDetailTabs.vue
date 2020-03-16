@@ -87,6 +87,18 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
+      <b-tab @click="navigateToTab('#kle')" href="#kle" :title="$t('tabs.organisation.kle')">
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['kle']"
+          content-type="kle"
+          :columns="kle"
+          @show="loadContent('kle', $event)"
+          :entry-component="timemachineFriendly ? undefined : components.kle"
+        />
+      </b-tab>
+
       <b-tab @click="navigateToTab('#relateret')" href="#relateret" :title="$t('tabs.organisation.related')">
         <mo-table-detail
           type="ORG_UNIT"
@@ -106,7 +118,7 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation detail tabs component.
  */
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
-import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
@@ -134,7 +146,7 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#org-unit', '#adresser', '#engagementer', '#tilknytninger', '#it', '#roller', '#ledere', '#relateret'],
+      tabs: ['#org-unit', '#adresser', '#engagementer', '#tilknytninger', '#it', '#roller', '#ledere', '#kle', '#relateret'],
       // keep track of the latest tap shown
       latestTab: [],
       /**
@@ -160,6 +172,10 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' }
       ],
+      kle: [
+        { label: 'kle_aspect', data: 'kle_aspect' },
+        { label: 'kle_number', data: 'kle_number' }
+      ],
       related_unit: [
         // NB: the backend always returns both units in a mapping,
         // ordered by uuid; one of these is always _this_ unit, but we
@@ -177,7 +193,8 @@ export default {
         orgUnit: MoOrganisationUnitEntry,
         address: MoOrgUnitAddressEntry,
         itSystem: MoItSystemEntry,
-        manager: MoManagerEntry
+        manager: MoManagerEntry,
+        kle: MoKLEEntry
       }
     }
   },

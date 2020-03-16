@@ -24,5 +24,7 @@
   "start_date": "Startdato",
   "user_key": "Kontonavn",
   "user_name": "Brugernavn",
-  "value": "Værdi"
+  "value": "Værdi",
+  "kle_aspect": "@:shared.kle_aspect",
+  "kle_number": "@:shared.kle_number"
 }
