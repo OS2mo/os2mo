@@ -87,7 +87,9 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
-      <b-tab @click="navigateToTab('#kle')" href="#kle" :title="$t('tabs.organisation.kle')">
+      <b-tab @click="navigateToTab('#kle')" href="#kle"
+             :title="$t('tabs.organisation.kle')"
+             :disabled="!orgUnitInfo.user_settings.orgunit.show_kle">
         <mo-table-detail
           type="ORG_UNIT"
           :uuid="uuid"
