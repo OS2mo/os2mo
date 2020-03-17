@@ -39,5 +39,7 @@
   "manager_responsibility": "@:shared.manager_responsibility",
   "select_unit": "Angiv enhed",
   "select_super_unit": "Angiv overenhed",
-  "search_for_name_or_cpr": "Søg på medarbejderens navn eller CPR-nummer"
+  "search_for_name_or_cpr": "Søg på medarbejderens navn eller CPR-nummer",
+  "kle_aspect": "@:shared.kle_aspect",
+  "kle_number": "@:shared.kle_number"
 }

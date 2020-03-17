@@ -34,6 +34,8 @@ available options are:
   in the top of the page.
 * ``show_roles`` Indicates whether the column ``Roller`` should be shown in
   the OU overview
+* ``show_kle`` Indicates whether the column ``KLE-opmærkninger`` should be
+  shown in the OU overview
 * ``show_time_planning`` Indicates whether the time planning field should be
   enabled for OUs
 * ``show_level`` Indicates whether the level field should be enabled for OUs

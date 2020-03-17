@@ -20,6 +20,7 @@ _OBJECT_TYPES = (
     "employee",
     "engagement",
     "it",
+    "kle",
     "leave",
     "manager",
     "org_unit",

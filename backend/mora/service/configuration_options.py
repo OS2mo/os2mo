@@ -21,6 +21,7 @@ blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
 # verify that there exist default values for all expected keys.
 _DEFAULT_CONF = (
     ('show_roles', 'True'),
+    ('show_kle', 'False'),
     ('show_user_key', 'True'),
     ('show_location', 'True'),
     ('show_time_planning', 'False'),

@@ -1377,6 +1377,12 @@ class Tests(util.LoRATestCase):
                     'uuid': '1f6f34d8-d065-4bb7-9af0-738d25dc0fbf'
                 },
                 {
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                            '/f/kle_number/',
+                    'user_key': 'kle_number',
+                    'uuid': '27935dbb-c173-4116-a4b5-75022315749d'
+                },
+                {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
@@ -1405,6 +1411,12 @@ class Tests(util.LoRATestCase):
                             '/f/org_unit_level/',
                     'user_key': 'org_unit_level',
                     'uuid': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455'
+                },
+                {
+                    'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                            '/f/kle_aspect/',
+                    'user_key': 'kle_aspect',
+                    'uuid': '8a29b2cf-ef98-46f4-9794-0e39354d6ddf'
                 },
                 {
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -1530,6 +1542,7 @@ class Tests(util.LoRATestCase):
                     'association': False,
                     'engagement': False,
                     'it': False,
+                    'kle': False,
                     'leave': False,
                     'manager': False,
                     'org_unit': False,
@@ -1547,6 +1560,7 @@ class Tests(util.LoRATestCase):
                     'association': True,
                     'engagement': True,
                     'it': True,
+                    'kle': False,
                     'leave': True,
                     'manager': True,
                     'org_unit': False,
@@ -1564,6 +1578,7 @@ class Tests(util.LoRATestCase):
                     'association': True,
                     'engagement': True,
                     'it': False,
+                    'kle': False,
                     'leave': False,
                     'manager': True,
                     'org_unit': True,
@@ -1581,6 +1596,7 @@ class Tests(util.LoRATestCase):
                     'association': False,
                     'engagement': False,
                     'it': False,
+                    'kle': False,
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
@@ -1598,6 +1614,7 @@ class Tests(util.LoRATestCase):
                     'association': False,
                     'engagement': False,
                     'it': False,
+                    'kle': False,
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
@@ -1615,6 +1632,7 @@ class Tests(util.LoRATestCase):
                     'association': False,
                     'engagement': False,
                     'it': False,
+                    'kle': False,
                     'leave': False,
                     'manager': False,
                     'org_unit': True,
@@ -1632,6 +1650,7 @@ class Tests(util.LoRATestCase):
                     'association': False,
                     'engagement': False,
                     'it': True,
+                    'kle': False,
                     'leave': False,
                     'manager': False,
                     'org_unit': True,

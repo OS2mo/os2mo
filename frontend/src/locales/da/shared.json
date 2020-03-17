@@ -36,5 +36,8 @@
   "future": "Fremtid",
   "query": "Forespørgsel | Forespørgsler",
   "time_planning": "Tidsregistrering",
-  "manager_responsibility": "Lederansvar"
+  "manager_responsibility": "Lederansvar",
+  "kle_aspect": "KLE aspekt",
+  "kle_number": "KLE nummer",
+  "kle": "KLE-opmærkning | KLE-opmærkninger"
 }
