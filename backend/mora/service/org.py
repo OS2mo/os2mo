@@ -39,6 +39,7 @@ class ConfiguredOrganisation:
 
         elif len(orglist) == 1:
             cls.organisation = orglist[0]
+            cls.valid = True
 
 
 def get_configured_organisation(uuid=None):
