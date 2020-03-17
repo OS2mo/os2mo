@@ -14,6 +14,16 @@ SPDX-License-Identifier: MPL-2.0
         <component :is="m.template"/>
       </div>
     </div>
+    <div class="version">
+      <div>
+        <a href="https://os2mo.readthedocs.io/en/development/news.html">
+          {{this.mo_version}}</a>
+      </div>
+      <div>
+        <a href="https://mox.readthedocs.io/en/development/dev/news/">
+          {{this.lora_version}}</a>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,16 +32,25 @@ SPDX-License-Identifier: MPL-2.0
  * A landing page component.
  */
 import Frontpage from '@/api/Frontpage'
+import Version from '@/api/Version'
 
 export default {
   data () {
     return {
-      menu: []
+      menu: [],
+      mo_version: null,
+      lora_version: null
     }
   },
 
   created () {
     this.menu = Frontpage.getMenu()
+
+    Version.get().then(response => {
+      const version_dict = response.data
+      this.mo_version = `OS2mo ${version_dict['mo_version']}`
+      this.lora_version = `LoRa ${version_dict['lora_version']}`
+    })
   },
 
   methods: {
@@ -53,7 +72,13 @@ export default {
     margin-top: 10em;
   }
 
-  h1,h4 {
+  .version {
+    position: absolute;
+    bottom: 1em;
+    left: 1em;
+  }
+
+  h1, h4 {
     color: #ffffff;
   }
 </style>
