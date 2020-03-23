@@ -14,6 +14,8 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import enum
+import functools
+
 import uuid
 
 import flask
@@ -363,8 +365,11 @@ def list_employees(orgid):
                 query[i] = '%' + query[i] + '%'
             kwargs['vilkaarligattr'] = query
 
+    get_full_employee = functools.partial(get_one_employee,
+                                          details=EmployeeDetails.FULL)
+
     return flask.jsonify(
-        c.bruger.paged_get(get_one_employee, **kwargs)
+        c.bruger.paged_get(get_full_employee, **kwargs)
     )
 
 
