@@ -13,7 +13,7 @@ SPDX-License-Identifier: MPL-2.0
         <button
           @click="onSubmit"
           class="mt-2 btn btn-primary btn-submit"
-          :disabled="!isDirty"
+          :disabled="!isDirty || isReadOnly"
         >
           <icon name="sitemap"/>
           {{$t('buttons.save')}}
@@ -80,6 +80,11 @@ export default {
         this.$store.commit('organisationMapper/SET_DESTINATION', val)
         return this.$store.getters['organisationMapper/destination']
       }
+    },
+
+    isReadOnly () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.read_only
     },
 
     ...mapGetters({

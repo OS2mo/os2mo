@@ -16,9 +16,8 @@ import jinja2
 import requests
 import requests_mock
 
-from mora import triggers, app, lora, settings, service
+from mora import triggers, app, lora, settings, service, conf_db
 from mora.exceptions import ImproperlyConfigured
-from mora.service import configuration_options
 from mora.util import restrictargs
 
 
@@ -634,18 +633,18 @@ class ConfigTestCase(LoRATestCase):
     """
 
     def set_global_conf(self, conf):
-        configuration_options.set_global_conf(conf)
+        conf_db.set_global_conf(conf)
 
     @classmethod
     def setUpClass(cls):
-        configuration_options.testdb_setup()
+        conf_db.testdb_setup()
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        configuration_options.testdb_teardown()
+        conf_db.testdb_teardown()
         super().tearDownClass()
 
     def setUp(self):
-        configuration_options.testdb_reset()
+        conf_db.testdb_reset()
         super().setUp()

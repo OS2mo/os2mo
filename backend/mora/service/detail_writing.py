@@ -19,7 +19,7 @@ import typing
 import flask
 
 from . import handlers
-from .. import exceptions
+from .. import exceptions, readonly
 from .. import util
 from .. import mapping
 
@@ -49,6 +49,7 @@ def handle_requests(
 
 @blueprint.route('/details/create', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def create():
     """Creates new relations on employees and units
 
@@ -426,6 +427,7 @@ def create():
 
 @blueprint.route('/details/edit', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def edit():
     """Edits a relation or attribute on an employee or unit
 
@@ -941,6 +943,7 @@ def edit():
 
 @blueprint.route('/details/terminate', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def terminate():
     '''Terminate a relation as of a given day.
 

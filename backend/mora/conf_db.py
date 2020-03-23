@@ -1,20 +1,16 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import logging
+
 import psycopg2
 from psycopg2.extras import execute_values
 from psycopg2.sql import SQL, Identifier
-import flask
-import logging
+
 from mora import exceptions
 from mora.settings import config
-from .. import util
 
 logger = logging.getLogger("mo_configuration")
-
-blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
-                            url_prefix='/service')
-
 
 # This is the default key-value configuration pairs. They are used to
 # initialize the configuration database through and in health_check to
@@ -29,6 +25,7 @@ _DEFAULT_CONF = (
     ('show_primary_engagement', 'False'),
     ('show_primary_association', 'False'),
     ('show_org_unit_button', 'False'),
+    ('read_only', 'False'),
 )
 
 
@@ -118,7 +115,7 @@ def _insert_missing_defaults():
     missing = _find_missing_default_keys()
     if missing:
         missing_values = filter(lambda x: x[0] in missing, _DEFAULT_CONF)
-        logger.info("Inserting default configuration values {}.".format(
+        logger.info("Inserting missing default configuration values [{}].".format(
             ", ".join(missing)))
         set_global_conf(missing_values)
 
@@ -315,89 +312,3 @@ def set_configuration(configuration, unitid=None):
     finally:
         conn.close()
     return True
-
-
-@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
-@util.restrictargs()
-def set_org_unit_configuration(unitid):
-    """Set a configuration setting for an ou.
-
-    .. :quickref: Unit; Create configuration setting.
-
-    :statuscode 201: Setting created.
-
-    :param unitid: The UUID of the organisational unit to be configured.
-
-    :<json object conf: Configuration option
-
-    .. sourcecode:: json
-
-      {
-        "org_units": {
-          "show_location": "True"
-        }
-      }
-
-    :returns: True
-    """
-    configuration = flask.request.get_json()
-    return flask.jsonify(set_configuration(configuration, unitid))
-
-
-@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['GET'])
-@util.restrictargs()
-def get_org_unit_configuration(unitid):
-    """Read configuration settings for an ou.
-
-    .. :quickref: Unit; Read configuration setting.
-
-    :statuscode 200: Setting returned.
-
-    :param unitid: The UUID of the organisational unit.
-
-    :returns: Configuration settings for unit
-    """
-    configuration = get_configuration(unitid)
-    return flask.jsonify(configuration)
-
-
-@blueprint.route('/configuration', methods=['POST'])
-@util.restrictargs('at')
-def set_global_configuration():
-    """Set or modify a gloal configuration setting.
-
-    .. :quickref: Set or modify a global configuration setting.
-
-    :statuscode 201: Setting created.
-
-    :<json object conf: Configuration option
-
-    .. sourcecode:: json
-
-      {
-        "org_units": {
-          "show_roles": "False"
-        }
-      }
-
-    :returns: True
-    """
-    configuration = flask.request.get_json()
-    return flask.jsonify(set_configuration(configuration))
-
-
-@blueprint.route('/configuration', methods=['GET'])
-@util.restrictargs('at')
-def get_global_configuration():
-    """Read configuration settings for an ou.
-
-    .. :quickref: Unit; Read configuration setting.
-
-    :statuscode 200: Setting returned.
-    :statuscode 404: No such unit found.
-
-    :returns: Global configuration settings
-    """
-
-    configuration = get_configuration()
-    return flask.jsonify(configuration)
