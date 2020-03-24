@@ -87,6 +87,8 @@ agreement_uuid = ""
 municipality_uuid = ""
 system_uuid = ""
 certificate_path = ""
+# production flag for sp integration module
+sp_production = true
 
 
 [configuration.database]
