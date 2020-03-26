@@ -13,7 +13,7 @@ Files: backend/tests/integration_test_data/* backend/tests/fixtures/* backend/te
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
 
-Files: *.json *.xml *.rst *.odt *.pdf *.md *.docx *.png *.html *.svg *.ico
+Files: *.json *.xml *.rst *.odt *.pdf *.md *.docx *.png *.html *.svg *.ico *.drawio
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
 

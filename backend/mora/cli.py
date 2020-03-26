@@ -107,7 +107,7 @@ def wait_for_rabbitmq(seconds):
     _wait_for_service(
         "rabbitmq",
         connector,
-        pika.exceptions.ConnectionClosed,
+        pika.exceptions.AMQPConnectionError,
         seconds,
     )
 
