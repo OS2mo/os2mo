@@ -94,6 +94,7 @@ class ErrorCodes(Enum):
     E_NO_LOCAL_MUNICIPALITY = 400, "No local municipality found."
     E_SIZE_MUST_BE_POSITIVE = 400, "Size must be positive."
     E_TOO_MANY_RESULTS = 400, "Amount of results exceeds limit."
+    E_READ_ONLY = 400, "OS2mo is in read-only mode"
 
     # Misc
     E_INCONSISTENT_SETTINGS = 400, "Inconsistent global settings."

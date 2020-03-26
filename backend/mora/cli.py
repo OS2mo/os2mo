@@ -18,9 +18,8 @@ import psycopg2
 import sqlalchemy
 import sys
 
-from . import settings
+from . import settings, conf_db
 from . import app as mora_app
-from .service import configuration_options
 
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ def initdb(wait):
 
     time_left = _wait_for_service(
         "Configuration database",
-        configuration_options.create_db_table,
+        conf_db.create_db_table,
         psycopg2.OperationalError,
         wait,
     )
@@ -78,7 +77,7 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
 
 @group.command()
 def check_configuration_db_status():
-    success, error_msg = configuration_options.health_check()
+    success, error_msg = conf_db.health_check()
     if success:
         logger.info("Configuration database passed health check")
     else:
@@ -108,7 +107,7 @@ def wait_for_rabbitmq(seconds):
     _wait_for_service(
         "rabbitmq",
         connector,
-        pika.exceptions.ConnectionClosed,
+        pika.exceptions.AMQPConnectionError,
         seconds,
     )
 

@@ -65,14 +65,14 @@ class SessionDatabaseHealthTests(util.TestCase):
 
 
 class ConfigurationDatabaseHealthTests(util.TestCase):
-    @patch("mora.health.configuration_options.health_check", new=lambda: (False, ""))
+    @patch("mora.health.conf_db.health_check", new=lambda: (False, ""))
     def test_configuration_database_returns_false_if_health_check_fails(self):
 
         actual = health.configuration_database()
 
         self.assertEqual(False, actual)
 
-    @patch("mora.health.configuration_options.health_check", new=lambda: (True, ""))
+    @patch("mora.health.conf_db.health_check", new=lambda: (True, ""))
     def test_configuration_database_returns_false_if_health_check_succeeds(self):
 
         actual = health.configuration_database()

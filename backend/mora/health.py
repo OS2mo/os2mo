@@ -13,9 +13,8 @@ from flask_saml_sso.health import (
     session_database as session_database_health,
     idp as idp_health,
 )
-from mora import lora, util
+from mora import lora, util, conf_db
 from mora.exceptions import HTTPException
-from mora.service import configuration_options
 from mora.settings import config
 from mora.triggers.internal import amqp_trigger
 
@@ -99,7 +98,7 @@ def configuration_database():
     Check if configuration database is reachable and initialized with default data
     :return: True if reachable and initialized. False if not.
     """
-    healthy, msg = configuration_options.health_check()
+    healthy, msg = conf_db.health_check()
     if not healthy:
         logger.critical(msg)
     return healthy

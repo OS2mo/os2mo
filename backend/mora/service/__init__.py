@@ -12,13 +12,14 @@ from . import exports
 from . import facet
 from . import integration_data
 from . import itsystem
+from . import kle
 from . import leave  # noqa
 from . import manager  # noqa
 from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
-from . import configuration_options
+from . import configuration
 from .validation import validate
 
 blueprints = (
@@ -31,9 +32,10 @@ blueprints = (
     facet.blueprint,
     integration_data.blueprint,
     itsystem.blueprint,
+    kle.blueprint,
     org.blueprint,
     orgunit.blueprint,
     related.blueprint,
-    configuration_options.blueprint,
+    configuration.blueprint,
     validate.blueprint,
 )

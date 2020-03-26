@@ -13,6 +13,7 @@ const Service = axios.create({
   baseURL: '/service',
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
+    'X-Client-Name': 'OS2mo-UI',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'

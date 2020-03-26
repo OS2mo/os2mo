@@ -14,6 +14,8 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import enum
+import functools
+
 import uuid
 
 import flask
@@ -21,7 +23,7 @@ import flask
 from . import handlers
 from . import org
 from .validation import validator
-from .. import common
+from .. import common, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -363,8 +365,11 @@ def list_employees(orgid):
                 query[i] = '%' + query[i] + '%'
             kwargs['vilkaarligattr'] = query
 
+    get_full_employee = functools.partial(get_one_employee,
+                                          details=EmployeeDetails.FULL)
+
     return flask.jsonify(
-        c.bruger.paged_get(get_one_employee, **kwargs)
+        c.bruger.paged_get(get_full_employee, **kwargs)
     )
 
 
@@ -425,6 +430,7 @@ def get_employee(id):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -572,6 +578,7 @@ def get_employee_history(employee_uuid):
 
 @blueprint.route('/e/create', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def create_employee():
     """Create a new employee
 

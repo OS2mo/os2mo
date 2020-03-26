@@ -16,9 +16,8 @@ import jinja2
 import requests
 import requests_mock
 
-from mora import triggers, app, lora, settings, service
+from mora import triggers, app, lora, settings, service, conf_db
 from mora.exceptions import ImproperlyConfigured
-from mora.service import configuration_options
 from mora.util import restrictargs
 
 
@@ -106,6 +105,8 @@ def load_sample_structures(minimal=False):
         'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
         'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
         'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
+        'kle_number': '27935dbb-c173-4116-a4b5-75022315749d',
+        'kle_aspect': '8a29b2cf-ef98-46f4-9794-0e39354d6ddf',
         'leave_type': '99a9d0ab-615e-4e99-8a43-bc9d3cea8438',
         'manager_level': 'd56f174d-c45d-4b55-bdc6-c57bf68238b9',
         'manager_type': 'a22f8575-89b4-480b-a7ba-b3f1372e25a4',
@@ -134,6 +135,7 @@ def load_sample_structures(minimal=False):
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
         'tilknyttetenhed_hist': 'daa77a4d-6500-483d-b099-2c2eb7fa7a76',
         'tilknyttetenhed_hum': '5c68402c-2a8d-4776-9237-16349fc72648',
+        'kle': '4bee0127-a3a3-419a-8bcc-d1b81d21c5b5',
     }
 
     users = {
@@ -215,6 +217,12 @@ def load_sample_structures(minimal=False):
             'barselsorlov': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
             # time_planning
             'tjenestetid': 'ebce5c35-4e30-4ba8-9a08-c34592650b04',
+            # kle_aspect
+            'kle_ansvarlig': '9016d80a-c6d2-4fb4-83f1-87ecc23ab062',
+            'kle_indsigt': 'fdbdb18f-5a28-4414-bc43-d5c2b70c0510',
+            'kle_udfoerende': 'f9748c65-3354-4682-a035-042c534c6b4e',
+            # kle_number
+            'kle_number': 'd7c12965-6207-4c82-88b8-68dbf6667492',
         })
 
         functions.update({
@@ -480,7 +488,7 @@ class _BaseTestCase(flask_testing.TestCase):
         #     'organisation.edit.association': 1,
         # }
         amqp_recieved = Counter(amqp_topics)
-        self.assertEqual(self.amqp_counter, amqp_recieved)
+        self.assertEqual(amqp_recieved, self.amqp_counter)
 
         return actual
 
@@ -583,6 +591,14 @@ class _BaseTestCase(flask_testing.TestCase):
         # Sort all inner lists and compare
         return self.assertNotEqual(expected, actual, message)
 
+    def assertSortedEqual(self, expected, actual, message=None):
+        """Sort all inner-lists before comparison"""
+
+        expected = self.__sort_inner_lists(expected)
+        actual = self.__sort_inner_lists(actual)
+
+        return self.assertEqual(expected, actual, message)
+
 
 class TestCase(_BaseTestCase):
     pass
@@ -617,18 +633,18 @@ class ConfigTestCase(LoRATestCase):
     """
 
     def set_global_conf(self, conf):
-        configuration_options.set_global_conf(conf)
+        conf_db.set_global_conf(conf)
 
     @classmethod
     def setUpClass(cls):
-        configuration_options.testdb_setup()
+        conf_db.testdb_setup()
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        configuration_options.testdb_teardown()
+        conf_db.testdb_teardown()
         super().tearDownClass()
 
     def setUp(self):
-        configuration_options.testdb_reset()
+        conf_db.testdb_reset()
         super().setUp()

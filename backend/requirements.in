@@ -13,4 +13,3 @@ service_person_stamdata_udvidet @ git+git://github.com/magenta-aps/service_perso
 flask_saml_sso @ git+git://github.com/magenta-aps/flask_saml_sso.git@0.8.0#egg=flask_saml_sso
 pika
 toml
-Werkzeug~=0.16.0

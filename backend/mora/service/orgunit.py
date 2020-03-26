@@ -22,12 +22,11 @@ import uuid
 import requests
 import flask
 
-from . import configuration_options
 from . import facet
 from . import handlers
 from . import org
 from .validation import validator
-from .. import common
+from .. import common, conf_db, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -359,7 +358,7 @@ def get_one_orgunit(c, unitid, unit=None,
                 r[mapping.LOCATION] = ''
 
             settings = {}
-            local_settings = configuration_options.get_configuration(unitid)
+            local_settings = conf_db.get_configuration(unitid)
 
             settings.update(local_settings)
             if parent:
@@ -367,7 +366,7 @@ def get_one_orgunit(c, unitid, unit=None,
                 for setting, value in parent_settings.items():
                     settings.setdefault(setting, value)
 
-            global_settings = configuration_options.get_configuration()
+            global_settings = conf_db.get_configuration()
             for setting, value in global_settings.items():
                 settings.setdefault(setting, value)
 
@@ -974,6 +973,7 @@ def list_orgunit_tree(orgid):
 
 @blueprint.route('/ou/create', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1030,6 +1030,7 @@ def create_org_unit():
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
+@readonly.check_read_only
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 

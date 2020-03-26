@@ -16,7 +16,8 @@
     "association": "@:shared.association",
     "roles": "Roller",
     "related": "Relateret",
-    "managers": "Ledere"
+    "managers": "Ledere",
+    "kle": "KLE-opmærkninger"
   },
   "log": {
     "worklog": "Arbejdslog"

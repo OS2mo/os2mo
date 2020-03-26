@@ -1,0 +1,53 @@
+{
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "kle_number",
+                "titel": "KLE nummer",
+                "beskrivelse": "Dette er et KLE nummer",
+                "virkning": {
+                    "from": "1900-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "1900-01-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "27935dbb-c173-4116-a4b5-75022315749d",
+                "virkning": {
+                    "to": "infinity",
+                    "from_included": true,
+                    "from": "2016-01-01 00:00:00+01",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning"
+}

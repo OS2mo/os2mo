@@ -5,6 +5,7 @@ SPDX-License-Identifier: MPL-2.0
     <button
       class="btn btn-outline-primary"
       v-b-modal="nameId"
+      :disabled="disabled"
     >
       <icon name="edit" />
     </button>
@@ -86,6 +87,11 @@ export default {
      * Defines the entryComponent.
      */
     entryComponent: Object,
+
+    /**
+     * Whether the button is disabled
+     */
+    disabled: { type: Boolean, default: false },
 
     /**
      * Defines a required type - employee or organisation unit.

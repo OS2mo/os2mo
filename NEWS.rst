@@ -1,3 +1,16 @@
+Version 1.6.0, 2020-03-24
+=========================
+
+New features
+------------
+* #27622: Enable use of serviceplatformen/cpr exttest
+* #28808: UI now shows the versions of OS2mo and LoRa, with links to
+  release notes.
+* #33525: Implement support for KLE annotations in OS2mo
+* #33262: Employee list output now includes CPR numbers
+* #34448: Implement read-only mode for OS2mo UI, toggled through an API.
+
+
 Version 1.5.0, 2020-02-27
 =========================
 

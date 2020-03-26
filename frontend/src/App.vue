@@ -29,7 +29,14 @@ export default {
   },
 
   created () {
-    this.$store.dispatch(Conf.actions.SET_CONF_DB)
+    this.$store.dispatch(Conf.actions.SET_CONF_DB).then(
+      response => {
+        let conf = this.$store.getters['conf/GET_CONF_DB']
+        if (conf.read_only) {
+          this.$store.commit('log/newWorkLog', { type: 'READ_ONLY_MODE'})
+        }
+      }
+    )
   }
 }
 </script>
