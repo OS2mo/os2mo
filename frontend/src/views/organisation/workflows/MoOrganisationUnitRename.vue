@@ -37,6 +37,9 @@ SPDX-License-Identifier: MPL-2.0
       <div class="alert alert-danger" v-if="compareName">
         {{$t('alerts.error.COMPARE_ORG_RENAME_NAMES')}}
       </div>
+      <div class="alert alert-danger" v-if="backendValidationMessage">
+        {{backendValidationMessage}}
+      </div>
 
       <div class="float-right">
         <button-submit :is-loading="isLoading"/>
@@ -91,7 +94,8 @@ export default {
           }
         }
       },
-      isLoading: false
+      isLoading: false,
+      backendValidationMessage: null
     }
   },
 
@@ -149,6 +153,8 @@ export default {
      * Set original to orgUnit.
      */
     this.original = this.orgUnit
+
+    this.backendValidationMessage = null
   },
 
   methods: {
@@ -175,17 +181,25 @@ export default {
           vm.isLoading = false
           return false
         }
-        OrganisationUnit.rename(this.rename)
-          .then(response => {
-            vm.isLoading = false
-            vm.$refs.orgUnitRename.hide()
-          })
-          .catch(err => {
-            console.log(err)
-            vm.isLoading = false
-          })
+        OrganisationUnit.rename(this.rename).then(this.handle.bind(this))
       } else {
         this.$validator.validateAll()
+      }
+    },
+
+    handle (response) {
+      this.isLoading = false
+      if (response.error) {
+        this.backendValidationMessage =
+          this.$t('alerts.error.' + response.error_key, response)
+
+        if (!this.backendValidationMessage) {
+          this.backendValidationMessage = this.$t('alerts.fallback', response)
+        }
+      } else {
+        this.backendValidationMessage = null
+        this.$refs.orgUnitRename.hide()
+        this.$store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME', value: response })
       }
     }
   }

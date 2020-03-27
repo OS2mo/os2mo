@@ -200,7 +200,6 @@ export default {
   rename (edit) {
     return this.editEntry(edit)
       .then(response => {
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME', value: response.data })
         return response.data
       })
   },
