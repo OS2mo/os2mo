@@ -7,6 +7,8 @@ New features
 Bug fixes
 ---------
 
+* #35531: Fix org unit rename dialog error handling
+
 Internal changes
 ----------------
 
