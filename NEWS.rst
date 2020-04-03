@@ -1,16 +1,10 @@
-In development
-==============
-
-New features
-------------
+Version 1.6.1, 2020-04-03
+=========================
 
 Bug fixes
 ---------
 
 * #35531: Fix org unit rename dialog error handling
-
-Internal changes
-----------------
 
 
 Version 1.6.0, 2020-03-24
