@@ -9,7 +9,7 @@ backcall==0.1.0           # via ipython
 certifi==2019.11.28       # via -c backend/requirements.txt, requests
 chardet==3.0.4            # via -c backend/requirements.txt, requests
 click==7.0                # via -c backend/requirements.txt, flask, flask-shell-ipython
-coverage==5.0.4           # via -r backend/requirements-test.in, pytest-cov
+coverage==5.1             # via -r backend/requirements-test.in, pytest-cov
 decorator==4.4.2          # via -c backend/requirements.txt, ipython, traitlets
 flask-shell-ipython==0.4.1  # via -r backend/requirements-test.in
 flask-testing==0.8.0      # via -r backend/requirements-test.in
