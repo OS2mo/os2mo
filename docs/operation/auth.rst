@@ -66,15 +66,18 @@ The following options will result in paths being generated for
   force_https = true
   sp_domain = "domain.com"
 
-If the IdP is ADFS, the following configuration needs to be set.
-ADFS URL encodes SAML data as lowercase, whereas Python's ``urllib`` encodes
-as uppercase. This results in a signature verification mismatch, so this
-parameter forces ``urllib`` to match ADFS's encoding:
+On Logout-responses ADFS URL-encodes the SAML data as lowercase, whereas
+``urllib`` in Python URL-encodes as uppercase, which can cause a signature
+verification mismatch. To account for this a setting exists to override
+Python's default handling. This override is **active** by default, as the most
+common IdP we encounter is ADFS. In case we're working with a non-ADFS IdP,
+causing signature verification mismatch errors on logout, the override can be
+disabled with the following:
 
 .. code-block:: toml
 
   [saml_sso]
-  lowercase_urlencoding = true
+  lowercase_urlencoding = false
 
 OS2mo currently does not depend on any attributes from the IdP, apart from the
 NameID which is used as the identifier for the logged in user in the upper
@@ -117,7 +120,7 @@ configuration object, so OS2mo performs a mapping between its own configuration
 format and the configuration keys in Flask. For the exact mapping
 between ``flask_saml_sso`` configuration options and OS2mo
 configuration options, please refer to the ``app_config`` object in
-``backend/mora/settings.py``.
+:file:`backend/mora/settings.py`.
 
 Troubleshooting
 ^^^^^^^^^^^^^^^
@@ -142,8 +145,8 @@ When auth fails, in general, two situations can occur.
   a response.
 
   - This can be caused by configuration issues on our end, or the IdP sending
-    an incompatible response
-  - Further troubleshooting requires **looking at our own error log**
+    an incompatible response.
+  - Further troubleshooting requires **looking at our own error log**.
 
 
 Auth issues are manifold and incredibly varied. So it is difficult to create
@@ -169,36 +172,3 @@ Authorization
 -------------
 
 Role-based authorization is currently not implemented for OS2mo
-
-Testing
--------
-
-.. highlight:: shell
-
-The easiest way to set up a SAML Identity Provider for testing and
-development, is to use the ``test-saml-idp`` `docker image`_. First,
-run the ``full-run`` development server::
-
-  ./flask.sh full-run --idp-url http://localhost:8000
-
-Note the port that it uses, typically ``8080``::
-
-  export MO_URL=http://localhost:8080
-
-Then run the docker image::
-
-  docker run --name=testsamlidp_idp \
-    -p 8000:8080 \
-    -e SIMPLESAMLPHP_SP_ENTITY_ID=$MO_URL/saml/metadata/ \
-    -e SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=$MO_URL/saml/acs/ \
-    -e SIMPLESAMLPHP_SP_SINGLE_LOGOUT_SERVICE=$MO_URL/saml/sls/ \
-    -d kristophjunge/test-saml-idp
-
-This will download the image if necessary and start it with port 8080
-redirected to 8000, and configured to use and allow
-``http://localhost:8000`` as the Service Provider.
-
-Two users exist in the test IdP image; ``user1`` and ``user2`` with the
-passwords ``user1pass`` and ``user2pass`` respictively.
-
-.. _docker image: https://hub.docker.com/r/kristophjunge/test-saml-idp/
