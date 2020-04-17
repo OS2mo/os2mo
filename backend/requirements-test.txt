@@ -39,7 +39,7 @@ pyparsing==2.4.6          # via packaging
 pytest-cov==2.8.1         # via -r backend/requirements-test.in
 pytest==5.4.1             # via -r backend/requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -c backend/requirements.txt, freezegun
-python-dotenv==0.12.0     # via -r backend/requirements-test.in
+python-dotenv==0.13.0     # via -r backend/requirements-test.in
 requests-mock==1.7.0      # via -r backend/requirements-test.in
 requests==2.23.0          # via -c backend/requirements.txt, requests-mock
 six==1.14.0               # via -c backend/requirements.txt, freezegun, packaging, python-dateutil, requests-mock, traitlets
