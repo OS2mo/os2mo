@@ -1255,74 +1255,21 @@ class Tests(util.LoRATestCase):
     def test_leave(self):
         self.load_sample_structures()
 
-        func = [
-            {
-                'person': {
-                    'name': 'Anders And',
-                    'givenname': 'Anders',
-                    'surname': 'And',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                },
-                'leave_type': {
-                    'example': None,
-                    'name': 'Barselsorlov',
-                    'scope': None,
-                    'user_key': 'barselsorlov',
-                    'uuid': 'bf65769c-5227-49b4-97c5-642cfbe41aa1',
-                },
-                'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
-                'user_key': 'bvn',
-                "validity": {
-                    'from': '2017-01-01',
-                    'to': None,
-                },
-            },
-        ]
+        expected = [{
+            'engagement': {'uuid': 'd000591f-8705-4324-897a-075e3623f37b'},
+            'leave_type': {'uuid': 'bf65769c-5227-49b4-97c5-642cfbe41aa1'},
+            'person': {'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
+            'user_key': 'bvn',
+            'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
+            'validity': {'from': '2017-01-01', 'to': None}
+        }]
 
-        with self.subTest('user'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/leave',
-                func,
-            )
-
-        with self.subTest('past'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/leave?validity=past',
-                [],
-            )
-
-        with self.subTest('future'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/leave?validity=future',
-                [],
-            )
-
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/leave?at=2016-01-01&validity=future',
-                func,
-            )
-
-        self.assertRequestResponse(
-            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-            '/details/leave',
-            [],
+        actual = self.assertRequest(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            '/details/leave?only_primary_uuid=1',
         )
 
-        self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-            '/details/leave',
-            [],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/00000000-0000-0000-0000-000000000000'
-            '/details/leave',
-            [],
-        )
+        self.assertEqual(expected, actual)
 
     def test_manager(self):
         self.load_sample_structures()

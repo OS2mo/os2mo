@@ -34,6 +34,8 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
+
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
         valid_from, valid_to = util.get_validities(req)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
@@ -53,6 +55,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             brugervendtnoegle=bvn,
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
+            tilknyttedefunktioner=[engagement_uuid],
             funktionstype=leave_type_uuid,
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
@@ -113,6 +116,12 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append((
                 mapping.ORG_FUNK_TYPE_FIELD,
                 {'uuid': util.get_mapping_uuid(data, mapping.LEAVE_TYPE)},
+            ))
+
+        if mapping.ENGAGEMENT in data:
+            update_fields.append((
+                mapping.ASSOCIATED_FUNCTION_FIELD,
+                {'uuid': util.get_mapping_uuid(data, mapping.ENGAGEMENT)},
             ))
 
         if mapping.PERSON in data:
