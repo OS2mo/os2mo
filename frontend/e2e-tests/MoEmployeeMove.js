@@ -43,9 +43,9 @@ test('Workflow: move employee', async t => {
 
     .click(engagementSelect)
 
-    .expect(engagementOption.withText('Ansat'))
+    .expect(engagementOption.withText('Fakultet'))
     .ok('employee lacks an engagement')
-    .click(engagementOption.withText('Ansat'))
+    .click(engagementOption.withText('Fakultet'))
 
     .click(unitInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))

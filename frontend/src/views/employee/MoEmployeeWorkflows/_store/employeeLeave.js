@@ -7,8 +7,9 @@ import { EventBus, Events } from '@/EventBus'
 
 const defaultState = () => {
   return {
-    employee: null,
-    leave: {},
+    leave: {
+      'person': null
+    },
     isLoading: false,
     backendValidationError: null
   }
@@ -19,7 +20,6 @@ const state = defaultState
 const actions = {
   leaveEmployee ({ commit, state }) {
     let payload = state.leave
-    payload.person = state.employee
 
     commit('updateIsLoading', true)
 
