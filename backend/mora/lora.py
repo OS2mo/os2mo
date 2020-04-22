@@ -3,14 +3,14 @@
 
 from __future__ import generator_stop
 
-import collections
-import functools
 import itertools
 import uuid
 
 import requests
 
 import flask_saml_sso
+
+import lora_utils
 from . import exceptions
 from . import settings
 from . import util
@@ -20,122 +20,6 @@ session.verify = settings.CA_BUNDLE or True
 session.auth = flask_saml_sso.SAMLAuth()
 session.headers = {
     'User-Agent': 'MORA/0.1',
-}
-
-ALL_RELATION_NAMES = {
-    'adresse',
-    'adresser',
-    'afgiftsobjekt',
-    'afleveringsarkiv',
-    'aktivitetdokument',
-    'aktivitetgrundlag',
-    'aktivitetresultat',
-    'aktivitetstype',
-    'andetarkiv',
-    'andrebehandlere',
-    'andredokumenter',
-    'andreklasser',
-    'andresager',
-    'ansatte',
-    'ansvarlig',
-    'ansvarligklasse',
-    'arkiver',
-    'begrundelse',
-    'behandlingarkiv',
-    'besvarelser',
-    'bilag',
-    'branche',
-    'bruger',
-    'brugerrolle',
-    'brugertyper',
-    'byggeri',
-    'deltager',
-    'deltagerklasse',
-    'ejendomsskat',
-    'ejer',
-    'emne',
-    'enhedstype',
-    'erstatter',
-    'facet',
-    'facettilhoerer',
-    'facilitet',
-    'facilitetklasse',
-    'foelsomhedklasse',
-    'foelsomhedsklasse',
-    'fordelttil',
-    'fredning',
-    'geoobjekt',
-    'grundlagklasse',
-    'handlingsklasse',
-    'indsatsaktoer',
-    'indsatsdokument',
-    'indsatsklasse',
-    'indsatskvalitet',
-    'indsatsmodtager',
-    'indsatssag',
-    'indsatstype',
-    # NB: also an attribute :(
-    # 'interessefaellesskabstype',
-    'journalpost',
-    'kommentarer',
-    'kontoklasse',
-    'kopiparter',
-    'lokale',
-    'lovligekombinationer',
-    'mapninger',
-    'myndighed',
-    'myndighedstype',
-    'nyrevision',
-    'objekt',
-    'objektklasse',
-    'opgaveklasse',
-    'opgaver',
-    'organisatoriskfunktionstype',
-    'overordnet',
-    'overordnetklasse',
-    'oversag',
-    'parter',
-    'position',
-    'praecedens',
-    'primaerbehandler',
-    'primaerklasse',
-    'primaerpart',
-    'produktionsenhed',
-    'redaktoerer',
-    'rekvirentklasse',
-    'resultatklasse',
-    'samtykke',
-    'sekundaerpart',
-    'sideordnede',
-    'sikkerhedsklasse',
-    'skatteenhed',
-    'systemtyper',
-    'tilfoejelser',
-    'tilhoerer',
-    'tilknyttedebrugere',
-    'tilknyttedeenheder',
-    'tilknyttedefunktioner',
-    'tilknyttedeinteressefaellesskaber',
-    'tilknyttedeitsystemer',
-    'tilknyttedeorganisationer',
-    'tilknyttedepersoner',
-    'tilknyttedesager',
-    'tilstandsaktoer',
-    'tilstandsdokument',
-    'tilstandskvalitet',
-    'tilstandsobjekt',
-    'tilstandstype',
-    'tilstandsudstyr',
-    'tilstandsvaerdi',
-    'tilstandsvurdering',
-    'udfoerer',
-    'udfoererklasse',
-    'udgangspunkter',
-    'udlaanttil',
-    'virksomhed',
-    'virksomhedstype',
-    'ydelsesklasse',
-    'ydelsesmodtager',
 }
 
 
@@ -158,58 +42,6 @@ def _check_response(r):
             exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
     return r
-
-
-def get(path, uuid, **params):
-
-    d = fetch(path, uuid=str(uuid), **params)
-
-    if not d or not d[0]:
-        return None
-
-    registrations = d[0]['registreringer']
-
-    assert len(d) == 1
-
-    if params.keys() & {'registreretfra', 'registrerettil'}:
-        return registrations
-    else:
-        assert len(registrations) == 1
-
-        return registrations[0]
-
-
-def fetch(path, **params):
-    r = session.get(settings.LORA_URL + path, params=params)
-    _check_response(r)
-
-    try:
-        return r.json()['results'][0]
-    except IndexError:
-        return []
-
-
-def create(path, obj, uuid=None):
-    if uuid:
-        r = session.put('{}{}/{}'.format(settings.LORA_URL, path, uuid),
-                        json=obj)
-        _check_response(r)
-        return uuid
-    else:
-        r = session.post(settings.LORA_URL + path, json=obj)
-        _check_response(r)
-        return r.json()['uuid']
-
-
-def delete(path, uuid):
-    r = session.delete('{}{}/{}'.format(settings.LORA_URL, path, uuid))
-    _check_response(r)
-
-
-def update(path, obj):
-    r = session.put(settings.LORA_URL + path, json=obj)
-    _check_response(r)
-    return r.json()['uuid']
 
 
 class Connector:
@@ -275,23 +107,11 @@ class Connector:
     def validity(self):
         return self.__validity
 
-    def __is_range_relevant(self, start, end):
+    def is_range_relevant(self, start, end, effect):
         if self.validity == 'present':
             return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
             return start > self.start and end <= self.end
-
-    def get_date_chunks(self, dates):
-        a, b = itertools.tee(sorted(dates))
-
-        # drop the first item -- doing a raw next() fails in Python 3.7
-        for __ in itertools.islice(b, 1):
-            pass
-
-        yield from filter(
-            lambda s: self.__is_range_relevant(*s),
-            zip(a, b),
-        )
 
     def __getattr__(self, attr):
         try:
@@ -429,76 +249,12 @@ class Scope:
         if not reg:
             return
 
-        chunks = set()
+        effects = list(lora_utils.get_effects(reg, relevant, also))
 
-        everything = collections.defaultdict(tuple)
-
-        for group in relevant:
-            everything[group] += relevant[group]
-        for group in also or {}:
-            everything[group] += also[group]
-
-        # extract all beginning and end timestamps for all effects
-        for group, keys in relevant.items():
-            if group not in reg:
-                continue
-
-            entries = reg[group]
-
-            for key in keys:
-                if key not in entries:
-                    continue
-
-                for entry in entries[key]:
-                    chunks.update((
-                        util.parsedatetime(entry['virkning']['from']),
-                        util.parsedatetime(entry['virkning']['to']),
-                    ))
-
-        # sort them, and apply the filter, if given
-        chunks = self.connector.get_date_chunks(chunks)
-
-        def filter_list(entries, start, end):
-            for entry in entries:
-                entry_start = util.parsedatetime(entry['virkning']['from'])
-                entry_end = util.parsedatetime(entry['virkning']['to'])
-
-                if entry_start < end and entry_end > start:
-                    yield entry
-
-        # finally, extract chunks corresponding to each cut-off
-        for start, end in chunks:
-            effect = {
-                group: {
-                    key: list(filter_list(reg[group][key], start, end))
-                    for key in everything[group]
-                    if key in everything[group] and key in reg[group]
-                }
-                for group in everything
-                if group in reg
-            }
-
-            if any(k for g in effect.values() for k in g.values()):
-                yield start, end, effect
-
-
-organisation = functools.partial(fetch, 'organisation/organisation')
-organisation.get = functools.partial(get, 'organisation/organisation')
-organisation.delete = functools.partial(delete, 'organisation/organisation')
-
-organisationenhed = functools.partial(fetch, 'organisation/organisationenhed')
-organisationenhed.get = \
-    functools.partial(get, 'organisation/organisationenhed')
-organisationenhed.delete = \
-    functools.partial(delete, 'organisation/organisationenhed')
-
-klasse = functools.partial(fetch, 'klassifikation/klasse')
-klasse.get = functools.partial(get, 'klassifikation/klasse')
-klasse.delete = functools.partial(delete, 'klassifikation/klasse')
-
-# organisation = Connector('organisation/organisation')
-# organisationenhed = Connector('organisation/organisationenhed')
-# klasse = Connector('klassifikation/klasse')
+        return filter(
+            lambda a: self.connector.is_range_relevant(*a),
+            effects,
+        )
 
 
 def get_version():

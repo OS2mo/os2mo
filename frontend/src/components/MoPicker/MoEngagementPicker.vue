@@ -19,7 +19,7 @@ SPDX-License-Identifier: MPL-2.0
     >
       <option disabled>{{$tc('shared.engagement', 2)}}</option>
       <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
-          {{e.engagement_type.name}}, {{e.org_unit.name}}
+          {{e.job_function.name}}, {{e.org_unit.name}}
       </option>
     </select>
 
@@ -112,10 +112,10 @@ export default {
 
     orderedListOptions () {
       return this.engagements.slice().sort((a, b) => {
-        if (a.engagement_type.name && a.org_unit.name < b.engagement_type.name && b.org_unit.name) {
+        if (a.job_function.name && a.org_unit.name < b.job_function.name && b.org_unit.name) {
           return -1
         }
-        if (a.engagement_type.name && a.org_unit.name > b.engagement_type.name && b.org_unit.name) {
+        if (a.job_function.name && a.org_unit.name > b.job_function.name && b.org_unit.name) {
           return 1
         }
         return 0
@@ -129,6 +129,13 @@ export default {
   watch: {
     employee () {
       this.getEngagements()
+    }
+  },
+
+  mounted: function () {
+    this.getEngagements()
+    if (this.value) {
+      this.selected = this.value
     }
   },
 

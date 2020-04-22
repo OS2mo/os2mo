@@ -1,6 +1,8 @@
 Version 1.6.1, 2020-04-03
 =========================
 
+* #35673: Add 'engagement' field to leave objects
+
 Bug fixes
 ---------
 

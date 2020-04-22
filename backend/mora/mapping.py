@@ -54,6 +54,7 @@ CPR_NO = 'cpr_no'
 ENGAGEMENT_KEY = 'Engagement'
 ENGAGEMENT_TYPE = 'engagement_type'
 FRACTION = 'fraction'
+ENGAGEMENT = 'engagement'
 
 EXTENSION_ATTRIBUTE_MAPPING = [
     ('extension_1', 'udvidelse_1'),
@@ -405,6 +406,7 @@ LEAVE_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,
     ORG_FUNK_GYLDIGHED_FIELD,
     ORG_FUNK_TYPE_FIELD,
+    ASSOCIATED_FUNCTION_FIELD,
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,
 }
