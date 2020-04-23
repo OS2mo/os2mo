@@ -13,7 +13,7 @@ coverage==5.0.4           # via -r backend/requirements-test.in, pytest-cov
 decorator==4.4.2          # via -c backend/requirements.txt, ipython, traitlets
 flask-shell-ipython==0.4.1  # via -r backend/requirements-test.in
 flask-testing==0.8.0      # via -r backend/requirements-test.in
-flask==1.1.1              # via -c backend/requirements.txt, flask-shell-ipython, flask-testing
+flask==1.1.2              # via -c backend/requirements.txt, flask-shell-ipython, flask-testing
 freezegun==0.3.15         # via -r backend/requirements-test.in
 idna==2.9                 # via -c backend/requirements.txt, requests
 ipython-genutils==0.2.0   # via traitlets

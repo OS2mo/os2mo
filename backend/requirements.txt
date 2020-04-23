@@ -11,7 +11,7 @@ decorator==4.4.2          # via validators
 defusedxml==0.6.0         # via python3-saml
 flask-session==0.3.1      # via -r backend/requirements.in, flask-saml-sso
 flask-sqlalchemy==2.4.1   # via flask-saml-sso
-flask==1.1.1              # via -r backend/requirements.in, flask-saml-sso, flask-session, flask-sqlalchemy
+flask==1.1.2              # via -r backend/requirements.in, flask-saml-sso, flask-session, flask-sqlalchemy
 git+git://github.com/magenta-aps/flask_saml_sso.git@0.8.0#egg=flask_saml_sso  # via -r backend/requirements.in
 gunicorn==20.0.4          # via -r backend/requirements.in
 idna==2.9                 # via requests
