@@ -23,7 +23,7 @@ markupsafe==1.1.1         # via jinja2
 mock==4.0.1               # via flask-saml-sso
 pika==1.1.0               # via -r backend/requirements.in
 pkgconfig==1.5.1          # via xmlsec
-psycopg2-binary==2.8.4    # via -r backend/requirements.in
+psycopg2-binary==2.8.5    # via -r backend/requirements.in
 python-dateutil==2.8.1    # via -r backend/requirements.in
 python3-saml==1.9.0       # via flask-saml-sso
 requests==2.23.0          # via -r backend/requirements.in, flask-saml-sso, service-person-stamdata-udvidet
