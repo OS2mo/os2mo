@@ -44,6 +44,7 @@ def _get_connection(dbname):
             password=config["configuration"]["database"]["password"],
             host=config["configuration"]["database"]["host"],
             port=config["configuration"]["database"]["port"],
+            connect_timeout=5
         )
     except psycopg2.OperationalError:
         logger.error('Database connection error')
