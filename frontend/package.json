@@ -17,7 +17,7 @@
     "@babel/polyfill": "^7.8.0",
     "@ungap/url-search-params": "^0.1.2",
     "bootstrap-vue": "^2.0.0-rc.11",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "liquor-tree": "^0.2.41",
     "lodash.isequal": "^4.5.0",
     "lodash.reduce": "^4.6.0",
