@@ -184,6 +184,7 @@ export default {
       this.move.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
       this.move.data.uuid = this.original && this.original.uuid
       this.parent = null
+      this.backendValidationError = null
     },
 
     /**
