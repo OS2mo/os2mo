@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #34943: Add support for specifying SP domain for SAML auth
+
 Bug fixes
 ---------
 
@@ -11,6 +13,8 @@ Bug fixes
 
 Internal changes
 ----------------
+
+* #34847: Update documentation for SAML auth
 
 
 Version 1.6.0, 2020-03-24
