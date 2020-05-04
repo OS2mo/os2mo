@@ -12,7 +12,10 @@
 # RELEASE_REGISTRY_PASSWORD
 
 stages:
-  - lint-build
+  - lint
+  # build stage is not blocked by lint stage, as we have a DAG:
+  # https://docs.gitlab.com/ee/ci/directed_acyclic_graph/index.html
+  - build
   - test
   - release
   - deploy
@@ -29,22 +32,19 @@ variables:
   IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
   IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
 
+
 # Lint stage
 #############
 
-# For now we execute the lint and build stage as one stage to speed up the
-# pipeline. When it is possible to use a DAG for describing the relations
-# (https://gitlab.com/gitlab-org/gitlab-ce/issues/47063), the lint jobs can be
-# executed in its own stage where no further jobs depend on them.
-
 .lint-default: &lint-default
-  stage: lint-build
+  stage: lint
+  needs: []
   image: python:3.7
   services: []
   tags:
     - docker
 
-python-lint:
+Lint Python:
   <<: *lint-default
   before_script:
     - pip3 install -r backend/requirements-lint.txt
@@ -53,17 +53,7 @@ python-lint:
     - flake8 --version
     - flake8
 
-docs:
-  <<: *lint-default
-  before_script:
-    - pip3 install -r docs/requirements-docs.txt
-  script:
-    - sphinx-build -n -W --keep-going docs /doc-build
-  artifacts:
-    paths:
-      - /doc-build
-
-docker-lint:
+Lint Dockerfiles:
   <<: *lint-default
   image: hadolint/hadolint:latest-debian
   before_script:
@@ -72,7 +62,7 @@ docker-lint:
   script:
     - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
 
-REUSE-compliance:
+REUSE compliance:
   <<: *lint-default
   image:
     name: fsfe/reuse:latest
@@ -80,7 +70,7 @@ REUSE-compliance:
   script:
     - reuse lint
 
-shell-lint:
+Lint shell scripts:
   <<: *lint-default
   image: koalaman/shellcheck-alpine:latest
   before_script:
@@ -93,8 +83,9 @@ shell-lint:
 # Build stage
 #############
 
-build:
-  stage: lint-build
+Build OS2MO:
+  stage: build
+  needs: []
   image:
     name: gcr.io/kaniko-project/executor:debug-v0.19.0
     entrypoint: [""]
@@ -108,12 +99,28 @@ build:
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
       --destination=${IMAGE_SHA}
 
+Build docs:
+  image: python:3.7
+  stage: build
+  needs: []
+  services: []
+  tags:
+    - docker
+  before_script:
+    - pip3 install -r docs/requirements-docs.txt
+  script:
+    - sphinx-build -n -W --keep-going docs /doc-build
+  artifacts:
+    paths:
+      - /doc-build
+
 
 # Test stage
 ############
 
 .test-default: &test-default
   stage: test
+  needs: ["Build OS2MO"]
   services: []
   tags:
     - docker
@@ -144,7 +151,7 @@ build:
     # for testcafe
     BASE_URL: http://mo:5000
 
-unit-test:
+Unit-test:
   <<: *test-default
   image:
     name: ${IMAGE_SHA}
@@ -205,11 +212,13 @@ e2e-test:
     paths:
       - $CI_PROJECT_DIR/artifacts
 
+
 # Release stage
 ###############
 
 .release-default: &release-default
   stage: release
+  needs: ["Unit-test", "e2e-test"]
   image: alpine
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -219,7 +228,7 @@ e2e-test:
     - apk add skopeo
 
 
-release-dev:
+Release dev:
   <<: *release-default
   rules:
     - if: $CI_COMMIT_REF_NAME == "development"
@@ -230,7 +239,7 @@ release-dev:
       "docker://${IMAGE_SHA}"
       "docker://${IMAGE_DEV}"
 
-release-rc:
+Release rc:
   <<: *release-default
   rules:
     - if: $CI_COMMIT_REF_NAME =~ /^release\/.+$/
@@ -241,7 +250,7 @@ release-rc:
       "docker://${IMAGE_SHA}"
       "docker://${IMAGE_RC}"
 
-release-master:
+Release master:
   <<: *release-default
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
