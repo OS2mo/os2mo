@@ -73,6 +73,18 @@ def update_config(configuration, new_settings):
             logger.warning("Invalid key in config: %s", key)
 
 
+def log_config(config_obj):
+    """
+    Log a config object, hiding all passwords
+    :param configuration: A config object to be logged
+    """
+    safe_config = copy.deepcopy(configuration)
+    safe_config["session"]["database"]["password"] = "********"
+    safe_config["configuration"]["database"]["password"] = "********"
+    logger.debug("Config:\n%s.", pprint.pformat(safe_config))
+    logger.info("Config: %s.", safe_config)
+
+
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 default_settings_path = os.path.join(base_dir, "mora", "default-settings.toml")
 with open(default_settings_path, "r") as f:
@@ -88,14 +100,7 @@ if user_config_path:
     logger.info("Reading user config from %s", user_config_path)
     update_config(config, read_config(user_config_path))
 
-
-safe_config = copy.deepcopy(config)
-safe_config["session"]["database"]["password"] = "********"
-safe_config["configuration"]["database"]["password"] = "********"
-logger.debug("Config:\n%s.", pprint.pformat(safe_config))
-logger.info("Config: %s.", safe_config)
-del safe_config  # could get out of sync
-
+log_config(config)
 
 # This object is used with ``app.config.update`` in app.py.
 app_config = {
