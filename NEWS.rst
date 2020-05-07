@@ -15,6 +15,7 @@ Internal changes
 ----------------
 
 * #34847: Update documentation for SAML auth
+* #34849: Add more robust handling of deprecated settings
 
 
 Version 1.6.0, 2020-03-24

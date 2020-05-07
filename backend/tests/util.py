@@ -316,11 +316,11 @@ def override_lora_url(lora_url='http://mox/'):
 def override_config(overrides: dict):
     original = copy.deepcopy(settings.config)
 
-    settings.update_config(settings.config, overrides)
+    settings.update_dict(settings.config, overrides)
     try:
         yield
     finally:
-        settings.update_config(settings.config, original)
+        settings.update_dict(settings.config, original)
 
 
 @contextlib.contextmanager

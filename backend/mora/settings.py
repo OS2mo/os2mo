@@ -23,6 +23,8 @@
 """
 
 import copy
+import json
+
 import logging
 import pprint
 import os
@@ -33,14 +35,12 @@ import toml
 
 logger = logging.getLogger(__name__)
 
-# TODO: Currently the keys here are matched at every level while checking for
-# deprecated keys. This currently prevents us from reusing these keys in other
-# parts of the settings
-# https://redmine.magenta-aps.dk/issues/34849
-DEPRECATED_SETTINGS_KEYS = [
-    'activity_log_path',
-    'trace_log_path'
-]
+DEPRECATED_SETTINGS = {
+    'log': {
+        'activity_log_path': "",
+        'trace_log_path': ""
+    }
+}
 
 
 def read_config(config_path):
@@ -57,20 +57,98 @@ def read_config(config_path):
         sys.exit(4)
 
 
-def update_config(configuration, new_settings):
-    # we cannot just do dict.update, because we do not want to "polute" the
-    # namespace with anything in *new_settings*, just the variables defined in
-    # **configuration**.
-    for key in new_settings:
-        if key in set().union(configuration, DEPRECATED_SETTINGS_KEYS):
-            if isinstance(configuration.get(key), dict):
-                update_config(configuration[key], new_settings[key])
+def update_dict(base_dict: dict, new_dict: dict):
+    """
+    Update base_dict with values found in new_dict recursively
+    """
+    for key in new_dict:
+        if key in base_dict.keys():
+            if isinstance(base_dict.get(key), dict):
+                update_dict(base_dict[key], new_dict[key])
             else:
-                if key in DEPRECATED_SETTINGS_KEYS:
-                    logger.warning("Deprecated settings key in config: %s", key)
-                configuration[key] = new_settings[key]
+                base_dict[key] = new_dict[key]
         else:
-            logger.warning("Invalid key in config: %s", key)
+            base_dict[key] = new_dict[key]
+
+
+def dict_key_intersection(d1: dict, d2: dict) -> dict:
+    """
+    Return intersection of the keys of two nested dicts d1 and d2.
+    """
+    if not d1 or not d2:
+        return {}
+
+    intersection = {}
+    for key in d1.keys():
+        if key in d2.keys():
+            if isinstance(d1[key], dict):
+                result = dict_key_intersection(d1[key], d2[key])
+                if result:
+                    intersection[key] = result
+            else:
+                intersection[key] = d2[key]
+    return intersection
+
+
+def dict_key_difference(d1: dict, d2: dict) -> dict:
+    """
+    Return the nested structure of keys that are in d2 but not in d1
+    """
+    if not d1:
+        return d2
+    if not d2:
+        return d1
+
+    difference = {}
+    for key in d2.keys():
+        if key in d1.keys():
+            if isinstance(d1[key], dict):
+                result = dict_key_difference(d1[key], d2[key])
+                if result:
+                    difference[key] = result
+        else:
+            difference[key] = d2[key]
+    return difference
+
+
+def check_and_update_config(configuration, new_config):
+    """
+    Check if given configuration object contains any invalid or deprecated keys,
+    and merge into existing config
+    """
+    check_deprecated_settings(new_config)
+    check_invalid_settings(new_config)
+    update_dict(configuration, new_config)
+
+
+def check_deprecated_settings(configuration: dict):
+    """Check if given configuration contains deprecated config entries"""
+    intersection = dict_key_intersection(DEPRECATED_SETTINGS, configuration)
+    if intersection:
+        logger.warning(
+            "Deprecated key(s) in config: {}".format(json.dumps(intersection)))
+
+
+def check_invalid_settings(configuration: dict):
+    """Check if given configuration contains invalid config entries"""
+    # We merge our default settings with the deprecated settings to get all valid keys
+    combined_settings = copy.deepcopy(config)
+    update_dict(combined_settings, DEPRECATED_SETTINGS)
+    difference = dict_key_difference(combined_settings, configuration)
+    if difference:
+        logger.warning("Invalid key(s) in config: {}".format(json.dumps(difference)))
+
+
+def log_config(configuration):
+    """
+    Log a config object, hiding all passwords
+    :param configuration: A config object to be logged
+    """
+    safe_config = copy.deepcopy(configuration)
+    safe_config["session"]["database"]["password"] = "********"
+    safe_config["configuration"]["database"]["password"] = "********"
+    logger.debug("Config:\n%s.", pprint.pformat(safe_config))
+    logger.info("Config: %s.", safe_config)
 
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,19 +161,12 @@ system_config_path = os.getenv("OS2MO_SYSTEM_CONFIG_PATH", False)
 user_config_path = os.getenv("OS2MO_USER_CONFIG_PATH", False)
 if system_config_path:
     logger.info("Reading system config from %s", system_config_path)
-    update_config(config, read_config(system_config_path))
+    check_and_update_config(config, read_config(system_config_path))
 if user_config_path:
     logger.info("Reading user config from %s", user_config_path)
-    update_config(config, read_config(user_config_path))
+    check_and_update_config(config, read_config(user_config_path))
 
-
-safe_config = copy.deepcopy(config)
-safe_config["session"]["database"]["password"] = "********"
-safe_config["configuration"]["database"]["password"] = "********"
-logger.debug("Config:\n%s.", pprint.pformat(safe_config))
-logger.info("Config: %s.", safe_config)
-del safe_config  # could get out of sync
-
+log_config(config)
 
 # This object is used with ``app.config.update`` in app.py.
 app_config = {
