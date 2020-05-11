@@ -1,9 +1,25 @@
+In development
+==============
+
+New features
+------------
+
+* #34943: Add support for specifying SP domain for SAML auth
+
+Bug fixes
+---------
+
+* #34847: Update documentation for SAML auth
+* #34849: Add more robust handling of deprecated settings
+
+
 Version 1.6.1, 2020-04-03
 =========================
 
-* #35673: Add 'engagement' field to leave objects
+New features
+------------
 
-* #34943: Add support for specifying SP domain for SAML auth
+* #35673: Add 'engagement' field to leave objects
 
 Bug fixes
 ---------
@@ -11,9 +27,6 @@ Bug fixes
 * #35531: Fix org unit rename dialog error handling
 * #35897: Fix conf_db health endpoint not catching certain errors
 * #35992: Fix sticky backend errors in UI modals
-
-* #34847: Update documentation for SAML auth
-* #34849: Add more robust handling of deprecated settings
 
 
 Version 1.6.0, 2020-03-24
