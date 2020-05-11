@@ -20,6 +20,9 @@ const searchEmployeeItem = searchEmployeeInput.find('.v-autocomplete-list-item')
 const leaveSelect = dialog.find('select[data-vv-as="Orlovstype"]')
 const leaveOption = leaveSelect.find('option')
 
+const engagementSelect = dialog.find('select[data-vv-as="Engagementer"]')
+const engagementOption = engagementSelect.find('option')
+
 const fromInput = dialog.find('.from-date input.form-control')
 
 test('Workflow: leave employee', async t => {
@@ -35,6 +38,11 @@ test('Workflow: leave employee', async t => {
     .typeText(searchEmployeeInput.find('input'), 'erik')
     .expect(searchEmployeeItem.withText(' ').visible).ok()
     .pressKey('down enter')
+
+    .click(engagementSelect)
+    .expect(engagementOption.withText('Fakultet'))
+    .ok('employee lacks an engagement')
+    .click(engagementOption.withText('Fakultet'))
 
     .click(leaveSelect)
     .click(leaveOption.withText('Barselsorlov'))

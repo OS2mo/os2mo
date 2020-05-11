@@ -14,81 +14,6 @@ from . import util
 @util.mock()
 @freezegun.freeze_time('2010-06-01', tz_offset=2)
 class Tests(util.TestCase):
-    def test_get_date_chunks(self, m):
-        def check(validity, dates, expected):
-            c = lora.Connector(validity=validity)
-
-            actual = [
-                (start.isoformat(), end.isoformat())
-                for start, end in c.get_date_chunks(
-                    map(mora_util.parsedatetime, dates),
-                )
-            ]
-
-            self.assertEqual(expected, actual)
-
-        dates = [
-            '2010-01-01',
-            '2010-05-31',
-            '2010-06-01',
-            '2010-06-01T12:00:00',
-            '2010-06-02',
-            '2010-06-03',
-            '2011-01-01',
-        ]
-
-        with self.subTest('prerequisite'):
-            self.assertEqual('2010-06-01T02:00:00+02:00',
-                             mora_util.now().isoformat())
-
-        with self.subTest('present I'):
-            check('present', dates, [
-                ('2010-06-01T00:00:00+02:00', '2010-06-01T12:00:00+02:00'),
-            ])
-
-        with self.subTest('past I'):
-            check('past', dates, [
-                ('2010-01-01T00:00:00+01:00', '2010-05-31T00:00:00+02:00'),
-                ('2010-05-31T00:00:00+02:00', '2010-06-01T00:00:00+02:00'),
-            ])
-
-        with self.subTest('future I'):
-            check('future', dates, [
-                ('2010-06-01T12:00:00+02:00', '2010-06-02T00:00:00+02:00'),
-                ('2010-06-02T00:00:00+02:00', '2010-06-03T00:00:00+02:00'),
-                ('2010-06-03T00:00:00+02:00', '2011-01-01T00:00:00+01:00'),
-            ])
-
-        dates = [
-            '2010-05-31',
-            '2010-06-01',
-            '2010-06-02',
-            '2010-06-03',
-        ]
-
-        with self.subTest('present I'):
-            check('present', dates, [
-                ('2010-06-01T00:00:00+02:00', '2010-06-02T00:00:00+02:00'),
-            ])
-
-        with self.subTest('past I'):
-            check('past', dates, [
-                ('2010-05-31T00:00:00+02:00', '2010-06-01T00:00:00+02:00'),
-            ])
-
-        with self.subTest('future I'):
-            check('future', dates, [
-                ('2010-06-02T00:00:00+02:00', '2010-06-03T00:00:00+02:00'),
-            ])
-
-        with self.subTest('null'):
-            check('past', [], [])
-            check('present', [], [])
-            check('future', [], [])
-
-        with self.subTest('failing'):
-            with self.assertRaises(exceptions.HTTPException):
-                check('kaflaflibob', [], [])
 
     def test_get_effects(self, m):
         URL = (
@@ -277,6 +202,8 @@ class Tests(util.TestCase):
             (426, 500, 'E_UNKNOWN'),
             (500, 500, 'E_UNKNOWN'),
         ):
+            c = lora.Connector()
+
             with self.subTest('{} - json'.format(status_in)):
                 m.get(
                     'http://mox/organisation/organisationenhed?uuid=42',
@@ -287,7 +214,7 @@ class Tests(util.TestCase):
                 )
 
                 with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    lora.organisationenhed.get('42')
+                    c.organisationenhed.get('42')
 
                 self.assertEqual(
                     {
@@ -307,7 +234,7 @@ class Tests(util.TestCase):
                 )
 
                 with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    lora.organisationenhed.get('42')
+                    c.organisationenhed.get('42')
 
                 self.assertEqual(
                     {
@@ -331,7 +258,7 @@ class Tests(util.TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
-            lora.organisationenhed.get('42')
+            lora.Connector().organisationenhed.get('42')
 
         self.assertEqual(
             {
@@ -348,14 +275,7 @@ class Tests(util.TestCase):
         )
 
     def test_finding_nothing(self, m):
-        m.get(
-            'http://mox/organisation/organisationenhed?uuid=42',
-            json={
-                'results': []
-            },
-        )
-
-        self.assertIsNone(lora.organisationenhed.get('42'))
+        c = lora.Connector()
 
         m.get(
             'http://mox/organisation/organisationenhed?uuid=42',
@@ -364,7 +284,16 @@ class Tests(util.TestCase):
             },
         )
 
-        self.assertIsNone(lora.organisationenhed.get('42'))
+        self.assertIsNone(c.organisationenhed.get('42'))
+
+        m.get(
+            'http://mox/organisation/organisationenhed?uuid=42',
+            json={
+                'results': []
+            },
+        )
+
+        self.assertIsNone(c.organisationenhed.get('42'))
 
     @freezegun.freeze_time('2001-01-01', tz_offset=1)
     def test_get_effects_2(self, m):

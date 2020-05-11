@@ -74,7 +74,8 @@ def load_fixture(path, fixture_name, uuid=None, **kwargs):
     into LoRA at the given path & UUID.
 
     '''
-    r = lora.create(path, get_fixture(fixture_name, **kwargs), uuid)
+    scope = lora.Scope(lora.Connector(), path)
+    r = scope.create(get_fixture(fixture_name, **kwargs), uuid)
     return r
 
 

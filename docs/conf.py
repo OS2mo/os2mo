@@ -68,6 +68,7 @@ MOCK_MODULES = [
     'lxml',
     'lxml.etree',
     'service_person_stamdata_udvidet',
+    'lora_utils',
     'flask_saml_sso',
     'flask_saml_sso.health',
     'validators',

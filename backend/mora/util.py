@@ -36,25 +36,14 @@ import logging
 from . import exceptions
 from . import mapping
 
-
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
 
 _sentinel = object()
 
 # timezone-aware versions of min/max
-POSITIVE_INFINITY = datetime.datetime.max.replace(
-    tzinfo=dateutil.tz.tzoffset(
-        'MAX',
-        datetime.timedelta(hours=23, minutes=59),
-    ),
-)
-NEGATIVE_INFINITY = datetime.datetime.min.replace(
-    tzinfo=dateutil.tz.tzoffset(
-        'MIN',
-        -datetime.timedelta(hours=23, minutes=59),
-    ),
-)
+POSITIVE_INFINITY = datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+NEGATIVE_INFINITY = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
 MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
 ONE_DAY = datetime.timedelta(days=1)
 
@@ -64,7 +53,7 @@ DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
 _tzinfos = {
     None: DEFAULT_TIMEZONE,
     0: dateutil.tz.tzutc,
-    1 * 60**2: DEFAULT_TIMEZONE,
+    1 * 60 ** 2: DEFAULT_TIMEZONE,
     2 * 60**2: DEFAULT_TIMEZONE,
 }
 
@@ -115,6 +104,8 @@ def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
 
     if dt.date() == POSITIVE_INFINITY.date():
         return POSITIVE_INFINITY
+
+    dt = dt.astimezone(DEFAULT_TIMEZONE)
 
     return dt
 

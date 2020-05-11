@@ -31,6 +31,15 @@
         }
       }
     ],
+    "tilknyttedefunktioner": [
+      {
+        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+01:00",
+          "to": "infinity"
+        }
+      }
+    ],
     "tilknyttedeorganisationer": [
       {
         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",

@@ -165,6 +165,7 @@ export default {
       this.rename.data.name = ''
       this.rename.data.uuid = this.original && this.original.uuid
       this.rename.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
+      this.backendValidationMessage = null
     },
 
     /**

@@ -349,6 +349,7 @@ def create():
     :<jsonarr string type: **"leave"**
     :<jsonarr object person: The associated employee
     :<jsonarr object leave_type: The leave type
+    :<jsonarr object engagement: The associated engagement
     :<jsonarr string user_key: Short, unique key identifying the relation.
     :<jsonarr object validity: The validities of the created object.
 
@@ -365,6 +366,9 @@ def create():
             "uuid": "9b59d163-ea3b-4d38-9b52-3e80c34aa061"
           },
           "leave_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+          },
+          "engagement": {
             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
           },
           "user_key": "1234",
