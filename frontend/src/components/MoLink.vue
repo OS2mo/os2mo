@@ -116,6 +116,12 @@ export default {
         }
       }
 
+      if (this.column === 'engagement') {
+        let engagementName = this.value['engagement']['job_function']['name']
+        let orgUnitName = this.value['engagement']['org_unit']['name']
+        contents = `${engagementName}, ${orgUnitName}`
+      }
+
       if (!contents) {
         contents = []
       } else if (!(contents instanceof Array)) {

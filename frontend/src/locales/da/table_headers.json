@@ -4,6 +4,7 @@
   "address_type": "@:shared.address_type",
   "association_type": "@:shared.association_type",
   "end_date": "Slutdato",
+  "engagement": "Engagement",
   "engagement_type": "@:shared.engagement_type",
   "engagement_id": "ID",
   "it_system": "IT system",

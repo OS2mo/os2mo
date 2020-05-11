@@ -1,3 +1,16 @@
+Version 1.6.1, 2020-04-03
+=========================
+
+* #35673: Add 'engagement' field to leave objects
+
+Bug fixes
+---------
+
+* #35531: Fix org unit rename dialog error handling
+* #35897: Fix conf_db health endpoint not catching certain errors
+* #35992: Fix sticky backend errors in UI modals
+
+
 Version 1.6.0, 2020-03-24
 =========================
 

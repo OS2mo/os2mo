@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
     <mo-leave-entry v-model="leave"/>
 
     <mo-employee-picker
-      v-model="employee"
+      v-model="leave.person"
       required
       :validity="leave.validity"
       :extra-validations="validations"

@@ -15,6 +15,15 @@ SPDX-License-Identifier: MPL-2.0
         required
       />
     </div>
+
+    <div class="form-row">
+      <mo-engagement-picker
+        class="mt-3"
+        v-model="entry.engagement"
+        :employee="entry.person"
+        required
+      />
+    </div>
   </div>
 </template>
 
@@ -25,6 +34,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { MoInputDateRange } from '@/components/MoInput'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
+import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
 import MoEntryBase from './MoEntryBase'
 
 export default {
@@ -32,6 +42,7 @@ export default {
   name: 'MoLeaveEntry',
   components: {
     MoInputDateRange,
+    MoEngagementPicker,
     MoFacetPicker
   },
 

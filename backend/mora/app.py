@@ -7,6 +7,7 @@ import typing
 import flask
 import flask_saml_sso
 import werkzeug
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from mora import __version__, log, readonly
 from mora.triggers.internal import amqp_trigger
@@ -127,5 +128,9 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     serviceplatformen.check_config(app)
     triggers.register(app)
+
+    # Fix for incident: https://redmine.magenta-aps.dk/issues/35832
+    # Respect the X-Forwarded-Proto scheme
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=0)
 
     return app

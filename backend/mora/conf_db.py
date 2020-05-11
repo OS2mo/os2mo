@@ -44,6 +44,7 @@ def _get_connection(dbname):
             password=config["configuration"]["database"]["password"],
             host=config["configuration"]["database"]["host"],
             port=config["configuration"]["database"]["port"],
+            connect_timeout=5
         )
     except psycopg2.OperationalError:
         logger.error('Database connection error')
@@ -157,11 +158,7 @@ def create_db_table():
 
 
 def _find_missing_default_keys():
-    try:
-        conn = _get_connection(_DBNAME)
-    except psycopg2.Error as e:
-        error_msg = "Configuration database connection error: %s"
-        return False, error_msg % e.pgerror
+    conn = _get_connection(_DBNAME)
 
     # all settings that have a global (uuid = null) value
     query = """
@@ -192,11 +189,15 @@ def health_check():
 
     This is intended to be used whenever an app object is created.
     """
-    missing = _find_missing_default_keys()
-    if missing:
-        error_msg = ("Configuration database is missing default"
-                     " settings for keys: %s." % ", ".join(missing))
-        return False, error_msg
+    try:
+        missing = _find_missing_default_keys()
+        if missing:
+            error_msg = ("Configuration database is missing default"
+                         " settings for keys: %s." % ", ".join(missing))
+            return False, error_msg
+    except psycopg2.OperationalError as e:
+        error_msg = "Configuration database connection error: %s"
+        return False, error_msg % e.pgerror
 
     return True, "Success"
 

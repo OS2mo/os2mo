@@ -138,7 +138,8 @@ export default {
         { label: 'user_key', data: null, field: 'user_key' }
       ],
       leave: [
-        { label: 'leave_type', data: 'leave_type' }
+        { label: 'leave_type', data: 'leave_type' },
+        { label: 'engagement', field: null, data: 'engagement' }
       ],
       manager: [
         { label: 'org_unit', data: 'org_unit' },
