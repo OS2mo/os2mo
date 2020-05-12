@@ -406,7 +406,7 @@ class Tests(util.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/details/create'.format(unitid),
+            '/service/details/create',
             {
                 'description': 'Org unit not found.',
                 'error': True,
@@ -1452,7 +1452,7 @@ class Tests(util.LoRATestCase):
         }]
 
         self.assertRequestResponse(
-            '/service/details/edit'.format(unitid),
+            '/service/details/edit',
             [association_uuid],
             json=req,
             amqp_topics={

@@ -30,6 +30,8 @@ group = flask.cli.FlaskGroup(help=__doc__, context_settings={
 
 
 _SLEEPING_TIME = 0.25
+
+
 @group.command()
 @click.option("--wait", default=_SLEEPING_TIME, type=int,
               help="Wait up to n seconds for the database connection before"
