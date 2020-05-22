@@ -20,7 +20,7 @@ isodate==0.6.0            # via python3-saml
 itsdangerous==1.1.0       # via flask, flask-saml-sso
 jinja2==2.11.1            # via flask, service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils  # via -r backend/requirements.in
-lxml==4.5.0               # via -r backend/requirements.in, xmlsec
+lxml==4.5.1               # via -r backend/requirements.in, xmlsec
 markupsafe==1.1.1         # via jinja2
 mock==4.0.1               # via flask-saml-sso
 pika==1.1.0               # via -r backend/requirements.in
