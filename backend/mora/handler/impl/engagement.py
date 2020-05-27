@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 from .. import reading
 from ... import common, lora
@@ -45,11 +45,10 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             ),
             mapping.JOB_FUNCTION: facet.get_one_class(c, job_function),
             mapping.ENGAGEMENT_TYPE: facet.get_one_class(c, engagement_type),
-            mapping.PRIMARY:
-                facet.get_one_class(c, primary) if primary else None,
+            mapping.PRIMARY: facet.get_one_class(c, primary) if primary else None,
             mapping.IS_PRIMARY: cls._is_primary(c, person, primary),
             mapping.FRACTION: fraction,
-            **cls._get_extension_fields(extensions)
+            **cls._get_extension_fields(extensions),
         }
 
         return r
@@ -69,7 +68,9 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         }
 
     @classmethod
-    def _is_primary(cls, c: lora.Connector, person: str, primary: str) -> bool:
+    def _is_primary(
+        cls, c: lora.Connector, person: str, primary: str
+    ) -> Union[bool, None]:
         """
         Calculate whether a given primary class is _the_ primary class for a
         person.
@@ -84,22 +85,25 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         :param person: The UUID of a person
         :param primary: The UUID of the primary class in question
 
-        :return True if primary, False if not
+        :return True if primary, False if not, None if functionality is disabled
         """
 
         if not util.get_args_flag("calculate_primary"):
             return None
 
-        engagements = list(
-            cls.get_lora_object(c, {'tilknyttedebrugere': person}))
+        engagements = [
+            effect
+            for _, obj in cls.get_lora_object(c, {'tilknyttedebrugere': person})
+            for _, _, effect in cls.get_effects(c, obj)
+            if util.is_reg_valid(effect)
+        ]
 
         # If only engagement
         if len(engagements) <= 1:
             return True
 
         engagement_primary_uuids = [
-            mapping.PRIMARY_FIELD.get_uuid(engagement)
-            for _, engagement in engagements
+            mapping.PRIMARY_FIELD.get_uuid(engagement) for engagement in engagements
         ]
 
         sorted_classes = cls._get_sorted_primary_class_list(c)
@@ -109,8 +113,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 return class_id == primary
 
     @classmethod
-    def _get_sorted_primary_class_list(cls, c: lora.Connector) -> List[
-            Tuple[str, int]]:
+    def _get_sorted_primary_class_list(cls, c: lora.Connector) -> List[Tuple[str, int]]:
         """
         Return a list of primary classes, sorted by priority in the "scope"
         field
@@ -129,19 +132,13 @@ class EngagementReader(reading.OrgFunkReadingHandler):
 
         # We always expect the scope value to be an int, for sorting
         try:
-            parsed_classes = [
-                (clazz['uuid'], int(clazz['scope']))
-                for clazz in classes
-            ]
+            parsed_classes = [(clazz['uuid'], int(clazz['scope'])) for clazz in classes]
         except ValueError:
             raise ErrorCodes.E_INTERNAL_ERROR(
-                message="Unable to parse scope value as integer")
+                message="Unable to parse scope value as integer"
+            )
 
         # Sort based on scope values, higher is better
-        sorted_classes = sorted(
-            parsed_classes,
-            key=lambda x: x[1],
-            reverse=True,
-        )
+        sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True,)
 
         return sorted_classes
