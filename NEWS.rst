@@ -11,6 +11,7 @@ Bug fixes
 
 * #34847: Update documentation for SAML auth
 * #34849: Add more robust handling of deprecated settings
+* #36953: Fix dates being off by one when reading from API
 
 
 Version 1.6.1, 2020-04-03
