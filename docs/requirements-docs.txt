@@ -28,8 +28,8 @@ requests==2.23.0          # via sphinx
 six==1.14.0               # via packaging, python-dateutil, sphinx, sphinxcontrib-httpdomain
 snowballstemmer==2.0.0    # via sphinx
 sphinx-click==2.3.1       # via -r docs/requirements-docs.in
-sphinx-rtd-theme==0.4.3   # via -r docs/requirements-docs.in
 sphinx==1.8.5             # via -r docs/requirements-docs.in, recommonmark, sphinx-click, sphinx-rtd-theme, sphinxcontrib-apidoc, sphinxcontrib-httpdomain
+sphinx_rtd_theme==0.5.0   # via -r docs/requirements-docs.in
 sphinxcontrib-apidoc==0.3.0  # via -r docs/requirements-docs.in
 sphinxcontrib-httpdomain==1.7.0  # via -r docs/requirements-docs.in
 sphinxcontrib-websupport==1.1.2  # via sphinx
