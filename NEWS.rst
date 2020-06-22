@@ -4,6 +4,12 @@ In development
 New features
 ------------
 
+Version 1.6.2, 2020-06-22
+=========================
+
+New features
+------------
+
 * #34943: Add support for specifying SP domain for SAML auth
 
 Bug fixes
