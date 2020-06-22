@@ -4,7 +4,6 @@ SPDX-License-Identifier: MPL-2.0
   <div>
     <mo-input-date-range
       v-model="entry.validity"
-      :disable-to-date="!creatingDate"
       :disabled-dates="{orgUnitValidity, disabledDates}"
     />
 

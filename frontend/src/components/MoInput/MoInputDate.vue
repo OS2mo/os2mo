@@ -21,7 +21,7 @@ SPDX-License-Identifier: MPL-2.0
       :data-vv-as="label"
       v-model="internalValue"
       type="hidden"
-      v-validate="{required: required, date_in_range: validDates}"
+      :v-validate="{required: required, date_in_range: validDates}"
     >
 
     <span v-show="errors.has(identifier)" class="text-danger">

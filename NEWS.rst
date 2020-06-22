@@ -1,5 +1,25 @@
+Version 1.6.2, 2020-06-22
+=========================
+
+New features
+------------
+
+* #34943: Add support for specifying SP domain for SAML auth
+
+Bug fixes
+---------
+
+* #34847: Update documentation for SAML auth
+* #34849: Add more robust handling of deprecated settings
+* #36952: Fix org unit end date picker being locked when editing
+* #36953: Fix dates being off by one when reading from API
+
+
 Version 1.6.1, 2020-04-03
 =========================
+
+New features
+------------
 
 * #35673: Add 'engagement' field to leave objects
 
