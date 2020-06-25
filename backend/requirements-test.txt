@@ -41,7 +41,7 @@ pytest==5.4.3             # via -r backend/requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -c backend/requirements.txt, freezegun
 python-dotenv==0.13.0     # via -r backend/requirements-test.in
 requests-mock==1.8.0      # via -r backend/requirements-test.in
-requests==2.23.0          # via -c backend/requirements.txt, requests-mock
+requests==2.24.0          # via -c backend/requirements.txt, requests-mock
 six==1.14.0               # via -c backend/requirements.txt, freezegun, packaging, python-dateutil, requests-mock, traitlets
 termcolor==1.1.0          # via -r backend/requirements-test.in
 traitlets==4.3.3          # via ipython
