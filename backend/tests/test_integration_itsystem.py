@@ -5,7 +5,6 @@ import copy
 import logging
 
 import freezegun
-import pytest
 
 from mora import lora
 from tests import util
@@ -23,7 +22,6 @@ class Writing(util.LoRATestCase):
             'TZ': 'UTC',
         }
 
-    @pytest.mark.psql_9_dependent
     def test_errors(self):
         # In Postgres 10.0 the messages mentioning type names was changed. See
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
@@ -142,7 +140,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
-                'description': 'invalid input syntax for uuid: "None"',
+                'description': 'invalid input syntax for type uuid: "None"',
                 'error': True,
                 'error_key': 'E_INVALID_INPUT',
                 'status': 400,
