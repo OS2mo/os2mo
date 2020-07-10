@@ -10,6 +10,7 @@ New features
 ------------
 
 * #37231: Remove the organisation page overview
+* #30083: Upgraded to PostgreSQL 11 and Python 3.8.
 
 Version 1.6.2, 2020-06-22
 =========================
