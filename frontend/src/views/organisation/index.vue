@@ -20,7 +20,6 @@ SPDX-License-Identifier: MPL-2.0
     <div class="col-sm-12 col-md-8 col-lg-8 col-xl-9 workflow-padding">
       <router-view :key="route.params.uuid"/>
 
-      <mo-log/>
     </div>
 
     <mo-organisation-unit-workflows/>
@@ -32,14 +31,12 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation component.
  */
 import MoOrganisationUnitWorkflows from '@/views/organisation/workflows'
-import MoLog from '@/components/MoLog/MoLog'
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
 import { mapState } from 'vuex'
 
 export default {
   components: {
     MoOrganisationUnitWorkflows,
-    MoLog,
     MoTreeView
   },
   computed: {

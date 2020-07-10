@@ -1,45 +1,51 @@
 SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <div class="card orgunit">
-    <div class="card-body" v-if="orgUnit">
-      <h4 class="card-title">
-        <icon class="mr-1" name="users" />
-        <span class="orgunit-name">{{orgUnit.name}}</span>
-      </h4>
+  <div>
+    <div class="card orgunit">
+      <div class="card-body" v-if="orgUnit">
+        <h4 class="card-title">
+          <icon class="mr-1" name="users" />
+          <span class="orgunit-name">{{orgUnit.name}}</span>
+        </h4>
 
-      <div class="row">
-        <div class="col user-settings" v-if="orgUnit.user_settings.orgunit">
-          <div class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
-            {{$t('common.placement')}}:
-            <span class="orgunit-location">{{orgUnit.location}}</span>
+        <div class="row">
+          <div class="col user-settings" v-if="orgUnit.user_settings.orgunit">
+            <div class="card-text" v-if="orgUnit.user_settings.orgunit.show_location">
+              {{$t('common.placement')}}:
+              <span class="orgunit-location">{{orgUnit.location}}</span>
+            </div>
+            <div class="user-key card-text mb-3" v-if="orgUnit.user_settings.orgunit.show_user_key">
+              {{$t('common.unit_number')}}:
+              <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
+            </div>
           </div>
-          <div class="user-key card-text mb-3" v-if="orgUnit.user_settings.orgunit.show_user_key">
-            {{$t('common.unit_number')}}:
-            <span class="orgunit-user_key">{{orgUnit.user_key}}</span>
+
+          <div class="mr-3" v-if="orgUnitIntegration">
+            <mo-integration-button :uuid="route.params.uuid"/>
+          </div>
+
+          <div class="mr-3">
+            <mo-history :uuid="route.params.uuid" type="ORG_UNIT"/>
           </div>
         </div>
 
-        <div class="mr-3" v-if="orgUnitIntegration">
-          <mo-integration-button :uuid="route.params.uuid"/>
-        </div>
-
-        <div class="mr-3">
-          <mo-history :uuid="route.params.uuid" type="ORG_UNIT"/>
-        </div>
+        <organisation-detail-tabs
+          :uuid="route.params.uuid"
+          :org-unit-info="orgUnit"
+          :content="orgUnitDetails"
+          @show="loadContent($event)"
+        />
       </div>
 
-      <organisation-detail-tabs
-        :uuid="route.params.uuid"
-        :org-unit-info="orgUnit"
-        :content="orgUnitDetails"
-        @show="loadContent($event)"
-      />
+      <div class="card-body" v-show="!orgUnit">
+        <mo-loader/>
+      </div>
+
     </div>
 
-    <div class="card-body" v-show="!orgUnit">
-      <mo-loader/>
-    </div>
+    <mo-log/>
+
   </div>
 </template>
 
@@ -52,6 +58,7 @@ import { mapGetters, mapState } from 'vuex'
 import { EventBus, Events } from '@/EventBus'
 import MoHistory from '@/components/MoHistory'
 import MoIntegrationButton from '@/components/MoIntegrationButton'
+import MoLog from '@/components/MoLog/MoLog'
 import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
 import { OrganisationUnit } from '@/store/actions/organisationUnit'
@@ -60,6 +67,7 @@ export default {
   components: {
     MoIntegrationButton,
     MoHistory,
+    MoLog,
     MoLoader,
     OrganisationDetailTabs
   },

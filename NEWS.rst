@@ -1,3 +1,11 @@
+Version 1.6.3, 2020-07-10
+=========================
+
+New features
+------------
+
+* #37231: Remove the organisation page overview
+
 Version 1.6.2, 2020-06-22
 =========================
 

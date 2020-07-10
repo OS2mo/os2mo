@@ -9,7 +9,7 @@ backcall==0.1.0           # via ipython
 certifi==2019.11.28       # via -c backend/requirements.txt, requests
 chardet==3.0.4            # via -c backend/requirements.txt, requests
 click==7.0                # via -c backend/requirements.txt, flask, flask-shell-ipython
-coverage==5.1             # via -r backend/requirements-test.in, pytest-cov
+coverage==5.2             # via -r backend/requirements-test.in, pytest-cov
 decorator==4.4.2          # via -c backend/requirements.txt, ipython, traitlets
 flask-shell-ipython==0.4.1  # via -r backend/requirements-test.in
 flask-testing==0.8.0      # via -r backend/requirements-test.in
@@ -39,9 +39,9 @@ pyparsing==2.4.6          # via packaging
 pytest-cov==2.9.0         # via -r backend/requirements-test.in
 pytest==5.4.3             # via -r backend/requirements-test.in, pytest-cov
 python-dateutil==2.8.1    # via -c backend/requirements.txt, freezegun
-python-dotenv==0.13.0     # via -r backend/requirements-test.in
+python-dotenv==0.14.0     # via -r backend/requirements-test.in
 requests-mock==1.8.0      # via -r backend/requirements-test.in
-requests==2.23.0          # via -c backend/requirements.txt, requests-mock
+requests==2.24.0          # via -c backend/requirements.txt, requests-mock
 six==1.14.0               # via -c backend/requirements.txt, freezegun, packaging, python-dateutil, requests-mock, traitlets
 termcolor==1.1.0          # via -r backend/requirements-test.in
 traitlets==4.3.3          # via ipython
