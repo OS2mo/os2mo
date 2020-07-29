@@ -44,13 +44,16 @@ class EmployeeReader(reading.ReadingHandler):
     def get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
 
-        return employee.get_one_employee(
+        employee_object = employee.get_one_employee(
             c,
             obj_id,
             effect,
-            details=employee.EmployeeDetails.FULL,
-            validity={
-                mapping.FROM: util.to_iso_date(start),
-                mapping.TO: util.to_iso_date(end, is_end=True),
-            },
+            details=employee.EmployeeDetails.FULL
         )
+
+        employee_object["validity"] = {
+            mapping.FROM: util.to_iso_date(start),
+            mapping.TO: util.to_iso_date(end, is_end=True),
+        }
+
+        return employee_object

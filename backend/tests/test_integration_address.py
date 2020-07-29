@@ -422,10 +422,6 @@ class Writing(util.LoRATestCase):
                     "validity": {
                         "from": "2017-01-02",
                     },
-                    "integration_data": {
-                        "fætter": "kusine",
-                        "hest": "æsel",
-                    },
                 },
             ],
             amqp_topics={'employee.address.create': 1},
@@ -436,10 +432,6 @@ class Writing(util.LoRATestCase):
                 'organisationfunktionegenskaber': [{
                     'brugervendtnoegle': 'root@example.com',
                     'funktionsnavn': 'Adresse',
-                    'integrationsdata': (
-                        '{"fætter": "kusine", '
-                        '"hest": "æsel"}'
-                    ),
                     'virkning': {
                         'from': '2017-01-02 '
                                 '00:00:00+01',
@@ -515,27 +507,16 @@ class Writing(util.LoRATestCase):
 
         with self.subTest('result'):
             self.assertRequestResponse(
-                '/service/e/{}/details/address?validity=future'
+                '/service/e/{}/details/address?validity=future&only_primary_uuid=1'
                 .format(employee_id),
                 [
                     {
                         "address_type": {
-                            "example": "test@example.com",
-                            "name": "Email",
-                            "scope": "EMAIL",
-                            "user_key": "BrugerEmail",
                             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                        },
-                        "integration_data": {
-                            "fætter": "kusine",
-                            "hest": "æsel",
                         },
                         "href": "mailto:root@example.com",
                         "name": "root@example.com",
                         "person": {
-                            "name": "Anders And",
-                            "givenname": "Anders",
-                            "surname": "And",
                             "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                         },
                         "user_key": "root@example.com",
@@ -1110,46 +1091,30 @@ class Reading(util.LoRATestCase):
     def test_missing_class(self, mock):
         self.load_sample_structures(minimal=True)
 
-        functionid = util.load_fixture(
+        # The relevant address_type klasse is not present in the minimal dataset
+        util.load_fixture(
             'organisation/organisationfunktion',
             'create_organisationfunktion_email_andersand.json',
         )
 
-        self.assertRequestResponse(
+        r = self.assertRequest(
             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
             '/details/address',
-            [{
-                'href': 'mailto:bruger@example.com',
-                'name': 'bruger@example.com',
-                'value': 'bruger@example.com',
-                'address_type': None,
-                'user_key': 'bruger@example.comw',
-                'person': {
-                    'name': 'Anders And',
-                    'givenname': 'Anders',
-                    'surname': 'And',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                },
-                'uuid': functionid,
-                'validity': {'from': '1934-06-09', 'to': None}
-            }],
         )
+
+        self.assertEquals(None, r[0]['address_type'])
 
     def test_reading(self, mock):
         self.load_sample_structures()
 
-        with self.subTest('present I'):
+        with self.subTest('Addresses present'):
             self.assertRequestResponse(
                 '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-                '/details/address?validity=present',
+                '/details/address?validity=present&only_primary_uuid=1',
                 [
                     {
                         'uuid': '64ea02e2-8469-4c54-a523-3d46729e86a7',
                         'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Email',
-                            'scope': 'EMAIL',
-                            'user_key': 'BrugerEmail',
                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                         },
                         'href': 'mailto:goofy@example.com',
@@ -1157,9 +1122,6 @@ class Reading(util.LoRATestCase):
                         'value': 'goofy@example.com',
                         'user_key': 'bruger@example.comw',
                         'person': {
-                            'name': 'Fedtmule Hund',
-                            'givenname': 'Fedtmule',
-                            'surname': 'Hund',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
@@ -1170,10 +1132,6 @@ class Reading(util.LoRATestCase):
                     {
                         'uuid': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
                         'address_type': {
-                            'example': '<UUID>',
-                            'name': 'Postadresse',
-                            'scope': 'DAR',
-                            'user_key': 'BrugerPostadresse',
                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
                         },
                         'href': 'https://www.openstreetmap.org/?mlon='
@@ -1183,9 +1141,6 @@ class Reading(util.LoRATestCase):
                         'user_key': 'Christiansborg Slotsplads 1, '
                                     '1218 København K',
                         'person': {
-                            'name': 'Fedtmule Hund',
-                            'givenname': 'Fedtmule',
-                            'surname': 'Hund',
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                         },
                         'validity': {
@@ -1196,287 +1151,10 @@ class Reading(util.LoRATestCase):
                 ],
             )
 
-        with self.subTest('present II'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/address?validity=present',
-                [
-                    {
-                        'uuid': 'fba61e38-b553-47cc-94bf-8c7c3c2a6887',
-                        'address_type': {
-                            'example': 'test@example.com',
-                            'name': 'Email',
-                            'scope': 'EMAIL',
-                            'user_key': 'BrugerEmail',
-                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                        },
-                        'href': 'mailto:bruger@example.com',
-                        'name': 'bruger@example.com',
-                        'value': 'bruger@example.com',
-                        'user_key': 'bruger@example.comw',
-                        'person': {
-                            'name': 'Anders And',
-                            'givenname': 'Anders',
-                            'surname': 'And',
-                            'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                        },
-                        'validity': {
-                            'from': '1934-06-09',
-                            'to': None,
-                        },
-                    },
-                ],
-            )
-
-        with self.subTest('present III'):
-            self.assertRequestResponse(
-                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
-                '/details/address?validity=present',
-                [
-                    {
-                        "href": "https://www.openstreetmap.org/"
-                        "?mlon=10.19938084&mlat=56.17102843&zoom=16",
-                        "name": "Nordre Ringgade 1, 8000 Aarhus C",
-                        "user_key": "Nordre Ringgade 1, 8000 Aarhus C",
-                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "address_type": {
-                            "example": "<UUID>",
-                            "name": "Postadresse",
-                            "scope": "DAR",
-                            "user_key": "OrgEnhedPostadresse",
-                            "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e"
-                        },
-                        "org_unit": {
-                            "name": "Overordnet Enhed",
-                            "user_key": "root",
-                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None
-                            }
-                        },
-                        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        }
-                    }
-                ],
-            )
-
-        with self.subTest('present IV'):
-            self.assertRequestResponse(
-                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                '/details/address?validity=present',
-                [
-                    {
-                        "href": "tel:+4587150000",
-                        "name": "+4587150000",
-                        "value": "+4587150000",
-                        "user_key": "8715 0000",
-                        "address_type": {
-                            "example": "20304060",
-                            "name": "Telefon",
-                            "scope": "PHONE",
-                            "user_key": "OrgEnhedTelefon",
-                            "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
-                        },
-                        "visibility": {
-                            'example': '20304060',
-                            'name': 'Telefon',
-                            'scope': 'PHONE',
-                            'user_key': 'OrgEnhedTelefon',
-                            "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"
-                        },
-                        "org_unit": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None
-                            }
-                        },
-                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0473",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        },
-                    },
-                    {
-                        "href": None,
-                        "name": "5798000420526",
-                        "value": "5798000420526",
-                        "user_key": "5798000420526",
-                        "address_type": {
-                            "example": "5712345000014",
-                            "name": "EAN",
-                            "scope": "EAN",
-                            "user_key": "EAN",
-                            "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"
-                        },
-                        "org_unit": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None
-                            }
-                        },
-                        "uuid": "a0fe7d43-1e0d-4232-a220-87098024b34d",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        }
-                    },
-                    {
-                        "href": "https://www.openstreetmap.org/"
-                        "?mlon=10.19938084&mlat=56.17102843&zoom=16",
-                        "name": "Nordre Ringgade 1, 8000 Aarhus C",
-                        "user_key": "Nordre Ringgade 1, 8000 Aarhus C",
-                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-                        "address_type": {
-                            "example": "<UUID>",
-                            "name": "Postadresse",
-                            "scope": "DAR",
-                            "user_key": "OrgEnhedPostadresse",
-                            "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e"
-                        },
-                        "org_unit": {
-                            "name": "Humanistisk fakultet",
-                            "user_key": "hum",
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {
-                                "from": "2016-01-01",
-                                "to": None
-                            }
-                        },
-                        "uuid": "e1a9cede-8c9b-4367-b628-113834361871",
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None
-                        }
-                    }
-                ],
-            )
-
-        with self.subTest('present V'):
+        with self.subTest('No addresses'):
             self.assertRequestResponse(
                 '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
                 '/details/address?validity=present',
-                [],
-            )
-
-        with self.subTest('present VI'):
-            self.assertRequestResponse(
-                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
-                '/details/address?validity=present',
-                [],
-            )
-
-        with self.subTest('present VII'):
-            self.assertRequestResponse(
-                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/details/address?validity=present',
-                [],
-            )
-
-        with self.subTest('past I'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past II'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past III'):
-            self.assertRequestResponse(
-                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past IV'):
-            self.assertRequestResponse(
-                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past V'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past VI'):
-            self.assertRequestResponse(
-                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('past VII'):
-            self.assertRequestResponse(
-                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/details/address?validity=past',
-                [],
-            )
-
-        with self.subTest('future I'):
-            self.assertRequestResponse(
-                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future II'):
-            self.assertRequestResponse(
-                '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future III'):
-            self.assertRequestResponse(
-                '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future IV'):
-            self.assertRequestResponse(
-                '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future V'):
-            self.assertRequestResponse(
-                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future VI'):
-            self.assertRequestResponse(
-                '/service/ou/85715fc7-925d-401b-822d-467eb4b163b6'
-                '/details/address?validity=future',
-                [],
-            )
-
-        with self.subTest('future VII'):
-            self.assertRequestResponse(
-                '/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48'
-                '/details/address?validity=future',
                 [],
             )
 
