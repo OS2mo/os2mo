@@ -3,6 +3,19 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <b-tabs v-model="tabIndex" lazy>
+      <b-tab @click="navigateToTab('#medarbejder')" href="#medarbejder" :title="$t('tabs.employee.employee')">
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['employee']"
+          content-type="employee"
+          :columns="employee"
+          @show="loadContent('employee', $event)"
+          :entry-component="!hideActions ? components.employee : undefined"
+          hide-create
+        />
+      </b-tab>
+
       <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.employee.engagements')">
         <mo-table-detail
           type="EMPLOYEE"
@@ -95,7 +108,7 @@ SPDX-License-Identifier: MPL-2.0
  * A employee detail tabs component.
  */
 
-import { MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
+import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
@@ -124,7 +137,7 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
+      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
       /**
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
@@ -152,6 +165,10 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
+      employee: [
+        { label: 'name', data: 'name', field: null },
+        { label: 'nickname', data: 'nickname', field: null },
+      ],
 
       /**
        * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
@@ -159,6 +176,7 @@ export default {
        * Used to add the components in the tabs.
        */
       components: {
+        employee: MoEmployeeEntry,
         engagement: MoEngagementEntry,
         address: MoEmployeeAddressEntry,
         role: MoRoleEntry,

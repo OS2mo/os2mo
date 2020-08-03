@@ -82,6 +82,8 @@ test('Workflow: terminate employee from page', async t => {
     .expect(mainSearchItem.withText(' ').visible).ok()
     .pressKey('down enter')
     .expect(mainSearchInput.value).match(/Erik/)
+    .click(VueSelector('employee-detail-tabs bTabButtonHelper')
+      .withText('Engagementer'))
 
   let userID = await t.eval(() => window.location.pathname.split('/').slice(-1))
   let name = await mainSearchInput.value

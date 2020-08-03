@@ -1,4 +1,6 @@
 {
+  "name": "@:shared.name",
+  "nickname": "@:shared.nickname",
   "address": "Adresse",
   "visibility": "Synlighed",
   "address_type": "@:shared.address_type",
