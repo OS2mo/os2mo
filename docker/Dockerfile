@@ -30,7 +30,7 @@ CMD ["yarn", "dev"]
 #
 # We also don't use -slim as some python packages are not wheels and needs
 # compiling with the tools for the non -slim image.
-FROM python:3.8.4 AS dist
+FROM python:3.8.5 AS dist
 
 ENV OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
     OS2MO_USER_CONFIG_PATH=/user-settings.toml
