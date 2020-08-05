@@ -17,6 +17,8 @@
       {
         "fornavn": "Andersine",
         "efternavn": "And",
+        "kaldenavn_fornavn": "Daisy",
+        "kaldenavn_efternavn": "Duck",
         "virkning": {
           "from": "1937-01-09T00:00:00+01:00",
           "from_included": true,

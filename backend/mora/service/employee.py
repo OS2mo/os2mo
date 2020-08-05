@@ -71,6 +71,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 name='Missing name or givenname or surname'
             )
 
+        nickname_givenname, nickname_surname = self._handle_nickname(req)
+
         integration_data = util.checked_get(
             req,
             mapping.INTEGRATION_DATA,
@@ -101,6 +103,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             valid_to=valid_to,
             fornavn=givenname,
             efternavn=surname,
+            kaldenavn_fornavn=nickname_givenname,
+            kaldenavn_efternavn=nickname_surname,
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
@@ -180,6 +184,13 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         if surname:
             changed_extended_props['efternavn'] = surname
 
+        nickname_givenname, nickname_surname = self._handle_nickname(data)
+
+        if nickname_givenname is not None:
+            changed_extended_props['kaldenavn_fornavn'] = nickname_givenname
+        if nickname_surname is not None:
+            changed_extended_props['kaldenavn_efternavn'] = nickname_surname
+
         if mapping.INTEGRATION_DATA in data:
             changed_props['integrationsdata'] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
@@ -218,6 +229,21 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
+    def _handle_nickname(self, obj):
+        nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
+        nickname_surname = obj.get(mapping.NICKNAME_SURNAME, None)
+        nickname = obj.get(mapping.NICKNAME, None)
+
+        if nickname and (nickname_surname or nickname_givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either nickname or given nickname/surname'
+            )
+        if nickname:
+            nickname_givenname = nickname.rsplit(" ", maxsplit=1)[0]
+            nickname_surname = nickname[len(nickname_givenname):].strip()
+
+        return nickname_givenname, nickname_surname
+
     def submit(self):
         c = lora.Connector()
 
@@ -251,12 +277,16 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
     fornavn = extensions.get('fornavn', '')
     efternavn = extensions.get('efternavn', '')
+    kaldenavn_fornavn = extensions.get('kaldenavn_fornavn', '')
+    kaldenavn_efternavn = extensions.get('kaldenavn_efternavn', '')
+
     r = {
         mapping.GIVENNAME: fornavn,
         mapping.SURNAME: efternavn,
-        mapping.NAME: " ".join((
-            fornavn, efternavn
-        )),
+        mapping.NAME: " ".join((fornavn, efternavn)),
+        mapping.NICKNAME_GIVENNAME: kaldenavn_fornavn,
+        mapping.NICKNAME_SURNAME: kaldenavn_efternavn,
+        mapping.NICKNAME: " ".join((kaldenavn_fornavn, kaldenavn_efternavn)).strip(),
         mapping.UUID: userid,
     }
 
@@ -387,6 +417,10 @@ def get_employee(id):
         of givenname and surname).
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
+    :<json string nickname: Nickname of the employee (concatenation
+        of the nickname givenname and surname).
+    :<json string nickname_givenname: The given name part of the nickname.
+    :<json string nickname_surname: The surname part of the nickname.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -408,6 +442,9 @@ def get_employee(id):
        "name": "Bente Pedersen",
        "givenname": "Bente",
        "surname": "Pedersen",
+       "nickname": "Kjukke Mimergolf",
+       "nickname_givenname": "Kjukke",
+       "nickname_surname": "Mimergolf",
        "org": {
          "name": "Hj\u00f8rring Kommune",
          "user_key": "Hj\u00f8rring Kommune",
@@ -593,6 +630,9 @@ def create_employee():
     :<json string name: Name of the employee.
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
+    :<json string nickname: Nickname of the employee.
+    :<json string nickname_givenname: The given name part of the nickname.
+    :<json string nickname_surname: The surname part of the nickname.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
@@ -600,7 +640,8 @@ def create_employee():
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
 
-    Only the full name or givenname/surname should be given, not both.
+    For both the name and the nickname, only the full name or
+    givenname/surname should be given, not both.
     If only the full name is supplied, the name will be split on the last
     space.
 
@@ -613,6 +654,7 @@ def create_employee():
 
       {
         "name": "Name Name",
+        "nickname": "Nickname Whatever",
         "cpr_no": "0101501234",
         "user_key": "1234",
         "org": {

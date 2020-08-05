@@ -22,6 +22,8 @@ class Tests(util.LoRATestCase):
         payload = {
             "givenname": "Torkild",
             "surname": "von Testperson",
+            "nickname_givenname": "Torkild",
+            "nickname_surname": "Sejfyr",
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -50,8 +52,10 @@ class Tests(util.LoRATestCase):
                 ],
                 'brugerudvidelser': [
                     {
-                        'efternavn': 'von Testperson',
                         'fornavn': 'Torkild',
+                        'efternavn': 'von Testperson',
+                        'kaldenavn_fornavn': 'Torkild',
+                        'kaldenavn_efternavn': 'Sejfyr',
                         'virkning': {
                             'from': '1950-01-01 '
                             '00:00:00+01',
@@ -108,9 +112,12 @@ class Tests(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/'.format(userid),
             {
-                'surname': 'von Testperson',
                 'givenname': 'Torkild',
+                'surname': 'von Testperson',
                 'name': 'Torkild von Testperson',
+                'nickname_givenname': 'Torkild',
+                'nickname_surname': 'Sejfyr',
+                'nickname': 'Torkild Sejfyr',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -324,6 +331,9 @@ class Tests(util.LoRATestCase):
                 'surname': 'Testperson',
                 'givenname': 'Torkild Von',
                 'name': 'Torkild Von Testperson',
+                'nickname_surname': '',
+                'nickname_givenname': '',
+                'nickname': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -537,6 +547,8 @@ class Tests(util.LoRATestCase):
                 "cpr_no": "0202020202",
                 "givenname": "Test",
                 "surname": "2 Employee",
+                "nickname_givenname": "Testmand",
+                "nickname_surname": "Whatever",
             },
         }]
 
@@ -561,6 +573,8 @@ class Tests(util.LoRATestCase):
         expected_brugerudvidelser = [{
             'fornavn': 'Fedtmule',
             'efternavn': 'Hund',
+            'kaldenavn_fornavn': 'George',
+            'kaldenavn_efternavn': 'Geef',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
                 'from_included': True,
@@ -570,6 +584,8 @@ class Tests(util.LoRATestCase):
         }, {
             'fornavn': 'Test',
             'efternavn': '2 Employee',
+            'kaldenavn_fornavn': 'Testmand',
+            'kaldenavn_efternavn': 'Whatever',
             'virkning': {
                 'from': '2017-01-01 00:00:00+01',
                 'from_included': True,
@@ -667,6 +683,8 @@ class Tests(util.LoRATestCase):
                 "cpr_no": "0101010101",
                 "givenname": "Martin L",
                 "surname": "Gore",
+                "nickname_givenname": "John",
+                "nickname_surname": "Morfar",
             },
             "uuid": userid
         }]
@@ -700,6 +718,8 @@ class Tests(util.LoRATestCase):
         expected_brugerudvidelser = [{
             'fornavn': 'Fedtmule',
             'efternavn': 'Hund',
+            'kaldenavn_fornavn': 'George',
+            'kaldenavn_efternavn': 'Geef',
             'virkning': {
                 'from': '1932-05-12 00:00:00+01',
                 'from_included': True,
@@ -709,6 +729,8 @@ class Tests(util.LoRATestCase):
         }, {
             'fornavn': 'Martin L',
             'efternavn': 'Gore',
+            'kaldenavn_fornavn': 'John',
+            'kaldenavn_efternavn': 'Morfar',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,
@@ -787,6 +809,9 @@ class Tests(util.LoRATestCase):
                 'surname': 'And',
                 'givenname': 'Andersine',
                 'name': 'Andersine And',
+                'nickname': "Daisy Duck",
+                'nickname_givenname': "Daisy",
+                'nickname_surname': "Duck",
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
         )
@@ -832,6 +857,9 @@ class Tests(util.LoRATestCase):
                 'surname': 'And',
                 'givenname': 'Andersine',
                 'name': 'Andersine And',
+                'nickname': "Daisy Duck",
+                'nickname_givenname': "Daisy",
+                'nickname_surname': "Duck",
                 'uuid': employee_uuid
             },
             amqp_topics={'employee.employee.update': 1},

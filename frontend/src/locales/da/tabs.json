@@ -1,5 +1,6 @@
 {
   "employee": {
+    "employee": "Medarbejder",
     "engagements": "Engagementer",
     "addresses": "Adresser",
     "roles": "Roller",

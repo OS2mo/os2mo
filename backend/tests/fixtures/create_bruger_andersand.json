@@ -16,6 +16,8 @@
             {
                 "fornavn": "Anders",
                 "efternavn": "And",
+                "kaldenavn_fornavn": "Donald",
+                "kaldenavn_efternavn": "Duck",
                 "virkning": {
                     "from": "1934-06-09T00:00:00+01:00",
                     "from_included": true,

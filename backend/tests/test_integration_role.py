@@ -1111,64 +1111,22 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/role',
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
+            'details/role?only_primary_uuid=1',
             [{
                 'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {'from': '2016-01-01', 'to': None},
                 },
                 'person': {
-                    'name': 'Anders And',
-                    'givenname': 'Anders',
-                    'surname': 'And',
                     'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 },
                 'role_type': {
-                    'example': None,
-                    'name': 'Afdeling',
-                    'scope': None,
-                    'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
                 'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
                 'user_key': 'bvn',
                 'validity': {'from': '2017-01-01', 'to': None},
             }],
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/details/role',
-            [{
-                'org_unit': {
-                    'name': 'Humanistisk fakultet',
-                    'user_key': 'hum',
-                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                    'validity': {'from': '2016-01-01', 'to': None},
-                },
-                'person': {
-                    'name': 'Anders And',
-                    'givenname': 'Anders',
-                    'surname': 'And',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                },
-                'role_type': {
-                    'example': None,
-                    'name': 'Afdeling',
-                    'scope': None,
-                    'user_key': 'afd',
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
-                },
-                'uuid': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
-                'user_key': 'bvn',
-                'validity': {'from': '2017-01-01', 'to': None},
-            }],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/details/role',
-            [],
         )
 
     def test_create_role_missing_unit(self):

@@ -20,6 +20,8 @@
   "manager": "Leder | Ledere",
   "manager_level": "Lederniveau",
   "manager_type": "Ledertype",
+  "name": "Navn",
+  "nickname": "Kaldenavn",
   "role_type": "Rolletype",
   "role": "Rolle | Roller",
   "unit": "Enhed | Enheder",
