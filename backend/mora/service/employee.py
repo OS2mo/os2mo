@@ -417,6 +417,10 @@ def get_employee(id):
         of givenname and surname).
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
+    :<json string nickname: Nickname of the employee (concatenation
+        of the nickname givenname and surname).
+    :<json string nickname_givenname: The given name part of the nickname.
+    :<json string nickname_surname: The surname part of the nickname.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
         yielded by :http:get:`/service/o/`.
@@ -438,6 +442,9 @@ def get_employee(id):
        "name": "Bente Pedersen",
        "givenname": "Bente",
        "surname": "Pedersen",
+       "nickname": "Kjukke Mimergolf",
+       "nickname_givenname": "Kjukke",
+       "nickname_surname": "Mimergolf",
        "org": {
          "name": "Hj\u00f8rring Kommune",
          "user_key": "Hj\u00f8rring Kommune",
@@ -623,6 +630,9 @@ def create_employee():
     :<json string name: Name of the employee.
     :<json string givenname: Given name of the employee.
     :<json string surname: Surname of the employee.
+    :<json string nickname: Nickname of the employee.
+    :<json string nickname_givenname: The given name part of the nickname.
+    :<json string nickname_surname: The surname part of the nickname.
     :<json string cpr_no: The CPR no of the employee
     :<json string user_key: Short, unique key identifying the employee.
     :<json object org: The organisation with which the employee is associated
@@ -630,7 +640,8 @@ def create_employee():
       UUID for the employee.
     :<json list details: A list of details to be created for the employee.
 
-    Only the full name or givenname/surname should be given, not both.
+    For both the name and the nickname, only the full name or
+    givenname/surname should be given, not both.
     If only the full name is supplied, the name will be split on the last
     space.
 
@@ -643,6 +654,7 @@ def create_employee():
 
       {
         "name": "Name Name",
+        "nickname": "Nickname Whatever",
         "cpr_no": "0101501234",
         "user_key": "1234",
         "org": {
