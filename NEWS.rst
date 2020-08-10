@@ -1,3 +1,11 @@
+Version 1.6.4, 2020-08-10
+=========================
+
+Bug fixes
+------------
+
+* #37553: Fix bug when trying to create leave without engagements
+
 Version 1.6.3, 2020-07-10
 =========================
 
