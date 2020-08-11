@@ -6,6 +6,7 @@ import typing
 
 import flask
 import flask_saml_sso
+from flask_cors import CORS
 import werkzeug
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -24,6 +25,12 @@ from . import triggers
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
 distdir = os.path.join(basedir, '..', '..', 'frontend', 'dist')
+
+
+def enable_cors(app):
+    """Enable CORS if configured to do so."""
+    if app.config.get("ENABLE_CORS", False):
+        CORS(app)
 
 
 def create_app(overrides: typing.Dict[str, typing.Any] = None):
@@ -132,5 +139,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     # Fix for incident: https://redmine.magenta-aps.dk/issues/35832
     # Respect the X-Forwarded-Proto scheme
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=0)
+    enable_cors(app)
 
     return app

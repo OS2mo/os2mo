@@ -175,6 +175,7 @@ app_config = {
 
     # Set to 'None' specifically if unset to retain default behavior in flask
     "SERVER_NAME": config["server_name"] or None,
+    "ENABLE_CORS": config["enable_cors"] or False,
 
     # serviceplatformen
     "DUMMY_MODE": config["dummy_mode"],
