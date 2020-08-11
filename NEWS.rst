@@ -4,6 +4,13 @@ In development
 New features
 ------------
 
+
+Version 1.7.0, 2020-08-11
+=========================
+
+New features
+------------
+
 * #30083: Upgraded to PostgreSQL 11 and Python 3.8.
 * #36672: Add 'kaldenavn' to employees, with a separate UI tab for tracking
   changes.
