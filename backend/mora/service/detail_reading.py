@@ -549,6 +549,35 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
        }
      ]
 
+    **Example employee response**:
+
+    An array of objects as returned by :http:get:`/service/e/(uuid:id)/`.
+
+    .. sourcecode:: json
+
+     [
+       {
+         "cpr_no": "0602602389",
+         "givenname": "Solveig",
+         "name": "Solveig Kuhlenhenke",
+         "nickname": "Sol Henk",
+         "nickname_givenname": "Sol",
+         "nickname_surname": "Henk",
+         "org": {
+           "name": "Kolding Kommune",
+           "user_key": "Kolding Kommune",
+           "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+         },
+         "surname": "Kuhlenhenke",
+         "user_key": "SolveigK",
+         "uuid": "23d2dfc7-6ceb-47cf-97ed-db6beadcb09b",
+         "validity": {
+           "from": "2020-08-05",
+           "to": null
+         }
+       }
+     ]
+
     **Example manager response**:
 
     .. sourcecode:: json

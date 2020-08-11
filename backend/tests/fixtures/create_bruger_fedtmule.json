@@ -16,6 +16,8 @@
             {
                 "fornavn": "Fedtmule",
                 "efternavn": "Hund",
+                "kaldenavn_fornavn": "George",
+                "kaldenavn_efternavn": "Geef",
                 "virkning": {
                     "from": "1932-05-12T00:00:00+01:00",
                     "from_included": true,

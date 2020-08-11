@@ -1,11 +1,8 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import copy
-import logging
-
 import freezegun
-import pytest
+import logging
 
 from mora import lora
 from tests import util
@@ -23,7 +20,6 @@ class Writing(util.LoRATestCase):
             'TZ': 'UTC',
         }
 
-    @pytest.mark.psql_9_dependent
     def test_errors(self):
         # In Postgres 10.0 the messages mentioning type names was changed. See
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
@@ -142,7 +138,7 @@ class Writing(util.LoRATestCase):
         self.assertRequestResponse(
             '/service/details/create',
             {
-                'description': 'invalid input syntax for uuid: "None"',
+                'description': 'invalid input syntax for type uuid: "None"',
                 'error': True,
                 'error_key': 'E_INVALID_INPUT',
                 'status': 400,
@@ -327,25 +323,15 @@ class Writing(util.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            '/service/e/{}/details/it?validity=future'.format(userid),
+            '/service/e/{}/details/it?validity=future&only_primary_uuid=1'.format(
+                userid),
             [
                 {
                     "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
                         "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {
-                            "from": "2010-01-01",
-                            "to": None
-                        }
                     },
                     "org_unit": None,
                     "person": {
-                        "name": "Fedtmule Hund",
-                        "givenname": "Fedtmule",
-                        "surname": "Hund",
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
                     },
                     "user_key": "goofy-moofy",
@@ -357,102 +343,6 @@ class Writing(util.LoRATestCase):
                 }
             ],
             amqp_topics={'employee.it.create': 1},
-        )
-
-    @freezegun.freeze_time('2018-01-01', tz_offset=1)
-    def test_edit_employee_itsystem(self):
-        self.load_sample_structures()
-
-        user_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        function_id = "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66"
-
-        original = {
-            "itsystem": {
-                "name": "Active Directory",
-                "reference": None,
-                "system_type": None,
-                "user_key": "AD",
-                "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-                "validity": {
-                    "from": "2002-02-14",
-                    "to": None,
-                }
-            },
-            "org_unit": None,
-            "person": {
-                "name": "Anders And",
-                "givenname": "Anders",
-                "surname": "And",
-                "uuid": user_id,
-            },
-            "user_key": "donald",
-            "uuid": function_id,
-            "validity": {
-                "from": "2017-01-01",
-                "to": None,
-            }
-        }
-
-        with self.subTest('preconditions'):
-            self.assertRequestResponse(
-                '/service/e/{}/details/it'.format(user_id),
-                [original],
-            )
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            [function_id],
-            json=[
-                {
-                    "type": "it",
-                    "uuid": function_id,
-                    "original": original,
-                    "data": {
-                        "itsystem": {
-                            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        },
-                        "validity": {
-                            "from": "2018-01-01",
-                            "to": "2018-06-01",
-                        }
-                    }
-                }
-            ],
-            amqp_topics={'employee.it.update': 1},
-        )
-
-        updated = copy.deepcopy(original)
-        updated.update(
-            itsystem={
-                'name': 'Lokal Rammearkitektur',
-                'reference': None,
-                'system_type': None,
-                'user_key': 'LoRa',
-                'uuid': '0872fb72-926d-4c5c-a063-ff800b8ee697',
-                'validity': {'from': '2010-01-01', 'to': None},
-            },
-            validity={
-                "from": "2018-01-01",
-                "to": "2018-06-01",
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/it?validity=past'.format(user_id),
-            [],
-            amqp_topics={'employee.it.update': 1},
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/it'.format(user_id),
-            [updated],
-            amqp_topics={'employee.it.update': 1},
-        )
-
-        self.assertRequestResponse(
-            '/service/e/{}/details/it?validity=future'.format(user_id),
-            [],
-            amqp_topics={'employee.it.update': 1},
         )
 
     def test_create_unit_itsystem(self):
@@ -722,68 +612,16 @@ class Reading(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it',
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/'
+            'details/it?only_primary_uuid=1',
             [
                 {
                     'itsystem': {
-                        'name': 'Active Directory',
-                        'reference': None,
-                        'system_type': None,
-                        'user_key': 'AD',
                         'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                        'validity': {'from': '2002-02-14', 'to': None},
                     },
                     'org_unit': None,
                     'person': {
-                        'name': 'Anders And',
-                        'givenname': 'Anders',
-                        'surname': 'And',
                         'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
-                    'user_key': 'donald',
-                    'uuid': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
-                    'validity': {'from': '2017-01-01', 'to': None},
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
-            '?validity=past',
-            [],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
-            '?validity=future',
-            [],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
-            '?at=2016-06-01',
-            [],
-        )
-
-        self.assertRequestResponse(
-            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it'
-            '?at=2016-06-01&validity=future',
-            [
-                {
-                    'itsystem': {
-                        'name': 'Active Directory',
-                        'reference': None,
-                        'system_type': None,
-                        'user_key': 'AD',
-                        'uuid': '59c135c9-2b15-41cc-97c8-b5dff7180beb',
-                        'validity': {'from': '2002-02-14', 'to': None},
-                    },
-                    'org_unit': None,
-                    'person': {
-                        'name': 'Anders And',
-                        'givenname': 'Anders',
-                        'surname': 'And',
-                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                    },
                     'user_key': 'donald',
                     'uuid': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
                     'validity': {'from': '2017-01-01', 'to': None},

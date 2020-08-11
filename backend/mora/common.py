@@ -476,6 +476,8 @@ def create_bruger_payload(
     valid_to: str,
     fornavn: str,
     efternavn: str,
+    kaldenavn_fornavn: str,
+    kaldenavn_efternavn: str,
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
@@ -527,6 +529,12 @@ def create_bruger_payload(
 
     if efternavn is not None:
         extensions['efternavn'] = efternavn
+
+    if kaldenavn_fornavn is not None:
+        extensions['kaldenavn_fornavn'] = kaldenavn_fornavn
+
+    if kaldenavn_efternavn is not None:
+        extensions['kaldenavn_efternavn'] = kaldenavn_efternavn
 
     if extensions:
         user['attributter']['brugerudvidelser'] = [

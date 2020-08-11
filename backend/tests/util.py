@@ -510,8 +510,8 @@ class _BaseTestCase(flask_testing.TestCase):
         actual = self.assertRequest(path, message=message,
                                     amqp_topics=amqp_topics, **kwargs)
 
-        if actual != expected:
-            pprint.pprint(actual)
+        expected = self.__sort_inner_lists(expected)
+        actual = self.__sort_inner_lists(actual)
 
         self.assertEqual(expected, actual, message)
 

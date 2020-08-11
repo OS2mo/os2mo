@@ -157,9 +157,9 @@ Unit-test:
   image:
     name: ${IMAGE_SHA}
   services:
-    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+    - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:1.7.0
+    - name: magentaaps/lora:1.8.0
       alias: mox
       command: [
       "gunicorn",

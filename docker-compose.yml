@@ -52,7 +52,7 @@ services:
       - msg_broker
 
   mox:
-    image: magentaaps/lora:1.7.0
+    image: magentaaps/lora:1.8.0
     # build:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile
@@ -70,7 +70,7 @@ services:
       - mox-db
 
   mox-db:
-    image: magentaaps/postgres-os2mo:9.6.15-2-test
+    image: magentaaps/postgres-os2mo:10-11.7-test
     env_file:
       - dev-environment/db.env
       - dev-environment/sessions_db.env
