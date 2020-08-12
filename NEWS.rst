@@ -1,8 +1,10 @@
-In development
-==============
+Version 1.7.1, 2020-08-12
+=========================
 
 New features
 ------------
+
+* #30083: Upgraded to Python 3.8.5
 
 
 Version 1.7.0, 2020-08-11
