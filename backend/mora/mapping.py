@@ -206,11 +206,6 @@ ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
-ORG_FUNK_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'organisatoriskfunktionstype'),
-    type=FieldTypes.ZERO_TO_ONE,
-)
-
 JOB_FUNCTION_FIELD = FieldTuple(
     path=('relationer', 'opgaver'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,

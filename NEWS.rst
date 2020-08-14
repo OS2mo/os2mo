@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #35937: Removed a duplicate entry from backend/mora/mapping.py
+
 
 Version 1.7.1, 2020-08-12
 =========================
