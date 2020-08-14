@@ -13,6 +13,18 @@ from . import util
 mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
 
 
+org_unit_type_facet = {
+    'description': '',
+    'user_key': 'org_unit_type',
+    'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'
+}
+org_unit_level_facet = {
+    'description': '',
+    'user_key': 'org_unit_level',
+    'uuid': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455'
+}
+
+
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('mora.service.orgunit.uuid.uuid4', new=lambda: mock_uuid)
 @patch('mora.conf_db.get_configuration',
@@ -38,8 +50,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -54,9 +69,12 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
                         'user_key': 'inst',
+                        "top_level_facet": org_unit_type_facet,
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
                     "org_unit_level": None,
@@ -70,8 +88,11 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
@@ -86,8 +107,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -137,8 +161,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -153,8 +180,11 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -169,9 +199,12 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
                             'user_key': 'inst',
+                            "top_level_facet": org_unit_type_facet,
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
                         "org_unit_level": None,
@@ -185,8 +218,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -236,8 +272,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -252,8 +291,11 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -268,8 +310,11 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
@@ -284,8 +329,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -334,8 +382,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -350,8 +401,11 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -366,8 +420,11 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
@@ -382,8 +439,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -426,8 +486,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -442,8 +505,11 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -458,8 +524,11 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
@@ -474,8 +543,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -518,8 +590,11 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                 },
@@ -534,8 +609,11 @@ class Tests(util.LoRATestCase):
                     },
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -550,8 +628,11 @@ class Tests(util.LoRATestCase):
                         },
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Institut',
                             'name': 'Institut',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'inst',
                             'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                         },
@@ -566,8 +647,11 @@ class Tests(util.LoRATestCase):
                             },
                             'org_unit_type': {
                                 'example': None,
+                                "facet": org_unit_type_facet,
+                                'full_name': 'Afdeling',
                                 'name': 'Afdeling',
                                 'scope': None,
+                                "top_level_facet": org_unit_type_facet,
                                 'user_key': 'afd',
                                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                             },
@@ -661,9 +745,9 @@ class Tests(util.LoRATestCase):
                     "address_type": {
                         "example": "<UUID>",
                         "name": "Adresse",
-                        "scope": "DAR",
-                        "user_key": "Adresse",
-                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                            "scope": "DAR",
+                            "user_key": "Adresse",
+                            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
                     "org": {
                         "name": "Aarhus Universitet",
@@ -791,22 +875,31 @@ class Tests(util.LoRATestCase):
                 },
                 'org_unit_level': {
                     'example': None,
+                    "facet": org_unit_level_facet,
+                    'full_name': 'Niveau 10',
                     'name': 'Niveau 10',
                     'scope': None,
+                    "top_level_facet": org_unit_level_facet,
                     'user_key': 'orgunitlevel10',
                     'uuid': '0f015b67-f250-43bb-9160-043ec19fad48'
                 },
                 "time_planning": {
                     "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Institut",
                     "name": "Institut",
                     "scope": None,
+                    "top_level_facet": org_unit_type_facet,
                     "user_key": "inst",
                     "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
                 },
                 "org_unit_type": {
                     "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Institut",
                     "name": "Institut",
                     "scope": None,
+                    "top_level_facet": org_unit_type_facet,
                     "user_key": "inst",
                     "uuid": "ca76a441-6226-404f-88a9-31e02e420e52"
                 },
@@ -822,8 +915,11 @@ class Tests(util.LoRATestCase):
                     "time_planning": None,
                     "org_unit_type": {
                         "example": None,
+                        "facet": org_unit_type_facet,
+                        "full_name": "Afdeling",
                         "name": "Afdeling",
                         "scope": None,
+                        "top_level_facet": org_unit_type_facet,
                         "user_key": "afd",
                         "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                     },
@@ -1072,8 +1168,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 "org_unit_type": {
                     "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
                     "name": "Afdeling",
                     "scope": None,
+                    "top_level_facet": org_unit_type_facet,
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
                 },
@@ -1659,8 +1758,11 @@ class Tests(util.LoRATestCase):
                 'time_planning': None,
                 "org_unit_type": {
                     "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
                     "name": "Afdeling",
                     "scope": None,
+                    "top_level_facet": org_unit_type_facet,
                     "user_key": "afd",
                     "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                 },
@@ -1831,8 +1933,11 @@ class Tests(util.LoRATestCase):
 
         expected = {
             'example': None,
+            "facet": org_unit_type_facet,
+            'full_name': 'Fakultet',
             'name': 'Fakultet',
             'scope': None,
+            "top_level_facet": org_unit_type_facet,
             'user_key': 'fak',
             'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'
         }
@@ -1896,8 +2001,11 @@ class Tests(util.LoRATestCase):
                 'time_planning': None,
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Fakultet',
                     'name': 'Fakultet',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
@@ -2527,8 +2635,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
+                    "facet": org_unit_type_facet,
+                    'full_name': 'Institut',
                     'name': 'Institut',
                     'scope': None,
+                    "top_level_facet": org_unit_type_facet,
                     'user_key': 'inst',
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                 },
@@ -2543,8 +2654,11 @@ class Tests(util.LoRATestCase):
                     'org_unit_level': None,
                     'org_unit_type': {
                         'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Institut',
                         'name': 'Institut',
                         'scope': None,
+                        "top_level_facet": org_unit_type_facet,
                         'user_key': 'inst',
                         'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'
                     },
@@ -2559,8 +2673,11 @@ class Tests(util.LoRATestCase):
                         'org_unit_level': None,
                         'org_unit_type': {
                             'example': None,
+                            "facet": org_unit_type_facet,
+                            'full_name': 'Afdeling',
                             'name': 'Afdeling',
                             'scope': None,
+                            "top_level_facet": org_unit_type_facet,
                             'user_key': 'afd',
                             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'
                         },
@@ -2821,8 +2938,11 @@ class Tests(util.LoRATestCase):
                         'time_planning': None,
                         "org_unit_type": {
                             "example": None,
+                            "facet": org_unit_type_facet,
+                            "full_name": "Afdeling",
                             "name": "Afdeling",
                             "scope": None,
+                            "top_level_facet": org_unit_type_facet,
                             "user_key": "afd",
                             "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                         },
@@ -2853,8 +2973,11 @@ class Tests(util.LoRATestCase):
                         'time_planning': None,
                         "org_unit_type": {
                             "example": None,
+                            "facet": org_unit_type_facet,
+                            "full_name": "Afdeling",
                             "name": "Afdeling",
                             "scope": None,
+                            "top_level_facet": org_unit_type_facet,
                             "user_key": "afd",
                             "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
                         },
@@ -2885,8 +3008,11 @@ class Tests(util.LoRATestCase):
                         'time_planning': None,
                         "org_unit_type": {
                             "example": None,
+                            "facet": org_unit_type_facet,
+                            "full_name": "Fakultet",
                             "name": "Fakultet",
                             "scope": None,
+                            "top_level_facet": org_unit_type_facet,
                             "user_key": "fak",
                             "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                         },
@@ -2923,8 +3049,11 @@ class Tests(util.LoRATestCase):
                     'time_planning': None,
                     "org_unit_type": {
                         "example": None,
+                        "facet": org_unit_type_facet,
+                        "full_name": "Fakultet",
                         "name": "Fakultet",
                         "scope": None,
+                        "top_level_facet": org_unit_type_facet,
                         "user_key": "fak",
                         "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                     },
@@ -2979,8 +3108,11 @@ class Tests(util.LoRATestCase):
                 'time_planning': None,
                 "org_unit_type": {
                     "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Fakultet",
                     "name": "Fakultet",
                     "scope": None,
+                    "top_level_facet": org_unit_type_facet,
                     "user_key": "fak",
                     "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"
                 },

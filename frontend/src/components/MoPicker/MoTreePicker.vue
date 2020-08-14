@@ -129,7 +129,7 @@ export default {
       let validations = {
         required: this.unitName !== null ? this.required : this.unitName,
       }
-      var subclass_validations = this.get_validations()
+      let subclass_validations = this.get_validations()
       if (this.extraValidations) {
         validations = { ...validations, ...subclass_validations, ...this.extraValidations }
       }
@@ -146,7 +146,7 @@ export default {
         return
       }
 
-      let unit = await this.get_unit(newVal, this.validity && this.validity.from)
+      let unit = await this.get_entry(newVal, this.validity && this.validity.from)
 
       this.unitName = unit.name
       this.unitUuid = unit.uuid
@@ -166,7 +166,7 @@ export default {
       deep: true,
       async handler(newVal, oldVal) {
         if (this.unitUuid) {
-          let unit = await this.get_unit(this.unitUuid, newVal && newVal.from)
+          let unit = await this.get_entry(this.unitUuid, newVal && newVal.from)
 
           if (!unit) {
             this.showTree = false
@@ -199,7 +199,7 @@ export default {
      * Get name.
      */
     get_name_id() {
-      alert("Not overridden!")
+      console.log("Not overridden: get_name_id!")
     },
 
     /**
@@ -207,7 +207,7 @@ export default {
      * @returns {Object} Object of validations to run.
      */
     get_validations() {
-        return {}
+      return {}
     },
 
     /**
@@ -217,7 +217,7 @@ export default {
      * @returns {Object} Ancestor tree structure
      */
     get_ancestor_tree(uuid, date) {
-      alert("Not overridden!")
+      console.log("Not overridden: get_ancestor_tree!")
     },
 
     /**
@@ -227,7 +227,7 @@ export default {
      * @returns {Object} Direct children of the top-level entry
      */
     get_toplevel_children(uuid, date) {
-      alert("Not overridden!")
+      console.log("Not overridden: get_toplevel_children!")
     },
 
     /**
@@ -237,7 +237,7 @@ export default {
      * @returns {Object} Direct children of the current entry
      */
     get_children(uuid, date) {
-      alert("Not overridden!")
+      console.log("Not overridden: get_children!")
     },
 
     /**
@@ -245,7 +245,7 @@ export default {
      * @returns {String} Key to get store getter for uuid
      */
     get_store_uuid() {
-      alert("Not overridden!")
+      console.log("Not overridden: get_map_getters!")
     },
 
     /**
@@ -254,8 +254,8 @@ export default {
      * @param {Date} validity - Validity period for which to lookup
      * @returns {Object} Full object for the current entry
      */
-    async get_unit(uuid, validity) {
-      alert("Not overridden!")
+    async get_entry(newVal, validity) {
+      console.log("Not overridden: get_entry!")
     }
   }
 }

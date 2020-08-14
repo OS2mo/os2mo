@@ -24,6 +24,7 @@ const state = {
 const actions = {
   [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
     if (state[payload.facet]) return
+    if (rootState.organisation.uuid == undefined) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
       .then(response => {
         response.data.classes = response.data.data.items
@@ -38,11 +39,14 @@ const actions = {
 
 const mutations = {
   [_facet.mutations.SET_FACET] (state, payload) {
+    state.uuid = payload.uuid
     Vue.set(state, payload.user_key, payload)
+    Vue.set(state, payload.uuid, payload)
   }
 }
 
 const getters = {
+  [_facet.getters.GET_UUID]: state => state.uuid,
   [_facet.getters.GET_FACET]: (state) => (id) => state[id] || {}
 }
 

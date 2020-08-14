@@ -14,7 +14,8 @@ export const Facet = {
     SET_FACET: `${NAMESPACE}/SET_FACET`
   },
   getters: {
-    GET_FACET: `${NAMESPACE}/GET_FACET`
+    GET_FACET: `${NAMESPACE}/GET_FACET`,
+    GET_UUID: `${NAMESPACE}/GET_UUID`
   }
 }
 

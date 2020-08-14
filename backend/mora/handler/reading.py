@@ -148,6 +148,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 'adresser',
                 'organisatoriskfunktionstype',
                 'tilknyttedeenheder',
+                'tilknyttedeklasser',
                 'tilknyttedebrugere',
                 'tilknyttedefunktioner',
                 'tilknyttedeitsystemer',
