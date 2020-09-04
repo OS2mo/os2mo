@@ -5,6 +5,7 @@ New features
 ------------
 
 * #35937: Removed a duplicate entry from backend/mora/mapping.py
+* #35937: Parameterized ancestor tree helper function.
 
 
 Version 1.7.1, 2020-08-12
