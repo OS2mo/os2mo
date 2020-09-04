@@ -48,7 +48,7 @@
     "eslint": "^6.8.0",
     "eslint-plugin-testcafe": "^0.2.1",
     "eslint-plugin-vue": "^6.1.2",
-    "node-sass": "^4.13.0",
+    "node-sass": "^4.13.1",
     "sass-loader": "^8.0.2",
     "testcafe": "^1.7.1",
     "testcafe-vue-selectors": "^3.1.0",
