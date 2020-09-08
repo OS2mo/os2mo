@@ -46,7 +46,8 @@ Best practices for implementering
        * Produktions-VM bestykket med 4 cores, 8GB Ram og 60 GB SSD harddisk
        * Andre VM’er (udvikling og test): 2 cores, 4GB Ram og 30 GB SSD harddisk
        * Ubuntu 16.04
-       * Tillade udgående trafik på portene 22, 80, 443, 4505 og 4506
+       * Tillade indgående trafik på portene 22, 80, 443
+       * Tillade udgående trafik på portene 4505 og 4506 (Saltstack)
        * Send den anvendte eksterne IP-adresse til Magenta, så der kan åbnes for adgang.
      - Kunde
    * - 1. 2
