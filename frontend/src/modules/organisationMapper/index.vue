@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
     <div class="row">
       <div class="col">
         <div class="card">
-          <mo-tree-view class="card-body origin" v-model="origin"/>
+          <mo-org-tree-view class="card-body origin" v-model="origin"/>
         </div>
 
         <button
@@ -22,7 +22,7 @@ SPDX-License-Identifier: MPL-2.0
 
       <div class="col">
         <div class="card">
-          <mo-tree-view
+          <mo-org-tree-view
             multiple
             v-model="destination"
             :disabled-unit="origin"
@@ -48,7 +48,7 @@ SPDX-License-Identifier: MPL-2.0
 </template>
 
 <script>
-import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import MoOrgTreeView from '@/components/MoTreeView/MoOrgTreeView'
 import MoLog from '@/components/MoLog/MoLog'
 import { mapGetters } from 'vuex'
 import store from './_store'
@@ -60,7 +60,7 @@ export default {
   name: 'OrganisationMapperModule',
   components: {
     MoLog,
-    MoTreeView
+    MoOrgTreeView
   },
   computed: {
     origin: {

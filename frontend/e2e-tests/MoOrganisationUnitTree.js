@@ -48,7 +48,7 @@ const trees = new Map([
   ]]
 ])
 
-let tree = Selector('.orgunit-tree').with({ visibilityCheck: true})
+let tree = VueSelector('mo-tree-view')
 let treeNode = tree.find('.tree-node')
 let treeAnchor = treeNode.find('.tree-anchor')
 let rootNode = treeNode.withText('Overordnet Enhed')
@@ -65,7 +65,6 @@ for (const [selection, contents] of trees.entries()) {
     .page`${baseURL}/organisation/${selection}`
   (`Load of '${selection}'`, async t => {
     await t
-      .wait(500)
       .expect(tree.exists)
       .ok()
       .expect(rootNode.exists)

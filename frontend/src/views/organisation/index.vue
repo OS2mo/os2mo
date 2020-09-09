@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
           </h4>
 
           <div id="tree-wrapper">
-            <mo-tree-view v-model="selected"/>
+            <mo-org-tree-view v-model="selected"/>
           </div>
         </div>
       </div>
@@ -31,13 +31,13 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation component.
  */
 import MoOrganisationUnitWorkflows from '@/views/organisation/workflows'
-import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import MoOrgTreeView from '@/components/MoTreeView/MoOrgTreeView'
 import { mapState } from 'vuex'
 
 export default {
   components: {
     MoOrganisationUnitWorkflows,
-    MoTreeView
+    MoOrgTreeView
   },
   computed: {
     /**
