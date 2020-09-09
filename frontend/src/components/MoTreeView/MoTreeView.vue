@@ -1,7 +1,7 @@
 SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <div class="orgunit-tree">
+  <div class="unit-tree">
     <mo-loader v-show="isLoading"/>
     <div v-show="!isLoading" class="scroll">
       <liquor-tree
@@ -29,12 +29,9 @@ SPDX-License-Identifier: MPL-2.0
 
 <script>
 import { EventBus, Events } from '@/EventBus'
-import { mapGetters } from 'vuex'
-import Organisation from '@/api/Organisation'
-import OrganisationUnit from '@/api/OrganisationUnit'
 import MoLoader from '@/components/atoms/MoLoader'
 import LiquorTree from 'liquor-tree'
-import { Organisation as OrgStore } from '@/store/actions/organisation'
+
 
 export default {
   components: {
@@ -67,19 +64,33 @@ export default {
     /**
      * Select more than one node
      */
-    multiple: Boolean
+    multiple: Boolean,
+
+    /**
+     * Function to fetch ancestor tree
+     */
+    get_ancestor_tree: Function,
+
+    /**
+     * Function to fetch top-level children
+     */
+    get_toplevel_children: Function,
+
+    /**
+     * Function to fetch non top-level children
+     */
+    get_children: Function,
+
+    /**
+     * Function to return store getter key
+     */
+    get_store_uuid: Function,
   },
 
   computed: {
-    ...mapGetters({
-      /**
-       * The tree view itself is dependent on the currently active
-       * organisation. Among other things, we should only show the units
-       * for that organisation, and also ensure that we reset the view
-       * whenever it changes.
-       */
-      orgUuid: OrgStore.getters.GET_UUID
-    }),
+    unitUuid () {
+      return this.$store.getters[this.get_store_uuid()]
+    },
 
     /**
      * @private
@@ -207,7 +218,7 @@ export default {
     /**
      * Reset the selection when the organisation changes.
      */
-    orgUuid (newVal, oldVal) {
+    unitUuid (newVal, oldVal) {
       let vm = this
 
       // in order to avoid updating twice, only do so when no unit
@@ -384,10 +395,10 @@ export default {
       }
 
       if (this.multiple ? this.value.length > 0 : this.value) {
-        OrganisationUnit.getAncestorTree(this.value, this.atDate)
+        this.get_ancestor_tree(this.value, this.atDate)
           .then(this.addNodes)
-      } else if (this.orgUuid) {
-        Organisation.getChildren(this.orgUuid, this.atDate)
+      } else if (this.unitUuid) {
+        this.get_toplevel_children(this.unitUuid, this.atDate)
           .then(this.addNodes)
       }
     },
@@ -398,7 +409,7 @@ export default {
     fetch (node) {
       let vm = this
 
-      if (!this.orgUuid || node.fetching) {
+      if (!this.unitUuid || node.fetching) {
         // nothing to do, so return something that does nothing
         return new Promise(() => [])
       }
@@ -408,7 +419,7 @@ export default {
       // duplicates
       node.fetching = true
 
-      return OrganisationUnit.getChildren(node.id, this.atDate)
+      return this.get_children(node.id, this.atDate)
         .then(response => {
           node.fetching = false
           return response.map(vm.toNode.bind(vm))
@@ -416,7 +427,7 @@ export default {
           node.fetching = false
           throw error
         })
-    }
+    },
   }
 }
 </script>
@@ -425,20 +436,20 @@ export default {
      cannot detect the overwrites. to ensure that we _always_ win, we
      increase the specificity of the selectors  -->
 <style>
-  .orgunit-tree .tree > .tree-root, .tree-content {
+  .unit-tree .tree > .tree-root, .tree-content {
      padding: 0.2vh;
-   }
+  }
 
-   .orgunit-tree .tree-children {
+  .unit-tree .tree-children {
      transition-timing-function: ease-in-out;
      transition-duration: 150ms;
-   }
+  }
 
-  .orgunit-tree .tree-node.selected > .tree-content {
+  .unit-tree .tree-node.selected > .tree-content {
     background-color: #007bff;
   }
 
-  .orgunit-tree .tree-node.selected > .tree-content > .tree-anchor {
+  .unit-tree .tree-node.selected > .tree-content > .tree-anchor {
     color: #fff;
   }
 </style>
