@@ -158,11 +158,37 @@ problems *on our end*, where the IdPs have specific requirements and behavior.
 Refer to the Flask SAML SSO configuration for descriptions of these additional
 values.
 
+.. _auth-integration:
+
 Integrating with OS2mo
 ^^^^^^^^^^^^^^^^^^^^^^
 
 When OS2mo is running with authentication enabled, using the REST API requires
 an API-token.
+
+The API-tokens have an expiry of 30 days. The expiry is refreshed with every
+use, which means a token only becomes invalid, after 30 days of inactivity.
+
+An API-token can be generated using the following API. The API makes use of
+the existing web-based SAML SSO and as such needs to be accessed
+using the *browser*:
+
+.. code-block:: text
+
+    <OS2MO_URL>/saml/api-token
+
+This gives you a token as a UUID:
+
+.. code-block:: text
+
+    4e7b9f89-5d9c-474a-9269-2751048d482b
+
+To use this token, against the API, attach the token as a header named
+"session". An example below, using cURL:
+
+.. code-block:: text
+
+    curl <OS2MO_URL>/service/o/ -H "session: 4e7b9f89-5d9c-474a-9269-2751048d482b"
 
 Refer to the
 `API token <https://flask-saml-sso.readthedocs.io/en/latest/README.html#api-tokens>`_
