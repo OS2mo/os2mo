@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import collections
-
 import datetime
 import functools
 import typing
+
+from more_itertools import pairwise
 
 from ... import exceptions
 from ... import lora
@@ -26,57 +27,75 @@ def forceable(fn):
     return wrapper
 
 
-def _is_date_range_valid(parent: typing.Union[dict, str],
-                         startdate: datetime.datetime,
-                         enddate: datetime.datetime, lora_scope,
+def _is_date_range_valid(obj: typing.Union[dict, str],
+                         valid_from: datetime.datetime,
+                         valid_to: datetime.datetime, lora_scope,
                          gyldighed_key: str) -> bool:
     """
     Determine if the given dates are within validity of the parent unit.
 
-    :param parent: Ether the UUID of the parent unit, or a dict containing it.
-    :param startdate: The candidate start date.
-    :param enddate: The candidate end date.
+    :param obj: Ether the UUID of an object found in the attached scope,
+        or a dict containing it.
+    :param valid_from: The candidate start date.
+    :param valid_to: The candidate end date.
     :param lora_scope: A scope object from a LoRa connector.
     :param gyldighed_key: The key of where to find the 'gyldighed' in the
         object in question
     :return: True if the date range is valid and false otherwise.
     """
 
-    if startdate >= enddate:
+    if valid_from >= valid_to:
         return False
 
-    previous_end = None
-
-    for start, end, effect in lora_scope.get_effects(
-        parent,
+    effects = lora_scope.get_effects(
+        obj,
         {
             'tilstande': (
                 gyldighed_key,
             )
         }
-    ):
-        if previous_end is None:
-            # initial case
-            if startdate < start:
-                # start is too late!
-                return False
-        elif start != previous_end:
-            # non-consecutive chunk - so not valid for that time
-            return False
-        elif start >= enddate or end < startdate:
-            previous_end = end
-            continue
+    )
 
-        vs = effect['tilstande'][gyldighed_key]
+    def get_valid_effects(effects):
+        def overlap_filter_fn(effect):
+            start, end, _ = effect
+            return not (end < valid_from or valid_to < start)
 
-        if not vs or any(v['gyldighed'] != 'Aktiv' for v in vs):
-            # not valid for the given time
-            return False
+        def validity_filter_fn(effect):
+            _, _, effect_obj = effect
+            vs = effect_obj['tilstande'][gyldighed_key]
+            return vs and all(v['gyldighed'] == 'Aktiv' for v in vs)
 
-        previous_end = end
+        def get_start(effect):
+            start, _, _ = effect
+            return start
 
-    # verify that we've achieved full coverage - and return a bool
-    return previous_end is not None and previous_end >= enddate
+        # Find valid effects that overlap the validity period in question
+        overlapping = filter(overlap_filter_fn, effects)
+        valid_effects = filter(validity_filter_fn, overlapping)
+        sorted_effects = sorted(valid_effects, key=get_start)
+        return list(sorted_effects)
+
+    valid_effects = get_valid_effects(effects)
+
+    if not valid_effects:
+        return False
+
+    # Check that the valid effects actually cover the entire validity
+    if not (valid_effects[0][0] <= valid_from and valid_to <= valid_effects[-1][1]):
+        return False
+
+    # Check that the valid effects form a continuous block
+    if len(valid_effects) == 1:
+        return True
+
+    effect_pairs = pairwise(valid_effects)
+
+    def check_pair(pair):
+        (_, end_left, _), (start_right, _, _) = pair
+        return end_left == start_right
+
+    return all(map(check_pair, effect_pairs))
 
 
 def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:

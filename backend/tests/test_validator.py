@@ -99,6 +99,12 @@ class TestIsDateRangeValid(util.TestCase):
             ('01-01-3100', '01-01-3300', 'Inaktiv'),
         ])
 
+        # valid sequences, with gaps outside active period.
+        check(True, [
+            ('01-01-1960', '01-01-1980', 'Aktiv'),
+            ('01-01-2000', '01-01-3000', 'Aktiv'),
+        ])
+
         # no validity
         check(False, [])
 
