@@ -1,6 +1,15 @@
 In development
 ==============
 
+New features
+------------
+
+Version 1.8.0, 2020-09-11
+=========================
+
+New features
+------------
+
 * #35937: Removed a duplicate entry from backend/mora/mapping.py
 * #35937: Parameterized ancestor tree helper function.
 * #35937: Parameterized Tree Picker / Viewer
