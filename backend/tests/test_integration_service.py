@@ -8,6 +8,18 @@ from unittest.mock import patch
 from . import util
 
 
+org_unit_type_facet = {
+    'description': '',
+    'user_key': 'org_unit_type',
+    'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'
+}
+org_unit_address_type_facet = {
+    'description': '',
+    'user_key': 'org_unit_address_type',
+    'uuid': '3c44e5d2-7fef-4448-9bf6-449bf414ec49'
+}
+
+
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('mora.conf_db.get_configuration',
        new=lambda *x: {})
@@ -526,8 +538,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
+                    'facet': org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    'top_level_facet': org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
@@ -554,8 +569,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
+                    'facet': org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    'top_level_facet': org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
@@ -591,8 +609,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
+                    'facet': org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    'top_level_facet': org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
@@ -623,8 +644,11 @@ class Tests(util.LoRATestCase):
                 'org_unit_level': None,
                 'org_unit_type': {
                     'example': None,
+                    'facet': org_unit_type_facet,
+                    'full_name': 'Afdeling',
                     'name': 'Afdeling',
                     'scope': None,
+                    'top_level_facet': org_unit_type_facet,
                     'user_key': 'afd',
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
@@ -1417,102 +1441,119 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/',
             [
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/engagement_job_function/",
                     "user_key": "engagement_job_function",
                     "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 },
                 {
+                    "description": "",
                     'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                             '/f/primary_type/',
                     'user_key': 'primary_type',
                     'uuid': '1f6f34d8-d065-4bb7-9af0-738d25dc0fbf'
                 },
                 {
+                    "description": "",
                     'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                             '/f/kle_number/',
                     'user_key': 'kle_number',
                     'uuid': '27935dbb-c173-4116-a4b5-75022315749d'
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
                     "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/engagement_type/",
                     "user_key": "engagement_type",
                     "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/responsibility/",
                     "user_key": "responsibility",
                     "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/role_type/",
                     "user_key": "role_type",
                     "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
                 },
                 {
+                    "description": "",
                     'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                             '/f/org_unit_level/',
                     'user_key': 'org_unit_level',
                     'uuid': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455'
                 },
                 {
+                    "description": "",
                     'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                             '/f/kle_aspect/',
                     'user_key': 'kle_aspect',
                     'uuid': '8a29b2cf-ef98-46f4-9794-0e39354d6ddf'
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/leave_type/",
                     "user_key": "leave_type",
                     "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/manager_type/",
                     "user_key": "manager_type",
                     "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/employee_address_type/",
                     "user_key": "employee_address_type",
                     "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/time_planning/",
                     "user_key": "time_planning",
                     "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/visibility/",
                     "user_key": "visibility",
                     "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/manager_level/",
                     "user_key": "manager_level",
                     "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/association_type/",
                     "user_key": "association_type",
                     "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
                 },
                 {
+                    "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/org_unit_type/",
                     "user_key": "org_unit_type",
@@ -1528,20 +1569,30 @@ class Tests(util.LoRATestCase):
                 'total': 3,
                 'items': [
                     {'example': None,
+                     'facet': org_unit_type_facet,
+                     'full_name': 'Afdeling',
                      'name': 'Afdeling',
                      'scope': None,
+                     'top_level_facet': org_unit_type_facet,
                      'user_key': 'afd',
                      'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
                     {'example': None,
+                     'facet': org_unit_type_facet,
+                     'full_name': 'Fakultet',
                      'name': 'Fakultet',
                      'scope': None,
+                     'top_level_facet': org_unit_type_facet,
                      'user_key': 'fak',
                      'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
                     {'example': None,
+                     'facet': org_unit_type_facet,
+                     'full_name': 'Institut',
                      'name': 'Institut',
                      'scope': None,
+                     'top_level_facet': org_unit_type_facet,
                      'user_key': 'inst',
                      'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
+                'description': '',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/org_unit_type/',
                 'user_key': 'org_unit_type',
@@ -1556,26 +1607,39 @@ class Tests(util.LoRATestCase):
                 'total': 4,
                 'items': [
                     {'example': '20304060',
+                     'facet': org_unit_address_type_facet,
+                     'full_name': 'Telefon',
                      'name': 'Telefon',
                      'scope': 'PHONE',
+                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                     {'example': '<UUID>',
+                     'facet': org_unit_address_type_facet,
+                     'full_name': 'Postadresse',
                      'name': 'Postadresse',
                      'scope': 'DAR',
+                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedPostadresse',
                      'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
                     {'example': 'test@example.com',
+                     'facet': org_unit_address_type_facet,
+                     'full_name': 'Email',
                      'name': 'Email',
                      'scope': 'EMAIL',
+                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedEmail',
                      'uuid': '73360db1-bad3-4167-ac73-8d827c0c8751'},
                     {'example': '5712345000014',
+                     'facet': org_unit_address_type_facet,
+                     'full_name': 'EAN',
                      'name': 'EAN',
                      'scope': 'EAN',
+                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
+                'description': '',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/org_unit_address_type/',
                 'user_key': 'org_unit_address_type',

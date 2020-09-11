@@ -4,7 +4,6 @@
 import Service from './HttpCommon'
 
 export default {
-
   /**
    * Get IT a list of available IT systems
    * @param {String} uuid - organisation uuid
@@ -18,5 +17,35 @@ export default {
       .catch(error => {
         console.log(error.response)
       })
-  }
+  },
+
+  /**
+   * Get a facet
+   * @param {String} uuid - Uuid for the facet to get
+   * @returns {Object} a facet object
+   */
+  get (uuid) {
+    return Service.get(`/f/${uuid}/`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
+
+  /**
+   * Get the children of a facet
+   * @param {String} uuid - Uuid for current facet
+   * @returns {Array} List of classes under the current facet
+   */
+  getChildren (uuid) {
+    return Service.get(`/f/${uuid}/children`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        console.log(error.response)
+      })
+  },
 }

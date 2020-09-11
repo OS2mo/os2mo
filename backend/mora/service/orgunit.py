@@ -346,9 +346,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     if details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
-
         r['child_count'] = len(children)
-
     elif details is UnitDetails.FULL:
         parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
@@ -566,8 +564,8 @@ def get_unit_tree(c, unitids, with_siblings=False):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
-
     '''
+
     def get_unit(unitid):
         r = get_one_orgunit(
             c, unitid, cache[unitid],
@@ -577,25 +575,20 @@ def get_unit_tree(c, unitids, with_siblings=False):
                 else UnitDetails.MINIMAL
             ),
         )
-
         if unitid in children:
             r['children'] = get_units(children[unitid])
-
         return r
 
     def get_units(unitids):
-        r = sorted(
+        return sorted(
             map(get_unit, unitids),
             key=lambda u: locale.strxfrm(u[mapping.NAME]),
         )
 
-        return r
-
-    def get_org(uuid, cache):
-        for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
-            return orgid
-
     def get_children_args(uuid, parent_uuid, cache):
+        def get_org(uuid, cache):
+            for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
+                return orgid
         return {
             "overordnet": parent_uuid,
             "tilhoerer": get_org(uuid, cache),
@@ -612,9 +605,7 @@ def get_unit_tree(c, unitids, with_siblings=False):
     # Strip off one level
     root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))
 
-    return get_units(
-        root for root in root_uuids
-    )
+    return get_units(root for root in root_uuids)
 
 
 @blueprint.route('/ou/<uuid:unitid>/')

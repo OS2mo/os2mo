@@ -26,6 +26,12 @@ phone_class = {
     'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec',
 }
 
+address_type_facet = {
+    'description': '',
+    'user_key': 'org_unit_address_type',
+    'uuid': '3c44e5d2-7fef-4448-9bf6-449bf414ec49'
+}
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True)
@@ -1195,8 +1201,11 @@ class Reading(util.LoRATestCase):
             [{
                 'address_type': {
                     'example': '<UUID>',
+                    'facet': address_type_facet,
+                    'full_name': 'Postadresse',
                     'name': 'Postadresse',
                     'scope': 'DAR',
+                    'top_level_facet': address_type_facet,
                     'user_key': 'OrgEnhedPostadresse',
                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                 },
@@ -1258,8 +1267,11 @@ class Reading(util.LoRATestCase):
                 [{
                     'address_type': {
                         'example': '<UUID>',
+                        'facet': address_type_facet,
+                        'full_name': 'Postadresse',
                         'name': 'Postadresse',
                         'scope': 'DAR',
+                        'top_level_facet': address_type_facet,
                         'user_key': 'OrgEnhedPostadresse',
                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
                     },

@@ -26,10 +26,18 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
-
+        classes = list(mapping.ORG_FUNK_CLASSES_FIELD.get_uuids(effect))
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
         base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
+
+        # Fetch all classes in bulk
+        all_classes = classes + [association_type] + ([primary] if primary else [])
+        fetched_classes = facet.get_bulk_classes(c, all_classes)
+        # Pull out each class
+        association_type_class = fetched_classes.pop(association_type)
+        primary_class = fetched_classes.pop(primary, None)
+        dynamic_classes = fetched_classes
 
         r = {
             **base_obj,
@@ -37,9 +45,9 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
             ),
-            mapping.ASSOCIATION_TYPE: facet.get_one_class(c, association_type),
-            mapping.PRIMARY: facet.get_one_class(
-                c, primary) if primary else None,
+            mapping.ASSOCIATION_TYPE: association_type_class,
+            mapping.PRIMARY: primary_class,
+            mapping.CLASSES: list(dynamic_classes.values())
         }
 
         return r

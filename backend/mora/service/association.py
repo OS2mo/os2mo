@@ -160,6 +160,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
             update_fields.append((mapping.PRIMARY_FIELD, {'uuid': primary}))
 
+        for clazz in util.checked_get(data, mapping.CLASSES, []):
+            update_fields.append(
+                (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
+            )
+
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
                                         payload)

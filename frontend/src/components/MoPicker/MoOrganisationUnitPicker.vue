@@ -28,7 +28,7 @@ export default {
       }
     },
 
-    async get_unit(uuid, validity) {
+    async get_entry(uuid, validity) {
       return await OrganisationUnit.get(uuid, validity)
     },
 

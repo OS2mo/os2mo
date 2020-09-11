@@ -150,6 +150,7 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'association_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+            'dynamic_classes': [],
             'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
             'person': {'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
             'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
@@ -332,6 +333,7 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
+                'dynamic_classes': [],
                 "address": {
                     'address_type': {
                         'example': '<UUID>',
@@ -440,6 +442,7 @@ class Tests(util.LoRATestCase):
         req = [{
             "type": "association",
             "uuid": association_uuid,
+            'dynamic_classes': [],
             "data": {
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
@@ -466,6 +469,7 @@ class Tests(util.LoRATestCase):
                 'association_type': {
                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
                 },
+                'dynamic_classes': [],
                 'org_unit': {
                     'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
                 },
@@ -503,6 +507,7 @@ class Tests(util.LoRATestCase):
             "association_type": {
                 'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
             },
+            'dynamic_classes': [],
             "validity": {
                 "from": "2017-12-01",
                 "to": "2017-12-01",
@@ -734,6 +739,7 @@ class Tests(util.LoRATestCase):
 
         expected = [{
             'association_type': {'uuid': 'bcd05828-cc10-48b1-bc48-2f0d204859b2'},
+            'dynamic_classes': [],
             'org_unit': {
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
             },
@@ -893,6 +899,7 @@ class Tests(util.LoRATestCase):
             'association_type': {
                 'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
             },
+            'dynamic_classes': [],
             'org_unit': {
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
             },

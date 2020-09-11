@@ -84,6 +84,7 @@ class ErrorCodes(Enum):
 
     # Input errors
     E_ORG_UNIT_NOT_FOUND = 404, "Org unit not found."
+    E_CLASS_NOT_FOUND = 404, "Class not found."
     E_USER_NOT_FOUND = 404, "User not found."
     E_UNKNOWN_ROLE_TYPE = 400, "Unknown role type."
     E_INVALID_ROLE_TYPE = 400, "Invalid role type for target operation."
