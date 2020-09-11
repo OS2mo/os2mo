@@ -44,7 +44,12 @@ services:
       - ./backend:/code/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
       - ./.pytest_cache:/code/.pytest_cache
-    command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
+    command: [
+        "gunicorn",
+        "--reload",
+        "--config", "docker/gunicorn-settings.py",
+        "tests.util:create_app()"
+    ]
     ports:
       - "5000:5000"
     depends_on:

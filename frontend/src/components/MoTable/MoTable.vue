@@ -25,11 +25,11 @@ SPDX-License-Identifier: MPL-2.0
             :key="index"
           >
             <span @click="sortData(col.label, open)" v-if="hasSorting(col)">
-              {{$t('table_headers.'+col.label)}}
+              {{ prepareLabel(col) }}
               <icon class="link" :name="open[col.label] ? 'sort-up' : 'sort-down'"/>
             </span>
             <span v-if="!hasSorting(col)">
-              {{$t('table_headers.'+col.label)}}
+              {{ prepareLabel(col) }}
             </span>
           </th>
           <th class="date-width">
@@ -62,6 +62,7 @@ SPDX-License-Identifier: MPL-2.0
               :class="'column-' + col.data">
             <mo-link
               :value="c"
+              :label="col.label"
               :column="col.data"
               :field="col.field"
               :index="col.index"
@@ -242,6 +243,16 @@ export default {
         return !content.inherited
       }
       return true
+    },
+
+    /**
+     * Prepare the label for presentation.
+     */
+    prepareLabel (col) {
+      if (col.label_function) {
+          return col.label_function()
+      }
+      return this.$t(`table_headers.${col.label}`)
     },
 
     /**

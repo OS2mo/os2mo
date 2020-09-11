@@ -75,6 +75,7 @@ EXTENSION_ATTRIBUTE_MAPPING = [
 # Association
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
+CLASSES = 'dynamic_classes'
 
 # Related units
 RELATED_UNIT_KEY = 'Relateret Enhed'
@@ -128,7 +129,12 @@ class RequestType(enum.Enum):
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
-    '''The different kinds of fields we support'''
+    '''The different kinds of fields we support.
+
+    NOTE: ADAPTED_ZERO_TO_MANY is used whenever a ZERO_TO_MANY field is used as
+          as ZERO_TO_ONE field, and implements the neccessary trickery to make
+          it all appear correctly.
+    '''
     ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
 
 
@@ -206,11 +212,6 @@ ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
-ORG_FUNK_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'organisatoriskfunktionstype'),
-    type=FieldTypes.ZERO_TO_ONE,
-)
-
 JOB_FUNCTION_FIELD = FieldTuple(
     path=('relationer', 'opgaver'),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
@@ -219,6 +220,11 @@ JOB_FUNCTION_FIELD = FieldTuple(
 ORG_FUNK_TYPE_FIELD = FieldTuple(
     path=('relationer', 'organisatoriskfunktionstype'),
     type=FieldTypes.ZERO_TO_ONE,
+)
+
+ORG_FUNK_CLASSES_FIELD = FieldTuple(
+    path=('relationer', 'tilknyttedeklasser'),
+    type=FieldTypes.ZERO_TO_MANY,
 )
 
 ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
@@ -268,6 +274,11 @@ ORG_UNIT_LEVEL_FIELD = FieldTuple(
 
 PARENT_FIELD = FieldTuple(
     path=('relationer', 'overordnet'),
+    type=FieldTypes.ZERO_TO_ONE,
+)
+
+PARENT_CLASS_FIELD = FieldTuple(
+    path=('relationer', 'overordnetklasse'),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
@@ -389,6 +400,7 @@ ASSOCIATION_FIELDS = {
     ORG_FUNK_GYLDIGHED_FIELD,
     JOB_FUNCTION_FIELD,
     ORG_FUNK_TYPE_FIELD,
+    ORG_FUNK_CLASSES_FIELD,
     ASSOCIATED_ORG_UNIT_FIELD,
     ASSOCIATED_ORG_FIELD,
     USER_FIELD,

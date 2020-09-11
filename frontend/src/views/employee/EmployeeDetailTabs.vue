@@ -112,6 +112,7 @@ import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
+import { Facet } from '@/store/actions/facet'
 
 export default {
   components: {
@@ -209,11 +210,27 @@ export default {
     },
     association () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
-
+      let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
       let columns = [
         { label: 'org_unit', data: 'org_unit' },
         { label: 'association_type', data: 'association_type' }
       ]
+
+      if (conf.association_dynamic_facets) {
+        let dynamics = conf.association_dynamic_facets.split(',').filter(elem => elem != "")
+        // Function called to determine header label
+        let label_function_generator = function(uuid) {
+            return function() {
+                return facet_getter(uuid)['description']
+            }
+        }
+        for (const dynamic of dynamics) {
+          this.$store.dispatch(Facet.actions.SET_FACET, dynamic)
+          columns.push({
+            label: 'dynamic_class', label_function: label_function_generator(dynamic), data: dynamic
+          })
+        }
+      }
 
       if (conf.show_primary_association) {
         columns.splice(1, 0,

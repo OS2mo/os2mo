@@ -289,21 +289,38 @@ class Tests(util.LoRATestCase):
             amqp_topics={'org_unit.manager.create': 1},
         )
 
+        employee_address_type_facet = {
+            'description': '',
+            'user_key': 'employee_address_type',
+            'uuid': 'baddc4eb-406e-4c6b-8229-17e4a21d3550'
+        }
+        association_type_facet = {
+            'description': '',
+            'user_key': 'association_type',
+            'uuid': 'ef71fe9c-7901-48e2-86d8-84116e210202'
+        }
+
         self.assertRequestResponse(
             '/service/ou/{}/details/manager'.format(unit_id),
             [{
                 'address': [],
                 'manager_level': {
                     'example': 'test@example.com',
+                    'facet': employee_address_type_facet,
+                    'full_name': 'Email',
                     'name': 'Email',
                     'scope': 'EMAIL',
+                    'top_level_facet': employee_address_type_facet,
                     'user_key': 'BrugerEmail',
                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
                 },
                 'manager_type': {
                     'example': None,
+                    'facet': association_type_facet,
+                    'full_name': 'Medlem',
                     'name': 'Medlem',
                     'scope': None,
+                    'top_level_facet': association_type_facet,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 },
@@ -316,8 +333,11 @@ class Tests(util.LoRATestCase):
                 'person': None,
                 'responsibility': [{
                     'example': None,
+                    'facet': association_type_facet,
+                    'full_name': 'Medlem',
                     'name': 'Medlem',
                     'scope': None,
+                    'top_level_facet': association_type_facet,
                     'user_key': 'medl',
                     'uuid': '62ec821f-4179-4758-bfdf-134529d186e9',
                 }],

@@ -14,3 +14,4 @@ flask_saml_sso @ git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.0#egg=f
 lora_utils @ git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
 pika
 toml
+more_itertools

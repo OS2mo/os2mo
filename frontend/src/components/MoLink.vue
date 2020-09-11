@@ -53,7 +53,15 @@ export default {
     column: {
       type: String,
       default: null
-    }
+    },
+
+    /**
+     * Defines the label used for the column.
+     */
+    label: {
+      type: String,
+      default: null
+    },
   },
 
   data () {
@@ -104,6 +112,13 @@ export default {
         }
       }
 
+      if (this.label === 'dynamic_class' && this.value) {
+        let entry = this.fetch_entry(this.column)
+        if (entry !== null) {
+            contents = [{'name': entry['full_name']}]
+        }
+      }
+
       if (this.column === 'visibility' && this.value) {
         let address = this.value['address']
 
@@ -148,6 +163,40 @@ export default {
         parts.push(p)
       }
       return parts
+    }
+  },
+
+  methods: {
+    /**
+     * Find the first element in the array fulfilling the predicate
+     * @param {Array} arr - Array to search for elements in
+     * @param {Function} test - The predicate function to run against each element
+     * @param {Any} ctx - Context to be passed through to the predicate
+     * @returns {Any} the found element in the list or null
+     */
+    find(arr, test, ctx) {
+      let result = null;
+      arr.some(function(el, i) {
+        return test.call(ctx, el, i, arr) ? ((result = el), true) : false;
+      });
+      return result;
+    },
+
+    /**
+     * Fetch the relevant entry for rendering.
+     * @param {String} dynamic - Uuid for the head facet
+     * @returns {Any} the found element in the list or null
+     */
+    fetch_entry(dynamic) {
+      // Ensure we have an array
+      if (Array.isArray(this.value.dynamic_classes) == false) {
+        this.value.dynamic_classes = []
+      }
+      // Find the correct element if it exists
+      return this.find(
+        this.value.dynamic_classes,
+        item => { return item['top_level_facet']['uuid'] == dynamic}
+      )
     }
   }
 }

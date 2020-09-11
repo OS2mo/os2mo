@@ -26,6 +26,8 @@ _DEFAULT_CONF = (
     ('show_primary_association', 'False'),
     ('show_org_unit_button', 'False'),
     ('read_only', 'False'),
+    # Comma seperated UUID(s) of top-level facets to show on association view.
+    ('association_dynamic_facets', ''),
 )
 
 

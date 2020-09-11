@@ -11,13 +11,13 @@ For more information regarding reading relations involving organisational
 units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-import collections
 import copy
 import enum
 import functools
 import locale
 import operator
 import uuid
+from itertools import chain
 
 import requests
 import flask
@@ -26,6 +26,7 @@ from . import facet
 from . import handlers
 from . import org
 from .validation import validator
+from .tree_helper import prepare_ancestor_tree
 from .. import common, conf_db, readonly
 from .. import exceptions
 from .. import lora
@@ -36,6 +37,11 @@ from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
                             url_prefix='/service')
+
+
+def flatten(list_of_lists):
+    "Flatten one level of nesting"
+    return chain.from_iterable(list_of_lists)
 
 
 @enum.unique
@@ -340,9 +346,7 @@ def get_one_orgunit(c, unitid, unit=None,
 
     if details is UnitDetails.NCHILDREN:
         children = c.organisationenhed(overordnet=unitid, gyldighed='Aktiv')
-
         r['child_count'] = len(children)
-
     elif details is UnitDetails.FULL:
         parent = get_one_orgunit(c, parentid, details=UnitDetails.FULL)
 
@@ -560,87 +564,48 @@ def get_unit_tree(c, unitids, with_siblings=False):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
-
     '''
-
-    def get_parent(unitid):
-        for parentid in mapping.PARENT_FIELD.get_uuids(units[unitid]):
-            return parentid
-
-    def get_org(unitid):
-        for orgid in mapping.BELONGS_TO_FIELD.get_uuids(units[unitid]):
-            return orgid
 
     def get_unit(unitid):
         r = get_one_orgunit(
-            c, unitid, units[unitid],
+            c, unitid, cache[unitid],
             details=(
                 UnitDetails.NCHILDREN
                 if with_siblings and unitid not in children
                 else UnitDetails.MINIMAL
             ),
         )
-
         if unitid in children:
             r['children'] = get_units(children[unitid])
-
         return r
 
     def get_units(unitids):
-        r = sorted(
+        return sorted(
             map(get_unit, unitids),
             key=lambda u: locale.strxfrm(u[mapping.NAME]),
         )
 
-        return r
+    def get_children_args(uuid, parent_uuid, cache):
+        def get_org(uuid, cache):
+            for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
+                return orgid
+        return {
+            "overordnet": parent_uuid,
+            "tilhoerer": get_org(uuid, cache),
+            "gyldighed": 'Aktiv'
+        }
 
-    orgs = set()
-    units = {}
-    children = collections.defaultdict(set)
-
-    leaves = set(unitids)
-
-    while leaves:
-        leafobjs = dict(c.organisationenhed.get_all(uuid=leaves))
-
-        units.update(leafobjs)
-        orgs.update(map(get_org, leafobjs.keys()))
-
-        missing = leaves - orgs - leafobjs.keys()
-
-        if missing:
-            exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
-                org_unit_uuid=sorted(missing),
-            )
-
-        for leafid in leaves:
-            parentid = get_parent(leafid)
-
-            if with_siblings:
-                siblings = dict(c.organisationenhed.get_all(
-                    overordnet=parentid,
-                    tilhoerer=get_org(leafid),
-                    gyldighed='Aktiv'
-                ))
-
-                units.update(siblings)
-                children[parentid].update(siblings.keys())
-            else:
-                children[parentid].add(leafid)
-
-        leaves = (
-            set(filter(None, map(get_parent, leaves))) -
-            units.keys() - orgs
-        )
-
-    if not orgs:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitids)
-
-    return get_units(
-        child
-        for org in orgs
-        for child in children[org]
+    root_uuids, children, cache = prepare_ancestor_tree(
+        c.organisationenhed,
+        mapping.PARENT_FIELD,
+        unitids,
+        get_children_args,
+        with_siblings=with_siblings
     )
+    # Strip off one level
+    root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))
+
+    return get_units(root for root in root_uuids)
 
 
 @blueprint.route('/ou/<uuid:unitid>/')

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
         <mo-input-date v-model="date"/>
       </div>
 
-      <mo-tree-view v-model="unitUuid" :at-date="date"
+      <mo-org-tree-view v-model="unitUuid" :at-date="date"
       />
     </div>
 
@@ -31,14 +31,14 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { MoInputDate } from '@/components/MoInput'
-import MoTreeView from '@/components/MoTreeView/MoTreeView'
+import MoOrgTreeView from '@/components/MoTreeView/MoOrgTreeView'
 import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs'
 import orgUnitStore from '@/store/modules/organisationUnit'
 
 export default {
   components: {
     MoInputDate,
-    MoTreeView,
+    MoOrgTreeView,
     OrganisationDetailTabs
   },
   props: {
