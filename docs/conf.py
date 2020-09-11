@@ -79,6 +79,7 @@ MOCK_MODULES = [
     'pika',
     'pika.exceptions',
     'toml',
+    'more_itertools',
 
     'mora.log',
 

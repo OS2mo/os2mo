@@ -1,16 +1,14 @@
 In development
 ==============
 
-New features
-------------
-
 * #35937: Removed a duplicate entry from backend/mora/mapping.py
 * #35937: Parameterized ancestor tree helper function.
 * #35937: Parameterized Tree Picker / Viewer
 * #35937: Dynamic recursive facet / class picker on Association View.
-          Which dynamic facets to show can be picked using the 
+          Which dynamic facets to show can be picked using the
           :code:`association_dynamic_facets` configuration variable in conf_db.
-
+* #38241: Fixed bug in org unit validation preventing users from moving
+  and terminating certain org units
 
 Version 1.7.1, 2020-08-12
 =========================
