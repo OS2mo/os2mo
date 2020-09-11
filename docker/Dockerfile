@@ -108,4 +108,4 @@ RUN install -g mora -o mora -d /log
 USER mora:mora
 EXPOSE 5000
 ENTRYPOINT ["/code/docker/docker-entrypoint.sh"]
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "mora.app:create_app()"]
+CMD ["gunicorn", "--config", "/code/docker/gunicorn-settings.py", "mora.app:create_app()"]
