@@ -57,7 +57,7 @@ services:
       - msg_broker
 
   mox:
-    image: magentaaps/lora:1.8.0
+    image: magentaaps/lora:1.8.1
     # build:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile
