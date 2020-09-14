@@ -55,7 +55,9 @@ const actions = {
     let atDate = payload.atDate || new Date()
     let inheritManagerFlag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    if (payload.detail === 'manager') inheritManagerFlag = '&inherit_manager=1'
+    if (payload.detail === 'manager' && state.user_settings.orgunit.inherit_manager) {
+      inheritManagerFlag = '&inherit_manager=1'
+    }
     return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inheritManagerFlag}`)
       .then(response => {
         let content = ShowIfInherited(state.uuid, {

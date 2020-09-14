@@ -4,6 +4,9 @@ In development
 New features
 ------------
 
+* 38371: Enabled configuration setting to toggle whether a
+  manager should be inherited in the UI for a given org unit.
+
 Version 1.8.0, 2020-09-11
 =========================
 
