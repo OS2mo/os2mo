@@ -42,6 +42,7 @@ available options are:
 * ``show_primary_engagement`` Indicates whether the 'primary' column should be enabled for engagements
 * ``show_primary_association`` Indicates whether the 'primary' column should be enabled for associations
 * ``show_org_unit_button`` Indicates whether to show the external integration button for OUs
+* ``manager_inheritance`` Whether manager inheritance should be enabled for the UI
 * ``read_only`` Whether the UI should be in read-only mode. (Currently only applies to the global level)
 
 If a option is identicated for a given unit, this will be used. If the option
