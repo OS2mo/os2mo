@@ -8,8 +8,8 @@ New features
 * #38973: Update class/facet service endpoints to only return minimal set of data,
   with options to return individual additional attributes.
 * #38973: Add internal speedups for bulk get requests towards LoRa
-
-
+* #38041: Enables filtering facet classes based upon the selected org-unit.
+          This applies only to creating new org-units.
 
 Version 1.9.1, 2020-10-06
 =========================
