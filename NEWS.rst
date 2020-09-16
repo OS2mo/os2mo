@@ -4,6 +4,12 @@ In development:
 New features
 ------------
 
+Bug fixes
+------------
+* #35937: Fix an issue regarding binding dynamic classes to associations during
+          association creation. Previously the binding was only created during
+          edits.
+
 
 Version 1.8.1, 2020-09-14
 =========================
@@ -11,8 +17,8 @@ Version 1.8.1, 2020-09-14
 New features
 ------------
 
-* 38371: Enabled configuration setting to toggle whether a
-  manager should be inherited in the UI for a given org unit.
+* #38371: Enabled configuration setting to toggle whether a
+          manager should be inherited in the UI for a given org unit.
 
 Version 1.8.0, 2020-09-11
 =========================

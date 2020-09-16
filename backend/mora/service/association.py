@@ -28,6 +28,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
+        dynamic_classes = util.checked_get(req, mapping.CLASSES, [])
+        dynamic_classes = list(map(util.get_uuid, dynamic_classes))
+
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
@@ -64,6 +67,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
+            tilknyttedeklasser=dynamic_classes,
             funktionstype=association_type_uuid,
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
