@@ -4,12 +4,13 @@ In development:
 New features
 ------------
 
+* #38237: Removed an expensive superfluous search filter from employee search.
+
 Bug fixes
 ------------
 * #35937: Fix an issue regarding binding dynamic classes to associations during
           association creation. Previously the binding was only created during
           edits.
-
 
 Version 1.8.1, 2020-09-14
 =========================
