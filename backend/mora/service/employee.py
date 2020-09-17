@@ -317,6 +317,7 @@ def list_employees(orgid):
     .. :quickref: Employee; List & search
 
     :param uuid orgid: UUID of the organisation to search.
+        Note: This parameter is now deprecated, and does not affect the result.
 
     :queryparam date at: Show employees at this point in time,
         in ISO-8601 format.
@@ -378,7 +379,6 @@ def list_employees(orgid):
     kwargs = dict(
         limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
         start=int(args.get('start', 0)) or 0,
-        tilhoerer=orgid,
         gyldighed='Aktiv',
     )
 
