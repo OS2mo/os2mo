@@ -19,12 +19,21 @@ SPDX-License-Identifier: MPL-2.0
       :ref="nameId"
       lazy
     >
+
+    <mo-input-date-range
+      v-model="validity"
+      :disabled-dates="{disabledDates}"
+    />
+
     <form @submit.stop.prevent="create">
-      <component
-        :is="entryComponent"
-        v-model="entry"
+      <mo-add-many
+        class="btn-address mt-3"
+        v-model="entries"
+        :entry-component="entryComponent"
+        :label="$tc('shared.add_more', 2)"
         :hide-org-picker="hideOrgPicker"
         :hide-employee-picker="hideEmployeePicker"
+        validity-hidden
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">
@@ -50,12 +59,16 @@ import ButtonSubmit from '@/components/ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
 import ModalBase from '@/mixins/ModalBase'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import MoAddMany from '@/components/MoAddMany/MoAddMany'
+import {MoInputDateRange} from "@/components/MoInput"
 
 export default {
   mixins: [ValidateForm, ModalBase],
 
   components: {
-    ButtonSubmit
+    ButtonSubmit,
+    MoInputDateRange,
+    MoAddMany
   },
   directives: {
     'b-modal': bModalDirective
@@ -97,7 +110,9 @@ export default {
        * The entry, isLoading, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
-      entry: {},
+      entries: [{}],
+      subject: {},
+      validity: {},
       isLoading: false,
       backendValidationError: null
     }
@@ -130,6 +145,12 @@ export default {
      */
     hideEmployeePicker () {
       return this.type === 'EMPLOYEE'
+    },
+
+    disabledDates () {
+      if (this.type === 'ORG_UNIT') {
+        return this.subject.validity;
+      }
     }
   },
 
@@ -143,10 +164,10 @@ export default {
 
     switch (this.type) {
       case 'EMPLOYEE':
-        this.entry.person = { uuid: this.uuid }
+        this.subject = { uuid: this.uuid }
         break
       case 'ORG_UNIT':
-        this.entry.org_unit = this.$store.getters['organisationUnit/GET_ORG_UNIT']
+        this.subject = this.$store.getters['organisationUnit/GET_ORG_UNIT']
         break
     }
   },
@@ -156,6 +177,21 @@ export default {
      * Called right before a instance is destroyed.
      */
     this.$root.$off(['bv::modal::hidden'])
+  },
+
+  watch: {
+    entries: {
+      deep: true,
+      handler: function (val) {
+        if (this.type === 'EMPLOYEE') {
+          val.forEach((entry) => {
+            if (!entry.person) {
+              entry.person = { uuid: this.uuid }
+            }
+          })
+        }
+      }
+    }
   },
 
   methods: {
@@ -168,29 +204,38 @@ export default {
         return
       }
 
-      this.isLoading = true
+      this.entries.forEach(entry => {
+        entry.org = this.$store.getters['organisation/GET_ORGANISATION']
+        if (!entry.validity) {
+          entry.validity = this.validity
+        }
+      })
 
-      this.entry.org = this.$store.getters['organisation/GET_ORGANISATION']
+      this.isLoading = true
 
       switch (this.type) {
         case 'EMPLOYEE':
-          this.entry.person = { uuid: this.uuid }
-          this.createEmployee(this.entry)
+          this.entries.forEach((entry) => {
+            entry.person = { uuid: this.uuid }
+          })
+          this.createEmployeeEntries(this.entries)
           break
         case 'ORG_UNIT':
-          this.entry.org_unit = { uuid: this.uuid }
-          this.createOrganisationUnit(this.entry)
+          this.entries.forEach((entry) => {
+            entry.org_unit = { uuid: this.uuid }
+          })
+          this.createOrganisationUnitEntries(this.entries)
           break
       }
     },
 
     /**
-     * Create a employee and check if the data fields are valid.
+     * Create a list of entries for an employee
      * Then throw a error if not.
      */
-    createEmployee (data) {
+    createEmployeeEntries (data) {
       let vm = this
-      Employee.create([data])
+      Employee.create(data)
         .then(response => {
           vm.isLoading = false
           if (response.error) {
@@ -211,10 +256,10 @@ export default {
     },
 
     /**
-     * Create a organisation unit and check if the data fields are valid.
+     * Create list of entries for an organisational unit
      * Then throw a error if not.
      */
-    createOrganisationUnit (data) {
+    createOrganisationUnitEntries (data) {
       let vm = this
       return OrganisationUnit.createEntry(data)
         .then(response => {

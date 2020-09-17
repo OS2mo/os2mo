@@ -5,6 +5,8 @@ New features
 ------------
 
 * #38237: Removed an expensive superfluous search filter from employee search.
+* #38398: The create dialog for the various relations now allow the user to
+          create multiple objects at once.
 
 Bug fixes
 ------------
