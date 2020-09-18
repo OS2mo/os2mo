@@ -7,6 +7,8 @@ SPDX-License-Identifier: MPL-2.0
         <component
           :is="entryComponent"
           v-model="entryValue"
+          :hide-org-picker="hideOrgPicker"
+          :hide-employee-picker="hideEmployeePicker"
           :validity-hidden="validityHidden"
         />
       </div>
@@ -48,7 +50,17 @@ export default {
     /**
      * This boolean property hides the validity.
      */
-    validityHidden: Boolean
+    validityHidden: Boolean,
+
+    /**
+     * This boolean property hide the org picker.
+     */
+    hideOrgPicker: Boolean,
+
+    /**
+     * This boolean property hide the employee picker.
+     */
+    hideEmployeePicker: Boolean
   },
 
   data () {
