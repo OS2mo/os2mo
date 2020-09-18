@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
   <div>
     <mo-input-date-range
       v-model="entry.validity"
-      :initially-hidden="datePickerHidden"
+      :initially-hidden="datePickerHidden || validityHidden"
       :disabled-dates="{disabledDates}"
     />
 

@@ -2,6 +2,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
+
     <h5 :class="smallButtons ? 'h5-label' : ''">
       <button
         @click="add()"
@@ -20,6 +21,8 @@ SPDX-License-Identifier: MPL-2.0
         :entry-component="entryComponent"
         :small-buttons="smallButtons"
         :validity-hidden="validityHidden"
+        :hide-org-picker="hideOrgPicker"
+        :hide-employee-picker="hideEmployeePicker"
         v-model="values[index]"
       />
     </div>
@@ -66,7 +69,17 @@ export default {
     /**
      * Defines the label.
      */
-    label: String
+    label: String,
+
+    /**
+     * This boolean property hide the org picker.
+     */
+    hideOrgPicker: Boolean,
+
+    /**
+     * This boolean property hide the employee picker.
+     */
+    hideEmployeePicker: Boolean
   },
 
   data () {

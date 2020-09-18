@@ -432,6 +432,174 @@ class Tests(util.LoRATestCase):
             status_code=400,
         )
 
+    def test_create_association_with_dynamic_classes(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        association_uuid = '00000000-0000-0000-0000-000000000000'
+        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        classid = "cafebabe-c370-4502-81c2-7697009c9053"
+
+        payload = [
+            {
+                "type": "association",
+                "uuid": association_uuid,
+                "dynamic_classes": [{'uuid': classid}],
+                "org_unit": {'uuid': unitid},
+                'person': {'uuid': userid},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "user_key": "1234",
+                "primary": {'uuid': "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            [association_uuid],
+            json=payload,
+            amqp_topics={
+                'employee.association.create': 1,
+                'org_unit.association.create': 1,
+            },
+        )
+
+        expected = {
+            "livscykluskode": "Importeret",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": userid
+                    }
+                ],
+                "tilknyttedeklasser": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": classid
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": unitid
+                    }
+                ],
+                'primær': [{
+                    'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474',
+                    'virkning': {
+                        'from': '2017-12-01 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-12-02 00:00:00+01',
+                        'to_included': False
+                    }
+                }],
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": "1234",
+                        "funktionsnavn": "Tilknytning"
+                    }
+                ]
+            }
+        }
+
+        associations = c.organisationfunktion.fetch(
+            tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
+        self.assertEqual(len(associations), 1)
+        associationid = associations[0]
+
+        actual_association = c.organisationfunktion.get(associationid)
+
+        self.assertRegistrationsEqual(actual_association, expected)
+
+        expected = [{
+            'association_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+            'dynamic_classes': [{'uuid': 'cafebabe-c370-4502-81c2-7697009c9053'}],
+            'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+            'person': {'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
+            'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
+            'user_key': '1234',
+            'uuid': '00000000-0000-0000-0000-000000000000',
+            'validity': {'from': '2017-12-01', 'to': '2017-12-01'}
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future&only_primary_uuid=1'.format(userid),
+            expected,
+            amqp_topics={
+                'employee.association.create': 1,
+                'org_unit.association.create': 1,
+            },
+        )
+
     def test_edit_association_from_unit(self):
         self.load_sample_structures()
 
