@@ -1,5 +1,12 @@
-In development:
-===============
+In development
+==============
+
+New features
+------------
+
+
+Version 1.9.0, 2020-09-18
+=========================
 
 New features
 ------------
