@@ -3,7 +3,7 @@
         "brugeregenskaber": [
             {
                 "brugernavn": "Lis Jensen",
-                "brugervendtnoegle": "lisjensen",
+                "brugervendtnoegle": "",
                 "virkning": {
                     "from": "1973-06-09T00:00:00+01:00",
                     "from_included": true,

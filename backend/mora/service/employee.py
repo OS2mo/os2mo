@@ -301,7 +301,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
             r[mapping.CPR_NO] = cpr
 
         r[mapping.ORG] = org.get_configured_organisation()
-        r[mapping.USER_KEY] = props['brugervendtnoegle']
+        r[mapping.USER_KEY] = props.get('brugervendtnoegle', '')
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:

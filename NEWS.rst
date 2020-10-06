@@ -1,8 +1,10 @@
 In development
 ==============
 
-New features
-------------
+Bug fixes
+---------
+
+* #38803: Handle employees not having a user_key
 
 
 Version 1.9.0, 2020-09-18
