@@ -340,11 +340,10 @@ def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
             return parentid
 
     def get_parents(clazz):
-        return_val = [clazz]
         potential_parent = get_parent(clazz)
-        if potential_parent:
-            return_val.extend(get_parents(c.klasse.get(potential_parent)))
-        return return_val
+        if potential_parent is None:
+            return [clazz]
+        return [clazz] + get_parents(c.klasse.get(potential_parent))
 
     parents = get_parents(clazz)
 
@@ -355,7 +354,9 @@ def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
         return clazz['relationer']['facet'][0]['uuid']
 
     attrs = get_attrs(clazz)
-    full_name = " - ".join([get_attrs(clazz).get('titel') for clazz in parents])
+    full_name = " - ".join(
+        [get_attrs(clazz).get('titel') for clazz in reversed(parents)]
+    )
 
     response = {
         'uuid': classid,
