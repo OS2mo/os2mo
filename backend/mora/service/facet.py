@@ -378,18 +378,16 @@ def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
     return response
 
 
-def get_facetids(facet: str, extra_filters: dict = None):
+def get_facetids(facet: str):
 
     c = common.get_connector()
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
-    extra_filters = extra_filters or {}
     facetids = c.facet(
         uuid=uuid,
         bvn=bvn,
-        publiceret='Publiceret',
-        **extra_filters
+        publiceret='Publiceret'
     )
 
     if not facetids:
@@ -410,8 +408,7 @@ def get_classes_under_facet(orgid: uuid.UUID, facet: str):
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 0)
 
-    extra_filters = {'ansvarlig': orgid} if orgid else {}
-    facetids = get_facetids(facet, extra_filters)
+    facetids = get_facetids(facet)
 
     return flask.jsonify(
         facetids and get_one_facet(
@@ -422,8 +419,7 @@ def get_classes_under_facet(orgid: uuid.UUID, facet: str):
                 get_one_class,
                 facet=facetids,
                 publiceret='Publiceret',
-                start=start, limit=limit,
-                **extra_filters
+                start=start, limit=limit
             ),
         )
     )
