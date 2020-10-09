@@ -6,6 +6,7 @@ import abc
 import json
 
 import flask
+from mora.service import facet
 
 from .. import util, exceptions
 from .. import mapping

@@ -9,6 +9,7 @@ from ... import mapping
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from ...service.facet import ClassDetails
 
 ROLE_TYPE = "association"
 
@@ -33,7 +34,13 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
         # Fetch all classes in bulk
         all_classes = classes + [association_type] + ([primary] if primary else [])
-        fetched_classes = facet.get_bulk_classes(c, all_classes)
+
+        class_details = {
+            ClassDetails.FULL_NAME,
+            ClassDetails.TOP_LEVEL_FACET,
+            ClassDetails.FACET
+        }
+        fetched_classes = facet.get_bulk_classes(c, all_classes, details=class_details)
         # Pull out each class
         association_type_class = fetched_classes.pop(association_type)
         primary_class = fetched_classes.pop(primary, None)

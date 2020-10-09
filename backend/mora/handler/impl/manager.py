@@ -68,7 +68,8 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         func = {
             **base_obj,
             mapping.RESPONSIBILITY: [
-                facet.get_one_class(c, obj_uuid) for obj_uuid in responsibilities
+                facet.get_one_class_full(c, obj_uuid)
+                for obj_uuid in responsibilities
             ],
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
@@ -97,12 +98,12 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             func[mapping.PERSON] = None
 
         if manager_type:
-            func[mapping.MANAGER_TYPE] = facet.get_one_class(c, manager_type)
+            func[mapping.MANAGER_TYPE] = facet.get_one_class_full(c, manager_type)
         else:
             func[mapping.MANAGER_TYPE] = None
 
         if manager_level:
-            func[mapping.MANAGER_LEVEL] = facet.get_one_class(c, manager_level)
+            func[mapping.MANAGER_LEVEL] = facet.get_one_class_full(c, manager_level)
         else:
             func[mapping.MANAGER_LEVEL] = None
 

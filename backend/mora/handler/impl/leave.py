@@ -54,7 +54,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         r = {
             **base_obj,
             mapping.PERSON: employee.get_one_employee(c, person),
-            mapping.LEAVE_TYPE: facet.get_one_class(c, leave_type),
+            mapping.LEAVE_TYPE: facet.get_one_class_full(c, leave_type),
             mapping.ENGAGEMENT: engagement,
         }
 
