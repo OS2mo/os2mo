@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #38909: Added Configurable CORS.
+
 
 
 Version 1.9.1, 2020-10-06

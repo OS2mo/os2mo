@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 Flask
+flask-cors
 requests
 lxml
 python-dateutil
