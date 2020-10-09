@@ -396,6 +396,7 @@ def get_one_class(c, classid, clazz=None, details: typing.Set[ClassDetails] = No
 
     return response
 
+
 # Helper function for reading classes enriched with additional details
 get_one_class_full = functools.partial(get_one_class, details={
     ClassDetails.FACET,

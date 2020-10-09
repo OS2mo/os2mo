@@ -23,9 +23,12 @@ const state = {
 
 const actions = {
   [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
-    if (state[payload.facet]) return
+    let queryParams = ""
+    if (payload.full) {
+      queryParams = '?full_name&top_level_facet&facet'
+    }
     if (rootState.organisation.uuid == undefined) return
-    return Service.get(`/o/${rootState.organisation.uuid}/f/${payload}/`)
+    return Service.get(`/o/${rootState.organisation.uuid}/f/${payload.facet}/${queryParams}`)
       .then(response => {
         response.data.classes = response.data.data.items
         delete response.data.data.items

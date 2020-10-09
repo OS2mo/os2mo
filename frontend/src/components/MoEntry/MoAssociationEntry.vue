@@ -91,7 +91,7 @@ export default {
 
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.association_dynamic_facets.split(',').filter(elem => elem != "")
+      return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
     },
   },
 
@@ -138,13 +138,13 @@ export default {
      */
     fetch_entry(dynamic) {
       // Ensure we have an array
-      if (Array.isArray(this.entry.dynamic_classes) == false) {
+      if (Array.isArray(this.entry.dynamic_classes) === false) {
         this.entry.dynamic_classes = []
       }
       // Find the correct element if it exists
       let entry = this.find(
         this.entry.dynamic_classes,
-        item => { return item['top_level_facet']['uuid'] == dynamic}
+        item => { return item['top_level_facet']['uuid'] === dynamic}
       )
       return entry
     },

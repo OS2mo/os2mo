@@ -70,7 +70,7 @@ export default {
   },
 
   created () {
-    this.$store.dispatch(Facet.actions.SET_FACET, this.facet)
+    this.$store.dispatch(Facet.actions.SET_FACET, {facet: this.facet})
   },
 
   mounted () {
