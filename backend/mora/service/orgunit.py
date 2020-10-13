@@ -1081,7 +1081,7 @@ def terminate_org_unit(unitid):
     if active_roles:
         role_counts = set(
             mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
-            for objid, obj in c.organisationfunktion.get_all(uuid=active_roles)
+            for objid, obj in c.organisationfunktion.get_all_by_uuid(uuids=active_roles)
         )
 
     if children and role_counts:

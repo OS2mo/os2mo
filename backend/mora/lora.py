@@ -3,6 +3,9 @@
 
 from __future__ import generator_stop
 
+import copy
+
+import typing
 import uuid
 
 import requests
@@ -156,28 +159,47 @@ class Scope:
         """
         Perform a search on given params and return the result
 
-        Note that searching with more than one UUID is not supported by LoRa, and
-        the other search parameters will be ignored during lookup
+        As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
+        as LoRa will raise in error
+
+        Currently we hardcode the use of  'list' to return items from the search,
+        so supplying 'list' as a parameter is not supported.
         """
+        assert 'list' not in params, "'list' not supported as parameter for get_all"
+        assert 'uuid' not in params, ("'uuid' not supported as parameter for get_all, "
+                                      "use get_all_by_uuid")
+
+        search_params = copy.deepcopy(params)
+
         if limit > 0:
-            params['maximalantalresultater'] = limit
-        params['foersteresultat'] = start
-        params['list'] = 1
+            search_params['maximalantalresultater'] = limit
+        search_params['foersteresultat'] = start
+        search_params['list'] = 1
 
-        if 'uuid' in params and len(params['uuid']) > 1:
-            yield from self.get_all_by_uuid(uuid=params['uuid'])
-            return
+        wantregs = search_params.keys() & {'registreretfra', 'registrerettil'}
 
-        wantregs = params.keys() & {'registreretfra', 'registrerettil'}
-
-        for d in self.fetch(**params):
+        for d in self.fetch(**search_params):
             yield d['id'], (d['registreringer'] if wantregs
                             else d['registreringer'][0])
 
-    def get_all_by_uuid(self, *, uuid):
+    def get_all_by_uuid(self, uuids: typing.List):
         """Get a list of objects by their UUIDs"""
-        for d in self.fetch(uuid=uuid):
-            yield d['id'], (d['registreringer'][0])
+
+        # as an optimisation, we want to minimize the amount of
+        # roundtrips whilst also avoiding too large requests -- to
+        # this, we calculate in advance how many we can request
+        available_length = settings.MAX_REQUEST_LENGTH
+        available_length -= 4  # for 'GET '
+        available_length -= len(self.base_path)
+
+        for k, v in self.connector.defaults.items():
+            available_length -= len(k) + len(str(v)) + 2
+
+        per_length = 36 + len('&uuid=')
+
+        for chunk in util.splitlist(list(uuids), int(available_length / per_length)):
+            for d in self.fetch(uuid=chunk):
+                yield d['id'], (d['registreringer'][0])
 
     def paged_get(self, func, *,
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,

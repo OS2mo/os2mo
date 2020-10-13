@@ -27,7 +27,8 @@ class OrgUnitReader(reading.ReadingHandler):
         if type != "ou":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        return cls.get(c, {"uuid": [objid]})
+        object_tuples = c.organisationenhed.get_all_by_uuid(uuids=[objid])
+        return cls.get_obj_effects(c, object_tuples)
 
     @classmethod
     def get_effects(cls, c, obj, **params):

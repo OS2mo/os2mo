@@ -110,7 +110,7 @@ def map_org_units(origin):
                                         required=True))
 
     wanted_units = {origin} | destinations
-    units = dict(c.organisationenhed.get_all(uuid=sorted(wanted_units)))
+    units = dict(c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))
 
     if len(units) != len(wanted_units):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
