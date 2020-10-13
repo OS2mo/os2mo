@@ -5,6 +5,9 @@ New features
 ------------
 
 * #38909: Added Configurable CORS.
+* #38973: Update class/facet service endpoints to only return minimal set of data,
+  with options to return individual additional attributes.
+* #38973: Add internal speedups for bulk get requests towards LoRa
 
 
 
