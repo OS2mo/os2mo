@@ -7,6 +7,7 @@ SPDX-License-Identifier: MPL-2.0
     :label="labelText"
     :options="sortedOptions"
     :required="required"
+    :disabled="disabled"
   />
 </template>
 
@@ -30,6 +31,8 @@ export default {
     value: Object,
     facet: { type: String, required: true },
     required: Boolean,
+    disabled: { type: Boolean, default: false },
+    filter_function: { type: Function, default: null },
   },
 
   data () {
@@ -42,15 +45,22 @@ export default {
     facetData () {
       return this.$store.getters[Facet.getters.GET_FACET](this.facet)
     },
+    classData () {
+      let class_data = this.facetData.classes
+      if (this.filter_function) {
+        return this.filter_function(class_data)
+      }
+      return class_data
+    },
     sortedOptions () {
-      return sortBy(this.facetData.classes, 'name')
+      return sortBy(this.classData, 'name')
     },
     labelText () {
       return this.facetData.user_key ? this.$t(`input_fields.${this.facetData.user_key}`) : ''
     },
     preselected () {
       let preselected = null
-      if (!this.facetData.classes) return preselected
+      if (!this.classData) return preselected
 
       return preselected
     }

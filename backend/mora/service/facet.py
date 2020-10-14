@@ -370,12 +370,19 @@ def get_one_class(c, classid, clazz=None, details: typing.Set[ClassDetails] = No
     def get_facet(clazz):
         return get_one_facet(c, get_facet_uuid(clazz), orgid=None)
 
+    def get_owner_uuid(clazz):
+        rel = clazz['relationer']
+        return rel['ejer'][0]['uuid'] if 'ejer' in rel else None
+
+    owner = get_owner_uuid(clazz)
+
     response = {
         'uuid': classid,
         'name': attrs.get('titel'),
         'user_key': attrs.get('brugervendtnoegle'),
         'example': attrs.get('eksempel'),
         'scope': attrs.get('omfang'),
+        'owner': owner,
     }
 
     if ClassDetails.FULL_NAME in details:
