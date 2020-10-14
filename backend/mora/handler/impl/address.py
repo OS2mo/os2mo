@@ -35,7 +35,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         r = {
             **base_obj,
-            mapping.ADDRESS_TYPE: facet.get_one_class(c, address_type),
+            mapping.ADDRESS_TYPE: facet.get_one_class_full(c, address_type),
             **handler.get_mo_address_and_properties(),
         }
         if person:

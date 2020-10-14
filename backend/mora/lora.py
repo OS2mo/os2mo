@@ -3,7 +3,9 @@
 
 from __future__ import generator_stop
 
-import itertools
+import copy
+
+import typing
 import uuid
 
 import requests
@@ -154,16 +156,34 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
+        """
+        Perform a search on given params and return the result
+
+        As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
+        as LoRa will raise in error
+
+        Currently we hardcode the use of  'list' to return items from the search,
+        so supplying 'list' as a parameter is not supported.
+        """
+        assert 'list' not in params, "'list' not supported as parameter for get_all"
+        assert 'uuid' not in params, ("'uuid' not supported as parameter for get_all, "
+                                      "use get_all_by_uuid")
+
+        search_params = copy.deepcopy(params)
+
         if limit > 0:
-            params['maximalantalresultater'] = limit
-        params['foersteresultat'] = start
+            search_params['maximalantalresultater'] = limit
+        search_params['foersteresultat'] = start
+        search_params['list'] = 1
 
-        if 'uuid' in params:
-            uuids = util.uniqueify(params.pop('uuid'))[start:start + limit]
-        else:
-            uuids = self.fetch(**params)
+        wantregs = search_params.keys() & {'registreretfra', 'registrerettil'}
 
-        wantregs = params.keys() & {'registreretfra', 'registrerettil'}
+        for d in self.fetch(**search_params):
+            yield d['id'], (d['registreringer'] if wantregs
+                            else d['registreringer'][0])
+
+    def get_all_by_uuid(self, uuids: typing.List):
+        """Get a list of objects by their UUIDs"""
 
         # as an optimisation, we want to minimize the amount of
         # roundtrips whilst also avoiding too large requests -- to
@@ -172,16 +192,14 @@ class Scope:
         available_length -= 4  # for 'GET '
         available_length -= len(self.base_path)
 
-        for k, v in itertools.chain(self.connector.defaults.items(),
-                                    params.items()):
+        for k, v in self.connector.defaults.items():
             available_length -= len(k) + len(str(v)) + 2
 
         per_length = 36 + len('&uuid=')
 
-        for chunk in util.splitlist(uuids, int(available_length / per_length)):
+        for chunk in util.splitlist(list(uuids), int(available_length / per_length)):
             for d in self.fetch(uuid=chunk):
-                yield d['id'], (d['registreringer'] if wantregs
-                                else d['registreringer'][0])
+                yield d['id'], (d['registreringer'][0])
 
     def paged_get(self, func, *,
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,

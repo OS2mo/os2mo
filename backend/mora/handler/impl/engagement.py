@@ -43,9 +43,9 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
             ),
-            mapping.JOB_FUNCTION: facet.get_one_class(c, job_function),
-            mapping.ENGAGEMENT_TYPE: facet.get_one_class(c, engagement_type),
-            mapping.PRIMARY: facet.get_one_class(c, primary) if primary else None,
+            mapping.JOB_FUNCTION: facet.get_one_class_full(c, job_function),
+            mapping.ENGAGEMENT_TYPE: facet.get_one_class_full(c, engagement_type),
+            mapping.PRIMARY: facet.get_one_class_full(c, primary) if primary else None,
             mapping.IS_PRIMARY: cls._is_primary(c, person, primary),
             mapping.FRACTION: fraction,
             **cls._get_extension_fields(extensions),
@@ -126,7 +126,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         facet_id = c.facet(bvn='primary_type')[0]
 
         classes = [
-            facet.get_one_class(c, class_id, class_obj)
+            facet.get_one_class_full(c, class_id, class_obj)
             for class_id, class_obj in (c.klasse.get_all(facet=facet_id))
         ]
 

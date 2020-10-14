@@ -21,7 +21,7 @@ export default {
   },
 
   created () {
-    this.$store.dispatch(FacetStore.actions.SET_FACET, this.facet_uuid)
+    this.$store.dispatch(FacetStore.actions.SET_FACET, {facet: this.facet_uuid, full: true})
   },
 
   methods: {

@@ -32,9 +32,10 @@ class KLEReader(reading.OrgFunkReadingHandler):
         r = {
             **base_obj,
             mapping.KLE_ASPECT: [
-                facet.get_one_class(c, obj_uuid) for obj_uuid in kle_types
+                facet.get_one_class_full(c, obj_uuid)
+                for obj_uuid in kle_types
             ],
-            mapping.KLE_NUMBER: facet.get_one_class(c, address_type),
+            mapping.KLE_NUMBER: facet.get_one_class_full(c, address_type),
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
             )

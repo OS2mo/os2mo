@@ -1425,16 +1425,6 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/f/org_unit_type/',
-            404,
-        )
-
-        self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/f/address_type/',
-            404,
-        )
-
-        self.assertRequestFails(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kaflaflibob/',
             404,
         )
@@ -1571,6 +1561,35 @@ class Tests(util.LoRATestCase):
                 'total': 3,
                 'items': [
                     {'example': None,
+                        'name': 'Afdeling',
+                        'scope': None,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
+                    {'example': None,
+                        'name': 'Fakultet',
+                        'scope': None,
+                        'user_key': 'fak',
+                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
+                    {'example': None,
+                        'name': 'Institut',
+                        'scope': None,
+                        'user_key': 'inst',
+                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
+                'description': '',
+                'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
+                        '/f/org_unit_type/',
+                'user_key': 'org_unit_type',
+                'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'}
+        )
+
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/'
+            '?full_name&facet&top_level_facet',
+            {'data': {
+                'offset': 0,
+                'total': 3,
+                'items': [
+                    {'example': None,
                      'facet': org_unit_type_facet,
                      'full_name': 'Afdeling',
                      'name': 'Afdeling',
@@ -1609,35 +1628,23 @@ class Tests(util.LoRATestCase):
                 'total': 4,
                 'items': [
                     {'example': '20304060',
-                     'facet': org_unit_address_type_facet,
-                     'full_name': 'Telefon',
                      'name': 'Telefon',
                      'scope': 'PHONE',
-                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedTelefon',
                      'uuid': '1d1d3711-5af4-4084-99b3-df2b8752fdec'},
                     {'example': '<UUID>',
-                     'facet': org_unit_address_type_facet,
-                     'full_name': 'Postadresse',
                      'name': 'Postadresse',
                      'scope': 'DAR',
-                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedPostadresse',
                      'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
                     {'example': 'test@example.com',
-                     'facet': org_unit_address_type_facet,
-                     'full_name': 'Email',
                      'name': 'Email',
                      'scope': 'EMAIL',
-                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'OrgEnhedEmail',
                      'uuid': '73360db1-bad3-4167-ac73-8d827c0c8751'},
                     {'example': '5712345000014',
-                     'facet': org_unit_address_type_facet,
-                     'full_name': 'EAN',
                      'name': 'EAN',
                      'scope': 'EAN',
-                     'top_level_facet': org_unit_address_type_facet,
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
                 ]},
