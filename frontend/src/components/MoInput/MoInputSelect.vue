@@ -43,6 +43,10 @@ export default {
     options: {
       type: Array,
       required: true
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
 

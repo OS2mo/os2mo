@@ -7,6 +7,27 @@ SPDX-License-Identifier: MPL-2.0
       :disabled-dates="{orgUnitValidity, disabledDates}"
     />
 
+    <mo-organisation-unit-picker
+      v-model="entry.parent"
+      :label="$t('input_fields.select_super_unit')"
+      required
+      :validity="entry.validity"
+    />
+
+    <div class="form-row">
+      <mo-facet-picker v-if="showTimePlanning"
+        facet="time_planning"
+        v-model="entry.time_planning"
+        required
+      />
+
+      <mo-facet-picker v-if="showOrgUnitLevel"
+                       facet="org_unit_level"
+                       v-model="entry.org_unit_level"
+                       required
+      />
+    </div>
+
     <div class="form-row">
       <mo-input-text
         :label="$t('input_fields.name')"
@@ -23,30 +44,13 @@ SPDX-License-Identifier: MPL-2.0
       <mo-facet-picker
         facet="org_unit_type"
         v-model="entry.org_unit_type"
+        :disabled="!hasOrgUnitBeenPicked"
+        :filter_function="filter_on_owner"
         required
       />
 
     </div>
-    <div class="form-row">
-      <mo-facet-picker v-if="showTimePlanning"
-        facet="time_planning"
-        v-model="entry.time_planning"
-        required
-      />
 
-      <mo-facet-picker v-if="showOrgUnitLevel"
-                       facet="org_unit_level"
-                       v-model="entry.org_unit_level"
-                       required
-      />
-    </div>
-
-    <mo-organisation-unit-picker
-      v-model="entry.parent"
-      :label="$t('input_fields.select_super_unit')"
-      required
-      :validity="entry.validity"
-    />
   </div>
 </template>
 
@@ -100,8 +104,11 @@ export default {
       }
       return false
     },
+    hasOrgUnitBeenPicked () {
+       return this.entry.parent !== undefined
+    },
     showOrgUnitLevel () {
-      if (this.entry.parent) {
+      if (this.hasOrgUnitBeenPicked) {
         return this.entry.parent.user_settings.orgunit.show_level
       } else if (this.entry.user_settings) {
         return this.entry.user_settings.orgunit.show_level
@@ -110,7 +117,19 @@ export default {
     },
     showUserKey () {
       return !this.isEdit
-    }
+    },
+    getOrgUnitAncestors() {
+       let entry = this.entry.parent
+       if (entry === undefined) {
+         return undefined
+       }
+       let return_val = [entry.uuid]
+       while (entry.parent !== null) {
+           entry = entry.parent
+           return_val.push(entry.uuid)
+       }
+       return return_val
+     },
   },
 
   watch: {
@@ -126,6 +145,15 @@ export default {
       },
       deep: true
     }
+  },
+
+  methods: {
+     filter_on_owner(classData) {
+       if (classData === undefined || this.hasOrgUnitBeenPicked === false) {
+         return classData
+       }
+       return classData.filter(clazz => clazz.owner === null || this.getOrgUnitAncestors.includes(clazz.owner))
+     }
   }
 }
 </script>

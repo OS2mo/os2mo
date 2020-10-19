@@ -379,15 +379,15 @@ def get_one_orgunit(c, unitid, unit=None,
         r[mapping.PARENT] = parent
 
         r[mapping.ORG_UNIT_TYPE] = (
-            facet.get_one_class(c, unittype) if unittype else None
+            facet.get_one_class_full(c, unittype) if unittype else None
         )
 
         r[mapping.TIME_PLANNING] = (
-            facet.get_one_class(c, timeplanning) if timeplanning else None
+            facet.get_one_class_full(c, timeplanning) if timeplanning else None
         )
 
         r[mapping.ORG_UNIT_LEVEL] = (
-            facet.get_one_class(c, org_unit_level) if org_unit_level else None
+            facet.get_one_class_full(c, org_unit_level) if org_unit_level else None
         )
 
     elif details is UnitDetails.SELF:
@@ -396,15 +396,15 @@ def get_one_orgunit(c, unitid, unit=None,
                                             details=UnitDetails.MINIMAL)
 
         r[mapping.ORG_UNIT_TYPE] = (
-            facet.get_one_class(c, unittype) if unittype else None
+            facet.get_one_class_full(c, unittype) if unittype else None
         )
 
         r[mapping.TIME_PLANNING] = (
-            facet.get_one_class(c, timeplanning) if timeplanning else None
+            facet.get_one_class_full(c, timeplanning) if timeplanning else None
         )
 
         r[mapping.ORG_UNIT_LEVEL] = (
-            facet.get_one_class(c, org_unit_level) if org_unit_level else None
+            facet.get_one_class_full(c, org_unit_level) if org_unit_level else None
         )
 
     elif details is UnitDetails.MINIMAL:
@@ -1076,12 +1076,13 @@ def terminate_org_unit(unitid):
         gyldighed='Aktiv',
     ))
 
-    role_counts = set((
-        mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
-        for objid, obj in c.organisationfunktion.get_all(
-            uuid=(roles - addresses)
+    active_roles = (roles - addresses)
+    role_counts = set()
+    if active_roles:
+        role_counts = set(
+            mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
+            for objid, obj in c.organisationfunktion.get_all_by_uuid(uuids=active_roles)
         )
-    ))
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(

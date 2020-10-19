@@ -225,7 +225,7 @@ export default {
             }
         }
         for (const dynamic of dynamics) {
-          this.$store.dispatch(Facet.actions.SET_FACET, dynamic)
+          this.$store.dispatch(Facet.actions.SET_FACET, {facet: dynamic, full: true})
           columns.push({
             label: 'dynamic_class', label_function: label_function_generator(dynamic), data: dynamic
           })

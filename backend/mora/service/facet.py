@@ -15,9 +15,12 @@ objects.
         A value of `<UUID>` means that this is a `DAR`_ address UUID.
 
 '''
+import functools
 
 import locale
 import enum
+
+import typing
 import uuid
 from functools import partial
 
@@ -37,11 +40,12 @@ blueprint = flask.Blueprint('facet', __name__, static_url_path='',
 
 @enum.unique
 class ClassDetails(enum.Enum):
-    # class only
-    MINIMAL = 0
-
+    # full class name
+    FULL_NAME = 0
     # with child count
     NCHILDREN = 1
+    TOP_LEVEL_FACET = 2
+    FACET = 3
 
 
 @blueprint.route('/c/ancestor-tree')
@@ -105,9 +109,9 @@ def get_class_tree(c, classids, with_siblings=False):
         r = get_one_class(
             c, classid, cache[classid],
             details=(
-                ClassDetails.NCHILDREN
+                {ClassDetails.NCHILDREN}
                 if with_siblings and classid not in children
-                else ClassDetails.MINIMAL
+                else None
             ),
         )
         if classid in children:
@@ -281,7 +285,7 @@ def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     return response
 
 
-def get_bulk_classes(c, uuids):
+def get_bulk_classes(c, uuids, details=None):
     """Fetch all classes defined by uuids.
 
     :queryparam uuids: A list of UUIDs of the classes.
@@ -303,7 +307,7 @@ def get_bulk_classes(c, uuids):
     """
 
     # TODO: Implement actual bulk lookup
-    return {uuid: get_one_class(c, uuid) for uuid in uuids}
+    return {uuid: get_one_class(c, uuid, details=details) for uuid in uuids}
 
 
 def fetch_class_children(c, parent_uuid):
@@ -317,7 +321,9 @@ def count_class_children(c, parent_uuid):
     return len(fetch_class_children(c, parent_uuid))
 
 
-def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
+def get_one_class(c, classid, clazz=None, details: typing.Set[ClassDetails] = None):
+    if not details:
+        details = set()
 
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
     if only_primary_uuid:
@@ -330,9 +336,12 @@ def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
 
         if not clazz:
             return None
-            # exceptions.ErrorCodes.E_INVALID_INPUT(
-            #     'no such class {!r}'.format(classid),
-            # )
+
+    def get_attrs(clazz):
+        return clazz['attributter']['klasseegenskaber'][0]
+
+    attrs = get_attrs(clazz)
+    parents = None
 
     def get_parent(clazz):
         """Find the parent UUID of the provided class object."""
@@ -345,51 +354,74 @@ def get_one_class(c, classid, clazz=None, details=ClassDetails.MINIMAL):
             return [clazz]
         return [clazz] + get_parents(c.klasse.get(potential_parent))
 
-    parents = get_parents(clazz)
-
-    def get_attrs(clazz):
-        return clazz['attributter']['klasseegenskaber'][0]
+    def get_full_name(clazz, parents):
+        parents = get_parents(clazz)
+        full_name = " - ".join(
+            [get_attrs(clazz).get('titel') for clazz in reversed(parents)]
+        )
+        return full_name
 
     def get_facet_uuid(clazz):
         return clazz['relationer']['facet'][0]['uuid']
 
-    attrs = get_attrs(clazz)
-    full_name = " - ".join(
-        [get_attrs(clazz).get('titel') for clazz in reversed(parents)]
-    )
+    def get_top_level_facet(parents):
+        return get_one_facet(c, get_facet_uuid(parents[-1]), orgid=None)
+
+    def get_facet(clazz):
+        return get_one_facet(c, get_facet_uuid(clazz), orgid=None)
+
+    def get_owner_uuid(clazz):
+        rel = clazz['relationer']
+        return rel['ejer'][0]['uuid'] if 'ejer' in rel else None
+
+    owner = get_owner_uuid(clazz)
 
     response = {
         'uuid': classid,
-        'full_name': full_name,
         'name': attrs.get('titel'),
         'user_key': attrs.get('brugervendtnoegle'),
         'example': attrs.get('eksempel'),
         'scope': attrs.get('omfang'),
-        'top_level_facet': get_one_facet(c, get_facet_uuid(parents[-1]), orgid=None),
-        'facet': get_one_facet(c, get_facet_uuid(clazz), orgid=None),
+        'owner': owner,
     }
 
-    if details is ClassDetails.NCHILDREN:
+    if ClassDetails.FULL_NAME in details:
+        if not parents:
+            parents = get_parents(clazz)
+        response['full_name'] = get_full_name(clazz, parents)
+
+    if ClassDetails.TOP_LEVEL_FACET in details:
+        if not parents:
+            parents = get_parents(clazz)
+        response['top_level_facet'] = get_top_level_facet(parents)
+
+    if ClassDetails.FACET in details:
+        response['facet'] = get_facet(clazz)
+
+    if ClassDetails.NCHILDREN in details:
         response['child_count'] = count_class_children(c, classid)
-    elif details is ClassDetails.MINIMAL:
-        pass  # already done
-    else:
-        raise AssertionError('enum is {}!?'.format(details))
+
     return response
 
 
-def get_facetids(facet: str, extra_filters: dict = None):
+# Helper function for reading classes enriched with additional details
+get_one_class_full = functools.partial(get_one_class, details={
+    ClassDetails.FACET,
+    ClassDetails.FULL_NAME,
+    ClassDetails.TOP_LEVEL_FACET
+})
+
+
+def get_facetids(facet: str):
 
     c = common.get_connector()
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
-    extra_filters = extra_filters or {}
     facetids = c.facet(
         uuid=uuid,
         bvn=bvn,
-        publiceret='Publiceret',
-        **extra_filters
+        publiceret='Publiceret'
     )
 
     if not facetids:
@@ -403,15 +435,17 @@ def get_facetids(facet: str, extra_filters: dict = None):
     return facetids
 
 
-def get_classes_under_facet(orgid: uuid.UUID, facet: str):
+def get_classes_under_facet(orgid: uuid.UUID, facet: str,
+                            details: typing.Set[ClassDetails] = None):
 
     c = common.get_connector()
 
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 0)
 
-    extra_filters = {'ansvarlig': orgid} if orgid else {}
-    facetids = get_facetids(facet, extra_filters)
+    facetids = get_facetids(facet)
+
+    getter_fn = functools.partial(get_one_class, details=details)
 
     return flask.jsonify(
         facetids and get_one_facet(
@@ -419,11 +453,10 @@ def get_classes_under_facet(orgid: uuid.UUID, facet: str):
             facetids[0],
             orgid,
             data=c.klasse.paged_get(
-                get_one_class,
+                getter_fn,
                 facet=facetids,
                 publiceret='Publiceret',
-                start=start, limit=limit,
-                **extra_filters
+                start=start, limit=limit
             ),
         )
     )
@@ -493,7 +526,26 @@ def get_classes(orgid: uuid.UUID, facet: str):
         }
       }
     '''
-    return get_classes_under_facet(orgid, facet)
+    class_details = map_query_args_to_class_details(flask.request.args)
+    return get_classes_under_facet(orgid, facet, details=class_details)
+
+
+def map_query_args_to_class_details(args):
+    arg_map = {
+        'full_name': ClassDetails.FULL_NAME,
+        'top_level_facet': ClassDetails.TOP_LEVEL_FACET,
+        'facet': ClassDetails.FACET
+    }
+
+    # If unknown args
+    if not set(args) <= set(arg_map):
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            f'Invalid args: {set(args) - set(arg_map)}'
+        )
+
+    mapped = set(map(arg_map.get, args))
+
+    return mapped
 
 
 @blueprint.route('/f/<facet>/')

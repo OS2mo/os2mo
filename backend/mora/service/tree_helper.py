@@ -55,7 +55,7 @@ def prepare_ancestor_tree(connector_entry, mapping_parent, uuids,
         return obj
 
     def get_bulk(uuids):
-        objs = dict(connector_entry.get_all(uuid=uuids))
+        objs = dict(connector_entry.get_all_by_uuid(uuids=uuids))
         cache.update(objs)
         return objs
 

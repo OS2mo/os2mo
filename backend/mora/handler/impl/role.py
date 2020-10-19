@@ -35,7 +35,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
             mapping.ORG_UNIT: orgunit.get_one_orgunit(
                 c, org_unit, details=orgunit.UnitDetails.MINIMAL
             ),
-            mapping.ROLE_TYPE: facet.get_one_class(c, role_type),
+            mapping.ROLE_TYPE: facet.get_one_class_full(c, role_type),
         }
 
         return r
