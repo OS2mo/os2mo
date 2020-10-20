@@ -4,6 +4,8 @@ In development
 New features
 ------------
 
+* #35785: Fix bug where Flask would lock the database during requests with 
+  auth, preventing other concurrent requests
 
 
 Version 1.9.2, 2020-10-19
