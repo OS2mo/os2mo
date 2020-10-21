@@ -101,3 +101,12 @@ services:
     ports:
       - "5672:5672"    # amqp port
       - "15672:15672"  # management port
+
+  idp:
+    image: kristophjunge/test-saml-idp
+    ports:
+      - "8082:8080"
+    environment:
+      - SIMPLESAMLPHP_SP_ENTITY_ID=http://localhost:5000/saml/metadata/
+      - SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=http://localhost:5000/saml/acs/
+      - SIMPLESAMLPHP_SP_SINGLE_LOGOUT_SERVICE=http://localhost:5000/saml/sls/

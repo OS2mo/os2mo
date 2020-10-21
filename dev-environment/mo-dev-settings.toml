@@ -24,3 +24,7 @@ host = "msg_broker"
 
 [log]
 log_level = "INFO"
+
+[saml_sso]
+enable = true
+idp_metadata_url = "http://172.17.0.1:8082/simplesaml/saml2/idp/metadata.php"
