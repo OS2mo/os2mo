@@ -4,6 +4,7 @@ In development
 New features
 ------------
 
+* #38941: Fix bug where it was possible to create KLE objects without 'aspect'
 * #38788: Implement uuid search filters
 
 
@@ -13,7 +14,7 @@ Version 1.10.0, 2020-10-23
 New features
 ------------
 
-* #35785: Fix bug where Flask would lock the database during requests with 
+* #35785: Fix bug where Flask would lock the database during requests with
   auth, preventing other concurrent requests
 * #39199: Fix bug where UI facet pickers would not use existing values when editing
 

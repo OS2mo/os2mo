@@ -32,7 +32,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
             util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         kle_aspects = util.checked_get(
-            req, mapping.KLE_ASPECT, [], required=True
+            req, mapping.KLE_ASPECT, [], required=True, can_be_empty=False
         )
 
         opgaver = [
@@ -120,7 +120,8 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
-        for aspect in util.checked_get(data, mapping.KLE_ASPECT, []):
+        for aspect in util.checked_get(data, mapping.KLE_ASPECT, [],
+                                       can_be_empty=False):
             update_fields.append((
                 mapping.KLE_ASPECT_FIELD,
                 {
