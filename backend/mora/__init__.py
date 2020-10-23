@@ -1,4 +1,4 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-__version__ = "1.9.2"
+__version__ = "1.10.0"
