@@ -105,7 +105,7 @@ export default {
       return false
     },
     hasOrgUnitBeenPicked () {
-       return this.entry.parent !== undefined
+       return this.entry.parent !== undefined && this.entry.parent !== null
     },
     showOrgUnitLevel () {
       if (this.hasOrgUnitBeenPicked) {

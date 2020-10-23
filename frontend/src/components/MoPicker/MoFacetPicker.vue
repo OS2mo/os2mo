@@ -57,12 +57,6 @@ export default {
     },
     labelText () {
       return this.facetData.user_key ? this.$t(`input_fields.${this.facetData.user_key}`) : ''
-    },
-    preselected () {
-      let preselected = null
-      if (!this.classData) return preselected
-
-      return preselected
     }
   },
 
@@ -72,10 +66,6 @@ export default {
      */
     internalValue (val) {
       this.$emit('input', val)
-    },
-
-    facetData (val) {
-      this.setInternalValue()
     }
   },
 
@@ -84,18 +74,28 @@ export default {
   },
 
   mounted () {
-    this.setInternalValue()
-
     if (this.value) {
-      this.internalValue = this.value
-    }
-  },
+      let filteredValue = this.value
 
-  methods: {
-    setInternalValue () {
-      if (this.preselected) {
-        this.internalValue = this.preselected
+      // This corresponds to the keys in the objects in the facet picker.
+      const wantedKeys = [
+        'example',
+        'name',
+        'owner',
+        'scope',
+        'user_key',
+        'uuid'
+      ]
+
+      // We sort out all keys not in the facet picker objects, otherwise it
+      // is not able to recognize a pre-selected value
+      for (const key of Object.keys(this.value)) {
+        if (!(wantedKeys.includes(key))) {
+          delete filteredValue[key]
+        }
       }
+
+      this.internalValue = filteredValue
     }
   }
 }

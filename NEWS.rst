@@ -1,3 +1,13 @@
+Version 1.10.0, 2020-10-23
+==========================
+
+New features
+------------
+
+* #35785: Fix bug where Flask would lock the database during requests with 
+  auth, preventing other concurrent requests
+* #39199: Fix bug where UI facet pickers would not use existing values when editing
+
 Version 1.9.2, 2020-10-19
 =========================
 
