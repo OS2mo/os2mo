@@ -4,6 +4,14 @@ In development
 New features
 ------------
 
+
+
+Version 1.10.1, 2020-10-26
+==========================
+
+New features
+------------
+
 * #38941: Fix bug where it was possible to create KLE objects without 'aspect'
 * #38788: Implement uuid search filters
 
