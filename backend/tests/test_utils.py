@@ -626,6 +626,9 @@ class TestUtils(TestCase):
             'string': '1337',
             'int': 1337,
             'null': None,
+            'empty_list': list(),
+            'empty_dict': dict(),
+            'empty_str': str(),
         }
 
         # when it's there
@@ -665,6 +668,16 @@ class TestUtils(TestCase):
             {},
         )
 
+        self.assertEqual(
+            util.checked_get(mapping, 'empty_list', []),
+            [],
+        )
+
+        self.assertEqual(
+            util.checked_get(mapping, 'empty_dict', {}),
+            {},
+        )
+
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing nonexistent"):
             util.checked_get(mapping, 'nonexistent', [], required=True)
@@ -685,6 +698,21 @@ class TestUtils(TestCase):
                 r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             util.checked_get(mapping, 'list', {})
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_list', [], required=True,
+                             can_be_empty=False)
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_dict', {}, required=True,
+                             can_be_empty=False)
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_str', "", required=True,
+                             can_be_empty=False)
 
     def test_get_urn(self):
         with self.subTest('bad string'):
