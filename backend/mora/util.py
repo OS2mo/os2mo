@@ -266,18 +266,6 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=None):
     return wrap
 
 
-def splitlist(xs, size):
-    if size <= 0:
-        exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE()
-
-    i = 0
-    nxs = len(xs)
-
-    while i < nxs:
-        yield xs[i:i + size]
-        i += size
-
-
 def is_urn(v):
     return v and isinstance(v, str) and v.startswith('urn:')
 

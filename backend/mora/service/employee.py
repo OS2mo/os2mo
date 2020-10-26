@@ -15,8 +15,9 @@ For more information regarding reading relations involving employees, refer to
 import copy
 import enum
 import functools
-
 import uuid
+from functools import partial
+from operator import itemgetter, contains
 
 import flask
 
@@ -310,7 +311,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
 
 @blueprint.route('/o/<uuid:orgid>/e/')
-@util.restrictargs('at', 'start', 'limit', 'query')
+@util.restrictargs('at', 'start', 'limit', 'query', 'associated')
 def list_employees(orgid):
     '''Query employees in an organisation.
 
@@ -398,9 +399,25 @@ def list_employees(orgid):
     get_full_employee = functools.partial(get_one_employee,
                                           details=EmployeeDetails.FULL)
 
-    return flask.jsonify(
-        c.bruger.paged_get(get_full_employee, **kwargs)
-    )
+    uuid_filters = []
+    # Filter search_result to only show employees with associations
+    if 'associated' in args and args['associated']:
+        # NOTE: This call takes ~500ms on fixture-data
+        assocs = c.organisationfunktion.get_all(
+            funktionsnavn="Tilknytning", limit=0
+        )
+        assocs = map(itemgetter(1), assocs)
+        assocs = set(map(mapping.USER_FIELD.get_uuid, assocs))
+        uuid_filters.append(partial(contains, assocs))
+
+    if uuid_filters:
+        search_result = c.bruger.paged_filtered_get(
+            get_full_employee, uuid_filters=uuid_filters, **kwargs
+        )
+    else:
+        search_result = c.bruger.paged_get(get_full_employee, **kwargs)
+
+    return flask.jsonify(search_result)
 
 
 @blueprint.route('/e/<uuid:id>/')

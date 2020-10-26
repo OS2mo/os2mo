@@ -11,6 +11,9 @@ import uuid
 import requests
 
 import flask_saml_sso
+from functools import partial
+from itertools import starmap
+from more_itertools import chunked
 
 import lora_utils
 from . import exceptions
@@ -119,7 +122,9 @@ class Connector:
         try:
             path = self.scope_map[attr]
         except KeyError:
-            raise AttributeError(attr)
+            raise AttributeError(
+                attr + " should be one of: " + str(list(self.scope_map.keys()))
+            )
 
         scope = Scope(self, path)
         setattr(self, attr, scope)
@@ -135,10 +140,36 @@ class Scope:
     def __init__(self, connector, path):
         self.connector = connector
         self.path = path
+        self.max_uuids = self._calculate_max_uuids()
 
     @property
     def base_path(self):
         return settings.LORA_URL + self.path
+
+    def _calculate_max_uuids(self):
+        """Calculate the maximum number of UUIDs which can be send at once.
+
+        Used by :code:`get_all_by_uuid` to minimize the number of roundtrips,
+        while simultaneously ensuring that requests are valid.
+
+        The method works by starting of with the maximum valid-length of a HTTP
+        Request-Line. Then gradually reserving characters, as needed for Method,
+        URL and non-uuid URL parameters. Finally the left-over length is divded
+        to maximize the number of UUIDs.
+        """
+        available_length = settings.MAX_REQUEST_LENGTH
+        available_length -= len('GET ')
+        available_length -= len(self.base_path)
+
+        for k, v in self.connector.defaults.items():
+            # Note & may instead be ? for the first parameter.
+            available_length -= len("&") + len(k) + len('=') + len(str(v))
+
+        # At the point we know that available_length characters are left for
+        # UUIDs, each uuid consumes 36 charactesrs and a header.
+        per_length = len('&uuid=') + 36
+        max_uuids = int(available_length / per_length)
+        return max_uuids
 
     def fetch(self, **params):
         r = session.get(self.base_path, params={
@@ -156,14 +187,15 @@ class Scope:
     __call__ = fetch
 
     def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
-        """
-        Perform a search on given params and return the result
+        """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
-        as LoRa will raise in error
+        as LoRa will raise in error.
 
-        Currently we hardcode the use of  'list' to return items from the search,
+        Currently we hardcode the use of 'list' to return items from the search,
         so supplying 'list' as a parameter is not supported.
+
+        Returns an iterator of tuples (obj_id, obj) of all matches.
         """
         assert 'list' not in params, "'list' not supported as parameter for get_all"
         assert 'uuid' not in params, ("'uuid' not supported as parameter for get_all, "
@@ -182,39 +214,71 @@ class Scope:
             yield d['id'], (d['registreringer'] if wantregs
                             else d['registreringer'][0])
 
-    def get_all_by_uuid(self, uuids: typing.List):
-        """Get a list of objects by their UUIDs"""
+    def get_all_by_uuid(self, uuids: typing.List, elements_per_chunk=None):
+        """Get a list of objects by their UUIDs.
 
-        # as an optimisation, we want to minimize the amount of
-        # roundtrips whilst also avoiding too large requests -- to
-        # this, we calculate in advance how many we can request
-        available_length = settings.MAX_REQUEST_LENGTH
-        available_length -= 4  # for 'GET '
-        available_length -= len(self.base_path)
+        Returns an iterator of tuples (obj_id, obj) of all matches.
+        """
+        # If elements_per_chunk is None, use self.max_uuids as default
+        elements_per_chunk = elements_per_chunk or self.max_uuids
+        # Whatever the value of elements_per_chunk, self.max_uuids is the max
+        elements_per_chunk = min(elements_per_chunk, self.max_uuids)
 
-        for k, v in self.connector.defaults.items():
-            available_length -= len(k) + len(str(v)) + 2
-
-        per_length = 36 + len('&uuid=')
-
-        for chunk in util.splitlist(list(uuids), int(available_length / per_length)):
+        for chunk in chunked(uuids, elements_per_chunk):
             for d in self.fetch(uuid=chunk):
                 yield d['id'], (d['registreringer'][0])
+
+    def paged_filtered_get(self, func, *,
+                           start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                           uuid_filters=None,
+                           **params):
+        """Perform a search on given params, filter and return the result.
+
+        Similar to :code:`paged_get`, but supports :code:`uuid_filters` at a
+        cost of a bit of performance.
+
+        :code:`uuid_filters` is a list of functions from uuid to bool, where
+        the uuid will be kept assuming the returned bool is truthy.
+
+        Return is identical to :code:`paged_get`.
+        """
+        uuid_filters = uuid_filters or []
+        # Fetch all uuids and then filter with uuid_filters
+        uuids = self.fetch(**params)
+        for uuid_filter in uuid_filters:
+            uuids = filter(uuid_filter, uuids)
+        uuids = list(uuids)
+
+        fetch_uuids = uuids[start:start + limit]
+        obj_iter = self.get_all_by_uuid(fetch_uuids)
+        obj_iter = starmap(partial(func, self.connector), obj_iter)
+        return {
+            'total': len(uuids),
+            'offset': start,
+            'items': list(obj_iter)
+        }
 
     def paged_get(self, func, *,
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,
                   **params):
+        """Perform a search on given params and return the result.
 
+        :code:`func` is a function from (lora-connector, obj_id, obj) to
+        :code:`item-type`.
+
+        Returns paged dict with 3 keys: 'total', 'offset' and 'items', where:
+            'total' is the total number of matches found.
+            'offset' is the offset into 'total' (for pagination).
+            'items' is a list of :code:`item-type` items.
+        """
         uuids = self.fetch(**params)
 
+        obj_iter = self.get_all(start=start, limit=limit, **params)
+        obj_iter = starmap(partial(func, self.connector), obj_iter)
         return {
             'total': len(uuids),
             'offset': start,
-            'items': [
-                func(self.connector, obj_id, obj)
-                for obj_id, obj in self.get_all(
-                    start=start, limit=limit, **params)
-            ],
+            'items': list(obj_iter)
         }
 
     def get(self, uuid, **params):

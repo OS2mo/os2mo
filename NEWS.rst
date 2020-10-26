@@ -4,6 +4,7 @@ In development
 New features
 ------------
 
+* #38788: Implement uuid search filters
 
 
 Version 1.10.0, 2020-10-23
