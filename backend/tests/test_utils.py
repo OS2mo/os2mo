@@ -87,26 +87,6 @@ class TestUtils(TestCase):
         # test fallback
         self.assertEqual(util.parsedatetime('blyf', 'flaf'), 'flaf')
 
-    def test_splitlist(self):
-        self.assertEqual(
-            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3)),
-            [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]],
-        )
-        self.assertEqual(
-            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4)),
-            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]],
-        )
-        self.assertEqual(
-            list(util.splitlist([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 11)),
-            [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
-        )
-        self.assertRaises(exceptions.HTTPException,
-                          list, util.splitlist([], 0))
-        self.assertRaises(exceptions.HTTPException,
-                          list, util.splitlist([], -1))
-        self.assertRaises(TypeError,
-                          list, util.splitlist([], 'horse'))
-
     def test_is_uuid(self):
         self.assertTrue(util.is_uuid('00000000-0000-0000-0000-000000000000'))
         self.assertFalse(util.is_uuid('42'))
@@ -646,6 +626,9 @@ class TestUtils(TestCase):
             'string': '1337',
             'int': 1337,
             'null': None,
+            'empty_list': list(),
+            'empty_dict': dict(),
+            'empty_str': str(),
         }
 
         # when it's there
@@ -685,6 +668,16 @@ class TestUtils(TestCase):
             {},
         )
 
+        self.assertEqual(
+            util.checked_get(mapping, 'empty_list', []),
+            [],
+        )
+
+        self.assertEqual(
+            util.checked_get(mapping, 'empty_dict', {}),
+            {},
+        )
+
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     "Missing nonexistent"):
             util.checked_get(mapping, 'nonexistent', [], required=True)
@@ -705,6 +698,21 @@ class TestUtils(TestCase):
                 r"Invalid 'list', expected dict, got: \[1337\]",
         ):
             util.checked_get(mapping, 'list', {})
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_list', [], required=True,
+                             can_be_empty=False)
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_dict', {}, required=True,
+                             can_be_empty=False)
+
+        with self.assertRaisesRegex(exceptions.HTTPException,
+                                    "cannot be empty"):
+            util.checked_get(mapping, 'empty_str', "", required=True,
+                             can_be_empty=False)
 
     def test_get_urn(self):
         with self.subTest('bad string'):

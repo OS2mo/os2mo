@@ -1157,6 +1157,33 @@ class Tests(util.LoRATestCase):
             }
         )
 
+        self.assertRequestResponse(
+            '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
+            '?query=Anders&associated=true',
+            {
+                'items': [
+                    {
+                        'cpr_no': '0906340000',
+                        'givenname': 'Anders',
+                        'name': 'Anders And',
+                        'nickname': 'Donald Duck',
+                        'nickname_givenname': 'Donald',
+                        'nickname_surname': 'Duck',
+                        'org': {
+                            'name': 'Aarhus Universitet',
+                            'user_key': 'AU',
+                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                        },
+                        'surname': 'And',
+                        'user_key': 'andersand',
+                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+                    }
+                ],
+                'offset': 0,
+                'total': 1
+            }
+        )
+
     def test_engagement(self):
         self.load_sample_structures()
 

@@ -266,18 +266,6 @@ def restrictargs(*allowed: str, required: typing.Iterable[str]=None):
     return wrap
 
 
-def splitlist(xs, size):
-    if size <= 0:
-        exceptions.ErrorCodes.E_SIZE_MUST_BE_POSITIVE()
-
-    i = 0
-    nxs = len(xs)
-
-    while i < nxs:
-        yield xs[i:i + size]
-        i += size
-
-
 def is_urn(v):
     return v and isinstance(v, str) and v.startswith('urn:')
 
@@ -428,7 +416,23 @@ def checked_get(
     default: V,
     fallback: D=None,
     required: bool=False,
+    can_be_empty: bool=True,
 ) -> V:
+    """
+    Get a value from a parsed JSON object, verifying that the value is of the
+    expected type
+
+    :param mapping: The object to get a value from
+    :param key: The key to use
+    :param default: A default value to use if nothing is found. The default is also used
+        to check the type
+    :param fallback: A fallback object to use if lookup in the first object fails
+    :param required: Whether the value is required. Will raise an HTTPException if
+        no value is found
+    :param can_be_empty: Whether the found value can be empty. Will raise an
+        HTTPException if found value is empty
+    :return:
+    """
     try:
         v = mapping[key]
     except (LookupError, TypeError):
@@ -472,6 +476,13 @@ def checked_get(
             key=key,
             expected=expected,
             actual=actual,
+            obj=mapping,
+        )
+
+    if not can_be_empty and type(v) in {list, dict, str} and len(v) == 0:
+        exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            message=f"'{key}' cannot be empty",
+            key=key,
             obj=mapping,
         )
 
