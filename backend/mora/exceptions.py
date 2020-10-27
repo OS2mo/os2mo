@@ -75,6 +75,7 @@ class ErrorCodes(Enum):
         404, "Corresponding parent unit or organisation not found."
     V_DUPLICATED_RESPONSIBILITY = \
         400, "Manager has the same responsibility more than once."
+    V_CANNOT_SUBSTITUTE_SELF = 400, "Cannot substitute for oneself"
     V_INVALID_ADDRESS_DAR = 400, "Invalid address"
     V_INVALID_ADDRESS_EAN = 400, "Invalid EAN"
     V_INVALID_ADDRESS_EMAIL = 400, "Invalid email"

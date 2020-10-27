@@ -4,7 +4,7 @@
 import logging
 
 from .. import reading
-from ... import common
+from ... import common, util
 from ... import mapping
 from ...service import employee
 from ...service import facet
@@ -27,6 +27,10 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+        substitute = None
+        if substitute_uuid and util.is_substitute_allowed(association_type):
+            substitute = employee.get_one_employee(c, substitute_uuid)
         classes = list(mapping.ORG_FUNK_CLASSES_FIELD.get_uuids(effect))
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
@@ -54,7 +58,8 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             ),
             mapping.ASSOCIATION_TYPE: association_type_class,
             mapping.PRIMARY: primary_class,
-            mapping.CLASSES: list(dynamic_classes.values())
+            mapping.CLASSES: list(dynamic_classes.values()),
+            mapping.SUBSTITUTE: substitute
         }
 
         return r

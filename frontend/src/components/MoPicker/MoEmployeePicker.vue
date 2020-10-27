@@ -2,7 +2,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <label v-if="!noLabel">{{$tc('input_fields.employee')}}</label>
+    <label>{{ label }}</label>
     <v-autocomplete
       name="employee-picker"
       :data-vv-as="$tc('input_fields.employee')"
@@ -51,7 +51,6 @@ export default {
 
   props: {
     value: Object,
-    noLabel: Boolean,
     required: Boolean,
     /**
      * Validities, used for validation
@@ -60,7 +59,16 @@ export default {
     /**
      * An object of additional validations to be performed
      */
-    extraValidations: Object
+    extraValidations: Object,
+    /**
+     * Defines a default label name.
+     */
+    label: {
+      type: String,
+      default: function() {
+          return this.$tc('input_fields.employee')
+      }
+    }
   },
 
   data () {

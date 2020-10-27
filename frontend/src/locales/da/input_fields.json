@@ -5,6 +5,7 @@
   "visibility": "Synlighed",
   "employee": "@:shared.employee",
   "employee_optional": "Angiv medarbejder (Valgfri)",
+  "employee_substitute": "Angiv stedfortræder",
   "end_date": "@:shared.date.end_date",
   "engagement_type": "@:shared.engagement_type",
   "engagement_job_function": "@:shared.job_function",
