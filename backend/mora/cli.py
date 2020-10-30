@@ -14,7 +14,6 @@ import time
 
 import click
 import flask
-import psycopg2
 import sqlalchemy
 import sys
 
@@ -55,7 +54,7 @@ def initdb(wait):
     time_left = _wait_for_service(
         "Configuration database",
         conf_db.create_db_table,
-        psycopg2.OperationalError,
+        sqlalchemy.exc.OperationalError,
         wait,
     )
     if settings.SAML_AUTH_ENABLE:

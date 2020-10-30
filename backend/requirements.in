@@ -16,3 +16,5 @@ lora_utils @ git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_uti
 pika
 toml
 more_itertools
+sqlalchemy
+sqlalchemy-utils
