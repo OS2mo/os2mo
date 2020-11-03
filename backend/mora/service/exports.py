@@ -62,4 +62,4 @@ def get_export_file(file_name: str):
     if not os.path.isfile(file_path):
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
 
-    return flask.send_file(file_path)
+    return flask.send_from_directory(export_dir, file_name)

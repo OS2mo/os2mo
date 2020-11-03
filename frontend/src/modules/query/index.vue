@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
       </h4>
       <span v-for="(q, index) in queries" :key="index">
         <icon name="download"/>
-      <a href="#" @click="download(q)">{{q}}</a>
+      <a :href="downloadLink(q)">{{q}}</a>
       </span>
     </div>
   </div>
@@ -34,9 +34,10 @@ export default {
     this.$store.dispatch(`${STORE_KEY}/getQueries`)
   },
   methods: {
-    download (file) {
-      this.$store.dispatch(`${STORE_KEY}/downloadFile`, file)
+    downloadLink(file) {
+      return "/service/exports/" + file
     }
+
   }
 }
 </script>
