@@ -13,7 +13,7 @@ SPDX-License-Identifier: MPL-2.0
         @node:unchecked="onNodeCheckedChanged"
       >
 
-        <div class="tree-scope" slot-scope="{ node }">
+        <div class="tree-scope" slot-scope="{ node }" :title="node.text">
           <template>
             <icon name="users"/>
 
