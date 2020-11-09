@@ -8,6 +8,8 @@ New features
 * #39244: Unified the paged_filtered_get and paged_get methods, thus changing
   the order of paged lists throughout MO. The order is now by UUID instead of
   by user_key / bvn.
+* #39468: Fix bug where UI query page didn't work with Excel files
+
 
 Version 1.10.1, 2020-10-26
 ==========================
