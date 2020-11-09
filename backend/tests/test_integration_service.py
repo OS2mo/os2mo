@@ -326,26 +326,7 @@ class Tests(util.LoRATestCase):
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
                 '?limit=2',
                 {
-                    'items': [
-                        {
-                            'user_key': 'frem',
-                            'name': 'Afdeling for Samtidshistorik',
-                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': '2018-12-31',
-                            },
-                        },
-                        {
-                            'user_key': 'fil',
-                            'name': 'Filosofisk Institut',
-                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                    ],
+                    'items': result_list[:2],
                     'offset': 0,
                     'total': 11,
                 }
@@ -356,35 +337,7 @@ class Tests(util.LoRATestCase):
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
                 '?limit=3&start=1',
                 {
-                    'items': [
-                        {
-                            'user_key': 'frem',
-                            'name': 'Afdeling for Samtidshistorik',
-                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': '2018-12-31',
-                            },
-                        },
-                        {
-                            'user_key': 'hum',
-                            'name': 'Humanistisk fakultet',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                        {
-                            'user_key': 'hist',
-                            'name': 'Historisk Institut',
-                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': '2018-12-31',
-                            },
-                        },
-                    ],
+                    'items': result_list[1:][:3],
                     'offset': 1,
                     'total': 11,
                 }
@@ -395,35 +348,7 @@ class Tests(util.LoRATestCase):
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
                 '?limit=3',
                 {
-                    'items': [
-                        {
-                            'user_key': 'frem',
-                            'name': 'Afdeling for Samtidshistorik',
-                            'uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': '2018-12-31',
-                            },
-                        },
-                        {
-                            'user_key': 'fil',
-                            'name': 'Filosofisk Institut',
-                            'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                        {
-                            'user_key': 'hist',
-                            'name': 'Historisk Institut',
-                            'uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': '2018-12-31',
-                            },
-                        },
-                    ],
+                    'items': result_list[:3],
                     'offset': 0,
                     'total': 11,
                 }
@@ -433,35 +358,7 @@ class Tests(util.LoRATestCase):
                 '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
                 '?limit=3&start=3',
                 {
-                    'items': [
-                        {
-                            'user_key': 'hum',
-                            'name': 'Humanistisk fakultet',
-                            'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                        {
-                            'user_key': 'løn',
-                            'name': 'Lønorganisation',
-                            'uuid': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
-                            'validity': {
-                                'from': '2017-01-01',
-                                'to': None
-                            }
-                        },
-                        {
-                            'user_key': 'it_sup',
-                            'name': 'IT-Support',
-                            'uuid': 'fa2e23c9-860a-4c90-bcc6-2c0721869a25',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                    ],
+                    'items': result_list[3:][:3],
                     'offset': 3,
                     'total': 11,
                 }
@@ -501,6 +398,34 @@ class Tests(util.LoRATestCase):
                     }],
                     'offset': 0,
                     'total': 1
+                }
+            )
+
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
+                '?query=over&root=2874e1dc-85e6-4269-823a-e1125484dfd3',
+                {
+                    'items': [{
+                        'name': 'Overordnet Enhed',
+                        'user_key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'validity': {
+                            'from': '2016-01-01',
+                            'to': None,
+                        },
+                    }],
+                    'offset': 0,
+                    'total': 1
+                }
+            )
+
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
+                '?query=over&root=deadbeef-cafe-babe-f00d-decafbadfood',
+                {
+                    'items': [],
+                    'offset': 0,
+                    'total': 0
                 }
             )
 
@@ -848,91 +773,93 @@ class Tests(util.LoRATestCase):
                           'create_bruger_andersine.json',
                           'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24')
 
+        result_list = [
+            {
+                'cpr_no': '0910810000',
+                'givenname': 'Erik Smidt',
+                'name': 'Erik Smidt Hansen',
+                'nickname': '',
+                'nickname_givenname': '',
+                'nickname_surname': '',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'surname': 'Hansen',
+                'user_key': 'eriksmidthansen',
+                'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
+            },
+            {
+                'cpr_no': '0906340000',
+                'givenname': 'Anders',
+                'name': 'Anders And',
+                'nickname': 'Donald Duck',
+                'nickname_givenname': 'Donald',
+                'nickname_surname': 'Duck',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'surname': 'And',
+                'user_key': 'andersand',
+                'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            },
+            {
+                'cpr_no': '1205320000',
+                'givenname': 'Fedtmule',
+                'name': 'Fedtmule Hund',
+                'nickname': 'George Geef',
+                'nickname_givenname': 'George',
+                'nickname_surname': 'Geef',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'surname': 'Hund',
+                'user_key': 'fedtmule',
+                'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
+            },
+            {
+                'cpr_no': '0906730000',
+                'givenname': 'Lis',
+                'name': 'Lis Jensen',
+                'nickname': '',
+                'nickname_givenname': '',
+                'nickname_surname': '',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'surname': 'Jensen',
+                'user_key': '',
+                'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'
+            },
+            {
+                'cpr_no': '0901370000',
+                'givenname': 'Andersine',
+                'name': 'Andersine And',
+                'nickname': 'Daisy Duck',
+                'nickname_givenname': 'Daisy',
+                'nickname_surname': 'Duck',
+                'org': {
+                    'name': 'Aarhus Universitet',
+                    'user_key': 'AU',
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
+                },
+                'surname': 'And',
+                'user_key': 'andersineand',
+                'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+            }
+        ]
+
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/',
             {
-                'items': [
-                    {
-                        'cpr_no': '0910810000',
-                        'givenname': 'Erik Smidt',
-                        'name': 'Erik Smidt Hansen',
-                        'nickname': '',
-                        'nickname_givenname': '',
-                        'nickname_surname': '',
-                        'org': {
-                            'name': 'Aarhus Universitet',
-                            'user_key': 'AU',
-                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                        },
-                        'surname': 'Hansen',
-                        'user_key': 'eriksmidthansen',
-                        'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'
-                    },
-                    {
-                        'cpr_no': '0906340000',
-                        'givenname': 'Anders',
-                        'name': 'Anders And',
-                        'nickname': 'Donald Duck',
-                        'nickname_givenname': 'Donald',
-                        'nickname_surname': 'Duck',
-                        'org': {
-                            'name': 'Aarhus Universitet',
-                            'user_key': 'AU',
-                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                        },
-                        'surname': 'And',
-                        'user_key': 'andersand',
-                        'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                    },
-                    {
-                        'cpr_no': '1205320000',
-                        'givenname': 'Fedtmule',
-                        'name': 'Fedtmule Hund',
-                        'nickname': 'George Geef',
-                        'nickname_givenname': 'George',
-                        'nickname_surname': 'Geef',
-                        'org': {
-                            'name': 'Aarhus Universitet',
-                            'user_key': 'AU',
-                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                        },
-                        'surname': 'Hund',
-                        'user_key': 'fedtmule',
-                        'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'
-                    },
-                    {
-                        'cpr_no': '0906730000',
-                        'givenname': 'Lis',
-                        'name': 'Lis Jensen',
-                        'nickname': '',
-                        'nickname_givenname': '',
-                        'nickname_surname': '',
-                        'org': {
-                            'name': 'Aarhus Universitet',
-                            'user_key': 'AU',
-                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                        },
-                        'surname': 'Jensen',
-                        'user_key': '',
-                        'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'
-                    },
-                    {
-                        'cpr_no': '0901370000',
-                        'givenname': 'Andersine',
-                        'name': 'Andersine And',
-                        'nickname': 'Daisy Duck',
-                        'nickname_givenname': 'Daisy',
-                        'nickname_surname': 'Duck',
-                        'org': {
-                            'name': 'Aarhus Universitet',
-                            'user_key': 'AU',
-                            'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                        },
-                        'surname': 'And',
-                        'user_key': 'andersineand',
-                        'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
-                    }
-                ],
+                'items': result_list,
                 'offset': 0,
                 'total': 5
             }
@@ -942,22 +869,7 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
             '?limit=1',
             {
-                'items': [{
-                    'cpr_no': '0906730000',
-                    'givenname': 'Lis',
-                    'name': 'Lis Jensen',
-                    'nickname': '',
-                    'nickname_givenname': '',
-                    'nickname_surname': '',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                    },
-                    'surname': 'Jensen',
-                    'user_key': '',
-                    'uuid': '7626ad64-327d-481f-8b32-36c78eb12f8c'
-                }],
+                'items': result_list[:1],
                 'offset': 0,
                 'total': 5
             }
@@ -967,22 +879,7 @@ class Tests(util.LoRATestCase):
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/'
             '?limit=1&start=1',
             {
-                'items': [{
-                    'cpr_no': '0906340000',
-                    'givenname': 'Anders',
-                    'name': 'Anders And',
-                    'nickname': 'Donald Duck',
-                    'nickname_givenname': 'Donald',
-                    'nickname_surname': 'Duck',
-                    'org': {
-                        'name': 'Aarhus Universitet',
-                        'user_key': 'AU',
-                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62'
-                    },
-                    'surname': 'And',
-                    'user_key': 'andersand',
-                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-                }],
+                'items': result_list[1:][:1],
                 'offset': 1,
                 'total': 5
             }
