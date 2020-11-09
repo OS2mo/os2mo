@@ -4,6 +4,8 @@
 import logging
 from itertools import starmap
 from operator import itemgetter
+from contextlib import contextmanager
+from functools import lru_cache
 
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -71,10 +73,26 @@ def _get_engine():
         raise
 
 
-def _get_session():
+@lru_cache(maxsize=None)
+def _get_session_maker():
     engine = _get_engine()
     Session = sessionmaker(bind=engine)
-    return Session()
+    return Session
+
+
+@contextmanager
+def _get_session():
+    """Provide a transactional scope around a series of operations."""
+    session_maker = _get_session_maker()
+    session = session_maker()
+    try:
+        yield session
+        session.commit()
+    except Exception as exp:
+        session.rollback()
+        raise exp
+    finally:
+        session.close()
 
 
 def _createdb(force=True):
@@ -89,18 +107,17 @@ def _createdb(force=True):
 
 
 def _find_missing_default_keys():
-    session = _get_session()
+    with _get_session() as session:
+        # all settings that have a global (uuid = null) value
+        query = select([Config.setting]).where(Config.object == None)  # noqa: E711
+        result = session.execute(query)
+        result = map(itemgetter(0), result)
+        settings_in_db = set(result)
 
-    # all settings that have a global (uuid = null) value
-    query = select([Config.setting]).where(Config.object == None)  # noqa: E711
-    result = session.execute(query)
-    result = map(itemgetter(0), result)
-    settings_in_db = set(result)
+        default = set(map(itemgetter(0), _DEFAULT_CONF))
+        missing = default - settings_in_db
 
-    default = set(map(itemgetter(0), _DEFAULT_CONF))
-    missing = default - settings_in_db
-
-    return missing
+        return missing
 
 
 def _insert_missing_defaults():
@@ -147,17 +164,17 @@ def get_configuration(unitid=None):
             value = False
         return setting, value
 
-    session = _get_session()
-    query = select([Config.setting, Config.value]).where(
-        Config.object == unitid
-    )
-    result = session.execute(query)
-    result = starmap(convert_bool, result)
-    configuration = dict(result)
-    logger.debug(
-        "Read: Unit: {}, configuration: {}".format(unitid, configuration)
-    )
-    return configuration
+    with _get_session() as session:
+        query = select([Config.setting, Config.value]).where(
+            Config.object == unitid
+        )
+        result = session.execute(query)
+        result = starmap(convert_bool, result)
+        configuration = dict(result)
+        logger.debug(
+            "Read: Unit: {}, configuration: {}".format(unitid, configuration)
+        )
+        return configuration
 
 
 def set_configuration(configuration, unitid=None):
@@ -166,25 +183,23 @@ def set_configuration(configuration, unitid=None):
     )
     configuration = configuration["org_units"]
 
-    session = _get_session()
-
-    for setting, value in configuration.items():
-        # Check if setting exists
-        result = session.query(Config).filter(
-            Config.object == unitid, Config.setting == setting
-        )
-        if result.count() > 1:
-            exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
-                "Inconsistent settings for {}".format(unitid)
+    with _get_session() as session:
+        for setting, value in configuration.items():
+            # Check if setting exists
+            result = session.query(Config).filter(
+                Config.object == unitid, Config.setting == setting
             )
-        result = result.first()
-        if result:
-            result.value = value
-        else:
-            entry = Config(object=unitid, setting=setting, value=value)
-            session.add(entry)
-    session.commit()
-    return True
+            if result.count() > 1:
+                exceptions.ErrorCodes.E_INCONSISTENT_SETTINGS(
+                    "Inconsistent settings for {}".format(unitid)
+                )
+            result = result.first()
+            if result:
+                result.value = value
+            else:
+                entry = Config(object=unitid, setting=setting, value=value)
+                session.add(entry)
+        return True
 
 
 def health_check():
