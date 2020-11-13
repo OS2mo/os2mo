@@ -21,6 +21,7 @@ from itertools import chain
 
 import requests
 import flask
+from more_itertools import unzip
 
 from . import facet
 from . import handlers
@@ -745,7 +746,7 @@ def trigger_external_integration(unitid):
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query')
+@util.restrictargs('at', 'start', 'limit', 'query', 'root')
 def list_orgunits(orgid):
     '''Query organisational units in an organisation.
 
@@ -832,12 +833,39 @@ def list_orgunits(orgid):
     if 'query' in args:
         kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
 
-    return flask.jsonify(
-        c.organisationenhed.paged_get(
-            functools.partial(get_one_orgunit, details=UnitDetails.MINIMAL),
-            **kwargs,
-        )
+    get_minimal_orgunit = functools.partial(get_one_orgunit,
+                                            details=UnitDetails.MINIMAL)
+
+    uuid_filters = []
+    if 'root' in args and args['root']:
+        root = args['root']
+        enheder = c.organisationenhed.get_all()
+
+        uuids, enheder = unzip(enheder)
+        # Fetch parent_uuid from objects
+        parent_uuids = map(mapping.PARENT_FIELD.get_uuid, enheder)
+        # Create map from uuid --> parent_uuid
+        parent_map = dict(zip(uuids, parent_uuids))
+
+        def entry_under_root(uuid):
+            """Check whether the given uuid is in the subtree under 'root'.
+
+            Works by recursively ascending the parent_map.
+
+            If the specified root is found, we must have started in its subtree.
+            If the specified root is not found, we will stop searching at the
+                root of the organisation tree.
+            """
+            if uuid not in parent_map:
+                return False
+            return uuid == root or entry_under_root(parent_map[uuid])
+
+        uuid_filters.append(entry_under_root)
+
+    search_result = c.organisationenhed.paged_get(
+        get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs
     )
+    return flask.jsonify(search_result)
 
 
 @blueprint.route('/o/<uuid:orgid>/ou/tree')

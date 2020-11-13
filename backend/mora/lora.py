@@ -3,8 +3,6 @@
 
 from __future__ import generator_stop
 
-import copy
-
 import typing
 import uuid
 
@@ -186,7 +184,7 @@ class Scope:
 
     __call__ = fetch
 
-    def get_all(self, *, start=0, limit=settings.DEFAULT_PAGE_SIZE, **params):
+    def get_all(self, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -197,20 +195,17 @@ class Scope:
 
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-        assert 'list' not in params, "'list' not supported as parameter for get_all"
-        assert 'uuid' not in params, ("'uuid' not supported as parameter for get_all, "
-                                      "use get_all_by_uuid")
+        ass_msg = "'{}' is not a supported parameter for 'get_all'{}."
+        assert "list" not in params, ass_msg.format("list", ", implicitly set")
+        assert "uuid" not in params, ass_msg.format("uuid", ", use 'get_all_by_uuid'")
+        assert "start" not in params, ass_msg.format("start", ", use 'paged_get'")
+        assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
-        search_params = copy.deepcopy(params)
+        wantregs = not params.keys().isdisjoint(
+            {'registreretfra', 'registrerettil'}
+        )
 
-        if limit > 0:
-            search_params['maximalantalresultater'] = limit
-        search_params['foersteresultat'] = start
-        search_params['list'] = 1
-
-        wantregs = search_params.keys() & {'registreretfra', 'registrerettil'}
-
-        for d in self.fetch(**search_params):
+        for d in self.fetch(**dict(params), list=1):
             yield d['id'], (d['registreringer'] if wantregs
                             else d['registreringer'][0])
 
@@ -228,55 +223,41 @@ class Scope:
             for d in self.fetch(uuid=chunk):
                 yield d['id'], (d['registreringer'][0])
 
-    def paged_filtered_get(self, func, *,
-                           start=0, limit=settings.DEFAULT_PAGE_SIZE,
-                           uuid_filters=None,
-                           **params):
-        """Perform a search on given params, filter and return the result.
-
-        Similar to :code:`paged_get`, but supports :code:`uuid_filters` at a
-        cost of a bit of performance.
-
-        :code:`uuid_filters` is a list of functions from uuid to bool, where
-        the uuid will be kept assuming the returned bool is truthy.
-
-        Return is identical to :code:`paged_get`.
-        """
-        uuid_filters = uuid_filters or []
-        # Fetch all uuids and then filter with uuid_filters
-        uuids = self.fetch(**params)
-        for uuid_filter in uuid_filters:
-            uuids = filter(uuid_filter, uuids)
-        uuids = list(uuids)
-
-        fetch_uuids = uuids[start:start + limit]
-        obj_iter = self.get_all_by_uuid(fetch_uuids)
-        obj_iter = starmap(partial(func, self.connector), obj_iter)
-        return {
-            'total': len(uuids),
-            'offset': start,
-            'items': list(obj_iter)
-        }
-
     def paged_get(self, func, *,
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                  uuid_filters=None,
                   **params):
-        """Perform a search on given params and return the result.
+        """Perform a search on given params, filter and return the result.
 
         :code:`func` is a function from (lora-connector, obj_id, obj) to
         :code:`item-type`.
+
+        :code:`uuid_filters` is a list of functions from uuid to bool, where
+        the uuid will be kept assuming the returned bool is truthy.
 
         Returns paged dict with 3 keys: 'total', 'offset' and 'items', where:
             'total' is the total number of matches found.
             'offset' is the offset into 'total' (for pagination).
             'items' is a list of :code:`item-type` items.
         """
+        uuid_filters = uuid_filters or []
+        # Fetch all uuids matching search params and filter with uuid_filters
         uuids = self.fetch(**params)
-
-        obj_iter = self.get_all(start=start, limit=limit, **params)
+        for uuid_filter in uuid_filters:
+            uuids = filter(uuid_filter, uuids)
+        # Sort to ensure consistent order, as LoRa does not seem to do that
+        uuids = sorted(list(uuids))
+        total = len(uuids)
+        # Offset by slicing off the start
+        uuids = uuids[start:]
+        # Limit by slicing off the end
+        if limit > 0:
+            uuids = uuids[:limit]
+        # Lookup objects by uuid, and build objects using func
+        obj_iter = self.get_all_by_uuid(uuids)
         obj_iter = starmap(partial(func, self.connector), obj_iter)
         return {
-            'total': len(uuids),
+            'total': total,
             'offset': start,
             'items': list(obj_iter)
         }

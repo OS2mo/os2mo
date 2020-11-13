@@ -404,19 +404,15 @@ def list_employees(orgid):
     if 'associated' in args and args['associated']:
         # NOTE: This call takes ~500ms on fixture-data
         assocs = c.organisationfunktion.get_all(
-            funktionsnavn="Tilknytning", limit=0
+            funktionsnavn="Tilknytning"
         )
         assocs = map(itemgetter(1), assocs)
         assocs = set(map(mapping.USER_FIELD.get_uuid, assocs))
         uuid_filters.append(partial(contains, assocs))
 
-    if uuid_filters:
-        search_result = c.bruger.paged_filtered_get(
-            get_full_employee, uuid_filters=uuid_filters, **kwargs
-        )
-    else:
-        search_result = c.bruger.paged_get(get_full_employee, **kwargs)
-
+    search_result = c.bruger.paged_get(
+        get_full_employee, uuid_filters=uuid_filters, **kwargs
+    )
     return flask.jsonify(search_result)
 
 
