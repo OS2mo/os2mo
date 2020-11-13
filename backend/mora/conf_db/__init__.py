@@ -2,19 +2,17 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import logging
-from itertools import starmap
-from operator import itemgetter
 from contextlib import contextmanager
 from functools import lru_cache
-
-from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import select
+from itertools import starmap
 
 from mora import exceptions
 from mora.settings import config
-from sqlalchemy_utils import UUIDType, create_database, database_exists
+from sqlalchemy import Column, Integer, String, Text, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import select
+from sqlalchemy_utils import UUIDType
 
 logger = logging.getLogger("mo_configuration")
 
@@ -28,30 +26,10 @@ class Config(Base):
     id = Column(Integer, primary_key=True)
     object = Column(UUIDType(binary=False))
     setting = Column(String(255), nullable=False)
-    value = Column(String(255), nullable=False)
+    value = Column(Text, nullable=False)
 
 
-# This is the default key-value configuration pairs. They are used to
-# initialize the configuration database through and in health_check to
-# verify that there exist default values for all expected keys.
-_DEFAULT_CONF = (
-    ("show_roles", "True"),
-    ("show_kle", "False"),
-    ("show_user_key", "True"),
-    ("show_location", "True"),
-    ("show_time_planning", "False"),
-    ("show_level", "True"),
-    ("show_primary_engagement", "False"),
-    ("show_primary_association", "False"),
-    ("show_org_unit_button", "False"),
-    ("inherit_manager", "True"),
-    ("read_only", "False"),
-    # Comma seperated UUID(s) of top-level facets to show on association view.
-    ("association_dynamic_facets", ""),
-)
-
-
-def _get_engine():
+def _get_connection_url():
     connection_url = config["configuration"]["database"].get("connection_url")
     if connection_url is None:
         dbname = config["configuration"]["database"]["name"]
@@ -59,11 +37,15 @@ def _get_engine():
         password = config["configuration"]["database"]["password"]
         host = config["configuration"]["database"]["host"]
         port = config["configuration"]["database"]["port"]
-        connection_url = (
-            "postgresql+psycopg2://" +
-            str(user) + ":" + str(password) + "@" +
-            str(host) + ":" + str(port) + "/" + str(dbname)
-        )
+        connection_url = "postgresql+psycopg2://"
+        connection_url += str(user) + ":" + str(password)
+        connection_url += "@" + str(host) + ":" + str(port)
+        connection_url += "/" + str(dbname)
+    return connection_url
+
+
+def _get_engine():
+    connection_url = _get_connection_url()
     logger.debug("Open connection to database")
     try:
         engine = create_engine(connection_url)
@@ -93,66 +75,6 @@ def _get_session():
         raise exp
     finally:
         session.close()
-
-
-def _createdb(force=True):
-    """Create a new database and initialize table.
-
-    Requires CREATEDB or SUPERUSER privileges.
-    """
-    engine = _get_engine()
-    if force or not database_exists(engine.url):
-        create_database(engine.url)
-    create_db_table()
-
-
-def _find_missing_default_keys():
-    with _get_session() as session:
-        # all settings that have a global (uuid = null) value
-        query = select([Config.setting]).where(Config.object == None)  # noqa: E711
-        result = session.execute(query)
-        result = map(itemgetter(0), result)
-        settings_in_db = set(result)
-
-        default = set(map(itemgetter(0), _DEFAULT_CONF))
-        missing = default - settings_in_db
-
-        return missing
-
-
-def _insert_missing_defaults():
-    """Check if the database already contains default values"""
-
-    missing = _find_missing_default_keys()
-    if missing:
-        missing_values = filter(lambda x: x[0] in missing, _DEFAULT_CONF)
-        logger.info(
-            "Inserting missing default configuration values [{}].".format(
-                ", ".join(missing)
-            )
-        )
-        set_configuration({"org_units": dict(missing_values)})
-
-
-def drop_db_table():
-    """Drop the config database."""
-    logger.info("Dropping configuration database.")
-    engine = _get_engine()
-    Base.metadata.drop_all(engine)
-    logger.info("Configuration database dropped.")
-
-
-def create_db_table(insert_missing=True):
-    """Initialize the config database.
-
-    Optionally load default values too.
-    """
-    logger.info("Initializing configuration database.")
-    engine = _get_engine()
-    Base.metadata.create_all(engine)
-    if insert_missing:
-        _insert_missing_defaults()
-    logger.info("Configuration database initialised.")
 
 
 def get_configuration(unitid=None):
@@ -207,18 +129,15 @@ def health_check():
     is the potential error message.
 
     The configuration database is healthy iff a connection can be
-    established and the database contains all expected default values.
+    established.
+
+    That the database contains all expected default values is now an invariant.
 
     This is intended to be used whenever an app object is created.
     """
     try:
-        missing = _find_missing_default_keys()
-        if missing:
-            error_msg = (
-                "Configuration database is missing default"
-                " settings for keys: %s." % ", ".join(missing)
-            )
-            return False, error_msg
+        # Check that a connection can be made
+        get_configuration()
     except Exception as e:
         error_msg = "Configuration database connection error: %s"
         return False, error_msg.format(str(e))
