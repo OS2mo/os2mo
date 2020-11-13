@@ -4,6 +4,14 @@ In development
 New features
 ------------
 
+
+
+version 1.10.2, 2020-11-13
+==========================
+
+New features
+------------
+
 * #39244: Added root filter to orgunit search
 * #39244: Unified the paged_filtered_get and paged_get methods, thus changing
   the order of paged lists throughout MO. The order is now by UUID instead of
