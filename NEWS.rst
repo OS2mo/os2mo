@@ -4,6 +4,7 @@ In development
 New features
 ------------
 
+* [#38650] New confdb implementation
 
 
 version 1.10.2, 2020-11-13

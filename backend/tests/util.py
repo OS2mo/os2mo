@@ -629,23 +629,23 @@ class LoRATestCase(_BaseTestCase):
 
 
 class ConfigTestCase(LoRATestCase):
-    """Testcase with configuration database support.
-
-    """
+    """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
-        conf_db.set_global_conf(conf)
+        conf_db.set_configuration({'org_units': dict(conf)})
 
     @classmethod
     def setUpClass(cls):
-        conf_db.testdb_setup()
+        conurl = 'sqlite:////tmp/test.db'
+        conf_db.config["configuration"]["database"]["connection_url"] = conurl
+        conf_db._createdb(force=False)
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        conf_db.testdb_teardown()
         super().tearDownClass()
 
     def setUp(self):
-        conf_db.testdb_reset()
+        conf_db.drop_db_table()
+        conf_db.create_db_table()
         super().setUp()
