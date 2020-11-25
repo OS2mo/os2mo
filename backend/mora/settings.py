@@ -250,7 +250,6 @@ app_config = {
 # although it might be non-trivial, especially for the test suite.
 
 
-MAX_REQUEST_LENGTH = config['lora']['max_request_length']
 DEFAULT_PAGE_SIZE = config['lora']['default_page_size']
 TREE_SEARCH_LIMIT = config['lora']['tree_search_limit']
 LORA_URL = config['lora']['url']
