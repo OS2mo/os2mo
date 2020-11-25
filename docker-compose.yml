@@ -68,6 +68,7 @@ services:
     "--config", "docker/gunicorn-settings.py",
     "--workers", "1", # We run single-threaded as the testing_api is not
                       # threadsafe.
+    "--limit-request-line", "0",
     "oio_rest:app"]
     ports:
       - "8080:8080"

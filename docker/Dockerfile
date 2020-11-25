@@ -75,7 +75,7 @@ RUN set -ex \
 COPY backend/requirements.txt /code/backend/requirements.txt
 COPY backend/requirements-test.txt /code/backend/requirements-test.txt
 COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
-RUN pip3 install \
+RUN pip3 install --no-cache-dir \
   -r backend/requirements.txt \
   -r backend/requirements-test.txt \
   -r backend/requirements-lint.txt
@@ -95,7 +95,7 @@ COPY LICENSE .
 # Install the application as editable. This makes it possible to mount
 # `/code/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
-RUN pip3 install -e backend
+RUN pip3 install --no-cache-dir -e backend
 
 
 # Copy frontend code.
