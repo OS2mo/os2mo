@@ -7,6 +7,7 @@ New features
 * #39323: Remove request size limit for uuid lookup against LoRa,
           MOX should now be started with `--limit-request-line 0`
 * #38650: New confdb implementation
+* #40028: Remove history icon from GUI
 
 
 version 1.10.2, 2020-11-13

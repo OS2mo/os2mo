@@ -12,10 +12,6 @@ SPDX-License-Identifier: MPL-2.0
 
       <div class="row">
         <div class="col"></div>
-
-        <div class="mr-3">
-          <mo-history :uuid="route.params.uuid" type="EMPLOYEE"/>
-        </div>
       </div>
 
       <employee-detail-tabs
@@ -35,7 +31,6 @@ SPDX-License-Identifier: MPL-2.0
 import '@/filters/CPRNumber'
 import { EventBus, Events } from '@/EventBus'
 import EmployeeDetailTabs from './EmployeeDetailTabs'
-import MoHistory from '@/components/MoHistory'
 import MoLoader from '@/components/atoms/MoLoader'
 import { mapState, mapGetters } from 'vuex'
 import { Employee } from '@/store/actions/employee'
@@ -43,7 +38,6 @@ import { Employee } from '@/store/actions/employee'
 export default {
   components: {
     EmployeeDetailTabs,
-    MoHistory,
     MoLoader
   },
 
