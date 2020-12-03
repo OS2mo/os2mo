@@ -15,6 +15,7 @@ SPDX-License-Identifier: MPL-2.0
       v-model="unitName"
       @click.stop="toggleTree()"
       v-validate="validations"
+      readonly
     >
 
     <div class="mo-input-group" v-show="showTree">
