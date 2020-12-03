@@ -8,6 +8,7 @@ New features
           MOX should now be started with `--limit-request-line 0`
 * #38650: New confdb implementation
 * #40028: Remove history icon from GUI
+* #39418: Disable typing in tree-picker GUI elements
 
 
 version 1.10.2, 2020-11-13
