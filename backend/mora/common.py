@@ -161,8 +161,9 @@ def update_payload(
         for p in updated_props:
             # TODO: Fix this when the underlying bug in LoRa is resolved
             # https://redmine.magenta-aps.dk/issues/31576
-            if (len(p) == 1 and 'virkning' in p and 'relationer' in
-                    field_tuple.path[0]):
+            if (len(p) == 1 and 'virkning' in p and
+                    'relationer' in field_tuple.path[0]):
+
                 p['uuid'] = ''
                 p['urn'] = ''
         payload = util.set_obj_value(payload, field_tuple.path, updated_props)
@@ -618,20 +619,6 @@ def add_history_entry(scope: lora.Scope, id: str, note: str):
     }
 
     scope.update(payload, id)
-
-
-def convert_reg_to_history(reg):
-    return {
-        'user_ref': reg['brugerref'],
-        'from': util.to_iso_time(
-            reg['fratidspunkt']['tidsstempeldatotid'],
-        ),
-        'to': util.to_iso_time(
-            reg['tiltidspunkt']['tidsstempeldatotid'],
-        ),
-        'life_cycle_code': reg['livscykluskode'],
-        'action': reg.get('note')
-    }
 
 
 def stable_json_dumps(v):

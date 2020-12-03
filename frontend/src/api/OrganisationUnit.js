@@ -73,18 +73,6 @@ export default {
   },
 
   /**
-   * Get the history of all changes made to an organisation unit
-   * @param {String} uuid - Uuid for the current organisation unit
-   * @returns {Array} A list of historical events for the organisation unit
-   */
-  history (uuid) {
-    return Service.get(`/ou/${uuid}/history/`)
-      .then(response => {
-        return response.data
-      })
-  },
-
-  /**
    * Get organisation unit details
    * @see getDetail
    */

@@ -384,8 +384,7 @@ def list_employees(orgid):
     )
 
     if 'query' in args:
-        if util.is_cpr_number(args['query']) and not config.get(
-                'HIDE_CPR_NUMBERS'):
+        if util.is_cpr_number(args['query']) and not config.get('HIDE_CPR_NUMBERS'):
             kwargs.update(
                 tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
             )
@@ -564,66 +563,6 @@ def terminate_employee(employee_uuid):
     # TODO:
 
     return result, 200
-
-
-@blueprint.route('/e/<uuid:employee_uuid>/history/', methods=['GET'])
-@util.restrictargs()
-def get_employee_history(employee_uuid):
-    """
-    Get the history of an employee
-
-    .. :quickref: Employee; Get history
-
-    :param employee_uuid: The UUID of the employee
-
-    **Example response**:
-
-    :<jsonarr string from: When the change is active from
-    :<jsonarr string to: When the change is active to
-    :<jsonarr string action: The action performed
-    :<jsonarr string life_cycle_code: The type of action performed
-    :<jsonarr string user_ref: A reference to the user who made the change
-
-    .. sourcecode:: json
-
-      [
-        {
-          "from": "2018-02-21T11:27:20.909206+01:00",
-          "to": "infinity",
-          "action": "Opret orlov",
-          "life_cycle_code": "Rettet",
-          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
-        },
-        {
-          "from": "2018-02-21T11:27:20.803682+01:00",
-          "to": "2018-02-21T11:27:20.909206+01:00",
-          "action": "Rediger engagement",
-          "life_cycle_code": "Rettet",
-          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
-        },
-        {
-          "from": "2018-02-21T11:27:20.619990+01:00",
-          "to": "2018-02-21T11:27:20.803682+01:00",
-          "action": null,
-          "life_cycle_code": "Importeret",
-          "user_ref": "42c432e8-9c4a-11e6-9f62-873cf34a735f"
-        }
-      ]
-
-    """
-
-    c = lora.Connector()
-    user_registrations = c.bruger.get(uuid=employee_uuid,
-                                      registreretfra='-infinity',
-                                      registrerettil='infinity')
-
-    if not user_registrations:
-        exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
-
-    history_entries = list(map(common.convert_reg_to_history,
-                               user_registrations))
-
-    return flask.jsonify(history_entries)
 
 
 @blueprint.route('/e/create', methods=['POST'])

@@ -25,9 +25,6 @@ SPDX-License-Identifier: MPL-2.0
             <mo-integration-button :uuid="route.params.uuid"/>
           </div>
 
-          <div class="mr-3">
-            <mo-history :uuid="route.params.uuid" type="ORG_UNIT"/>
-          </div>
         </div>
 
         <organisation-detail-tabs
@@ -56,7 +53,6 @@ SPDX-License-Identifier: MPL-2.0
 
 import { mapGetters, mapState } from 'vuex'
 import { EventBus, Events } from '@/EventBus'
-import MoHistory from '@/components/MoHistory'
 import MoIntegrationButton from '@/components/MoIntegrationButton'
 import MoLog from '@/components/MoLog/MoLog'
 import MoLoader from '@/components/atoms/MoLoader'
@@ -66,7 +62,6 @@ import { OrganisationUnit } from '@/store/actions/organisationUnit'
 export default {
   components: {
     MoIntegrationButton,
-    MoHistory,
     MoLog,
     MoLoader,
     OrganisationDetailTabs
