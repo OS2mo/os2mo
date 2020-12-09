@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 from logging.config import fileConfig
 
 from alembic import context

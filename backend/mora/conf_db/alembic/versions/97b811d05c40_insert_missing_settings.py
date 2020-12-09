@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 """Insert missing default configuration settings.
 
 Revision ID: 97b811d05c40

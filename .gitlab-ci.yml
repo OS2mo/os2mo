@@ -167,9 +167,8 @@ Alembic-test:
       "--workers", "1", # Single threaded in dev
       "oio_rest:app"]
   script:
-    - cd /backend/mora/conf_db
+    - cd backend/mora/conf_db
     - ./alembic_test.sh
-. 
   artifacts:
     when: always
 

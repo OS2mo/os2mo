@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 """Initial migration, noop on existing databases.
 
 This introduces our ORM model to helpers/config_v1
