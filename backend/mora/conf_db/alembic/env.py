@@ -18,8 +18,17 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
-
 config.set_main_option("sqlalchemy.url", _get_connection_url())
+
+
+def process_revision_directives(context, revision, directives):
+    """
+    can be used to prevent generation of empty revisions
+    """
+    if config.cmd_opts.autogenerate:
+        script = directives[0]
+        if script.upgrade_ops.is_empty():
+            directives[:] = []
 
 
 def run_migrations_offline():
@@ -40,6 +49,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        process_revision_directives=process_revision_directives  # prevent empty
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -61,6 +71,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            process_revision_directives=process_revision_directives  # prevent empty
         )
         with context.begin_transaction():
             context.run_migrations()
