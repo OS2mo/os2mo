@@ -636,9 +636,7 @@ class ConfigTestCase(LoRATestCase):
 
     @classmethod
     def setUpClass(cls):
-        conurl = 'sqlite:////tmp/test.db'
-        conf_db.config["configuration"]["database"]["connection_url"] = conurl
-        conf_db._createdb(force=False)
+        conf_db.config["configuration"]["database"]["name"] = "test_confdb"
         super().setUpClass()
 
     @classmethod
@@ -646,6 +644,9 @@ class ConfigTestCase(LoRATestCase):
         super().tearDownClass()
 
     def setUp(self):
-        conf_db.drop_db_table()
-        conf_db.create_db_table()
+        conf_db._createdb(force=False)
         super().setUp()
+
+    def tearDown(self):
+        conf_db.drop_db()
+        super().tearDown()

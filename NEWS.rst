@@ -9,6 +9,9 @@ New features
 * #38650: New confdb implementation
 * #40028: Remove history icon from GUI
 * #39418: Disable typing in tree-picker GUI elements
+* #38650: Config value migrated from VARCHAR to TEXT
+* #38650: Alembic introduced for ConfDB migration
+* #38650: New confdb implementation
 
 
 version 1.10.2, 2020-11-13

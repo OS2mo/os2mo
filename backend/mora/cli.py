@@ -51,15 +51,9 @@ def initdb(wait):
 
         return init_sessions
 
-    time_left = _wait_for_service(
-        "Configuration database",
-        conf_db.create_db_table,
-        sqlalchemy.exc.OperationalError,
-        wait,
-    )
     if settings.SAML_AUTH_ENABLE:
         _wait_for_service("Sessions database", get_init_sessions(),
-                          sqlalchemy.exc.OperationalError, time_left)
+                          sqlalchemy.exc.OperationalError, wait)
 
 
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):

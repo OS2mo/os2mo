@@ -152,6 +152,20 @@ Build docs:
     # for testcafe
     BASE_URL: http://mo:5000
 
+Alembic-test:
+  <<: *test-default
+  image:
+    name: ${IMAGE_SHA}
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test
+      alias: mox-db
+  script:
+    - cd backend/mora/conf_db
+    - ./alembic_test.sh
+  artifacts:
+    when: always
+
+
 Unit-test:
   <<: *test-default
   image:

@@ -85,6 +85,8 @@ MOCK_MODULES = [
     'pika.exceptions',
     'toml',
     'more_itertools',
+    'alembic',
+    'alembic.config',
 
     'mora.log',
 
