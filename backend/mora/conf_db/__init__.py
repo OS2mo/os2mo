@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select
-from sqlalchemy_utils import UUIDType, database_exists, create_database
+from sqlalchemy_utils import UUIDType, database_exists, create_database, drop_database
 from alembic.config import Config as AlembicConfig
 from alembic import command
 from pathlib import Path
@@ -79,11 +79,11 @@ def _createdb(force: bool = True):
     create_db_table()
 
 
-def drop_db_table():
+def drop_db():
     """Drop the config database."""
     logger.info("Dropping configuration database.")
-    engine = _get_engine()
-    Base.metadata.drop_all(engine)
+    drop_database(_get_connection_url())
+    _get_session_maker.cache_clear()
     logger.info("Configuration database dropped.")
 
 
