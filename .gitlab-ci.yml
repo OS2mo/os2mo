@@ -159,13 +159,6 @@ Alembic-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:1.8.1
-      alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
   script:
     - cd backend/mora/conf_db
     - ./alembic_test.sh
