@@ -33,15 +33,6 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
-    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) != -1">
-        <mo-employee-picker
-          class="search-employee mb-3"
-          :label="$tc('input_fields.employee_substitute')"
-          v-model="entry.substitute"
-          :validity="entry.validity"
-        />
-    </div>
-
     <div v-for="(dynamic, index) in dynamicFacets" :key="dynamic">
         <mo-recursive-facet-picker
           :label="facet_uuid_to_label(dynamic)"
@@ -51,6 +42,18 @@ SPDX-License-Identifier: MPL-2.0
           v-on:input="set_entry($event, dynamic)"
         />
     </div>
+    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) != -1">
+        <hr>
+
+        <mo-employee-picker
+          class="search-employee mb-3"
+          :label="$tc('input_fields.employee_substitute')"
+          v-model="entry.substitute"
+          :validity="entry.validity"
+        />
+    </div>
+
+
   </div>
 </template>
 
