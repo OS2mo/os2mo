@@ -737,9 +737,6 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "46de8c9f-ecbe-4638-8b2b-386845729c9a"
                 },
-                "substitute": {
-                    'uuid': ""
-                },
                 "validity": {
                     "from": "2017-01-01",
                 },

@@ -42,7 +42,7 @@ SPDX-License-Identifier: MPL-2.0
           v-on:input="set_entry($event, dynamic)"
         />
     </div>
-    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) != -1">
+    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) !== -1">
         <hr>
 
         <mo-employee-picker
@@ -104,7 +104,11 @@ export default {
 
     substituteRoles () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.substitute_roles.split(',').filter(elem => elem !== "")
+      if ('substitute_roles' in conf){
+        return conf.substitute_roles.split(',').filter(elem => elem !== "")
+      } else {
+        return []
+      }
     },
 
     dynamicFacets () {
@@ -127,6 +131,11 @@ export default {
      */
     entry: {
       handler (newVal) {
+        if ('association_type' in newVal){
+          if (this.substituteRoles.indexOf(newVal.association_type.uuid) === -1) {
+            delete newVal.substitute
+          }
+        }
         newVal.type = 'association'
         this.$emit('input', newVal)
       },

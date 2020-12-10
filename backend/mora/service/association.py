@@ -50,9 +50,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        substitute = util.checked_get(req, mapping.SUBSTITUTE, {}, required=False)
-        substitute_uuid = util.get_uuid(substitute, required=False)
-
         org_uuid = org.get_configured_organisation(
             util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
@@ -67,6 +64,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = util.get_mapping_uuid(req, mapping.PRIMARY)
+
+        substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
 
         # Validation
         # remove substitute if not needed

@@ -33,13 +33,12 @@ from .. import util
 
 from .tree_helper import prepare_ancestor_tree
 
-
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
 
 
 @enum.unique
-class ClassDetails(enum.Enum):
+class ClassDetails(enum.Enum):  # TODO: Deal with cross-language enums
     # full class name
     FULL_NAME = 0
     # with child count
@@ -157,7 +156,8 @@ def get_class(classid: str):
     """
 
     c = common.get_connector()
-    return flask.jsonify(get_one_class(c, classid, None))
+    class_details = map_query_args_to_class_details(flask.request.args)
+    return flask.jsonify(get_one_class(c, classid, details=class_details))
 
 
 def prepare_class_child(c, entry):
@@ -321,7 +321,8 @@ def count_class_children(c, parent_uuid):
     return len(fetch_class_children(c, parent_uuid))
 
 
-def get_one_class(c, classid, clazz=None, details: typing.Set[ClassDetails] = None):
+def get_one_class(c, classid, clazz=None,
+                  details: typing.Optional[typing.Set[ClassDetails]] = None):
     if not details:
         details = set()
 
@@ -413,7 +414,6 @@ get_one_class_full = functools.partial(get_one_class, details={
 
 
 def get_facetids(facet: str):
-
     c = common.get_connector()
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
@@ -437,7 +437,6 @@ def get_facetids(facet: str):
 
 def get_classes_under_facet(orgid: uuid.UUID, facet: str,
                             details: typing.Set[ClassDetails] = None):
-
     c = common.get_connector()
 
     start = int(flask.request.args.get('start') or 0)

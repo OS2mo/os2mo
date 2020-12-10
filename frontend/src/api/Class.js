@@ -7,10 +7,17 @@ export default {
   /**
    * Get a class
    * @param {String} uuid - Uuid for the class to get
+   * @param {String[]} details - Additional details to get from backend
    * @returns {Object} a class object
    */
-  get (uuid) {
-    return Service.get(`/c/${uuid}/`)
+  get (uuid, details=[]) {
+    let queryParams = ''
+    if (details.length !== 0) {
+      queryParams += '?' + details.join('&')
+    }
+    let url = `/c/${uuid}/${queryParams}`
+
+    return Service.get(url)
       .then(response => {
         return response.data
       })
