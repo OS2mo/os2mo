@@ -1,5 +1,5 @@
-In development
-==============
+Version 1.11.0, 2020-12-14
+==========================
 
 New features
 ------------
@@ -15,7 +15,7 @@ New features
 * #39367: Fix backend issue when editing associations
 
 
-version 1.10.2, 2020-11-13
+Version 1.10.2, 2020-11-13
 ==========================
 
 New features
