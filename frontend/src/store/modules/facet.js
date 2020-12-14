@@ -3,7 +3,8 @@
 
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
-import { _facet } from '../actions/facet'
+import Facet from '@/api/Facet'
+import {_facet} from '../actions/facet'
 
 const state = {
   org_unit_address_type: undefined,
@@ -21,11 +22,17 @@ const state = {
   role_type: undefined
 }
 
+
+const fullQueryParams = '?' + [Facet.ClassDetails.FULL_NAME,
+    Facet.ClassDetails.TOP_LEVEL_FACET,
+    Facet.ClassDetails.FACET].join('&');
+
+
 const actions = {
   [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
     let queryParams = ""
     if (payload.full) {
-      queryParams = '?full_name&top_level_facet&facet'
+      queryParams = fullQueryParams
     }
     if (rootState.organisation.uuid == undefined) return
     return Service.get(`/o/${rootState.organisation.uuid}/f/${payload.facet}/${queryParams}`)

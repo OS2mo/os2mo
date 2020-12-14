@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 
       <h4 class="card-title" v-show="!isLoading">
         <icon name="user-alt"/>
-        {{employee.name}} <span class="cpr">({{employee.cpr_no | CPRNumber}})</span>
+        {{employee.name}} <span class="cpr" v-if="showCPR">({{employee.cpr_no | CPRNumber}})</span>
       </h4>
 
       <div class="row">
@@ -60,7 +60,13 @@ export default {
     ...mapGetters({
       employee: Employee.getters.GET_EMPLOYEE,
       employeeDetails: Employee.getters.GET_DETAILS
-    })
+    }),
+
+    showCPR () {
+    let conf = this.$store.getters['conf/GET_CONF_DB']
+    return conf.show_cpr_no
+  },
+
   },
 
   created () {
@@ -73,6 +79,9 @@ export default {
   beforeDestroy () {
     EventBus.$off(Events.EMPLOYEE_CHANGED, this.listener)
   },
+
+
+
   methods: {
     loadContent (event) {
       this.latestEvent = event

@@ -19,12 +19,11 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
-    <label v-if="!hideEmployeePicker && hideOrgPicker">{{$tc('input_fields.employee_optional')}}</label>
     <mo-employee-picker
       v-model="entry.person"
       class="search-employee mb-3"
       v-if="!hideEmployeePicker && hideOrgPicker"
-      noLabel
+      :label="$tc('input_fields.employee_optional')"
       :validity="entry.validity"
     />
 

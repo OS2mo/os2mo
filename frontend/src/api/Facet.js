@@ -3,7 +3,16 @@
 
 import Service from './HttpCommon'
 
+const ClassDetails = {
+    FULL_NAME: 'full_name',
+    // NCHILDREN: '',
+    TOP_LEVEL_FACET: 'top_level_facet',
+    FACET: 'facet'
+};
+
 export default {
+    ClassDetails,
+
   /**
    * Get IT a list of available IT systems
    * @param {String} uuid - organisation uuid

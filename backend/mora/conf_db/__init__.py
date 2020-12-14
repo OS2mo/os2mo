@@ -19,6 +19,8 @@ from pathlib import Path
 
 logger = logging.getLogger("mo_configuration")
 
+SUBSTITUTE_ROLES = 'substitute_roles'
+
 Base = declarative_base()
 
 
