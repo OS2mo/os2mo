@@ -35,7 +35,9 @@ const actions = {
         }
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('resetFields')
-        commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value: response.data }, { root: true })
+
+      commit('log/newWorkLog', { type: 'EMPLOYEE_LEAVE', value:
+              {name: payload.person.name, leave_type: payload.leave_type.name} }, { root: true })
         return response.data
       })
       .catch(error => {

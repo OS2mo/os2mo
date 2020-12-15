@@ -42,14 +42,16 @@ const actions = {
 
     return Service.post('/e/create', newEmployee)
       .then(response => {
+        if (response.data.error) {
+          return response.data
+        }
         let employeeUuid = response.data
         if (Array.isArray(response.data)) {
           employeeUuid = response.data[0]
         }
-        if (response.data.error) {
-          return response.data
-        }
-        commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: employeeUuid }, { root: true })
+
+        commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value:
+                {name: newEmployee.name, org_name: newEmployee.org.name} }, { root: true })
         return employeeUuid
       })
       .catch(error => {

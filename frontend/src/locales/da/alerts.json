@@ -1,19 +1,21 @@
 {
   "success": {
-    "EMPLOYEE_CREATE": "Medarbejderen med UUID {uuid} er blevet oprettet.",
-    "EMPLOYEE_EDIT": "Medarbejderen med UUID {uuid} er blevet redigeret.",
-    "EMPLOYEE_LEAVE": "Medarbejderen med UUID {uuid} har fået tildelt orlov.",
-    "EMPLOYEE_MOVE": "Medarbejderen med UUID {uuid} er blevet flyttet.",
-    "EMPLOYEE_TERMINATE": "Medarbejderen med UUID {uuid} er afsluttet.",
-    "FUNCTION_EDIT": "{type} med UUID {uuid} er blevet redigeret.",
-    "FUNCTION_TERMINATE": "{type} med UUID {uuid} er blevet afsluttet pr. {date}.",
-    "ORGANISATION_CREATE": "Organisationsenheden med UUID {uuid} er blevet oprettet.",
-    "ORGANISATION_EDIT": "Organisationsenheden med UUID {uuid} er blevet redigeret.",
-    "ORGANISATION_RENAME": "Organisationsenheden med UUID {uuid} er blevet omdøbt.",
-    "ORGANISATION_MOVE": "Organisationsenheden med UUID {uuid} er blevet flyttet",
-    "ORGANISATION_TERMINATE": "Organisationsenheden med UUID {uuid} er blevet afsluttet.",
+    "EMPLOYEE_CREATE": "Medarbejderen {name} er blevet oprettet under {org_name}.",
+    "EMPLOYEE_EDIT": "Medarbejderen {name} er blevet redigeret.",
+    "EMPLOYEE_LEAVE": "Medarbejderen {name} har fået tildelt orlov ({leave_type}).",
+    "EMPLOYEE_MOVE": "Medarbejderen {name} er blevet flyttet til {destination}.",
+    "EMPLOYEE_TERMINATE": "Medarbejderen {name} er blevet afsluttet.",
+    "FUNCTION_CREATE": "Et \"{type}\" felt er blevet oprettet.",
+    "FUNCTION_EDIT": "Et \"{type}\" felt for {name} er blevet redigeret.",
+    "FUNCTION_TERMINATE": "Et \"{type}\" felt for {name} er blevet afsluttet pr. {date}.",
+    "ORGANISATION_CREATE": "Organisationsenheden {name} er blevet oprettet under {parent}.",
+    "ORGANISATION_EDIT": "Organisationsenheden {name} er blevet redigeret.",
+    "ORGANISATION_RENAME": "Organisationsenheden {original_name} er blevet omdøbt til {new_name}.",
+    "ORGANISATION_MOVE": "Organisationsenheden {name} er blevet flyttet til {parent}.",
+    "ORGANISATION_TERMINATE": "Organisationsenheden {name} er blevet afsluttet pr. {terminate}.",
     "ORGANISATION_EXTERNAL_FUNCTION": "{message}",
     "READ_ONLY_MODE": "OS2mo kører i øjeblikket i skrivebeskyttet tilstand"
+
   },
   "error": {
     "E_UNAUTHORIZED": "Brugernavn eller adgangskode er forkert",

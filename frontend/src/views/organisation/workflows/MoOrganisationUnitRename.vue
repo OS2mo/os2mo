@@ -200,7 +200,8 @@ export default {
       } else {
         this.backendValidationMessage = null
         this.$refs.orgUnitRename.hide()
-        this.$store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME', value: response })
+        this.$store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME',
+          value: {original_name: this.original.name, new_name: this.rename.data.name} })
       }
     }
   }
