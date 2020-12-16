@@ -6,6 +6,7 @@ New features
 
 * #39858: Added field in ConfDB to optionally show user_key to searches
 * #39856: Changed log messages from uuid to human readable, no functionality changed
+* #40170: Fix bug in frontend, allowing better performance when moving organisations
 
 Version 1.11.0, 2020-12-14
 ==========================
