@@ -13,7 +13,7 @@ New features
 * #39370: Reordered organization (facet) and substitute fields, no functionality changed
 * #39375: Added configuration option for hiding cpr_no from UI
 * #39367: Fix backend issue when editing associations
-
+* #39858: Added field in ConfDB to optionally show user_key to searches
 
 version 1.10.2, 2020-11-13
 ==========================
