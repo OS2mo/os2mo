@@ -4,6 +4,7 @@
 import abc
 
 import json
+from asyncio import create_task, gather
 
 import flask
 
@@ -32,7 +33,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    def get(cls, c, search_fields):
+    async def get(cls, c, search_fields):
         """
         Read a list of objects based on the given search parameters
 
@@ -43,7 +44,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    def get_from_type(cls, c, type, obj_uuid):
+    async def get_from_type(cls, c, type, obj_uuid):
         """
         Read a list of objects related to a certain object
 
@@ -56,7 +57,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    def get_effects(cls, c, obj, **params):
+    async def get_effects(cls, c, obj, **params):
         """
         Chunk a LoRa object up into effects
 
@@ -69,7 +70,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    def get_mo_object_from_effect(cls, effect, start, end, obj_id):
+    async def get_mo_object_from_effect(cls, effect, start, end, obj_id):
         """
         Convert an effect to a MO object
 
@@ -82,19 +83,24 @@ class ReadingHandler:
         pass
 
     @classmethod
-    def get_obj_effects(cls, c, object_tuples):
+    async def get_obj_effects(cls, c, object_tuples):
         """
         Convert a list of LoRa objects into a list of MO objects
 
         :param c: A LoRa connector
-        :param object_tuples: A list of (UUID, object) tuples
+        :param object_tuples: An iterable of (UUID, object) tuples
         """
-        return [
-            cls.get_mo_object_from_effect(effect, start, end, function_id)
-            for function_id, function_obj in object_tuples
-            for start, end, effect in cls.get_effects(c, function_obj)
+        object_tuples = list(object_tuples)
+        # parallel pre-compute before final loop
+        effect_tuples = await gather(*[create_task(cls.get_effects(c, function_obj))
+                                       for _, function_obj in object_tuples])
+        return await gather(*[
+            create_task(cls.get_mo_object_from_effect(effect, start, end, function_id))
+            for (function_id, _), effect_tuple in
+            zip(object_tuples, effect_tuples)
+            for start, end, effect in effect_tuple
             if util.is_reg_valid(effect)
-        ]
+        ])
 
 
 class OrgFunkReadingHandler(ReadingHandler):
@@ -106,38 +112,29 @@ class OrgFunkReadingHandler(ReadingHandler):
     }
 
     @classmethod
-    def get(cls, c, search_fields):
-        object_tuples = cls.get_lora_object(c, search_fields)
-        return cls.get_obj_effects(c, object_tuples)
+    async def get(cls, c, search_fields):
+        object_tuples = await cls.get_lora_object(c, search_fields)
+        return await cls.get_obj_effects(c, object_tuples)
 
     @classmethod
-    def get_from_type(cls, c, type, objid):
+    async def get_from_type(cls, c, type, objid):
 
         search_fields = {
             cls.SEARCH_FIELDS[type]: objid
         }
 
-        return cls.get(c, search_fields)
+        return await cls.get(c, search_fields)
 
     @classmethod
-    def get_lora_object(cls, c, search_fields):
-        object_tuples = c.organisationfunktion.get_all(
+    async def get_lora_object(cls, c, search_fields):
+        object_tuples = await c.organisationfunktion.get_all(
             funktionsnavn=cls.function_key,
             **search_fields,
         )
         return object_tuples
 
     @classmethod
-    def get_obj_effects(cls, c, object_tuples):
-        return [
-            cls.get_mo_object_from_effect(effect, start, end, function_id)
-            for function_id, function_obj in object_tuples
-            for start, end, effect in cls.get_effects(c, function_obj)
-            if util.is_reg_valid(effect)
-        ]
-
-    @classmethod
-    def get_effects(cls, c, obj, **params):
+    async def get_effects(cls, c, obj, **params):
         relevant = {
             'attributter': (
                 'organisationfunktionegenskaber',
@@ -165,7 +162,7 @@ class OrgFunkReadingHandler(ReadingHandler):
             ),
         }
 
-        return c.organisationfunktion.get_effects(
+        return await c.organisationfunktion.get_effects(
             obj,
             relevant,
             also,
@@ -173,7 +170,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         )
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         properties = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
         user_key = properties['brugervendtnoegle']
 

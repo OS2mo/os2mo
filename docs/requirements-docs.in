@@ -10,3 +10,4 @@ sphinxcontrib-httpdomain
 sphinxcontrib-apidoc
 sphinx-click
 recommonmark
+aiohttp

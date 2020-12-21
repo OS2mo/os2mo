@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import freezegun
 
 from . import util
@@ -12,14 +11,16 @@ EMPL_URL = (
     '?virkningtil=2001-01-01T00%3A00%3A00.000001%2B01%3A00'
     '&uuid=d90862d0-c890-4183-bbc6-c403b125bd5a'
     '&virkningfra=2001-01-01T00%3A00%3A00%2B01%3A00'
+    '&konsolider=True'
 )
 
 
 @freezegun.freeze_time('2001-01-01')
 class MockTests(util.TestCase):
-    @util.mock()
+
+    @util.MockAioresponses(passthrough=['http://localhost'])
     def test_access_denied(self, mock):
-        mock.get(EMPL_URL, status_code=401, json={
+        mock.get(EMPL_URL, status=401, payload={
             "message": "No Authorization header present",
         })
 

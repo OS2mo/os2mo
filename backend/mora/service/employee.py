@@ -14,13 +14,14 @@ For more information regarding reading relations involving employees, refer to
 '''
 import copy
 import enum
-import functools
 import uuid
 from functools import partial
 from operator import itemgetter, contains
+from typing import Any, Union, Dict
 
 import flask
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -81,8 +82,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             required=False
         )
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
@@ -96,7 +97,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         valid_to = util.POSITIVE_INFINITY
 
-        validator.does_employee_with_cpr_already_exist(
+        mora.async_util.async_to_sync(validator.does_employee_with_cpr_already_exist)(
             cpr, valid_from, valid_to, org_uuid, userid)
 
         user = common.create_bruger_payload(
@@ -134,7 +135,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.bruger.get(uuid=userid)
+        original = mora.async_util.async_to_sync(c.bruger.get)(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
         payload = dict()
@@ -230,7 +231,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
-    def _handle_nickname(self, obj):
+    def _handle_nickname(self, obj: Dict[Union[str, Any], Any]):
         nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
         nickname_surname = obj.get(mapping.NICKNAME_SURNAME, None)
         nickname = obj.get(mapping.NICKNAME, None)
@@ -249,9 +250,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = c.bruger.create(self.payload, self.uuid)
+            self.result = mora.async_util.async_to_sync(c.bruger.create)(self.payload,
+                                                                         self.uuid)
         else:
-            self.result = c.bruger.update(self.payload, self.uuid)
+            self.result = mora.async_util.async_to_sync(c.bruger.update)(self.payload,
+                                                                         self.uuid)
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
@@ -259,7 +262,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return super().submit()
 
 
-def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
+async def get_one_employee(c: lora.Connector, userid, user=None,
+                           details=EmployeeDetails.MINIMAL):
     config = flask.current_app.config
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
     if only_primary_uuid:
@@ -268,7 +272,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
         }
 
     if not user:
-        user = c.bruger.get(userid)
+        user = await c.bruger.get(userid)
 
         if not user or not util.is_reg_valid(user):
             return None
@@ -301,7 +305,7 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
                 cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             r[mapping.CPR_NO] = cpr
 
-        r[mapping.ORG] = org.get_configured_organisation()
+        r[mapping.ORG] = await org.get_configured_organisation()
         r[mapping.USER_KEY] = props.get('brugervendtnoegle', '')
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
@@ -312,7 +316,8 @@ def get_one_employee(c, userid, user=None, details=EmployeeDetails.MINIMAL):
 
 @blueprint.route('/o/<uuid:orgid>/e/')
 @util.restrictargs('at', 'start', 'limit', 'query', 'associated')
-def list_employees(orgid):
+@mora.async_util.async_to_sync
+async def list_employees(orgid):
     '''Query employees in an organisation.
 
     .. :quickref: Employee; List & search
@@ -395,21 +400,21 @@ def list_employees(orgid):
                 query[i] = '%' + query[i] + '%'
             kwargs['vilkaarligattr'] = query
 
-    get_full_employee = functools.partial(get_one_employee,
-                                          details=EmployeeDetails.FULL)
-
     uuid_filters = []
     # Filter search_result to only show employees with associations
     if 'associated' in args and args['associated']:
         # NOTE: This call takes ~500ms on fixture-data
-        assocs = c.organisationfunktion.get_all(
+        assocs = await c.organisationfunktion.get_all(
             funktionsnavn="Tilknytning"
         )
         assocs = map(itemgetter(1), assocs)
         assocs = set(map(mapping.USER_FIELD.get_uuid, assocs))
         uuid_filters.append(partial(contains, assocs))
 
-    search_result = c.bruger.paged_get(
+    async def get_full_employee(*args, **kwargs):
+        return await get_one_employee(*args, **kwargs, details=EmployeeDetails.FULL)
+
+    search_result = await c.bruger.paged_get(
         get_full_employee, uuid_filters=uuid_filters, **kwargs
     )
     return flask.jsonify(search_result)
@@ -417,7 +422,8 @@ def list_employees(orgid):
 
 @blueprint.route('/e/<uuid:id>/')
 @util.restrictargs('at')
-def get_employee(id):
+@mora.async_util.async_to_sync
+async def get_employee(id):
     '''Retrieve an employee.
 
     .. :quickref: Employee; Get
@@ -469,7 +475,7 @@ def get_employee(id):
     '''
     c = common.get_connector()
 
-    r = get_one_employee(c, id, user=None, details=EmployeeDetails.FULL)
+    r = await get_one_employee(c, id, user=None, details=EmployeeDetails.FULL)
 
     if r:
         return flask.jsonify(r)
@@ -530,7 +536,7 @@ def terminate_employee(employee_uuid):
             },
             mapping.RequestType.TERMINATE,
         )
-        for objid, obj in c.organisationfunktion.get_all(
+        for objid, obj in mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
             tilknyttedebrugere=employee_uuid,
             gyldighed='Aktiv',
         )
@@ -558,7 +564,8 @@ def terminate_employee(employee_uuid):
     Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
-    common.add_history_entry(c.bruger, employee_uuid, "Afslut medarbejder")
+    mora.async_util.async_to_sync(common.add_history_entry)(
+        c.bruger, employee_uuid, "Afslut medarbejder")
 
     # TODO:
 

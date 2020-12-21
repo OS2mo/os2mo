@@ -5,6 +5,7 @@ import copy
 
 import freezegun
 
+import mora.async_util
 from mora import lora
 from . import util
 
@@ -34,8 +35,8 @@ class Tests(util.LoRATestCase):
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
-        def get_expected(id, is_manager=False):
-            o = c.organisationfunktion.get(id)
+        async def get_expected(id, is_manager=False):
+            o = await c.organisationfunktion.get(id)
 
             o.update(
                 livscykluskode='Rettet',
@@ -50,11 +51,14 @@ class Tests(util.LoRATestCase):
 
             return o
 
-        expected_engagement = get_expected(engagement_uuid)
-        expected_association = get_expected(association_uuid)
-        expected_role = get_expected(role_uuid)
-        expected_leave = get_expected(leave_uuid)
-        expected_manager = get_expected(manager_uuid, True)
+        expected_engagement = mora.async_util.async_to_sync(get_expected)(
+            engagement_uuid)
+        expected_association = mora.async_util.async_to_sync(get_expected)(
+            association_uuid)
+        expected_role = mora.async_util.async_to_sync(get_expected)(role_uuid)
+        expected_leave = mora.async_util.async_to_sync(get_expected)(leave_uuid)
+        expected_manager = mora.async_util.async_to_sync(get_expected)(manager_uuid,
+                                                                       True)
 
         self.assertRequestResponse(
             '/service/e/{}/terminate'.format(userid),
@@ -76,11 +80,16 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
-        actual_association = c.organisationfunktion.get(association_uuid)
-        actual_role = c.organisationfunktion.get(role_uuid)
-        actual_leave = c.organisationfunktion.get(leave_uuid)
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagement_uuid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
+        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            leave_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         with self.subTest('engagement'):
             self.assertRegistrationsEqual(expected_engagement,
@@ -121,7 +130,7 @@ class Tests(util.LoRATestCase):
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
         def get_expected(id, is_manager=False):
-            o = c.organisationfunktion.get(id)
+            o = mora.async_util.async_to_sync(c.organisationfunktion.get)(id)
 
             o.update(
                 livscykluskode='Rettet',
@@ -155,7 +164,8 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager,
                                       actual_manager)
@@ -167,22 +177,22 @@ class Tests(util.LoRATestCase):
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
         for req in (
-                {
-                    "type": "manager",
-                    "uuid": manager_uuid,
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+            },
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+                "validity": {},
+            },
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+                "validity": {
+                    "from": "2000-12-01",
                 },
-                {
-                    "type": "manager",
-                    "uuid": manager_uuid,
-                    "validity": {},
-                },
-                {
-                    "type": "manager",
-                    "uuid": manager_uuid,
-                    "validity": {
-                        "from": "2000-12-01",
-                    },
-                },
+            },
         ):
             with self.subTest(req):
                 self.assertRequestResponse(
@@ -249,7 +259,7 @@ class Tests(util.LoRATestCase):
         )
 
         expected_manager = {
-            **c.organisationfunktion.get(manager_uuid),
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -275,7 +285,8 @@ class Tests(util.LoRATestCase):
             }
         ]
 
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -392,7 +403,7 @@ class Tests(util.LoRATestCase):
         )
 
         expected_manager = {
-            **c.organisationfunktion.get(manager_uuid),
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -421,7 +432,8 @@ class Tests(util.LoRATestCase):
 
         }
 
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -439,7 +451,8 @@ class Tests(util.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
         )
 
-        original = c.organisationfunktion.get(manager_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRequestResponse(
             '/service/details/terminate',
@@ -485,7 +498,7 @@ class Tests(util.LoRATestCase):
             },
         )
 
-        actual = c.organisationfunktion.get(manager_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 

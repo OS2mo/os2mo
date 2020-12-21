@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import dar
 from . import base
@@ -48,7 +48,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_get_mo_address(self, mock):
+    @mora.async_util.async_to_sync
+    async def test_get_mo_address(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
         request = {
@@ -63,7 +64,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address_and_properties()
+        actual = await address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)
@@ -142,7 +143,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
             }
             self.handler.from_request(request)
 
-    def test_lookup_from_request_with_force_succeeds(self, mock):
+    @mora.async_util.async_to_sync
+    async def test_lookup_from_request_with_force_succeeds(self, mock):
         """Ensure that validation is skipped when force is True"""
         # Arrange
         # Nonexisting DAR UUID
@@ -160,10 +162,11 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
                 'value': value
             }
             handler = self.handler.from_request(request)
-            actual = handler.get_mo_address_and_properties()
+            actual = await handler.get_mo_address_and_properties()
             self.assertEqual(expected, actual)
 
-    def test_failed_lookup_from_effect(self, mock):
+    @mora.async_util.async_to_sync
+    async def test_failed_lookup_from_effect(self, mock):
         """Ensure that failed effect lookups are handled appropriately"""
         # Arrange
         # Nonexisting DAR UUID should fail
@@ -186,4 +189,4 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         address_handler = self.handler.from_effect(effect)
 
         self.assertEqual(expected,
-                         address_handler.get_mo_address_and_properties())
+                         await address_handler.get_mo_address_and_properties())

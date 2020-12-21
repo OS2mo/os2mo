@@ -28,7 +28,7 @@ from . import mapping
 from . import util
 
 
-def get_connector(**loraparams):
+def get_connector(**loraparams) -> lora.Connector:
     args = flask.request.args
 
     if args.get('at'):
@@ -161,9 +161,7 @@ def update_payload(
         for p in updated_props:
             # TODO: Fix this when the underlying bug in LoRa is resolved
             # https://redmine.magenta-aps.dk/issues/31576
-            if (len(p) == 1 and 'virkning' in p and
-                    'relationer' in field_tuple.path[0]):
-
+            if len(p) == 1 and 'virkning' in p and 'relationer' in field_tuple.path[0]:
                 p['uuid'] = ''
                 p['urn'] = ''
         payload = util.set_obj_value(payload, field_tuple.path, updated_props)
@@ -584,7 +582,7 @@ def replace_relation_value(relations: typing.List[dict],
         exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND()
 
 
-def add_history_entry(scope: lora.Scope, id: str, note: str):
+async def add_history_entry(scope: lora.Scope, id: str, note: str):
     """
     Add a history entry to a given object.
     The idea is to write an update to the employee whenever an object
@@ -596,11 +594,12 @@ def add_history_entry(scope: lora.Scope, id: str, note: str):
     able to update the 'note' field - which for now amounts to just
     updating the virkning notetekst of gyldighed with a garbage value
 
+    :param scope:
     :param id: The UUID of the employee
     :param note: A note to be associated with the entry
     """
 
-    obj = scope.get(id)
+    obj = await scope.get(id)
     if not obj:
         exceptions.ErrorCodes.E_NOT_FOUND(path=scope.path, uuid=id)
 
@@ -618,7 +617,7 @@ def add_history_entry(scope: lora.Scope, id: str, note: str):
         }
     }
 
-    scope.update(payload, id)
+    await scope.update(payload, id)
 
 
 def stable_json_dumps(v):

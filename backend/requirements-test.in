@@ -15,3 +15,5 @@ python-dotenv
 watchdog
 pytest
 pytest-cov
+aiohttp
+aioresponses

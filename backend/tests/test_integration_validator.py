@@ -4,6 +4,7 @@
 import datetime
 from mock import patch
 
+import mora.async_util
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
@@ -49,7 +50,7 @@ class TestValidator(TestHelper):
         startdate = '01-02-2017'
         enddate = '01-06-2017'
 
-        validator.is_date_range_in_org_unit_range(
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
             {
                 'uuid': self.PARENT
             },
@@ -67,7 +68,7 @@ class TestValidator(TestHelper):
         startdate = '01-01-2017'
         enddate = '01-06-2017'
 
-        validator.is_date_range_in_org_unit_range(
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
             {
                 'uuid': self.PARENT
             },
@@ -85,7 +86,7 @@ class TestValidator(TestHelper):
         startdate = '01-02-2017'
         enddate = '01-01-2018'
 
-        validator.is_date_range_in_org_unit_range(
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
             {
                 'uuid': self.PARENT
             },
@@ -104,7 +105,7 @@ class TestValidator(TestHelper):
         enddate = '01-06-2017'
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_org_unit_range(
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
                 {
                     'uuid': self.PARENT
                 },
@@ -123,7 +124,7 @@ class TestValidator(TestHelper):
         enddate = '01-06-2019'
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_org_unit_range(
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
                 {
                     'uuid': self.PARENT
                 },
@@ -142,7 +143,7 @@ class TestValidator(TestHelper):
         enddate = '01-06-2015'
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_org_unit_range(
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
                 {
                     'uuid': self.PARENT
                 },
@@ -165,8 +166,8 @@ class TestValidator(TestHelper):
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_date_range_in_employee_range(employee,
-                                                      valid_from, valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee, valid_from, valid_to)
 
     def test_is_date_range_in_employee_valid_inside_range(self):
         """Assert that a validation error is not raised when the range is
@@ -183,8 +184,9 @@ class TestValidator(TestHelper):
 
         # Act & Assert
         # Should be callable without raising exception
-        validator.is_date_range_in_employee_range(employee,
-                                                  valid_from, valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            valid_from, valid_to)
 
     def test_is_distinct_responsibility_with_duplicate(self):
         with self.assertRaises(exceptions.HTTPException) as ctxt:
@@ -216,7 +218,7 @@ class TestValidator(TestHelper):
             ctxt.exception.response.json,
             {
                 'description': 'Manager has the same responsibility more than '
-                'once.',
+                               'once.',
                 'duplicates': [
                     '00000000-0000-0000-0000-000000000000',
                 ],
@@ -291,7 +293,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         new_org_uuid = candidate_parent
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_candidate_parent_valid(
+            mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
 
@@ -302,7 +304,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         new_org_uuid = candidate_parent
 
         # Should not raise
-        validator.is_candidate_parent_valid(
+        mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
             self.UNIT_TO_MOVE, new_org_uuid, move_date
         )
 
@@ -314,7 +316,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         new_org_uuid = candidate_parent
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_candidate_parent_valid(
+            mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
                 root_org_unit, new_org_uuid, move_date
             )
 
@@ -325,7 +327,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         new_org_uuid = candidate_parent
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_candidate_parent_valid(
+            mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
 
@@ -333,7 +335,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         move_date = '01-02-2017'
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_candidate_parent_valid(
+            mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
                 self.UNIT_TO_MOVE, self.UNIT_TO_MOVE, move_date
             )
 
@@ -344,7 +346,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
         self.expire_org_unit(self.PARENT)
 
         with self.assertRaises(exceptions.HTTPException):
-            validator.is_candidate_parent_valid(
+            mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
 

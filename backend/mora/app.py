@@ -10,6 +10,7 @@ from flask_cors import CORS
 import werkzeug
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import mora.async_util
 from mora import __version__, log, readonly
 from mora.triggers.internal import amqp_trigger
 from mora import health
@@ -84,8 +85,9 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
         return error.get_response(flask.request.environ)
 
     @app.route("/version/")
-    def version():
-        lora_version = lora.get_version()
+    @mora.async_util.async_to_sync
+    async def version():
+        lora_version = await lora.get_version()
         return flask.jsonify({
             "mo_version": __version__,
             "lora_version": lora_version,

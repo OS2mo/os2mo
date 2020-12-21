@@ -3,51 +3,90 @@
 
 from __future__ import generator_stop
 
+import multiprocessing
 import typing
+import asyncio
 import uuid
+from asyncio import create_task, gather
 
-import requests
-
-import flask_saml_sso
-from functools import partial
 from itertools import starmap
+from functools import partial
 
 import lora_utils
+from more_itertools import divide
+
+import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
 
-session = requests.Session()
-session.verify = settings.CA_BUNDLE or True
-session.auth = flask_saml_sso.SAMLAuth()
-session.headers = {
-    'User-Agent': 'MORA/0.1',
-}
+
+def raise_on_status(status_code: int, msg,
+                    cause: typing.Optional = None) -> typing.NoReturn:
+    """
+    unified raising error codes
+
+    @param status_code: status code from response (http status code)
+    @param msg: something informative
+    @param cause: same
+    @return:
+    """
+    if status_code == 400:
+        exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
+    elif status_code == 401:
+        exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
+    elif status_code == 403:
+        exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
+    else:
+        exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-def _check_response(r):
-    if not r.ok:
+async def _check_response(r):
+    if 400 <= r.status < 600:  # equivalent to requests.response.ok
         try:
-            cause = r.json()
+            cause = await r.json()
             msg = cause['message']
         except (ValueError, KeyError):
             cause = None
-            msg = r.text
+            msg = await r.text()
 
-        if r.status_code == 400:
-            exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
-        elif r.status_code == 401:
-            exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
-        elif r.status_code == 403:
-            exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
-        else:
-            exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
+        raise_on_status(status_code=r.status, msg=msg, cause=cause)
 
     return r
 
 
-class Connector:
+def bool_to_str(value):
+    """
+    just to converting bools to str, even if nested in an other structure
+    @param value:
+    @return:
+    """
+    if isinstance(value, bool):
+        return str(value)
+    elif isinstance(value, list) or isinstance(value, set):
+        return list(map(bool_to_str, value))
+    elif isinstance(value, int) or isinstance(value, str):
+        return value
+    else:
+        raise TypeError("Unknown type in bool_to_str", type(value))
 
+
+def param_bools_to_strings(params: typing.Dict[
+    typing.Any, typing.Union[bool, typing.List, typing.Set, str, int]]) -> \
+    typing.Dict[typing.Any,
+                typing.Union[str, int, typing.List]]:
+    """
+    converts requests-compatible params to aiohttp-compatible params
+
+    @param params: dict of parameters
+    @return:
+    """
+    ret = {key: bool_to_str(value) for key, value in params.items()
+           if value is not None}
+    return ret
+
+
+class Connector:
     scope_map = dict(
         organisation='organisation/organisation',
         organisationenhed='organisation/organisationenhed',
@@ -115,7 +154,7 @@ class Connector:
         else:
             return start > self.start and end <= self.end
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr) -> 'Scope':
         try:
             path = self.scope_map[attr]
         except KeyError:
@@ -142,22 +181,21 @@ class Scope:
     def base_path(self):
         return settings.LORA_URL + self.path
 
-    def fetch(self, **params):
-        r = session.get(self.base_path, params={
-            **self.connector.defaults,
-            **params,
-        })
+    async def fetch(self, **params):
+        async with mora.async_util.async_session(
+        ).get(self.base_path,
+              params=param_bools_to_strings({**self.connector.defaults, **params}),
+              ssl=mora.async_util.ssl_context) as response:
 
-        _check_response(r)
+            await _check_response(response)
 
-        try:
-            return r.json()['results'][0]
-        except IndexError:
-            return []
+            try:
+                ret = (await response.json())['results'][0]
+                return ret
+            except IndexError:
+                return []
 
-    __call__ = fetch
-
-    def get_all(self, **params):
+    async def get_all(self, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -177,23 +215,50 @@ class Scope:
         wantregs = not params.keys().isdisjoint(
             {'registreretfra', 'registrerettil'}
         )
+        response = await self.fetch(**dict(params), list=1)
 
-        for d in self.fetch(**dict(params), list=1):
-            yield d['id'], (d['registreringer'] if wantregs
-                            else d['registreringer'][0])
+        def gen():
+            for d in response:
+                yield d['id'], (d['registreringer'] if wantregs
+                                else d['registreringer'][0])
 
-    def get_all_by_uuid(self, uuids: typing.List):
+        return gen()
+
+    async def get_all_by_uuid(self, uuids: typing.Union[typing.List, typing.Set]):
         """Get a list of objects by their UUIDs.
 
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-        for d in self.fetch(uuid=uuids):
-            yield d['id'], (d['registreringer'][0])
+        # heuristic, depends on who is serving this app
+        n_chunk_target = multiprocessing.cpu_count() * 2 + 1
+        length = len(uuids)
+        min_size = 20
+        n_chunks = n_chunk_target
+        if length < min_size:
+            n_chunks = 1
 
-    def paged_get(self, func, *,
-                  start=0, limit=settings.DEFAULT_PAGE_SIZE,
-                  uuid_filters=None,
-                  **params):
+        # chunk to get some 'fake' performance by parallelize
+        uuid_chunks = divide(n_chunks, uuids)
+        need_flat = await gather(*[create_task(self.fetch(uuid=list(ch)))
+                                   for ch in uuid_chunks])
+        ret = [x for chunk in need_flat for x in chunk]
+
+        # ret = await self.fetch(uuid=uuids)
+
+        # funny looking, but keeps api backwards compatible (ie avoiding 'async for')
+        def gen():
+            for d in ret:
+                yield d['id'], (d['registreringer'][0])
+
+        return gen()
+
+    async def paged_get(self,
+                        func: typing.Callable[['Connector', typing.Any, typing.Any],
+                                              typing.Union[
+                                                  typing.Any, typing.Coroutine]], *,
+                        start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                        uuid_filters=None,
+                        **params):
         """Perform a search on given params, filter and return the result.
 
         :code:`func` is a function from (lora-connector, obj_id, obj) to
@@ -209,7 +274,7 @@ class Scope:
         """
         uuid_filters = uuid_filters or []
         # Fetch all uuids matching search params and filter with uuid_filters
-        uuids = self.fetch(**params)
+        uuids = await self.fetch(**params)
         for uuid_filter in uuid_filters:
             uuids = filter(uuid_filter, uuids)
         # Sort to ensure consistent order, as LoRa does not seem to do that
@@ -221,16 +286,20 @@ class Scope:
         if limit > 0:
             uuids = uuids[:limit]
         # Lookup objects by uuid, and build objects using func
-        obj_iter = self.get_all_by_uuid(uuids)
-        obj_iter = starmap(partial(func, self.connector), obj_iter)
+        obj_iter = await self.get_all_by_uuid(uuids)
+        if asyncio.iscoroutinefunction(func):
+            obj_iter = await gather(*[func(self.connector, *tup) for tup in obj_iter])
+        else:
+            obj_iter = starmap(partial(func, self.connector), obj_iter)
+
         return {
             'total': total,
             'offset': start,
             'items': list(obj_iter)
         }
 
-    def get(self, uuid, **params):
-        d = self.fetch(uuid=str(uuid), **params)
+    async def get(self, uuid, **params):
+        d = await self.fetch(uuid=str(uuid), **params)
 
         if not d or not d[0]:
             return None
@@ -246,32 +315,40 @@ class Scope:
 
             return registrations[0]
 
-    def create(self, obj, uuid=None):
+    async def create(self, obj, uuid=None):
         if uuid:
-            r = session.put('{}/{}'.format(self.base_path, uuid),
-                            json=obj)
+            async with mora.async_util.async_session(
+            ).put('{}/{}'.format(self.base_path, uuid),
+                  json=obj,
+                  ssl=mora.async_util.ssl_context) as r:
+
+                async with r:
+                    await _check_response(r)
+                    return (await r.json())['uuid']
         else:
-            r = session.post(self.base_path, json=obj)
+            async with mora.async_util.async_session(
+            ).post(self.base_path,
+                   json=obj,
+                   ssl=mora.async_util.ssl_context) as r:
+                await _check_response(r)
+                return (await r.json())['uuid']
 
-        _check_response(r)
-        return r.json()['uuid']
+    async def delete(self, uuid):
+        async with mora.async_util.async_session(
+        ).delete('{}/{}'.format(self.base_path, uuid),
+                 ssl=mora.async_util.ssl_context) as response:
+            await _check_response(response)
 
-    def delete(self, uuid):
-        r = session.delete('{}/{}'.format(self.base_path, uuid))
-        _check_response(r)
+    async def update(self, obj, uuid):
+        async with mora.async_util.async_session(
+        ).patch('{}/{}'.format(self.base_path, uuid), json=obj,
+                ssl=mora.async_util.ssl_context) as response:
+            await _check_response(response)
+            return (await response.json())['uuid']
 
-    def update(self, obj, uuid):
-        r = session.request(
-            'PATCH',
-            '{}/{}'.format(self.base_path, uuid),
-            json=obj,
-        )
-        _check_response(r)
-        return r.json()['uuid']
-
-    def get_effects(self, obj, relevant, also=None, **params):
+    async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
-            self.get(obj, **params)
+            await self.get(obj, **params)
             if isinstance(obj, (str, uuid.UUID))
             else obj
         )
@@ -287,9 +364,10 @@ class Scope:
         )
 
 
-def get_version():
-    r = session.get(settings.LORA_URL + "version")
-    try:
-        return r.json()["lora_version"]
-    except ValueError:
-        return "Could not find lora version: %s" % r.text
+async def get_version():
+    async with mora.async_util.async_session(
+    ).get(settings.LORA_URL + "version", ssl=mora.async_util.ssl_context) as response:
+        try:
+            return (await response.json())["lora_version"]
+        except ValueError:
+            return "Could not find lora version: %s" % await response.text()

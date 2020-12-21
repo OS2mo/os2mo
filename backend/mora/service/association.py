@@ -10,6 +10,7 @@ This section describes how to interact with employee associations.
 '''
 import uuid
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -50,8 +51,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         association_type_uuid = util.get_mapping_uuid(
             req,
@@ -72,13 +73,19 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         if substitute_uuid:  # substitute is specified
             validator.is_substitute_allowed(association_type_uuid)
 
-        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
-                                                  valid_to)
-        validator.is_date_range_in_employee_range(employee, valid_from,
-                                                  valid_to)
-        validator.does_employee_have_existing_association(employee_uuid,
-                                                          org_unit_uuid,
-                                                          valid_from)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            valid_from,
+            valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            valid_from,
+            valid_to)
+        mora.async_util.async_to_sync(
+            validator.does_employee_have_existing_association)(
+            employee_uuid,
+            org_unit_uuid,
+            valid_from)
         validator.is_substitute_self(employee_uuid=employee_uuid,
                                      substitute_uuid=substitute_uuid)
 
@@ -108,7 +115,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         association_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=association_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=association_uuid)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -232,14 +240,20 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                        original, payload)
 
         # Validation
-        validator.is_date_range_in_org_unit_range(org_unit, new_from,
-                                                  new_to)
-        validator.is_date_range_in_employee_range(employee, new_from,
-                                                  new_to)
-        validator.does_employee_have_existing_association(employee_uuid,
-                                                          org_unit_uuid,
-                                                          new_from,
-                                                          association_uuid)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            new_from,
+            new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            new_from,
+            new_to)
+        mora.async_util.async_to_sync(
+            validator.does_employee_have_existing_association)(
+            employee_uuid,
+            org_unit_uuid,
+            new_from,
+            association_uuid)
 
         self.payload = payload
         self.uuid = association_uuid

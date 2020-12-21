@@ -11,6 +11,7 @@ import inspect
 
 import typing
 
+import mora.async_util
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -179,10 +180,8 @@ class OrgFunkRequestHandler(RequestHandler):
         self.uuid = util.get_uuid(request)
         date = util.get_valid_to(request, required=True)
 
-        original = (
-            lora.Connector(effective_date=date)
-            .organisationfunktion.get(self.uuid)
-        )
+        original = mora.async_util.async_to_sync(
+            lora.Connector(effective_date=date).organisationfunktion.get)(self.uuid)
 
         if (
             original is None or
@@ -220,11 +219,13 @@ class OrgFunkRequestHandler(RequestHandler):
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            self.result = c.organisationfunktion.create(self.payload,
-                                                        self.uuid)
+            self.result = mora.async_util.async_to_sync(c.organisationfunktion.create)(
+                self.payload,
+                self.uuid)
         else:
-            self.result = c.organisationfunktion.update(self.payload,
-                                                        self.uuid)
+            self.result = mora.async_util.async_to_sync(c.organisationfunktion.update)(
+                self.payload,
+                self.uuid)
 
         return super().submit()
 

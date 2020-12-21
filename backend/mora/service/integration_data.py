@@ -18,6 +18,8 @@ inserting/updating organisational units and employees
 '''
 import flask
 import json
+
+import mora.async_util
 from .. import common
 from .. import mapping
 from .. import util
@@ -25,14 +27,14 @@ from .. import exceptions
 from . import orgunit
 from . import employee
 
-
 blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
                             url_prefix='/service')
 
 
 @blueprint.route('/ou/<uuid:unitid>/integration-data', methods=['GET'])
 @util.restrictargs('at')
-def get_org_unit_integration_data(unitid):
+@mora.async_util.async_to_sync
+async def get_org_unit_integration_data(unitid):
     """Get organisational unit with integration data
 
     .. :quickref: Unit ; integration data
@@ -66,8 +68,8 @@ def get_org_unit_integration_data(unitid):
     """
     c = common.get_connector()
 
-    r = orgunit.get_one_orgunit(c, unitid,
-                                details=orgunit.UnitDetails.INTEGRATION)
+    r = await orgunit.get_one_orgunit(c, unitid,
+                                      details=orgunit.UnitDetails.INTEGRATION)
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -82,7 +84,8 @@ def get_org_unit_integration_data(unitid):
 
 @blueprint.route('/e/<uuid:employeeid>/integration-data', methods=['GET'])
 @util.restrictargs('at')
-def get_employee_integration_data(employeeid):
+@mora.async_util.async_to_sync
+async def get_employee_integration_data(employeeid):
     """Get employee with integration data
 
     .. :quickref: Employee; integration data
@@ -110,8 +113,8 @@ def get_employee_integration_data(employeeid):
     """
     c = common.get_connector()
 
-    r = employee.get_one_employee(c, employeeid,
-                                  details=employee.EmployeeDetails.INTEGRATION)
+    r = await employee.get_one_employee(c, employeeid,
+                                        details=employee.EmployeeDetails.INTEGRATION)
 
     if not r:
         exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employeeid)

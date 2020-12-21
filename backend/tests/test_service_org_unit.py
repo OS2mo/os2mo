@@ -12,7 +12,7 @@ from tests import util
 
 class TestAddressLookup(util.TestCase):
     @freezegun.freeze_time('2018-03-15')
-    @util.mock()
+    @util.MockAioresponses()
     def test_unit_past(self, mock):
         unitid = 'ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc'
 
@@ -135,8 +135,9 @@ class TestAddressLookup(util.TestCase):
             'http://mox/organisation/organisationenhed'
             '?uuid=' + unitid +
             '&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00'
-            '&virkningfra=-infinity',
-            json={
+            '&virkningfra=-infinity'
+            '&konsolider=True',
+            payload={
                 "results": [
                     [
                         {
