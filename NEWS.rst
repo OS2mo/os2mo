@@ -4,6 +4,14 @@ In development
 New features
 ------------
 
+* #39858: Added field in ConfDB to optionally show user_key to searches
+
+Version 1.11.0, 2020-12-14
+==========================
+
+New features
+------------
+
 * #39323: Remove request size limit for uuid lookup against LoRa,
           MOX should now be started with `--limit-request-line 0`
 * #38650: Config value migrated from VARCHAR to TEXT
@@ -13,9 +21,8 @@ New features
 * #39370: Reordered organization (facet) and substitute fields, no functionality changed
 * #39375: Added configuration option for hiding cpr_no from UI
 * #39367: Fix backend issue when editing associations
-* #39858: Added field in ConfDB to optionally show user_key to searches
 
-version 1.10.2, 2020-11-13
+Version 1.10.2, 2020-11-13
 ==========================
 
 New features
