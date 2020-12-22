@@ -1108,7 +1108,7 @@ class Reading(util.LoRATestCase):
             '/details/address',
         )
 
-        self.assertEquals(None, r[0]['address_type'])
+        self.assertEqual(None, r[0]['address_type'])
 
     def test_reading(self, mock):
         self.load_sample_structures()

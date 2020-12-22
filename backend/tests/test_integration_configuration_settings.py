@@ -17,24 +17,6 @@ class Tests(ConfigTestCase):
         self.assertTrue('show_roles' in user_settings)
         self.assertTrue(user_settings['show_location'] is True)
 
-    def test_inconsistent_settings(self):
-        """
-        Test that the conf module will raise in exception if the configuration
-        settings are inconsistent.
-        """
-
-        self.set_global_conf((('show_roles', 'True'),
-                              ('show_roles', 'True')))
-
-        url = '/service/configuration'
-        payload = {"org_units": {"show_roles": "False"}}
-        assertion_raised = False
-        try:
-            self.assertRequest(url, json=payload)
-        except Exception:
-            assertion_raised = True
-        self.assertTrue(assertion_raised)
-
     def test_global_user_settings_write(self):
         """
         Test that it is possible to write a global setting and read it back.

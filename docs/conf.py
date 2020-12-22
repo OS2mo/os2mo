@@ -76,10 +76,17 @@ MOCK_MODULES = [
     'psycopg2.extras',
     'psycopg2.sql',
     'sqlalchemy',
+    'sqlalchemy.sql',
+    'sqlalchemy.orm',
+    'sqlalchemy.ext',
+    'sqlalchemy.ext.declarative',
+    'sqlalchemy_utils',
     'pika',
     'pika.exceptions',
     'toml',
     'more_itertools',
+    'alembic',
+    'alembic.config',
 
     'mora.log',
 

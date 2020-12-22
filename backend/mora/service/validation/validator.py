@@ -5,7 +5,6 @@ import collections
 import datetime
 import functools
 import typing
-
 from more_itertools import pairwise
 
 from ... import exceptions
@@ -19,6 +18,7 @@ def forceable(fn):
     ``force`` query argument.
 
     '''
+
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         if not util.get_args_flag('force'):
@@ -342,6 +342,30 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
 
 
 @forceable
+def is_substitute_allowed(association_type_uuid: str):
+    """
+    checks whether the chosen association needs a substitute
+    """
+    if not util.is_substitute_allowed(association_type_uuid):
+        exceptions.ErrorCodes.E_INVALID_TYPE(
+            f'Substitute not allowed for association type "{association_type_uuid}"'
+        )
+
+
+@forceable
+def is_substitute_self(employee_uuid: str, substitute_uuid: str):
+    """
+    Check if substitute is the same as employee
+
+    :param employee_uuid: UUID of the employee
+    :param substitute_uuid: UUID of the substitute
+    :return:
+    """
+    if employee_uuid == substitute_uuid:
+        exceptions.ErrorCodes.V_CANNOT_SUBSTITUTE_SELF(employee=employee_uuid)
+
+
+@forceable
 def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
@@ -364,9 +388,7 @@ def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
             },
             {}
         )
-        if util.is_reg_valid(effect) and
-        start <= valid_from and
-        valid_to <= end
+        if util.is_reg_valid(effect) and start <= valid_from and valid_to <= end
     ]
 
     if not valid_effects:

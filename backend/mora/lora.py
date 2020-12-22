@@ -11,7 +11,6 @@ import requests
 import flask_saml_sso
 from functools import partial
 from itertools import starmap
-from more_itertools import chunked
 
 import lora_utils
 from . import exceptions
@@ -138,36 +137,10 @@ class Scope:
     def __init__(self, connector, path):
         self.connector = connector
         self.path = path
-        self.max_uuids = self._calculate_max_uuids()
 
     @property
     def base_path(self):
         return settings.LORA_URL + self.path
-
-    def _calculate_max_uuids(self):
-        """Calculate the maximum number of UUIDs which can be send at once.
-
-        Used by :code:`get_all_by_uuid` to minimize the number of roundtrips,
-        while simultaneously ensuring that requests are valid.
-
-        The method works by starting of with the maximum valid-length of a HTTP
-        Request-Line. Then gradually reserving characters, as needed for Method,
-        URL and non-uuid URL parameters. Finally the left-over length is divded
-        to maximize the number of UUIDs.
-        """
-        available_length = settings.MAX_REQUEST_LENGTH
-        available_length -= len('GET ')
-        available_length -= len(self.base_path)
-
-        for k, v in self.connector.defaults.items():
-            # Note & may instead be ? for the first parameter.
-            available_length -= len("&") + len(k) + len('=') + len(str(v))
-
-        # At the point we know that available_length characters are left for
-        # UUIDs, each uuid consumes 36 charactesrs and a header.
-        per_length = len('&uuid=') + 36
-        max_uuids = int(available_length / per_length)
-        return max_uuids
 
     def fetch(self, **params):
         r = session.get(self.base_path, params={
@@ -209,19 +182,13 @@ class Scope:
             yield d['id'], (d['registreringer'] if wantregs
                             else d['registreringer'][0])
 
-    def get_all_by_uuid(self, uuids: typing.List, elements_per_chunk=None):
+    def get_all_by_uuid(self, uuids: typing.List):
         """Get a list of objects by their UUIDs.
 
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-        # If elements_per_chunk is None, use self.max_uuids as default
-        elements_per_chunk = elements_per_chunk or self.max_uuids
-        # Whatever the value of elements_per_chunk, self.max_uuids is the max
-        elements_per_chunk = min(elements_per_chunk, self.max_uuids)
-
-        for chunk in chunked(uuids, elements_per_chunk):
-            for d in self.fetch(uuid=chunk):
-                yield d['id'], (d['registreringer'][0])
+        for d in self.fetch(uuid=uuids):
+            yield d['id'], (d['registreringer'][0])
 
     def paged_get(self, func, *,
                   start=0, limit=settings.DEFAULT_PAGE_SIZE,

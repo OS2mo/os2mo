@@ -30,7 +30,8 @@ export default {
     },
 
     async get_entry(newVal, validity) {
-      return await Class.get(newVal, validity)
+      let details = [Facet.ClassDetails.TOP_LEVEL_FACET]
+      return await Class.get(newVal, details)
     },
 
     get_ancestor_tree(uuid, date) {

@@ -1,3 +1,20 @@
+Version 1.11.0, 2020-12-14
+==========================
+
+New features
+------------
+
+* #39323: Remove request size limit for uuid lookup against LoRa,
+          MOX should now be started with `--limit-request-line 0`
+* #38650: Config value migrated from VARCHAR to TEXT
+* #38650: Alembic introduced for ConfDB migration
+* #40028: Remove history icon from GUI
+* #39418: Disable typing in tree-picker GUI elements
+* #39370: Reordered organization (facet) and substitute fields, no functionality changed
+* #39375: Added configuration option for hiding cpr_no from UI
+* #39367: Fix backend issue when editing associations
+
+
 Version 1.10.2, 2020-11-13
 ==========================
 

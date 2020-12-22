@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 from . import util
 
-
 org_unit_type_facet = {
     'description': '',
     'user_key': 'org_unit_type',
@@ -35,7 +34,6 @@ class Tests(util.LoRATestCase):
         }
 
     def test_organisation(self):
-
         self.load_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
@@ -1363,7 +1361,7 @@ class Tests(util.LoRATestCase):
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_job_function/",
+                            "/f/engagement_job_function/",
                     "user_key": "engagement_job_function",
                     "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 },
@@ -1384,28 +1382,28 @@ class Tests(util.LoRATestCase):
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_address_type/",
+                            "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
                     "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_type/",
+                            "/f/engagement_type/",
                     "user_key": "engagement_type",
                     "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/responsibility/",
+                            "/f/responsibility/",
                     "user_key": "responsibility",
                     "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/role_type/",
+                            "/f/role_type/",
                     "user_key": "role_type",
                     "uuid": "68ba77bc-4d57-43e2-9c24-0c9eda5fddc7",
                 },
@@ -1426,60 +1424,87 @@ class Tests(util.LoRATestCase):
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/leave_type/",
+                            "/f/leave_type/",
                     "user_key": "leave_type",
                     "uuid": "99a9d0ab-615e-4e99-8a43-bc9d3cea8438",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/manager_type/",
+                            "/f/manager_type/",
                     "user_key": "manager_type",
                     "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/employee_address_type/",
+                            "/f/employee_address_type/",
                     "user_key": "employee_address_type",
                     "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/time_planning/",
+                            "/f/time_planning/",
                     "user_key": "time_planning",
                     "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/visibility/",
+                            "/f/visibility/",
                     "user_key": "visibility",
                     "uuid": "c9f103c7-3d53-47c0-93bf-ccb34d044a3f",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/manager_level/",
+                            "/f/manager_level/",
                     "user_key": "manager_level",
                     "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/association_type/",
+                            "/f/association_type/",
                     "user_key": "association_type",
                     "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
                 },
                 {
                     "description": "",
                     "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_type/",
+                            "/f/org_unit_type/",
                     "user_key": "org_unit_type",
                     "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
                 },
             ],
+        )
+
+        self.assertRequestResponse(
+            '/service/c/32547559-cfc1-4d97-94c6-70b192eff825/',
+            {'example': None,
+             'name': 'Afdeling',
+             'owner': None,
+             'scope': None,
+             'user_key': 'afd',
+             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'})
+
+        self.assertRequestResponse(
+            '/service/c/32547559-cfc1-4d97-94c6-70b192eff825/'
+            '?full_name&facet&top_level_facet',
+            {'example': None,
+             'facet': {'description': '',
+                       'user_key': 'org_unit_type',
+                       'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'},
+             'full_name': 'Afdeling',
+             'name': 'Afdeling',
+             'owner': None,
+             'scope': None,
+             'top_level_facet': {'description': '',
+                                 'user_key': 'org_unit_type',
+                                 'uuid': 'fc917e7c-fc3b-47c2-8aa5-a0383342a280'},
+             'user_key': 'afd',
+             'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'}
         )
 
         self.assertRequestResponse(
@@ -1489,23 +1514,23 @@ class Tests(util.LoRATestCase):
                 'total': 3,
                 'items': [
                     {'example': None,
-                        'name': 'Afdeling',
-                        'owner': None,
-                        'scope': None,
-                        'user_key': 'afd',
-                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
+                     'name': 'Afdeling',
+                     'owner': None,
+                     'scope': None,
+                     'user_key': 'afd',
+                     'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
                     {'example': None,
-                        'name': 'Fakultet',
-                        'owner': None,
-                        'scope': None,
-                        'user_key': 'fak',
-                        'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
+                     'name': 'Fakultet',
+                     'owner': None,
+                     'scope': None,
+                     'user_key': 'fak',
+                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6'},
                     {'example': None,
-                        'name': 'Institut',
-                        'owner': None,
-                        'scope': None,
-                        'user_key': 'inst',
-                        'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
+                     'name': 'Institut',
+                     'owner': None,
+                     'scope': None,
+                     'user_key': 'inst',
+                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52'}]},
                 'description': '',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
                         '/f/org_unit_type/',

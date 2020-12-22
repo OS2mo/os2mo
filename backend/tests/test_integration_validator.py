@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import datetime
+from mock import patch
 
 from mora import exceptions
 from mora import mapping
@@ -249,6 +250,32 @@ class TestValidator(TestHelper):
                 },
             ),
         ])
+
+    @patch(
+        "mora.readonly.conf_db.get_configuration",
+        return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
+    )
+    def test_is_substitute_allowed(self, mock):
+        # This should pass
+        validator.is_substitute_allowed("bcd05828-cc10-48b1-bc48-2f0d204859b2")
+
+        # This shouldn't
+        with self.assertRaises(exceptions.HTTPException):
+            validator.is_substitute_allowed("8b073375-4196-4d90-9af9-0eb6ef8b6d0d")
+
+    def test_is_substitute_self(self):
+        # This should pass
+        validator.is_substitute_self(
+            "32eba675-1edb-4c08-8d1a-82caf948aae6",
+            "962f70a7-4cb0-47f8-b949-ec249c595936"
+        )
+
+        # This shouldn't
+        with self.assertRaises(exceptions.HTTPException):
+            validator.is_substitute_self(
+                "8b073375-4196-4d90-9af9-0eb6ef8b6d0d",
+                "8b073375-4196-4d90-9af9-0eb6ef8b6d0d"
+            )
 
 
 class TestIntegrationMoveOrgUnitValidator(TestHelper):

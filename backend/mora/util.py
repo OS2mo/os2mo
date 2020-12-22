@@ -32,6 +32,7 @@ import dateutil.parser
 import dateutil.tz
 import werkzeug.routing
 import logging
+from mora import conf_db
 
 from . import exceptions
 from . import mapping
@@ -753,6 +754,18 @@ def is_reg_valid(reg):
         state.get('gyldighed') == 'Aktiv'
         for state in get_states(reg)
     )
+
+
+def is_substitute_allowed(association_type_uuid: str) -> bool:
+    """
+    checks whether the chosen association needs a substitute
+    """
+    substitute_roles: str = conf_db.get_configuration()['substitute_roles']
+    if association_type_uuid in substitute_roles.split(','):
+        # chosen role does need substitute
+        return True
+    else:
+        return False
 
 
 def get_args_flag(name: str):

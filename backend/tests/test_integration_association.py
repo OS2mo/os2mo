@@ -4,6 +4,7 @@
 import copy
 
 import freezegun
+from mock import patch
 
 from mora import lora
 from mora import mapping
@@ -14,7 +15,11 @@ from tests import util
 class Tests(util.LoRATestCase):
     maxDiff = None
 
-    def test_create_association(self):
+    @patch(
+        "mora.readonly.conf_db.get_configuration",
+        return_value={"substitute_roles": '62ec821f-4179-4758-bfdf-134529d186e9'}
+    )
+    def test_create_association(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -32,6 +37,9 @@ class Tests(util.LoRATestCase):
                 'person': {'uuid': userid},
                 "association_type": {
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "substitute": {
+                    'uuid': "aefb4355-11b1-411b-a64d-34f2ff9640f6"
                 },
                 "user_key": "1234",
                 "primary": {'uuid': "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
@@ -113,6 +121,17 @@ class Tests(util.LoRATestCase):
                         "uuid": unitid
                     }
                 ],
+                'tilknyttedefunktioner': [{
+                    'uuid': 'aefb4355-11b1-411b-a64d-34f2ff9640f6',
+                    'virkning': {
+                        'from': '2017-12-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-12-02 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }],
                 'primær': [{
                     'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474',
                     'virkning': {
@@ -156,6 +175,7 @@ class Tests(util.LoRATestCase):
             'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
             'user_key': '1234',
             'uuid': '00000000-0000-0000-0000-000000000000',
+            "substitute": {'uuid': "aefb4355-11b1-411b-a64d-34f2ff9640f6"},
             'validity': {'from': '2017-12-01', 'to': '2017-12-01'}
         }]
 
@@ -587,6 +607,7 @@ class Tests(util.LoRATestCase):
             'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
             'user_key': '1234',
             'uuid': '00000000-0000-0000-0000-000000000000',
+            'substitute': None,
             'validity': {'from': '2017-12-01', 'to': '2017-12-01'}
         }]
 
@@ -600,7 +621,11 @@ class Tests(util.LoRATestCase):
             },
         )
 
-    def test_edit_association_from_unit(self):
+    @patch(
+        "mora.readonly.conf_db.get_configuration",
+        return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
+    )
+    def test_edit_association(self, mock):
         self.load_sample_structures()
 
         # Check the POST request
@@ -615,8 +640,11 @@ class Tests(util.LoRATestCase):
                 "association_type": {
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
+                "substitute": {
+                    'uuid': "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+                },
                 "validity": {
-                    "from": "2018-04-01",
+                    "from": "2017-01-01",
                 },
             },
         }]
@@ -635,7 +663,7 @@ class Tests(util.LoRATestCase):
             '/service/ou/{}/details/association?only_primary_uuid=1'.format(unitid),
             [{
                 'association_type': {
-                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'uuid': 'bcd05828-cc10-48b1-bc48-2f0d204859b2',
                 },
                 'dynamic_classes': [],
                 'org_unit': {
@@ -647,14 +675,109 @@ class Tests(util.LoRATestCase):
                 'primary': None,
                 'user_key': 'bvn',
                 'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+                'substitute': {
+                    'uuid': "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+                },
                 'validity': {
                     'from': '2017-01-01',
-                    'to': '2018-03-31',
+                    'to': None,
                 },
             }],
             amqp_topics={
                 'employee.association.update': 1,
                 'org_unit.association.update': 1,
+            },
+        )
+
+    @patch(
+        "mora.readonly.conf_db.get_configuration",
+        return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
+    )
+    def test_edit_association_substitute(self, mock):
+        """Test that substitute field is removed when writing an association
+        type that is not meant to have substitutes"""
+        self.load_sample_structures()
+
+        # Check the POST request
+        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        req = [{
+            "type": "association",
+            "uuid": association_uuid,
+            'dynamic_classes': [],
+            "data": {
+                "association_type": {
+                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+                },
+                "substitute": {
+                    'uuid': "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [association_uuid],
+            json=req,
+            amqp_topics={
+                'employee.association.update': 1,
+                'org_unit.association.update': 1,
+            },
+        )
+
+        req = [{
+            "type": "association",
+            "uuid": association_uuid,
+            'dynamic_classes': [],
+            "data": {
+                "association_type": {
+                    'uuid': "46de8c9f-ecbe-4638-8b2b-386845729c9a"
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [association_uuid],
+            json=req,
+            amqp_topics={
+                'employee.association.update': 2,
+                'org_unit.association.update': 2,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/association?only_primary_uuid=1'.format(unitid),
+            [{
+                'association_type': {
+                    'uuid': '46de8c9f-ecbe-4638-8b2b-386845729c9a',
+                },
+                'dynamic_classes': [],
+                'org_unit': {
+                    'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                },
+                'person': {
+                    'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
+                },
+                'primary': None,
+                'user_key': 'bvn',
+                'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+                'substitute': None,
+                'validity': {
+                    'from': '2017-01-01',
+                    'to': None,
+                },
+            }],
+            amqp_topics={
+                'employee.association.update': 2,
+                'org_unit.association.update': 2,
             },
         )
 
@@ -838,6 +961,15 @@ class Tests(util.LoRATestCase):
                         }
                     }
                 ],
+                'tilknyttedefunktioner': [{
+                    'virkning': {
+                        'from': '2018-04-01 '
+                                '00:00:00+02',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
                 "tilknyttedeenheder": [
                     {
                         "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
@@ -916,6 +1048,7 @@ class Tests(util.LoRATestCase):
             },
             'primary': None,
             'user_key': 'bvn',
+            'substitute': None,
             'uuid': association_uuid,
             'validity': {
                 'from': '2018-04-01',
@@ -1076,6 +1209,7 @@ class Tests(util.LoRATestCase):
             },
             'primary': None,
             'user_key': 'bvn',
+            'substitute': None,
             'uuid': association_uuid,
             'validity': {
                 'from': '2018-04-01',

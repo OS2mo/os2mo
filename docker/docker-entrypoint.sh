@@ -10,8 +10,31 @@
 
 set -e
 
+# Migrate sessiondb
+echo "Migrating sessiondb"
 python3 -m mora.cli initdb --wait 30
-python3 -m mora.cli check-configuration-db-status
-python3 -m mora.cli wait-for-rabbitmq --seconds 30
+echo "OK"
+echo ""
 
+# Migrate conf_db
+echo "Migrating conf_db"
+cd backend/mora/conf_db
+alembic upgrade head
+cd ../../..
+echo "OK"
+echo ""
+
+# Check that DBs are up and ready
+echo "Checking db-status"
+python3 -m mora.cli check-configuration-db-status
+echo "OK"
+echo ""
+
+# Wait for rabbitmq to start
+echo "Waiting for rabbitmq"
+python3 -m mora.cli wait-for-rabbitmq --seconds 30
+echo "OK"
+echo ""
+
+echo "Initialization complete, starting app"
 exec "$@"
