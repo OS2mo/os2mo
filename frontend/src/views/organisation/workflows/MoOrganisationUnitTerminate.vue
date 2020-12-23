@@ -148,7 +148,7 @@ export default {
       if (this.formValid) {
         let vm = this
         vm.isLoading = true
-        OrganisationUnit.terminate(this.org_unit.uuid, this.terminate)
+        OrganisationUnit.terminate(this.org_unit.uuid, this.terminate, this.org_unit.name)
           .then(response => {
             vm.isLoading = false
             if (response.error) {

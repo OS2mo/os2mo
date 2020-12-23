@@ -75,7 +75,7 @@ test('Workflow: move unit', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Organisationsenheden med UUID [-0-9a-f]* er blevet flyttet/
+      /Organisationsenheden (.+) er blevet flyttet til (.+)\./
     )
 
     .expect(tree.find('.selected').exists)

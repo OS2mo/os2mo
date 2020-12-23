@@ -61,6 +61,6 @@ test('Workflow: leave employee', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* har fået tildelt orlov/
+      /Medarbejderen (.+) har fået tildelt orlov \((.+)\)\./
     )
 })

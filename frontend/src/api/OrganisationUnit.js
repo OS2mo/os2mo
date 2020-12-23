@@ -124,7 +124,8 @@ export default {
     return Service.post('/ou/create', create)
       .then(response => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE', value: response.data })
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE',
+            value: {name: create.name, parent: create.parent.name}})
         return response.data
       })
       .catch(error => {
@@ -154,8 +155,6 @@ export default {
 
   /**
    * Edit an organisation unit
-   * @param {String} uuid - organisation unit uuid
-   * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    */
   editEntry (edit) {
@@ -180,8 +179,6 @@ export default {
 
   /**
    * Rename a new organisation unit
-   * @param {String} uuid - organisation unit uuid
-   * @param {Array} edit - A list of elements to edit
    * @returns {Object} organisation unit uuid
    * @see edit
   */
@@ -194,19 +191,22 @@ export default {
 
   /**
    * Move a new organisation unit
-   * @param {String} uuid - organisation unit uuid
-   * @param {Array} edit - A list of elements to edit
+   * @param {Object} edit - containing the move-specs
+   * @param {string} human_readable_name - name of the moving unit
+   * @param {string} human_readable_new_parent - name of the new parent of the moving unit
    * @returns {Object} organisation unit uuid
    * @see edit
   */
-  move (edit) {
+  move (edit, human_readable_name, human_readable_new_parent) {
     return this.editEntry(edit)
       .then(response => {
         if (response.data.error) {
           return response.data
         }
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE', value: response.data })
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE',
+            value: {name: human_readable_name, parent: human_readable_new_parent} })
+
         return response.data
       })
   },
@@ -214,15 +214,18 @@ export default {
   /**
    * Terminate a organisation unit
    * @param {Object} uuid - the organisation unit to end
-   * @param {String} terminate - the date on which the organisation unit shall end
+   * @param {Object} terminate - the date on which the organisation unit shall end
+   * @param {String} human_readable_name - the name corresponding to the uuid
    * @returns {Object} organisation unit uuid
    */
-  terminate (uuid, terminate) {
+  terminate (uuid, terminate, human_readable_name) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
       .then(response => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE', value: response.data })
+        console.log(terminate)
+        store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE',
+            value: {name: human_readable_name, terminate: terminate.validity.to} })
         return response.data
       })
       .catch(error => {

@@ -32,7 +32,7 @@ const actions = {
     return Service.post(`/e/${state.employee.uuid}/terminate`, payload)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
-        commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: response.data }, { root: true })
+        commit('log/newWorkLog', { type: 'EMPLOYEE_TERMINATE', value: {name: state.employee.name} }, { root: true })
         commit('resetFields')
         return response.data
       })

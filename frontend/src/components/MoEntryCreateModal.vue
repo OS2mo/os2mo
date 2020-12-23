@@ -7,8 +7,8 @@ SPDX-License-Identifier: MPL-2.0
       v-b-modal="nameId"
       :disabled="disabled"
     >
-      <icon name="plus" />
-      {{$t('buttons.create_new')}}
+      <icon name="plus"/>
+      {{ $t('buttons.create_new') }}
     </button>
 
     <b-modal
@@ -20,30 +20,30 @@ SPDX-License-Identifier: MPL-2.0
       lazy
     >
 
-    <mo-input-date-range
-      v-model="validity"
-      :disabled-dates="{disabledDates}"
-    />
-
-    <form @submit.stop.prevent="create">
-      <mo-add-many
-        class="btn-address mt-3"
-        v-model="entries"
-        :entry-component="entryComponent"
-        :label="$tc('shared.add_more', 2)"
-        :hide-org-picker="hideOrgPicker"
-        :hide-employee-picker="hideEmployeePicker"
-        validity-hidden
+      <mo-input-date-range
+        v-model="validity"
+        :disabled-dates="{disabledDates}"
       />
 
-      <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
-      </div>
+      <form @submit.stop.prevent="create">
+        <mo-add-many
+          class="btn-address mt-3"
+          v-model="entries"
+          :entry-component="entryComponent"
+          :label="$tc('shared.add_more', 2)"
+          :hide-org-picker="hideOrgPicker"
+          :hide-employee-picker="hideEmployeePicker"
+          validity-hidden
+        />
 
-      <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
-      </div>
-    </form>
+        <div class="alert alert-danger" v-if="backendValidationError">
+          {{ $t('alerts.error.' + backendValidationError.error_key, backendValidationError) }}
+        </div>
+
+        <div class="float-right">
+          <button-submit :is-loading="isLoading"/>
+        </div>
+      </form>
     </b-modal>
   </div>
 </template>
@@ -88,7 +88,7 @@ export default {
     /**
      * Whether the button is disabled
      */
-    disabled: { type: Boolean, default: false },
+    disabled: {type: Boolean, default: false},
 
     /**
      * Defines a required type - employee or organisation unit.
@@ -96,7 +96,7 @@ export default {
     type: {
       type: String,
       required: true,
-      validator (value) {
+      validator(value) {
         if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
         console.warn('Action must be either EMPLOYEE or ORG_UNIT')
         return false
@@ -104,7 +104,7 @@ export default {
     }
   },
 
-  data () {
+  data() {
     return {
       /**
        * The entry, isLoading, backendValidationError component value.
@@ -122,39 +122,39 @@ export default {
     /**
      * Get name `moCreate`.
      */
-    nameId () {
+    nameId() {
       return 'moCreate' + this._uid
     },
 
     /**
      * If it has a entry component.
      */
-    hasEntryComponent () {
+    hasEntryComponent() {
       return this.entryComponent !== undefined
     },
 
     /**
      * Get hideOrgPicker type.
      */
-    hideOrgPicker () {
+    hideOrgPicker() {
       return this.type === 'ORG_UNIT'
     },
 
     /**
      * Get hideEmployeePicker type.
      */
-    hideEmployeePicker () {
+    hideEmployeePicker() {
       return this.type === 'EMPLOYEE'
     },
 
-    disabledDates () {
+    disabledDates() {
       if (this.type === 'ORG_UNIT') {
         return this.subject.validity;
       }
     }
   },
 
-  mounted () {
+  mounted() {
     /**
      * Whenever it changes, reset data.
      */
@@ -164,7 +164,7 @@ export default {
 
     switch (this.type) {
       case 'EMPLOYEE':
-        this.subject = { uuid: this.uuid }
+        this.subject = {uuid: this.uuid}
         break
       case 'ORG_UNIT':
         this.subject = this.$store.getters['organisationUnit/GET_ORG_UNIT']
@@ -172,7 +172,7 @@ export default {
     }
   },
 
-  beforeDestroy () {
+  beforeDestroy() {
     /**
      * Called right before a instance is destroyed.
      */
@@ -186,7 +186,7 @@ export default {
         if (this.type === 'EMPLOYEE') {
           val.forEach((entry) => {
             if (!entry.person) {
-              entry.person = { uuid: this.uuid }
+              entry.person = {uuid: this.uuid}
             }
           })
         }
@@ -198,7 +198,7 @@ export default {
     /**
      * Create a employee or organisation entry.
      */
-    create () {
+    create() {
       if (!this.formValid) {
         this.$validator.validateAll()
         return
@@ -216,13 +216,13 @@ export default {
       switch (this.type) {
         case 'EMPLOYEE':
           this.entries.forEach((entry) => {
-            entry.person = { uuid: this.uuid }
+            entry.person = {uuid: this.uuid}
           })
           this.createEmployeeEntries(this.entries)
           break
         case 'ORG_UNIT':
           this.entries.forEach((entry) => {
-            entry.org_unit = { uuid: this.uuid }
+            entry.org_unit = {uuid: this.uuid}
           })
           this.createOrganisationUnitEntries(this.entries)
           break
@@ -233,7 +233,7 @@ export default {
      * Create a list of entries for an employee
      * Then throw a error if not.
      */
-    createEmployeeEntries (data) {
+    createEmployeeEntries(data) {
       let vm = this
       Employee.create(data)
         .then(response => {
@@ -243,14 +243,15 @@ export default {
           } else {
             vm.$refs[this.nameId].hide()
             this.$emit('submit')
-
-            this.$store.commit('log/newWorkLog',
-              {
-                type: 'EMPLOYEE_CREATE',
-                contentType: this.contentType,
-                value: this.uuid
-              },
-              { root: true })
+            for (const dat of data) {
+              this.$store.commit('log/newWorkLog',
+                {
+                  type: 'FUNCTION_CREATE',
+                  contentType: this.contentType,
+                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
+                },
+                {root: true})
+            }
           }
         })
     },
@@ -259,7 +260,7 @@ export default {
      * Create list of entries for an organisational unit
      * Then throw a error if not.
      */
-    createOrganisationUnitEntries (data) {
+    createOrganisationUnitEntries(data) {
       let vm = this
       return OrganisationUnit.createEntry(data)
         .then(response => {
@@ -269,14 +270,15 @@ export default {
           } else {
             vm.$refs[this.nameId].hide()
             this.$emit('submit')
-
-            this.$store.commit('log/newWorkLog',
-              {
-                type: 'ORGANISATION_CREATE',
-                contentType: this.contentType,
-                value: this.uuid
-              },
-              { root: true })
+            for (const dat of data) {
+              this.$store.commit('log/newWorkLog',
+                {
+                  type: 'FUNCTION_CREATE',
+                  contentType: this.contentType,
+                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
+                },
+                {root: true})
+            }
           }
         })
     }

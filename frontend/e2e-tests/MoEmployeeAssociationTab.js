@@ -67,7 +67,7 @@ test('Workflow: employee association tab', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+      /Et "Tilknytning" felt er blevet oprettet\./
     )
 
     // Edit association
@@ -83,7 +83,7 @@ test('Workflow: employee association tab', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet redigeret/
+      /Et "Tilknytning" felt for (.+) er blevet redigeret\./
     )
 
     // Terminate association
@@ -100,7 +100,7 @@ test('Workflow: employee association tab', async t => {
 
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
-    .match(
-      /Tilknytning med UUID [-0-9a-f]* er blevet afsluttet pr./
-    )
+    .match(new RegExp(
+      `Et \"Tilknytning\" felt for (.+) er blevet afsluttet pr\. ${today.format('YYYY-MM-DD')}\.`
+    ))
 })

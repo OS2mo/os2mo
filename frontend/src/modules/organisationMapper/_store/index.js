@@ -23,11 +23,25 @@ const actions = {
       }
     )
       .then(result => {
-        commit('log/newWorkLog',
-          { type: 'ORGANISATION_EDIT', value: state.origin },
-          { root: true })
+        let names = new Set();
+        // init names
+        state.raw_destination.map(element => {
+            element.org_unit.map(unit => {
+                names.add(unit.name)
+            })
+        })
 
-        dispatch('GET_ORGANISATION_MAPPINGS')
+        dispatch('GET_ORGANISATION_MAPPINGS').then(response => {
+        // final names
+        state.raw_destination.map(element =>
+        element.org_unit.map(unit => names.add(unit.name)))
+        for (const name of names){
+          commit('log/newWorkLog',
+            {type: 'ORGANISATION_EDIT', value: {name: name}},
+            {root: true})
+        }
+
+        }) // catch outside
       })
       .catch(error => {
         commit('log/newError',
@@ -38,10 +52,15 @@ const actions = {
   },
 
   GET_ORGANISATION_MAPPINGS ({ state, commit }) {
-    Service.get(`/ou/${state.origin}/details/related_unit`)
+    return new Promise((resolve, reject) =>
+        Service.get(`/ou/${state.origin}/details/related_unit`)
       .then(response => {
         commit('SET_RAW_DESTINATION', response.data)
+        resolve()
+      }, error => {
+        reject(error)
       })
+    )
   }
 }
 

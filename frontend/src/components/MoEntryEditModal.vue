@@ -255,25 +255,47 @@ export default {
       } else {
         this.$refs[this.nameId].hide()
         this.$emit('submit')
-
         if (this.type === 'EMPLOYEE') {
-          this.$store.commit('log/newWorkLog',
+          if ('person' in this.entry) { // must be actual entry-edit
+            this.$store.commit('log/newWorkLog',
+            {
+              type: 'FUNCTION_EDIT',
+              contentType: this.contentType,
+              value: {
+                type: this.$tc(`shared.${this.entry.type}`, 1),
+                name: this.content.person.name
+              }               },
+            { root: true })
+                      } else { // must just be the person
+            this.$store.commit('log/newWorkLog',
             {
               type: 'EMPLOYEE_EDIT',
               contentType: this.contentType,
-              value: this.uuid
+              value: {name: this.entry.name}
             },
             { root: true })
-        }
-
-        if (this.type === 'ORG_UNIT') {
-          this.$store.commit('log/newWorkLog',
-            {
-              type: 'ORGANISATION_EDIT',
-              contentType: this.contentType,
-              value: this.uuid
-            },
-            { root: true })
+          }
+        } else if (this.type === 'ORG_UNIT') {
+          if ('org_unit' in this.entry) {
+            this.$store.commit('log/newWorkLog',
+              {
+                type: 'FUNCTION_EDIT',
+                contentType: this.contentType,
+                value: {
+                  type: this.$tc(`shared.${this.entry.type}`, 1),
+                  name: this.entry.org_unit.name
+                }
+              },
+              {root: true})
+          } else { // must just be the person
+            this.$store.commit('log/newWorkLog',
+              {
+                type: 'ORGANISATION_EDIT',
+                contentType: this.contentType,
+                value: {name: this.entry.name}
+              },
+              {root: true})
+          }
         }
       }
     }

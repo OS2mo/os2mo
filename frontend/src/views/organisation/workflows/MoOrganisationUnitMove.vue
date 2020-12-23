@@ -196,8 +196,7 @@ export default {
       if (this.formValid) {
         let vm = this
         vm.isLoading = true
-
-        OrganisationUnit.move(this.move)
+        OrganisationUnit.move(this.move, this.original.name, this.parent.name)
           .then(response => {
             vm.isLoading = false
             if (response.error) {

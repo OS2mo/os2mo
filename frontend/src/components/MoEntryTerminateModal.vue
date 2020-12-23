@@ -135,12 +135,11 @@ export default {
             this.isLoading = false
             this.$refs.functionTerminate.hide()
             this.$emit('submit')
-
             this.$store.commit('log/newWorkLog',
               { type: 'FUNCTION_TERMINATE',
                 value: {
                   type: this.$tc(`shared.${this.type}`, 1),
-                  uuid: this.payload.uuid,
+                  name: this.content.person.name,
                   date: this.payload.validity.to
                 }
               },
