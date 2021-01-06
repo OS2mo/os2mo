@@ -186,14 +186,15 @@ export default {
   },
 
   mounted () {
-    const vm = this
 
-    EventBus.$on(Events.UPDATE_TREE_VIEW, () => {
-      vm.updateTree(true)
-    })
-
+    EventBus.$on(Events.UPDATE_TREE_VIEW, this.listener)
     this.updateTree()
+
   },
+
+  beforeDestroy () {
+    EventBus.$off(Events.UPDATE_TREE_VIEW, this.listener)
+ },
 
   watch: {
     /**
@@ -209,6 +210,7 @@ export default {
       ) : []
 
       if (missing.length) {
+
         this.updateTree()
       } else {
         this.setSelection(newVal)
@@ -341,6 +343,7 @@ export default {
       this.tree.sort()
       this.setSelection(this.value)
       this.isLoading = false
+
     },
 
     /**
@@ -393,7 +396,6 @@ export default {
       if (force) {
         this.tree.remove({}, true)
       }
-
       if (this.multiple ? this.value.length > 0 : this.value) {
         this.get_ancestor_tree(this.value, this.atDate)
           .then(this.addNodes)
@@ -428,6 +430,9 @@ export default {
           throw error
         })
     },
+    listener(){
+      this.updateTree(true)
+    }
   }
 }
 </script>

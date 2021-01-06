@@ -206,7 +206,6 @@ export default {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE',
             value: {name: human_readable_name, parent: human_readable_new_parent} })
-
         return response.data
       })
   },
