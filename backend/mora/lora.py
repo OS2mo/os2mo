@@ -184,8 +184,8 @@ class Scope:
     async def fetch(self, **params):
         async with mora.async_util.async_session(
         ).get(self.base_path,
-              params=param_bools_to_strings({**self.connector.defaults, **params}),
-              ssl=mora.async_util.ssl_context) as response:
+              params=param_bools_to_strings(
+                  {**self.connector.defaults, **params})) as response:
 
             await _check_response(response)
 
@@ -319,8 +319,7 @@ class Scope:
         if uuid:
             async with mora.async_util.async_session(
             ).put('{}/{}'.format(self.base_path, uuid),
-                  json=obj,
-                  ssl=mora.async_util.ssl_context) as r:
+                  json=obj) as r:
 
                 async with r:
                     await _check_response(r)
@@ -328,21 +327,18 @@ class Scope:
         else:
             async with mora.async_util.async_session(
             ).post(self.base_path,
-                   json=obj,
-                   ssl=mora.async_util.ssl_context) as r:
+                   json=obj) as r:
                 await _check_response(r)
                 return (await r.json())['uuid']
 
     async def delete(self, uuid):
         async with mora.async_util.async_session(
-        ).delete('{}/{}'.format(self.base_path, uuid),
-                 ssl=mora.async_util.ssl_context) as response:
+        ).delete('{}/{}'.format(self.base_path, uuid)) as response:
             await _check_response(response)
 
     async def update(self, obj, uuid):
         async with mora.async_util.async_session(
-        ).patch('{}/{}'.format(self.base_path, uuid), json=obj,
-                ssl=mora.async_util.ssl_context) as response:
+        ).patch('{}/{}'.format(self.base_path, uuid), json=obj) as response:
             await _check_response(response)
             return (await response.json())['uuid']
 
@@ -366,7 +362,7 @@ class Scope:
 
 async def get_version():
     async with mora.async_util.async_session(
-    ).get(settings.LORA_URL + "version", ssl=mora.async_util.ssl_context) as response:
+    ).get(settings.LORA_URL + "version") as response:
         try:
             return (await response.json())["lora_version"]
         except ValueError:

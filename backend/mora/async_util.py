@@ -2,28 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import asyncio
-import os
-import ssl
 import typing
 from functools import wraps
 
 from aiohttp import ClientSession
 
-from mora import settings
-
-# DROPPED: SAMLAuth() when switching to async
+# DROPPED: SAMLAuth() when switching to async (from requests to aiohttp)
 # session.auth = flask_saml_sso.SAMLAuth()
 
 # const
-ssl_context = None
-if settings.CA_BUNDLE:
-    if os.path.isdir(settings.CA_BUNDLE):
-        ssl_context = ssl.create_default_context(capath=settings.CA_BUNDLE)
-    elif os.path.isfile(settings.CA_BUNDLE):
-        ssl_context = ssl.create_default_context(capath=settings.CA_BUNDLE)
-    else:
-        raise Exception(f'unexpected settings.CA_BUNDLE format: {settings.CA_BUNDLE}')
-
 headers = {
     'User-Agent': 'MORA/0.1',
 }
@@ -71,7 +58,7 @@ async def __session_context_helper(awaitable) -> typing.Any:
 
 def async_to_sync(f):
     """
-    Decorator-designed, for 'converting' an async function to a sync.
+    Decorator-designed, for 'converting' an async function to a sync function.
     Cannot be used from within an event loop (nested loops are not allowed by asyncio)
     """
 
