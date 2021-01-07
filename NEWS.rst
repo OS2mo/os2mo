@@ -14,6 +14,7 @@ New features
 * #39856: Changed log messages from uuid to human readable, no functionality changed
 * #40170: Fix bug in frontend, allowing better performance when moving organisations
 * #40169: Ported lora connection to async, thereby achieving better performance
+* #39316: Addresses using TEXT scope are now displayed and edited as multiline text
 
 Version 1.11.0, 2020-12-14
 ==========================

@@ -403,6 +403,117 @@ class Writing(util.LoRATestCase):
             mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
+    def test_add_org_unit_address_contact_open_hours(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unitid = '2874e1dc-85e6-4269-823a-e1125484dfd3'  # root org
+
+        # matches 'org_unit_contactopenhours'
+        addr_type_id = 'e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b'
+
+        # Example "Træffetid", original and encoded as URN
+        addr_value = 'Åbningstider:\nMan-tors: 09:00-15:30\nFre: 09:00-13:00'
+        addr_value_as_urn = 'urn:text:%c3%85bningstider%3a%0a%4dan%2dtors%3a%2009%3a00%2d15%3a30%0a%46re%3a%2009%3a00%2d13%3a00'  # noqa: E501
+
+        addr_id, = self.assertRequest(
+            '/service/details/create',
+            json=[
+                {
+                    "type": "address",
+                    'address_type': {
+                        'uuid': addr_type_id,
+                    },
+                    'value': addr_value,
+                    "org_unit": {
+                        "uuid": unitid
+                    },
+                    "validity": {
+                        "from": "2017-01-02",
+                    },
+                },
+            ],
+            amqp_topics={'org_unit.address.create': 1},
+        )
+
+        expected = {
+            'attributter': {
+                'organisationfunktionegenskaber': [{
+                    'brugervendtnoegle': addr_value,
+                    'funktionsnavn': 'Adresse',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Importeret',
+            'note': 'Oprettet i MO',
+            'relationer': {
+                'adresser': [{
+                    'objekttype': 'TEXT',
+                    'urn': addr_value_as_urn,
+                    'virkning': {
+                        'from': '2017-01-02 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': addr_type_id,
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        self.assertRegistrationsEqual(
+            expected,
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        )
+
     def test_add_employee_address(self, mock):
         self.load_sample_structures()
 

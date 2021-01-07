@@ -12,9 +12,7 @@ SPDX-License-Identifier: MPL-2.0
       <router-link v-else-if="part.target" class="link-color" :to="part.target">
         {{ part.text }}
       </router-link>
-      <span v-else>
-        {{ part.text }}
-      </span>
+      <span v-else class="multiline">{{ part.text }}</span>
     </li>
   </ul>
 </template>
@@ -206,5 +204,8 @@ export default {
 ul {
   list-style-type: none;
   padding: 0;
+}
+.multiline {
+  white-space: pre-wrap;
 }
 </style>

@@ -1587,7 +1587,7 @@ class Tests(util.LoRATestCase):
             'org_unit_address_type/',
             {'data': {
                 'offset': 0,
-                'total': 4,
+                'total': 5,
                 'items': [
                     {'example': '20304060',
                      'name': 'Telefon',
@@ -1613,6 +1613,15 @@ class Tests(util.LoRATestCase):
                      'scope': 'EAN',
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
+                    {'example':
+                        'Åbningstider:\n'
+                        'Man-tors: 09:00-15:30\n'
+                        'Fre: 09:00-13:00',
+                     'name': 'Træffetid',
+                     'owner': None,
+                     'scope': 'TEXT',
+                     'user_key': 'ContactOpenHours',
+                     'uuid': 'e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b'},
                 ]},
                 'description': '',
                 'path': '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62'
