@@ -8,18 +8,22 @@ import json
 import os
 import pprint
 import re
+from typing import Union
 from unittest.mock import patch
+from urllib.parse import parse_qsl
 
 import flask
 import flask_testing
 import jinja2
 import requests
 import requests_mock
+import aioresponses
+from yarl import URL
 
 from mora import triggers, app, lora, settings, service, conf_db
 from mora.exceptions import ImproperlyConfigured
 from mora.util import restrictargs
-
+from mora.async_util import async_to_sync
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -69,17 +73,17 @@ def get_mock_data(mock_name):
     return jsonfile_to_dict(os.path.join(MOCKING_DIR, mock_name))
 
 
-def load_fixture(path, fixture_name, uuid=None, **kwargs):
+async def load_fixture(path, fixture_name, uuid=None, **kwargs):
     '''Load a fixture, i.e. a JSON file with the 'fixtures' directory,
     into LoRA at the given path & UUID.
 
     '''
     scope = lora.Scope(lora.Connector(), path)
-    r = scope.create(get_fixture(fixture_name, **kwargs), uuid)
+    r = await scope.create(get_fixture(fixture_name, **kwargs), uuid)
     return r
 
 
-def load_sample_structures(minimal=False):
+async def load_sample_structures(minimal=False):
     '''Inject our test data into LoRA.
 
     '''
@@ -169,7 +173,6 @@ def load_sample_structures(minimal=False):
             'løn': 'b1f69701-86d8-496e-a3f1-ccef18ac1958',
             # L2
             'social_og_sundhed_løn': '5942ce50-2be8-476f-914b-6769a888a7c8',
-
 
             'hist': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
             'frem': '04c78fc2-72d2-4d02-b55f-807af19eac48',
@@ -279,7 +282,7 @@ def load_sample_structures(minimal=False):
         ))
 
     for path, fixture_name, uuid in fixtures:
-        load_fixture(path, fixture_name, uuid)
+        await load_fixture(path, fixture_name, uuid)
 
 
 def create_app():
@@ -292,10 +295,11 @@ def create_app():
 
     @app_object.route("/testing/testcafe-db-setup")
     @restrictargs()
-    def _testcafe_db_setup():
+    @async_to_sync
+    async def _testcafe_db_setup():
         _mox_testing_api("db-setup")
 
-        load_sample_structures()
+        await load_sample_structures()
 
         return flask.jsonify({"testcafe-db-setup": True})
 
@@ -403,6 +407,7 @@ class _BaseTestCase(flask_testing.TestCase):
         def amqp_publish_message_mock(service, object_type, action, __, ___):
             topic = '{}.{}.{}'.format(service, object_type, action)
             self.amqp_counter[topic] += 1
+
         triggers.internal.amqp_trigger.publish_message = (
             amqp_publish_message_mock
         )
@@ -610,8 +615,9 @@ class LoRATestCase(_BaseTestCase):
     instance, and deletes all objects between runs.
     '''
 
-    def load_sample_structures(self, minimal=False):
-        load_sample_structures(minimal)
+    @async_to_sync
+    async def load_sample_structures(self, minimal=False):
+        await load_sample_structures(minimal)
 
     @classmethod
     def setUpClass(cls):
@@ -650,3 +656,47 @@ class ConfigTestCase(LoRATestCase):
     def tearDown(self):
         conf_db.drop_db()
         super().tearDown()
+
+
+class MockAioresponses(aioresponses.aioresponses):
+
+    def __init__(self, names=None, override_lora=True, **kwargs):
+        self.__overrider = override_lora_url()
+        self.__names = names
+        self.__kwargs = kwargs
+        self.__override_lora = override_lora
+        self.__names_need_init = True
+        super().__init__(**kwargs)
+
+    def __enter__(self):
+        if self.__override_lora:
+            self.__overrider.__enter__()
+
+        ret = super().__enter__()
+        if self.__names_need_init:  # lazy init, need to wait for __enter__
+            self.__names_need_init = False
+            if self.__names:
+                if not isinstance(self.__names, (list, tuple)):
+                    self.__names = [self.__names]
+
+                # inject the fixture
+                for name in self.__names:
+                    for url, value in get_mock_data(name).items():
+                        encoded_url = URL(url, encoded=True)
+                        self.get(encoded_url, payload=value)
+
+        return ret
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.__override_lora:
+            self.__overrider.__exit__(None, None, None)
+        return super().__exit__(exc_type, exc_val, exc_tb)
+
+
+def modified_normalize_url(url: Union[URL, str]) -> URL:
+    """Normalize url to make comparisons."""
+    url = URL(url)
+    return url.with_query(sorted(parse_qsl(url.query_string)))
+
+
+aioresponses.core.normalize_url = modified_normalize_url

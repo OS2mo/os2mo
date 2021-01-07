@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
+from yarl import URL
 
+import mora.async_util
 from mora import common
 from mora import exceptions
 from mora import util as mora_util
@@ -1799,22 +1801,23 @@ class TestClass(util.TestCase):
         self.assertEqual(expected_result, actual_result)
 
     @freezegun.freeze_time('2018-01-01')
-    @util.mock()
+    @util.MockAioresponses()
     def test_history_missing(self, mock):
         userid = '00000000-0000-0000-0000-000000000000'
 
         mock.get(
-            'http://mox/organisation/bruger'
-            '?uuid=' + userid +
-            '&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00'
-            '&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00',
-            json={
+            URL('http://mox/organisation/bruger'
+                '?uuid=' + userid +
+                '&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00'
+                '&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00'
+                '&konsolider=True', encoded=True),
+            payload={
                 "results": [],
             },
         )
 
         with self.assertRaises(exceptions.HTTPException) as cm:
-            common.add_history_entry(
+            mora.async_util.async_to_sync(common.add_history_entry)(
                 lora.Connector().bruger,
                 userid,
                 'kaflaflibob',

@@ -15,6 +15,7 @@ import uuid
 
 import flask
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -37,7 +38,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
-        system = c.itsystem.get(systemid)
+        system = mora.async_util.async_to_sync(c.itsystem.get)(systemid)
 
         if not system:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -48,8 +49,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -58,13 +59,16 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if org_unit:
-            validator.is_date_range_in_org_unit_range(org_unit,
-                                                      valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+                org_unit,
+                valid_from,
+                valid_to)
 
         if employee:
-            validator.is_date_range_in_employee_range(employee, valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee,
+                valid_from,
+                valid_to)
 
         # TODO: validate that the date range is in
         # the validity of the IT system!
@@ -93,7 +97,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=function_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=function_uuid)
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -191,7 +196,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
 @blueprint.route('/o/<uuid:orgid>/it/')
 @util.restrictargs('at')
-def list_it_systems(orgid: uuid.UUID):
+@mora.async_util.async_to_sync
+async def list_it_systems(orgid: uuid.UUID):
     '''List the IT systems available within the given organisation.
 
     :param uuid orgid: Restrict search to this organisation.
@@ -240,11 +246,11 @@ def list_it_systems(orgid: uuid.UUID):
 
     return flask.jsonify(
         list(itertools.starmap(convert,
-                               c.itsystem.get_all(tilhoerer=orgid))),
+                               await c.itsystem.get_all(tilhoerer=orgid))),
     )
 
 
-def get_one_itsystem(c, systemid, system=None):
+async def get_one_itsystem(c: lora.Connector, systemid, system=None):
     '''Obtain the list of engagements corresponding to a user.
 
     .. :quickref: IT system; Get by user
@@ -321,7 +327,7 @@ def get_one_itsystem(c, systemid, system=None):
         }
 
     if not system:
-        system = c.itsystem.get(systemid)
+        system = await c.itsystem.get(systemid)
 
         if not system or not util.is_reg_valid(system):
             return None

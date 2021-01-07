@@ -10,6 +10,7 @@ This section describes how to interact with employee leave.
 '''
 import uuid
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -29,8 +30,8 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
                                                 required=True)
@@ -42,11 +43,14 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
-        validator.is_date_range_in_employee_range(employee, valid_from,
-                                                  valid_to)
-        validator.does_employee_have_active_engagement(employee_uuid,
-                                                       valid_from,
-                                                       valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            valid_from,
+            valid_to)
+        mora.async_util.async_to_sync(validator.does_employee_have_active_engagement)(
+            employee_uuid,
+            valid_from,
+            valid_to)
 
         leave = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.LEAVE_KEY,
@@ -68,7 +72,8 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         leave_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=leave_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=leave_uuid)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -147,10 +152,14 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_employee_range(employee, new_from,
-                                                  new_to)
-        validator.does_employee_have_active_engagement(employee_uuid, new_from,
-                                                       new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            new_from,
+            new_to)
+
+        mora.async_util.async_to_sync(validator.does_employee_have_active_engagement)(
+            employee_uuid, new_from,
+            new_to)
 
         self.payload = payload
         self.uuid = leave_uuid

@@ -32,7 +32,6 @@ import sys
 
 import toml
 
-
 logger = logging.getLogger(__name__)
 
 DEPRECATED_SETTINGS = {
@@ -243,7 +242,6 @@ app_config = {
         config["saml_sso"]["api_token_restrict_value"],
 }
 
-
 # All these variables are kept for backward compatibility / to change the least
 # code. From now on, use the ``config`` object in this module. At this point,
 # it would be fine to go through the code and get rid of the old variables,
@@ -253,7 +251,7 @@ app_config = {
 DEFAULT_PAGE_SIZE = config['lora']['default_page_size']
 TREE_SEARCH_LIMIT = config['lora']['tree_search_limit']
 LORA_URL = config['lora']['url']
-CA_BUNDLE = config['ca_bundle']
+# CA_BUNDLE = config['ca_bundle']  DEPRECATED
 AUTOCOMPLETE_ACCESS_ADDRESS_COUNT = (
     config['autocomplete']['access_address_count'])
 AUTOCOMPLETE_ADDRESS_COUNT = config['autocomplete']['address_count']

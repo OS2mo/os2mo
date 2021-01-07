@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''Utility methods
+""""
+Utility methods
 ---------------
 
 This module contains various utility methods, i.e. a collection of
 various small functions used in many places.
 
-'''
-
+"""
 
 import collections
 import copy
@@ -32,6 +32,7 @@ import dateutil.parser
 import dateutil.tz
 import werkzeug.routing
 import logging
+
 from mora import conf_db
 
 from . import exceptions
@@ -55,7 +56,7 @@ _tzinfos = {
     None: DEFAULT_TIMEZONE,
     0: dateutil.tz.tzutc,
     1 * 60 ** 2: DEFAULT_TIMEZONE,
-    2 * 60**2: DEFAULT_TIMEZONE,
+    2 * 60 ** 2: DEFAULT_TIMEZONE,
 }
 
 logger = logging.getLogger(__name__)
@@ -142,7 +143,7 @@ def to_iso_time(s):
     )
 
 
-def to_iso_date(s, is_end: bool=False):
+def to_iso_date(s, is_end: bool = False):
     '''Return an ISO 8601 string representing date given by ``s``.
 
     We round times up or down, depending on whether ``is_end`` is set.
@@ -205,7 +206,7 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-def restrictargs(*allowed: str, required: typing.Iterable[str]=None):
+def restrictargs(*allowed: str, required: typing.Iterable[str] = None):
     '''Function decorator for checking and verifying Flask request arguments
 
     If any argument other than those listed is set and has a value,
@@ -415,9 +416,9 @@ def checked_get(
     mapping: D,
     key: K,
     default: V,
-    fallback: D=None,
-    required: bool=False,
-    can_be_empty: bool=True,
+    fallback: D = None,
+    required: bool = False,
+    can_be_empty: bool = True,
 ) -> V:
     """
     Get a value from a parsed JSON object, verifying that the value is of the
@@ -492,10 +493,10 @@ def checked_get(
 
 def get_uuid(
     mapping: D,
-    fallback: D=None,
+    fallback: D = None,
     *,
-    required: bool=True,
-    key: typing.Hashable=mapping.UUID
+    required: bool = True,
+    key: typing.Hashable = mapping.UUID
 ) -> typing.Optional[str]:
     v = checked_get(mapping, key, '', fallback=fallback, required=required)
 
@@ -533,9 +534,9 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
 
 def get_urn(
     mapping: D,
-    fallback: D=None,
+    fallback: D = None,
     *,
-    key: typing.Hashable=mapping.URN
+    key: typing.Hashable = mapping.URN
 ) -> str:
     v = checked_get(mapping, key, '', fallback=fallback, required=True)
 
@@ -573,7 +574,7 @@ T = typing.TypeVar('T')
 def get_obj_value(obj,
                   path: typing.Tuple[str, str],
                   filter_fn: typing.Callable[[dict], bool] = None,
-                  default: T=None) -> typing.Optional[T]:
+                  default: T = None) -> typing.Optional[T]:
     try:
         props = functools.reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
@@ -720,8 +721,8 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         )
 
 
-def get_validities(obj, fallback=None) -> typing.Tuple[
-        datetime.datetime, datetime.datetime]:
+def get_validities(obj, fallback=None) -> typing.Tuple[datetime.datetime,
+                                                       datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:
@@ -786,5 +787,6 @@ def get_args_flag(name: str):
 
 class StrUUIDConverter(werkzeug.routing.UUIDConverter):
     """Custom URL converter returning UUIDs as strings rather than UUIDs"""
+
     def to_python(self, value):
         return str(value)

@@ -8,9 +8,11 @@ Related Units
 This section describes how to interact with related units.
 
 '''
+from asyncio import gather, create_task
 
 import flask
 
+import mora.async_util
 from . import handlers
 from .. import common, readonly
 from .. import exceptions
@@ -42,7 +44,8 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
 @blueprint.route('/ou/<uuid:origin>/map', methods=['POST'])
 @util.restrictargs()
 @readonly.check_read_only
-def map_org_units(origin):
+@mora.async_util.async_to_sync
+async def map_org_units(origin):
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
@@ -110,7 +113,7 @@ def map_org_units(origin):
                                         required=True))
 
     wanted_units = {origin} | destinations
-    units = dict(c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))
+    units = dict(await c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))
 
     if len(units) != len(wanted_units):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
@@ -121,8 +124,8 @@ def map_org_units(origin):
         unitid
         for unitid, unit in units.items()
         for state in util.get_states(unit)
-        if util.get_effect_to(state) == util.POSITIVE_INFINITY and
-        state['gyldighed'] == 'Aktiv'
+        if util.get_effect_to(state) == util.POSITIVE_INFINITY and state[
+            'gyldighed'] == 'Aktiv'
     }
 
     if wanted_units - good:
@@ -134,7 +137,7 @@ def map_org_units(origin):
 
     preexisting = {
         unitid: funcid
-        for funcid, func in c.organisationfunktion.get_all(
+        for funcid, func in await c.organisationfunktion.get_all(
             funktionsnavn=mapping.RELATED_UNIT_KEY,
             tilknyttedeenheder=origin,
             gyldighed='Aktiv',
@@ -172,12 +175,12 @@ def map_org_units(origin):
 
     return flask.jsonify({
         'deleted': sorted(
-            c.organisationfunktion.update(req, funcid)
-            for funcid, req in edits.items()
+            await gather(*[create_task(c.organisationfunktion.update(req, funcid))
+                           for funcid, req in edits.items()])
         ),
         'added': sorted(
-            c.organisationfunktion.create(req)
-            for req in creations
+            await gather(*[create_task(c.organisationfunktion.create(req))
+                           for req in creations])
         ),
         'unchanged': sorted(destinations & preexisting.keys())
     })

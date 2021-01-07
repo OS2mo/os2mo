@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
+from asyncio import create_task, gather
 from typing import Tuple, List, Union
 
 from .. import reading
@@ -22,7 +23,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         c = common.get_connector()
 
         person = mapping.USER_FIELD.get_uuid(effect)
@@ -35,18 +36,28 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
-        base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
+        base_obj = create_task(
+            super().get_mo_object_from_effect(effect, start, end, funcid))
+
+        person_task = create_task(employee.get_one_employee(c, person))
+        org_unit_task = create_task(
+            orgunit.get_one_orgunit(c, org_unit, details=orgunit.UnitDetails.MINIMAL))
+        job_function_task = create_task(facet.get_one_class_full(c, job_function))
+        engagement_type_task = create_task(facet.get_one_class_full(c, engagement_type))
+
+        if primary:
+            primary_task = create_task(facet.get_one_class_full(c, primary))
+
+        is_primary_task = create_task(cls._is_primary(c, person, primary))
 
         r = {
-            **base_obj,
-            mapping.PERSON: employee.get_one_employee(c, person),
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit, details=orgunit.UnitDetails.MINIMAL
-            ),
-            mapping.JOB_FUNCTION: facet.get_one_class_full(c, job_function),
-            mapping.ENGAGEMENT_TYPE: facet.get_one_class_full(c, engagement_type),
-            mapping.PRIMARY: facet.get_one_class_full(c, primary) if primary else None,
-            mapping.IS_PRIMARY: cls._is_primary(c, person, primary),
+            **await base_obj,
+            mapping.PERSON: await person_task,
+            mapping.ORG_UNIT: await org_unit_task,
+            mapping.JOB_FUNCTION: await job_function_task,
+            mapping.ENGAGEMENT_TYPE: await engagement_type_task,
+            mapping.PRIMARY: (await primary_task) if primary else None,
+            mapping.IS_PRIMARY: await is_primary_task,
             mapping.FRACTION: fraction,
             **cls._get_extension_fields(extensions),
         }
@@ -68,7 +79,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         }
 
     @classmethod
-    def _is_primary(
+    async def _is_primary(
         cls, c: lora.Connector, person: str, primary: str
     ) -> Union[bool, None]:
         """
@@ -91,12 +102,16 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         if not util.get_args_flag("calculate_primary"):
             return None
 
-        engagements = [
-            effect
-            for _, obj in cls.get_lora_object(c, {'tilknyttedebrugere': person})
-            for _, _, effect in cls.get_effects(c, obj)
-            if util.is_reg_valid(effect)
-        ]
+        objs = [obj for _, obj in
+                await cls.get_lora_object(c, {'tilknyttedebrugere': person})]
+
+        effect_tuples_list = await gather(*[create_task(cls.get_effects(c, obj))
+                                            for obj in objs])
+
+        # flatten and filter
+        engagements = [effect for effect_tuples in effect_tuples_list
+                       for _, _, effect in
+                       effect_tuples if util.is_reg_valid(effect)]
 
         # If only engagement
         if len(engagements) <= 1:
@@ -106,14 +121,15 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             mapping.PRIMARY_FIELD.get_uuid(engagement) for engagement in engagements
         ]
 
-        sorted_classes = cls._get_sorted_primary_class_list(c)
+        sorted_classes = await cls._get_sorted_primary_class_list(c)
 
         for class_id, _ in sorted_classes:
             if class_id in engagement_primary_uuids:
                 return class_id == primary
 
     @classmethod
-    def _get_sorted_primary_class_list(cls, c: lora.Connector) -> List[Tuple[str, int]]:
+    async def _get_sorted_primary_class_list(cls, c: lora.Connector) -> \
+            List[Tuple[str, int]]:
         """
         Return a list of primary classes, sorted by priority in the "scope"
         field
@@ -123,12 +139,12 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         :return A sorted list of tuples of (uuid, scope) for all available
         primary classes
         """
-        facet_id = c.facet(bvn='primary_type')[0]
+        facet_id = (await c.facet.fetch(bvn='primary_type'))[0]
 
-        classes = [
-            facet.get_one_class_full(c, class_id, class_obj)
-            for class_id, class_obj in (c.klasse.get_all(facet=facet_id))
-        ]
+        classes = await gather(*[
+            create_task(facet.get_one_class_full(c, class_id, class_obj))
+            for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
+        ])
 
         # We always expect the scope value to be an int, for sorting
         try:
@@ -139,6 +155,6 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             )
 
         # Sort based on scope values, higher is better
-        sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True,)
+        sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True, )
 
         return sorted_classes

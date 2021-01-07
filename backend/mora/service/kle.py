@@ -4,6 +4,7 @@
 import flask
 import uuid
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -28,8 +29,8 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         kle_aspects = util.checked_get(
             req, mapping.KLE_ASPECT, [], required=True, can_be_empty=False
@@ -51,9 +52,10 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range(req[mapping.ORG_UNIT],
-                                                      valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+                req[mapping.ORG_UNIT],
+                valid_from,
+                valid_to)
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.KLE_KEY,
@@ -78,7 +80,8 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=function_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=function_uuid)
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -174,5 +177,6 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         })
 
         if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},
-                                                      new_from, new_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+                {'uuid': org_unit_uuid},
+                new_from, new_to)

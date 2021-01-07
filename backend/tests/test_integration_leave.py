@@ -4,6 +4,7 @@
 import freezegun
 from unittest.mock import patch
 
+import mora.async_util
 from mora import lora
 from tests import util
 
@@ -266,7 +267,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_leave = c.organisationfunktion.get(leave_uuid)
+        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            leave_uuid)
 
         # drop lora-generated timestamps & users
         del actual_leave['fratidspunkt'], actual_leave[

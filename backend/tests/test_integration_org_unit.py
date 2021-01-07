@@ -7,11 +7,11 @@ import freezegun
 import notsouid
 from unittest.mock import patch
 
+import mora.async_util
 from mora import lora
 from . import util
 
 mock_uuid = 'f494ad89-039d-478e-91f2-a63566554bd6'
-
 
 org_unit_type_facet = {
     'description': '',
@@ -769,9 +769,9 @@ class Tests(util.LoRATestCase):
                     "address_type": {
                         "example": "<UUID>",
                         "name": "Adresse",
-                            "scope": "DAR",
-                            "user_key": "Adresse",
-                            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                        "scope": "DAR",
+                        "user_key": "Adresse",
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
                     },
                     "org": {
                         "name": "Aarhus Universitet",
@@ -883,7 +883,7 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        actual_org_unit = c.organisationenhed.get(unitid)
+        actual_org_unit = mora.async_util.async_to_sync(c.organisationenhed.get)(unitid)
 
         self.assertRegistrationsEqual(expected, actual_org_unit)
 
@@ -1175,7 +1175,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1361,7 +1361,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1379,7 +1379,7 @@ class Tests(util.LoRATestCase):
                 '/service/details/edit',
                 {
                     'description': 'Date range exceeds validity range of '
-                    'associated org unit.',
+                                   'associated org unit.',
                     'error': True,
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -1406,7 +1406,7 @@ class Tests(util.LoRATestCase):
                 '/service/details/edit',
                 {
                     'description': 'Date range exceeds validity range of '
-                    'associated org unit.',
+                                   'associated org unit.',
                     'error': True,
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
@@ -1476,11 +1476,10 @@ class Tests(util.LoRATestCase):
                 list(names),
                 [
                     (d["name"], d["validity"]["from"], d["validity"]["to"])
-                    for d in self.assertRequest(
-                        "/service/ou/{}/details/org_unit?validity=future"
-                        .format(unitid),
-                        amqp_topics=topics,
-                    )
+                    for d in self.assertRequest("/service/ou/{}/details/org_unit?"
+                                                "validity=future".format(unitid),
+                                                amqp_topics=topics,
+                                                )
                 ],
             )
 
@@ -1694,7 +1693,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1928,7 +1927,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1956,8 +1955,7 @@ class Tests(util.LoRATestCase):
         )
 
         response = self.assertRequest(
-            '/service/ou/{}/details/org_unit?validity=present'
-            .format(org_unit_uuid),
+            '/service/ou/{}/details/org_unit?validity=present'.format(org_unit_uuid),
             amqp_topics={'org_unit.org_unit.update': 1},
         )
 
@@ -1994,7 +1992,7 @@ class Tests(util.LoRATestCase):
 
         org_unit_uuid = 'cbe3016f-b0ab-4c14-8265-ba4c1b3d17f6'
 
-        util.load_fixture(
+        mora.async_util.async_to_sync(util.load_fixture)(
             'organisation/organisationenhed',
             'create_organisationenhed_samf.json', org_unit_uuid)
 
@@ -2162,7 +2160,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -2271,7 +2269,7 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -2357,7 +2355,7 @@ class Tests(util.LoRATestCase):
                 '/service/details/edit',
                 {
                     'description': 'Date range exceeds validity range of '
-                    'associated org unit.',
+                                   'associated org unit.',
                     'error': True,
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
@@ -2384,7 +2382,7 @@ class Tests(util.LoRATestCase):
                 '/service/details/edit',
                 {
                     'description': 'Date range exceeds validity range of '
-                    'associated org unit.',
+                                   'associated org unit.',
                     'error': True,
                     'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                     'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
@@ -2438,12 +2436,12 @@ class Tests(util.LoRATestCase):
             json=req)
 
     def test_move_org_unit_wrong_org(self):
-        'Verify that we cannot move a unit into another organisation'
+        """Verify that we cannot move a unit into another organisation"""
 
         self.load_sample_structures()
 
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
-        other_org_uuid = util.load_fixture(
+        other_org_uuid = mora.async_util.async_to_sync(util.load_fixture)(
             'organisation/organisation',
             'create_organisation_AU.json',
         )
@@ -2454,13 +2452,14 @@ class Tests(util.LoRATestCase):
         other_unit['relationer']['tilhoerer'][0]['uuid'] = other_org_uuid
         other_unit['relationer']['overordnet'][0]['uuid'] = other_org_uuid
 
-        other_unit_uuid = c.organisationenhed.create(other_unit)
+        other_unit_uuid = mora.async_util.async_to_sync(c.organisationenhed.create)(
+            other_unit)
 
         self.assertRequestResponse(
             '/service/details/edit',
             {
                 'description': 'Unit belongs to an organisation different '
-                'from the current one.',
+                               'from the current one.',
                 'error': True,
                 'error_key': 'V_UNIT_OUTSIDE_ORG',
                 'org_unit_uuid': other_unit_uuid,
@@ -2492,7 +2491,7 @@ class Tests(util.LoRATestCase):
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
         c = lora.Connector()
-        c.organisationenhed.update(
+        mora.async_util.async_to_sync(c.organisationenhed.update)(
             {
                 'relationer': {
                     'overordnet': [{
@@ -2508,7 +2507,9 @@ class Tests(util.LoRATestCase):
         )
 
         self.assertEqual(
-            c.organisationenhed.get(root_uuid)['relationer']['overordnet'],
+            (mora.async_util.async_to_sync(c.organisationenhed.get)(root_uuid))[
+                'relationer'][
+                'overordnet'],
             [{
                 'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
                 'virkning': {
@@ -2524,7 +2525,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             {
                 'description': 'Org unit cannot be moved to one of its own '
-                'child units',
+                               'child units',
                 'error': True,
                 'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
                 'status': 400,
@@ -2549,7 +2550,7 @@ class Tests(util.LoRATestCase):
             '/service/details/edit',
             {
                 'description': 'Org unit cannot be moved to one of its own '
-                'child units',
+                               'child units',
                 'error': True,
                 'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
                 'status': 400,
@@ -2879,7 +2880,7 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'description': 'Date range exceeds validity range of '
-                'associated org unit.',
+                               'associated org unit.',
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
@@ -2904,7 +2905,7 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'description': 'Date range exceeds validity range of '
-                'associated org unit.',
+                               'associated org unit.',
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
@@ -2929,7 +2930,7 @@ class Tests(util.LoRATestCase):
             ),
             {
                 'description': 'Date range exceeds validity range of '
-                'associated org unit.',
+                               'associated org unit.',
                 'error': True,
                 'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
                 'status': 400,
@@ -2955,8 +2956,9 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # alas, this import fails due to overzealous validation :(
-        unitid = util.load_fixture('organisation/organisationenhed',
-                                   'very-edited-unit.json')
+        unitid = mora.async_util.async_to_sync(util.load_fixture)(
+            'organisation/organisationenhed',
+            'very-edited-unit.json')
 
         with self.subTest('prerequisites'):
             self.assertRequestResponse(
@@ -2992,7 +2994,7 @@ class Tests(util.LoRATestCase):
                             }
                         },
                         "user_key":
-                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                            "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
                         "uuid": unitid,
                         "validity": {
                             "from": "2018-08-01",
@@ -3028,7 +3030,7 @@ class Tests(util.LoRATestCase):
                             }
                         },
                         "user_key": "AlexTestah "
-                        "95c30cd4-1a5c-4025-a23d-430acf018178",
+                                    "95c30cd4-1a5c-4025-a23d-430acf018178",
                         "uuid": unitid,
                         "validity": {
                             "from": "2018-08-23",
@@ -3064,7 +3066,7 @@ class Tests(util.LoRATestCase):
                             }
                         },
                         "user_key":
-                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                            "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
                         "uuid": unitid,
                         "validity": {
                             "from": "2018-08-24",
@@ -3106,7 +3108,7 @@ class Tests(util.LoRATestCase):
                         }
                     },
                     "user_key":
-                    "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
                     "uuid": unitid,
                     "validity": {
                         "from": "2018-09-01",
@@ -3166,7 +3168,7 @@ class Tests(util.LoRATestCase):
                     }
                 },
                 "user_key":
-                "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
+                    "AlexTestah 95c30cd4-1a5c-4025-a23d-430acf018178",
                 "uuid": unitid,
                 "validity": {
                     "from": "2018-09-01",
@@ -3249,7 +3251,7 @@ class Tests(util.LoRATestCase):
         }]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.organisationenhed.get(org_unit_uuid)
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
 
         self.assertEqual(
             expected_organisationenhedegenskaber,

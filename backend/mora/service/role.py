@@ -11,6 +11,7 @@ This section describes how to interact with employee roles.
 
 import uuid
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -36,12 +37,16 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         valid_from, valid_to = util.get_validities(req)
 
         # Validation
-        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
-                                                  valid_to)
-        validator.is_date_range_in_employee_range(employee, valid_from,
-                                                  valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            valid_from,
+            valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            valid_from,
+            valid_to)
 
-        org_uuid = org.get_configured_organisation(
+        org_uuid = mora.async_util.async_to_sync(org.get_configured_organisation)(
             util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
@@ -73,7 +78,8 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         role_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=role_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=role_uuid)
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND(uuid=role_uuid)
@@ -156,10 +162,14 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit, new_from,
-                                                  new_to)
-        validator.is_date_range_in_employee_range(employee, new_from,
-                                                  new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            new_from,
+            new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            new_from,
+            new_to)
 
         self.payload = payload
         self.uuid = role_uuid

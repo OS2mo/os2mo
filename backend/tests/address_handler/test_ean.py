@@ -3,12 +3,17 @@
 
 from unittest.mock import patch
 
+import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import ean
 from . import base
 
 
-@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
+async def async_facet_get_one_class(x, y):
+    return {'uuid': y}
+
+
+@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
 class EANAddressHandlerTests(base.AddressHandlerTestCase):
     handler = ean.EANAddressHandler
     value = '1234567890123'
@@ -53,7 +58,8 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_get_mo_address(self):
+    @mora.async_util.async_to_sync
+    async def test_get_mo_address(self):
         # Arrange
         value = '1234567890123'
         address_handler = self.handler(self.value, self.visibility)
@@ -66,7 +72,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address_and_properties()
+        actual = await address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)

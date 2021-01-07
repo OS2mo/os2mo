@@ -3,6 +3,8 @@
 
 import logging
 import operator
+from asyncio import create_task, gather
+from typing import Dict, Any, Optional
 
 from .. import reading
 from ... import common
@@ -18,29 +20,41 @@ ROLE_TYPE = "manager"
 logger = logging.getLogger(__name__)
 
 
+async def address_helper(c, address_uuid) -> Optional[Dict[Any, Any]]:
+    orgfunc = await c.organisationfunktion.get(uuid=address_uuid)
+    try:
+        addr = await address.get_one_address(orgfunc)
+    except IndexError:
+        # empty ["relationer"]["adresser"]
+        return None
+    addr["address_type"] = await address.get_address_type(orgfunc)
+    addr["uuid"] = address_uuid
+    return addr
+
+
 @reading.register(ROLE_TYPE)
 class ManagerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.MANAGER_KEY
 
     @classmethod
-    def get_from_type(cls, c, type, object_id):
+    async def get_from_type(cls, c, type, object_id):
 
         if util.get_args_flag("inherit_manager"):
-            return cls.get_inherited_manager(c, type, object_id)
+            return await cls.get_inherited_manager(c, type, object_id)
 
-        return super().get_from_type(c, type, object_id)
+        return await super().get_from_type(c, type, object_id)
 
     @classmethod
-    def get_inherited_manager(cls, c, type, object_id):
+    async def get_inherited_manager(cls, c, type, object_id):
 
         search_fields = {
             cls.SEARCH_FIELDS[type]: object_id
         }
 
-        manager = list(super().get(c, search_fields))
+        manager = list(await super().get(c, search_fields))
 
         if not manager:
-            ou = orgunit.get_one_orgunit(
+            ou = await orgunit.get_one_orgunit(
                 c, object_id, details=orgunit.UnitDetails.FULL
             )
             try:
@@ -48,12 +62,12 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             except (TypeError, KeyError):
                 return manager
 
-            return cls.get_inherited_manager(c, type, parent_id)
+            return await cls.get_inherited_manager(c, type, parent_id)
 
         return manager
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         c = common.get_connector()
 
         person = mapping.USER_FIELD.get_uuid(effect)
@@ -63,47 +77,55 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
-        base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
+        base_obj = create_task(
+            super().get_mo_object_from_effect(effect, start, end, funcid))
 
-        func = {
-            **base_obj,
-            mapping.RESPONSIBILITY: [
-                facet.get_one_class_full(c, obj_uuid)
-                for obj_uuid in responsibilities
-            ],
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit, details=orgunit.UnitDetails.MINIMAL
-            ),
+        if person:
+            person_task = create_task(employee.get_one_employee(c, person))
+
+        if manager_type:
+            manager_type_task = create_task(facet.get_one_class_full(c, manager_type))
+
+        if manager_level:
+            manager_level_task = create_task(facet.get_one_class_full(c, manager_level))
+
+        resp_tasks = [create_task(facet.get_one_class_full(c, obj_uuid)) for obj_uuid in
+                      responsibilities]
+
+        org_unit_task = create_task(orgunit.get_one_orgunit(
+            c, org_unit, details=orgunit.UnitDetails.MINIMAL
+        ))
+
+        address_tasks = [create_task(address_helper(c, address_uuid))
+                         for address_uuid in addresses]
+
+        func: Dict[Any, Any] = {
+            **await base_obj,
+            mapping.RESPONSIBILITY: await gather(*resp_tasks),
+            mapping.ORG_UNIT: await org_unit_task,
             mapping.ADDRESS: [],
         }
 
-        for address_uuid in addresses:
-            orgfunc = c.organisationfunktion.get(uuid=address_uuid)
-            try:
-                addr = address.get_one_address(orgfunc)
-            except IndexError:
-                # empty ["relationer"]["adresser"]
-                continue
-            addr["address_type"] = address.get_address_type(orgfunc)
-            addr["uuid"] = address_uuid
-            func[mapping.ADDRESS].append(addr)
+        addr_results = await gather(*address_tasks)
+        func[mapping.ADDRESS].extend([addr for addr in addr_results
+                                      if addr is not None])
 
         func[mapping.ADDRESS] = sorted(
             func[mapping.ADDRESS], key=operator.itemgetter(mapping.NAME)
         )
 
         if person:
-            func[mapping.PERSON] = employee.get_one_employee(c, person)
+            func[mapping.PERSON] = await person_task
         else:
             func[mapping.PERSON] = None
 
         if manager_type:
-            func[mapping.MANAGER_TYPE] = facet.get_one_class_full(c, manager_type)
+            func[mapping.MANAGER_TYPE] = await manager_type_task
         else:
             func[mapping.MANAGER_TYPE] = None
 
         if manager_level:
-            func[mapping.MANAGER_LEVEL] = facet.get_one_class_full(c, manager_level)
+            func[mapping.MANAGER_LEVEL] = await manager_level_task
         else:
             func[mapping.MANAGER_LEVEL] = None
 

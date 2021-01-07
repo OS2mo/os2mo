@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import abc
+from typing import Any, Dict
 
-from mora import lora
-from mora.service import facet
+from ... import lora
+from ...service import facet
 from ... import exceptions
 from ... import mapping
 from ... import util
@@ -126,7 +127,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             'urn': self.urn,
         }
 
-    def _get_mo_properties(self):
+    async def _get_mo_properties(self) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -145,11 +146,11 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         if self.visibility:
             c = lora.Connector()
             properties.update({
-                mapping.VISIBILITY: facet.get_one_class(c, self.visibility)
+                mapping.VISIBILITY: await facet.get_one_class(c, self.visibility)
             })
         return properties
 
-    def get_mo_address_and_properties(self):
+    async def get_mo_address_and_properties(self) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the address, including any eventual
         properties
@@ -169,7 +170,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             mapping.HREF: self.href,
             mapping.NAME: self.name,
             mapping.VALUE: self.value,
-            **self._get_mo_properties()
+            **await self._get_mo_properties()
         }
 
 

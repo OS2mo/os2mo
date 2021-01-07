@@ -1,22 +1,27 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from asyncio import create_task
 from queue import Queue, Empty
 import collections
+from typing import Dict
+from ..lora import Scope
+from ..mapping import FieldTuple
 
 
 def queue_iterator(queue):
     """Iterate through a queue without blocking, stop when empty."""
+
     def stop_iteration_wait():
         try:
             return queue.get(block=False)
         except Empty:
             raise StopIteration
+
     yield from iter(stop_iteration_wait, None)
 
 
-def prepare_ancestor_tree(connector_entry, mapping_parent, uuids,
-                          get_children_args, with_siblings=False):
+async def prepare_ancestor_tree(connector_entry: Scope, mapping_parent: FieldTuple,
+                                uuids, get_children_args, with_siblings=False):
     """Return a tree helper structure, bounded by the given uuids.
 
     Args:
@@ -45,29 +50,29 @@ def prepare_ancestor_tree(connector_entry, mapping_parent, uuids,
     # Not really used here, but returned to callers to avoid multiple calls
     cache = {}
 
-    def get(uuid):
+    async def get(uuid):
         # Return cached entry if already fetched
         if uuid in cache:
             return cache[uuid]
         # Otherwise go fetch it
-        obj = connector_entry.get(uuid)
+        obj = await connector_entry.get(uuid)
         cache[uuid] = obj
         return obj
 
-    def get_bulk(uuids):
-        objs = dict(connector_entry.get_all_by_uuid(uuids=uuids))
+    async def get_bulk(uuids):
+        objs = dict(await connector_entry.get_all_by_uuid(uuids=uuids))
         cache.update(objs)
         return objs
 
-    def get_children(uuid, parent_uuid):
-        children = dict(connector_entry.get_all(
+    async def get_children(uuid, parent_uuid) -> Dict:
+        children = dict(await connector_entry.get_all(
             **get_children_args(uuid, parent_uuid, cache)
         ))
         cache.update(children)
         return children
 
-    def get_parent(uuid):
-        obj = get(uuid)
+    async def get_parent(uuid):
+        obj = await get(uuid)
         for parent_uuid in mapping_parent.get_uuids(obj):
             return parent_uuid
 
@@ -77,27 +82,35 @@ def prepare_ancestor_tree(connector_entry, mapping_parent, uuids,
     # set(Root-UUIDs)
     root_uuids = set()
 
-    # Initialize our queue
-    queue = Queue()
     # Bulk cache for performance
-    get_bulk(uuids)
-    for uuid in set(uuids):
-        queue.put(uuid)
+    await get_bulk(uuids)
 
-    # Loop until queue is exhausted
-    for uuid in queue_iterator(queue):
+    # Initialize our queue
+    task_queue = Queue()
+
+    async def process_parent(uuid):
         # Fetch parent, if no parent is found, we must be a root node
-        parent_uuid = get_parent(uuid)
+        parent_uuid = await get_parent(uuid)
         if not parent_uuid:
             root_uuids.add(uuid)
-            continue
+            return
+
         # We do have a parent, so we should process said parent at some point
-        queue.put(parent_uuid)
+        task_queue.put(create_task(process_parent(parent_uuid)))
+
         # Build parent --> children map
         children[parent_uuid].add(uuid)
         if with_siblings:
-            siblings = get_children(uuid, parent_uuid)
+            siblings = await get_children(uuid, parent_uuid)
             sibling_uuids = siblings.keys()
             children[parent_uuid].update(sibling_uuids)
+
+    # create tasks in parallel
+    for uuid in set(uuids):
+        task_queue.put(create_task(process_parent(uuid)))
+
+    # Loop until queue is exhausted
+    for task in queue_iterator(task_queue):
+        await task
 
     return root_uuids, children, cache
