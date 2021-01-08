@@ -3,6 +3,7 @@ In development
 
 New features
 ------------
+* #40619: Added substitute to associations tab under organisations
 
 Version 1.12.0, 2021-01-08
 ==========================

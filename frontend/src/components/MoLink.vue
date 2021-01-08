@@ -71,7 +71,8 @@ export default {
       column_handlers: {
         'org_unit': 'OrganisationDetail',
         'parent': 'OrganisationDetail',
-        'person': 'EmployeeDetail'
+        'person': 'EmployeeDetail',
+        'substitute': 'EmployeeDetail'
       }
     }
   },
