@@ -16,6 +16,8 @@
   "move_from": "Flyt fra",
   "move_to": "Flyt til",
   "name": "@:shared.name",
+  "givenname": "@:shared.givenname",
+  "surname": "@:shared.surname",
   "nickname": "@:shared.nickname",
   "new_name": "Nyt navn",
   "org_unit_type": "@:shared.org_unit_type",

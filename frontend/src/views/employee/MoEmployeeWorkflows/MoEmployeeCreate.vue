@@ -4,6 +4,19 @@ SPDX-License-Identifier: MPL-2.0
   <form @submit.stop.prevent="createEmployee">
     <mo-cpr v-model="employee"/>
 
+    <div class="form-row nickname">
+      <label>{{ $t('shared.nickname') }}</label>
+      <mo-input-text
+        :placeholder="$t('input_fields.givenname')"
+        v-model="employee.nickname_givenname"
+      />
+      <mo-input-text
+        :placeholder="$t('input_fields.surname')"
+        v-model="employee.nickname_surname"
+      />
+    </div>
+
+
     <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
     <mo-engagement-entry v-model="engagement"/>
 
@@ -65,6 +78,7 @@ SPDX-License-Identifier: MPL-2.0
 import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr'
+import { MoInputText } from '@/components/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
 import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
@@ -78,6 +92,7 @@ export default {
   components: {
     ButtonSubmit,
     MoCpr,
+    MoInputText,
     MoAddMany,
     MoEngagementEntry
   },

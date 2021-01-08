@@ -196,6 +196,12 @@ export default {
      */
     handleContent (content) {
       this.entry = JSON.parse(JSON.stringify(content))
+
+      for (var unwantedKey of ['givenname', 'surname', 'nickname']) {
+        if (unwantedKey in this.entry) {
+          delete this.entry[unwantedKey]
+        }
+      }
     },
 
     /**

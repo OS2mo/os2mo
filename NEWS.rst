@@ -7,8 +7,8 @@ New features
 * #40828: Remove `default_page_size` parameter, making paged endpoints return the full sized result per default
 * #40828: Remove `tree_search_limit` parameter
 * #39316: Addresses using TEXT scope are now displayed and edited as multiline text
-
-#39859: The "Organisation" page layout (split) can be controlled by the user
+* #39859: The "Organisation" page layout (split) can be controlled by the user
+* #40177: Edit nickname as two separate fields (given name and surname)
 
 Version 1.12.0, 2021-01-08
 ==========================
