@@ -5,6 +5,7 @@ import abc
 
 import json
 from asyncio import create_task, gather
+from typing import Any, Dict, List, Tuple
 
 import flask
 
@@ -83,6 +84,22 @@ class ReadingHandler:
         pass
 
     @classmethod
+    async def async_get_mo_object_from_effect(cls, c, function_id,
+                                              function_obj) -> List[Any]:
+        """
+        just a wrapper that makes calls in parallel. Not encapsulating / motivated by
+        business logic
+        :param c: A LoRa connector
+        :param function_id: UUID from object_tuple
+        :param function_id: object from object_tuple
+        @return: List of whatever this returns get_mo_object_from_effect
+        """
+        return await gather(*[create_task(
+            cls.get_mo_object_from_effect(effect, start, end, function_id))
+            for start, end, effect in (await cls.get_effects(c, function_obj))
+            if util.is_reg_valid(effect)])
+
+    @classmethod
     async def get_obj_effects(cls, c, object_tuples):
         """
         Convert a list of LoRa objects into a list of MO objects
@@ -91,16 +108,15 @@ class ReadingHandler:
         :param object_tuples: An iterable of (UUID, object) tuples
         """
         object_tuples = list(object_tuples)
-        # parallel pre-compute before final loop
-        effect_tuples = await gather(*[create_task(cls.get_effects(c, function_obj))
-                                       for _, function_obj in object_tuples])
-        return await gather(*[
-            create_task(cls.get_mo_object_from_effect(effect, start, end, function_id))
-            for (function_id, _), effect_tuple in
-            zip(object_tuples, effect_tuples)
-            for start, end, effect in effect_tuple
-            if util.is_reg_valid(effect)
-        ])
+
+        # flatten a bunch of nested tasks
+        return [x for sublist in
+                await gather(
+                    *[create_task(cls.async_get_mo_object_from_effect(c,
+                                                                      function_id,
+                                                                      function_obj))
+                      for function_id, function_obj in object_tuples])
+                for x in sublist]
 
 
 class OrgFunkReadingHandler(ReadingHandler):
@@ -126,11 +142,31 @@ class OrgFunkReadingHandler(ReadingHandler):
         return await cls.get(c, search_fields)
 
     @classmethod
+    def function_key_filter(cls, object_tuple: Tuple[str, Dict[Any, Any]]) -> bool:
+        """
+
+        :param object_tuple: UUID, object
+        :return: whether function key mathces class
+        """
+        _, obj = object_tuple
+
+        field = mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
+
+        if not field:
+            return False
+
+        return field[0]['funktionsnavn'] == cls.function_key
+
+    @classmethod
     async def get_lora_object(cls, c, search_fields):
         object_tuples = await c.organisationfunktion.get_all(
-            funktionsnavn=cls.function_key,
             **search_fields,
         )
+
+        object_tuples = list(object_tuples)
+        if object_tuples:
+            object_tuples = list(filter(cls.function_key_filter, object_tuples))
+
         return object_tuples
 
     @classmethod
