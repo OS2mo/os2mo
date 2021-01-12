@@ -346,6 +346,9 @@ async def get_one_class(c: lora.Connector, classid, clazz=None,
         }
 
     if not clazz:  # optionally exit early
+        if not classid:
+            return None
+
         clazz = await c.klasse.get(classid)
 
         if not clazz:
