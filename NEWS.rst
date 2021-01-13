@@ -9,6 +9,7 @@ New features
 * #40170: Fix bug in frontend, allowing better performance when moving organisations
 * #40169: Ported lora connection to async, thereby achieving better performance
 * #40678: Changed filtering process, thereby achieving better performance
+* #40695: Fix bug in facet children endpoint, bug introduced at async port
 
 Version 1.11.0, 2020-12-14
 ==========================
