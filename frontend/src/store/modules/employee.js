@@ -32,7 +32,11 @@ const actions = {
   [_employee.actions.SET_DETAIL] ({ state, commit }, payload) {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
-    return Service.get(`/e/${uuid}/details/${payload.detail}?validity=${payload.validity}`)
+    let additional = payload.additional_query_params || ''
+    if (additional){
+        additional = '&' + additional
+    }
+    return Service.get(`/e/${uuid}/details/${payload.detail}?validity=${payload.validity}${additional}`)
       .then(response => {
         let content = {
           key: payload.detail,

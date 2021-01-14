@@ -95,7 +95,7 @@ async def list_details(type, id):
     '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
 )
 @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
-                   'calculate_primary', 'only_primary_uuid')
+                   'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
 @mora.async_util.async_to_sync
 async def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.

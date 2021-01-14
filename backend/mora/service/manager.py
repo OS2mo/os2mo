@@ -20,11 +20,6 @@ from .. import mapping
 from .. import util
 from ..triggers import Trigger
 
-SEARCH_FIELDS = {
-    'e': 'tilknyttedebrugere',
-    'ou': 'tilknyttedeenheder'
-}
-
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = 'manager'

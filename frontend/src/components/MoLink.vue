@@ -72,7 +72,8 @@ export default {
         'org_unit': 'OrganisationDetail',
         'parent': 'OrganisationDetail',
         'person': 'EmployeeDetail',
-        'substitute': 'EmployeeDetail'
+        'substitute': 'EmployeeDetail',
+        'third_party_associated': 'EmployeeDetail'
       }
     }
   },

@@ -315,7 +315,7 @@ test('Workflow: create employee with association to unit lacking address', async
 
     // and the association
     .click(VueSelector('bTabButtonHelper').withText('Tilknytninger'))
-    .expect(Selector('ul.association_type-name').textContent)
+    .expect(Selector('ul.first_party_association_type-name').textContent)
     .match(/Projektleder/)
 })
 

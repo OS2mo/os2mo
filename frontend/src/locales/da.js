@@ -10,6 +10,7 @@ import navbar from './da/navbar.json'
 import shared from './da/shared.json'
 import tabs from './da/tabs.json'
 import table_headers from './da/table_headers.json'
+import table_values from './da/table_values.json'
 import workflows from './da/workflows.json'
 
 export const da = {
@@ -21,5 +22,6 @@ export const da = {
   shared,
   tabs,
   table_headers,
+  table_values,
   workflows
 }
