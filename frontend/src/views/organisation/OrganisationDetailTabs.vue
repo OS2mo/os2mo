@@ -240,7 +240,8 @@ export default {
     association () {
       let columns = [
         { label: 'person', data: 'person' },
-        { label: 'association_type', data: 'association_type' }
+        { label: 'association_type', data: 'association_type' },
+        { label: 'substitute', data: 'substitute' }
       ]
 
       if (this.orgUnitInfo.user_settings.orgunit.show_primary_association) {
