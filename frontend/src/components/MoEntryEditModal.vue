@@ -165,6 +165,19 @@ export default {
         this.handleContent(newVal)
       },
       deep: true
+    },
+    entry: {
+      handler (newVal) {
+        if (newVal !== undefined) {
+          // Check if child component for data entry has a `cleanUp` method.
+          // If it does, call it to clear `entry` of any unwanted fields.
+          // ("givenname", "surname", "nickname_givenname", "nickname_surname")
+          var comp = this.entryComponent
+          if ((comp !== undefined) && (comp.cleanUp !== undefined)) {
+            this.entryComponent.cleanUp(newVal)
+          }
+        }
+      }
     }
   },
 
@@ -177,6 +190,9 @@ export default {
     this.backendValidationMessage = null
 
     this.$root.$on('bv::modal::shown', data => {
+      // Clear any backend validation message if modal is closed and reopened
+      this.backendValidationMessage = null
+
       if (this.content) {
         this.handleContent(this.content)
       }
@@ -251,6 +267,15 @@ export default {
 
     handle (response) {
       this.isLoading = false
+
+      // If the MO response is null, it indicates that the POST request did not
+      // make any actual changes. Just close the modal then.
+      if (response === null) {
+        this.$refs[this.nameId].hide()
+        this.$emit('submit')
+        return
+      }
+
       if (response.error) {
         this.backendValidationMessage =
             this.$t('alerts.error.' + response.error_key, response)
