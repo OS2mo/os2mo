@@ -1011,12 +1011,6 @@ async def list_orgunit_tree(orgid):
         else await c.organisationenhed.fetch(**kwargs)
     )
 
-    if len(unitids) > settings.TREE_SEARCH_LIMIT:
-        raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
-            found=len(unitids),
-            limit=settings.TREE_SEARCH_LIMIT,
-        )
-
     return flask.jsonify(
         await get_unit_tree(c, unitids),
     )

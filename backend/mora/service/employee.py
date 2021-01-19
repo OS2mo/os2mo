@@ -29,7 +29,6 @@ from .. import common, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
-from .. import settings
 from .. import util
 from ..triggers import Trigger
 
