@@ -19,7 +19,6 @@ enable_cors = false
 
 [lora]
 url = "http://localhost:8080/"
-default_page_size = 2000
 tree_search_limit = 100
 
 

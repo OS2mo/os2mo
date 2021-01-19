@@ -4,6 +4,7 @@ In development
 New features
 ------------
 * #40619: Added substitute to associations tab under organisations
+* #40828: Remove `default_page_size` parameter, making paged endpoints return the full sized result per default
 
 Version 1.12.0, 2021-01-08
 ==========================

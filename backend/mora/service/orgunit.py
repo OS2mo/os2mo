@@ -878,8 +878,8 @@ async def list_orgunits(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
-        start=int(args.get('start', 0)) or 0,
+        limit=int(args.get('limit', 0)),
+        start=int(args.get('start', 0)),
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
