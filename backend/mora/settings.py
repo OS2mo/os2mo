@@ -248,8 +248,6 @@ app_config = {
 # although it might be non-trivial, especially for the test suite.
 
 
-DEFAULT_PAGE_SIZE = config['lora']['default_page_size']
-TREE_SEARCH_LIMIT = config['lora']['tree_search_limit']
 LORA_URL = config['lora']['url']
 # CA_BUNDLE = config['ca_bundle']  DEPRECATED
 AUTOCOMPLETE_ACCESS_ADDRESS_COUNT = (

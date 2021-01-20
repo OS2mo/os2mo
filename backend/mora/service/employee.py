@@ -29,7 +29,6 @@ from .. import common, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
-from .. import settings
 from .. import util
 from ..triggers import Trigger
 
@@ -383,8 +382,8 @@ async def list_employees(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
-        start=int(args.get('start', 0)) or 0,
+        limit=int(args.get('limit', 0)),
+        start=int(args.get('start', 0)),
         gyldighed='Aktiv',
     )
 

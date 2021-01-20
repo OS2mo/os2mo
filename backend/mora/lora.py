@@ -256,7 +256,7 @@ class Scope:
                         func: typing.Callable[['Connector', typing.Any, typing.Any],
                                               typing.Union[
                                                   typing.Any, typing.Coroutine]], *,
-                        start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                        start=0, limit=0,
                         uuid_filters=None,
                         **params):
         """Perform a search on given params, filter and return the result.
