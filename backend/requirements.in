@@ -19,3 +19,4 @@ toml
 more_itertools
 sqlalchemy
 sqlalchemy-utils
+aiohttp

@@ -15,21 +15,22 @@ objects.
         A value of `<UUID>` means that this is a `DAR`_ address UUID.
 
 '''
-import functools
 
 import locale
 import enum
 
 import typing
 import uuid
-from functools import partial
+from asyncio import gather, create_task
 
 import flask
 
+import mora.async_util
 from .. import common
 from .. import exceptions
 from .. import mapping
 from .. import util
+from .. import lora
 
 from .tree_helper import prepare_ancestor_tree
 
@@ -49,7 +50,8 @@ class ClassDetails(enum.Enum):  # TODO: Deal with cross-language enums
 
 @blueprint.route('/c/ancestor-tree')
 @util.restrictargs('at', 'uuid')
-def get_class_ancestor_tree():
+@mora.async_util.async_to_sync
+async def get_class_ancestor_tree():
     """Obtain the tree of ancestors for the given classes.
 
     The tree includes siblings of ancestors:
@@ -94,18 +96,18 @@ def get_class_ancestor_tree():
     classids = flask.request.args.getlist('uuid')
 
     return flask.jsonify(
-        get_class_tree(c, classids, with_siblings=True)
+        await get_class_tree(c, classids, with_siblings=True)
     )
 
 
-def get_class_tree(c, classids, with_siblings=False):
+async def get_class_tree(c, classids, with_siblings=False):
     """Return a tree, bounded by the given classid.
 
     The tree includes siblings of ancestors, with their child counts.
     """
 
-    def get_class(classid):
-        r = get_one_class(
+    async def get_class(classid):
+        r = await get_one_class(
             c, classid, cache[classid],
             details=(
                 {ClassDetails.NCHILDREN}
@@ -114,31 +116,33 @@ def get_class_tree(c, classids, with_siblings=False):
             ),
         )
         if classid in children:
-            r['children'] = get_classes(children[classid])
+            r['children'] = await get_classes(children[classid])
         return r
 
-    def get_classes(classids):
+    async def get_classes(classids):
+        classes = await gather(*[create_task(get_class(cid)) for cid in classids])
         return sorted(
-            map(get_class, classids),
+            classes,
             key=lambda u: locale.strxfrm(u[mapping.NAME]),
         )
 
     def get_children_args(uuid, parent_uuid, cache):
         return {"overordnetklasse": parent_uuid}
 
-    root_uuids, children, cache = prepare_ancestor_tree(
+    root_uuids, children, cache = await prepare_ancestor_tree(
         c.klasse,
         mapping.PARENT_CLASS_FIELD,
         classids,
         get_children_args,
         with_siblings=with_siblings
     )
-    return get_classes(root for root in root_uuids)
+    return await get_classes(root for root in root_uuids)
 
 
 @blueprint.route('/c/<uuid:classid>/')
 @util.restrictargs('limit', 'start')
-def get_class(classid: str):
+@mora.async_util.async_to_sync
+async def get_class(classid: str):
     """Get class by UUID.
 
     :queryparam uuid: The UUID of the class.
@@ -157,13 +161,13 @@ def get_class(classid: str):
 
     c = common.get_connector()
     class_details = map_query_args_to_class_details(flask.request.args)
-    return flask.jsonify(get_one_class(c, classid, details=class_details))
+    return flask.jsonify(await get_one_class(c, classid, details=class_details))
 
 
-def prepare_class_child(c, entry):
+async def prepare_class_child(c, entry):
     """Minimize and enrich JSON, by only returning relevant data."""
     return {
-        'child_count': count_class_children(c, entry['uuid']),
+        'child_count': await count_class_children(c, entry['uuid']),
         'name': entry['name'],
         'user_key': entry['user_key'],
         'uuid': entry['uuid']
@@ -172,7 +176,8 @@ def prepare_class_child(c, entry):
 
 @blueprint.route('/c/<uuid:classid>/children')
 @util.restrictargs('limit', 'start')
-def get_all_class_children(classid: str):
+@mora.async_util.async_to_sync
+async def get_all_class_children(classid: str):
     """Get class children by UUID.
 
     :queryparam uuid: The UUID of the class.
@@ -195,11 +200,12 @@ def get_all_class_children(classid: str):
     """
 
     c = common.get_connector()
-    fetch_class = partial(get_one_class, c)
 
-    classes = fetch_class_children(c, classid)
-    classes = map(lambda tup: fetch_class(*tup), classes)
-    classes = map(partial(prepare_class_child, c), classes)
+    classes = await fetch_class_children(c, classid)
+    classes = await gather(
+        *[create_task(get_one_class(c, *tup)) for tup in classes])
+    classes = await gather(
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
     return flask.jsonify(sorted(
         classes,
@@ -210,7 +216,8 @@ def get_all_class_children(classid: str):
 
 @blueprint.route('/o/<uuid:orgid>/f/')
 @util.restrictargs()
-def list_facets(orgid):
+@mora.async_util.async_to_sync
+async def list_facets(orgid):
     '''List the facet types available in a given organisation.
 
     :param uuid orgid: Restrict search to this organisation.
@@ -247,12 +254,14 @@ def list_facets(orgid):
 
     c = common.get_connector()
 
-    def transform(facet_tuple):
+    async def transform(facet_tuple):
         facetid, facet = facet_tuple
-        return get_one_facet(c, facetid, orgid, facet)
+        return await get_one_facet(c, facetid, orgid, facet)
 
-    response = c.facet.get_all(ansvarlig=orgid, publiceret='Publiceret')
-    response = list(map(transform, response))
+    response = await c.facet.get_all(ansvarlig=orgid, publiceret='Publiceret')
+    response = await gather(
+        *[create_task(transform(facet_tuple)) for facet_tuple in response])
+
     return flask.jsonify(sorted(
         response,
         # use locale-aware sorting
@@ -260,11 +269,11 @@ def list_facets(orgid):
     ))
 
 
-def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
+async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     """Fetch a facet and enrich it."""
 
     # Use given facet or fetch one, if none is given
-    facet = facet or c.facet.get(facetid)
+    facet = facet or (await c.facet.get(facetid))
     if facet is None:
         return None
 
@@ -285,7 +294,7 @@ def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     return response
 
 
-def get_bulk_classes(c, uuids, details=None):
+async def get_bulk_classes(c: lora.Connector, uuids, details=None):
     """Fetch all classes defined by uuids.
 
     :queryparam uuids: A list of UUIDs of the classes.
@@ -306,23 +315,27 @@ def get_bulk_classes(c, uuids, details=None):
 
     """
 
-    # TODO: Implement actual bulk lookup
-    return {uuid: get_one_class(c, uuid, details=details) for uuid in uuids}
+    uuids = list(uuids)
+    classes = await gather(
+        *[create_task(get_one_class(c, uuid, details=details)) for uuid in uuids])
+
+    return {uuid: class_ for uuid, class_ in zip(uuids, classes)}
 
 
-def fetch_class_children(c, parent_uuid):
+async def fetch_class_children(c, parent_uuid) -> typing.List:
     return list(
-        c.klasse.get_all(publiceret='Publiceret', overordnetklasse=parent_uuid)
+        await c.klasse.get_all(publiceret='Publiceret', overordnetklasse=parent_uuid)
     )
 
 
-def count_class_children(c, parent_uuid):
+async def count_class_children(c, parent_uuid):
     """Find the number of children under the class given by uuid."""
-    return len(fetch_class_children(c, parent_uuid))
+    return len(await fetch_class_children(c, parent_uuid))
 
 
-def get_one_class(c, classid, clazz=None,
-                  details: typing.Optional[typing.Set[ClassDetails]] = None):
+async def get_one_class(c: lora.Connector, classid, clazz=None,
+                        details: typing.Optional[
+                            typing.Set[ClassDetails]] = None):
     if not details:
         details = set()
 
@@ -332,8 +345,11 @@ def get_one_class(c, classid, clazz=None,
             mapping.UUID: classid
         }
 
-    if not clazz:
-        clazz = c.klasse.get(classid)
+    if not clazz:  # optionally exit early
+        if not classid:
+            return None
+
+        clazz = await c.klasse.get(classid)
 
         if not clazz:
             return None
@@ -349,31 +365,29 @@ def get_one_class(c, classid, clazz=None,
         for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):
             return parentid
 
-    def get_parents(clazz):
-        potential_parent = get_parent(clazz)
-        if potential_parent is None:
-            return [clazz]
-        return [clazz] + get_parents(c.klasse.get(potential_parent))
-
-    def get_full_name(clazz, parents):
-        parents = get_parents(clazz)
-        full_name = " - ".join(
-            [get_attrs(clazz).get('titel') for clazz in reversed(parents)]
-        )
-        return full_name
-
     def get_facet_uuid(clazz):
         return clazz['relationer']['facet'][0]['uuid']
-
-    def get_top_level_facet(parents):
-        return get_one_facet(c, get_facet_uuid(parents[-1]), orgid=None)
-
-    def get_facet(clazz):
-        return get_one_facet(c, get_facet_uuid(clazz), orgid=None)
 
     def get_owner_uuid(clazz):
         rel = clazz['relationer']
         return rel['ejer'][0]['uuid'] if 'ejer' in rel else None
+
+    def get_full_name(parents):
+        full_name = " - ".join(
+            [get_attrs(clazz).get('titel') for clazz in reversed(parents)])
+        return full_name
+
+    async def get_parents(clazz):
+        potential_parent = get_parent(clazz)
+        if potential_parent is None:
+            return [clazz]
+        return [clazz] + await get_parents(await c.klasse.get(potential_parent))
+
+    async def get_top_level_facet(parents):
+        return await get_one_facet(c, get_facet_uuid(parents[-1]), orgid=None)
+
+    async def get_facet(clazz):
+        return await get_one_facet(c, get_facet_uuid(clazz), orgid=None)
 
     owner = get_owner_uuid(clazz)
 
@@ -386,39 +400,47 @@ def get_one_class(c, classid, clazz=None,
         'owner': owner,
     }
 
-    if ClassDetails.FULL_NAME in details:
-        if not parents:
-            parents = get_parents(clazz)
-        response['full_name'] = get_full_name(clazz, parents)
-
-    if ClassDetails.TOP_LEVEL_FACET in details:
-        if not parents:
-            parents = get_parents(clazz)
-        response['top_level_facet'] = get_top_level_facet(parents)
-
+    # create tasks
     if ClassDetails.FACET in details:
-        response['facet'] = get_facet(clazz)
+        facet_task = create_task(get_facet(clazz))
 
     if ClassDetails.NCHILDREN in details:
-        response['child_count'] = count_class_children(c, classid)
+        nchildren_task = create_task(count_class_children(c, classid))
+
+    if ClassDetails.FULL_NAME in details or ClassDetails.TOP_LEVEL_FACET in details:
+        if not parents:
+            parents = await get_parents(clazz)
+
+        if ClassDetails.FULL_NAME in details:
+            response['full_name'] = get_full_name(parents)
+
+        if ClassDetails.TOP_LEVEL_FACET in details:
+            response['top_level_facet'] = await get_top_level_facet(parents)
+
+    if ClassDetails.FACET in details:
+        response['facet'] = await facet_task
+
+    if ClassDetails.NCHILDREN in details:
+        response['child_count'] = await nchildren_task
 
     return response
 
 
 # Helper function for reading classes enriched with additional details
-get_one_class_full = functools.partial(get_one_class, details={
-    ClassDetails.FACET,
-    ClassDetails.FULL_NAME,
-    ClassDetails.TOP_LEVEL_FACET
-})
+async def get_one_class_full(*args, **kwargs):
+    return await get_one_class(*args, **kwargs, details={
+        ClassDetails.FACET,
+        ClassDetails.FULL_NAME,
+        ClassDetails.TOP_LEVEL_FACET
+    })
 
 
-def get_facetids(facet: str):
+async def get_facetids(facet: str):
     c = common.get_connector()
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
-    facetids = c.facet(
+    facetids = await c.facet.fetch(
         uuid=uuid,
         bvn=bvn,
         publiceret='Publiceret'
@@ -435,35 +457,36 @@ def get_facetids(facet: str):
     return facetids
 
 
-def get_classes_under_facet(orgid: uuid.UUID, facet: str,
-                            details: typing.Set[ClassDetails] = None):
+async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
+                                  details: typing.Set[ClassDetails] = None):
     c = common.get_connector()
-
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 0)
 
-    facetids = get_facetids(facet)
+    facetids = await get_facetids(facet)
 
-    getter_fn = functools.partial(get_one_class, details=details)
+    async def getter_fn(*args, **kwargs):
+        return await get_one_class(*args, **kwargs, details=details)
 
     return flask.jsonify(
-        facetids and get_one_facet(
+        facetids and await get_one_facet(
             c,
             facetids[0],
             orgid,
-            data=c.klasse.paged_get(
+            data=await c.klasse.paged_get(
                 getter_fn,
                 facet=facetids,
                 publiceret='Publiceret',
                 start=start, limit=limit
-            ),
+            )
         )
     )
 
 
 @blueprint.route('/o/<uuid:orgid>/f/<facet>/')
 @util.restrictargs('limit', 'start')
-def get_classes(orgid: uuid.UUID, facet: str):
+@mora.async_util.async_to_sync
+async def get_classes(orgid: uuid.UUID, facet: str):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -526,7 +549,7 @@ def get_classes(orgid: uuid.UUID, facet: str):
       }
     '''
     class_details = map_query_args_to_class_details(flask.request.args)
-    return get_classes_under_facet(orgid, facet, details=class_details)
+    return await get_classes_under_facet(orgid, facet, details=class_details)
 
 
 def map_query_args_to_class_details(args):
@@ -549,7 +572,8 @@ def map_query_args_to_class_details(args):
 
 @blueprint.route('/f/<facet>/')
 @util.restrictargs('limit', 'start')
-def get_all_classes(facet: str):
+@mora.async_util.async_to_sync
+async def get_all_classes(facet: str):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -609,12 +633,13 @@ def get_all_classes(facet: str):
         }
       }
     '''
-    return get_classes_under_facet(None, facet)
+    return await get_classes_under_facet(None, facet)
 
 
 @blueprint.route('/f/<facet>/children')
 @util.restrictargs('limit', 'start')
-def get_all_classes_children(facet: str):
+@mora.async_util.async_to_sync
+async def get_all_classes_children(facet: str):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -681,15 +706,16 @@ def get_all_classes_children(facet: str):
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 0)
 
-    facetids = get_facetids(facet)
+    facetids = await get_facetids(facet)
 
-    classes = c.klasse.paged_get(
+    classes = (await c.klasse.paged_get(
         get_one_class,
         facet=facetids,
         ansvarlig=None,
         publiceret='Publiceret',
         start=start, limit=limit
-    )['items']
-    classes = map(partial(prepare_class_child, c), classes)
+    ))['items']
+    classes = await gather(
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
-    return flask.jsonify(list(classes))
+    return flask.jsonify(classes)

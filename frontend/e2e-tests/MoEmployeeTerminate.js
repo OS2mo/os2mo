@@ -67,7 +67,7 @@ test('Workflow: terminate employee by search', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er afsluttet/
+      /Medarbejderen (.+) er blevet afsluttet\./
     )
 })
 
@@ -85,7 +85,6 @@ test('Workflow: terminate employee from page', async t => {
     .click(VueSelector('employee-detail-tabs bTabButtonHelper')
       .withText('Engagementer'))
 
-  let userID = await t.eval(() => window.location.pathname.split('/').slice(-1))
   let name = await mainSearchInput.value
   let fromDate = await fromField.innerText
 
@@ -121,7 +120,7 @@ test('Workflow: terminate employee from page', async t => {
 
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
-    .eql(`Medarbejderen med UUID ${userID} er afsluttet.`)
+    .eql(`Medarbejderen ${name} er blevet afsluttet.`)
 
     .expect(fromField.innerText)
     .eql(fromDate)
@@ -178,6 +177,6 @@ test('Workflow: terminate employee role', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(new RegExp(
-      `Rolle med UUID [-0-9a-f]+ er blevet afsluttet pr. ${today.format('YYYY-MM-DD')}.`
+      `Et \"Rolle\" felt for (.+) er blevet afsluttet pr\. ${today.format('YYYY-MM-DD')}\.`
     ))
 })

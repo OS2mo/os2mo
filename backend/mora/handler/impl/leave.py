@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import create_task
+
 import flask
 import logging
 from mora import lora
@@ -21,12 +23,17 @@ class LeaveReader(reading.OrgFunkReadingHandler):
     function_key = mapping.LEAVE_KEY
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         c = common.get_connector()
 
         person = mapping.USER_FIELD.get_uuid(effect)
         leave_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
+
+        base_obj = create_task(
+            super().get_mo_object_from_effect(effect, start, end, funcid))
+        person_task = create_task(employee.get_one_employee(c, person))
+        leave_type_task = create_task(facet.get_one_class_full(c, leave_type))
 
         only_primary_uuid = flask.request.args.get("only_primary_uuid")
         if only_primary_uuid:
@@ -36,9 +43,10 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             # to account for edge cases where the engagement might have changed or is
             # no longer active during the time period
             present_connector = lora.Connector(validity="present")
-            engagements = EngagementReader.get(
+            engagements_task = create_task(EngagementReader.get(
                 present_connector, {"uuid": [engagement_uuid]}
-            )
+            ))
+            engagements = await engagements_task
             if len(engagements) == 0:
                 logger.warning(f"Engagement {engagement_uuid} returned no results")
                 engagement = None
@@ -49,12 +57,10 @@ class LeaveReader(reading.OrgFunkReadingHandler):
                     )
                 engagement = engagements[0]
 
-        base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
-
         r = {
-            **base_obj,
-            mapping.PERSON: employee.get_one_employee(c, person),
-            mapping.LEAVE_TYPE: facet.get_one_class_full(c, leave_type),
+            **await base_obj,
+            mapping.PERSON: await person_task,
+            mapping.LEAVE_TYPE: await leave_type_task,
             mapping.ENGAGEMENT: engagement,
         }
 

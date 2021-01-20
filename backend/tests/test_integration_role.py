@@ -3,6 +3,7 @@
 
 import freezegun
 
+import mora.async_util
 from mora import lora
 from . import util
 
@@ -121,7 +122,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_role = c.organisationfunktion.get(role_id)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -235,7 +236,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_role = c.organisationfunktion.get(roleid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(roleid)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -347,7 +348,7 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_role = c.organisationfunktion.get(role_id)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
@@ -490,7 +491,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
@@ -598,7 +600,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
@@ -706,7 +709,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
@@ -826,7 +830,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
@@ -976,7 +981,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
@@ -1103,7 +1109,8 @@ class Tests(util.LoRATestCase):
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
-        actual_role = c.organisationfunktion.get(role_uuid)
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            role_uuid)
 
         self.assertRegistrationsEqual(actual_role, expected_role)
 

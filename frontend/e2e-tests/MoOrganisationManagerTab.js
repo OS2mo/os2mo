@@ -64,7 +64,7 @@ test('Workflow: organisation manager tab', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
-      /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
+      /Et "Leder" felt er blevet oprettet\./
     )
 
     // Edit manager
@@ -98,7 +98,7 @@ test('Workflow: organisation manager tab', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
-      /Organisationsenheden med UUID [-0-9a-f]* er blevet redigeret/
+      /Et "Leder" felt for (.+) er blevet redigeret\./
     )
 
     // Terminate association
@@ -115,7 +115,7 @@ test('Workflow: organisation manager tab', async t => {
 
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
-    .match(
-      /Leder med UUID [-0-9a-f]* er blevet afsluttet pr./
-    )
+    .match(new RegExp(
+      `Et \"Leder\" felt for (.+) er blevet afsluttet pr\. ${today.format('YYYY-MM-DD')}\.`
+    ))
 })

@@ -26,13 +26,16 @@ const state = defaultState
 
 const actions = {
   MOVE_EMPLOYEE ({ commit, state }) {
+
     state.move.uuid = state.original.uuid
+    let human_readable_move = {name: state.move.data.person.name,
+        destination: state.move.data.org_unit.name}
 
     return Service.post('/details/edit', state.move)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('log/newWorkLog',
-          { type: 'EMPLOYEE_MOVE', value: response.data },
+          { type: 'EMPLOYEE_MOVE', value: human_readable_move },
           { root: true })
         return response.data
       })

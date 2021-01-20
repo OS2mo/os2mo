@@ -1,3 +1,16 @@
+Version 1.12.0, 2021-01-08
+==========================
+
+New features
+------------
+
+* #39858: Added field in ConfDB to optionally show user_key to searches
+* #39856: Changed log messages from uuid to human readable, no functionality changed
+* #40170: Fix bug in frontend, allowing better performance when moving organisations
+* #40169: Ported lora connection to async, thereby achieving better performance
+* #40678: Changed filtering process, thereby achieving better performance
+* #40695: Fix bug in facet children endpoint, bug introduced at async port
+
 Version 1.11.0, 2020-12-14
 ==========================
 
@@ -13,7 +26,6 @@ New features
 * #39370: Reordered organization (facet) and substitute fields, no functionality changed
 * #39375: Added configuration option for hiding cpr_no from UI
 * #39367: Fix backend issue when editing associations
-
 
 Version 1.10.2, 2020-11-13
 ==========================

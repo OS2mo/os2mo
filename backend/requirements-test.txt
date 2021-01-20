@@ -4,18 +4,21 @@
 #
 #    pip-compile requirements-test.in
 #
-attrs==20.1.0             # via pytest
+aiohttp==3.7.3            # via -c requirements.txt, -r requirements-test.in, aioresponses
+aioresponses==0.7.1       # via -r requirements-test.in
+async-timeout==3.0.1      # via -c requirements.txt, aiohttp
+attrs==20.3.0             # via -c requirements.txt, aiohttp, pytest
 backcall==0.2.0           # via ipython
 certifi==2020.6.20        # via -c requirements.txt, requests
-chardet==3.0.4            # via -c requirements.txt, requests
+chardet==3.0.4            # via -c requirements.txt, aiohttp, requests
 click==7.1.2              # via -c requirements.txt, flask, flask-shell-ipython
-coverage==5.2.1           # via -r requirements-test.in, pytest-cov
+coverage==5.3.1           # via -r requirements-test.in, pytest-cov
 decorator==4.4.2          # via -c requirements.txt, ipython
 flask-shell-ipython==0.4.1  # via -r requirements-test.in
 flask-testing==0.8.0      # via -r requirements-test.in
 flask==1.1.2              # via -c requirements.txt, flask-shell-ipython, flask-testing
 freezegun==0.3.15         # via -r requirements-test.in
-idna==2.10                # via -c requirements.txt, requests
+idna==2.10                # via -c requirements.txt, requests, yarl
 iniconfig==1.0.1          # via pytest
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.18.1           # via flask-shell-ipython
@@ -23,8 +26,9 @@ itsdangerous==1.1.0       # via -c requirements.txt, flask
 jedi==0.17.2              # via ipython
 jinja2==2.11.2            # via -c requirements.txt, flask
 markupsafe==1.1.1         # via -c requirements.txt, jinja2
-mock==4.0.2               # via -c requirements.txt, notsouid
+mock==4.0.2               # via notsouid
 more-itertools==8.5.0     # via -c requirements.txt, pytest
+multidict==5.1.0          # via -c requirements.txt, aiohttp, yarl
 notsouid==0.0.3           # via -r requirements-test.in
 packaging==20.4           # via pytest
 parso==0.7.1              # via jedi
@@ -47,11 +51,13 @@ six==1.15.0               # via -c requirements.txt, freezegun, packaging, pytho
 termcolor==1.1.0          # via -r requirements-test.in
 toml==0.10.1              # via -c requirements.txt, pytest
 traitlets==5.0.0          # via ipython
+typing-extensions==3.7.4.3  # via -c requirements.txt, aiohttp
 unittest-xml-reporting==3.0.4  # via -r requirements-test.in
 urllib3==1.25.10          # via -c requirements.txt, requests
 watchdog==0.10.3          # via -r requirements-test.in
 wcwidth==0.2.5            # via prompt-toolkit
 werkzeug==1.0.1           # via -c requirements.txt, flask
+yarl==1.6.3               # via -c requirements.txt, aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

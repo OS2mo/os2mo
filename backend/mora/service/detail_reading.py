@@ -23,6 +23,7 @@ import collections
 
 import flask
 
+import mora.async_util
 from . import handlers
 from .. import common
 from .. import util
@@ -43,7 +44,8 @@ DETAIL_TYPES = {
 
 @blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
 @util.restrictargs()
-def list_details(type, id):
+@mora.async_util.async_to_sync
+async def list_details(type, id):
     '''List the available 'detail' types under this entry.
 
     .. :quickref: Detail; List
@@ -77,12 +79,12 @@ def list_details(type, id):
 
     r = {
         functype: bool(
-            c.organisationfunktion(funktionsnavn=funcname, **search),
+            await c.organisationfunktion.fetch(funktionsnavn=funcname, **search),
         )
         for functype, funcname in handlers.FUNCTION_KEYS.items()
     }
 
-    reg = scope.get(id)
+    reg = await scope.get(id)
 
     r['org_unit'] = bool(scope.path == 'organisation/organisationenhed' and reg)
 
@@ -94,7 +96,8 @@ def list_details(type, id):
 )
 @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
                    'calculate_primary', 'only_primary_uuid')
-def get_detail(type, id, function):
+@mora.async_util.async_to_sync
+async def get_detail(type, id, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     :http:get:`/service/(any:type)/(uuid:id)/details/` for the
@@ -650,4 +653,4 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return flask.jsonify(cls.get_from_type(c, type, id))
+    return flask.jsonify(await cls.get_from_type(c, type, id))

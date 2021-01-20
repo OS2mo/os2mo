@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import collections
+from typing import Any, Dict
 
 import flask
 import re
 import requests
 import uuid
 
+import mora.async_util
 from . import facet
 from . import handlers
 from . import org
@@ -32,22 +34,23 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
                             url_prefix='/service')
 
 
-def get_address_type(effect):
+async def get_address_type(effect):
     c = lora.Connector()
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-    return facet.get_one_class(c, address_type_uuid)
+    return await facet.get_one_class(c, address_type_uuid)
 
 
-def get_one_address(effect):
+async def get_one_address(effect) -> Dict[Any, Any]:
     scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
     handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-    return handler.get_mo_address_and_properties()
+    return await handler.get_mo_address_and_properties()
 
 
 @blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
 @util.restrictargs('global', required=['q'])
-def address_autocomplete(orgid):
+@mora.async_util.async_to_sync
+async def address_autocomplete(orgid):
     """Perform address autocomplete, resolving both ``adgangsadresse`` and
     ``adresse``.
 
@@ -87,7 +90,7 @@ def address_autocomplete(orgid):
     global_lookup = util.get_args_flag('global')
 
     if not global_lookup:
-        org = lora.Connector().organisation.get(orgid)
+        org = await lora.Connector().organisation.get(orgid)
 
         if not org:
             exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
@@ -176,14 +179,15 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                                   required=True)
 
         c = lora.Connector()
-        type_obj = facet.get_one_class(c, address_type_uuid)
+        type_obj = mora.async_util.async_to_sync(facet.get_one_class)(c,
+                                                                      address_type_uuid)
 
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
@@ -194,14 +198,16 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range(req[mapping.ORG_UNIT],
-                                                      valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+                req[mapping.ORG_UNIT],
+                valid_from,
+                valid_to)
 
         if employee_uuid:
-            validator.is_date_range_in_employee_range(req[mapping.PERSON],
-                                                      valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                req[mapping.PERSON],
+                valid_from,
+                valid_to)
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ADDRESS_KEY,
@@ -230,7 +236,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=function_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=function_uuid)
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -328,7 +335,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True)
-            type_obj = facet.get_one_class(c, address_type_uuid)
+            type_obj = mora.async_util.async_to_sync(
+                facet.get_one_class)(c,
+                                     address_type_uuid)
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
@@ -370,9 +379,11 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
         if org_unit_uuid:
-            validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},
-                                                      new_from, new_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+                {'uuid': org_unit_uuid},
+                new_from, new_to)
 
         if employee_uuid:
-            validator.is_date_range_in_employee_range({'uuid': employee_uuid},
-                                                      new_from, new_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                {'uuid': employee_uuid},
+                new_from, new_to)

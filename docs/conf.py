@@ -87,6 +87,7 @@ MOCK_MODULES = [
     'more_itertools',
     'alembic',
     'alembic.config',
+    'aiohttp',
 
     'mora.log',
 

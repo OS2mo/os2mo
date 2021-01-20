@@ -4,10 +4,13 @@
 #
 #    pip-compile requirements.in
 #
+aiohttp==3.7.3            # via -r requirements.in
 alembic==1.4.3            # via -r requirements.in
+async-timeout==3.0.1      # via aiohttp
+attrs==20.3.0             # via aiohttp
 cachelib==0.1.1           # via flask-session
 certifi==2020.6.20        # via requests
-chardet==3.0.4            # via requests
+chardet==3.0.4            # via aiohttp, requests
 click==7.1.2              # via flask
 decorator==4.4.2          # via validators
 defusedxml==0.6.0         # via python3-saml
@@ -17,7 +20,7 @@ flask-sqlalchemy==2.4.4   # via flask-saml-sso
 flask==1.1.2              # via -r requirements.in, flask-cors, flask-saml-sso, flask-session, flask-sqlalchemy
 git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.1#egg=flask_saml_sso  # via -r requirements.in
 gunicorn==20.0.4          # via -r requirements.in
-idna==2.10                # via requests
+idna==2.10                # via requests, yarl
 isodate==0.6.0            # via python3-saml
 itsdangerous==1.1.0       # via flask, flask-saml-sso
 jinja2==2.11.2            # via flask, service-person-stamdata-udvidet
@@ -26,6 +29,7 @@ lxml==4.5.2               # via -r requirements.in, xmlsec
 mako==1.1.3               # via alembic
 markupsafe==1.1.1         # via jinja2, mako
 more-itertools==8.5.0     # via -r requirements.in
+multidict==5.1.0          # via aiohttp, yarl
 pika==1.1.0               # via -r requirements.in
 psycopg2-binary==2.8.5    # via -r requirements.in
 python-dateutil==2.8.1    # via -r requirements.in, alembic, lora-utils
@@ -35,13 +39,15 @@ requests==2.24.0          # via -r requirements.in, flask-saml-sso, service-pers
 git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0  # via -r requirements.in
 six==1.15.0               # via flask-cors, isodate, python-dateutil, sqlalchemy-utils, validators
 sqlalchemy-utils==0.36.8  # via -r requirements.in
-sqlalchemy==1.3.19        # via -r requirements.in, alembic, flask-sqlalchemy, sqlalchemy-utils
+sqlalchemy==1.3.22        # via -r requirements.in, alembic, flask-sqlalchemy, sqlalchemy-utils
 toml==0.10.1              # via -r requirements.in
+typing-extensions==3.7.4.3  # via aiohttp
 urllib3==1.25.10          # via requests
 validators==0.18.0        # via -r requirements.in
 werkzeug==1.0.1           # via flask
 xmlsec==1.3.8             # via python3-saml
 xmltodict==0.12.0         # via service-person-stamdata-udvidet
+yarl==1.6.3               # via aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

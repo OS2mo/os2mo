@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import asyncio
 import collections
 import datetime
 import functools
 import typing
+from asyncio import gather, create_task
+
 from more_itertools import pairwise
 
 from ... import exceptions
@@ -19,18 +21,24 @@ def forceable(fn):
 
     '''
 
-    @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        if not util.get_args_flag('force'):
-            return fn(*args, **kwargs)
+    if asyncio.iscoroutinefunction(fn):
+        @functools.wraps(fn)
+        async def wrapper(*args, **kwargs):
+            if not util.get_args_flag('force'):
+                return await fn(*args, **kwargs)
+    else:
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not util.get_args_flag('force'):
+                return fn(*args, **kwargs)
 
     return wrapper
 
 
-def _is_date_range_valid(obj: typing.Union[dict, str],
-                         valid_from: datetime.datetime,
-                         valid_to: datetime.datetime, lora_scope,
-                         gyldighed_key: str) -> bool:
+async def _is_date_range_valid(obj: typing.Union[dict, str],
+                               valid_from: datetime.datetime,
+                               valid_to: datetime.datetime, lora_scope: lora.Scope,
+                               gyldighed_key: str) -> bool:
     """
     Determine if the given dates are within validity of the parent unit.
 
@@ -47,7 +55,7 @@ def _is_date_range_valid(obj: typing.Union[dict, str],
     if valid_from >= valid_to:
         return False
 
-    effects = lora_scope.get_effects(
+    effects = await lora_scope.get_effects(
         obj,
         {
             'tilstande': (
@@ -133,7 +141,7 @@ def _get_active_validity(reg: dict) -> typing.Mapping[str, str]:
 
 
 @forceable
-def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
+async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
     # query for the full range of effects; otherwise,
     # _get_active_validity() won't return any useful data for time
     # intervals predating the creation of the unit
@@ -151,15 +159,15 @@ def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE)
     else:
         org_unit_uuid = org_unit_obj.get(mapping.UUID)
-        org_unit = scope.get(org_unit_uuid)
+        org_unit = await scope.get(org_unit_uuid)
         if not org_unit:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
                 org_unit_uuid=org_unit_uuid)
 
         gyldighed_key = "organisationenhedgyldighed"
 
-        if not _is_date_range_valid(org_unit, valid_from, valid_to, scope,
-                                    gyldighed_key):
+        if not await _is_date_range_valid(org_unit, valid_from, valid_to, scope,
+                                          gyldighed_key):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
                 org_unit_uuid=org_unit_uuid,
                 wanted_valid_from=util.to_iso_date(valid_from),
@@ -186,9 +194,9 @@ def is_distinct_responsibility(
 
 
 @forceable
-def is_date_range_in_employee_range(employee_obj: dict,
-                                    valid_from: datetime.datetime,
-                                    valid_to: datetime.datetime):
+async def is_date_range_in_employee_range(employee_obj: typing.Dict,
+                                          valid_from: datetime.datetime,
+                                          valid_to: datetime.datetime):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
@@ -202,15 +210,15 @@ def is_date_range_in_employee_range(employee_obj: dict,
                               exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
     else:
         employee_uuid = employee_obj.get(mapping.UUID)
-        employee = scope.get(employee_uuid)
+        employee = await scope.get(employee_uuid)
 
         if not employee:
             exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
 
         gyldighed_key = "brugergyldighed"
 
-        if not _is_date_range_valid(employee, valid_from, valid_to, scope,
-                                    gyldighed_key):
+        if not await _is_date_range_valid(employee, valid_from, valid_to, scope,
+                                          gyldighed_key):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
                 employee_uuid=employee_uuid,
                 **_get_active_validity(employee),
@@ -230,11 +238,11 @@ def is_contained_in_range(candidate_from, candidate_to, valid_from, valid_to,
 
 
 @forceable
-def is_movable_org_unit(unitid):
+async def is_movable_org_unit(unitid):
     # Do not allow moving of the root org unit
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-    unit = c.organisationenhed.get(unitid)
+    unit = await c.organisationenhed.get(unitid)
 
     orgid = mapping.BELONGS_TO_FIELD.get_uuid(unit)
     parentid = mapping.PARENT_FIELD.get_uuid(unit)
@@ -244,8 +252,8 @@ def is_movable_org_unit(unitid):
 
 
 @forceable
-def is_candidate_parent_valid(unitid: str, parent: str,
-                              from_date: datetime.datetime) -> bool:
+async def is_candidate_parent_valid(unitid: str, parent: str,
+                                    from_date: datetime.datetime) -> None:
     """
     For moving an org unit. Check if the candidate parent is in the subtree of
     the org unit itself. Note: it is (and should be) allowed to move an org
@@ -259,9 +267,9 @@ def is_candidate_parent_valid(unitid: str, parent: str,
     # Do not allow moving of the root org unit
     c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-    org_unit_relations = c.organisationenhed.get(
+    org_unit_relations = (await c.organisationenhed.get(
         uuid=unitid
-    )['relationer']
+    ))['relationer']
     orgid = org_unit_relations['tilhoerer'][0]['uuid']
 
     if parent == orgid:
@@ -281,7 +289,7 @@ def is_candidate_parent_valid(unitid: str, parent: str,
 
         seen.add(parent)
 
-        parentobj = c.organisationenhed.get(uuid=parent)
+        parentobj = await c.organisationenhed.get(uuid=parent)
 
         if not parentobj:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(
@@ -314,8 +322,8 @@ def is_candidate_parent_valid(unitid: str, parent: str,
 
 
 @forceable
-def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
-                                            valid_from, association_uuid=None):
+async def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
+                                                  valid_from, association_uuid=None):
     """
     Check if an employee already has an active association for a given org
     unit on a given date
@@ -329,10 +337,10 @@ def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
     """
     c = lora.Connector(effective_date=valid_from)
 
-    r = c.organisationfunktion(tilknyttedeenheder=org_unit_uuid,
-                               tilknyttedebrugere=employee_uuid,
-                               gyldighed='Aktiv',
-                               funktionsnavn=mapping.ASSOCIATION_KEY)
+    r = await c.organisationfunktion.fetch(tilknyttedeenheder=org_unit_uuid,
+                                           tilknyttedebrugere=employee_uuid,
+                                           gyldighed='Aktiv',
+                                           funktionsnavn=mapping.ASSOCIATION_KEY)
 
     if association_uuid is not None and association_uuid in r:
         return
@@ -366,38 +374,32 @@ def is_substitute_self(employee_uuid: str, substitute_uuid: str):
 
 
 @forceable
-def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
+async def does_employee_have_active_engagement(employee_uuid, valid_from, valid_to):
     c = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
     )
-    r = c.organisationfunktion(tilknyttedebrugere=employee_uuid,
-                               gyldighed='Aktiv',
-                               funktionsnavn=mapping.ENGAGEMENT_KEY)
+    r = await c.organisationfunktion.fetch(tilknyttedebrugere=employee_uuid,
+                                           gyldighed='Aktiv',
+                                           funktionsnavn=mapping.ENGAGEMENT_KEY)
+    effect_tuples_list = await gather(
+        *[create_task(c.organisationfunktion.get_effects(
+            funkid, {'tilstande': ('organisationfunktiongyldighed',)}, {}))
+            for funkid in r])
 
-    valid_effects = [
-        (start, end, effect)
-        for funkid in r
-        for start, end, effect in
-        c.organisationfunktion.get_effects(
-            funkid,
-            {
-                'tilstande': (
-                    'organisationfunktiongyldighed',
-                ),
-            },
-            {}
-        )
-        if util.is_reg_valid(effect) and start <= valid_from and valid_to <= end
-    ]
+    valid_effects = [(start, end, effect)
+                     for effect_tuples in effect_tuples_list
+                     for start, end, effect in effect_tuples
+                     if util.is_reg_valid(effect) and
+                     start <= valid_from and valid_to <= end]
 
     if not valid_effects:
         exceptions.ErrorCodes.V_NO_ACTIVE_ENGAGEMENT(employee=employee_uuid)
 
 
 @forceable
-def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
-                                         allowed_user_id=None):
+async def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
+                                               allowed_user_id=None):
     """
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
@@ -413,7 +415,7 @@ def does_employee_with_cpr_already_exist(cpr, valid_from, valid_to, org_uuid,
         virkningtil=util.to_lora_time(valid_to)
     )
 
-    user_ids = c.bruger.fetch(
+    user_ids = await c.bruger.fetch(
         tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr),
         tilhoerer=org_uuid
     )

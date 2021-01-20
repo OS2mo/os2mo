@@ -9,6 +9,7 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 
+import mora.async_util
 from . import address
 from . import handlers
 from . import org
@@ -41,8 +42,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
         manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
@@ -78,7 +79,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             self.addresses.append(
                 address.AddressRequestHandler(
                     address_obj,
-                    mapping.RequestType.CREATE
+                    mapping.RequestType.CREATE,
                 )
             )
 
@@ -89,16 +90,17 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             })
 
         # Validation
-        validator.is_date_range_in_org_unit_range(
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
             org_unit,
             valid_from,
             valid_to
         )
 
         if employee:
-            validator.is_date_range_in_employee_range(employee,
-                                                      valid_from,
-                                                      valid_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee,
+                valid_from,
+                valid_to)
 
         manager = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.MANAGER_KEY,
@@ -131,7 +133,8 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         manager_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=manager_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=manager_uuid)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -281,12 +284,16 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                                        original,
                                        payload)
 
-        validator.is_date_range_in_org_unit_range(org_unit, new_from,
-                                                  new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            new_from,
+            new_to)
 
         if employee:
-            validator.is_date_range_in_employee_range(employee, new_from,
-                                                      new_to)
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee,
+                new_from,
+                new_to)
 
         validator.is_distinct_responsibility(update_fields)
 

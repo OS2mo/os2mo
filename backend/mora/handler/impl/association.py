@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import logging
+from asyncio import create_task
 
 from .. import reading
 from ... import common, util
@@ -21,20 +22,20 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         c = common.get_connector()
-
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
         substitute = None
         if substitute_uuid and util.is_substitute_allowed(association_type):
-            substitute = employee.get_one_employee(c, substitute_uuid)
+            substitute = await employee.get_one_employee(c, substitute_uuid)
         classes = list(mapping.ORG_FUNK_CLASSES_FIELD.get_uuids(effect))
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
-        base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
+        base_obj = create_task(
+            super().get_mo_object_from_effect(effect, start, end, funcid))
 
         # Fetch all classes in bulk
         all_classes = classes + [association_type] + ([primary] if primary else [])
@@ -44,18 +45,23 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             ClassDetails.TOP_LEVEL_FACET,
             ClassDetails.FACET
         }
-        fetched_classes = facet.get_bulk_classes(c, all_classes, details=class_details)
+        fetched_classes_task = create_task(
+            facet.get_bulk_classes(c, all_classes, details=class_details))
+
+        person_task = create_task(employee.get_one_employee(c, person))
+        org_unit_task = create_task(
+            orgunit.get_one_orgunit(c, org_unit, details=orgunit.UnitDetails.MINIMAL))
+
         # Pull out each class
+        fetched_classes = await fetched_classes_task
         association_type_class = fetched_classes.pop(association_type)
         primary_class = fetched_classes.pop(primary, None)
         dynamic_classes = fetched_classes
 
         r = {
-            **base_obj,
-            mapping.PERSON: employee.get_one_employee(c, person),
-            mapping.ORG_UNIT: orgunit.get_one_orgunit(
-                c, org_unit, details=orgunit.UnitDetails.MINIMAL
-            ),
+            **await base_obj,
+            mapping.PERSON: await person_task,
+            mapping.ORG_UNIT: await org_unit_task,
             mapping.ASSOCIATION_TYPE: association_type_class,
             mapping.PRIMARY: primary_class,
             mapping.CLASSES: list(dynamic_classes.values()),

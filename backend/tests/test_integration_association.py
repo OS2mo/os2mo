@@ -6,6 +6,7 @@ import copy
 import freezegun
 from mock import patch
 
+import mora.async_util
 from mora import lora
 from mora import mapping
 from tests import util
@@ -158,12 +159,13 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        associations = c.organisationfunktion.fetch(
+        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
-        actual_association = c.organisationfunktion.get(associationid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            associationid)
 
         self.assertRegistrationsEqual(actual_association, expected)
 
@@ -590,12 +592,13 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        associations = c.organisationfunktion.fetch(
+        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedebrugere=userid, funktionsnavn='Tilknytning')
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
-        actual_association = c.organisationfunktion.get(associationid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            associationid)
 
         self.assertRegistrationsEqual(actual_association, expected)
 
@@ -816,7 +819,7 @@ class Tests(util.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity',
                            virkningtil='infinity')
-        associations = c.organisationfunktion.fetch(
+        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedeenheder=unitid,
             tilknyttedebrugere=userid,
             funktionsnavn=mapping.ASSOCIATION_KEY)
@@ -842,7 +845,7 @@ class Tests(util.LoRATestCase):
                 '/service/details/edit',
                 {
                     'description': 'The employee already has an active '
-                    'association with the given org unit.',
+                                   'association with the given org unit.',
                     'error': True,
                     'error_key': 'V_MORE_THAN_ONE_ASSOCIATION',
                     'existing': [
@@ -1033,7 +1036,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_association = c.organisationfunktion.get(association_uuid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
 
@@ -1192,7 +1196,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_association = c.organisationfunktion.get(association_uuid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
 
@@ -1349,7 +1354,8 @@ class Tests(util.LoRATestCase):
 
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        actual_association = c.organisationfunktion.get(association_uuid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
 
         # drop lora-generated timestamps & users
         del actual_association['fratidspunkt'], actual_association[

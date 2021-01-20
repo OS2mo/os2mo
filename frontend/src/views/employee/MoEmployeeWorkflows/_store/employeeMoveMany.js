@@ -40,17 +40,28 @@ const actions = {
       }
     })
 
+    let human_readable_moves = state.selected.map(engagement => {
+      return {
+          name: engagement.person.name,
+          destination: state.orgUnitDestination.name,
+      }
+    })
+
     commit('updateIsLoading', true)
 
     return Service.post('/details/edit', moves)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         commit('resetFields')
-        for (const uuid of response.data) {
-          commit('log/newWorkLog',
-            { type: 'EMPLOYEE_MOVE', value: uuid },
-            { root: true })
+
+        // attempt nice logging
+
+        for (const move of human_readable_moves) {
+        commit('log/newWorkLog',
+          { type: 'EMPLOYEE_MOVE', value: move },
+          { root: true })
         }
+
         return response.data
       })
       .catch(error => {

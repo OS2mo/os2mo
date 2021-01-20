@@ -5,6 +5,7 @@ import freezegun
 
 from unittest.mock import patch
 
+import mora.async_util
 from . import util
 
 org_unit_type_facet = {
@@ -767,9 +768,11 @@ class Tests(util.LoRATestCase):
             {'total': 0, 'items': [], 'offset': 0},
         )
 
-        util.load_fixture('organisation/bruger',
-                          'create_bruger_andersine.json',
-                          'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24')
+        mora.async_util.async_to_sync(util.load_fixture)(
+            'organisation/bruger',
+            'create_bruger_andersine.json',
+            'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
+        )
 
         result_list = [
             {

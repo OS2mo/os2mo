@@ -4,6 +4,7 @@
 import freezegun
 import notsouid
 
+import mora.async_util
 from mora import lora
 from tests import util
 
@@ -161,7 +162,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -290,7 +292,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -419,7 +422,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -535,7 +539,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_engagement = c.organisationfunktion.get(engagementid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagementid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 
@@ -855,7 +860,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
@@ -1034,7 +1040,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
@@ -1184,7 +1191,8 @@ class Tests(util.LoRATestCase):
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
-        actual_engagement = c.organisationfunktion.get(engagement_uuid)
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            engagement_uuid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 

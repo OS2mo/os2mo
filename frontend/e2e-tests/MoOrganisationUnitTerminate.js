@@ -85,13 +85,15 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
 
     .expect(createDialog.exists).notOk()
 
-  const logPattern = /Organisationsenheden med UUID ([-0-9a-f]+) er blevet oprettet./
+  const logPattern = /Organisationsenheden (.+) er blevet oprettet under (.+)./
 
   await t
     .expect(lastLogMessage.innerText)
     .match(logPattern)
 
-  const unitID = logPattern.exec(await lastLogMessage.innerText)[1]
+  const match = logPattern.exec(await lastLogMessage.innerText)
+  const name = match[1]
+  const parent = match[2]
 
   await t
     .hover('#mo-workflow', { offsetX: 10, offsetY: 130 })
@@ -125,7 +127,7 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .expect(dialog.exists).notOk()
 
     .expect(lastLogMessage.innerText)
-    .eql(`Organisationsenheden med UUID ${unitID} er blevet afsluttet.`)
+    .eql(`Organisationsenheden ${name} er blevet afsluttet pr. ${twoMonths.format('YYYY-MM-DD')}.`)
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
@@ -147,7 +149,7 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .expect(renameDialog.exists).notOk()
 
     .expect(lastLogMessage.innerText)
-    .eql(`Organisationsenheden med UUID ${unitID} er blevet omdøbt.`)
+    .eql(`Organisationsenheden ${name} er blevet omdøbt til Hjørring VM 2019.`)
 
     .expect(Selector('.orgunit .orgunit-name').innerText).eql(
       "Hjørring VM 2019"
@@ -228,15 +230,17 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .expect(createDialog.exists).notOk()
 
-  const logPattern = /Organisationsenheden med UUID ([-0-9a-f]+) er blevet oprettet./
+  const logPattern = /Organisationsenheden (.+) er blevet oprettet under (.+)./
 
   await t
     .expect(lastLogMessage.innerText)
     .match(logPattern)
 
-  const unitID = logPattern.exec(await lastLogMessage.innerText)[1]
+  const match = logPattern.exec(await lastLogMessage.innerText)
+  const name = match[1]
+  const parent = match[2]
 
-  await t
+    await t
     .hover('#mo-workflow', { offsetX: 10, offsetY: 130 })
     .click('.btn-unit-terminate')
 
@@ -268,7 +272,7 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .expect(dialog.exists).notOk()
 
     .expect(lastLogMessage.innerText)
-    .eql(`Organisationsenheden med UUID ${unitID} er blevet afsluttet.`)
+    .eql(`Organisationsenheden ${name} er blevet afsluttet pr. ${twoMonths.format('YYYY-MM-DD')}.`)
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
@@ -290,7 +294,7 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .expect(renameDialog.exists).notOk()
 
     .expect(lastLogMessage.innerText)
-    .eql(`Organisationsenheden med UUID ${unitID} er blevet omdøbt.`)
+    .eql(`Organisationsenheden ${name} er blevet omdøbt til Hjørring VM 2019.`)
 
     .expect(Selector('.orgunit .orgunit-name').innerText).eql(
       "Hjørring VM 2018"

@@ -13,6 +13,8 @@ from flask_saml_sso.health import (
     session_database as session_database_health,
     idp as idp_health,
 )
+
+import mora.async_util
 from mora import lora, util, conf_db
 from mora.exceptions import HTTPException
 from mora.settings import config
@@ -105,7 +107,8 @@ def configuration_database():
 
 
 @register_health_endpoint
-def dataset():
+@mora.async_util.async_to_sync  # needs to be sync, flask blueprint endpoint
+async def dataset():
     """
     Check if LoRa contains data. We check this by determining if an organisation
     exists in the system
@@ -113,7 +116,7 @@ def dataset():
     """
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     try:
-        org = c.organisation(bvn="%")
+        org = await c.organisation.fetch(bvn="%")
         if not org:
             logger.critical("No dataset found in LoRa")
             return False

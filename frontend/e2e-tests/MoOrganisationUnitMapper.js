@@ -171,7 +171,7 @@ test('Writing mapping', async t => {
   // we logged something, right?
     .expect(latestLog.innerText)
     .match(
-      /Organisationsenheden med UUID [-0-9a-f]* er blevet redigeret/
+      /Organisationsenheden (.+) er blevet redigeret\./
     )
 
   // verify that we disable the button after a save

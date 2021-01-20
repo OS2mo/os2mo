@@ -128,7 +128,7 @@ test('Workflow: create unit', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Organisationsenheden med UUID [-0-9a-f]* er blevet oprettet/
+      /Organisationsenheden (.+) er blevet oprettet under (.+)\./
     )
   // TODO: verify that the unit was actually created, somehow?
 })

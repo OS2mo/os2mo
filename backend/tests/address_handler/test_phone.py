@@ -3,12 +3,17 @@
 
 from unittest.mock import patch
 
+import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import phone
 from . import base
 
 
-@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
+async def async_facet_get_one_class(x, y):
+    return {'uuid': y}
+
+
+@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
 class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
     handler = phone.PhoneAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
@@ -62,7 +67,8 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         self.assertEqual(expected_value, actual_value)
         self.assertEqual(visibility, actual_visibility)
 
-    def test_get_mo_address(self):
+    @mora.async_util.async_to_sync
+    async def test_get_mo_address(self):
         # Arrange
         value = '12345678'
         visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
@@ -78,7 +84,7 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address_and_properties()
+        actual = await address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)

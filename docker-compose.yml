@@ -29,6 +29,12 @@ services:
       - mo
     ports:
       - "5001:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   mo:
     build:
@@ -55,6 +61,12 @@ services:
     depends_on:
       - mox
       - msg_broker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   mox:
     image: magentaaps/lora:1.8.1
@@ -74,6 +86,12 @@ services:
       - "8080:8080"
     depends_on:
       - mox-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/site-map"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   mox-db:
     image: magentaaps/postgres-os2mo:10-11.7-test
@@ -81,6 +99,12 @@ services:
       - dev-environment/db.env
       - dev-environment/sessions_db.env
       - dev-environment/conf_db.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     # The following will mount the database data directory to RAM. It
     # significantly speeds up the database at the cost of dataloss on shutdown.
     # This is useful for running tests, but should never be used if you want to

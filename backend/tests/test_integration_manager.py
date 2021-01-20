@@ -7,6 +7,7 @@ import freezegun
 import notsouid
 from unittest.mock import patch
 
+import mora.async_util
 from mora import lora
 from mora import util as mora_util
 from tests import util
@@ -199,7 +200,8 @@ class Tests(util.LoRATestCase):
             }
         }
 
-        actual_manager = c.organisationfunktion.get(managerid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
 
@@ -657,7 +659,7 @@ class Tests(util.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "be736ee5-5c44-4ed9-"
-                        "b4a4-15ffa19e2848",
+                                             "b4a4-15ffa19e2848",
                         "funktionsnavn": "Leder"
                     },
                     {
@@ -675,7 +677,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -936,7 +939,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -1145,7 +1149,8 @@ class Tests(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = c.organisationfunktion.get(manager_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -1192,7 +1197,7 @@ class Tests(util.LoRATestCase):
             },
         ]
 
-        c.organisationfunktion.update(
+        mora.async_util.async_to_sync(c.organisationfunktion.update)(
             {
                 'relationer': {
                     'opgaver': overwritten_responsibilities,
@@ -1204,7 +1209,8 @@ class Tests(util.LoRATestCase):
         with self.subTest('verify assumption about relation in LoRA'):
             self.assertEqual(
                 sorted(
-                    c.organisationfunktion.get(manager_uuid)
+                    mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                        manager_uuid)
                     ['relationer']['opgaver'],
                     key=mora_util.get_uuid,
                 ),

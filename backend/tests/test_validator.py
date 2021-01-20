@@ -5,8 +5,9 @@ import unittest
 
 import datetime
 import freezegun
-import requests_mock
+import yarl
 
+import mora.async_util
 from mora import lora
 from mora import settings
 from mora import util as mora_util
@@ -15,60 +16,62 @@ from . import util
 
 
 class TestIsDateRangeValid(util.TestCase):
+
     def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
-            validator._is_date_range_valid(None, '01-01-2017', '01-01-2016',
-                                           None, 'whatever'))
+            mora.async_util.async_to_sync(validator._is_date_range_valid)(None,
+                                                                          '01-01-2017',
+                                                                          '01-01-2016',
+                                                                          None,
+                                                                          'whatever'))
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_validity_ranges(self):
         URL = (
             settings.LORA_URL + 'organisation/organisationenhed?'
-            'uuid=00000000-0000-0000-0000-000000000000'
-            '&virkningfra=2000-01-01T00%3A00%3A00%2B01%3A00'
-            '&virkningtil=3000-01-01T00%3A00%3A00%2B01%3A00'
-            '&konsolider=True'
+                                'uuid=00000000-0000-0000-0000-000000000000'
+                                '&virkningfra=2000-01-01T00:00:00%2B01:00'
+                                '&virkningtil=3000-01-01T00:00:00%2B01:00'
+                                '&konsolider=True'
         )
-
         c = lora.Connector(virkningfra='2000-01-01',
                            virkningtil='3000-01-01').organisationenhed
 
         def check(expect, validities):
-            with requests_mock.mock() as m:
+            with util.MockAioresponses(override_lora=False) as m:
                 m.get(
-                    URL,
-                    complete_qs=True,
-                    json={
+                    yarl.URL(URL, encoded=True),
+                    payload={
                         "results":
-                        [[{
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [{
-                                "tilstande": {
-                                    "organisationenhedgyldighed": [
-                                        {
-                                            "gyldighed": v,
-                                            "virkning": {
-                                                "from": mora_util.to_lora_time(
-                                                    t1,
-                                                ),
-                                                "from_included": True,
-                                                "to": mora_util.to_lora_time(
-                                                    t2,
-                                                ),
-                                                "to_included": False
+                            [[{
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [{
+                                    "tilstande": {
+                                        "organisationenhedgyldighed": [
+                                            {
+                                                "gyldighed": v,
+                                                "virkning": {
+                                                    "from": mora_util.to_lora_time(
+                                                        t1,
+                                                    ),
+                                                    "from_included": True,
+                                                    "to": mora_util.to_lora_time(
+                                                        t2,
+                                                    ),
+                                                    "to_included": False
+                                                }
                                             }
-                                        }
-                                        for t1, t2, v in validities
-                                    ]
-                                },
-                            }]
-                        }]]
+                                            for t1, t2, v in validities
+                                        ]
+                                    },
+                                }]
+                            }]]
                     },
                 )
 
                 self.assertIs(
                     expect,
-                    validator._is_date_range_valid(
+                    mora.async_util.async_to_sync(validator._is_date_range_valid)(
                         '00000000-0000-0000-0000-000000000000',
                         mora_util.parsedatetime('01-01-2000'),
                         mora_util.parsedatetime('01-01-3000'),

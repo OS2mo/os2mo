@@ -3,12 +3,17 @@
 
 from unittest.mock import patch
 
+import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import www
 from .. import util
 
 
-@patch('mora.service.facet.get_one_class', new=lambda x, y: {'uuid': y})
+async def async_facet_get_one_class(x, y):
+    return {'uuid': y}
+
+
+@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
 class WWWAddressHandlerTests(util.TestCase):
     handler = www.WWWAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
@@ -49,7 +54,8 @@ class WWWAddressHandlerTests(util.TestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_get_mo_address(self):
+    @mora.async_util.async_to_sync
+    async def test_get_mo_address(self):
         # Arrange
         value = 'http://www.test.org/'
         address_handler = self.handler(value, self.visibility)
@@ -62,7 +68,7 @@ class WWWAddressHandlerTests(util.TestCase):
         }
 
         # Act
-        actual = address_handler.get_mo_address_and_properties()
+        actual = await address_handler.get_mo_address_and_properties()
 
         # Assert
         self.assertEqual(expected, actual)

@@ -56,6 +56,21 @@ def initdb(wait):
                           sqlalchemy.exc.OperationalError, wait)
 
 
+@group.command()
+@click.option("--wait", default=_SLEEPING_TIME, type=int,
+              help="Wait up to n seconds for the database connection before"
+                   " exiting.")
+def checkdb(wait):
+    """Check that database is online."""
+
+    def check_db():
+        with conf_db._get_session() as session:
+            session.execute("SELECT 1")
+
+    _wait_for_service("Database is up", check_db,
+                      sqlalchemy.exc.OperationalError, wait)
+
+
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):
     attempts = int(wait // _SLEEPING_TIME) or 1
     for i in range(1, attempts + 1):

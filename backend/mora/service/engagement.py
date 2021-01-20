@@ -11,6 +11,7 @@ employees and organisational units.
 '''
 import uuid
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -34,19 +35,23 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
-        validator.is_date_range_in_employee_range(employee, valid_from,
-                                                  valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            employee,
+            valid_from,
+            valid_to)
 
-        validator.is_date_range_in_org_unit_range(org_unit, valid_from,
-                                                  valid_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            org_unit,
+            valid_from,
+            valid_to)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = util.get_mapping_uuid(req, mapping.PRIMARY)
 
-        org_uuid = org.get_configured_organisation(
-            util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
+        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         job_function_uuid = util.get_mapping_uuid(req,
                                                   mapping.JOB_FUNCTION)
@@ -84,7 +89,8 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = c.organisationfunktion.get(uuid=engagement_uuid)
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            uuid=engagement_uuid)
 
         # Get org unit uuid for validation purposes
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
@@ -191,10 +197,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        validator.is_date_range_in_org_unit_range({'uuid': org_unit_uuid},
-                                                  new_from, new_to)
-        validator.is_date_range_in_employee_range({'uuid': employee_uuid},
-                                                  new_from, new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            {'uuid': org_unit_uuid},
+            new_from, new_to)
+        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            {'uuid': employee_uuid},
+            new_from, new_to)
 
         self.payload = payload
         self.uuid = engagement_uuid

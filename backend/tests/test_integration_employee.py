@@ -4,6 +4,7 @@
 import freezegun
 import notsouid
 
+import mora.async_util
 from mora import lora
 from . import util
 
@@ -58,7 +59,7 @@ class Tests(util.LoRATestCase):
                         'kaldenavn_efternavn': 'Sejfyr',
                         'virkning': {
                             'from': '1950-01-01 '
-                            '00:00:00+01',
+                                    '00:00:00+01',
                             'from_included': True,
                             'to': 'infinity',
                             'to_included': False
@@ -105,7 +106,7 @@ class Tests(util.LoRATestCase):
             },
         }
 
-        actual = c.bruger.get(userid)
+        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -646,7 +647,7 @@ class Tests(util.LoRATestCase):
         }]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.bruger.get(userid)
+        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
         self.assertEqual(
             expected_brugeregenskaber,
@@ -775,7 +776,7 @@ class Tests(util.LoRATestCase):
         ]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = c.bruger.get(userid)
+        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
         self.assertEqual(
             expected_brugeregenskaber,
@@ -798,9 +799,9 @@ class Tests(util.LoRATestCase):
     def test_get_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
-        util.load_fixture('organisation/bruger',
-                          'create_bruger_andersine.json',
-                          employee_uuid)
+        mora.async_util.async_to_sync(util.load_fixture)('organisation/bruger',
+                                                         'create_bruger_andersine.json',
+                                                         employee_uuid)
 
         self.assertRequestResponse(
             '/service/e/{}/integration-data'.format(employee_uuid),
@@ -820,9 +821,9 @@ class Tests(util.LoRATestCase):
     def test_edit_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
-        util.load_fixture('organisation/bruger',
-                          'create_bruger_andersine.json',
-                          employee_uuid)
+        mora.async_util.async_to_sync(util.load_fixture)('organisation/bruger',
+                                                         'create_bruger_andersine.json',
+                                                         employee_uuid)
 
         req = {
             "type": "employee",

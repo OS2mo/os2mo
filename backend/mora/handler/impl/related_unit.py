@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import logging
+from asyncio import gather
 
 from .. import reading
 from ... import common
@@ -18,18 +19,18 @@ class RoleReader(reading.OrgFunkReadingHandler):
     function_key = mapping.RELATED_UNIT_KEY
 
     @classmethod
-    def get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
         c = common.get_connector()
 
         org_units = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
-        base_obj = super().get_mo_object_from_effect(effect, start, end, funcid)
+        base_obj = await super().get_mo_object_from_effect(effect, start, end, funcid)
 
-        parsed_org_units = [
+        parsed_org_units = await gather(*[
             orgunit.get_one_orgunit(c, org_unit_uuid,
                                     details=orgunit.UnitDetails.MINIMAL)
             for org_unit_uuid in org_units
-        ]
+        ])
         sorted_org_units = sorted(parsed_org_units, key=lambda x: x.get('name'))
 
         r = {

@@ -3,6 +3,7 @@
 
 import freezegun
 
+import mora.async_util
 from mora import lora
 from tests import util
 
@@ -281,7 +282,7 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertEqual(
-            list(c.organisationfunktion.get_all(
+            list(mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
                 funktionsnavn='IT-system',
                 tilknyttedebrugere=userid,
             )),
@@ -369,7 +370,7 @@ class Writing(util.LoRATestCase):
             )
 
         self.assertEqual(
-            list(c.organisationfunktion.get_all(
+            list(mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
                 funktionsnavn='IT-system',
                 tilknyttedebrugere=unitid,
             )),
@@ -572,7 +573,8 @@ class Writing(util.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_it_func = c.organisationfunktion.get(it_func_id)
+        actual_it_func = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            it_func_id)
 
         self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 

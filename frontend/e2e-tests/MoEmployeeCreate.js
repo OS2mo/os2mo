@@ -180,7 +180,7 @@ test('Workflow: create employee', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+      /Medarbejderen (.+) er blevet oprettet under (.+)\./
     )
     // Verify that we can search for the newly created employee
     .click(searchField)
@@ -236,7 +236,7 @@ test('Workflow: create employee with role only', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+      /Medarbejderen (.+) er blevet oprettet under (.+)\./
     )
     .expect(Selector('.card-title').textContent)
     .match(/Oliver Jensen \(200392-0009\)/)
@@ -306,7 +306,7 @@ test('Workflow: create employee with association to unit lacking address', async
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+      /Medarbejderen (.+) er blevet oprettet under (.+)\./
     )
 
     // verify whom we created
@@ -366,7 +366,7 @@ test('Workflow: create employee with itsystem only', async t => {
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
-      /Medarbejderen med UUID [-0-9a-f]* er blevet oprettet/
+      /Medarbejderen (.+) er blevet oprettet under (.+)\./
     )
     .expect(Selector('.card-title').textContent)
     .match(/Nanna Jensen \(210493-0010\)/)
