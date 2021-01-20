@@ -346,6 +346,9 @@ async def get_one_class(c: lora.Connector, classid, clazz=None,
         }
 
     if not clazz:  # optionally exit early
+        if not classid:
+            return None
+
         clazz = await c.klasse.get(classid)
 
         if not clazz:
@@ -705,14 +708,14 @@ async def get_all_classes_children(facet: str):
 
     facetids = await get_facetids(facet)
 
-    classes = await c.klasse.paged_get(
+    classes = (await c.klasse.paged_get(
         get_one_class,
         facet=facetids,
         ansvarlig=None,
         publiceret='Publiceret',
         start=start, limit=limit
-    )['items']
+    ))['items']
     classes = await gather(
-        *[create_task(prepare_class_child(c, class_) for class_ in classes)])
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
     return flask.jsonify(classes)
