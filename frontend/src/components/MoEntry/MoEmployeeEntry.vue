@@ -59,21 +59,12 @@ export default {
     creatingDate: Boolean
   },
 
-  created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Set entry and contactInfo to value.
-     */
-    this.cleanUp()
-  },
-
   watch: {
     /**
      * Whenever entry change, update newVal.
      */
     entry: {
       handler (newVal) {
-        this.cleanUp()
         this.$emit('input', newVal)
       },
       deep: true
@@ -87,16 +78,10 @@ export default {
     }
   },
 
-  methods: {
-    /**
-     * Handle the entry content.
-     */
-
-    cleanUp () {
-      delete this.entry.givenname
-      delete this.entry.surname
-      delete this.entry.nickname
-    }
-  }
+  cleanUp (entry) {
+    delete entry.givenname
+    delete entry.surname
+    delete entry.nickname
+  },
 }
 </script>

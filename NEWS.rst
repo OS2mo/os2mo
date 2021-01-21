@@ -9,8 +9,11 @@ New features
 * #39316: Addresses using TEXT scope are now displayed and edited as multiline text
 * #39859: The "Organisation" page layout (split) can be controlled by the user
 * #40177: Edit nickname as two separate fields (given name and surname)
-
 * #39841: Fix time machine date picker
+
+Bug fixes
+---------
+* #39855: When editing employees, sometimes misleading error messages were displayed
 
 Version 1.12.0, 2021-01-08
 ==========================

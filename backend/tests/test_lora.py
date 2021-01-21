@@ -474,3 +474,53 @@ class Tests(util.TestCase):
                 ))
             ],
         )
+
+    def test_raise_on_status_detects_noop_change(self):
+        status_code = 400
+        msg_noop = (
+            "ERROR:  Aborted updating bruger with id "
+            "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+            "not give raise to a new registration. Aborted reg: ..."
+        )
+        msg_other = "ERROR: Some other error"
+        # Assert the 'noop' error does not raise an exception
+        self.assertIsNone(lora.raise_on_status(status_code, msg_noop))
+        # Assert that any other error does raise an exception
+        with self.assertRaisesRegex(exceptions.HTTPException, msg_other):
+            lora.raise_on_status(status_code, msg_other)
+
+    @util.MockAioresponses()
+    def test_noop_update_returns_null(self, m):
+        # A "no-op" update in LoRa returns a response with an error message,
+        # but no "uuid" key.
+        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
+        m.patch(
+            re.compile(r".*/organisation/bruger/" + uuid),
+            payload={
+                'message':
+                    "ERROR:  Aborted updating bruger with id "
+                    "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+                    "not give raise to a new registration. Aborted reg: ..."
+            }
+        )
+        # Assert that `Scope.update` tolerates the missing 'uuid' key in the
+        # LoRa response, and instead just returns the original UUID back to its
+        # caller.
+        c = lora.Connector()
+        same_uuid = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
+        self.assertEqual(uuid, same_uuid)
+
+    @util.MockAioresponses()
+    def test_actual_update_returns_uuid(self, m):
+        # A normal update in LoRa returns a response with a 'uuid' key which
+        # matches the object that was updated.
+        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
+        m.patch(
+            re.compile(r".*/organisation/bruger/" + uuid),
+            payload={"uuid": uuid}
+        )
+        # Assert that `Scope.update` parses the JSON response and returns the
+        # value of the 'uuid' key to its caller.
+        c = lora.Connector()
+        updated_uuid = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
+        self.assertEqual(uuid, updated_uuid)
