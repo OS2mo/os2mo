@@ -9,6 +9,6 @@ formats: []
 requirements_file: docs/requirements-docs.txt
 
 python:
-  version: 3.6
+  version: 3.7
   setup_py_install: false
   python.use_system_site_packages: true
