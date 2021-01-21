@@ -9,6 +9,7 @@ SPDX-License-Identifier: MPL-2.0
     :get_toplevel_children="get_toplevel_children"
     :get_children="get_children"
     :get_store_uuid="get_store_uuid"
+    :atDate="atDate"
     v-bind="$attrs"
     v-on="$listeners"
   >
