@@ -333,6 +333,7 @@ export default {
   }
 
   th, td {
+    width: 1%;
     text-align: left;
     padding: .5rem;
     overflow: hidden;
@@ -340,7 +341,6 @@ export default {
   }
 
   .scroll {
-    max-height: 55vh;
     overflow-x: auto;
     overflow-y: auto;
   }
@@ -351,7 +351,7 @@ export default {
   }
 
   .column-data {
-    min-width: 12rem;
+    min-width: 9rem;
     max-width: 12rem;
   }
 
