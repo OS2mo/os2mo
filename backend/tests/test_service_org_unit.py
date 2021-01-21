@@ -8,6 +8,9 @@ import requests_mock
 from mock import patch
 
 from tests import util
+from mora import lora
+from mora.async_util import async_to_sync
+from mora.service.orgunit import UnitDetails, get_one_orgunit
 
 
 class TestAddressLookup(util.TestCase):
@@ -212,3 +215,30 @@ class TestTriggerExternalIntegration(util.TestCase):
         )
         self.assertIn(response_msg, r['message'])
         self.assertEqual(201, r.get('status_code'))
+
+
+class TestGetOneOrgUnit(util.LoRATestCase):
+    def setUp(self):
+        self.load_sample_structures(minimal=True)
+        self._connector = lora.Connector(
+            virkningfra='-infinity', virkningtil='infinity'
+        )
+        self._orgunit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+
+    def test_details_nchildren(self):
+        self._assert_orgunit_keys(
+            {'uuid', 'name', 'user_key', 'validity', 'child_count'},
+            details=UnitDetails.NCHILDREN,
+        )
+
+    def test_details_path(self):
+        self._assert_orgunit_keys(
+            {'uuid', 'name', 'user_key', 'validity', 'location'},
+            details=UnitDetails.PATH,
+        )
+
+    def _assert_orgunit_keys(self, expected_keys, **kwargs):
+        orgunit = async_to_sync(get_one_orgunit)(
+            self._connector, self._orgunit_uuid, **kwargs
+        )
+        self.assertSetEqual(set(orgunit.keys()), expected_keys)

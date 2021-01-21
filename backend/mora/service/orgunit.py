@@ -66,6 +66,9 @@ class UnitDetails(enum.Enum):
     # minimal and integration_data
     INTEGRATION = 4
 
+    # name, path and UUID
+    PATH = 5
+
 
 class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
@@ -402,46 +405,47 @@ async def get_one_orgunit(c: lora.Connector,
     if details is UnitDetails.NCHILDREN:
         children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed='Aktiv')
         r['child_count'] = len(children)
-    elif details is UnitDetails.FULL:
+    elif details is UnitDetails.FULL or details is UnitDetails.PATH:
 
         parent_task = create_task(
             await request_bulked_get_one_orgunit(unitid=parentid,
-                                                 details=UnitDetails.FULL,
+                                                 details=details,
                                                  only_primary_uuid=only_primary_uuid)
             if utilize_request_wide_cache else get_one_orgunit(
                 c, parentid,
-                details=UnitDetails.FULL,
+                details=details,
                 only_primary_uuid=only_primary_uuid)
         )
 
-        org_task = create_task(org.get_configured_organisation())
+        if details is UnitDetails.FULL:
+            org_task = create_task(org.get_configured_organisation())
 
-        if unittype:
-            org_unit_type_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=unittype,
-                    only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, unittype,
-                                         only_primary_uuid=only_primary_uuid)
-            )
+            if unittype:
+                org_unit_type_task = create_task(
+                    await facet.request_bulked_get_one_class_full(
+                        classid=unittype,
+                        only_primary_uuid=only_primary_uuid) if
+                    utilize_request_wide_cache else
+                    facet.get_one_class_full(c, unittype,
+                                             only_primary_uuid=only_primary_uuid)
+                )
 
-        if timeplanning:
-            time_planning_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=timeplanning,
-                    only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, timeplanning,
-                                         only_primary_uuid=only_primary_uuid))
+            if timeplanning:
+                time_planning_task = create_task(
+                    await facet.request_bulked_get_one_class_full(
+                        classid=timeplanning,
+                        only_primary_uuid=only_primary_uuid) if
+                    utilize_request_wide_cache else
+                    facet.get_one_class_full(c, timeplanning,
+                                             only_primary_uuid=only_primary_uuid))
 
-        if org_unit_level:
-            org_unit_level_task = create_task(
-                await facet.request_bulked_get_one_class_full(
-                    classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, org_unit_level,
-                                         only_primary_uuid=only_primary_uuid))
+            if org_unit_level:
+                org_unit_level_task = create_task(
+                    await facet.request_bulked_get_one_class_full(
+                        classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
+                    utilize_request_wide_cache else
+                    facet.get_one_class_full(c, org_unit_level,
+                                             only_primary_uuid=only_primary_uuid))
 
         parent = await parent_task
 
@@ -454,36 +458,38 @@ async def get_one_orgunit(c: lora.Connector,
             else:
                 r[mapping.LOCATION] = ''
 
-            settings = {}
-            local_settings = conf_db.get_configuration(unitid)
+            if details is UnitDetails.FULL:
+                settings = {}
+                local_settings = conf_db.get_configuration(unitid)
 
-            settings.update(local_settings)
-            if parent:
-                parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
-                for setting, value in parent_settings.items():
+                settings.update(local_settings)
+                if parent:
+                    parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
+                    for setting, value in parent_settings.items():
+                        settings.setdefault(setting, value)
+
+                global_settings = conf_db.get_configuration()
+                for setting, value in global_settings.items():
                     settings.setdefault(setting, value)
 
-            global_settings = conf_db.get_configuration()
-            for setting, value in global_settings.items():
-                settings.setdefault(setting, value)
+                r[mapping.USER_SETTINGS] = {'orgunit': settings}
 
-            r[mapping.USER_SETTINGS] = {'orgunit': settings}
+        if details is UnitDetails.FULL:
+            r[mapping.PARENT] = parent
 
-        r[mapping.PARENT] = parent
+            r[mapping.ORG] = await org_task
 
-        r[mapping.ORG] = await org_task
+            r[mapping.ORG_UNIT_TYPE] = (
+                await org_unit_type_task if unittype else None
+            )
 
-        r[mapping.ORG_UNIT_TYPE] = (
-            await org_unit_type_task if unittype else None
-        )
+            r[mapping.TIME_PLANNING] = (
+                await time_planning_task if timeplanning else None
+            )
 
-        r[mapping.TIME_PLANNING] = (
-            await time_planning_task if timeplanning else None
-        )
-
-        r[mapping.ORG_UNIT_LEVEL] = (
-            await org_unit_level_task if org_unit_level else None
-        )
+            r[mapping.ORG_UNIT_LEVEL] = (
+                await org_unit_level_task if org_unit_level else None
+            )
 
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
@@ -893,8 +899,24 @@ async def trigger_external_integration(unitid):
         raise exceptions.ErrorCodes.E_INTEGRATION_ERROR(error_msg)
 
 
+def get_details_from_query_args(args):
+    arg_map = {
+        'minimal': UnitDetails.MINIMAL,
+        'nchildren': UnitDetails.NCHILDREN,
+        'self': UnitDetails.SELF,
+        'full': UnitDetails.FULL,
+        'integration': UnitDetails.INTEGRATION,
+        'path': UnitDetails.PATH,
+    }
+
+    if 'details' in args and args['details'] in arg_map:
+        return arg_map[args['details']]
+    else:
+        return UnitDetails.MINIMAL
+
+
 @blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'root')
+@util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
 @mora.async_util.async_to_sync
 async def list_orgunits(orgid):
     '''Query organisational units in an organisation.
@@ -1008,11 +1030,13 @@ async def list_orgunits(orgid):
 
         uuid_filters.append(entry_under_root)
 
+    details = get_details_from_query_args(flask.request.args)
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     async def get_minimal_orgunit(*args, **kwargs):
-        return await get_one_orgunit(*args, details=UnitDetails.MINIMAL,
-                                     only_primary_uuid=only_primary_uuid, **kwargs)
+        return await get_one_orgunit(
+            *args, details=details, only_primary_uuid=only_primary_uuid, **kwargs
+        )
 
     search_result = await c.organisationenhed.paged_get(
         get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs

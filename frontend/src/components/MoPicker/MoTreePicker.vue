@@ -15,7 +15,6 @@ SPDX-License-Identifier: MPL-2.0
       v-model="unitName"
       @click.stop="toggleTree()"
       v-validate="validations"
-      readonly
     >
 
     <div class="mo-input-group" v-show="showTree">
@@ -27,6 +26,20 @@ SPDX-License-Identifier: MPL-2.0
                     :get_children="get_children"
                     :get_store_uuid="get_store_uuid"
       />
+    </div>
+
+    <div class="mo-input-group search-results"
+         v-show="searchResults.length > 0 || searchResultLoading">
+      <mo-loader v-show="searchResultLoading" />
+      <a href="#"
+         v-show="!searchResultLoading"
+         v-for="(result, index) in searchResults" :key="index"
+         @click.prevent="selectSearchResult(result)">
+        <span v-for="(part, index) in result.path" :key="index">
+          {{ part }}
+          <span>&raquo;</span>
+        </span>
+      </a>
     </div>
 
     <span v-show="errors.has(nameId)" class="text-danger">
@@ -41,13 +54,14 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import MoTreeView from '@/components/MoTreeView/MoTreeView'
-
+import MoLoader from '@/components/atoms/MoLoader'
 
 export default {
   name: 'MoTreePicker',
 
   components: {
-    MoTreeView
+    MoTreeView,
+    MoLoader,
   },
 
   /**
@@ -105,8 +119,12 @@ export default {
        */
       selectedSuperUnitUuid: null,
       showTree: false,
+      unitUuid: null,
       unitName: null,
-      unitUuid: null
+      // Data for the search results
+      searchResults: [],
+      searchResultLoading: false,  // true if results are currently loading
+      searchResultSelected: false,  // true if a result was just selected
     }
   },
 
@@ -275,5 +293,12 @@ export default {
     border: 1px solid #ced4da;
     border-radius: 0 0 0.25rem;
     transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  }
+  .mo-input-group.search-results {
+    max-height: 50vh;
+    overflow-y: scroll;
+  }
+  .mo-input-group.search-results a {
+    display: block;
   }
 </style>
