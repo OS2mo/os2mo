@@ -21,6 +21,8 @@
   "manager_level": "Lederniveau",
   "manager_type": "Ledertype",
   "name": "Navn",
+  "givenname": "Fornavn",
+  "surname": "Efternavn",
   "nickname": "Kaldenavn",
   "role_type": "Rolletype",
   "role": "Rolle | Roller",

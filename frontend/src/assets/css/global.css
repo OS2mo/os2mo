@@ -48,6 +48,11 @@ table th {
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
 
+.form-row.name label, .form-row.nickname label {
+  width: 100%;
+  padding: 0.5rem 0 0 5px;
+}
+
 .container-fluid {
   padding-right: 0;
 }
