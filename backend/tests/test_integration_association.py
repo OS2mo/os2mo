@@ -11,6 +11,8 @@ from mora import lora
 from mora import mapping
 from tests import util
 
+substitute_association = {'name': 'i18n:substitute_association'}  # const
+
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 class Tests(util.LoRATestCase):
@@ -29,7 +31,7 @@ class Tests(util.LoRATestCase):
         association_uuid = '00000000-0000-0000-0000-000000000000'
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
+        subid = "aefb4355-11b1-411b-a64d-34f2ff9640f6"
         payload = [
             {
                 "type": "association",
@@ -40,7 +42,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
                 "substitute": {
-                    'uuid': "aefb4355-11b1-411b-a64d-34f2ff9640f6"
+                    'uuid': subid
                 },
                 "user_key": "1234",
                 "primary": {'uuid': "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
@@ -177,13 +179,78 @@ class Tests(util.LoRATestCase):
             'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
             'user_key': '1234',
             'uuid': '00000000-0000-0000-0000-000000000000',
-            "substitute": {'uuid': "aefb4355-11b1-411b-a64d-34f2ff9640f6"},
-            'validity': {'from': '2017-12-01', 'to': '2017-12-01'}
+            "substitute": {'uuid': subid},
+            'validity': {'from': '2017-12-01', 'to': '2017-12-01'},
         }]
 
         self.assertRequestResponse(
             '/service/e/{}/details/association'
             '?validity=future&only_primary_uuid=1'.format(userid),
+            expected,
+            amqp_topics={
+                'employee.association.create': 1,
+                'org_unit.association.create': 1,
+            },
+        )
+        expected = [{
+            'association_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+            'dynamic_classes': [],
+            'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+            'person': {'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
+            'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
+            'user_key': '1234',
+            'uuid': '00000000-0000-0000-0000-000000000000',
+            "substitute": {'uuid': subid},
+            'validity': {'from': '2017-12-01', 'to': '2017-12-01'},
+            'first_party_association_type': {
+                'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+            'third_party_associated': {'uuid': subid},
+            'third_party_association_type': substitute_association,
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future&only_primary_uuid=1&first_party_perspective=1'.format(
+                userid),
+            expected,
+            amqp_topics={
+                'employee.association.create': 1,
+                'org_unit.association.create': 1,
+            },
+        )
+
+        expected = []
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future&only_primary_uuid=1'.format(subid),
+            expected,
+            amqp_topics={
+                'employee.association.create': 1,
+                'org_unit.association.create': 1,
+            },
+        )
+
+        expected = [{
+            'association_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+            'dynamic_classes': [],
+            'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+            'person': {'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053'},
+            'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
+            'user_key': '1234',
+            'uuid': '00000000-0000-0000-0000-000000000000',
+            "substitute": {'uuid': subid},
+            'validity': {'from': '2017-12-01', 'to': '2017-12-01'},
+            'first_party_association_type': substitute_association,
+            'third_party_associated': {'uuid': userid},
+            'third_party_association_type': {
+                'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+        }]
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future&only_primary_uuid=1&first_party_perspective=1'.format(
+                subid),
             expected,
             amqp_topics={
                 'employee.association.create': 1,
@@ -611,7 +678,7 @@ class Tests(util.LoRATestCase):
             'user_key': '1234',
             'uuid': '00000000-0000-0000-0000-000000000000',
             'substitute': None,
-            'validity': {'from': '2017-12-01', 'to': '2017-12-01'}
+            'validity': {'from': '2017-12-01', 'to': '2017-12-01'},
         }]
 
         self.assertRequestResponse(
@@ -704,6 +771,7 @@ class Tests(util.LoRATestCase):
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+        subid = "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
 
         req = [{
             "type": "association",
@@ -714,7 +782,7 @@ class Tests(util.LoRATestCase):
                     'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                 },
                 "substitute": {
-                    'uuid': "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+                    'uuid': subid
                 },
                 "validity": {
                     "from": "2017-01-01",
@@ -778,6 +846,15 @@ class Tests(util.LoRATestCase):
                     'to': None,
                 },
             }],
+            amqp_topics={
+                'employee.association.update': 2,
+                'org_unit.association.update': 2,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/association?only_primary_uuid=1'.format(subid),
+            [],
             amqp_topics={
                 'employee.association.update': 2,
                 'org_unit.association.update': 2,

@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import logging
 from asyncio import create_task
+
+from mora import exceptions
 
 from .. import reading
 from ... import common, util
@@ -13,6 +14,8 @@ from ...service import orgunit
 from ...service.facet import ClassDetails
 
 ROLE_TYPE = "association"
+SUBSTITUTE_ASSOCIATION = {'name': 'i18n:substitute_association'}
+FIRST_PARTY_PERSPECTIVE = 'first_party_perspective'
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,43 @@ logger = logging.getLogger(__name__)
 @reading.register(ROLE_TYPE)
 class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
+
+    @classmethod
+    async def get_from_type(cls, c, type, objid):
+
+        search_fields = {
+            cls.SEARCH_FIELDS[type]: objid
+        }
+        if util.get_args_flag(FIRST_PARTY_PERSPECTIVE):
+            if type != 'e':  # raises
+                exceptions.ErrorCodes.E_INVALID_INPUT(
+                    f'Invalid args: {FIRST_PARTY_PERSPECTIVE}')
+            else:
+                # get both "vanilla" associations and
+                # associations where "objid" is the substitute, in some new fields
+                e_task = create_task(cls.get(c, search_fields))
+                f_task = create_task(cls.get(c, {'tilknyttedefunktioner': objid}))
+                e_result = await e_task
+                f_result = await f_task
+                augmented_e = [{**x,
+                                'first_party_association_type': x['association_type'],
+                                'third_party_associated': x['substitute'],
+                                'third_party_association_type':
+                                    SUBSTITUTE_ASSOCIATION if x[
+                                        'substitute'] else None,
+                                } for x in e_result]
+
+                augmented_f = [{**x,
+                                'first_party_association_type':
+                                    SUBSTITUTE_ASSOCIATION if x[
+                                        'substitute'] else None,
+                                'third_party_associated': x['person'],
+                                'third_party_association_type': x['association_type'],
+                                } for x in f_result]
+
+                return augmented_e + augmented_f
+        else:  # default
+            return await cls.get(c, search_fields)
 
     @classmethod
     async def get_mo_object_from_effect(cls, effect, start, end, funcid):

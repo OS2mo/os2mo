@@ -2,6 +2,13 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
+    <mo-employee-picker
+      v-if="hideEmployeePicker || hideOrgPicker"
+      class="search-employee mb-3"
+      :label="$tc('input_fields.employee')"
+      v-model="validPerson"
+      :validity="entry.validity"
+    />
     <mo-input-date-range
       class="from-date"
       v-model="entry.validity"
@@ -80,15 +87,35 @@ export default {
 
   name: 'MoAssociationEntry',
 
+    props: {
+    /**
+     * This boolean property hide the org picker.
+     */
+    hideOrgPicker: Boolean,
+
+    /**
+     * This boolean property hide the employee picker.
+     */
+    hideEmployeePicker: Boolean
+  },
+
   computed: {
+
     ...mapGetters({
       currentEmployee: Employee.getters.GET_EMPLOYEE
     }),
 
+    validPerson: {
+      get() {
+        return (this.entry.person && this.entry.person.name) ? this.entry.person : this.currentEmployee
+      },
+      set(value) {},
+    },
+
     validations () {
       return {
         existing_associations: [
-          this.currentEmployee,
+          this.entry.person,
           this.entry.org_unit,
           this.entry.validity,
           this.entry.uuid

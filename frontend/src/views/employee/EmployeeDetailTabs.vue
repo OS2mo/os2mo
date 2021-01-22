@@ -213,7 +213,9 @@ export default {
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
       let columns = [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'association_type', data: 'association_type' }
+        { label: 'first_party_association_type', data: 'first_party_association_type' },
+        { label: 'third_party_associated', data: 'third_party_associated' },
+        { label: 'third_party_association_type', data: 'third_party_association_type' }
       ]
 
       if (conf.association_dynamic_facets) {
@@ -252,6 +254,9 @@ export default {
         detail: contentType,
         validity: event,
         uuid: this.uuid
+      }
+      if (contentType==='association'){
+        payload['additional_query_params'] = 'first_party_perspective=1'
       }
       this.$emit('show', payload)
     },

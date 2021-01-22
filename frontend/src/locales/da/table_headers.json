@@ -30,5 +30,8 @@
   "value": "Værdi",
   "kle_aspect": "@:shared.kle_aspect",
   "kle_number": "@:shared.kle_number",
-  "substitute": "Stedfortræder"
+  "substitute": "@:shared.substitute",
+  "first_party_association_type": "Rolle",
+  "third_party_associated": "Tilknyttet",
+  "third_party_association_type": "Tilknyttedes rolle"
 }
