@@ -16,12 +16,13 @@ import copy
 import enum
 import uuid
 from functools import partial
-from operator import itemgetter, contains
-from typing import Any, Union, Dict
+from operator import contains, itemgetter
+from typing import Any, Awaitable, Dict, Union
 
 import flask
-
 import mora.async_util
+from mora.request_wide_bulking import request_wide_bulk
+
 from . import handlers
 from . import org
 from .validation import validator
@@ -30,6 +31,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..lora import LoraObjectType
 from ..triggers import Trigger
 
 blueprint = flask.Blueprint('employee', __name__, static_url_path='',
@@ -261,10 +263,51 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return super().submit()
 
 
+async def __get_employee_from_cache(userid: str,
+                                    details: EmployeeDetails = EmployeeDetails.MINIMAL,
+                                    only_primary_uuid: bool = False,
+                                    ) -> Any:
+    """
+    Get org unit from cache and process it
+    :param userid: uuid of employee
+    :param details: configure processing of the employee
+    :return: A processed employee
+    """
+    ret = await get_one_employee(c=request_wide_bulk.connector, userid=userid,
+                                 user=await request_wide_bulk.get_lora_object(
+                                     type_=LoraObjectType.user,
+                                     uuid=userid) if not only_primary_uuid else None,
+                                 details=details,
+                                 only_primary_uuid=only_primary_uuid)
+    return ret
+
+
+async def request_bulked_get_one_employee(userid: str,
+                                          details: EmployeeDetails =
+                                          EmployeeDetails.MINIMAL,
+                                          only_primary_uuid: bool = False
+                                          ) -> Awaitable:
+    """
+    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
+    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
+
+    :param userid: uuid of employee
+    :param details: configure processing of the employee
+    :param only_primary_uuid:
+    :return: Awaitable returning the processed employee
+    """
+    if not only_primary_uuid:
+        await request_wide_bulk.add(type_=LoraObjectType.user, uuid=userid)
+
+    return __get_employee_from_cache(userid=userid, details=details,
+                                     only_primary_uuid=only_primary_uuid)
+
+
 async def get_one_employee(c: lora.Connector, userid, user=None,
-                           details=EmployeeDetails.MINIMAL):
+                           details=EmployeeDetails.MINIMAL,
+                           only_primary_uuid: bool = False):
     config = flask.current_app.config
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
     if only_primary_uuid:
         return {
             mapping.UUID: userid
@@ -310,6 +353,7 @@ async def get_one_employee(c: lora.Connector, userid, user=None,
         pass  # already done
     elif details is EmployeeDetails.INTEGRATION:
         r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
+
     return r
 
 
@@ -410,8 +454,11 @@ async def list_employees(orgid):
         assocs = set(map(mapping.USER_FIELD.get_uuid, assocs))
         uuid_filters.append(partial(contains, assocs))
 
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
     async def get_full_employee(*args, **kwargs):
-        return await get_one_employee(*args, **kwargs, details=EmployeeDetails.FULL)
+        return await get_one_employee(*args, **kwargs, details=EmployeeDetails.FULL,
+                                      only_primary_uuid=only_primary_uuid)
 
     search_result = await c.bruger.paged_get(
         get_full_employee, uuid_filters=uuid_filters, **kwargs
@@ -473,8 +520,9 @@ async def get_employee(id):
 
     '''
     c = common.get_connector()
-
-    r = await get_one_employee(c, id, user=None, details=EmployeeDetails.FULL)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    r = await get_one_employee(c, id, user=None, details=EmployeeDetails.FULL,
+                               only_primary_uuid=only_primary_uuid)
 
     if r:
         return flask.jsonify(r)

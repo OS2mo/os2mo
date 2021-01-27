@@ -3,27 +3,38 @@
 
 from __future__ import generator_stop
 
-import multiprocessing
-import typing
 import asyncio
-import uuid
 import logging
+import multiprocessing
 import re
+import typing
+import uuid
 from asyncio import create_task, gather
-
-from itertools import starmap
+from enum import Enum, unique
 from functools import partial
+from itertools import starmap
 
 import lora_utils
+import mora.async_util
 from more_itertools import divide
 
-import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
 
-
 logger = logging.getLogger(__name__)
+
+
+@unique
+class LoraObjectType(Enum):
+    org = 'organisation/organisation'
+    org_unit = 'organisation/organisationenhed'
+    org_func = 'organisation/organisationfunktion'
+    user = 'organisation/bruger'
+    it_system = 'organisation/itsystem'
+    class_ = 'klassifikation/klasse'
+    facet = 'klassifikation/facet'
+    classification = 'klassifikation/klassifikation'
 
 
 def raise_on_status(status_code: int, msg,
@@ -108,16 +119,6 @@ def param_bools_to_strings(params: typing.Dict[
 
 
 class Connector:
-    scope_map = dict(
-        organisation='organisation/organisation',
-        organisationenhed='organisation/organisationenhed',
-        organisationfunktion='organisation/organisationfunktion',
-        bruger='organisation/bruger',
-        itsystem='organisation/itsystem',
-        klasse='klassifikation/klasse',
-        facet='klassifikation/facet',
-        klassifikation='klassifikation/klassifikation',
-    )
 
     def __init__(self, **defaults):
         self.__validity = defaults.pop('validity', None) or 'present'
@@ -160,6 +161,7 @@ class Connector:
         )
 
         self.__defaults = defaults
+        self.__scopes = {}
 
     @property
     def defaults(self):
@@ -175,22 +177,42 @@ class Connector:
         else:
             return start > self.start and end <= self.end
 
-    def __getattr__(self, attr) -> 'Scope':
-        try:
-            path = self.scope_map[attr]
-        except KeyError:
-            raise AttributeError(
-                attr + " should be one of: " + str(list(self.scope_map.keys()))
-            )
+    def scope(self, type_: LoraObjectType) -> 'Scope':
+        if type_ in self.__scopes:
+            return self.__scopes[type_]
+        return self.__scopes.setdefault(type_, Scope(self, type_.value))
 
-        scope = Scope(self, path)
-        setattr(self, attr, scope)
+    @property
+    def organisation(self) -> 'Scope':
+        return self.scope(LoraObjectType.org)
 
-        return scope
+    @property
+    def organisationenhed(self) -> 'Scope':
+        return self.scope(LoraObjectType.org_unit)
 
-    def is_effect_relevant(self, effect):
-        return self.__is_range_relevant(util.parsedatetime(effect['from']),
-                                        util.parsedatetime(effect['to']))
+    @property
+    def organisationfunktion(self) -> 'Scope':
+        return self.scope(LoraObjectType.org_func)
+
+    @property
+    def bruger(self) -> 'Scope':
+        return self.scope(LoraObjectType.user)
+
+    @property
+    def itsystem(self) -> 'Scope':
+        return self.scope(LoraObjectType.it_system)
+
+    @property
+    def klasse(self) -> 'Scope':
+        return self.scope(LoraObjectType.class_)
+
+    @property
+    def facet(self) -> 'Scope':
+        return self.scope(LoraObjectType.facet)
+
+    @property
+    def klassifikation(self) -> 'Scope':
+        return self.scope(LoraObjectType.classification)
 
 
 class Scope:
@@ -245,7 +267,13 @@ class Scope:
 
         return gen()
 
-    async def get_all_by_uuid(self, uuids: typing.Union[typing.List, typing.Set]):
+    async def get_all_by_uuid(self,
+                              uuids: typing.Union[typing.List, typing.Set]
+                              ) -> typing.Iterable[typing.Tuple[str,
+                                                                typing.Dict[
+                                                                    typing.Any,
+                                                                    typing.Any]]]:
+
         """Get a list of objects by their UUIDs.
 
         Returns an iterator of tuples (obj_id, obj) of all matches.

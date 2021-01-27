@@ -4,11 +4,13 @@
 import abc
 from typing import Any, Dict
 
-from ... import lora
-from ...service import facet
+import flask
+
 from ... import exceptions
+from ... import lora
 from ... import mapping
 from ... import util
+from ...service import facet
 
 ADDRESS_HANDLERS = {}
 
@@ -127,7 +129,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             'urn': self.urn,
         }
 
-    async def _get_mo_properties(self) -> Dict[Any, Any]:
+    async def __get_mo_properties(self) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -145,8 +147,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         properties = {}
         if self.visibility:
             c = lora.Connector()
+            only_primary_uuid = flask.request.args.get('only_primary_uuid')
             properties.update({
-                mapping.VISIBILITY: await facet.get_one_class(c, self.visibility)
+                mapping.VISIBILITY: await facet.get_one_class(
+                    c, self.visibility,
+                    only_primary_uuid=only_primary_uuid,
+                )
             })
         return properties
 
@@ -170,7 +176,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             mapping.HREF: self.href,
             mapping.NAME: self.name,
             mapping.VALUE: self.value,
-            **await self._get_mo_properties()
+            **await self.__get_mo_properties()
         }
 
 

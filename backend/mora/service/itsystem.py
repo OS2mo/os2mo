@@ -12,10 +12,11 @@ This section describes how to interact with IT systems.
 
 import itertools
 import uuid
+from typing import Any, Awaitable, Dict, Optional
 
 import flask
-
 import mora.async_util
+
 from . import handlers
 from . import org
 from .validation import validator
@@ -24,10 +25,14 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..lora import LoraObjectType
+from ..request_wide_bulking import request_wide_bulk
 from ..triggers import Trigger
 
 blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
                             url_prefix='/service')
+
+MO_OBJ_TYPE = Dict[str, Any]
 
 
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
@@ -198,9 +203,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 @util.restrictargs('at')
 @mora.async_util.async_to_sync
 async def list_it_systems(orgid: uuid.UUID):
-    '''List the IT systems available within the given organisation.
+    """List the IT systems available within the given organisation.
 
-    :param uuid orgid: Restrict search to this organisation.
+    :param orgid: Restrict search to this organisation.
 
     .. :quickref: IT system; List available systems
 
@@ -230,7 +235,7 @@ async def list_it_systems(orgid: uuid.UUID):
         }
       ]
 
-    '''
+    """
 
     c = common.get_connector()
 
@@ -250,8 +255,41 @@ async def list_it_systems(orgid: uuid.UUID):
     )
 
 
-async def get_one_itsystem(c: lora.Connector, systemid, system=None):
-    '''Obtain the list of engagements corresponding to a user.
+async def __get_itsystem_from_cache(systemid: str,
+                                    only_primary_uuid: bool = False) -> MO_OBJ_TYPE:
+    """
+    Get org unit from cache and process it
+    :param systemid: uuid of it-system
+    :param only_primary_uuid:
+    :return: A processed system
+    """
+    return await get_one_itsystem(c=request_wide_bulk.connector, systemid=systemid,
+                                  system=await request_wide_bulk.get_lora_object(
+                                      type_=LoraObjectType.it_system,
+                                      uuid=systemid) if not only_primary_uuid else None,
+                                  only_primary_uuid=only_primary_uuid)
+
+
+async def request_bulked_get_one_itsystem(systemid: str,
+                                          only_primary_uuid: bool = False
+                                          ) -> Awaitable[MO_OBJ_TYPE]:
+    """
+    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
+    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
+
+    :param systemid: uuid of it-system
+    :param only_primary_uuid:
+    :return: Awaitable returning the processed system
+    """
+    if not only_primary_uuid:
+        await request_wide_bulk.add(type_=LoraObjectType.it_system, uuid=systemid)
+    return __get_itsystem_from_cache(systemid=systemid,
+                                     only_primary_uuid=only_primary_uuid)
+
+
+async def get_one_itsystem(c: lora.Connector, systemid, system=None,
+                           only_primary_uuid=False) -> Optional[MO_OBJ_TYPE]:
+    """Obtain the list of engagements corresponding to a user.
 
     .. :quickref: IT system; Get by user
 
@@ -319,9 +357,9 @@ async def get_one_itsystem(c: lora.Connector, systemid, system=None):
         }
       ]
 
-    '''
+    """
 
-    if 'only_primary_uuid' in flask.request.args:
+    if only_primary_uuid:
         return {
             mapping.UUID: systemid
         }

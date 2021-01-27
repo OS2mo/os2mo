@@ -4,8 +4,9 @@
 import logging
 from asyncio import create_task
 
+import flask
+
 from .. import reading
-from ... import common
 from ... import mapping
 from ...service import employee
 from ...service import facet
@@ -22,8 +23,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ADDRESS_KEY
 
     @classmethod
-    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
-        c = common.get_connector()
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
@@ -33,15 +33,24 @@ class AddressReader(reading.OrgFunkReadingHandler):
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
         base_obj_task = create_task(
-            super().get_mo_object_from_effect(effect, start, end, funcid))
-        facet_task = create_task(facet.get_one_class_full(c, address_type))
-        address_task = create_task(handler.get_mo_address_and_properties())
+            super()._get_mo_object_from_effect(effect, start, end, funcid))
+        only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
+        facet_task = create_task(facet.request_bulked_get_one_class_full(
+            address_type,
+            only_primary_uuid=only_primary_uuid))
+
+        address_task = create_task(handler.get_mo_address_and_properties())
         if person:
-            person_task = create_task(employee.get_one_employee(c, person))
+            person_task = create_task(
+                employee.request_bulked_get_one_employee(
+                    person,
+                    only_primary_uuid=only_primary_uuid))
+
         if org_unit:
-            org_unit_task = create_task(orgunit.get_one_orgunit(
-                c, org_unit, details=orgunit.UnitDetails.MINIMAL
+            org_unit_task = create_task(orgunit.request_bulked_get_one_orgunit(
+                org_unit, details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid
             ))
 
         r = {
