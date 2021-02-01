@@ -87,13 +87,12 @@ class Trigger:
         ).setdefault(
             request_type, {}
         ).setdefault(
-            event_type, []
+            event_type, set()
         )
 
         def decorator(function):
             "ensure function in registry"
-            if function not in registry:
-                registry.append(function)
+            registry.add(function)
 
             @functools.wraps(function)
             def wrapper(trigger_dict):
