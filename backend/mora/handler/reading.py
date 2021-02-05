@@ -162,12 +162,37 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def get_from_type(cls, c, type, objid):
+        """Retrieve a list of MO objects of type 'type' and with object ID
+        'objid'.
 
-        search_fields = {
-            cls.SEARCH_FIELDS[type]: objid
-        }
+        :param type: str
+        :param objid: UUID
+        :return: list of matching MO objects
+        """
+        return await cls.get(c, cls._get_search_fields(type, objid))
 
-        return await cls.get(c, search_fields)
+    @classmethod
+    async def get_count(cls, c, type, objid):
+        """Retrieve the number of valid LoRA objects of type 'type' related to
+        object ID 'objid'.
+
+        :param type: str
+        :param objid: UUID
+        :return: int
+        """
+        tuple_gen = await cls._get_lora_object(c, cls._get_search_fields(type, objid))
+        return len(list(filter(lambda tup: util.is_reg_valid(tup[1]), tuple_gen)))
+
+    @classmethod
+    def _get_search_fields(cls, type, objid):
+        """Return search fields suitable to retrieve a LoRA object of type
+        'type' and with object ID 'objid'.
+
+        :param type: str
+        :param objid: UUID
+        :return: search fields as dict
+        """
+        return {cls.SEARCH_FIELDS[type]: objid}
 
     @classmethod
     def __function_key_filter(cls, object_tuple: Tuple[str, Dict[Any, Any]]) -> bool:
