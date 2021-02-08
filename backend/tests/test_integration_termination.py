@@ -4,9 +4,9 @@
 import copy
 
 import freezegun
-
 import mora.async_util
 from mora import lora
+
 from . import util
 
 
@@ -35,7 +35,7 @@ class Tests(util.LoRATestCase):
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
-        async def get_expected(id, is_manager=False):
+        async def get_expected(id, is_vacant=False):
             o = await c.organisationfunktion.get(id)
 
             o.update(
@@ -43,7 +43,7 @@ class Tests(util.LoRATestCase):
                 note='Afsluttet',
             )
 
-            if is_manager:
+            if is_vacant:
                 del o['relationer']['tilknyttedebrugere'][0]['uuid']
             else:
                 v = o['tilstande']['organisationfunktiongyldighed']
@@ -54,7 +54,7 @@ class Tests(util.LoRATestCase):
         expected_engagement = mora.async_util.async_to_sync(get_expected)(
             engagement_uuid)
         expected_association = mora.async_util.async_to_sync(get_expected)(
-            association_uuid)
+            association_uuid, True)
         expected_role = mora.async_util.async_to_sync(get_expected)(role_uuid)
         expected_leave = mora.async_util.async_to_sync(get_expected)(leave_uuid)
         expected_manager = mora.async_util.async_to_sync(get_expected)(manager_uuid,
@@ -112,8 +112,11 @@ class Tests(util.LoRATestCase):
                                           actual_manager)
 
     @freezegun.freeze_time('2000-12-01')
-    def test_terminate_employee_manager_full(self):
-        """Ensure that managers are terminated as well, when run with 'full'"""
+    def test_terminate_employee_vacatables_full(self):
+        """
+        Ensure that organisationfunktions that can be vacated are
+        terminated as well, when run with 'full'
+        """
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -128,8 +131,9 @@ class Tests(util.LoRATestCase):
         }
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        def get_expected(id, is_manager=False):
+        def get_expected(id):
             o = mora.async_util.async_to_sync(c.organisationfunktion.get)(id)
 
             o.update(
@@ -142,7 +146,8 @@ class Tests(util.LoRATestCase):
 
             return o
 
-        expected_manager = get_expected(manager_uuid, True)
+        expected_manager = get_expected(manager_uuid)
+        expected_association = get_expected(association_uuid)
 
         self.assertRequestResponse(
             '/service/e/{}/terminate'.format(userid),
@@ -169,6 +174,12 @@ class Tests(util.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager,
                                       actual_manager)
+
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+
+        self.assertRegistrationsEqual(expected_association,
+                                      actual_association)
 
     @freezegun.freeze_time('2018-01-01')
     def test_validation_missing_validity(self):
@@ -366,6 +377,133 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_association_via_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        payload = {
+            "vacate": True,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics={
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.employee.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.it.delete': 1,
+                'employee.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
+            },
+        )
+
+        expected_tilknyttedebrugere = [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2017-01-01 00:00:00+01",
+                    "to": "2017-12-01 00:00:00+01"
+                }
+            },
+            {
+                "virkning": {
+                    "from_included": True,
+                    "to_included": False,
+                    "from": "2017-12-01 00:00:00+01",
+                    "to": "infinity"
+                }
+            }
+        ]
+
+        expected_association = {
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                association_uuid)),
+
+            "note": "Afsluttet",
+            "livscykluskode": "Rettet",
+        }
+
+        expected_association['relationer'][
+            'tilknyttedebrugere'] = expected_tilknyttedebrugere
+
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+
+        self.assertRegistrationsEqual(expected_association, actual_association)
+
+        expected = {
+            'association_type': {'uuid': '32547559-cfc1-4d97-94c6-70b192eff825'},
+            'dynamic_classes': [],
+            'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+            'person': {'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a'},
+            'primary': None,
+            'substitute': None,
+            'user_key': 'bvn',
+            'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+            'validity': {'from': '2017-01-01', 'to': '2017-11-30'}
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association?only_primary_uuid=1'.format(userid),
+            [expected],
+            amqp_topics={
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.employee.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.it.delete': 1,
+                'employee.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
+            },
+        )
+
+        self.assertRequestResponse(
+            '/service/e/{}/details/association'
+            '?validity=future&only_primary_uuid=1'.format(userid),
+            [{
+                **expected,
+                'person': None,
+                'validity': {'from': '2017-12-01', 'to': None},
+            }],
+            amqp_topics={
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.employee.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.it.delete': 1,
+                'employee.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
+            },
+        )
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_terminate_manager_properly_via_user(self):
         self.load_sample_structures()
 
@@ -436,6 +574,79 @@ class Tests(util.LoRATestCase):
             manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_association_properly_via_user(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        payload = {
+            "vacate": False,
+            "validity": {
+                "to": "2017-11-30"
+            }
+        }
+
+        self.assertRequestResponse(
+            '/service/e/{}/terminate'.format(userid),
+            userid,
+            json=payload,
+            amqp_topics={
+                'employee.address.delete': 1,
+                'employee.association.delete': 1,
+                'employee.employee.delete': 1,
+                'employee.engagement.delete': 1,
+                'employee.leave.delete': 1,
+                'employee.manager.delete': 1,
+                'employee.it.delete': 1,
+                'employee.role.delete': 1,
+                'org_unit.association.delete': 1,
+                'org_unit.engagement.delete': 1,
+                'org_unit.manager.delete': 1,
+                'org_unit.role.delete': 1,
+            },
+        )
+
+        expected_association = {
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                association_uuid)),
+
+            "note": "Afsluttet",
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+
+        }
+
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+
+        self.assertRegistrationsEqual(expected_association, actual_association)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_terminate_manager_directly(self):
@@ -523,5 +734,95 @@ class Tests(util.LoRATestCase):
                 amqp_topics={
                     'employee.manager.delete': 1,
                     'org_unit.manager.delete': 1,
+                },
+            )
+
+    @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    def test_terminate_association_directly(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
+
+        original_association = self.assertRequest(
+            '/service/e/{}/details/association'.format(userid),
+        )
+
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+
+        self.assertRequestResponse(
+            '/service/details/terminate',
+            association_uuid,
+            json={
+                "type": "association",
+                "uuid": association_uuid,
+                "validity": {
+                    "to": "2017-11-30"
+                }
+            },
+            amqp_topics={
+                'employee.association.delete': 1,
+                'org_unit.association.delete': 1,
+            },
+        )
+
+        expected = copy.deepcopy(original)
+        expected.update(
+            livscykluskode="Rettet",
+            note="Afsluttet",
+            tilstande={
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2017-12-01 00:00:00+01"
+                        }
+                    },
+                    {
+                        "gyldighed": "Inaktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-12-01 00:00:00+01",
+                            "to": "infinity"
+                        }
+                    },
+                ]
+            },
+        )
+
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            association_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+        with self.subTest('current'):
+            current = copy.deepcopy(original_association)
+            current[0]['validity']['to'] = '2017-11-30'
+
+            self.assertRequestResponse(
+                '/service/e/{}/details/association'.format(userid),
+                current,
+                amqp_topics={
+                    'employee.association.delete': 1,
+                    'org_unit.association.delete': 1,
+                },
+            )
+
+        with self.subTest('future'):
+            self.assertRequestResponse(
+                '/service/e/{}/details/association'
+                '?validity=future'.format(userid),
+                [],
+                amqp_topics={
+                    'employee.association.delete': 1,
+                    'org_unit.association.delete': 1,
                 },
             )

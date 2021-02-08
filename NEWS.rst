@@ -4,6 +4,7 @@ In development
 New features
 ------------
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
+* #40621: Allow vacant associations, creatable from organisation unit
 
 Version 1.14.0, 2021-02-11
 ==========================
