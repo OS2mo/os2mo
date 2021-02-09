@@ -56,3 +56,8 @@ table th {
 .container-fluid {
   padding-right: 0;
 }
+
+nav button.dropdown-toggle {
+  margin-top: -3px;
+  color: #e5e0de;
+}

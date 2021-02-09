@@ -1,4 +1,7 @@
 {
   "employee": "Medarbejder",
-  "organisation": "Organisation"
+  "organisation": "Organisation",
+  "navlinks": {
+    "title": "Links"
+  }
 }

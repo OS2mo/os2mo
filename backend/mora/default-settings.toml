@@ -118,3 +118,7 @@ log_level = "WARNING"
 [external_integration]
 # Path to where the org unit integration is running
 org_unit = ""
+
+
+[[navlinks]]
+# Default to empty set of navlinks

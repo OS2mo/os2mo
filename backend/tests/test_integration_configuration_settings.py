@@ -1,10 +1,21 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from mora import settings
+from mora.conf_db import set_configuration
 from tests.util import ConfigTestCase
 
 
 class Tests(ConfigTestCase):
+    def setUp(self):
+        super().setUp()
+        set_configuration({
+            "org_units": {
+                "show_location": True,
+                "show_user_key": True,
+                "show_roles": True,
+            }
+        })
 
     def test_global_user_settings_read(self):
         """
@@ -70,3 +81,28 @@ class Tests(ConfigTestCase):
         print(user_settings)
         self.assertTrue(user_settings['show_user_key'])
         self.assertFalse(user_settings['show_location'])
+
+
+class TestNavLink(ConfigTestCase):
+    """
+    Test the retrieval of "nav links" via the "/service/navlinks" endpoint
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = '/service/navlinks'
+
+    def test_empty_list(self):
+        empty_list = self.assertRequest(self.url)
+        self.assertSequenceEqual(empty_list, [{}])
+
+    def test_populated_list(self):
+        href = "http://google.com"
+        text = "Google"
+        settings.update_dict(
+            settings.config, {"navlinks": [{"href": href, "text": text}]}
+        )
+        populated_list = self.assertRequest(self.url)
+        self.assertEqual(len(populated_list), 1)
+        self.assertEqual(populated_list[0]["href"], href)
+        self.assertEqual(populated_list[0]["text"], text)
