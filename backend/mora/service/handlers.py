@@ -17,7 +17,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..mapping import RequestType
+from ..mapping import RequestType, EventType
 from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active
@@ -77,7 +77,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.REQUEST_TYPE: request_type,
             Trigger.REQUEST: request,
             Trigger.ROLE_TYPE: self.role_type,
-            Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE
+            Trigger.EVENT_TYPE: EventType.ON_BEFORE
         }
 
         if request_type == RequestType.CREATE:
@@ -130,7 +130,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         self.trigger_dict.update({
             Trigger.RESULT: getattr(self, Trigger.RESULT, None),
-            Trigger.EVENT_TYPE: Trigger.Event.ON_AFTER,
+            Trigger.EVENT_TYPE: EventType.ON_AFTER,
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
         Trigger.run(self.trigger_dict)

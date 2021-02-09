@@ -1,30 +1,46 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import enum
+import functools
+import importlib
+import logging
+from itertools import chain
+
 from .. import util
 from ..exceptions import ErrorCodes
-import logging
-import importlib
-import functools
-
+from ..mapping import EventType, RequestType
 
 logger = logging.getLogger("triggers")
 
 
 def register(app):
-    for m in app.config.get("TRIGGER_MODULES", []):
+    def dynamically_load_module(module):
+        logger.info("Dynamically loading %s", trigger_module)
         try:
-            trigger_module = importlib.import_module(m)
+            return importlib.import_module(module)
+        except Exception:
+            logger.exception("Exception during dynamic loading of %s", module)
+            raise
+
+    from mora.triggers.internal import amqp_trigger, http_trigger
+
+    trigger_modules = chain(
+        [amqp_trigger, http_trigger],
+        map(dynamically_load_module, app.config.get("TRIGGER_MODULES", [])),
+    )
+
+    for trigger_module in trigger_modules:
+        logger.debug("Registering trigger %s", trigger_module)
+        try:
             trigger_module.register(app)
         except Exception:
-            logger.exception("trigger code or registration error for %s", m)
+            logger.exception("Exception during register call for %s", trigger_module)
             raise
 
 
 class Trigger:
-    """ Trigger registry, retrieval, and decorator methods
-    """
+    """Trigger registry, retrieval, and decorator methods"""
+
     registry = {}
 
     class Error(Exception):
@@ -41,17 +57,6 @@ class Trigger:
     EVENT_TYPE = "event_type"
     REQUEST = "request"
     RESULT = "result"
-    from ..mapping import ORG_UNIT
-    from ..mapping import EMPLOYEE
-
-    # RequestType Enum
-    from ..mapping import RequestType
-
-    @enum.unique
-    class Event(enum.Enum):
-        """ EventType for trigger registry
-        """
-        ON_BEFORE, ON_AFTER = range(2)
 
     @classmethod
     def run(cls, trigger_dict):
@@ -59,14 +64,13 @@ class Trigger:
         role type, request type, and event type
         and call each triggerfunction with the argument
         """
-        if util.get_args_flag('triggerless'):
+        # TODO: Lad return typen fra triggers ende i Arbejdsloggen?
+        if util.get_args_flag("triggerless"):
             return
-        triggers = cls.registry.get(
-            trigger_dict[cls.ROLE_TYPE], {}
-        ).get(
-            trigger_dict[cls.REQUEST_TYPE], {}
-        ).get(
-            trigger_dict[cls.EVENT_TYPE], []
+        triggers = (
+            cls.registry.get(trigger_dict[cls.ROLE_TYPE], {})
+            .get(trigger_dict[cls.REQUEST_TYPE], {})
+            .get(trigger_dict[cls.EVENT_TYPE], [])
         )
         for t in triggers:
             try:
@@ -77,17 +81,18 @@ class Trigger:
                 ErrorCodes.E_INTEGRATION_ERROR(str(e))
 
     @classmethod
-    def on(cls, role_type, request_type, event_type):
+    def on(cls, role_type, request_type: RequestType, event_type: EventType):
         """find relevant registry-list for supplied
         role type, request type, and event type
         then append this trigger function to the list
         """
-        registry = cls.registry.setdefault(
-            role_type, {}
-        ).setdefault(
-            request_type, {}
-        ).setdefault(
-            event_type, set()
+        assert request_type in RequestType
+        assert event_type in EventType
+
+        registry = (
+            cls.registry.setdefault(role_type, {})
+            .setdefault(request_type, {})
+            .setdefault(event_type, set())
         )
 
         def decorator(function):
@@ -98,5 +103,7 @@ class Trigger:
             def wrapper(trigger_dict):
                 "call wrapped function with arg"
                 return function(trigger_dict)
+
             return wrapper
+
         return decorator

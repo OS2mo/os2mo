@@ -81,8 +81,7 @@ def publish_message(service, object_type, action, service_uuid, date):
 
 def amqp_sender(trigger_dict):
     request = trigger_dict[triggers.Trigger.REQUEST]
-    if (trigger_dict[triggers.Trigger.REQUEST_TYPE] ==
-            triggers.Trigger.RequestType.EDIT):
+    if (trigger_dict[triggers.Trigger.REQUEST_TYPE] == mapping.RequestType.EDIT):
         request = request['data']
 
     try:  # date = from or to
@@ -90,9 +89,9 @@ def amqp_sender(trigger_dict):
     except exceptions.HTTPException:
         date = util.get_valid_to(request)
     action = {
-        triggers.Trigger.RequestType.CREATE: "create",
-        triggers.Trigger.RequestType.EDIT: "update",
-        triggers.Trigger.RequestType.TERMINATE: "delete",
+        mapping.RequestType.CREATE: "create",
+        mapping.RequestType.EDIT: "update",
+        mapping.RequestType.TERMINATE: "delete",
     }[trigger_dict[triggers.Trigger.REQUEST_TYPE]]
 
     amqp_messages = []
@@ -149,22 +148,22 @@ def get_connection():
     return _amqp_connection
 
 
-def register():
+def register(app):
     """ Register amqp triggers on:
         any ROLE_TYPE
         any RequestType
         but only after submit (ON_AFTER)
     """
     ROLE_TYPES = [
-        triggers.Trigger.ORG_UNIT,
-        triggers.Trigger.EMPLOYEE,
+        mapping.EMPLOYEE,
+        mapping.ORG_UNIT,
         *mapping.RELATION_TRANSLATIONS.keys(),
     ]
 
     trigger_combinations = [
-        (role_type, request_type, triggers.Trigger.Event.ON_AFTER)
+        (role_type, request_type, mapping.EventType.ON_AFTER)
         for role_type in ROLE_TYPES
-        for request_type in triggers.Trigger.RequestType
+        for request_type in mapping.RequestType
     ]
 
     for combi in trigger_combinations:
