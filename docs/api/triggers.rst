@@ -22,7 +22,8 @@ Currently all Role Types (Organizational unit, Employee, Address to name a few) 
 Triggers deployed in OS2mo
 --------------------------
 
-OS2mo itself uses triggers for internal purposes. They reside in ``mora.triggers.internal`` module. See the ``amqp_trigger.py`` for an example.
+OS2mo itself uses triggers for internal purposes. They reside in ``mora.triggers.internal`` module.
+See the ``amqp_trigger.py`` or ``http_trigger.py`` for examples.
 
 
 Trigger configuration
@@ -62,7 +63,7 @@ ON_BEFORE
 An ``ON_BEFORE`` trigger_dict will typically contain at least these items: ::
 
     {
-        'event_type': Trigger.Event.ON_BEFORE,
+        'event_type': EventType.ON_BEFORE,
         'request': {}, # the object that was received by the handler
         'request_type': RequestType.EDIT,
         'role_type': '' # role_type of the request
@@ -77,7 +78,7 @@ ON_AFTER
 For an ``ON_AFTER`` trigger_dict an additional key is added - the result: ::
 
     {
-        'event_type': Trigger.Event.ON_AFTER,
+        'event_type': EventType.ON_AFTER,
         'request': {}, # the object that was received by the handler
         'request_type': RequestType.EDIT,
         'result': '' # the result that is to be sent back to the client

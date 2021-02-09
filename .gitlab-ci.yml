@@ -39,7 +39,7 @@ variables:
 .lint-default: &lint-default
   stage: lint
   needs: []
-  image: python:3.7
+  image: python:3.8
   services: []
   tags:
     - docker
@@ -101,7 +101,7 @@ Build OS2MO:
       --destination=${IMAGE_SHA}
 
 Build docs:
-  image: python:3.7
+  image: python:3.8
   stage: build
   needs: []
   services: []
