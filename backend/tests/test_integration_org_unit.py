@@ -1374,65 +1374,6 @@ class Tests(util.LoRATestCase):
 
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
-        with self.subTest('too soon'):
-            self.assertRequestResponse(
-                '/service/details/edit',
-                {
-                    'description': 'Date range exceeds validity range of '
-                                   'associated org unit.',
-                    'error': True,
-                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                    'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'status': 400,
-                    'valid_from': '2016-01-01',
-                    'valid_to': None,
-                    'wanted_valid_from': '2010-01-01',
-                    'wanted_valid_to': None,
-                },
-                status_code=400,
-                json={
-                    "type": "org_unit",
-                    "data": {
-                        "uuid": org_unit_uuid,
-                        "validity": {
-                            "from": "2010-01-01",
-                        },
-                    },
-                },
-            )
-
-        with self.subTest('too soon, with parent'):
-            self.assertRequestResponse(
-                '/service/details/edit',
-                {
-                    'description': 'Date range exceeds validity range of '
-                                   'associated org unit.',
-                    'error': True,
-                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                    'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                    'status': 400,
-                },
-                status_code=400,
-                json={
-                    "type": "org_unit",
-                    "data": {
-                        "uuid": org_unit_uuid,
-                        'parent': {
-                            'name': 'Overordnet Enhed',
-                            'user_key': 'root',
-                            'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                            'validity': {
-                                'from': '2016-01-01',
-                                'to': None,
-                            },
-                        },
-                        "validity": {
-                            "from": "2010-01-01",
-                        },
-                    },
-                },
-            )
-
         self.assertRequestResponse(
             '/service/details/edit',
             org_unit_uuid, json={
@@ -1488,22 +1429,6 @@ class Tests(util.LoRATestCase):
                 ('Afdeling for Samtidshistorik', '2017-01-01', '2017-12-31'),
                 ('Afdeling for Fortidshistorik', '2018-01-01', '2018-12-31'),
             )
-
-        self.assertRequestFails(
-            "/service/details/edit",
-            400,
-            "Editing without clamp should fail",
-            json={
-                "type": "org_unit",
-                "data": {
-                    "name": "Institut for Vrøvl",
-                    "uuid": unitid,
-                    "validity": {
-                        "from": "2018-06-01",
-                    },
-                },
-            },
-        )
 
         topics = {"org_unit.org_unit.update": 1}
         self.assertRequestResponse(
@@ -2340,69 +2265,6 @@ class Tests(util.LoRATestCase):
             },
             status_code=400,
             json=req)
-
-    @freezegun.freeze_time('2010-01-01')
-    def test_cannot_extend_beyond_parent(self):
-        """Should fail validation since the new validity period extends beyond
-        that of the parent. (#23155)"""
-
-        self.load_sample_structures()
-
-        org_unit_uuid = '04c78fc2-72d2-4d02-b55f-807af19eac48'
-
-        with self.subTest('too late'):
-            self.assertRequestResponse(
-                '/service/details/edit',
-                {
-                    'description': 'Date range exceeds validity range of '
-                                   'associated org unit.',
-                    'error': True,
-                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                    'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                    'status': 400,
-                    'valid_from': '2016-01-01',
-                    'valid_to': '2018-12-31',
-                    'wanted_valid_from': '2016-01-01',
-                    'wanted_valid_to': None
-                },
-                status_code=400,
-                json={
-                    "type": "org_unit",
-                    "data": {
-                        "uuid": org_unit_uuid,
-                        "validity": {
-                            "from": "2016-01-01",
-                            "to": None,
-                        },
-                    },
-                })
-
-        with self.subTest('too soon'):
-            self.assertRequestResponse(
-                '/service/details/edit',
-                {
-                    'description': 'Date range exceeds validity range of '
-                                   'associated org unit.',
-                    'error': True,
-                    'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                    'org_unit_uuid': 'da77153e-30f3-4dc2-a611-ee912a28d8aa',
-                    'status': 400,
-                    'valid_from': '2016-01-01',
-                    'valid_to': '2018-12-31',
-                    'wanted_valid_from': '2010-01-01',
-                    'wanted_valid_to': '2018-12-31',
-                },
-                status_code=400,
-                json={
-                    "type": "org_unit",
-                    "data": {
-                        "uuid": org_unit_uuid,
-                        "validity": {
-                            "from": "2010-01-01",
-                            "to": "2018-12-31",
-                        },
-                    },
-                })
 
     def test_move_org_unit_should_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""

@@ -1,3 +1,12 @@
+Version 1.14.1, 2021-03-04
+==========================
+
+Bug fixes
+---------
+
+* #40621: Allow vacant associations, creatable from organisation unit
+* #40719: Simplify validations for edits involving org units
+
 Version 1.14.0, 2021-02-11
 ==========================
 

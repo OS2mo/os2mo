@@ -121,9 +121,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
 
-        # Get org unit uuid for validation purposes
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
-
         payload = dict()
         payload['note'] = 'Rediger tilknytning'
 
@@ -240,10 +237,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                        original, payload)
 
         # Validation
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            org_unit,
-            new_from,
-            new_to)
         mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
             employee,
             new_from,

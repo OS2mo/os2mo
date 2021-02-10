@@ -388,11 +388,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.EMPLOYEE_UUID: employee_uuid
         })
 
-        if org_unit_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                {'uuid': org_unit_uuid},
-                new_from, new_to)
-
         if employee_uuid:
             mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
                 {'uuid': employee_uuid},

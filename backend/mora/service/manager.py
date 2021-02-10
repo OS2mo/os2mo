@@ -85,11 +85,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             })
 
         # Validation
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            org_unit,
-            valid_from,
-            valid_to
-        )
 
         if employee:
             mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
