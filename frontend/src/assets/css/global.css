@@ -1,10 +1,6 @@
 /* SPDX-FileCopyrightText: 2017-2020 Magenta ApS
    SPDX-License-Identifier: MPL-2.0 */
 
-html {
-  height: 100vh;
-}
-
 body {
   background-color: #f2efed;
   background-image: url('../logo/os2_logo_white.svg');
@@ -50,4 +46,13 @@ table th {
   border: 1px solid #ced4da;
   border-radius: 0 0 0.25rem;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+
+.form-row.name label, .form-row.nickname label {
+  width: 100%;
+  padding: 0.5rem 0 0 5px;
+}
+
+.container-fluid {
+  padding-right: 0;
 }

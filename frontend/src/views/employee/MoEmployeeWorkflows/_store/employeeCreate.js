@@ -35,6 +35,8 @@ const actions = {
 
     let newEmployee = {
       name: state.employee.name,
+      nickname_givenname: state.employee.nickname_givenname,
+      nickname_surname: state.employee.nickname_surname,
       cpr_no: state.employee.cpr_no,
       org: state.organisation,
       details: create

@@ -8,6 +8,7 @@ import i18n from './i18n.js'
 import VueShortKey from 'vue-shortkey'
 import store from './store'
 import { sync } from 'vuex-router-sync'
+import VueSplit from 'vue-split-panel'
 import './vee.js'
 import '@babel/polyfill'
 import './icons.js'
@@ -24,6 +25,7 @@ sync(store, router)
 Vue.config.productionTip = false
 
 Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
+Vue.use(VueSplit)
 
 new Vue({
   router,

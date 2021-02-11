@@ -28,6 +28,9 @@ const fromDateInput = dialog.find('.from-date .form-control')
 
 const submitButton = dialog.find('button .btn .btn-primary')
 
+// TODO: Test substitute when conf_db allows
+// https://redmine.magenta-aps.dk/issues/34509
+
 test('Workflow: employee association tab', async t => {
   let today = moment()
 

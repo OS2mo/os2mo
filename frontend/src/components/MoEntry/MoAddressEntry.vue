@@ -32,16 +32,27 @@ SPDX-License-Identifier: MPL-2.0
             required
           />
           <label :for="identifier" v-if="!isDarAddress">{{entry.address_type.name}}</label>
-          <input
+          <textarea
             :name="identifier"
             :id="identifier"
-            v-if="!isDarAddress"
+            v-if="!isDarAddress && isMultiLineText"
             :data-vv-as="entry.address_type.name"
             v-model.trim="contactInfo"
             type="text"
             class="form-control"
             v-validate="{required: true, address: this.entry.address_type}"
           >
+          </textarea>
+          <input
+            :name="identifier"
+            :id="identifier"
+            v-if="!isDarAddress && !isMultiLineText"
+            :data-vv-as="entry.address_type.name"
+            v-model.trim="contactInfo"
+            type="text"
+            class="form-control"
+            v-validate="{required: true, address: this.entry.address_type}"
+          />
         </div>
         <span v-show="errors.has(identifier)" class="text-danger">
           {{ errors.first(identifier) }}
@@ -133,6 +144,15 @@ export default {
      */
     isPhone () {
       if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
+      return false
+    },
+
+    /**
+     * If the address requires multi-line input (textarea)
+     * @type {Boolean}
+     */
+    isMultiLineText () {
+      if (this.entry.address_type != null) return this.entry.address_type.scope === 'TEXT'
       return false
     },
 

@@ -21,6 +21,8 @@
   "manager_level": "Lederniveau",
   "manager_type": "Ledertype",
   "name": "Navn",
+  "givenname": "Fornavn",
+  "surname": "Efternavn",
   "nickname": "Kaldenavn",
   "role_type": "Rolletype",
   "role": "Rolle | Roller",
@@ -43,5 +45,6 @@
   "kle_number": "KLE nummer",
   "kle": "KLE-opmærkning | KLE-opmærkninger",
   "add_more": "Tilføj flere",
+  "substitute": "Stedfortræder",
   "it": "IT"
 }

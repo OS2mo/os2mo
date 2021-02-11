@@ -878,8 +878,8 @@ async def list_orgunits(orgid):
     args = flask.request.args
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)) or settings.DEFAULT_PAGE_SIZE,
-        start=int(args.get('start', 0)) or 0,
+        limit=int(args.get('limit', 0)),
+        start=int(args.get('start', 0)),
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
@@ -1010,12 +1010,6 @@ async def list_orgunit_tree(orgid):
         if 'uuid' in args
         else await c.organisationenhed.fetch(**kwargs)
     )
-
-    if len(unitids) > settings.TREE_SEARCH_LIMIT:
-        raise exceptions.ErrorCodes.E_TOO_MANY_RESULTS.raise_with(
-            found=len(unitids),
-            limit=settings.TREE_SEARCH_LIMIT,
-        )
 
     return flask.jsonify(
         await get_unit_tree(c, unitids),

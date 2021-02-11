@@ -111,6 +111,8 @@ import MoEntryTerminateModal from '@/components/MoEntryTerminateModal'
 import MoLink from '@/components/MoLink'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
+import i18n from "../../i18n";
+import {has_translation_prefix, translate_prefixed} from "../../i18n";
 
 export default {
   components: {
@@ -230,6 +232,27 @@ export default {
       this.sortableContent = this.content
       this.isLoading = false
     },
+
+    /**
+     * Whenever sortableContent change, apply translations.
+     */
+    sortableContent() {
+      this.sortableContent.forEach((element) => {
+        for (let property in element) {
+            let prop = element[property]
+            if (prop && prop['name'] &&
+              ((typeof prop['name'] === 'string' || prop['name'] instanceof String))) {
+              const prop_name = prop['name']
+              if (has_translation_prefix(prop_name)) {
+                prop['name'] = translate_prefixed('table_values', prop_name)
+              }
+            }
+
+        }
+      })
+    },
+
+
     deep: true
   },
 
@@ -285,15 +308,21 @@ export default {
     },
 
     /**
-     * Sort data in columns.
+     * Sort data in columns, including default for empty values.
      */
     sortData (colName, toggleIcon) {
       if (toggleIcon[colName] === undefined) {
         toggleIcon[colName] = true
       }
       this.sortableContent.sort(function (a, b) {
-        let strA = a[colName].name
-        let strB = b[colName].name
+        let strA = ''
+        let strB = ''
+        try {
+          strA = a[colName].name
+        } catch (e) {}
+        try {
+          strB = b[colName].name
+        } catch (e) {}
 
         if (toggleIcon[colName]) {
           return (strA < strB) ? -1 : (strA > strB) ? 1 : 0
@@ -333,6 +362,7 @@ export default {
   }
 
   th, td {
+    width: 1%;
     text-align: left;
     padding: .5rem;
     overflow: hidden;
@@ -340,7 +370,6 @@ export default {
   }
 
   .scroll {
-    max-height: 55vh;
     overflow-x: auto;
     overflow-y: auto;
   }
@@ -351,7 +380,7 @@ export default {
   }
 
   .column-data {
-    min-width: 12rem;
+    min-width: 9rem;
     max-width: 12rem;
   }
 

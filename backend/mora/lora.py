@@ -7,6 +7,8 @@ import multiprocessing
 import typing
 import asyncio
 import uuid
+import logging
+import re
 from asyncio import create_task, gather
 
 from itertools import starmap
@@ -21,6 +23,9 @@ from . import settings
 from . import util
 
 
+logger = logging.getLogger(__name__)
+
+
 def raise_on_status(status_code: int, msg,
                     cause: typing.Optional = None) -> typing.NoReturn:
     """
@@ -31,8 +36,24 @@ def raise_on_status(status_code: int, msg,
     @param cause: same
     @return:
     """
+    # Check status code 400 against this regex to detect "no-op" data updates.
+    noop_pattern = re.compile(
+        r"Aborted updating \w+ with id \[.*\] as the given data, does not "
+        r"give raise to a new registration"
+    )
+
     if status_code == 400:
-        exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
+        # If LoRa returns HTTP status code 400, first check if the error
+        # reported indicates a "no-op" change (no data was actually changed in
+        # the update.)
+        if noop_pattern.search(msg):
+            logger.info(
+                "detected empty change, not raising E_INVALID_INPUT\n"
+                "msg=%r",
+                msg
+            )
+        else:
+            exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
     elif status_code == 401:
         exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
     elif status_code == 403:
@@ -256,7 +277,7 @@ class Scope:
                         func: typing.Callable[['Connector', typing.Any, typing.Any],
                                               typing.Union[
                                                   typing.Any, typing.Coroutine]], *,
-                        start=0, limit=settings.DEFAULT_PAGE_SIZE,
+                        start=0, limit=0,
                         uuid_filters=None,
                         **params):
         """Perform a search on given params, filter and return the result.
@@ -340,7 +361,7 @@ class Scope:
         async with mora.async_util.async_session(
         ).patch('{}/{}'.format(self.base_path, uuid), json=obj) as response:
             await _check_response(response)
-            return (await response.json())['uuid']
+            return (await response.json()).get('uuid', uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (

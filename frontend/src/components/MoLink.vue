@@ -12,9 +12,7 @@ SPDX-License-Identifier: MPL-2.0
       <router-link v-else-if="part.target" class="link-color" :to="part.target">
         {{ part.text }}
       </router-link>
-      <span v-else>
-        {{ part.text }}
-      </span>
+      <span v-else class="multiline">{{ part.text }}</span>
     </li>
   </ul>
 </template>
@@ -73,7 +71,9 @@ export default {
       column_handlers: {
         'org_unit': 'OrganisationDetail',
         'parent': 'OrganisationDetail',
-        'person': 'EmployeeDetail'
+        'person': 'EmployeeDetail',
+        'substitute': 'EmployeeDetail',
+        'third_party_associated': 'EmployeeDetail'
       }
     }
   },
@@ -206,5 +206,8 @@ export default {
 ul {
   list-style-type: none;
   padding: 0;
+}
+.multiline {
+  white-space: pre-wrap;
 }
 </style>

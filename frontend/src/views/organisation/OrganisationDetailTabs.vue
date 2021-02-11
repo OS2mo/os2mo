@@ -47,6 +47,7 @@ SPDX-License-Identifier: MPL-2.0
           content-type="association"
           :columns="association"
           @show="loadContent('association', $event)"
+          :entry-component="timemachineFriendly ? undefined : components.association"
         />
       </b-tab>
 
@@ -120,7 +121,7 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation detail tabs component.
  */
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
-import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry } from '@/components/MoEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
@@ -196,6 +197,7 @@ export default {
         address: MoOrgUnitAddressEntry,
         itSystem: MoItSystemEntry,
         manager: MoManagerEntry,
+        association: MoAssociationEntry,
         kle: MoKLEEntry
       }
     }
@@ -240,7 +242,8 @@ export default {
     association () {
       let columns = [
         { label: 'person', data: 'person' },
-        { label: 'association_type', data: 'association_type' }
+        { label: 'association_type', data: 'association_type' },
+        { label: 'substitute', data: 'substitute' }
       ]
 
       if (this.orgUnitInfo.user_settings.orgunit.show_primary_association) {
