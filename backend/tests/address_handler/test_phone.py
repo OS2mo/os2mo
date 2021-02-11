@@ -6,10 +6,11 @@ from unittest.mock import patch
 import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import phone
+
 from . import base
 
 
-async def async_facet_get_one_class(x, y):
+async def async_facet_get_one_class(x, y, *args, **kwargs):
     return {'uuid': y}
 
 

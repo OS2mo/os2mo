@@ -173,7 +173,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:1.8.1
+    - name: magentaaps/lora:dev
       alias: mox
       command: [
       "gunicorn",
@@ -205,7 +205,7 @@ e2e-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:rc
+    - name: magentaaps/lora:dev
       alias: mox
       command: [
       "gunicorn",

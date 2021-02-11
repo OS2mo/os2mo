@@ -20,6 +20,8 @@ New features
 * #40177: Edit nickname as two separate fields (given name and surname)
 * #39841: Fix time machine date picker
 * #40620: Improved association presentation and extended the editing capabilities in the UI
+* #40303: Add "Links" dropdown to top navigation, displaying custom links for an organisation
+* #40960: Performance improvement: Bulk calls to lora (with request-wide cache , but  without automation-magic)
 
 Bug fixes
 ---------

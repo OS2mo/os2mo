@@ -16,26 +16,28 @@ objects.
 
 '''
 
-import locale
 import enum
-
-import typing
+import locale
 import uuid
-from asyncio import gather, create_task
+from asyncio import create_task, gather
+from typing import Any, Awaitable, Dict, List, Optional, Set
 
 import flask
-
 import mora.async_util
-from .. import common
-from .. import exceptions
-from .. import mapping
-from .. import util
-from .. import lora
+from mora.request_wide_bulking import request_wide_bulk
 
 from .tree_helper import prepare_ancestor_tree
+from .. import common
+from .. import exceptions
+from .. import lora
+from .. import mapping
+from .. import util
+from ..lora import LoraObjectType
 
 blueprint = flask.Blueprint('facet', __name__, static_url_path='',
                             url_prefix='/service')
+
+MO_OBJ_TYPE = Dict[str, Any]
 
 
 @enum.unique
@@ -46,6 +48,13 @@ class ClassDetails(enum.Enum):  # TODO: Deal with cross-language enums
     NCHILDREN = 1
     TOP_LEVEL_FACET = 2
     FACET = 3
+
+
+FULL_DETAILS = {
+    ClassDetails.FACET,
+    ClassDetails.FULL_NAME,
+    ClassDetails.TOP_LEVEL_FACET
+}
 
 
 @blueprint.route('/c/ancestor-tree')
@@ -94,13 +103,16 @@ async def get_class_ancestor_tree():
 
     c = common.get_connector()
     classids = flask.request.args.getlist('uuid')
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     return flask.jsonify(
-        await get_class_tree(c, classids, with_siblings=True)
+        await get_class_tree(c, classids, with_siblings=True,
+                             only_primary_uuid=only_primary_uuid)
     )
 
 
-async def get_class_tree(c, classids, with_siblings=False):
+async def get_class_tree(c, classids, with_siblings=False,
+                         only_primary_uuid: bool = False):
     """Return a tree, bounded by the given classid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -113,7 +125,7 @@ async def get_class_tree(c, classids, with_siblings=False):
                 {ClassDetails.NCHILDREN}
                 if with_siblings and classid not in children
                 else None
-            ),
+            ), only_primary_uuid=only_primary_uuid,
         )
         if classid in children:
             r['children'] = await get_classes(children[classid])
@@ -161,7 +173,10 @@ async def get_class(classid: str):
 
     c = common.get_connector()
     class_details = map_query_args_to_class_details(flask.request.args)
-    return flask.jsonify(await get_one_class(c, classid, details=class_details))
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    return flask.jsonify(await get_one_class(c, classid, details=class_details,
+                                             only_primary_uuid=only_primary_uuid))
 
 
 async def prepare_class_child(c, entry):
@@ -200,10 +215,12 @@ async def get_all_class_children(classid: str):
     """
 
     c = common.get_connector()
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     classes = await fetch_class_children(c, classid)
     classes = await gather(
-        *[create_task(get_one_class(c, *tup)) for tup in classes])
+        *[create_task(get_one_class(c, *tup, only_primary_uuid=only_primary_uuid)) for
+          tup in classes])
     classes = await gather(
         *[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
@@ -269,6 +286,23 @@ async def list_facets(orgid):
     ))
 
 
+async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
+    """
+    Get org unit from cache and process it
+    :param facetid: uuid of facet
+    :param facet:
+    :param data:
+    :return: A processed facet
+    """
+
+    return await get_one_facet(c=request_wide_bulk.connector,
+                               facetid=facetid,
+                               orgid=orgid,
+                               facet=await request_wide_bulk.get_lora_object(
+                                   type_=LoraObjectType.facet, uuid=facetid),
+                               data=data)
+
+
 async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     """Fetch a facet and enrich it."""
 
@@ -294,35 +328,7 @@ async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     return response
 
 
-async def get_bulk_classes(c: lora.Connector, uuids, details=None):
-    """Fetch all classes defined by uuids.
-
-    :queryparam uuids: A list of UUIDs of the classes.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      {
-         "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5": {
-             "uuid": "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5"
-             "name": "Industrigruppen",
-             "user_key": "LO_3f_industri",
-             "...": "..."
-         },
-         "...": "..."
-      }
-
-    """
-
-    uuids = list(uuids)
-    classes = await gather(
-        *[create_task(get_one_class(c, uuid, details=details)) for uuid in uuids])
-
-    return {uuid: class_ for uuid, class_ in zip(uuids, classes)}
-
-
-async def fetch_class_children(c, parent_uuid) -> typing.List:
+async def fetch_class_children(c, parent_uuid) -> List:
     return list(
         await c.klasse.get_all(publiceret='Publiceret', overordnetklasse=parent_uuid)
     )
@@ -333,13 +339,63 @@ async def count_class_children(c, parent_uuid):
     return len(await fetch_class_children(c, parent_uuid))
 
 
+async def __get_class_from_cache(classid: str,
+                                 details: Optional[Set[ClassDetails]] = None,
+                                 only_primary_uuid: bool = False
+                                 ) -> MO_OBJ_TYPE:
+    """
+    Get org unit from cache and process it
+    :param classid: uuid of class
+    :param details: configure processing of the class
+    :param only_primary_uuid:
+    :return: A processed class
+    """
+    return await get_one_class(c=request_wide_bulk.connector, classid=classid,
+                               clazz=await request_wide_bulk.get_lora_object(
+                                   type_=LoraObjectType.class_,
+                                   uuid=classid) if not only_primary_uuid else None,
+                               details=details,
+                               only_primary_uuid=only_primary_uuid)
+
+
+async def request_bulked_get_one_class(classid: str,
+                                       details: Optional[Set[ClassDetails]] = None,
+                                       only_primary_uuid: bool = False
+                                       ) -> Awaitable[MO_OBJ_TYPE]:
+    """
+    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
+    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
+
+    :param classid: uuid of class
+    :param details: configure processing of the class
+    :param only_primary_uuid:
+    :return: Awaitable returning the processed class
+    """
+    if not only_primary_uuid:
+        await request_wide_bulk.add(type_=LoraObjectType.class_, uuid=classid)
+    return __get_class_from_cache(classid=classid, details=details,
+                                  only_primary_uuid=only_primary_uuid)
+
+
+async def request_bulked_get_one_class_full(classid: str,
+                                            only_primary_uuid: bool = False
+                                            ) -> Awaitable[MO_OBJ_TYPE]:
+    """
+    trivial wrapper for often-used setting
+    :param classid: uuid of class
+    :param only_primary_uuid:
+    :return: Awaitable returning the processed class
+    """
+    return await request_bulked_get_one_class(classid=classid, details=FULL_DETAILS,
+                                              only_primary_uuid=only_primary_uuid)
+
+
 async def get_one_class(c: lora.Connector, classid, clazz=None,
-                        details: typing.Optional[
-                            typing.Set[ClassDetails]] = None):
+                        details: Optional[Set[ClassDetails]] = None,
+                        only_primary_uuid: bool = False) -> MO_OBJ_TYPE:
     if not details:
         details = set()
 
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
     if only_primary_uuid:
         return {
             mapping.UUID: classid
@@ -359,6 +415,8 @@ async def get_one_class(c: lora.Connector, classid, clazz=None,
 
     attrs = get_attrs(clazz)
     parents = None
+
+    utilize_request_wide_cache: bool = c is request_wide_bulk.connector
 
     def get_parent(clazz):
         """Find the parent UUID of the provided class object."""
@@ -381,13 +439,20 @@ async def get_one_class(c: lora.Connector, classid, clazz=None,
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        return [clazz] + await get_parents(await c.klasse.get(potential_parent))
+        new_class = await request_wide_bulk.get_lora_object(type_=LoraObjectType.class_,
+                                                            uuid=potential_parent) if \
+            utilize_request_wide_cache else await c.klasse.get(potential_parent)
+        return [clazz] + await get_parents(new_class)
 
     async def get_top_level_facet(parents):
-        return await get_one_facet(c, get_facet_uuid(parents[-1]), orgid=None)
+        facetid = get_facet_uuid(parents[-1])
+        return await __get_facet_from_cache(facetid=facetid) if \
+            utilize_request_wide_cache else await get_one_facet(c, facetid, orgid=None)
 
     async def get_facet(clazz):
-        return await get_one_facet(c, get_facet_uuid(clazz), orgid=None)
+        facetid = get_facet_uuid(clazz)
+        return await __get_facet_from_cache(facetid=facetid) if \
+            utilize_request_wide_cache else await get_one_facet(c, facetid, orgid=None)
 
     owner = get_owner_uuid(clazz)
 
@@ -427,12 +492,9 @@ async def get_one_class(c: lora.Connector, classid, clazz=None,
 
 
 # Helper function for reading classes enriched with additional details
-async def get_one_class_full(*args, **kwargs):
-    return await get_one_class(*args, **kwargs, details={
-        ClassDetails.FACET,
-        ClassDetails.FULL_NAME,
-        ClassDetails.TOP_LEVEL_FACET
-    })
+async def get_one_class_full(*args, only_primary_uuid: bool = False, **kwargs):
+    return await get_one_class(*args, **kwargs, details=FULL_DETAILS,
+                               only_primary_uuid=only_primary_uuid)
 
 
 async def get_facetids(facet: str):
@@ -458,7 +520,8 @@ async def get_facetids(facet: str):
 
 
 async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
-                                  details: typing.Set[ClassDetails] = None):
+                                  details: Set[ClassDetails] = None,
+                                  only_primary_uuid: bool = False):
     c = common.get_connector()
     start = int(flask.request.args.get('start') or 0)
     limit = int(flask.request.args.get('limit') or 0)
@@ -466,7 +529,8 @@ async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
     facetids = await get_facetids(facet)
 
     async def getter_fn(*args, **kwargs):
-        return await get_one_class(*args, **kwargs, details=details)
+        return await get_one_class(*args, **kwargs, details=details,
+                                   only_primary_uuid=only_primary_uuid)
 
     return flask.jsonify(
         facetids and await get_one_facet(
@@ -549,7 +613,10 @@ async def get_classes(orgid: uuid.UUID, facet: str):
       }
     '''
     class_details = map_query_args_to_class_details(flask.request.args)
-    return await get_classes_under_facet(orgid, facet, details=class_details)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    return await get_classes_under_facet(orgid, facet, details=class_details,
+                                         only_primary_uuid=only_primary_uuid)
 
 
 def map_query_args_to_class_details(args):
@@ -633,7 +700,9 @@ async def get_all_classes(facet: str):
         }
       }
     '''
-    return await get_classes_under_facet(None, facet)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    return await get_classes_under_facet(None, facet,
+                                         only_primary_uuid=only_primary_uuid)
 
 
 @blueprint.route('/f/<facet>/children')
@@ -707,9 +776,16 @@ async def get_all_classes_children(facet: str):
     limit = int(flask.request.args.get('limit') or 0)
 
     facetids = await get_facetids(facet)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    async def __get_one_class_helper(*args, **kwargs):
+        """
+        I'm an async lambda
+        """
+        return get_one_class(*args, **kwargs, only_primary_uuid=only_primary_uuid)
 
     classes = (await c.klasse.paged_get(
-        get_one_class,
+        __get_one_class_helper,
         facet=facetids,
         ansvarlig=None,
         publiceret='Publiceret',

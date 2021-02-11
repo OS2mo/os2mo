@@ -16,26 +16,28 @@ import enum
 import locale
 import operator
 import uuid
-from asyncio import gather, create_task
+from asyncio import create_task, gather
 from itertools import chain
-from typing import Dict, Optional, Any
+from typing import Any, Awaitable, Dict, Optional
 
-import requests
 import flask
+import mora.async_util
+import requests
+from mora.request_wide_bulking import request_wide_bulk
 from more_itertools import unzip
 
-import mora.async_util
 from . import facet
 from . import handlers
 from . import org
-from .validation import validator
 from .tree_helper import prepare_ancestor_tree
+from .validation import validator
 from .. import common, conf_db, readonly
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..lora import LoraObjectType
 from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
@@ -43,7 +45,7 @@ blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
 
 
 def flatten(list_of_lists):
-    "Flatten one level of nesting"
+    """Flatten one level of nesting"""
     return chain.from_iterable(list_of_lists)
 
 
@@ -324,22 +326,68 @@ def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
     return decorated
 
 
+async def __get_one_orgunit_from_cache(unitid: str,
+                                       details: UnitDetails = UnitDetails.NCHILDREN,
+                                       validity: Optional[Any] = None,
+                                       only_primary_uuid: bool = False
+                                       ) -> Optional[Dict[Any, Any]]:
+    """
+    Get org unit from cache and process it
+    :param unitid: uuid of orgunit
+    :param details: configure processing of the org_unit
+    :param validity:
+    :param only_primary_uuid:
+    :return: A processed org_unit
+    """
+    return await get_one_orgunit(c=request_wide_bulk.connector, unitid=unitid,
+                                 unit=await request_wide_bulk.get_lora_object(
+                                     type_=LoraObjectType.org_unit,
+                                     uuid=unitid) if not only_primary_uuid else None,
+                                 details=details,
+                                 validity=validity, only_primary_uuid=only_primary_uuid)
+
+
+async def request_bulked_get_one_orgunit(unitid: str,
+                                         details: UnitDetails = UnitDetails.NCHILDREN,
+                                         validity: Optional[Any] = None,
+                                         only_primary_uuid: bool = False) -> Awaitable:
+    """
+    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
+    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
+
+    :param unitid: uuid of orgunit
+    :param details: configure processing of the org_unit
+    :param validity:
+    :param only_primary_uuid:
+    :return: Awaitable returning the processed org_unit
+    """
+    if not only_primary_uuid:
+        await request_wide_bulk.add(type_=LoraObjectType.org_unit, uuid=unitid)
+
+    return __get_one_orgunit_from_cache(unitid=unitid, details=details,
+                                        validity=validity,
+                                        only_primary_uuid=only_primary_uuid)
+
+
 async def get_one_orgunit(c: lora.Connector,
                           unitid,
                           unit=None,
                           details=UnitDetails.NCHILDREN,
-                          validity=None) -> Optional[Dict[Any, Any]]:
+                          validity=None,
+                          only_primary_uuid: bool = False) -> Optional[Dict[Any, Any]]:
     """
     Internal API for returning one organisation unit.
     """
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
     if only_primary_uuid:
         return {
             mapping.UUID: unitid
         }
+    utilize_request_wide_cache = c is request_wide_bulk.connector
 
     if not unit:  # optional early exit
-        unit = await c.organisationenhed.get(unitid)
+        unit = await request_wide_bulk.get_lora_object(LoraObjectType.org_unit,
+                                                       uuid=unitid) \
+            if utilize_request_wide_cache else await c.organisationenhed.get(unitid)
 
         if not unit or not util.is_reg_valid(unit):
             return None
@@ -365,19 +413,43 @@ async def get_one_orgunit(c: lora.Connector,
     elif details is UnitDetails.FULL:
 
         parent_task = create_task(
-            get_one_orgunit(c, parentid, details=UnitDetails.FULL))
+            await request_bulked_get_one_orgunit(unitid=parentid,
+                                                 details=UnitDetails.FULL,
+                                                 only_primary_uuid=only_primary_uuid)
+            if utilize_request_wide_cache else get_one_orgunit(
+                c, parentid,
+                details=UnitDetails.FULL,
+                only_primary_uuid=only_primary_uuid)
+        )
 
         org_task = create_task(org.get_configured_organisation())
 
         if unittype:
-            org_unit_type_task = create_task(facet.get_one_class_full(c, unittype))
+            org_unit_type_task = create_task(
+                await facet.request_bulked_get_one_class_full(
+                    classid=unittype,
+                    only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, unittype,
+                                         only_primary_uuid=only_primary_uuid)
+            )
 
         if timeplanning:
-            time_planning_task = create_task(facet.get_one_class_full(c, timeplanning))
+            time_planning_task = create_task(
+                await facet.request_bulked_get_one_class_full(
+                    classid=timeplanning,
+                    only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, timeplanning,
+                                         only_primary_uuid=only_primary_uuid))
 
         if org_unit_level:
             org_unit_level_task = create_task(
-                facet.get_one_class_full(c, org_unit_level))
+                await facet.request_bulked_get_one_class_full(
+                    classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, org_unit_level,
+                                         only_primary_uuid=only_primary_uuid))
 
         parent = await parent_task
 
@@ -423,23 +495,47 @@ async def get_one_orgunit(c: lora.Connector,
 
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
-        r[mapping.PARENT] = await get_one_orgunit(c, parentid,
-                                                  details=UnitDetails.MINIMAL)
+        r[mapping.PARENT] = await (await request_bulked_get_one_orgunit(
+            unitid=parentid, details=UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid)) if \
+            utilize_request_wide_cache else \
+            await get_one_orgunit(c, parentid,
+                                  details=UnitDetails.MINIMAL,
+                                  only_primary_uuid=only_primary_uuid)
 
         parent_task = create_task(
-            get_one_orgunit(c, parentid, details=UnitDetails.MINIMAL))
+            await request_bulked_get_one_orgunit(parentid, details=UnitDetails.MINIMAL,
+                                                 only_primary_uuid=only_primary_uuid) if
+            utilize_request_wide_cache else
+            get_one_orgunit(c, parentid, details=UnitDetails.MINIMAL,
+                            only_primary_uuid=only_primary_uuid))
 
         org_task = create_task(org.get_configured_organisation())
 
         if unittype:
-            org_unit_type_task = create_task(facet.get_one_class_full(c, unittype))
+            org_unit_type_task = create_task(
+                await facet.request_bulked_get_one_class_full(
+                    classid=unittype, only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, unittype,
+                                         only_primary_uuid=only_primary_uuid)
+            )
 
         if timeplanning:
-            time_planning_task = create_task(facet.get_one_class_full(c, timeplanning))
+            time_planning_task = create_task(
+                await facet.request_bulked_get_one_class_full(
+                    classid=timeplanning, only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, timeplanning,
+                                         only_primary_uuid=only_primary_uuid))
 
         if org_unit_level:
             org_unit_level_task = create_task(
-                facet.get_one_class_full(c, org_unit_level))
+                await facet.request_bulked_get_one_class_full(
+                    classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
+                utilize_request_wide_cache else
+                facet.get_one_class_full(c, org_unit_level,
+                                         only_primary_uuid=only_primary_uuid))
 
         r[mapping.PARENT] = await parent_task
 
@@ -538,11 +634,11 @@ async def get_children(type, parentid):
 
     all_children = await c.organisationenhed.get_all(overordnet=parentid,
                                                      gyldighed='Aktiv')
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    children = await gather(*[
-        create_task(get_one_orgunit(c, childid, child))
-        for childid, child in all_children
-    ])
+    children = await gather(*[create_task(
+        get_one_orgunit(c, childid, child, only_primary_uuid=only_primary_uuid))
+        for childid, child in all_children])
 
     children.sort(key=operator.itemgetter('name'))
 
@@ -609,11 +705,14 @@ async def get_unit_ancestor_tree():
 
     c = common.get_connector()
     unitids = flask.request.args.getlist('uuid')
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    return flask.jsonify(await get_unit_tree(c, unitids, with_siblings=True))
+    return flask.jsonify(await get_unit_tree(c, unitids, with_siblings=True,
+                                             only_primary_uuid=only_primary_uuid))
 
 
-async def get_unit_tree(c, unitids, with_siblings=False):
+async def get_unit_tree(c, unitids, with_siblings=False,
+                        only_primary_uuid: bool = False):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -626,7 +725,7 @@ async def get_unit_tree(c, unitids, with_siblings=False):
                 UnitDetails.NCHILDREN
                 if with_siblings and unitid not in children
                 else UnitDetails.MINIMAL
-            ),
+            ), only_primary_uuid=only_primary_uuid,
         )
         if unitid in children:
             r['children'] = await get_units(children[unitid])
@@ -754,8 +853,9 @@ async def get_orgunit(unitid):
 
     '''
     c = common.get_connector()
-
-    r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
+                              only_primary_uuid=only_primary_uuid)
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -773,7 +873,10 @@ async def trigger_external_integration(unitid):
     """
 
     c = common.get_connector()
-    org_unit = await get_one_orgunit(c, unitid, details=UnitDetails.FULL)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    org_unit = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
+                                     only_primary_uuid=only_primary_uuid)
     if not org_unit:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
@@ -913,11 +1016,11 @@ async def list_orgunits(orgid):
 
         uuid_filters.append(entry_under_root)
 
-    # get_minimal_orgunit = functools.partial(get_one_orgunit,
-    #                                         details=UnitDetails.MINIMAL)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     async def get_minimal_orgunit(*args, **kwargs):
-        return await get_one_orgunit(*args, details=UnitDetails.MINIMAL, **kwargs)
+        return await get_one_orgunit(*args, details=UnitDetails.MINIMAL,
+                                     only_primary_uuid=only_primary_uuid, **kwargs)
 
     search_result = await c.organisationenhed.paged_get(
         get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs
@@ -1010,9 +1113,10 @@ async def list_orgunit_tree(orgid):
         if 'uuid' in args
         else await c.organisationenhed.fetch(**kwargs)
     )
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     return flask.jsonify(
-        await get_unit_tree(c, unitids),
+        await get_unit_tree(c, unitids, only_primary_uuid=only_primary_uuid),
     )
 
 

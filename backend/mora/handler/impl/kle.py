@@ -4,8 +4,9 @@
 import logging
 from asyncio import create_task, gather
 
+import flask
+
 from .. import reading
-from ... import common
 from ... import mapping
 from ...service import facet
 from ...service import orgunit
@@ -20,23 +21,29 @@ class KLEReader(reading.OrgFunkReadingHandler):
     function_key = mapping.KLE_KEY
 
     @classmethod
-    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
-        c = common.get_connector()
-
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super().get_mo_object_from_effect(effect, start, end, funcid))
+            super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         kle_types = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
+        only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-        kle_aspect = gather(
-            *[create_task(facet.get_one_class_full(c, obj_uuid)) for obj_uuid in
-              kle_types])
-        kle_number_task = create_task(facet.get_one_class_full(c, address_type))
+        # via tasks, await request_bulked_get_one_class_full, then prepare a gather of
+        # those (resulting) promises for later collection
+        kle_aspect = gather(*await gather(
+            *[create_task(facet.request_bulked_get_one_class_full(
+                obj_uuid, only_primary_uuid=only_primary_uuid)) for obj_uuid in
+                kle_types]))
+        kle_number_task = create_task(facet.request_bulked_get_one_class_full(
+            address_type, only_primary_uuid=only_primary_uuid))
+
         org_unit_task = create_task(
-            orgunit.get_one_orgunit(c, org_unit, details=orgunit.UnitDetails.MINIMAL))
+            orgunit.request_bulked_get_one_orgunit(org_unit,
+                                                   details=orgunit.UnitDetails.MINIMAL,
+                                                   only_primary_uuid=only_primary_uuid))
 
         r = {
             **await base_obj,
