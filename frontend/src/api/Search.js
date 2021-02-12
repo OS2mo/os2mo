@@ -42,12 +42,13 @@ export default {
    * Search for organisation units within an organisation
    * @param {String} orgUuid - organisation uuid
    * @param {String} query - search query.
+   * @param {String} details - level of details to include for each result
    * @returns {Array} a list of organisation units matching the query
    */
-  organisations (orgUuid, query, date) {
+  organisations (orgUuid, query, date, details) {
     query = query || ''
     date = date || ''
-    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}`)
+    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}&details=${details}`)
       .then(response => {
         return response.data.items
       })

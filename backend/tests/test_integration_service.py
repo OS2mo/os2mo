@@ -428,6 +428,28 @@ class Tests(util.LoRATestCase):
                 }
             )
 
+        with self.subTest('search and return paths'):
+            # When asking for "&details=path", the result should include a
+            # "location" for each matching org unit
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
+                '?query=samf&details=path',
+                {
+                    'items': [{
+                        'location': 'Overordnet Enhed',
+                        'name': 'Samfundsvidenskabelige fakultet',
+                        'user_key': 'samf',
+                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'validity': {
+                            'from': '2017-01-01',
+                            'to': None
+                        },
+                    }],
+                    'offset': 0,
+                    'total': 1
+                }
+            )
+
     def test_orgunit(self):
         self.load_sample_structures(minimal=True)
 
