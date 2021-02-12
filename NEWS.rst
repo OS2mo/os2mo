@@ -28,6 +28,7 @@ New features
 * #40177: Edit nickname as two separate fields (given name and surname)
 * #39841: Fix time machine date picker
 * #40620: Improved association presentation and extended the editing capabilities in the UI
+* #40719: Simplify validations for edits involving org units
 
 Bug fixes
 ---------

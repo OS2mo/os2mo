@@ -175,8 +175,3 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         self.trigger_dict.update({
             Trigger.ORG_UNIT_UUID: org_unit_uuid,
         })
-
-        if org_unit_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                {'uuid': org_unit_uuid},
-                new_from, new_to)
