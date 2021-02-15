@@ -4,11 +4,11 @@
 import { createLocalVue, mount } from '@vue/test-utils'
 import Vuex from 'vuex'
 import VeeValidate from 'vee-validate'
-import 'vue-awesome/icons/search'
+import moment from 'moment'
 import Search from '@/api/Search'
+import { AtDate } from '@/store/actions/atDate'
 import MoSearchBar from '@/components/MoSearchBar/MoSearchBar.vue'
 
-// Mock the `Search` module
 jest.mock('@/api/Search')
 
 describe('MoSearchBar.vue', () => {
@@ -38,16 +38,26 @@ describe('MoSearchBar.vue', () => {
     })
   })
 
-  it('should use `Search.organisations` in `updateItems`', async () => {
+  it('should dispatch `AtDate.SET` when the `atDate` property is changed', async () => {
+    const now = new Date(), nowFormatted = moment(now).format('YYYY-MM-DD')
+    await wrapper.setData({ atDate: now })
+    expect(store.dispatch).toHaveBeenCalledWith(AtDate.actions.SET, nowFormatted)
+  })
+
+  it('should use `atDate` in `updateItems`', async () => {
+    // Set `atDate` to a known value
+    let now = new Date(), nowFormatted = moment(now).format('YYYY-MM-DD')
+    await wrapper.setData({ atDate: now })
+
     // Search query passed to `Search.organisations`
     const query = 'my query'
 
     // Mock resolved value of `Search.organisations` (actual value does not matter)
-    Search.organisations.mockResolvedValue(null)
+    Search.organisations.mockResolvedValue([])
 
     await wrapper.vm.updateItems(query)
     expect(Search.organisations).toHaveBeenCalledWith(
-      store.state.organisation.uuid, query
+      store.state.organisation.uuid, query, nowFormatted
     )
   })
 })

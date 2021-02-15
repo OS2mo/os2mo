@@ -8,7 +8,6 @@ SPDX-License-Identifier: MPL-2.0
         <h4>{{$t('common.welcome_tagline')}}</h4>
       </div>
     </nav>
-
     <div id="login-wrapper">
       <div v-for="(m, index) in menu" :key="index" class="col">
         <component :is="m.template"/>
@@ -76,6 +75,10 @@ export default {
     position: absolute;
     bottom: 1em;
     left: 1em;
+  }
+
+  nav {
+    height: auto;
   }
 
   h1, h4 {

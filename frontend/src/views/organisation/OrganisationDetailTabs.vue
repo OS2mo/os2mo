@@ -120,10 +120,13 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A organisation detail tabs component.
  */
+
+import { mapGetters } from 'vuex'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
+import { AtDate } from '@/store/actions/atDate'
 
 export default {
   components: {
@@ -152,6 +155,8 @@ export default {
       tabs: ['#org-unit', '#adresser', '#engagementer', '#tilknytninger', '#it', '#roller', '#ledere', '#kle', '#relateret'],
       // keep track of the latest tap shown
       latestTab: [],
+      currentDetail: 'org_unit',
+      _atDate: undefined,
       /**
        * The address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
@@ -202,6 +207,7 @@ export default {
       }
     }
   },
+
   computed: {
     org_unit () {
       let columns = [
@@ -224,6 +230,7 @@ export default {
 
       return columns
     },
+
     engagement () {
       let columns = [
         { label: 'person', data: 'person' },
@@ -239,6 +246,7 @@ export default {
 
       return columns
     },
+
     association () {
       let columns = [
         { label: 'person', data: 'person' },
@@ -253,8 +261,13 @@ export default {
       }
 
       return columns
-    }
+    },
+
+    ...mapGetters({
+      atDate: AtDate.getters.GET,
+    }),
   },
+
   watch: {
     /**
      * update content when uuid changes.
@@ -262,7 +275,18 @@ export default {
      */
     uuid () {
       this.loadContent(this.latestTab.detail, this.latestTab.validity)
-    }
+    },
+
+    atDate (newVal) {
+      this._atDate = newVal
+      for (var validity of ['present', 'past', 'future']) {
+        this.loadContent(this.currentDetail, validity)
+      }
+    },
+  },
+
+  created () {
+    this._atDate = this.$store.getters[AtDate.getters.GET]
   },
 
   mounted() {
@@ -272,13 +296,16 @@ export default {
   methods: {
     loadContent (contentType, event) {
       let payload = {
+        uuid: this.uuid,
         detail: contentType,
         validity: event,
-        uuid: this.uuid
+        atDate: this._atDate,
       }
       this.latestTab = payload
+      this.currentDetail = contentType
       this.$emit('show', payload)
     },
+
     navigateToTab (tabTarget) {
       this.$router.replace(tabTarget)
     }

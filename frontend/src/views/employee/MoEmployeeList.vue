@@ -4,11 +4,10 @@ SPDX-License-Identifier: MPL-2.0
   <div class="card">
     <div class="card-body d-flex flex-column">
       <div class="input-group justify-content-md-center">
-      <h3>{{$t('input_fields.search_for_name_or_cpr')}}</h3>
+        <h3>{{$t('input_fields.search_for_name_or_cpr')}}</h3>
       </div>
-
       <div class="input-group input-group-lg justify-content-md-center">
-        <mo-search-bar class="form-control-lg col-4"/>
+        <mo-search-bar class="form-control-lg col-4" hide-date-input />
       </div>
     </div>
   </div>
@@ -23,7 +22,7 @@ import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
 
 export default {
   components: {
-    MoSearchBar
+    MoSearchBar,
   }
 }
 </script>

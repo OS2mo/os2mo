@@ -4,6 +4,7 @@
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
 import { _employee } from '../actions/employee'
+import URLSearchParams from '@ungap/url-search-params'
 
 const defaultState = () => {
   return {
@@ -30,13 +31,21 @@ const actions = {
   },
 
   [_employee.actions.SET_DETAIL] ({ state, commit }, payload) {
-    payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
-    let additional = payload.additional_query_params || ''
-    if (additional){
-        additional = '&' + additional
+
+    // Build query string from payload
+    const params = new URLSearchParams()
+    params.append('validity', payload.validity || 'present')
+    if (payload.atDate) {
+      params.append('at', payload.atDate)
     }
-    return Service.get(`/e/${uuid}/details/${payload.detail}?validity=${payload.validity}${additional}`)
+    if (payload.extra !== undefined) {
+      for (const key in payload.extra) {
+        params.append(key, payload.extra[key])
+      }
+    }
+
+    return Service.get(`/e/${uuid}/details/${payload.detail}?${params}`)
       .then(response => {
         let content = {
           key: payload.detail,

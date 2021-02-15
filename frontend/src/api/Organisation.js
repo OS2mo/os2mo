@@ -12,9 +12,7 @@ export default {
    */
   getAll (atDate) {
     atDate = atDate || new Date()
-
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-
     return Service.get(`/o/?at=${atDate}`)
       .then(response => {
         return response.data
@@ -46,7 +44,6 @@ export default {
    * @returns {Array} List of organisation units within the organisation
    */
   getChildren (uuid, atDate) {
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/o/${uuid}/children?at=${atDate}`)
       .then(response => {

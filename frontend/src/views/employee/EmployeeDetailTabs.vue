@@ -108,11 +108,13 @@ SPDX-License-Identifier: MPL-2.0
  * A employee detail tabs component.
  */
 
+import { mapGetters } from 'vuex'
 import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { Facet } from '@/store/actions/facet'
+import { AtDate } from '@/store/actions/atDate'
 
 export default {
   components: {
@@ -139,6 +141,8 @@ export default {
     return {
       tabIndex: 0,
       tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
+      currentDetail: 'employee',
+      _atDate: undefined,
       /**
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
@@ -208,6 +212,7 @@ export default {
 
       return columns
     },
+
     association () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
@@ -241,7 +246,24 @@ export default {
       }
 
       return columns
-    }
+    },
+
+    ...mapGetters({
+      atDate: AtDate.getters.GET,
+    }),
+  },
+
+  watch: {
+    atDate (newVal) {
+      this._atDate = newVal
+      for (var validity of ['present', 'past', 'future']) {
+        this.loadContent(this.currentDetail, validity)
+      }
+    },
+  },
+
+  created () {
+    this._atDate = this.$store.getters[AtDate.getters.GET]
   },
 
   mounted () {
@@ -251,15 +273,16 @@ export default {
   methods: {
     loadContent (contentType, event) {
       let payload = {
+        uuid: this.uuid,
         detail: contentType,
         validity: event,
-        uuid: this.uuid
+        atDate: this._atDate,
+        extra: contentType === 'association' ? {'first_party_perspective': '1'} : {},
       }
-      if (contentType==='association'){
-        payload['additional_query_params'] = 'first_party_perspective=1'
-      }
+      this.currentDetail = contentType
       this.$emit('show', payload)
     },
+
     navigateToTab (tabTarget) {
       this.$router.replace(tabTarget)
     }

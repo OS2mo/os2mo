@@ -14,7 +14,6 @@ export default {
    * @returns {Object} organisation unit object
    */
   get (uuid, atDate) {
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/ou/${uuid}/?at=${atDate}`)
       .then(response => {
@@ -32,7 +31,6 @@ export default {
    * @returns {Array} organisation unit children
    */
   getChildren (uuid, atDate) {
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/ou/${uuid}/children?at=${atDate}`)
       .then(response => {
@@ -49,7 +47,6 @@ export default {
    * @returns {Array} organisation unit children
    */
   getAncestorTree (uuids, atDate) {
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
 
     if (!(uuids instanceof Array)) {
@@ -103,7 +100,6 @@ export default {
    */
   getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`)
       .then(response => {

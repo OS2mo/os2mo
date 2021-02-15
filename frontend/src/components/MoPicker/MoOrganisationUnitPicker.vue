@@ -6,12 +6,13 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation unit picker component.
  */
 
+import { mapGetters } from 'vuex'
 import MoTreePicker from '@/components/MoPicker/MoTreePicker'
-import { Organisation as OrgStore } from '@/store/actions/organisation'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import Search from '@/api/Search'
-
+import { Organisation as OrgStore } from '@/store/actions/organisation'
+import { AtDate } from '@/store/actions/atDate'
 
 export default {
   name: 'MoOrganisationUnitPicker',
@@ -21,10 +22,29 @@ export default {
   data () {
     return {
       fetchSearchResultsTimeout: null,
+      _atDate: undefined,
     }
   },
 
+  computed: {
+    ...mapGetters({
+      atDate: AtDate.getters.GET,
+    }),
+  },
+
+  created () {
+    this._atDate = this.$store.getters[AtDate.getters.GET]
+  },
+
   watch: {
+    // Respond to changes in the 'atDate' global state.
+    atDate (newVal) {
+      this._atDate = newVal
+    },
+
+    // Whenever 'unitName' changes, update the matching search results in
+    // autocomplete dropdown. ('unitName' is bound to the text input field in
+    // `MoTreePicker`.)
     unitName: {
       deep: true,
       async handler (newVal, oldVal) {
@@ -72,8 +92,8 @@ export default {
       }
     },
 
-    async get_entry(uuid, validity) {
-      return await OrganisationUnit.get(uuid, validity)
+    async get_entry(uuid) {
+      return await OrganisationUnit.get(uuid, this._atDate)
     },
 
     get_ancestor_tree(uuid, date) {
@@ -102,7 +122,7 @@ export default {
       this.searchResultLoading = true
 
       let org = this.$store.state.organisation
-      let date = null
+      let date = this._atDate
       let details = "path"
 
       Search.organisations(org.uuid, query, date, details).then(

@@ -19,6 +19,7 @@ SPDX-License-Identifier: MPL-2.0
 
     <div class="mo-input-group" v-show="showTree">
       <mo-tree-view v-model="selectedSuperUnitUuid"
+                    ref="moTreeView"
                     :disabled-unit="disabledUnit && disabledUnit.uuid"
                     :at-date="validity && validity.from"
                     :get_ancestor_tree="get_ancestor_tree"
@@ -165,7 +166,7 @@ export default {
         return
       }
 
-      let unit = await this.get_entry(newVal, this.validity && this.validity.from)
+      let unit = await this.get_entry(newVal)
 
       this.unitName = unit.name
       this.unitUuid = unit.uuid
@@ -185,7 +186,7 @@ export default {
       deep: true,
       async handler(newVal, oldVal) {
         if (this.unitUuid) {
-          let unit = await this.get_entry(this.unitUuid, newVal && newVal.from)
+          let unit = await this.get_entry(this.unitUuid)
 
           if (!unit) {
             this.showTree = false
@@ -193,6 +194,10 @@ export default {
             this.unitUuid = null
             this.$emit('input', null)
           }
+        }
+
+        if (newVal && (newVal.from || newVal.to)) {
+          this.$refs.moTreeView.updateValidity(newVal)
         }
       }
     }
@@ -270,10 +275,9 @@ export default {
     /**
      * Get object for current entry.
      * @param {String} uuid - Uuid of the current entry to fetch
-     * @param {Date} validity - Validity period for which to lookup
      * @returns {Object} Full object for the current entry
      */
-    async get_entry(newVal, validity) {
+    async get_entry(newVal) {
       console.log("Not overridden: get_entry!")
     }
   }
