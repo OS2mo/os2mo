@@ -2,19 +2,29 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <mo-employee-picker
-      v-if="hideEmployeePicker || hideOrgPicker"
-      class="search-employee mb-3"
-      :label="$tc('input_fields.employee')"
-      v-model="validPerson"
-      :validity="entry.validity"
-    />
     <mo-input-date-range
       class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
       :disabled-dates="{orgUnitValidity, disabledDates}"
     />
+
+    <mo-employee-picker
+      class="search-employee mb-3"
+      v-if="!hideEmployeePicker && hideOrgPicker"
+      :label="$tc('input_fields.employee_substitute')"
+      v-model="entry.person"
+      :validity="entry.validity"
+    />
+
+    <div class="form-row employee_info">
+    <mo-input-text
+    :label="$tc('shared.employee')"
+    v-if="hideEmployeePicker"
+    v-model="entry.person.name"
+    disabled
+    />
+    </div>
 
     <div class="form-row">
       <mo-facet-picker v-if="showPrimary"
@@ -24,6 +34,7 @@ SPDX-License-Identifier: MPL-2.0
       />
 
       <mo-organisation-unit-picker
+        v-if="!hideOrgPicker"
         class="col unit-association"
         :label="$t('input_fields.select_unit')"
         v-model="entry.org_unit"
@@ -69,7 +80,7 @@ SPDX-License-Identifier: MPL-2.0
  * A association entry component.
  */
 
-import { MoInputDateRange } from '@/components/MoInput'
+import { MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
@@ -105,12 +116,6 @@ export default {
       currentEmployee: Employee.getters.GET_EMPLOYEE
     }),
 
-    validPerson: {
-      get() {
-        return (this.entry.person && this.entry.person.name) ? this.entry.person : this.currentEmployee
-      },
-      set(value) {},
-    },
 
     validations () {
       return {
@@ -144,12 +149,20 @@ export default {
     },
   },
 
+  created () {
+    if (!(this.entry.person && this.entry.person.name) &&
+      (this.currentEmployee && this.currentEmployee.name)){
+      this.$set(this.entry, 'person', this.currentEmployee)
+    }
+  },
+
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoEmployeePicker,
     MoFacetPicker,
     MoRecursiveFacetPicker,
+    MoInputText
   },
 
   watch: {

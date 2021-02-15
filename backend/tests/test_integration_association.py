@@ -4,9 +4,8 @@
 import copy
 
 import freezegun
-from mock import patch
-
 import mora.async_util
+from mock import patch
 from mora import lora
 from mora import mapping
 from tests import util
@@ -258,6 +257,203 @@ class Tests(util.LoRATestCase):
             },
         )
 
+    @patch(
+        "mora.readonly.conf_db.get_configuration",
+        return_value={"substitute_roles": '62ec821f-4179-4758-bfdf-134529d186e9'}
+    )
+    def test_create_vacant_association(self, mock):
+        self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        # test multiple valid formats
+        association_uuid = '00000000-0000-0000-0000-000000000000'
+        association_uuid2 = '00000000-0000-0000-0000-000000000001'
+
+        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        subid = "aefb4355-11b1-411b-a64d-34f2ff9640f6"
+
+        def payload(assoc_uuid, include_person=True):
+            """
+            :param assoc_uuid: uuid to use
+            :param include_person: change between formats (both legal)
+            :return: valid assoication payload
+            """
+
+            main = {
+                "type": "association",
+                "uuid": assoc_uuid,
+                "org_unit": {'uuid': unitid},
+                "association_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
+                },
+                "substitute": {
+                    'uuid': subid
+                },
+                "user_key": "1234",
+                "primary": {'uuid': "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+            if include_person:
+                main["person"] = None
+            return [main]
+
+        self.assertRequestResponse(
+            '/service/details/create',
+            [association_uuid],
+            json=payload(association_uuid),
+            amqp_topics={
+                'org_unit.association.create': 1,
+            },
+        )
+        self.assertRequestResponse(
+            '/service/details/create',
+            [association_uuid2],
+            json=payload(association_uuid2, include_person=False),
+            amqp_topics={
+                'org_unit.association.create': 2,
+            },
+        )
+
+        expected = {
+            "livscykluskode": "Importeret",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "gyldighed": "Aktiv"
+                    }
+                ]
+            },
+            "note": "Oprettet i MO",
+            "relationer": {
+                "tilknyttedeorganisationer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                    }
+                ],
+                "organisatoriskfunktionstype": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+                    }
+                ],
+                "tilknyttedeenheder": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "uuid": unitid
+                    }
+                ],
+                'tilknyttedefunktioner': [{
+                    'uuid': 'aefb4355-11b1-411b-a64d-34f2ff9640f6',
+                    'virkning': {
+                        'from': '2017-12-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-12-02 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }],
+                'primær': [{
+                    'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474',
+                    'virkning': {
+                        'from': '2017-12-01 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-12-02 00:00:00+01',
+                        'to_included': False
+                    }
+                }],
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "2017-12-02 00:00:00+01",
+                            "from_included": True,
+                            "from": "2017-12-01 00:00:00+01"
+                        },
+                        "brugervendtnoegle": "1234",
+                        "funktionsnavn": "Tilknytning"
+                    }
+                ]
+            }
+        }
+
+        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
+            tilknyttedeenheder=unitid,
+            tilknyttedeorganisationer='456362c4-0ee4-4e5e-a72c-751239745e62',
+            brugervendtnoegle="1234",
+            funktionsnavn='Tilknytning'
+        )
+        self.assertEqual(len(associations), 2)
+        for associationid in associations:
+            # assert we got back one of the newly created associations (ie. exists)
+            self.assertIn(associationid, [association_uuid, association_uuid2])
+
+            # check that the content is also as expected
+            actual_association = mora.async_util.async_to_sync(
+                c.organisationfunktion.get)(associationid)
+
+            self.assertRegistrationsEqual(actual_association, expected)
+
+        def assoc_content_only_primary_uuid(assoc_uuid):
+            """
+            creates expected format
+
+            :param assoc_uuid:
+            :return:
+            """
+            return {
+                'association_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
+                'dynamic_classes': [],
+                'org_unit': {'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'},
+                'person': None,
+                'primary': {'uuid': 'f49c797b-d3e8-4dc2-a7a8-c84265432474'},
+                'user_key': '1234',
+                'uuid': assoc_uuid,
+                "substitute": {'uuid': subid},
+                'validity': {'from': '2017-12-01', 'to': '2017-12-01'},
+            }
+
+        expected = [assoc_content_only_primary_uuid(association_uuid),
+                    assoc_content_only_primary_uuid(association_uuid2)]
+
+        self.assertRequestResponse(  # contains sorting (ie. unordered comparison)
+            '/service/ou/{}/details/association'
+            '?validity=future&only_primary_uuid=1'.format(unitid),
+            expected,
+            amqp_topics={
+                'org_unit.association.create': 2,
+            },
+        )
+
     def test_create_association_from_missing_unit(self):
         self.load_sample_structures()
 
@@ -407,51 +603,6 @@ class Tests(util.LoRATestCase):
                 'employee.association.create': 1,
                 'org_unit.association.create': 1,
             },
-        )
-
-    def test_create_association_no_person(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        payload = [
-            {
-                "type": "association",
-                "org_unit": {'uuid': unitid},
-                "association_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                'dynamic_classes': [],
-                "address": {
-                    'address_type': {
-                        'example': '<UUID>',
-                        'name': 'Adresse',
-                        'scope': 'DAR',
-                        'user_key': 'AdressePost',
-                        'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-                    },
-                    'uuid': '0a3f50a0-23c9-32b8-e044-0003ba298018',
-                },
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            '/service/details/create',
-            {
-                'description': 'Missing person',
-                'error': True,
-                'error_key': 'V_MISSING_REQUIRED_VALUE',
-                'key': 'person',
-                'obj': payload[0],
-                'status': 400,
-            },
-            json=payload,
-            status_code=400,
         )
 
     def test_create_association_no_unit(self):
@@ -758,6 +909,46 @@ class Tests(util.LoRATestCase):
                 'org_unit.association.update': 1,
             },
         )
+        with self.subTest('change to vacant'):
+            new_req = copy.deepcopy(req)
+            new_req[0]['data']['person'] = None
+            self.assertRequestResponse(
+                '/service/details/edit',
+                [association_uuid],
+                json=new_req,
+                amqp_topics={
+                    'employee.association.update': 1,
+                    'org_unit.association.update': 2,
+                },
+            )
+
+            self.assertRequestResponse(
+                '/service/ou/{}/details/association?only_primary_uuid=1'.format(unitid),
+                [{
+                    'association_type': {
+                        'uuid': 'bcd05828-cc10-48b1-bc48-2f0d204859b2',
+                    },
+                    'dynamic_classes': [],
+                    'org_unit': {
+                        'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
+                    },
+                    'person': None,
+                    'primary': None,
+                    'user_key': 'bvn',
+                    'uuid': 'c2153d5d-4a2b-492d-a18c-c498f7bb6221',
+                    'substitute': {
+                        'uuid': "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+                    },
+                    'validity': {
+                        'from': '2017-01-01',
+                        'to': None,
+                    },
+                }],
+                amqp_topics={
+                    'employee.association.update': 1,
+                    'org_unit.association.update': 2,
+                },
+            )
 
     @patch(
         "mora.readonly.conf_db.get_configuration",
