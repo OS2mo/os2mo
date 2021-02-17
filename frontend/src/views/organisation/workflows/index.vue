@@ -14,7 +14,6 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.organisation.create_unit')"
         icon="plus-circle"
         v-b-modal.orgUnitCreate
-        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -22,7 +21,6 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.organisation.rename_unit')"
         icon="edit"
         v-b-modal.orgUnitRename
-        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -30,7 +28,6 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.organisation.move_unit')"
         icon="share-square"
         v-b-modal.orgUnitMove
-        :disabled="isDisabled"
       />
 
       <mo-workflow-button
@@ -38,7 +35,6 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('workflows.organisation.terminate_unit')"
         icon="ban"
         v-b-modal.orgUnitTerminate
-        :disabled="isDisabled"
       />
     </mo-workflow>
 
@@ -78,14 +74,6 @@ export default {
   directives: {
     'b-modal': bModalDirective
   },
-
-  computed: {
-    isDisabled () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.read_only
-    }
-  },
-
   methods: {
     /**
      * Trigger the popup workflows with the key shortcuts.
