@@ -8,13 +8,13 @@ Related Units
 This section describes how to interact with related units.
 
 '''
-from asyncio import gather, create_task
+from asyncio import create_task, gather
 
 import flask
 
 import mora.async_util
 from . import handlers
-from .. import common, readonly
+from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -43,7 +43,6 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
 
 @blueprint.route('/ou/<uuid:origin>/map', methods=['POST'])
 @util.restrictargs()
-@readonly.check_read_only
 @mora.async_util.async_to_sync
 async def map_org_units(origin):
     """Mark the given organisational units as related.

@@ -11,7 +11,7 @@ import werkzeug
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import mora.async_util
-from mora import __version__, log, readonly
+from mora import __version__, log
 from mora import health
 from . import exceptions
 from . import lora
@@ -58,7 +58,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
     app.register_blueprint(health.blueprint)
-    app.register_blueprint(readonly.blueprint)
 
     for blueprint in service.blueprints:
         blueprint.before_request(flask_saml_sso.check_saml_authentication)
