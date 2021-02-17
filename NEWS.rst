@@ -1,5 +1,6 @@
 In development
 ==============
+* #38904: Deprecated read-only
 
 New features
 ------------

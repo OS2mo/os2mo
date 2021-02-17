@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from operator import itemgetter
-from sqlalchemy.sql import select
+
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import select
 
 from mora.conf_db.alembic.helpers.config_v1 import Config
 
@@ -16,7 +17,7 @@ def add_default_fields(session: Session, defaults):
 def remove_default_fields(session: Session, defaults):
     default_keys = set(map(itemgetter(0), defaults))
     for key in default_keys:
-        session.query(Config).filter(setting=key).delete()
+        session.query(Config).filter(Config.setting == key).delete()
         session.commit()
 
 
