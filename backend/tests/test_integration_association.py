@@ -18,7 +18,7 @@ class Tests(util.LoRATestCase):
     maxDiff = None
 
     @patch(
-        "mora.readonly.conf_db.get_configuration",
+        "mora.conf_db.get_configuration",
         return_value={"substitute_roles": '62ec821f-4179-4758-bfdf-134529d186e9'}
     )
     def test_create_association(self, mock):
@@ -258,7 +258,7 @@ class Tests(util.LoRATestCase):
         )
 
     @patch(
-        "mora.readonly.conf_db.get_configuration",
+        "mora.conf_db.get_configuration",
         return_value={"substitute_roles": '62ec821f-4179-4758-bfdf-134529d186e9'}
     )
     def test_create_vacant_association(self, mock):
@@ -843,7 +843,7 @@ class Tests(util.LoRATestCase):
         )
 
     @patch(
-        "mora.readonly.conf_db.get_configuration",
+        "mora.conf_db.get_configuration",
         return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
     )
     def test_edit_association(self, mock):
@@ -951,7 +951,7 @@ class Tests(util.LoRATestCase):
             )
 
     @patch(
-        "mora.readonly.conf_db.get_configuration",
+        "mora.conf_db.get_configuration",
         return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
     )
     def test_edit_association_substitute(self, mock):

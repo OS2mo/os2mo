@@ -21,17 +21,17 @@ from itertools import chain
 from typing import Any, Awaitable, Dict, Optional
 
 import flask
-import mora.async_util
 import requests
-from mora.request_wide_bulking import request_wide_bulk
 from more_itertools import unzip
 
+import mora.async_util
+from mora.request_wide_bulking import request_wide_bulk
 from . import facet
 from . import handlers
 from . import org
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from .. import common, conf_db, readonly
+from .. import common, conf_db
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -1138,7 +1138,6 @@ async def list_orgunit_tree(orgid):
 
 @blueprint.route('/ou/create', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
-@readonly.check_read_only
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1242,7 +1241,6 @@ async def terminate_org_unit_validation(unitid, date):
 
 @blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
-@readonly.check_read_only
 def terminate_org_unit(unitid):
     """Terminates an organisational unit from a specified date.
 

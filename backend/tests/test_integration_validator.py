@@ -254,7 +254,7 @@ class TestValidator(TestHelper):
         ])
 
     @patch(
-        "mora.readonly.conf_db.get_configuration",
+        "mora.conf_db.get_configuration",
         return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
     )
     def test_is_substitute_allowed(self, mock):

@@ -20,13 +20,13 @@ from operator import contains, itemgetter
 from typing import Any, Awaitable, Dict, Union
 
 import flask
+
 import mora.async_util
 from mora.request_wide_bulking import request_wide_bulk
-
 from . import handlers
 from . import org
 from .validation import validator
-from .. import common, readonly
+from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -532,7 +532,6 @@ async def get_employee(id):
 
 @blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
-@readonly.check_read_only
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -621,7 +620,6 @@ def terminate_employee(employee_uuid):
 
 @blueprint.route('/e/create', methods=['POST'])
 @util.restrictargs('force', 'triggerless')
-@readonly.check_read_only
 def create_employee():
     """Create a new employee
 

@@ -54,7 +54,6 @@ SPDX-License-Identifier: MPL-2.0
       class="mt-3"
       :uuid="uuid"
       :entry-component="entryComponent"
-      :disabled="isCreateButtonDisabled"
       v-if="!hideCreate"
     />
   </div>
@@ -122,11 +121,6 @@ export default {
   computed: {
     contentStore () {
       return this.content || {}
-    },
-
-    isCreateButtonDisabled () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.read_only
     }
   }
 }
