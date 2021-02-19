@@ -116,6 +116,7 @@ setup/mora.json
 # Test artifacts
 testcafe-artifacts
 .pytest_cache
+frontend/coverage/
 
 # Local overrides
 docker-compose.override.yml
