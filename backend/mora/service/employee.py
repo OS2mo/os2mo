@@ -590,7 +590,7 @@ def terminate_employee(employee_uuid):
 
     trigger_dict = {
         Trigger.ROLE_TYPE: mapping.EMPLOYEE,
-        Trigger.EVENT_TYPE: Trigger.Event.ON_BEFORE,
+        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
         Trigger.REQUEST: request,
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
         Trigger.EMPLOYEE_UUID: employee_uuid,
@@ -604,7 +604,7 @@ def terminate_employee(employee_uuid):
 
     result = flask.jsonify(employee_uuid)
 
-    trigger_dict[Trigger.EVENT_TYPE] = Trigger.Event.ON_AFTER
+    trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
 
     Trigger.run(trigger_dict)

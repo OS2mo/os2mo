@@ -4,6 +4,7 @@ In development
 
 New features
 ------------
+* #40700: Added HTTP(s) Trigger system
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
 * #40621: Allow vacant associations, creatable from organisation unit
 
