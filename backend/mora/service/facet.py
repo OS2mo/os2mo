@@ -22,7 +22,7 @@ from uuid import UUID
 from asyncio import create_task, gather
 from typing import Any, Awaitable, Dict, List, Optional, Set
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 import mora.async_util
 from mora.request_wide_bulking import request_wide_bulk
@@ -327,8 +327,8 @@ async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
         'description': description,
     }
     if orgid:
-        response['path'] = (bvn and flask.url_for(
-            'facet.get_classes', orgid=orgid, facet=bvn
+        response['path'] = (bvn and router.url_path_for(
+            'get_classes', orgid=orgid, facet=bvn
         ))
     if data:
         response['data'] = data
@@ -556,9 +556,10 @@ async def get_classes_under_facet(orgid: UUID, facet: str,
 async def get_classes(
     orgid: UUID,
     facet: str,
+    request: Request,
     start: Optional[int] = 0,
     limit: Optional[int] = 0,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid : Optional[bool] = None,
 ):
     '''List classes available in the given facet.
 
@@ -622,7 +623,9 @@ async def get_classes(
       }
     '''
     orgid = str(orgid)
-    class_details = map_query_args_to_class_details(flask.request.args)
+    # TODO: Fix this
+    class_details = set()
+    #map_query_args_to_class_details(flask.request.args)
 
     return await get_classes_under_facet(
         orgid, facet, details=class_details,

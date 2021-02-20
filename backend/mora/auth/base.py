@@ -25,7 +25,6 @@ router = APIRouter()
 
 
 @router.get('/user')
-#@util.restrictargs()
 def get_user():
     '''Get the currently logged in user
 

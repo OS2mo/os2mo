@@ -33,6 +33,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..settings import app_config
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 

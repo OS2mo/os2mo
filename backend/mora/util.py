@@ -776,6 +776,9 @@ def get_args_flag(name: str):
     values '0', 'false', 'no' or 'n'. Anything else is true.
 
     '''
+    # TODO: Fix this
+    return False
+
     v = flask.request.args.get(name, '')
 
     if v.lower() in ('', '0', 'no', 'n', 'false'):
