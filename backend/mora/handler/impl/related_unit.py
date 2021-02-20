@@ -5,8 +5,6 @@ import logging
 from asyncio import gather
 from typing import Any, Awaitable, Dict, Iterable, TypeVar, Union
 
-import flask
-
 from .. import reading
 from ... import mapping
 from ...service import orgunit
@@ -40,7 +38,8 @@ class RoleReader(reading.OrgFunkReadingHandler):
         org_units = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         org_unit_awaitables = [
             await orgunit.request_bulked_get_one_orgunit(

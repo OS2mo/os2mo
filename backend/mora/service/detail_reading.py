@@ -21,15 +21,14 @@ from __future__ import generator_stop
 
 import collections
 
-import flask
+from fastapi import APIRouter
 
 import mora.async_util
 from . import handlers
 from .. import common
 from .. import util
 
-blueprint = flask.Blueprint('detail_reading', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 DetailType = collections.namedtuple('DetailType', [
     'search',
@@ -40,12 +39,13 @@ DETAIL_TYPES = {
     'e': DetailType('tilknyttedebrugere', 'bruger'),
     'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
 }
+from uuid import UUID
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def list_details(type, id):
+@router.get('/{type}/{id}/details/')
+# @util.restrictargs()
+# @mora.async_util.async_to_sync
+async def list_details(type, id: UUID):
     '''List the available 'detail' types under this entry.
 
     .. :quickref: Detail; List
@@ -67,6 +67,7 @@ async def list_details(type, id):
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
     '''
+    id = str(id)
 
     c = common.get_connector(virkningfra='-infinity',
                              virkningtil='infinity')
@@ -91,13 +92,12 @@ async def list_details(type, id):
     return flask.jsonify(r)
 
 
-@blueprint.route(
-    '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
+@router.get(
+    '/{type}/{id}/details/{function}',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
-                   'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
-@mora.async_util.async_to_sync
-async def get_detail(type, id, function):
+#@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
+#                  'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
+async def get_detail(type, id:UUID, function):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     :http:get:`/service/(any:type)/(uuid:id)/details/` for the
@@ -648,9 +648,10 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
      ]
 
     '''
+    id = str(id)
     c = common.get_connector()
 
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return flask.jsonify(await cls.get_from_type(c, type, id))
+    return await cls.get_from_type(c, type, id)

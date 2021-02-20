@@ -4,8 +4,6 @@
 import logging
 from asyncio import create_task, gather
 
-import flask
-
 from .. import reading
 from ... import mapping
 from ...service import facet
@@ -29,7 +27,8 @@ class KLEReader(reading.OrgFunkReadingHandler):
             super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         kle_types = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         # via tasks, await request_bulked_get_one_class_full, then prepare a gather of
         # those (resulting) promises for later collection

@@ -3,17 +3,16 @@
 
 import os
 
-import flask
+from fastapi import APIRouter
 
 from .. import util
 from .. import exceptions
 
-blueprint = flask.Blueprint('exports', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
-@blueprint.route('/exports/')
-@util.restrictargs()
+@router.get('/exports/')
+# @util.restrictargs()
 def list_export_files():
     """
     List the available exports
@@ -42,8 +41,8 @@ def list_export_files():
     return flask.jsonify(files)
 
 
-@blueprint.route('/exports/<string:file_name>')
-@util.restrictargs()
+@router.get('/exports/<string:file_name>')
+# @util.restrictargs()
 def get_export_file(file_name: str):
     """
     Fetch a export file with a given name

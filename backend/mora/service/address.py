@@ -30,8 +30,8 @@ session.headers = {
 
 MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
-blueprint = flask.Blueprint('address', __name__, static_url_path='',
-                            url_prefix='/service')
+from fastapi import APIRouter
+router = APIRouter()
 
 
 async def get_address_type(effect):
@@ -50,9 +50,9 @@ async def get_one_address(effect) -> Dict[Any, Any]:
     return await handler.get_mo_address_and_properties()
 
 
-@blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
-@util.restrictargs('global', required=['q'])
-@mora.async_util.async_to_sync
+@router.get('/o/<uuid:orgid>/address_autocomplete/')
+#@util.restrictargs('global', required=['q'])
+#@mora.async_util.async_to_sync
 async def address_autocomplete(orgid):
     """Perform address autocomplete, resolving both ``adgangsadresse`` and
     ``adresse``.

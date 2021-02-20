@@ -8,7 +8,7 @@
 
 FROM node:10 AS frontend
 
-WORKDIR /code/frontend
+WORKDIR /app/frontend
 
 COPY frontend/package.json .
 COPY frontend/yarn.lock .
@@ -22,36 +22,27 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-# We do not use alpine. The resulting image is smaller, but there is currently
-# no support for pip installation of wheels (binary) packages. It falls back to
-# installing from source which is very time consuming. See
-# https://github.com/pypa/manylinux/issues/37 and
-# https://github.com/docker-library/docs/issues/904
-#
-# We also don't use -slim as some python packages are not wheels and needs
-# compiling with the tools for the non -slim image.
-FROM python:3.8.5 AS dist
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
 
-ENV OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
-    OS2MO_USER_CONFIG_PATH=/user-settings.toml
+ENV OS2MO_SYSTEM_CONFIG_PATH=/app/docker/docker-settings.toml
+ENV OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
-LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation" \
-      org.opencontainers.image.vendor="Magenta ApS" \
-      org.opencontainers.image.licenses="MPL-2.0" \
-      org.opencontainers.image.url="https://os2.eu/produkt/os2mo" \
-      org.opencontainers.image.documentation="https://os2mo.readthedocs.io" \
-      org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
+LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
+LABEL org.opencontainers.image.vendor="Magenta ApS"
+LABEL org.opencontainers.image.licenses="MPL-2.0"
+LABEL org.opencontainers.image.url="https://os2.eu/produkt/os2mo"
+LABEL org.opencontainers.image.documentation="https://os2mo.readthedocs.io"
+LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 
 
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
-ENV PYTHONUNBUFFERED=1 \
-    FLASK_APP=mora.app:create_app \
-    OS2MO_SYSTEM_CONFIG_PATH=/code/docker/docker-settings.toml \
-    OS2MO_USER_CONFIG_PATH=/user-settings.toml
+ENV PYTHONUNBUFFERED=1
+ENV OS2MO_SYSTEM_CONFIG_PATH=/app/docker/docker-settings.toml
+ENV OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 
-WORKDIR /code/
+WORKDIR /app/
 COPY docker/sys-requirements.txt sys-requirements.txt
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
@@ -72,9 +63,9 @@ RUN set -ex \
 
 
 # Install requirements
-COPY backend/requirements.txt /code/backend/requirements.txt
-COPY backend/requirements-test.txt /code/backend/requirements-test.txt
-COPY backend/requirements-lint.txt /code/backend/requirements-lint.txt
+COPY backend/requirements.txt /app/backend/requirements.txt
+COPY backend/requirements-test.txt /app/backend/requirements-test.txt
+COPY backend/requirements-lint.txt /app/backend/requirements-lint.txt
 RUN pip3 install --no-cache-dir \
   -r backend/requirements.txt \
   -r backend/requirements-test.txt \
@@ -92,6 +83,8 @@ COPY backend ./backend
 COPY README.rst .
 COPY NEWS.rst .
 COPY LICENSE .
+COPY backend/mora/main.py .
+COPY docker/prestart.sh /app/prestart.sh
 # Install the application as editable. This makes it possible to mount
 # `/code/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
@@ -99,13 +92,10 @@ RUN pip3 install --no-cache-dir -e backend
 
 
 # Copy frontend code.
-COPY --from=frontend /code/frontend/package.json ./frontend/package.json
-COPY --from=frontend /code/frontend/dist ./frontend/dist
+COPY --from=frontend /app/frontend/package.json ./frontend/package.json
+COPY --from=frontend /app/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora
-EXPOSE 5000
-ENTRYPOINT ["/code/docker/docker-entrypoint.sh"]
-CMD ["gunicorn", "--config", "/code/docker/gunicorn-settings.py", "mora.app:create_app()"]

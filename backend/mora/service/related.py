@@ -10,7 +10,7 @@ This section describes how to interact with related units.
 '''
 from asyncio import create_task, gather
 
-import flask
+from fastapi import APIRouter
 
 import mora.async_util
 from . import handlers
@@ -20,8 +20,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 
-blueprint = flask.Blueprint('related_unit', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
@@ -41,9 +40,9 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
         raise NotImplementedError
 
 
-@blueprint.route('/ou/<uuid:origin>/map', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/ou/<uuid:origin>/map')
+#@util.restrictargs()
+#@mora.async_util.async_to_sync
 async def map_org_units(origin):
     """Mark the given organisational units as related.
 

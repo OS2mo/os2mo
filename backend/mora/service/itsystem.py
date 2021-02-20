@@ -14,7 +14,8 @@ import itertools
 import uuid
 from typing import Any, Awaitable, Dict, Optional
 
-import flask
+from fastapi import APIRouter
+#import flask
 import mora.async_util
 
 from . import handlers
@@ -29,8 +30,7 @@ from ..lora import LoraObjectType
 from ..request_wide_bulking import request_wide_bulk
 from ..triggers import Trigger
 
-blueprint = flask.Blueprint('itsystem', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 MO_OBJ_TYPE = Dict[str, Any]
 
@@ -199,9 +199,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
 
-@blueprint.route('/o/<uuid:orgid>/it/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/o/<uuid:orgid>/it/')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def list_it_systems(orgid: uuid.UUID):
     """List the IT systems available within the given organisation.
 

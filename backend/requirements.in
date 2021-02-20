@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 alembic
-Flask
-flask-cors
 requests
 lxml
 python-dateutil
@@ -12,7 +10,6 @@ validators
 psycopg2-binary
 gunicorn
 service_person_stamdata_udvidet @ git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
-flask_saml_sso @ git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.1#egg=flask_saml_sso
 lora_utils @ git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
 pika
 toml
@@ -22,3 +19,6 @@ sqlalchemy-utils
 aiohttp
 os2mo-http-trigger-protocol
 anytree
+fastapi
+jinja2
+aiofiles

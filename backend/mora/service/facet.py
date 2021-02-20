@@ -22,7 +22,7 @@ import uuid
 from asyncio import create_task, gather
 from typing import Any, Awaitable, Dict, List, Optional, Set
 
-import flask
+from fastapi import APIRouter
 
 import mora.async_util
 from mora.request_wide_bulking import request_wide_bulk
@@ -34,8 +34,7 @@ from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
 
-blueprint = flask.Blueprint('facet', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 MO_OBJ_TYPE = Dict[str, Any]
 
@@ -57,7 +56,7 @@ FULL_DETAILS = {
 }
 
 
-@blueprint.route('/c/ancestor-tree')
+@router.get('/c/ancestor-tree')
 @util.restrictargs('at', 'uuid')
 @mora.async_util.async_to_sync
 async def get_class_ancestor_tree():
@@ -151,9 +150,9 @@ async def get_class_tree(c, classids, with_siblings=False,
     return await get_classes(root for root in root_uuids)
 
 
-@blueprint.route('/c/<uuid:classid>/')
-@util.restrictargs('limit', 'start')
-@mora.async_util.async_to_sync
+@router.get('/c/<uuid:classid>/')
+# @util.restrictargs('limit', 'start')
+# @mora.async_util.async_to_sync
 async def get_class(classid: str):
     """Get class by UUID.
 
@@ -189,9 +188,9 @@ async def prepare_class_child(c, entry):
     }
 
 
-@blueprint.route('/c/<uuid:classid>/children')
-@util.restrictargs('limit', 'start')
-@mora.async_util.async_to_sync
+@router.get('/c/<uuid:classid>/children')
+#@util.restrictargs('limit', 'start')
+#@mora.async_util.async_to_sync
 async def get_all_class_children(classid: str):
     """Get class children by UUID.
 
@@ -231,9 +230,9 @@ async def get_all_class_children(classid: str):
     ))
 
 
-@blueprint.route('/o/<uuid:orgid>/f/')
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.get('/o/<uuid:orgid>/f/')
+# @util.restrictargs()
+# @mora.async_util.async_to_sync
 async def list_facets(orgid):
     '''List the facet types available in a given organisation.
 
@@ -547,9 +546,9 @@ async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
     )
 
 
-@blueprint.route('/o/<uuid:orgid>/f/<facet>/')
-@util.restrictargs('limit', 'start')
-@mora.async_util.async_to_sync
+@router.get('/o/<uuid:orgid>/f/<facet>/')
+# @util.restrictargs('limit', 'start')
+# @mora.async_util.async_to_sync
 async def get_classes(orgid: uuid.UUID, facet: str):
     '''List classes available in the given facet.
 
@@ -637,9 +636,9 @@ def map_query_args_to_class_details(args):
     return mapped
 
 
-@blueprint.route('/f/<facet>/')
-@util.restrictargs('limit', 'start')
-@mora.async_util.async_to_sync
+@router.get('/f/<facet>/')
+# @util.restrictargs('limit', 'start')
+# @mora.async_util.async_to_sync
 async def get_all_classes(facet: str):
     '''List classes available in the given facet.
 
@@ -705,9 +704,9 @@ async def get_all_classes(facet: str):
                                          only_primary_uuid=only_primary_uuid)
 
 
-@blueprint.route('/f/<facet>/children')
-@util.restrictargs('limit', 'start')
-@mora.async_util.async_to_sync
+@router.get('/f/<facet>/children')
+# @util.restrictargs('limit', 'start')
+# @mora.async_util.async_to_sync
 async def get_all_classes_children(facet: str):
     '''List classes available in the given facet.
 

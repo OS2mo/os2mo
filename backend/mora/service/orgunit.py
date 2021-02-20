@@ -20,7 +20,10 @@ from asyncio import create_task, gather
 from itertools import chain
 from typing import Any, Awaitable, Dict, Optional, Iterable, List
 
-import flask
+from fastapi import APIRouter, Request
+
+import requests
+from mora.request_scoped.query_args import current_query
 from more_itertools import unzip
 
 import mora.async_util
@@ -39,8 +42,7 @@ from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 
-blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 def flatten(list_of_lists):
@@ -612,11 +614,17 @@ async def get_one_orgunit(c: lora.Connector,
 
     return r
 
+from datetime import date
+from typing import Optional
+from fastapi import Query
+from uuid import UUID
 
-@blueprint.route('/<any(o,ou):type>/<uuid:parentid>/children')
-@util.restrictargs('at', 'count', 'org_unit_hierarchy')
-@mora.async_util.async_to_sync
-async def get_children(type, parentid):
+
+
+@router.get('/{type}/{parentid}/children')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
+async def get_children(type, parentid: UUID, at: Optional[date] = Query(None), count: Optional[bool]=False, org_unit_hierarchy: str=""):
     '''Obtain the list of nested units within an organisation or an
     organisational unit.
 
@@ -667,6 +675,7 @@ async def get_children(type, parentid):
       ]
 
     '''
+    parentid = str(parentid)
     c = common.get_connector()
 
     if type == 'o':
@@ -680,11 +689,9 @@ async def get_children(type, parentid):
     if not obj or not obj.get('attributter'):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
-    org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
+    org_unit_hierarchy = current_query.args.get('org_unit_hierarchy')
 
-    return flask.jsonify(
-        await _get_immediate_children(c, parentid, org_unit_hierarchy)
-    )
+    return await _get_immediate_children(c, parentid, org_unit_hierarchy)
 
 
 async def _get_immediate_children(
@@ -710,7 +717,7 @@ async def _get_immediate_children(
 
 
 async def _collect_child_objects(connector, children: Iterable[Dict]):
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    only_primary_uuid = current_query.args.get('only_primary_uuid')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
     return await gather(
         *[
@@ -728,9 +735,7 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
     )
 
 
-@blueprint.route('/ou/ancestor-tree')
-@util.restrictargs('at', 'uuid', 'count', 'org_unit_hierarchy')
-@mora.async_util.async_to_sync
+@router.get('/ou/ancestor-tree')
 async def get_unit_ancestor_tree():
     '''Obtain the tree of ancestors for the given units.
 
@@ -787,13 +792,12 @@ async def get_unit_ancestor_tree():
     '''
 
     c = common.get_connector()
-    unitids = flask.request.args.getlist('uuid')
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
+    unitids = current_query.args.getlist('uuid')
+    only_primary_uuid = current_query.args.get('only_primary_uuid')
+    org_unit_hierarchy = current_query.args.get('org_unit_hierarchy')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
-    return flask.jsonify(
-        await get_unit_tree(
+    return await get_unit_tree(
             c,
             unitids,
             with_siblings=True,
@@ -801,7 +805,6 @@ async def get_unit_ancestor_tree():
             org_unit_hierarchy=org_unit_hierarchy,
             count_related=count_related,
         )
-    )
 
 
 async def get_unit_tree(
@@ -868,10 +871,10 @@ async def get_unit_tree(
     return await get_units(root for root in root_uuids)
 
 
-@blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at', 'count')
-@mora.async_util.async_to_sync
-async def get_orgunit(unitid):
+@router.get('/ou/{unitid}/')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
+async def get_orgunit(unitid: UUID, count: Optional[bool]=False):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -961,33 +964,36 @@ async def get_orgunit(unitid):
      }
 
     '''
+    unitid = str(unitid)
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
-    r = await get_one_orgunit(
-        c,
-        unitid,
-        details=UnitDetails.FULL,
-        only_primary_uuid=only_primary_uuid,
-        count_related=count_related,
-    )
+
+
+    # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    only_primary_uuid = False
+    r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
+                              only_primary_uuid=only_primary_uuid,
+                              count_related=count_related,
+                              )
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
-    return flask.jsonify(r)
+    return r
 
 
-@blueprint.route('/ou/<uuid:unitid>/refresh')
-@util.restrictargs()
-def trigger_external_integration(unitid):
+
+@router.get('/ou/{unitid}/refresh')
+#@util.restrictargs()
+async def trigger_external_integration(unitid: UUID):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
     """
+    unitid = str(unitid)
 
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    only_primary_uuid = current_query.args.get('only_primary_uuid')
 
     org_unit = mora.async_util.async_to_sync(get_one_orgunit)(
         c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
@@ -999,7 +1005,7 @@ def trigger_external_integration(unitid):
     request[mapping.UUID] = unitid
     handler = OrgUnitRequestHandler(request, mapping.RequestType.REFRESH)
     result = handler.submit()
-    return flask.jsonify(result)
+    return result
 
 
 def get_details_from_query_args(args):
@@ -1018,10 +1024,9 @@ def get_details_from_query_args(args):
         return UnitDetails.MINIMAL
 
 
-@blueprint.route('/o/<uuid:orgid>/ou/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
-@mora.async_util.async_to_sync
-async def list_orgunits(orgid):
+@router.get('/o/{orgid}/ou/')
+#@util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
+async def list_orgunits(orgid: UUID, request: Request):
     '''Query organisational units in an organisation.
 
     .. :quickref: Unit; List & search
@@ -1093,9 +1098,11 @@ async def list_orgunits(orgid):
      }
 
     '''
+    orgid = str(orgid)
     c = common.get_connector()
 
-    args = flask.request.args
+    # args = flask.request.args
+    args = request.query_params
 
     kwargs = dict(
         limit=int(args.get('limit', 0)),
@@ -1133,8 +1140,10 @@ async def list_orgunits(orgid):
 
         uuid_filters.append(entry_under_root)
 
-    details = get_details_from_query_args(flask.request.args)
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    #details = get_details_from_query_args(flask.request.args)
+    details = {}
+    #only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    only_primary_uuid = False
 
     async def get_minimal_orgunit(*args, **kwargs):
         return await get_one_orgunit(
@@ -1144,13 +1153,12 @@ async def list_orgunits(orgid):
     search_result = await c.organisationenhed.paged_get(
         get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs
     )
-    return flask.jsonify(search_result)
+    return search_result
 
 
-@blueprint.route('/o/<uuid:orgid>/ou/tree')
-@util.restrictargs('at', 'query', 'uuid')
-@mora.async_util.async_to_sync
-async def list_orgunit_tree(orgid):
+@router.get('/o/{orgid}/ou/tree')
+#@util.restrictargs('at', 'query', 'uuid')
+async def list_orgunit_tree(orgid: UUID):
     '''Query organisational units in an organisation.
 
     .. :quickref: Unit; Tree
@@ -1215,9 +1223,10 @@ async def list_orgunit_tree(orgid):
      ]
 
     '''
+    orgid = str(orgid)
     c = common.get_connector()
 
-    args = flask.request.args
+    args = current_query.request.args
 
     kwargs = dict(
         tilhoerer=orgid,
@@ -1239,8 +1248,8 @@ async def list_orgunit_tree(orgid):
     )
 
 
-@blueprint.route('/ou/create', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/ou/create')
+# @util.restrictargs('force', 'triggerless')
 def create_org_unit():
     """Creates new organisational unit
 
@@ -1342,9 +1351,9 @@ async def terminate_org_unit_validation(unitid, date):
         )
 
 
-@blueprint.route('/ou/<uuid:unitid>/terminate', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def terminate_org_unit(unitid):
+@router.post('/ou/{unitid}/terminate')
+# @util.restrictargs('force', 'triggerless')
+def terminate_org_unit(unitid: UUID):
     """Terminates an organisational unit from a specified date.
 
     .. :quickref: Unit; Terminate
@@ -1399,6 +1408,7 @@ def terminate_org_unit(unitid):
       }
 
     """
+    unitid = str(unitid)
     request = flask.request.get_json()
     date = util.get_valid_to(request)
     mora.async_util.async_to_sync(terminate_org_unit_validation)(unitid, date)

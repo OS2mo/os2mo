@@ -3,8 +3,6 @@
 
 import logging
 
-import flask
-
 from .. import reading
 from ... import common
 from ... import exceptions
@@ -49,7 +47,8 @@ class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        #only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         return await orgunit.get_one_orgunit(
             c,

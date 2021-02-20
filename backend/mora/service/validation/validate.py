@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 
 
-import flask
+from fastapi import APIRouter
+
 import mora.async_util
 
 from . import validator
@@ -12,13 +13,11 @@ from ... import lora
 from ... import mapping
 from ... import util
 
-blueprint = flask.Blueprint('validate', __name__, static_url_path='',
-                            url_prefix='/service/validate')
+router = APIRouter()
 
 
-@blueprint.route('/org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/org-unit/')
+#@util.restrictargs()
 async def org_unit_validity():
     """
     Verify that an org unit is valid within a given set of start/end dates
@@ -64,9 +63,8 @@ async def org_unit_validity():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/employee/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/employee/')
+# @util.restrictargs()
 async def employee_validity():
     """
     Verify that an employee is valid within a given set of start/end dates
@@ -106,9 +104,8 @@ async def employee_validity():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/cpr/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/cpr/')
+# @util.restrictargs()
 async def check_cpr():
     """
     Verify that an employee with the given CPR no. does not already exist
@@ -145,9 +142,8 @@ async def check_cpr():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/active-engagements/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/active-engagements/')
+#@util.restrictargs()
 async def employee_engagements():
     """
     Verify that an employee has active engagements
@@ -187,9 +183,8 @@ async def employee_engagements():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/existing-associations/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/existing-associations/')
+# @util.restrictargs()
 async def employee_existing_associations():
     """
     Verify that an employee does not have existing associations for a given
@@ -239,9 +234,8 @@ async def employee_existing_associations():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/movable-org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/movable-org-unit/')
+# @util.restrictargs()
 async def movable_org_unit():
     req = flask.request.get_json()
 
@@ -252,9 +246,8 @@ async def movable_org_unit():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/candidate-parent-org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/candidate-parent-org-unit/')
+# @util.restrictargs()
 async def candidate_parent_org_unit():
     """
     Verify that a given parent is a suitable candidate for an org unit move,
@@ -303,9 +296,8 @@ async def candidate_parent_org_unit():
     return flask.jsonify(success=True)
 
 
-@blueprint.route('/address/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
+@router.post('/address/')
+# @util.restrictargs()
 async def address_value():
     """
     Verify that a given address value conforms to the format for the given

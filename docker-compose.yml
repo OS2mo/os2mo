@@ -47,17 +47,12 @@ services:
     # We also change the Flask app to one where a testing API for testcafe
     # e2e-tests is enabled.
     volumes:
-      - ./backend:/code/backend
+      - ./backend:/app/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
-      - ./.pytest_cache:/code/.pytest_cache
-    command: [
-        "gunicorn",
-        "--reload",
-        "--config", "docker/gunicorn-settings.py",
-        "tests.util:create_app()"
-    ]
+      - ./.pytest_cache:/app/.pytest_cache
+    command: ["/start-reload.sh"]
     ports:
-      - "5000:5000"
+      - "5000:80"
     depends_on:
       - mox
       - msg_broker

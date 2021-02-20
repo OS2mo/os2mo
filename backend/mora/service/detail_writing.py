@@ -16,15 +16,14 @@ For more information regarding reading relations, refer to:
 '''
 import typing
 
-import flask
+from fastapi import APIRouter
 
 from . import handlers
 from .. import exceptions
 from .. import mapping
 from .. import util
 
-blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 def handle_requests(
@@ -47,8 +46,8 @@ def handle_requests(
     return uuids
 
 
-@blueprint.route('/details/create', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/details/create')
+# @util.restrictargs('force', 'triggerless')
 def create():
     """Creates new relations on employees and units
 
@@ -428,8 +427,8 @@ def create():
     )
 
 
-@blueprint.route('/details/edit', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/details/edit')
+# @util.restrictargs('force', 'triggerless')
 def edit():
     """Edits a relation or attribute on an employee or unit
 
@@ -943,8 +942,8 @@ def edit():
     )
 
 
-@blueprint.route('/details/terminate', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/details/terminate')
+# @util.restrictargs('force', 'triggerless')
 def terminate():
     '''Terminate a relation as of a given day.
 

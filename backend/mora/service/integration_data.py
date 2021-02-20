@@ -18,7 +18,7 @@ inserting/updating organisational units and employees
 '''
 import json
 
-import flask
+from fastapi import APIRouter
 import mora.async_util
 
 from . import employee
@@ -28,13 +28,13 @@ from .. import exceptions
 from .. import mapping
 from .. import util
 
-blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
-                            url_prefix='/service')
+
+router = APIRouter()
 
 
-@blueprint.route('/ou/<uuid:unitid>/integration-data', methods=['GET'])
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/ou/<uuid:unitid>/integration-data')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def get_org_unit_integration_data(unitid):
     """Get organisational unit with integration data
 
@@ -85,9 +85,9 @@ async def get_org_unit_integration_data(unitid):
     return flask.jsonify(r)
 
 
-@blueprint.route('/e/<uuid:employeeid>/integration-data', methods=['GET'])
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/e/<uuid:employeeid>/integration-data')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def get_employee_integration_data(employeeid):
     """Get employee with integration data
 

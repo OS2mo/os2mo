@@ -3,7 +3,6 @@
 import logging
 from asyncio import create_task
 
-import flask
 from mora import lora
 
 from .engagement import EngagementReader
@@ -29,7 +28,8 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -40,7 +40,8 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             leave_type,
             only_primary_uuid=only_primary_uuid))
 
-        only_primary_uuid = flask.request.args.get("only_primary_uuid")
+        # only_primary_uuid = flask.request.args.get("only_primary_uuid")
+        only_primary_uuid = False
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
         else:

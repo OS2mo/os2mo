@@ -4,8 +4,6 @@
 import logging
 from asyncio import create_task
 
-import flask
-
 from .. import reading
 from ... import mapping
 from ...service import employee
@@ -34,7 +32,8 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         base_obj_task = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         facet_task = create_task(facet.request_bulked_get_one_class_full(
             address_type,

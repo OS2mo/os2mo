@@ -12,6 +12,7 @@ For more information regarding reading relations involving employees, refer to
 :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
+from uuid import UUID
 import copy
 import enum
 import uuid
@@ -19,7 +20,7 @@ from functools import partial
 from operator import contains, itemgetter
 from typing import Any, Awaitable, Dict, Union
 
-import flask
+from fastapi import APIRouter
 
 import mora.async_util
 from mora.request_wide_bulking import request_wide_bulk
@@ -34,8 +35,7 @@ from .. import util
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 
-blueprint = flask.Blueprint('employee', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 @enum.unique
@@ -359,10 +359,10 @@ async def get_one_employee(c: lora.Connector, userid, user=None,
     return r
 
 
-@blueprint.route('/o/<uuid:orgid>/e/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'associated')
-@mora.async_util.async_to_sync
-async def list_employees(orgid):
+@router.get('/o/{orgid}/e/')
+#@util.restrictargs('at', 'start', 'limit', 'query', 'associated')
+#@mora.async_util.async_to_sync
+async def list_employees(orgid:UUID):
     '''Query employees in an organisation.
 
     .. :quickref: Employee; List & search
@@ -419,6 +419,7 @@ async def list_employees(orgid):
      }
 
     '''
+    orgid = str(orgid)
 
     # TODO: share code with list_orgunits?
 
@@ -468,9 +469,9 @@ async def list_employees(orgid):
     return flask.jsonify(search_result)
 
 
-@blueprint.route('/e/<uuid:id>/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/e/<uuid:id>/')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def get_employee(id):
     '''Retrieve an employee.
 
@@ -532,8 +533,8 @@ async def get_employee(id):
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/e/<uuid:employee_uuid>/terminate')
+# @util.restrictargs('force', 'triggerless')
 def terminate_employee(employee_uuid):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -620,8 +621,8 @@ def terminate_employee(employee_uuid):
     return result, 200
 
 
-@blueprint.route('/e/create', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
+@router.post('/e/create')
+# @util.restrictargs('force', 'triggerless')
 def create_employee():
     """Create a new employee
 

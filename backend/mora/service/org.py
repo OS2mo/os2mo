@@ -10,7 +10,7 @@ This section describes how to interact with organisations.
 '''
 from asyncio import create_task, gather
 
-import flask
+from fastapi import APIRouter
 import werkzeug
 
 import mora.async_util
@@ -19,8 +19,7 @@ from .. import mapping
 from .. import util
 from .. import exceptions
 
-blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 class ConfiguredOrganisation:
@@ -30,7 +29,7 @@ class ConfiguredOrganisation:
     valid = False
 
     @classmethod
-    async def validate(cls, app):
+    async def validate(cls):
         orglist = await get_valid_organisations()
 
         if len(orglist) > 1:
@@ -45,9 +44,8 @@ class ConfiguredOrganisation:
 
 
 async def get_configured_organisation(uuid=None):
-    app = flask.current_app
     if not ConfiguredOrganisation.valid:
-        await ConfiguredOrganisation.validate(app)
+        await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
     if uuid and uuid != org["uuid"]:
@@ -83,9 +81,9 @@ async def get_valid_organisations():
     return orglist
 
 
-@blueprint.route('/o/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/o/')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def list_organisations():
     '''List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
@@ -117,12 +115,12 @@ async def list_organisations():
      ]
 
     '''
-    return flask.jsonify([await get_configured_organisation()])
+    return [await get_configured_organisation()]
 
 
-@blueprint.route('/o/<uuid:orgid>/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/o/<uuid:orgid>/')
+#@util.restrictargs('at')
+#@mora.async_util.async_to_sync
 async def get_organisation(orgid):
     '''Obtain the initial level of an organisation.
 
@@ -198,7 +196,7 @@ async def get_organisation(orgid):
     managers = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
                                                   funktionsnavn=mapping.MANAGER_KEY)
 
-    return flask.jsonify({
+    return {
         'name': attrs['organisationsnavn'],
         'user_key': attrs['brugervendtnoegle'],
         'uuid': orgid,
@@ -210,4 +208,4 @@ async def get_organisation(orgid):
         'leave_count': len(leaves),
         'role_count': len(roles),
         'manager_count': len(managers),
-    })
+    }

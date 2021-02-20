@@ -29,13 +29,13 @@ from . import util
 
 
 def get_connector(**loraparams) -> lora.Connector:
-    args = flask.request.args
+    # args = flask.request.args
 
-    if args.get('at'):
-        loraparams['effective_date'] = util.from_iso_time(args['at'])
+    #if args.get('at'):
+    #    loraparams['effective_date'] = util.from_iso_time(args['at'])
 
-    if args.get('validity'):
-        loraparams['validity'] = args['validity']
+    #if args.get('validity'):
+    #    loraparams['validity'] = args['validity']
 
     return lora.Connector(**loraparams)
 

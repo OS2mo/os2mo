@@ -13,7 +13,6 @@ import os
 import time
 
 import click
-import flask
 import sqlalchemy
 import sys
 
@@ -23,9 +22,10 @@ from . import app as mora_app
 
 logger = logging.getLogger(__name__)
 
-group = flask.cli.FlaskGroup(help=__doc__, context_settings={
-    'help_option_names': ['-h', '--help'],
-})
+
+@click.group()
+def group():
+    pass
 
 
 _SLEEPING_TIME = 0.25
@@ -41,19 +41,8 @@ def initdb(wait):
     This is supposed to be idempotent, so you can run it without fear
     on an already initialized database.
     """
+    return
 
-    def get_init_sessions():
-        app = mora_app.create_app()
-
-        def init_sessions():
-            with app.app_context():
-                app.session_interface.db.create_all()
-
-        return init_sessions
-
-    if settings.SAML_AUTH_ENABLE:
-        _wait_for_service("Sessions database", get_init_sessions(),
-                          sqlalchemy.exc.OperationalError, wait)
 
 
 @group.command()

@@ -4,8 +4,6 @@
 import logging
 from typing import Any, Dict
 
-import flask
-
 from .. import reading
 from ... import common
 from ... import exceptions
@@ -47,7 +45,8 @@ class EmployeeReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = False
 
         employee_object = await employee.get_one_employee(
             c,

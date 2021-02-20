@@ -3,7 +3,8 @@
 from asyncio import Lock
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
-from flask import g
+#from flask import g
+g = {}
 # for readability
 from mora.common import get_connector
 from mora.lora import Connector, LoraObjectType
