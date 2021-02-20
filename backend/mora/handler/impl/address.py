@@ -39,7 +39,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
             address_type,
             only_primary_uuid=only_primary_uuid))
 
-        address_task = create_task(handler.get_mo_address_and_properties())
+        address_task = create_task(handler.get_mo_address_and_properties(only_primary_uuid))
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(

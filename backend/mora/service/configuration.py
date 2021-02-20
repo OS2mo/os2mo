@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
+from uuid import UUID
 import logging
 from .. import util, conf_db, settings
 
@@ -10,9 +11,8 @@ logger = logging.getLogger("mo_configuration")
 router = APIRouter()
 
 
-@router.post('/ou/<uuid:unitid>/configuration')
-#@util.restrictargs()
-def set_org_unit_configuration(unitid):
+@router.post('/ou/{unitid}/configuration')
+def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
     """Set a configuration setting for an ou.
 
     .. :quickref: Unit; Create configuration setting.
@@ -33,13 +33,12 @@ def set_org_unit_configuration(unitid):
 
     :returns: True
     """
-    configuration = flask.request.get_json()
+    unitid = str(unitid)
     return conf_db.set_configuration(configuration, unitid)
 
 
-@router.get('/ou/<uuid:unitid>/configuration')
-# @util.restrictargs()
-def get_org_unit_configuration(unitid):
+@router.get('/ou/{unitid}/configuration')
+def get_org_unit_configuration(unitid: UUID):
     """Read configuration settings for an ou.
 
     .. :quickref: Unit; Read configuration setting.
@@ -50,13 +49,13 @@ def get_org_unit_configuration(unitid):
 
     :returns: Configuration settings for unit
     """
+    unitid = str(unitid)
     configuration = conf_db.get_configuration(unitid)
     return configuration
 
 
 @router.post('/configuration')
-# @util.restrictargs('at')
-def set_global_configuration():
+def set_global_configuration(configuration: dict = Body(...)):
     """Set or modify a gloal configuration setting.
 
     .. :quickref: Set or modify a global configuration setting.
@@ -75,12 +74,10 @@ def set_global_configuration():
 
     :returns: True
     """
-    configuration = flask.request.get_json()
     return conf_db.set_configuration(configuration)
 
 
 @router.get('/configuration')
-# @util.restrictargs('at')
 def get_global_configuration():
     """Read configuration settings for an ou.
 
@@ -97,7 +94,6 @@ def get_global_configuration():
 
 
 @router.get('/navlinks')
-# @util.restrictargs()
 def get_navlinks():
     """Retrieve nav links.
 

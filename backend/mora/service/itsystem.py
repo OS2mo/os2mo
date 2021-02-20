@@ -11,11 +11,10 @@ This section describes how to interact with IT systems.
 '''
 
 import itertools
-import uuid
+from uuid import UUID, uuid4
 from typing import Any, Awaitable, Dict, Optional
 
 from fastapi import APIRouter
-#import flask
 import mora.async_util
 
 from . import handlers
@@ -59,7 +58,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        func_id = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
@@ -199,10 +198,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
 
-@router.get('/o/<uuid:orgid>/it/')
+@router.get('/o/{orgid}/it/')
 #@util.restrictargs('at')
-#@mora.async_util.async_to_sync
-async def list_it_systems(orgid: uuid.UUID):
+async def list_it_systems(orgid: UUID):
     """List the IT systems available within the given organisation.
 
     :param orgid: Restrict search to this organisation.
@@ -236,6 +234,7 @@ async def list_it_systems(orgid: uuid.UUID):
       ]
 
     """
+    orgid = str(orgid)
 
     c = common.get_connector()
 
@@ -249,10 +248,9 @@ async def list_it_systems(orgid: uuid.UUID):
             'user_key': attrs['brugervendtnoegle'],
         }
 
-    return flask.jsonify(
-        list(itertools.starmap(convert,
-                               await c.itsystem.get_all(tilhoerer=orgid))),
-    )
+    return list(itertools.starmap(
+        convert, await c.itsystem.get_all(tilhoerer=orgid)
+    ))
 
 
 async def __get_itsystem_from_cache(systemid: str,

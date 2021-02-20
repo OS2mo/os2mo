@@ -3,9 +3,7 @@
 from asyncio import Lock
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
-#from flask import g
 g = {}
-# for readability
 from mora.common import get_connector
 from mora.lora import Connector, LoraObjectType
 
@@ -15,8 +13,9 @@ UUID = str
 
 class __BulkBookkeeper:
     """
-    Singleton. Thread-safe ONLY due to flask-features. Asyncio-concurrency safe via lock
+    Singleton. Probably broken now without flask-features. Asyncio-concurrency safe via lock
     """
+    # TODO: Implement locking all over?
 
     def __init__(self):
         self.__locks: Optional[Dict[LoraObjectType, Lock]] = {}

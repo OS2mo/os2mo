@@ -21,6 +21,7 @@ from __future__ import generator_stop
 
 import collections
 
+from uuid import UUID
 from fastapi import APIRouter
 
 import mora.async_util
@@ -39,12 +40,9 @@ DETAIL_TYPES = {
     'e': DetailType('tilknyttedebrugere', 'bruger'),
     'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
 }
-from uuid import UUID
 
 
 @router.get('/{type}/{id}/details/')
-# @util.restrictargs()
-# @mora.async_util.async_to_sync
 async def list_details(type, id: UUID):
     '''List the available 'detail' types under this entry.
 
@@ -89,7 +87,7 @@ async def list_details(type, id: UUID):
 
     r['org_unit'] = bool(scope.path == 'organisation/organisationenhed' and reg)
 
-    return flask.jsonify(r)
+    return r
 
 
 @router.get(

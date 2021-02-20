@@ -5,7 +5,6 @@ alembic
 requests
 lxml
 python-dateutil
-Flask-Session
 validators
 psycopg2-binary
 gunicorn

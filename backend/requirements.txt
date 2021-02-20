@@ -16,16 +16,12 @@ async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
     # via aiohttp
-cachelib==0.1.1
-    # via flask-session
 certifi==2020.6.20
     # via requests
 chardet==3.0.4
     # via
     #   aiohttp
     #   requests
-click==7.1.2
-    # via flask
 decorator==4.4.2
     # via validators
 defusedxml==0.6.0
@@ -49,10 +45,6 @@ git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.1#egg=flask_saml_sso
     # via -r requirements.in
 fastapi==0.63.0
     # via -r requirements.in
-flask-session==0.3.2
-    # via -r requirements.in
-flask==1.1.2
-    # via flask-session
 gunicorn==20.0.4
     # via -r requirements.in
 idna==2.10
@@ -72,7 +64,6 @@ itsdangerous==1.1.0
 jinja2==2.11.2
     # via
     #   -r requirements.in
-    #   flask
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
     # via -r requirements.in

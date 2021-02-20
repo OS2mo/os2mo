@@ -4,8 +4,6 @@
 import abc
 from typing import Any, Dict
 
-import flask
-
 from ... import exceptions
 from ... import lora
 from ... import mapping
@@ -129,7 +127,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             'urn': self.urn,
         }
 
-    async def __get_mo_properties(self) -> Dict[Any, Any]:
+    async def __get_mo_properties(self, only_primary_uuid: bool = False) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -147,7 +145,6 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         properties = {}
         if self.visibility:
             c = lora.Connector()
-            only_primary_uuid = flask.request.args.get('only_primary_uuid')
             properties.update({
                 mapping.VISIBILITY: await facet.get_one_class(
                     c, self.visibility,
@@ -156,7 +153,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             })
         return properties
 
-    async def get_mo_address_and_properties(self) -> Dict[Any, Any]:
+    async def get_mo_address_and_properties(self, only_primary_uuid: bool = False) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the address, including any eventual
         properties
@@ -176,7 +173,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             mapping.HREF: self.href,
             mapping.NAME: self.name,
             mapping.VALUE: self.value,
-            **await self.__get_mo_properties()
+            **await self.__get_mo_properties(only_primary_uuid)
         }
 
 

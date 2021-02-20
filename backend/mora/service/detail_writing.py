@@ -16,7 +16,7 @@ For more information regarding reading relations, refer to:
 '''
 import typing
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 
 from . import handlers
 from .. import exceptions
@@ -46,9 +46,9 @@ def handle_requests(
     return uuids
 
 
-@router.post('/details/create')
+@router.post('/details/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create():
+def create(reqs: dict = Body(...)):
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
@@ -419,17 +419,12 @@ def create():
       ]
 
     """
-
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.CREATE)),
-        201
-    )
+    return handle_requests(reqs, mapping.RequestType.CREATE)
 
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit():
+def edit(reqs: dict = Body(...)):
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
@@ -935,16 +930,12 @@ def edit():
 
     """
 
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.EDIT)),
-        200
-    )
+    return handle_requests(reqs, mapping.RequestType.EDIT)
 
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate():
+def terminate(reqs: dict = Body(...)):
     '''Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation
@@ -987,8 +978,4 @@ def terminate():
 
     '''
 
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.TERMINATE)),
-        200
-    )
+    return handle_requests(reqs, mapping.RequestType.TERMINATE)

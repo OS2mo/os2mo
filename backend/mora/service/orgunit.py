@@ -19,8 +19,9 @@ import uuid
 from asyncio import create_task, gather
 from itertools import chain
 from typing import Any, Awaitable, Dict, Optional, Iterable, List
+from typing import Any, Awaitable, Dict, Optional, List
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Body
 
 import requests
 from mora.request_scoped.query_args import current_query
@@ -33,7 +34,7 @@ from . import handlers
 from . import org
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from .. import common, conf_db
+from .. import common, conf_db, settings
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -358,7 +359,7 @@ def _get_count_related():
     Given a URL query '?count=association&count=invalid`, raise a HTTP error.
     """
     allowed = {'association', 'engagement'}
-    given = set(flask.request.args.getlist('count'))
+    given = set(current_query.args.getlist('count'))
     invalid = given - allowed
     if invalid:
         exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -622,8 +623,6 @@ from uuid import UUID
 
 
 @router.get('/{type}/{parentid}/children')
-#@util.restrictargs('at')
-#@mora.async_util.async_to_sync
 async def get_children(type, parentid: UUID, at: Optional[date] = Query(None), count: Optional[bool]=False, org_unit_hierarchy: str=""):
     '''Obtain the list of nested units within an organisation or an
     organisational unit.
@@ -736,7 +735,10 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
 
 
 @router.get('/ou/ancestor-tree')
-async def get_unit_ancestor_tree():
+async def get_unit_ancestor_tree(
+    uuid: Optional[List[UUID]] = None,
+    only_primary_uuid : Optional[bool] = None
+):
     '''Obtain the tree of ancestors for the given units.
 
     The tree includes siblings of ancestors, with their child counts:
@@ -806,7 +808,6 @@ async def get_unit_ancestor_tree():
             count_related=count_related,
         )
 
-
 async def get_unit_tree(
     c: lora.Connector,
     unitids: List[str],
@@ -872,9 +873,7 @@ async def get_unit_tree(
 
 
 @router.get('/ou/{unitid}/')
-#@util.restrictargs('at')
-#@mora.async_util.async_to_sync
-async def get_orgunit(unitid: UUID, count: Optional[bool]=False):
+async def get_orgunit(unitid: UUID, only_primary_uuid : Optional[bool] = None, count: Optional[bool]=False):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -982,10 +981,9 @@ async def get_orgunit(unitid: UUID, count: Optional[bool]=False):
     return r
 
 
-
 @router.get('/ou/{unitid}/refresh')
-#@util.restrictargs()
-async def trigger_external_integration(unitid: UUID):
+async def trigger_external_integration(unitid: UUID,
+                                       only_primary_uuid : Optional[bool] = None):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
@@ -993,9 +991,8 @@ async def trigger_external_integration(unitid: UUID):
     unitid = str(unitid)
 
     c = common.get_connector()
-    only_primary_uuid = current_query.args.get('only_primary_uuid')
 
-    org_unit = mora.async_util.async_to_sync(get_one_orgunit)(
+    org_unit = await get_one_orgunit(
         c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
     )
     if not org_unit:
@@ -1026,7 +1023,14 @@ def get_details_from_query_args(args):
 
 @router.get('/o/{orgid}/ou/')
 #@util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
-async def list_orgunits(orgid: UUID, request: Request):
+async def list_orgunits(
+    orgid: UUID,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    query: Optional[str] = None,
+    root: Optional[str] = None,
+    only_primary_uuid : Optional[bool] = None
+):
     '''Query organisational units in an organisation.
 
     .. :quickref: Unit; List & search
@@ -1101,22 +1105,18 @@ async def list_orgunits(orgid: UUID, request: Request):
     orgid = str(orgid)
     c = common.get_connector()
 
-    # args = flask.request.args
-    args = request.query_params
-
     kwargs = dict(
-        limit=int(args.get('limit', 0)),
-        start=int(args.get('start', 0)),
+        limit=limit,
+        start=start,
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
 
-    if 'query' in args:
-        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+    if query:
+        kwargs.update(vilkaarligattr='%{}%'.format(query))
 
     uuid_filters = []
-    if 'root' in args and args['root']:
-        root = args['root']
+    if root:
         enheder = await c.organisationenhed.get_all()
 
         uuids, enheder = unzip(enheder)
@@ -1140,10 +1140,9 @@ async def list_orgunits(orgid: UUID, request: Request):
 
         uuid_filters.append(entry_under_root)
 
+    # TODO: Fix up
     #details = get_details_from_query_args(flask.request.args)
     details = {}
-    #only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    only_primary_uuid = False
 
     async def get_minimal_orgunit(*args, **kwargs):
         return await get_one_orgunit(
@@ -1158,7 +1157,12 @@ async def list_orgunits(orgid: UUID, request: Request):
 
 @router.get('/o/{orgid}/ou/tree')
 #@util.restrictargs('at', 'query', 'uuid')
-async def list_orgunit_tree(orgid: UUID):
+async def list_orgunit_tree(
+    orgid: UUID,
+    query: Optional[str] = None,
+    uuid: Optional[List[UUID]] = None,
+    only_primary_uuid : Optional[bool] = None
+):
     '''Query organisational units in an organisation.
 
     .. :quickref: Unit; Tree
@@ -1226,31 +1230,26 @@ async def list_orgunit_tree(orgid: UUID):
     orgid = str(orgid)
     c = common.get_connector()
 
-    args = current_query.request.args
-
     kwargs = dict(
         tilhoerer=orgid,
         gyldighed='Aktiv',
     )
 
-    if 'query' in args:
-        kwargs.update(vilkaarligattr='%{}%'.format(args['query']))
+    if query:
+        kwargs.update(vilkaarligattr='%{}%'.format(query))
 
     unitids = (
-        args.getlist('uuid')
-        if 'uuid' in args
-        else await c.organisationenhed.fetch(**kwargs)
+        uuid if uuid else (await c.organisationenhed.fetch(**kwargs))
     )
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    return flask.jsonify(
-        await get_unit_tree(c, unitids, only_primary_uuid=only_primary_uuid),
+    return await get_unit_tree(
+        c, unitids, only_primary_uuid=only_primary_uuid
     )
 
 
-@router.post('/ou/create')
+@router.post('/ou/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create_org_unit():
+def create_org_unit(req: dict = Body(...)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1298,10 +1297,9 @@ def create_org_unit():
 
     """
 
-    req = flask.request.get_json()
     request = OrgUnitRequestHandler(req, mapping.RequestType.CREATE)
 
-    return flask.jsonify(request.submit()), 201
+    return request.submit()
 
 
 async def terminate_org_unit_validation(unitid, date):
@@ -1353,7 +1351,10 @@ async def terminate_org_unit_validation(unitid, date):
 
 @router.post('/ou/{unitid}/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate_org_unit(unitid: UUID):
+def terminate_org_unit(
+    unitid: UUID,
+    request: dict = Body(...)
+):
     """Terminates an organisational unit from a specified date.
 
     .. :quickref: Unit; Terminate
@@ -1409,9 +1410,8 @@ def terminate_org_unit(unitid: UUID):
 
     """
     unitid = str(unitid)
-    request = flask.request.get_json()
     date = util.get_valid_to(request)
     mora.async_util.async_to_sync(terminate_org_unit_validation)(unitid, date)
     request[mapping.UUID] = unitid
     handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
-    return flask.jsonify(handler.submit())
+    return handler.submit()

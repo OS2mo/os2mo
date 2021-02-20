@@ -18,7 +18,7 @@ objects.
 
 import enum
 import locale
-import uuid
+from uuid import UUID
 from asyncio import create_task, gather
 from typing import Any, Awaitable, Dict, List, Optional, Set
 
@@ -57,9 +57,11 @@ FULL_DETAILS = {
 
 
 @router.get('/c/ancestor-tree')
-@util.restrictargs('at', 'uuid')
-@mora.async_util.async_to_sync
-async def get_class_ancestor_tree():
+# @util.restrictargs('at', 'uuid')
+async def get_class_ancestor_tree(
+    uuid: Optional[List[UUID]] = None,
+    only_primary_uuid : Optional[bool] = None
+):
     """Obtain the tree of ancestors for the given classes.
 
     The tree includes siblings of ancestors:
@@ -101,12 +103,10 @@ async def get_class_ancestor_tree():
     """
 
     c = common.get_connector()
-    classids = flask.request.args.getlist('uuid')
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    classids = uuid
 
-    return flask.jsonify(
-        await get_class_tree(c, classids, with_siblings=True,
-                             only_primary_uuid=only_primary_uuid)
+    return await get_class_tree(
+        c, classids, with_siblings=True, only_primary_uuid=only_primary_uuid
     )
 
 
@@ -150,10 +150,12 @@ async def get_class_tree(c, classids, with_siblings=False,
     return await get_classes(root for root in root_uuids)
 
 
-@router.get('/c/<uuid:classid>/')
+@router.get('/c/{classid}/')
 # @util.restrictargs('limit', 'start')
-# @mora.async_util.async_to_sync
-async def get_class(classid: str):
+async def get_class(
+    classid: UUID,
+    only_primary_uuid : Optional[bool] = None
+):
     """Get class by UUID.
 
     :queryparam uuid: The UUID of the class.
@@ -169,13 +171,14 @@ async def get_class(classid: str):
          "...": "..."
      }
     """
+    classid = str(classid)
 
     c = common.get_connector()
     class_details = map_query_args_to_class_details(flask.request.args)
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    return flask.jsonify(await get_one_class(c, classid, details=class_details,
-                                             only_primary_uuid=only_primary_uuid))
+    return await get_one_class(
+        c, classid, details=class_details, only_primary_uuid=only_primary_uuid
+    )
 
 
 async def prepare_class_child(c, entry):
@@ -188,10 +191,12 @@ async def prepare_class_child(c, entry):
     }
 
 
-@router.get('/c/<uuid:classid>/children')
+@router.get('/c/{classid}/children')
 #@util.restrictargs('limit', 'start')
-#@mora.async_util.async_to_sync
-async def get_all_class_children(classid: str):
+async def get_all_class_children(
+    classid: UUID,
+    only_primary_uuid : Optional[bool] = None
+):
     """Get class children by UUID.
 
     :queryparam uuid: The UUID of the class.
@@ -212,28 +217,29 @@ async def get_all_class_children(classid: str):
         "uuid":"31b2424b-9fb3-43c4-b068-b75a1b086ee8"
      }]
     """
+    classid = str(classid)
 
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     classes = await fetch_class_children(c, classid)
     classes = await gather(
         *[create_task(get_one_class(c, *tup, only_primary_uuid=only_primary_uuid)) for
-          tup in classes])
+          tup in classes]
+    )
     classes = await gather(
-        *[create_task(prepare_class_child(c, class_)) for class_ in classes])
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes]
+    )
 
-    return flask.jsonify(sorted(
+    return sorted(
         classes,
         # use locale-aware sorting
         key=lambda f: locale.strxfrm(f['name']) if f.get('name') else '',
-    ))
+    )
 
 
-@router.get('/o/<uuid:orgid>/f/')
+@router.get('/o/{orgid}/f/')
 # @util.restrictargs()
-# @mora.async_util.async_to_sync
-async def list_facets(orgid):
+async def list_facets(orgid: UUID):
     '''List the facet types available in a given organisation.
 
     :param uuid orgid: Restrict search to this organisation.
@@ -267,6 +273,7 @@ async def list_facets(orgid):
       ]
 
     '''
+    orgid = str(orgid)
 
     c = common.get_connector()
 
@@ -276,13 +283,14 @@ async def list_facets(orgid):
 
     response = await c.facet.get_all(ansvarlig=orgid, publiceret='Publiceret')
     response = await gather(
-        *[create_task(transform(facet_tuple)) for facet_tuple in response])
+        *[create_task(transform(facet_tuple)) for facet_tuple in response]
+    )
 
-    return flask.jsonify(sorted(
+    return sorted(
         response,
         # use locale-aware sorting
         key=lambda f: locale.strxfrm(f['name']) if f.get('name') else '',
-    ))
+    )
 
 
 async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
@@ -518,12 +526,12 @@ async def get_facetids(facet: str):
     return facetids
 
 
-async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
+async def get_classes_under_facet(orgid: UUID, facet: str,
                                   details: Set[ClassDetails] = None,
-                                  only_primary_uuid: bool = False):
+                                  only_primary_uuid: bool = False,
+                                  start:int = 0,
+                                  limit:int = 0):
     c = common.get_connector()
-    start = int(flask.request.args.get('start') or 0)
-    limit = int(flask.request.args.get('limit') or 0)
 
     facetids = await get_facetids(facet)
 
@@ -531,25 +539,27 @@ async def get_classes_under_facet(orgid: uuid.UUID, facet: str,
         return await get_one_class(*args, **kwargs, details=details,
                                    only_primary_uuid=only_primary_uuid)
 
-    return flask.jsonify(
-        facetids and await get_one_facet(
-            c,
-            facetids[0],
-            orgid,
-            data=await c.klasse.paged_get(
-                getter_fn,
-                facet=facetids,
-                publiceret='Publiceret',
-                start=start, limit=limit
-            )
+    return facetids and await get_one_facet(
+        c,
+        facetids[0],
+        orgid,
+        data=await c.klasse.paged_get(
+            getter_fn,
+            facet=facetids,
+            publiceret='Publiceret',
+            start=start, limit=limit
         )
     )
 
 
-@router.get('/o/<uuid:orgid>/f/<facet>/')
-# @util.restrictargs('limit', 'start')
-# @mora.async_util.async_to_sync
-async def get_classes(orgid: uuid.UUID, facet: str):
+@router.get('/o/{orgid}/f/{facet}/')
+async def get_classes(
+    orgid: UUID,
+    facet: str,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    only_primary_uuid : Optional[bool] = None
+):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -611,11 +621,14 @@ async def get_classes(orgid: uuid.UUID, facet: str):
         }
       }
     '''
+    orgid = str(orgid)
     class_details = map_query_args_to_class_details(flask.request.args)
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    return await get_classes_under_facet(orgid, facet, details=class_details,
-                                         only_primary_uuid=only_primary_uuid)
+    return await get_classes_under_facet(
+        orgid, facet, details=class_details,
+        only_primary_uuid=only_primary_uuid,
+        start=start, limit=limit
+    )
 
 
 def map_query_args_to_class_details(args):
@@ -636,10 +649,13 @@ def map_query_args_to_class_details(args):
     return mapped
 
 
-@router.get('/f/<facet>/')
-# @util.restrictargs('limit', 'start')
-# @mora.async_util.async_to_sync
-async def get_all_classes(facet: str):
+@router.get('/f/{facet}/')
+async def get_all_classes(
+    facet: str,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    only_primary_uuid : Optional[bool] = None
+):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -699,15 +715,18 @@ async def get_all_classes(facet: str):
         }
       }
     '''
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    return await get_classes_under_facet(None, facet,
-                                         only_primary_uuid=only_primary_uuid)
+    return await get_classes_under_facet(
+        None, facet, only_primary_uuid=only_primary_uuid, start=start, limit=limit
+    )
 
 
-@router.get('/f/<facet>/children')
-# @util.restrictargs('limit', 'start')
-# @mora.async_util.async_to_sync
-async def get_all_classes_children(facet: str):
+@router.get('/f/{facet}/children')
+async def get_all_classes_children(
+    facet: str,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    only_primary_uuid : Optional[bool] = None
+):
     '''List classes available in the given facet.
 
     .. :quickref: Facet; Get
@@ -771,11 +790,7 @@ async def get_all_classes_children(facet: str):
 
     c = common.get_connector()
 
-    start = int(flask.request.args.get('start') or 0)
-    limit = int(flask.request.args.get('limit') or 0)
-
     facetids = await get_facetids(facet)
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     async def __get_one_class_helper(*args, **kwargs):
         """
@@ -791,6 +806,7 @@ async def get_all_classes_children(facet: str):
         start=start, limit=limit
     ))['items']
     classes = await gather(
-        *[create_task(prepare_class_child(c, class_)) for class_ in classes])
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes]
+    )
 
-    return flask.jsonify(classes)
+    return classes

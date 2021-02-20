@@ -121,6 +121,14 @@ pydantic==1.7.3
     #   os2mo-http-trigger-protocol
 pygments==2.6.1
     # via ipython
+packaging==20.4
+    # via pytest
+pathtools==0.1.2
+    # via watchdog
+pluggy==0.13.1
+    # via pytest
+py==1.9.0
+    # via pytest
 pyparsing==2.4.7
     # via packaging
 pytest-cov==2.10.1
