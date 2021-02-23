@@ -7,7 +7,9 @@ module.exports = {
     [
       '@babel/preset-env',
       {
-        useBuiltIns: 'entry'
+        useBuiltIns: 'entry',
+        corejs: 'core-js@2',
+        exclude: ['transform-typeof-symbol'],
       }
     ]
   ]
