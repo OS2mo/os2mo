@@ -5,12 +5,14 @@ import json
 
 import freezegun
 import requests_mock
-from mock import patch
 
-from tests import util
+from mock import patch
 from mora import lora
 from mora.async_util import async_to_sync
-from mora.service.orgunit import UnitDetails, get_one_orgunit
+from mora.exceptions import HTTPException
+from mora.handler.impl.association import AssociationReader
+from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
+from tests import util
 
 
 class TestAddressLookup(util.TestCase):
@@ -237,8 +239,40 @@ class TestGetOneOrgUnit(util.LoRATestCase):
             details=UnitDetails.PATH,
         )
 
+    def test_get_one_orgunit_with_association_count(self):
+        result = async_to_sync(get_one_orgunit)(
+            self._connector,
+            self._orgunit_uuid,
+            count_related={'association': AssociationReader},
+        )
+        self.assertIn('association_count', result)
+
     def _assert_orgunit_keys(self, expected_keys, **kwargs):
         orgunit = async_to_sync(get_one_orgunit)(
             self._connector, self._orgunit_uuid, **kwargs
         )
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
+
+
+class TestGetCountRelated(util.TestCase):
+    def setUp(self):
+        super().setUp()
+        self._simple = {'association'}
+        self._multiple = {'association', 'engagement'}
+
+    def test_valid_name(self):
+        with self.app.test_request_context('?count=association'):
+            self.assertSetEqual(self._simple, _get_count_related())
+
+    def test_valid_name_repeated(self):
+        with self.app.test_request_context('?count=association&count=association'):
+            self.assertSetEqual(self._simple, _get_count_related())
+
+    def test_multiple_valid_names(self):
+        with self.app.test_request_context('?count=association&count=engagement'):
+            self.assertSetEqual(self._multiple, _get_count_related())
+
+    def test_invalid_name(self):
+        with self.app.test_request_context('?count=association&count=foobar'):
+            with self.assertRaises(HTTPException):
+                _get_count_related()

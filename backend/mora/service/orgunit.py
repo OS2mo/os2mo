@@ -38,6 +38,7 @@ from .. import mapping
 from .. import settings
 from .. import util
 from ..lora import LoraObjectType
+from ..handler.reading import get_handler_for_type
 from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
@@ -321,6 +322,24 @@ def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
     return decorated
 
 
+def _get_count_related():
+    """
+    Given a URL query '?count=association&count=engagement&count=association',
+    return a set {'association', 'engagement'}.
+
+    Given a URL query '?count=association&count=invalid`, raise a HTTP error.
+    """
+    allowed = {'association', 'engagement'}
+    given = set(flask.request.args.getlist('count'))
+    invalid = given - allowed
+    if invalid:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            'invalid value(s) for "count" query parameter: %r' % invalid
+        )
+    else:
+        return given
+
+
 async def __get_one_orgunit_from_cache(unitid: str,
                                        details: UnitDetails = UnitDetails.NCHILDREN,
                                        validity: Optional[Any] = None,
@@ -369,7 +388,8 @@ async def get_one_orgunit(c: lora.Connector,
                           unit=None,
                           details=UnitDetails.NCHILDREN,
                           validity=None,
-                          only_primary_uuid: bool = False) -> Optional[Dict[Any, Any]]:
+                          only_primary_uuid: bool = False,
+                          count_related: dict = None) -> Optional[Dict[Any, Any]]:
     """
     Internal API for returning one organisation unit.
     """
@@ -560,11 +580,15 @@ async def get_one_orgunit(c: lora.Connector,
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
+    count_related = count_related or {}
+    for key, reader in count_related.items():
+        r['%s_count' % key] = await reader.get_count(c, 'ou', unitid)
+
     return r
 
 
 @blueprint.route('/<any(o,ou):type>/<uuid:parentid>/children')
-@util.restrictargs('at')
+@util.restrictargs('at', 'count')
 @mora.async_util.async_to_sync
 async def get_children(type, parentid):
     '''Obtain the list of nested units within an organisation or an
@@ -633,10 +657,22 @@ async def get_children(type, parentid):
     all_children = await c.organisationenhed.get_all(overordnet=parentid,
                                                      gyldighed='Aktiv')
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
-    children = await gather(*[create_task(
-        get_one_orgunit(c, childid, child, only_primary_uuid=only_primary_uuid))
-        for childid, child in all_children])
+    children = await gather(
+        *[
+            create_task(
+                get_one_orgunit(
+                    c,
+                    childid,
+                    child,
+                    only_primary_uuid=only_primary_uuid,
+                    count_related=count_related,
+                )
+            )
+            for childid, child in all_children
+        ]
+    )
 
     children.sort(key=operator.itemgetter('name'))
 
@@ -758,7 +794,7 @@ async def get_unit_tree(c, unitids, with_siblings=False,
 
 
 @blueprint.route('/ou/<uuid:unitid>/')
-@util.restrictargs('at')
+@util.restrictargs('at', 'count')
 @mora.async_util.async_to_sync
 async def get_orgunit(unitid):
     '''Get an organisational unit
@@ -852,8 +888,14 @@ async def get_orgunit(unitid):
     '''
     c = common.get_connector()
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
-                              only_primary_uuid=only_primary_uuid)
+    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
+    r = await get_one_orgunit(
+        c,
+        unitid,
+        details=UnitDetails.FULL,
+        only_primary_uuid=only_primary_uuid,
+        count_related=count_related,
+    )
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
