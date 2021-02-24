@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import collections
+import re
+import uuid
 from typing import Any, Dict
 
 import flask
-import re
-import requests
-import uuid
-
 import mora.async_util
+import requests
+
 from . import facet
 from . import handlers
 from . import org
@@ -37,7 +37,10 @@ blueprint = flask.Blueprint('address', __name__, static_url_path='',
 async def get_address_type(effect):
     c = lora.Connector()
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-    return await facet.get_one_class(c, address_type_uuid)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    return await facet.get_one_class(c, address_type_uuid,
+                                     only_primary_uuid=only_primary_uuid)
 
 
 async def get_one_address(effect) -> Dict[Any, Any]:
@@ -186,8 +189,12 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                                   required=True)
 
         c = lora.Connector()
-        type_obj = mora.async_util.async_to_sync(facet.get_one_class)(c,
-                                                                      address_type_uuid)
+        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+        type_obj = mora.async_util.async_to_sync(facet.get_one_class
+                                                 )(c,
+                                                   address_type_uuid,
+                                                   only_primary_uuid=only_primary_uuid)
 
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
@@ -335,9 +342,12 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True)
+            only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
             type_obj = mora.async_util.async_to_sync(
                 facet.get_one_class)(c,
-                                     address_type_uuid)
+                                     address_type_uuid,
+                                     only_primary_uuid=only_primary_uuid)
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)

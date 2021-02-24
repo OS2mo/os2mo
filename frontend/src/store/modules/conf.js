@@ -5,7 +5,8 @@ import Service from '@/api/HttpCommon'
 import { _conf } from '../actions/conf'
 
 const state = {
-  conf: {}
+  conf: {},
+  navlinks: {}
 }
 
 const actions = {
@@ -17,17 +18,30 @@ const actions = {
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
       })
+  },
+  [_conf.actions.SET_NAVLINKS]: ({ commit }) => {
+    return Service.get(`/navlinks`)
+      .then(response => {
+        commit(_conf.mutations.SET_NAVLINKS, response.data)
+      })
+      .catch(error => {
+        commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
+      })
   }
 }
 
 const mutations = {
   [_conf.mutations.SET_CONF_DB] (state, payload) {
     state.conf = payload
+  },
+  [_conf.mutations.SET_NAVLINKS] (state, payload) {
+    state.navlinks = payload
   }
 }
 
 const getters = {
-  [_conf.getters.GET_CONF_DB]: state => state.conf
+  [_conf.getters.GET_CONF_DB]: state => state.conf,
+  [_conf.getters.GET_NAVLINKS]: state => state.navlinks
 }
 
 export default {

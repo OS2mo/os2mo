@@ -1,29 +1,29 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import copy
-from collections import Counter
 import contextlib
+import copy
 import json
 import os
 import pprint
 import re
+from collections import Counter
 from typing import Union
 from unittest.mock import patch
 from urllib.parse import parse_qsl
 
+import aioresponses
 import flask
 import flask_testing
 import jinja2
 import requests
 import requests_mock
-import aioresponses
-from yarl import URL
-
-from mora import triggers, app, lora, settings, service, conf_db
-from mora.exceptions import ImproperlyConfigured
-from mora.util import restrictargs
+from mora import app, conf_db, lora, service, settings, triggers
 from mora.async_util import async_to_sync
+from mora.exceptions import ImproperlyConfigured
+from mora.request_wide_bulking import request_wide_bulk
+from mora.util import restrictargs
+from yarl import URL
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -623,6 +623,7 @@ class LoRATestCase(_BaseTestCase):
     @classmethod
     def setUpClass(cls):
         _mox_testing_api("db-setup")
+        request_wide_bulk._disable_caching()
         super().setUpClass()
 
     @classmethod

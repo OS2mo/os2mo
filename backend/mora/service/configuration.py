@@ -3,7 +3,7 @@
 
 import flask
 import logging
-from .. import util, conf_db
+from .. import util, conf_db, settings
 
 logger = logging.getLogger("mo_configuration")
 
@@ -95,3 +95,19 @@ def get_global_configuration():
 
     configuration = conf_db.get_configuration()
     return flask.jsonify(configuration)
+
+
+@blueprint.route('/navlinks', methods=['GET'])
+@util.restrictargs()
+def get_navlinks():
+    """Retrieve nav links.
+
+    .. :quickref: Unit; Retrieve nav links
+
+    :statuscode 200: Nav link list returned.
+
+    :returns: A list of nav links
+    """
+
+    navlinks = settings.config.get("navlinks", [{}])
+    return flask.jsonify(navlinks)

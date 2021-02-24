@@ -1,3 +1,13 @@
+Version 1.14.0, 2021-02-11
+==========================
+
+New features
+------------
+
+* #40303: Add "Links" dropdown to top navigation, displaying custom links for an organisation
+* #40960: Performance improvement: Bulk calls to lora (with request-wide cache , but  without automation-magic)
+
+
 Version 1.13.0, 2021-01-22
 ==========================
 

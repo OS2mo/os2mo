@@ -3,8 +3,8 @@
 
 
 import flask
-
 import mora.async_util
+
 from . import validator
 from .. import facet
 from ..address_handler import base
@@ -339,7 +339,10 @@ async def address_value():
     value = util.checked_get(req, mapping.VALUE, default="", required=True)
 
     c = lora.Connector()
-    type_obj = await facet.get_one_class(c, address_type_uuid)
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+    type_obj = await facet.get_one_class(c, address_type_uuid,
+                                         only_primary_uuid=only_primary_uuid)
 
     scope = util.checked_get(type_obj, 'scope', '', required=True)
 

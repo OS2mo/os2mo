@@ -93,19 +93,24 @@ def create_db_table():
     """Initialize the config database.
     """
     logger.info("Initializing configuration database.")
+
+    # Issue "CREATE TABLE" statements using SQLAlchemy
     engine = _get_engine()
     Base.metadata.create_all(engine)
 
+    # Set up Alembic config
     base_path = Path("backend/mora/conf_db")
     ini = Path('alembic.ini')
     alembic_dir = Path('alembic')
     ini_path = base_path / ini
     alembic_path = base_path / alembic_dir
-
     alembic_cfg = AlembicConfig(file_=str(ini_path))
     alembic_cfg.set_main_option("script_location", str(alembic_path))
 
-    command.upgrade(alembic_cfg, "head")
+    # Tell Alembic that our DB schema is now up-to-date, so Alembic does not
+    # try to upgrade the schema.
+    command.stamp(alembic_cfg, "head")
+
     logger.info("Configuration database initialised.")
 
 

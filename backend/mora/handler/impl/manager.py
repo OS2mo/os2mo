@@ -4,12 +4,14 @@
 import logging
 import operator
 from asyncio import create_task, gather
-from typing import Dict, Any, Optional
+from typing import Any, Awaitable, Dict, Iterable, Optional
+
+import flask
 
 from .. import reading
-from ... import common
 from ... import mapping
 from ... import util
+from ...request_wide_bulking import request_wide_bulk
 from ...service import address
 from ...service import employee
 from ...service import facet
@@ -54,8 +56,10 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         manager = list(await super().get(c, search_fields))
 
         if not manager:
+            only_primary_uuid = flask.request.args.get('only_primary_uuid')
             ou = await orgunit.get_one_orgunit(
-                c, object_id, details=orgunit.UnitDetails.FULL
+                c, object_id, details=orgunit.UnitDetails.FULL,
+                only_primary_uuid=only_primary_uuid
             )
             try:
                 parent_id = ou[mapping.PARENT][mapping.UUID]
@@ -67,8 +71,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         return manager
 
     @classmethod
-    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
-        c = common.get_connector()
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
@@ -78,30 +81,44 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super().get_mo_object_from_effect(effect, start, end, funcid))
+            super()._get_mo_object_from_effect(effect, start, end, funcid))
+        only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
         if person:
-            person_task = create_task(employee.get_one_employee(c, person))
+            person_task = create_task(
+                employee.request_bulked_get_one_employee(
+                    person,
+                    only_primary_uuid=only_primary_uuid))
 
         if manager_type:
-            manager_type_task = create_task(facet.get_one_class_full(c, manager_type))
+            manager_type_task = create_task(
+                facet.request_bulked_get_one_class_full(
+                    manager_type,
+                    only_primary_uuid=only_primary_uuid))
 
         if manager_level:
-            manager_level_task = create_task(facet.get_one_class_full(c, manager_level))
+            manager_level_task = create_task(
+                facet.request_bulked_get_one_class_full(
+                    manager_level,
+                    only_primary_uuid=only_primary_uuid))
 
-        resp_tasks = [create_task(facet.get_one_class_full(c, obj_uuid)) for obj_uuid in
-                      responsibilities]
+        resp_tasks: Iterable[Awaitable] = await gather(
+            *[create_task(facet.request_bulked_get_one_class_full(
+                obj_uuid, only_primary_uuid=only_primary_uuid))
+                for obj_uuid in responsibilities])
 
-        org_unit_task = create_task(orgunit.get_one_orgunit(
-            c, org_unit, details=orgunit.UnitDetails.MINIMAL
+        org_unit_task = create_task(orgunit.request_bulked_get_one_orgunit(
+            org_unit, details=orgunit.UnitDetails.MINIMAL,
+            only_primary_uuid=only_primary_uuid
         ))
 
-        address_tasks = [create_task(address_helper(c, address_uuid))
-                         for address_uuid in addresses]
+        address_tasks = [
+            create_task(address_helper(request_wide_bulk.connector, address_uuid))
+            for address_uuid in addresses]
 
         func: Dict[Any, Any] = {
             **await base_obj,
-            mapping.RESPONSIBILITY: await gather(*resp_tasks),
+            mapping.RESPONSIBILITY: gather(*resp_tasks),
             mapping.ORG_UNIT: await org_unit_task,
             mapping.ADDRESS: [],
         }

@@ -16,16 +16,17 @@ Inserting/editing integration data is done using the endpoints for
 inserting/updating organisational units and employees
 
 '''
-import flask
 import json
 
+import flask
 import mora.async_util
+
+from . import employee
+from . import orgunit
 from .. import common
+from .. import exceptions
 from .. import mapping
 from .. import util
-from .. import exceptions
-from . import orgunit
-from . import employee
 
 blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
                             url_prefix='/service')
@@ -67,9 +68,11 @@ async def get_org_unit_integration_data(unitid):
 
     """
     c = common.get_connector()
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     r = await orgunit.get_one_orgunit(c, unitid,
-                                      details=orgunit.UnitDetails.INTEGRATION)
+                                      details=orgunit.UnitDetails.INTEGRATION,
+                                      only_primary_uuid=only_primary_uuid)
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -112,9 +115,11 @@ async def get_employee_integration_data(employeeid):
 
     """
     c = common.get_connector()
+    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     r = await employee.get_one_employee(c, employeeid,
-                                        details=employee.EmployeeDetails.INTEGRATION)
+                                        details=employee.EmployeeDetails.INTEGRATION,
+                                        only_primary_uuid=only_primary_uuid)
 
     if not r:
         exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employeeid)

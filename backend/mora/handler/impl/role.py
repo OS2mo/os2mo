@@ -4,8 +4,9 @@
 import logging
 from asyncio import create_task
 
+import flask
+
 from .. import reading
-from ... import common
 from ... import mapping
 from ...service import employee
 from ...service import facet
@@ -21,19 +22,28 @@ class RoleReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ROLE_KEY
 
     @classmethod
-    async def get_mo_object_from_effect(cls, effect, start, end, funcid):
-        c = common.get_connector()
-
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         role_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super().get_mo_object_from_effect(effect, start, end, funcid))
-        person_task = create_task(employee.get_one_employee(c, person))
+            super()._get_mo_object_from_effect(effect, start, end, funcid))
+        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+
+        person_task = create_task(
+            employee.request_bulked_get_one_employee(
+                person,
+                only_primary_uuid=only_primary_uuid))
+
         org_unit_task = create_task(
-            orgunit.get_one_orgunit(c, org_unit, details=orgunit.UnitDetails.MINIMAL))
-        role_type_task = create_task(facet.get_one_class_full(c, role_type))
+            orgunit.request_bulked_get_one_orgunit(org_unit,
+                                                   details=orgunit.UnitDetails.MINIMAL,
+                                                   only_primary_uuid=only_primary_uuid))
+        role_type_task = create_task(
+            facet.request_bulked_get_one_class_full(role_type,
+                                                    only_primary_uuid=only_primary_uuid)
+        )
 
         r = {
             **await base_obj,

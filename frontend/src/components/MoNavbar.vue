@@ -25,6 +25,16 @@ SPDX-License-Identifier: MPL-2.0
         <li class="nav-item">
           <router-link class="nav-link" :to="{ name: 'Organisation'}">{{$t('navbar.organisation')}}</router-link>
         </li>
+
+        <b-dropdown v-if="navlinks.length" v-bind:text="$t('navbar.navlinks.title')" variant="primary">
+          <b-dropdown-item
+            v-for="(navlink, index) in navlinks"
+            :key="index"
+            :href="navlink.href"
+            target="_blank">
+            {{ navlink.text }}
+          </b-dropdown-item>
+        </b-dropdown>
       </ul>
 
       <mo-organisation-picker reset-route class="ml-auto mr-auto"/>
@@ -58,6 +68,7 @@ import Service from '@/api/HttpCommon'
 import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
 import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
 import { Auth } from '@/store/actions/auth'
+import { Conf } from '@/store/actions/conf'
 
 export default {
   components: {
@@ -71,7 +82,8 @@ export default {
     return {
       user: {},
       username: 'N/A',
-      shortcuts: []
+      shortcuts: [],
+      navlinks: [],
     }
   },
 
@@ -85,6 +97,12 @@ export default {
     })
 
     this.shortcuts = MoNavbar.getShortcuts()
+
+    this.$store.dispatch(Conf.actions.SET_NAVLINKS).then(
+      response => {
+        this.navlinks = this.$store.getters[Conf.getters.GET_NAVLINKS]
+      }
+    )
   },
 
   methods: {
@@ -99,7 +117,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
   .logo {
     background-image: url('../assets/logo/os2_small.svg');
     background-repeat: no-repeat; /*Prevent showing multiple background images*/
@@ -115,18 +133,16 @@ export default {
     height: 50px;
   }
 
-  .nav-item {
-    .nav-link {
-      font-family: Oswald,Arial,sans-serif !important;
-      color: #e5e0de !important;
+  .nav-item .nav-link {
+    color: #e5e0de;
+    border-bottom: 3px solid transparent;
+  }
+  .nav-item .nav-link:hover,
+  .nav-item .nav-link.router-link-active {
+    border-bottom: 3px solid #e5e0de;
+  }
 
-      &:hover {
-        border-bottom: 3px solid #e5e0de;
-      }
-    }
-
-    .router-link-active {
-      border-bottom: 3px solid #e5e0de;
-    }
+  .b-dropdown {
+    padding: 0 0.25rem;
   }
 </style>
