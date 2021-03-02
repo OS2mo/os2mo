@@ -1,14 +1,15 @@
 In development
 ==============
-* #38904: Deprecated read-only
 
 New features
 ------------
+* #38904: Deprecated read-only
 * #40700: Added HTTP(s) Trigger system
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
 * #40621: Allow vacant associations, creatable from organisation unit
 * #40863: MO backend can now expose the number of associations and engagements in each organisation unit
-* #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage.
+* #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage.  
+* #40719: Simplify validations for edits involving org units
 
 Version 1.14.0, 2021-02-11
 ==========================
@@ -32,7 +33,6 @@ New features
 * #40177: Edit nickname as two separate fields (given name and surname)
 * #39841: Fix time machine date picker
 * #40620: Improved association presentation and extended the editing capabilities in the UI
-* #40719: Simplify validations for edits involving org units
 
 Bug fixes
 ---------
