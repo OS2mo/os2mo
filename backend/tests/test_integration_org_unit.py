@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
+from unittest.mock import patch
 
 import freezegun
 import notsouid
-from unittest.mock import patch
 
 import mora.async_util
 from mora import lora
@@ -1748,9 +1748,99 @@ class Tests(util.LoRATestCase):
             amqp_topics={'org_unit.org_unit.create': 1},
         )
 
+    def test_create_root_unit_without_org_id(self):
+        self.load_sample_structures(minimal=True)
+
+        unitid = "00000000-0000-0000-0000-000000000000"
+        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+        roots = [
+            {
+                'child_count': 0,
+                'name': 'Overordnet Enhed',
+                'user_key': 'root',
+                'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                'validity': {'from': '2016-01-01', 'to': None},
+            },
+        ]
+
+        with self.subTest('prerequisites'):
+            self.assertRequestResponse('/service/o/{}/children'.format(orgid),
+                                       roots)
+
+        self.assertRequestResponse(
+            '/service/ou/create',
+            unitid,
+            json={
+                "name": "Fake Corp",
+                "uuid": unitid,
+                "user_key": "fakefakefake",
+                'time_planning': None,
+                "org_unit_type": {
+                    'uuid': "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01",
+                }
+            },
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/'.format(unitid),
+            {
+                "location": "",
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": orgid
+                },
+                'time_planning': None,
+                "org_unit_type": {
+                    "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
+                    "name": "Afdeling",
+                    "owner": None,
+                    "scope": None,
+                    "top_level_facet": org_unit_type_facet,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
+                },
+                "org_unit_level": None,
+                "parent": None,
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01"
+                },
+                "user_settings": {'orgunit': {}},
+            },
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
+
+        roots.insert(0, {
+            "child_count": 0,
+            "name": "Fake Corp",
+            "user_key": "fakefakefake",
+            "uuid": unitid,
+            "validity": {
+                "from": "2017-01-01",
+                "to": "2018-01-01"
+            }
+        })
+
+        self.assertRequestResponse(
+            '/service/o/{}/children'.format(orgid),
+            roots,
+            amqp_topics={'org_unit.org_unit.create': 1},
+        )
+
     def test_rename_org_unit(self):
         # A generic example of editing an org unit
-
         self.load_sample_structures()
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
@@ -1990,6 +2080,107 @@ class Tests(util.LoRATestCase):
         )
 
     def test_rename_root_org_unit(self):
+        # Test renaming root units
+
+        self.load_sample_structures()
+
+        org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
+
+        req = {
+            "type": "org_unit",
+            "data": {
+                "parent": None,
+                "name": "Whatever",
+                "uuid": org_unit_uuid,
+                "validity": {
+                    "from": "2018-01-01T00:00:00+01",
+                },
+            },
+        }
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            org_unit_uuid,
+            json=req,
+            amqp_topics={'org_unit.org_unit.update': 1},
+        )
+
+        expected = {
+            'attributter': {
+                'organisationenhedegenskaber': [{
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Whatever',
+                    'virkning': {
+                        'from': '2018-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }, {
+                    'brugervendtnoegle': 'root',
+                    'enhedsnavn': 'Overordnet '
+                                  'Enhed',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2018-01-01 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger organisationsenhed',
+            'relationer': {
+                'enhedstype': [{
+                    'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'overordnet': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilhoerer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationenhedgyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+    def test_rename_root_org_unit_no_parent(self):
         # Test renaming root units
 
         self.load_sample_structures()

@@ -3,6 +3,7 @@ In development
 
 New features
 ------------
+* #41387: Allowed frontend to create and edit (but not move) root units
 * #38904: Deprecated read-only
 * #40700: Added HTTP(s) Trigger system
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
