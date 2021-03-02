@@ -10,7 +10,6 @@ SPDX-License-Identifier: MPL-2.0
     <mo-organisation-unit-picker
       v-model="entry.parent"
       :label="$t('input_fields.select_super_unit')"
-      required
       :validity="entry.validity"
     />
 
@@ -44,7 +43,6 @@ SPDX-License-Identifier: MPL-2.0
       <mo-facet-picker
         facet="org_unit_type"
         v-model="entry.org_unit_type"
-        :disabled="!hasOrgUnitBeenPicked"
         :filter_function="filter_on_owner"
         required
       />
@@ -109,11 +107,13 @@ export default {
     },
     showOrgUnitLevel () {
       if (this.hasOrgUnitBeenPicked) {
+        if (this.entry.parent){
         return this.entry.parent.user_settings.orgunit.show_level
+        }
       } else if (this.entry.user_settings) {
         return this.entry.user_settings.orgunit.show_level
       }
-      return false
+      return true
     },
     showUserKey () {
       return !this.isEdit

@@ -147,7 +147,7 @@ export default {
 
     validations () {
       let validations = {
-        required: this.unitName !== null ? this.required : this.unitName,
+        required: this.required
       }
       let subclass_validations = this.get_validations()
       if (this.extraValidations) {
