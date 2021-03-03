@@ -98,7 +98,7 @@ export default {
 
   computed: {
     ...mapGetters({
-      orgUnitDetails: STORE_KEY + '/GET_DETAILS'
+      orgUnitDetails: STORE_KEY + '/GET_DETAILS',
     }),
 
     validity () {
@@ -134,8 +134,8 @@ export default {
     },
 
     loadContent (event) {
+      event.atDate = this.terminate.from || new Date()
       this.latestEvent = event
-
       this.$store.dispatch(STORE_KEY + '/SET_DETAIL', event)
     },
 

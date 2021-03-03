@@ -118,21 +118,6 @@ export default {
 </script>
 
 <style scoped>
-  .logo {
-    background-image: url('../assets/logo/os2_small.svg');
-    background-repeat: no-repeat; /*Prevent showing multiple background images*/
-    background-position: center;
-    background-color:#002f5d;
-    background-size: 60px;
-    width: 60px;
-    height: 50px;
-    margin-left: -1em;
-  }
-
-  nav {
-    height: 50px;
-  }
-
   .nav-item .nav-link {
     color: #e5e0de;
     border-bottom: 3px solid transparent;

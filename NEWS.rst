@@ -8,8 +8,9 @@ New features
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
 * #40621: Allow vacant associations, creatable from organisation unit
 * #40863: MO backend can now expose the number of associations and engagements in each organisation unit
-* #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage.  
+* #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage
 * #40719: Simplify validations for edits involving org units
+* #39853: Users can now specify a date when searching. This allows finding inactive organisation units, etc.
 
 Version 1.14.0, 2021-02-11
 ==========================

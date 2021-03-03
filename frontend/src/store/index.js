@@ -10,17 +10,21 @@ import log from './modules/log'
 import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
 import facet from './modules/facet'
+import atDate from './modules/atDate'
 import { Employee } from './actions/employee'
 import { OrganisationUnit } from './actions/organisationUnit'
 import { Facet } from './actions/facet'
 import { Organisation } from './actions/organisation'
 import { Auth } from './actions/auth'
 import { Conf } from './actions/conf'
+import { AtDate } from './actions/atDate'
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   // strict: true,
   modules: {
+    [AtDate.NAMESPACE]: atDate,
     [Conf.NAMESPACE]: conf,
     [Auth.NAMESPACE]: auth,
     [Employee.NAMESPACE]: employee,

@@ -3,6 +3,13 @@
 
 import 'babel-polyfill'
 import Vue from 'vue'
-import Icon from 'vue-awesome/components/Icon'
 
+// Set up vue-awesome icons used in tests
+import Icon from 'vue-awesome/components/Icon'
+import 'vue-awesome/icons/caret-down'
+import 'vue-awesome/icons/caret-right'
+import 'vue-awesome/icons/search'
+import 'vue-awesome/icons/spinner'
+import 'vue-awesome/icons/user-alt'
+import 'vue-awesome/icons/users'
 Vue.component('icon', Icon)
