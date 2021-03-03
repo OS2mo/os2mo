@@ -88,6 +88,11 @@ export default {
   },
 
   computed: {
+    globalOrgUnitLevel () {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+
+      return conf.show_level
+    },
     orgUnitValidity () {
       if (this.entry.parent) {
         return this.entry.parent.validity
@@ -113,7 +118,7 @@ export default {
       } else if (this.entry.user_settings) {
         return this.entry.user_settings.orgunit.show_level
       }
-      return true
+      return this.globalOrgUnitLevel
     },
     showUserKey () {
       return !this.isEdit

@@ -1786,42 +1786,9 @@ class Tests(util.LoRATestCase):
             },
             amqp_topics={'org_unit.org_unit.create': 1},
         )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/'.format(unitid),
-            {
-                "location": "",
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": orgid
-                },
-                'time_planning': None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825"
-                },
-                "org_unit_level": None,
-                "parent": None,
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": "2018-01-01"
-                },
-                "user_settings": {'orgunit': {}},
-            },
-            amqp_topics={'org_unit.org_unit.create': 1},
-        )
-
+        expected_parent = None
+        actual_parent = self.assertRequest('/service/ou/{}/'.format(unitid))['parent']
+        self.assertEqual(expected_parent, actual_parent)
         roots.insert(0, {
             "child_count": 0,
             "name": "Fake Corp",
@@ -2538,41 +2505,9 @@ class Tests(util.LoRATestCase):
     def test_move_org_autoparent(self):
         "Verify that we cannot create cycles when moving organisational units"
 
-        self.load_sample_structures()
-
-        root_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
-        org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
-
-        c = lora.Connector()
-        mora.async_util.async_to_sync(c.organisationenhed.update)(
-            {
-                'relationer': {
-                    'overordnet': [{
-                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                        'virkning': {
-                            'from': '2016-01-01',
-                            'to': 'infinity',
-                        },
-                    }],
-                },
-            },
-            root_uuid,
-        )
-
-        self.assertEqual(
-            (mora.async_util.async_to_sync(c.organisationenhed.get)(root_uuid))[
-                'relationer'][
-                'overordnet'],
-            [{
-                'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
-                'virkning': {
-                    'from': '2016-01-01 00:00:00+01',
-                    'from_included': True,
-                    'to': 'infinity',
-                    'to_included': False,
-                },
-            }],
-        )
+        self.load_sample_structures(False)
+        hum_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # parent
+        fil_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'  # child
 
         self.assertRequestResponse(
             '/service/details/edit',
@@ -2582,41 +2517,16 @@ class Tests(util.LoRATestCase):
                 'error': True,
                 'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
                 'status': 400,
-                'org_unit_uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                'org_unit_uuid': hum_uuid,
             },
             status_code=400,
             json={
                 "type": "org_unit",
                 "data": {
                     "parent": {
-                        'uuid': root_uuid,
+                        'uuid': fil_uuid,
                     },
-                    "uuid": org_unit_uuid,
-                    "validity": {
-                        "from": "2018-01-01",
-                    },
-                },
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/details/edit',
-            {
-                'description': 'Org unit cannot be moved to one of its own '
-                               'child units',
-                'error': True,
-                'error_key': 'V_ORG_UNIT_MOVE_TO_CHILD',
-                'status': 400,
-                'org_unit_uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-            },
-            status_code=400,
-            json={
-                "type": "org_unit",
-                "data": {
-                    "parent": {
-                        'uuid': root_uuid,
-                    },
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "uuid": hum_uuid,
                     "validity": {
                         "from": "2018-01-01",
                     },

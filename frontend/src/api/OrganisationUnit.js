@@ -125,11 +125,10 @@ export default {
             value: {
             name: create.name,
                 parent:
-                    create.parent ? create.parent.name : i18n.t('shared.no_org_unit')}})
+                    create.parent ? create.parent.name : i18n.t('shared.main_organisation')}})
         return response.data
       })
       .catch(error => {
-          console.log('mw', error)
         store.commit('log/newError', { type: 'ERROR', value: error.response.data })
         return error.response.data
       })
