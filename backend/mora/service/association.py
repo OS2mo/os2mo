@@ -9,8 +9,10 @@ This section describes how to interact with employee associations.
 
 '''
 import uuid
+from typing import Any, Dict
 
 import mora.async_util
+
 from . import handlers
 from . import org
 from .validation import validator
@@ -40,7 +42,13 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             return False
 
-    def prepare_create(self, req):
+    def prepare_create(self, req: Dict[Any, Any]):
+        """
+        To create a vacant association, set employee_uuid to None and set a
+        value org_unit_uuid
+        :param req: request as received by flask
+        :return:
+        """
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -48,8 +56,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         dynamic_classes = util.checked_get(req, mapping.CLASSES, [])
         dynamic_classes = list(map(util.get_uuid, dynamic_classes))
 
-        employee = util.checked_get(req, mapping.PERSON, {}, required=True)
-        employee_uuid = util.get_uuid(employee, required=True)
+        employee = util.checked_get(req, mapping.PERSON, {})
+        employee_uuid = util.get_uuid(employee, required=False)
 
         org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
             util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
@@ -77,17 +85,19 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             org_unit,
             valid_from,
             valid_to)
-        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-            employee,
-            valid_from,
-            valid_to)
-        mora.async_util.async_to_sync(
-            validator.does_employee_have_existing_association)(
-            employee_uuid,
-            org_unit_uuid,
-            valid_from)
-        validator.is_substitute_self(employee_uuid=employee_uuid,
-                                     substitute_uuid=substitute_uuid)
+        if employee:
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee,
+                valid_from,
+                valid_to)
+        if employee_uuid:
+            mora.async_util.async_to_sync(
+                validator.does_employee_have_existing_association)(
+                employee_uuid,
+                org_unit_uuid,
+                valid_from)
+            validator.is_substitute_self(employee_uuid=employee_uuid,
+                                         substitute_uuid=substitute_uuid)
 
         association = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ASSOCIATION_KEY,
@@ -111,7 +121,13 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             "org_unit_uuid": org_unit_uuid,
         })
 
-    def prepare_edit(self, req: dict):
+    def prepare_edit(self, req: Dict[Any, Any]):
+        """
+        To edit into a vacant association, set employee_uuid to None and set a
+        value org_unit_uuid
+        :param req: request as received by flask
+        :return:
+        """
         association_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -120,9 +136,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
-
-        # Get org unit uuid for validation purposes
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
 
         payload = dict()
         payload['note'] = 'Rediger tilknytning'
@@ -189,10 +202,24 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.PERSON in data:
-            employee = data.get(mapping.PERSON)
-            employee_uuid = employee.get('uuid')
+            employee = data.get(mapping.PERSON, {})
+            if employee:
+                employee_uuid = employee.get('uuid')
+                update_payload = {
+                    'uuid': employee_uuid,
+                }
+            else:  # allow missing, e.g. vacant association
+                employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
+                update_payload = {
+                    'uuid': '',
+                    'urn': ''
+                }
 
-            update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
+            update_fields.append((
+                mapping.USER_FIELD,
+                update_payload,
+            ))
+            # update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
         else:
             employee = util.get_obj_value(
                 original, mapping.USER_FIELD.path)[-1]
@@ -201,8 +228,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         if mapping.SUBSTITUTE in data and data.get(mapping.SUBSTITUTE):
             substitute = data.get(mapping.SUBSTITUTE)
             substitute_uuid = substitute.get('uuid')
-            validator.is_substitute_self(employee_uuid=employee_uuid,
-                                         substitute_uuid=substitute_uuid)
+            if employee_uuid:
+                validator.is_substitute_self(employee_uuid=employee_uuid,
+                                             substitute_uuid=substitute_uuid)
 
             if not substitute_uuid:
                 update_fields.append(
@@ -240,20 +268,19 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                                        original, payload)
 
         # Validation
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            org_unit,
-            new_from,
-            new_to)
-        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-            employee,
-            new_from,
-            new_to)
-        mora.async_util.async_to_sync(
-            validator.does_employee_have_existing_association)(
-            employee_uuid,
-            org_unit_uuid,
-            new_from,
-            association_uuid)
+        if employee:
+            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+                employee,
+                new_from,
+                new_to)
+
+        if employee:
+            mora.async_util.async_to_sync(
+                validator.does_employee_have_existing_association)(
+                employee_uuid,
+                org_unit_uuid,
+                new_from,
+                association_uuid)
 
         self.payload = payload
         self.uuid = association_uuid
@@ -261,3 +288,21 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             "employee_uuid": employee_uuid,
             "org_unit_uuid": org_unit_uuid,
         })
+
+    def prepare_terminate(self, request: Dict[Any, Any]):
+        """Initialize a 'termination' request. Performs validation and all
+        necessary processing
+
+        Unlike the other handlers for ``organisationfunktion``, this
+        one checks for and handles the ``vacate`` field in the
+        request. If this is set, the manager is merely marked as
+        *vacant*, i.e. without an employee or person.
+
+        :param request: A dict containing a request
+
+        """
+        if util.checked_get(request, 'vacate', False):
+            self.termination_field = mapping.USER_FIELD
+            self.termination_value = {}
+
+        super().prepare_terminate(request)

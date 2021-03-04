@@ -197,9 +197,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            {'uuid': org_unit_uuid},
-            new_from, new_to)
         mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
             {'uuid': employee_uuid},
             new_from, new_to)

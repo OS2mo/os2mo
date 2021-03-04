@@ -166,8 +166,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             original, mapping.PARENT_FIELD.path)[-1]
         parent_uuid = util.get_uuid(parent)
 
-        org_uuid = util.get_obj_uuid(original, mapping.BELONGS_TO_FIELD.path)
-
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
 
@@ -268,12 +266,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        # TODO: Check if we're inside the validity range of the organisation
-        if org_uuid != parent_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                parent,
-                new_from,
-                new_to)
         self.payload = payload
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid

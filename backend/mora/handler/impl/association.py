@@ -102,9 +102,10 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             classes,
             only_primary_uuid=only_primary_uuid)
 
-        person_task = create_task(employee.request_bulked_get_one_employee(
-            person,
-            only_primary_uuid=only_primary_uuid))
+        if person:
+            person_task = create_task(
+                employee.request_bulked_get_one_employee(
+                    person, only_primary_uuid=only_primary_uuid))
 
         org_unit_task = create_task(
             orgunit.request_bulked_get_one_orgunit(org_unit,
@@ -118,7 +119,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 primary, only_primary_uuid=only_primary_uuid))
         r = {
             **await base_obj,
-            mapping.PERSON: await person_task,
+            mapping.PERSON: (await person_task) if person else None,
             mapping.ORG_UNIT: await org_unit_task,
             mapping.ASSOCIATION_TYPE: await association_type_task,
             mapping.PRIMARY: await primary_task if primary else None,
