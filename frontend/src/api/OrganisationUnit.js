@@ -5,6 +5,7 @@ import Service from './HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 import URLSearchParams from '@ungap/url-search-params'
+import i18n from '../i18n.js'
 
 export default {
 
@@ -121,7 +122,10 @@ export default {
       .then(response => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE',
-            value: {name: create.name, parent: create.parent.name}})
+            value: {
+            name: create.name,
+                parent:
+                    create.parent ? create.parent.name : i18n.t('shared.main_organisation')}})
         return response.data
       })
       .catch(error => {

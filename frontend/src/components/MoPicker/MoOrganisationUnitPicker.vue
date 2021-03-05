@@ -48,6 +48,11 @@ export default {
     unitName: {
       deep: true,
       async handler (newVal, oldVal) {
+        // special handling of empty selection
+        if (newVal === '') {
+          this.selectEmpty(newVal)
+          return
+        }
         // Don't fetch search results if the tree picker is already bound to a
         // value, and that value is equal to the text in the input field.
         if ((this.value != null) && (this.value.name === newVal)) {
@@ -169,12 +174,23 @@ export default {
       }
     },
 
-    selectSearchResult(result) {
+    clearSearch() {
       this.showTree = false
       this.searchResultLoading = false
       this.searchResults = []
       this.searchResultSelected = true
+    },
+
+    selectSearchResult(result) {
+      this.clearSearch()
       this.selectedSuperUnitUuid = result['uuid']
+    },
+    selectEmpty() {
+      this.clearSearch()
+      // clear selection on empty input
+      this.value = undefined
+      this.$emit('input', null)
+
     },
   }
 }

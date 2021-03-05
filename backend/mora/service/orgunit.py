@@ -37,8 +37,8 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
-from ..lora import LoraObjectType
 from ..handler.reading import get_handler_for_type
+from ..lora import LoraObjectType
 from ..triggers import Trigger
 
 blueprint = flask.Blueprint('orgunit', __name__, static_url_path='',
@@ -89,10 +89,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         unitid = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
-        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
-
         org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)())[
             "uuid"]
+
+        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
+        if parent_uuid is None:
+            parent_uuid = org_uuid
 
         org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
                                                    required=False)
@@ -166,10 +168,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             ))
 
         # Get org unit uuid for validation purposes
-        parent = util.get_obj_value(
-            original, mapping.PARENT_FIELD.path)[-1]
-        parent_uuid = util.get_uuid(parent)
-
         payload = dict()
         payload['note'] = 'Rediger organisationsenhed'
 
@@ -222,6 +220,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                     **attributes,
                     **changed_props,
                 }
+
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
@@ -246,21 +245,25 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 }
             ))
 
+        # candidate for change
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
+            if parent_uuid is None:
+                parent_uuid = (mora.async_util.async_to_sync(
+                    org.get_configured_organisation)())["uuid"]
 
+            # only update parent if parent uuid changed
             if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
                 mora.async_util.async_to_sync(validator.is_movable_org_unit)(unitid)
 
-            mora.async_util.async_to_sync(
-                validator.is_candidate_parent_valid)(unitid,
-                                                     parent_uuid,
-                                                     new_from)
-
-            update_fields.append((
-                mapping.PARENT_FIELD,
-                {'uuid': parent_uuid}
-            ))
+                mora.async_util.async_to_sync(
+                    validator.is_candidate_parent_valid)(unitid,
+                                                         parent_uuid,
+                                                         new_from)
+                update_fields.append((
+                    mapping.PARENT_FIELD,
+                    {'uuid': parent_uuid}
+                ))
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)
