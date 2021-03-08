@@ -72,6 +72,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.request = request
         self.payload = None
         self.uuid = None
+        self.trigger_results_before = None
+        self.trigger_results_after = None
 
         self.trigger_dict = {
             Trigger.REQUEST_TYPE: request_type,
@@ -86,13 +88,15 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             self.prepare_edit(request)
         elif request_type == RequestType.TERMINATE:
             self.prepare_terminate(request)
+        elif request_type == RequestType.REFRESH:
+            self.prepare_refresh(request)
         else:
             raise NotImplementedError
 
         self.trigger_dict.update({
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
-        Trigger.run(self.trigger_dict)
+        self.trigger_results_before = Trigger.run(self.trigger_dict)
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -122,6 +126,17 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
+    def prepare_refresh(self, request: dict):
+        """
+        Initialize a 'refresh' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+
+        """
+        # Default it noop
+        pass
+
     def submit(self) -> str:
         """Submit the request to LoRa.
 
@@ -133,7 +148,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.EVENT_TYPE: EventType.ON_AFTER,
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
-        Trigger.run(self.trigger_dict)
+        self.trigger_results_after = Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
 

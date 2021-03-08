@@ -8,8 +8,9 @@ import os
 import pprint
 import re
 from typing import Union
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from urllib.parse import parse_qsl
+from copy import deepcopy
 
 import aioresponses
 import flask
@@ -684,3 +685,35 @@ def modified_normalize_url(url: Union[URL, str]) -> URL:
 
 
 aioresponses.core.normalize_url = modified_normalize_url
+
+
+class CopyingMock(MagicMock):
+    """MagicMock that refers to its arguments by value instead of by reference.
+
+    Workaround for mutable mock arguments and to avoid the following:
+
+    >>> from mock import MagicMock
+    >>> b = MagicMock()
+    >>> a = {}
+    >>> b(a)
+    <MagicMock name='mock()' id='140710831830928'>
+    >>> b.assert_called_with({})
+
+    Good so far, but then this happens:
+
+    >>> a['b'] = 'c'
+    >>> b.assert_called_with({})
+    Expected: mock({})
+    Actual: mock({'b': 'c'})
+
+    With CopyingMock we do not have `a` by reference, but by value instead, and
+    thus it works 'as you would expect'.
+
+    See: https://docs.python.org/3/library/unittest.mock-examples.html under
+    "Coping with mutable arguments" for further details and the source of this code.
+    """
+
+    def __call__(self, /, *args, **kwargs):
+        args = deepcopy(args)
+        kwargs = deepcopy(kwargs)
+        return super().__call__(*args, **kwargs)

@@ -50,6 +50,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
             logger.debug(f"http_sender received {payload} from {trigger_url}")
             if response.status != 200:
                 raise HTTPTriggerException(payload["detail"])
+            return payload
 
 
 async def fetch_endpoint_trigger(
