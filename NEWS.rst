@@ -6,6 +6,11 @@ New features
 
 * #40700: Added HTTP(s) Trigger system
 
+Bug fixes
+---------
+
+# 41952: Bugfix: facet children not properly ported to async
+
 Version 1.14.1, 2021-03-04
 ==========================
 
