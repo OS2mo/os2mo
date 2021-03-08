@@ -174,7 +174,8 @@ Build docs:
     SESSIONS_DB_USER: sessions
     SESSIONS_DB_PASSWORD: sessions
     # for mox service
-    MOX_USER_CONFIG_PATH: /code/dev-environment/settings-for-mo-test.toml
+    MOX_USER_CONFIG_PATH: /app/dev-environment/settings-for-mo-test.toml
+    MAX_WORKERS: "1"
     # for mo
     OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-ci-settings.toml
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
@@ -204,11 +205,6 @@ Unit-test:
       alias: mox-db
     - name: magentaaps/lora:dev
       alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
   script:
     - pytest
       --cov=mora
@@ -259,11 +255,6 @@ e2e-test:
       alias: mox-db
     - name: magentaaps/lora:dev
       alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
     - name: ${IMAGE_SHA}
       alias: mo
       command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
