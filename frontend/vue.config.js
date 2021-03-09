@@ -59,6 +59,7 @@ module.exports = {
   },
   devServer: {
     progress: false,
+    port: 80,
     proxy: {
       '/openapi.json': {
         target: process.env.BASE_URL || 'http://localhost:5000/',

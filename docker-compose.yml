@@ -7,34 +7,44 @@ services:
     profiles:
       - kolding
 
-  # We use two images in development. One frontend that runs `vue-cli-service
-  # serve`, named `frontend` and one that runs flask named `mo`. The frontend
-  # image proxies requests to flask.
+  # We use two images in development.
+  # * One frontend that runs `vue-cli-service serve`, named `frontend` and
+  # * One that runs fastapi named `mo`.
+  # The frontend image proxies requests to fastapi.
+  # Both of these are served through our nginx proxy.
+  proxy:
+    image: nginx:1
+    volumes:
+      - ./docker/nginx-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "5001:80"
+    depends_on:
+      mo:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
 
-  # In production only the flask image is run. It will serve the production
-  # ready frontend code, but the files are only updated on docker build.
   frontend:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.frontend
+      # target: frontend build the dynamically reloading frontend
       target: frontend
     environment:
-      # `vue-cli-service serve` will proxy request to `/service` and `/saml`to
-      # this endpoint. Defined in `frontend/vue.config.js`.
+      # `vue-cli-service serve` will proxy requests to mo, as defined in:
+      # `frontend/vue.config.js`.
       - BASE_URL=http://mo:80
-    # To reload on file changes, we mount the current folder into `/code`.
-    # However we do not want node_modules on the host machine, so we create an
-    # additional volume for it.
     volumes:
+      # To reload on file changes, we mount the current folder into `/code`.
+      # However we do not want node_modules on the host machine, so we create
+      # an additional volume for it.
       - .:/app/
       - /app/frontend/node_modules
     depends_on:
       mo:
         condition: service_healthy
-    ports:
-      - "5001:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://frontend:8080"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -43,8 +53,7 @@ services:
   mo:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-      target: dist
+      dockerfile: docker/Dockerfile.api
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.

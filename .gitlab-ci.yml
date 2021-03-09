@@ -30,10 +30,12 @@ variables:
   # Project variables
   RELEASE_REGISTRY: docker.io
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
+  FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
   KANIKO_VERSION: v1.3.0
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-frontend
+  FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-test-frontend
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak-db
 
@@ -43,11 +45,11 @@ variables:
 
 include:
   - project: "labs/salt-automation"
-    ref: "feature/42981_higher_order_docker_release"
+    ref: "master"
     file: "/gitlab-ci-templates/common/autopub.v1.yml"
   - project: "labs/salt-automation"
-    ref: "feature/42981_higher_order_docker_release"
-    file: "/gitlab-ci-templates/common/docker-release.v1.yml"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
 
 # Only run pipeline when pushing a tag or a branch.
 # This is a workaround for a bug causing detached pipelines on MRs
@@ -168,7 +170,7 @@ Build OS2MO:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
+      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.api
       --destination=${IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
@@ -176,6 +178,28 @@ Build OS2MO:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - when: on_success
+
+Build test frontend:
+  extends: .master-rules
+  stage: build
+  interruptible: true
+  needs: []
+  image:
+    # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    entrypoint: [""]
+  tags:
+    - docker
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.frontend
+      --destination=${FRONTEND_TEST_IMAGE_SHA}
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+      --target frontend
 
 Build frontend:
   extends: .master-rules
@@ -193,9 +217,8 @@ Build frontend:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
+      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.frontend
       --destination=${FRONTEND_IMAGE_SHA}
-      --target=frontend
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
@@ -402,7 +425,7 @@ Coverage:
 Vue-unit-test:
   extends: .test-default
   image:
-    name: ${FRONTEND_IMAGE_SHA}
+    name: ${FRONTEND_TEST_IMAGE_SHA}
   variables:
     GIT_STRATEGY: none
   script:
@@ -457,6 +480,7 @@ Vue-unit-test:
 
 # Review Stage
 ##############
+
 deploy_review:
   stage: review
   needs: ["Build OS2MO"]
@@ -523,10 +547,36 @@ stop_review:
 
 # Release stage
 ###############
+Release API master:
+  extends: .release-master
+  variables:
+    CI_IMAGE: ${IMAGE_SHA}
+    RELEASE_IMAGE: ${RELEASE_REGISTRY_IMAGE}
+
+Release API version:
+  extends: .release-version
+  variables:
+    CI_IMAGE: ${IMAGE_SHA}
+    RELEASE_IMAGE: ${RELEASE_REGISTRY_IMAGE}
+
+Release Frontend master:
+  extends: .release-master
+  variables:
+    CI_IMAGE: ${FRONTEND_IMAGE_SHA}
+    RELEASE_IMAGE: ${FRONTEND_RELEASE_REGISTRY_IMAGE}
+
+Release Frontend version:
+  extends: .release-version
+  variables:
+    CI_IMAGE: ${FRONTEND_IMAGE_SHA}
+    RELEASE_IMAGE: ${FRONTEND_RELEASE_REGISTRY_IMAGE}
+
+# Deploy stage
+##############
 
 Release to Dev:
   stage: deploy
-  needs: ["Release version"]
+  needs: ["Release API version"]
   image: alpine
   variables:
     GIT_STRATEGY: none # We do not need the source code

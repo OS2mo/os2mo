@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  localhost;
+
+    location /service/ {
+        proxy_pass http://mo;
+    }
+
+    location /saml/ {
+        proxy_pass http://mo;
+    }
+
+    location /version/ {
+        proxy_pass http://mo;
+    }
+
+    location / {
+        proxy_pass http://frontend;
+    }
+}
