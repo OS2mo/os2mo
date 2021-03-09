@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import freezegun
-
 from unittest.mock import patch
+
+import freezegun
 
 import mora.async_util
 from . import util
@@ -1613,10 +1613,9 @@ class Tests(util.LoRATestCase):
                      'scope': 'EAN',
                      'user_key': 'EAN',
                      'uuid': 'e34d4426-9845-4c72-b31e-709be85d6fa2'},
-                    {'example':
-                        'Åbningstider:\n'
-                        'Man-tors: 09:00-15:30\n'
-                        'Fre: 09:00-13:00',
+                    {'example': 'Åbningstider:\n'
+                                'Man-tors: 09:00-15:30\n'
+                                'Fre: 09:00-13:00',
                      'name': 'Træffetid',
                      'owner': None,
                      'scope': 'TEXT',
@@ -1758,3 +1757,25 @@ class Tests(util.LoRATestCase):
                     'role': False,
                 },
             )
+
+    def test_facet_children(self):
+        self.load_sample_structures()
+
+        expected = [{'child_count': 0,
+                     'name': 'Skolepsykolog',
+                     'user_key': 'Skolepsykolog',
+                     'uuid': '07cea156-1aaf-4c89-bf1b-8e721f704e22'},
+                    {'child_count': 0,
+                     'name': 'Specialist',
+                     'user_key': 'specialist',
+                     'uuid': '890d4ff0-b453-4900-b79b-dbb461eda3ee'},
+                    {'child_count': 0,
+                     'name': 'Bogopsætter',
+                     'user_key': 'Bogopsætter',
+                     'uuid': 'f42dd694-f1fd-42a6-8a97-38777b73adc4'}]
+
+        actual = self.assertRequest(
+            '/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children'
+        )
+
+        self.assertEqual(expected, actual)

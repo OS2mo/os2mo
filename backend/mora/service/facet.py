@@ -23,9 +23,9 @@ from asyncio import create_task, gather
 from typing import Any, Awaitable, Dict, List, Optional, Set
 
 import flask
+
 import mora.async_util
 from mora.request_wide_bulking import request_wide_bulk
-
 from .tree_helper import prepare_ancestor_tree
 from .. import common
 from .. import exceptions
@@ -782,7 +782,7 @@ async def get_all_classes_children(facet: str):
         """
         I'm an async lambda
         """
-        return get_one_class(*args, **kwargs, only_primary_uuid=only_primary_uuid)
+        return await get_one_class(*args, **kwargs, only_primary_uuid=only_primary_uuid)
 
     classes = (await c.klasse.paged_get(
         __get_one_class_helper,

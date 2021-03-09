@@ -205,7 +205,7 @@ e2e-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:stable
+    - name: magentaaps/lora:latest
       alias: mox
       command: [
       "gunicorn",
