@@ -74,20 +74,17 @@ services:
     #   context: ../mox
     #   dockerfile: docker/Dockerfile
     volumes:
+    #  - ../mox:/app
       - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
-    command: [
-    "gunicorn",
-    "--config", "docker/gunicorn-settings.py",
-    "--workers", "1", # We run single-threaded as the testing_api is not
-                      # threadsafe.
-    "--limit-request-line", "0",
-    "oio_rest:app"]
+    # command: '/start-reload.sh'
+    environment:
+      MAX_WORKERS: "1"
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       - mox-db
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/site-map"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/site-map"]
       interval: 5s
       timeout: 5s
       retries: 3
