@@ -6,6 +6,8 @@ import functools
 import operator
 import typing
 
+from os2mo_http_trigger_protocol import EventType, RequestType  # noqa: F401
+
 # Common
 
 VALID_FROM = 'valid_from'
@@ -51,7 +53,6 @@ KLE_NUMBER = 'kle_number'
 
 # Employee
 CPR_NO = 'cpr_no'
-
 
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
@@ -119,14 +120,6 @@ RELATION_TRANSLATIONS = {
 #
 # TYPES
 #
-
-@enum.unique
-class RequestType(enum.Enum):
-    '''
-    Support requests for :class:`RequestHandler`.
-    '''
-    CREATE, EDIT, TERMINATE = range(3)
-
 
 @enum.unique
 class FieldTypes(enum.IntEnum):

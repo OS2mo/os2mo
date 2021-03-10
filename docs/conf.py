@@ -101,6 +101,10 @@ MOCK_MODULES = [
 ]
 sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 
+asyncio_mock = MagicMock()
+asyncio_mock.get_event_loop.return_value.is_running.return_value = False
+sys.modules.update({"asyncio": asyncio_mock})
+
 
 apidoc_module_dir = '../backend/mora'
 apidoc_output_dir = 'backend'

@@ -7,7 +7,6 @@ import json
 import os
 import pprint
 import re
-from collections import Counter
 from typing import Union
 from unittest.mock import patch
 from urllib.parse import parse_qsl
@@ -18,7 +17,7 @@ import flask_testing
 import jinja2
 import requests
 import requests_mock
-from mora import app, conf_db, lora, service, settings, triggers
+from mora import app, conf_db, lora, service, settings
 from mora.async_util import async_to_sync
 from mora.exceptions import ImproperlyConfigured
 from mora.request_wide_bulking import request_wide_bulk
@@ -403,15 +402,6 @@ class _BaseTestCase(flask_testing.TestCase):
     maxDiff = None
 
     def setUp(self):
-        self.amqp_counter = Counter()
-
-        def amqp_publish_message_mock(service, object_type, action, __, ___):
-            topic = '{}.{}.{}'.format(service, object_type, action)
-            self.amqp_counter[topic] += 1
-
-        triggers.internal.amqp_trigger.publish_message = (
-            amqp_publish_message_mock
-        )
         super().setUp()
 
     def create_app(self, overrides=None):
@@ -488,14 +478,6 @@ class _BaseTestCase(flask_testing.TestCase):
                 actual.pop(k)
             except (IndexError, KeyError, TypeError):
                 pass
-
-        # example:
-        # {
-        #     'employee.create.it': 3,
-        #     'organisation.edit.association': 1,
-        # }
-        amqp_recieved = Counter(amqp_topics)
-        self.assertEqual(amqp_recieved, self.amqp_counter)
 
         return actual
 

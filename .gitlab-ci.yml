@@ -39,7 +39,7 @@ variables:
 .lint-default: &lint-default
   stage: lint
   needs: []
-  image: python:3.7
+  image: python:3.8
   services: []
   tags:
     - docker
@@ -101,7 +101,7 @@ Build OS2MO:
       --destination=${IMAGE_SHA}
 
 Build docs:
-  image: python:3.7
+  image: python:3.8
   stage: build
   needs: []
   services: []
@@ -173,7 +173,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:latest
       alias: mox
       command: [
       "gunicorn",
@@ -205,7 +205,7 @@ e2e-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:latest
       alias: mox
       command: [
       "gunicorn",
