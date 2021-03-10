@@ -5,12 +5,24 @@ New features
 ------------
 * #41387: Allowed frontend to create and edit (but not move) root units
 * #38904: Deprecated read-only
-* #40700: Added HTTP(s) Trigger system
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
 * #40863: MO backend can now expose the number of associations and engagements in each organisation unit
 * #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage
 * #39853: Users can now specify a date when searching. This allows finding inactive organisation units, etc.
 * #41915: Prepare MO to utilize FastAPI LoRa.
+
+Version 1.15.0, 2021-03-08
+==========================
+
+New features
+------------
+
+* #40700: Added HTTP(s) Trigger system
+
+Bug fixes
+---------
+
+# 41952: Bugfix: facet children not properly ported to async
 
 Version 1.14.1, 2021-03-04
 ==========================
