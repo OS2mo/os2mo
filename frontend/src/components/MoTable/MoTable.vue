@@ -109,7 +109,6 @@ import MoEntryTerminateModal from '@/components/MoEntryTerminateModal'
 import MoLink from '@/components/MoLink'
 import bFormCheckbox from 'bootstrap-vue/es/components/form-checkbox/form-checkbox'
 import bFormCheckboxGroup from 'bootstrap-vue/es/components/form-checkbox/form-checkbox-group'
-import i18n from "../../i18n";
 import {has_translation_prefix, translate_prefixed} from "../../i18n";
 
 export default {
