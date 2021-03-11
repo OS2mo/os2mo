@@ -1201,6 +1201,34 @@ class Writing(util.LoRATestCase):
 
         self.assertEqual(actual, expected)
 
+    def test_create_address_related_to_engagement(self, mock):
+        self.load_sample_structures()
+
+        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+
+        req = [{"type": "address",
+                'address_type': {'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0', },
+                'value': 'root@example.com', "validity": {"from": "2017-01-02", },
+                "engagement": {"uuid": engagement_uuid}}]
+
+        created = self.assertRequest(
+            '/service/details/create',
+            json=req,
+        )
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_response = util.async_to_sync(c.organisationfunktion.get)(
+            uuid=created[0])
+        actual = actual_response['relationer']['tilknyttedefunktioner']
+        expected = [{'objekttype': 'engagement',
+                     'uuid': engagement_uuid,
+                     'virkning': {'from': '2017-01-02 '
+                                          '00:00:00+01',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}}]
+        self.assertEqual(actual, expected)
+
+
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True)
 class Reading(util.LoRATestCase):

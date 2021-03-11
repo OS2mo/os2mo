@@ -7,9 +7,9 @@ import uuid
 from typing import Any, Dict
 
 import flask
-import mora.async_util
 import requests
 
+import mora.async_util
 from . import facet
 from . import handlers
 from . import org
@@ -169,11 +169,11 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
                                               required=False)
 
-        manager_uuid = util.get_mapping_uuid(req, mapping.MANAGER,
-                                             required=False)
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT,
+                                                required=False)
 
         number_of_uuids = len(
-            list(filter(None, [org_unit_uuid, employee_uuid, manager_uuid])))
+            list(filter(None, [org_unit_uuid, employee_uuid, engagement_uuid])))
 
         if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -226,10 +226,14 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
+            tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else [],
             opgaver=handler.get_lora_properties(),
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
+
+        if engagement_uuid:
+            func['relationer']['tilknyttedefunktioner'][0][
+                "objekttype"] = mapping.ENGAGEMENT
 
         self.payload = func
         self.uuid = func_id

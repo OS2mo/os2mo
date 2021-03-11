@@ -12,6 +12,7 @@ New features
 * #41915: Prepare MO to utilize FastAPI LoRa.
 * #42112: Allow UI to set and change engagement ID (bvn)
 * #42033: Made extension_X fields on engagements UI-wise configurable in conf_db
+* #41973: Allowed addresses pointing to engagements
 
 Version 1.15.0, 2021-03-08
 ==========================
