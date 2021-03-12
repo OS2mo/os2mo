@@ -18,6 +18,7 @@ import 'moment/locale/da'
 
 import '@/views/employee/install'
 import '@/views/organisation/install'
+import '@/views/engagement/install'
 import '@/modules/install'
 
 sync(store, router)
