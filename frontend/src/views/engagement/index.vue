@@ -8,7 +8,6 @@ SPDX-License-Identifier: MPL-2.0
       <mo-log/>
     </div>
 
-    <mo-employee-workflows/>
   </div>
 </template>
 
@@ -17,12 +16,10 @@ SPDX-License-Identifier: MPL-2.0
  * A employee component.
  */
 import { mapState } from 'vuex'
-import MoEmployeeWorkflows from './MoEmployeeWorkflows'
 import MoLog from '@/components/MoLog/MoLog'
 
 export default {
   components: {
-    MoEmployeeWorkflows,
     MoLog
   },
   computed: {

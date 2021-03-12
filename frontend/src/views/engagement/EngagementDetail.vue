@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 
       <h4 class="card-title" v-show="!isLoading">
         <icon name="user-alt"/>
-        {{employee.name}}
+        {{engagement.user_key}}
       </h4>
 
       <div class="row">
@@ -27,7 +27,7 @@ SPDX-License-Identifier: MPL-2.0
 import { EventBus, Events } from '@/EventBus'
 import MoLoader from '@/components/atoms/MoLoader'
 import { mapState, mapGetters } from 'vuex'
-import { Employee } from '@/store/actions/employee'
+import { Engagement } from '@/store/actions/engagement'
 import { AtDate } from '@/store/actions/atDate'
 
 export default {
@@ -37,7 +37,7 @@ export default {
 
   data () {
     /**
-     * The employee, isLoading component value.
+     * The engagement, isLoading component value.
      * Used to detect changes and restore the value for columns.
      */
     return {
@@ -53,7 +53,7 @@ export default {
     }),
 
     ...mapGetters({
-      employee: Employee.getters.GET_EMPLOYEE,
+      engagement: Engagement.getters.GET_ENGAGEMENT,
       atDate: AtDate.getters.GET,
     }),
 
@@ -69,37 +69,31 @@ export default {
   },
 
   created () {
-    this.$store.commit(Employee.mutations.RESET_EMPLOYEE)
-    this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
+    this.$store.commit(Engagement.mutations.RESET_ENGAGEMENT)
+    this.$store.dispatch(Engagement.actions.SET_ENGAGEMENT, this.$route.params.uuid)
   },
 
   mounted () {
     this._atDate = this.$store.getters[AtDate.getters.GET]
-    EventBus.$on(Events.EMPLOYEE_CHANGED, this.listener)
+    EventBus.$on(Events.ENGAGEMENT_CHANGED, this.listener)
   },
 
   beforeDestroy () {
-    EventBus.$off(Events.EMPLOYEE_CHANGED, this.listener)
+    EventBus.$off(Events.ENGAGEMENT_CHANGED, this.listener)
   },
 
   methods: {
     loadContent (event) {
       event.atDate = this._atDate
       this.latestEvent = event
-      this.$store.dispatch(Employee.actions.SET_DETAIL, event)
+      this.$store.dispatch(Engagement.actions.SET_DETAIL, event)
     },
 
     listener () {
-      this.$store.dispatch(Employee.actions.SET_EMPLOYEE, this.$route.params.uuid)
+      this.$store.dispatch(Engagement.actions.SET_ENGAGEMENT, this.$route.params.uuid)
       this.loadContent(this.latestEvent)
     }
   }
 
 }
 </script>
-
-<style scoped>
-  .cpr {
-    color: #aaa
-  }
-</style>

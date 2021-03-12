@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-const Employee = () => import(/* webpackChunkName: "employee" */ './')
-const MoEmployeeList = () => import(/* webpackChunkName: "employee" */ './MoEmployeeList')
-const EngagementDetail = () => import(/* webpackChunkName: "employee" */ './EngagementDetail')
+const Engagement = () => import(/* webpackChunkName: "engagement" */ './')
+const MoEmployeeList = () => import(/* webpackChunkName: "engagement" */ './MoEmployeeList')
+const EngagementDetail = () => import(/* webpackChunkName: "engagement" */ './EngagementDetail')
 
 export default {
   path: '/engagement',
   name: 'Engagement',
-  component: Employee,
+  component: Engagement,
   redirect: { name: 'EngagementList' },
 
   children: [

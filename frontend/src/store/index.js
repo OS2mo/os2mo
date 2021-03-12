@@ -6,12 +6,14 @@ import Vuex from 'vuex'
 import auth from './modules/auth'
 import conf from './modules/conf'
 import employee from './modules/employee'
+import engagement from './modules/engagement'
 import log from './modules/log'
 import organisation from './modules/organisation'
 import organisationUnit from './modules/organisationUnit'
 import facet from './modules/facet'
 import atDate from './modules/atDate'
 import { Employee } from './actions/employee'
+import { Engagement } from './actions/engagement'
 import { OrganisationUnit } from './actions/organisationUnit'
 import { Facet } from './actions/facet'
 import { Organisation } from './actions/organisation'
@@ -28,6 +30,7 @@ export default new Vuex.Store({
     [Conf.NAMESPACE]: conf,
     [Auth.NAMESPACE]: auth,
     [Employee.NAMESPACE]: employee,
+    [Engagement.NAMESPACE]: engagement,
     log: log,
     [Organisation.NAMESPACE]: organisation,
     [OrganisationUnit.NAMESPACE]: organisationUnit,
