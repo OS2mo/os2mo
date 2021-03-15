@@ -6,6 +6,7 @@ import freezegun
 
 import mora.async_util
 from mora import lora
+from mora.util import get_effect_from
 from tests import util
 
 ean_class = {
@@ -60,8 +61,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
-                    'description': 'Must supply exactly one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply exactly one org_unit UUID, '
+                                   'person UUID or engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -93,8 +94,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
-                    'description': 'Must supply exactly one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply exactly one org_unit UUID, '
+                                   'person UUID or engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -289,8 +290,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/edit',
                 {
-                    'description': 'Must supply at most one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply at most one of org_unit UUID, '
+                                   'person UUID and engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -757,134 +758,66 @@ class Writing(util.LoRATestCase):
             mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
-    def test_create_manager_with_address(self, mock):
+    def test_create_engagement_with_address(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        func_id, = self.assertRequest(
-            '/service/details/create',
-            json=[{
-                "type": "manager",
-                "org_unit": {
-                    'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                },
-                "person": {
-                    'uuid': userid
-                },
-                "responsibility": [{
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-                }],
-                "manager_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
-                "manager_level": {
-                    "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-                },
+        payload = [
+            {
+                "type": "engagement",
+                "person": {'uuid': userid},
+                "primary": {'uuid': "d60d1fd6-e561-463c-9a43-2fa99d27c7a3"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
                 },
-                "address": [{
-                    "type": "address",
-                    'address_type': {
-                        'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                    },
-                    'value': 'root@example.com',
-                    "validity": {
-                        "from": "2017-01-02",
-                    },
-                }],
-            }],
+                "address": [
+                    {"type": "address",
+                     'address_type': {'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0', },
+                     'value': 'root@example.com',
+                     "validity": {"from": "2017-01-02", },
+                     }
+                ],
+            }
+        ]
+
+        func_id, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
             amqp_topics={
-                'org_unit.manager.create': 1,
-                'employee.manager.create': 1,
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
             },
         )
-
-        expected = {
-            'attributter': {
-                'organisationfunktionegenskaber': [{
-                    'brugervendtnoegle': 'root@example.com',
-                    'funktionsnavn': 'Adresse',
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }]
-            },
-            'livscykluskode': 'Importeret',
-            'note': 'Oprettet i MO',
-            'relationer': {
-                'adresser': [{
-                    'objekttype': 'EMAIL',
-                    'urn': 'urn:mailto:root@example.com',
-                    'virkning': {
-                        'from': '2017-01-02 00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }],
-                'organisatoriskfunktionstype': [{
-                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }],
-                'tilknyttedefunktioner': [{
-                    'uuid': func_id,
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }],
-                'tilknyttedeorganisationer': [{
-                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }]
-            },
-            'tilstande': {
-                'organisationfunktiongyldighed': [{
-                    'gyldighed': 'Aktiv',
-                    'virkning': {
-                        'from': '2017-01-02 '
-                                '00:00:00+01',
-                        'from_included': True,
-                        'to': 'infinity',
-                        'to_included': False
-                    }
-                }]
+        expected_tilknyttedefunktioner = [{
+            'uuid': func_id,
+            'objekttype': 'engagement',
+            'virkning': {
+                'from': '2017-01-02 '
+                        '00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
             }
-        }
+        }]
 
         addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedefunktioner=func_id)
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
-        self.assertRegistrationsEqual(
-            expected,
-            util.async_to_sync(c.organisationfunktion.get)(addr_id)
-        )
+        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)['relationer'][
+            'tilknyttedefunktioner']
+
+        self.assertEqual(expected_tilknyttedefunktioner, actual)
 
     def test_create_org_unit_with_address(self, mock):
         self.load_sample_structures()
@@ -1161,7 +1094,7 @@ class Writing(util.LoRATestCase):
         actual_reg = util.async_to_sync(c.organisationfunktion.get)(addr_id)
         actual = sorted(
             actual_reg['attributter']['organisationfunktionegenskaber'],
-            key=util.get_effect_from,
+            key=get_effect_from,
         )
 
         expected = [

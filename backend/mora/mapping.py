@@ -116,6 +116,8 @@ RELATION_TRANSLATIONS = {
     'leave': LEAVE_KEY.lower(),
 }
 
+OBJECTTYPE = 'objekttype'
+
 
 #
 # TYPES
@@ -140,7 +142,7 @@ class FieldTuple(object):
     )
 
     def __init__(self, path: typing.Tuple[str, str], type: FieldTypes,
-                 filter_fn: typing.Callable[[dict], bool]=None):
+                 filter_fn: typing.Callable[[dict], bool] = None):
         self.__path = path
         self.__type = type
         self.__filter_fn = filter_fn
@@ -375,7 +377,6 @@ EMPLOYEE_FIELDS = {
     EMPLOYEE_GYLDIGHED_FIELD,
     BELONGS_TO_FIELD,
 }
-
 
 ENGAGEMENT_FIELDS = {
     ORG_FUNK_EGENSKABER_FIELD,

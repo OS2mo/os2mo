@@ -173,12 +173,18 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                                 required=False)
 
         number_of_uuids = len(
-            list(filter(None, [org_unit_uuid, employee_uuid, engagement_uuid])))
+            list(
+                filter(
+                    lambda x: x is not None,
+                    [org_unit_uuid, employee_uuid, engagement_uuid],
+                )
+            )
+        )
 
         if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                'Must supply exactly one org unit UUID, '
-                'employee UUID or manager UUID', obj=req)
+                f'Must supply exactly one {mapping.ORG_UNIT} UUID, '
+                f'{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID', obj=req)
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -232,8 +238,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
         if engagement_uuid:
-            func['relationer']['tilknyttedefunktioner'][0][
-                "objekttype"] = mapping.ENGAGEMENT
+            func["relationer"]["tilknyttedefunktioner"][0][
+                "objekttype"
+            ] = mapping.ENGAGEMENT
 
         self.payload = func
         self.uuid = func_id
@@ -267,16 +274,22 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         }
 
         number_of_uuids = len(
-            list(filter(None, [
-                data.get(mapping.PERSON),
-                data.get(mapping.ORG_UNIT),
-                data.get(mapping.MANAGER),
-            ])))
+            list(
+                filter(
+                    lambda x: x is not None,
+                    [
+                        data.get(mapping.PERSON),
+                        data.get(mapping.ORG_UNIT),
+                        data.get(mapping.ENGAGEMENT),
+                    ],
+                )
+            )
+        )
 
         if number_of_uuids > 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                'Must supply at most one org unit UUID, '
-                'employee UUID or manager UUID', obj=req)
+                f'Must supply at most one of {mapping.ORG_UNIT} UUID, '
+                f'{mapping.PERSON} UUID and {mapping.ENGAGEMENT} UUID', obj=req)
 
         original_data = req.get('original')
         if original_data:
@@ -314,12 +327,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
-        if mapping.MANAGER in data:
+        if mapping.ENGAGEMENT in data:
             update_fields.append((
                 mapping.ASSOCIATED_FUNCTION_FIELD,
                 {
                     'uuid':
-                        util.get_mapping_uuid(data, mapping.MANAGER),
+                        util.get_mapping_uuid(data, mapping.ENGAGEMENT),
+                    mapping.OBJECTTYPE: mapping.ENGAGEMENT,
                 },
             ))
 
