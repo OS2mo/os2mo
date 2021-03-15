@@ -13,7 +13,11 @@ SPDX-License-Identifier: MPL-2.0
       <div class="row">
         <div class="col"></div>
       </div>
-
+      <engagement-detail-tabs
+        :uuid="route.params.uuid"
+        :content="engagementDetails"
+        @show="loadContent($event)"
+      />
 
     </div>
   </div>
@@ -29,9 +33,12 @@ import MoLoader from '@/components/atoms/MoLoader'
 import { mapState, mapGetters } from 'vuex'
 import { Engagement } from '@/store/actions/engagement'
 import { AtDate } from '@/store/actions/atDate'
+import EngagementDetailTabs from './EngagementDetailTabs'
+
 
 export default {
   components: {
+    EngagementDetailTabs,
     MoLoader
   },
 
@@ -54,6 +61,7 @@ export default {
 
     ...mapGetters({
       engagement: Engagement.getters.GET_ENGAGEMENT,
+      engagementDetails: Engagement.getters.GET_DETAILS,
       atDate: AtDate.getters.GET,
     }),
 

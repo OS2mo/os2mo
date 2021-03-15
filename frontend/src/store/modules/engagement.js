@@ -19,9 +19,10 @@ const state = defaultState
 
 const actions = {
   [_engagement.actions.SET_ENGAGEMENT] ({ commit }, payload) {
-    return Service.get(`/of/${payload}/`)
+    return Service.api_v1_get(`/engagement?uuid=${payload}`)
       .then(response => {
-        commit(_engagement.mutations.SET_ENGAGEMENT, response.data)
+        commit(_engagement.mutations.SET_ENGAGEMENT,
+            response.data.length ? response.data[0] : {})
         return response.data
       })
       .catch(error => {
@@ -30,7 +31,7 @@ const actions = {
   },
 
   [_engagement.actions.SET_DETAIL] ({ state, commit }, payload) {
-    let uuid = payload.uuid || state.uuid
+    let uuid = payload.uuid
 
     // Build query string from payload
     const params = new URLSearchParams()
@@ -44,7 +45,12 @@ const actions = {
       }
     }
 
-    return Service.get(`/of/engagement/${uuid}/details/${payload.detail}?${params}`)
+    // special handling if we're asking about our own id
+    if (uuid){
+        params.append('uuid', uuid)
+    }
+
+    return Service.api_v1_get(`/${payload.detail}?${params}`)
       .then(response => {
         let content = {
           key: payload.detail,

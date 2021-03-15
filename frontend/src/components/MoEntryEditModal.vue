@@ -94,7 +94,7 @@ export default {
       type: String,
       required: true,
       validator (value) {
-        if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
+        if (value === 'EMPLOYEE' || value === 'ORG_UNIT' || value === 'ENGAGEMENT') return true
         console.warn('Action must be either EMPLOYEE or ORG_UNIT')
         return false
       }

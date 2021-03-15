@@ -3,100 +3,16 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <b-tabs v-model="tabIndex" lazy>
-      <b-tab @click="navigateToTab('#medarbejder')" href="#medarbejder" :title="$t('tabs.employee.employee')">
+      <b-tab @click="navigateToTab('#engagement')" href="#engagement" :title="$t('tabs.engagement.engagement')">
         <mo-table-detail
-          type="EMPLOYEE"
+          type="ENGAGEMENT"
           :uuid="uuid"
-          :content="content['employee']"
-          content-type="employee"
-          :columns="employee"
-          @show="loadContent('employee', $event)"
-          :entry-component="!hideActions ? components.employee : undefined"
-          hide-create
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.employee.engagements')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['engagement'] "
+          :content="content['engagement']"
           content-type="engagement"
           :columns="engagement"
           @show="loadContent('engagement', $event)"
           :entry-component="!hideActions ? components.engagement : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#adresser')" href="#adresser" :title="$t('tabs.employee.addresses')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['address']"
-          content-type="address"
-          :columns="address"
-          @show="loadContent('address', $event)"
-          :entry-component="!hideActions ? components.address : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#roller')" href="#roller" :title="$t('tabs.employee.roles')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['role']"
-          content-type="role"
-          :columns="role"
-          @show="loadContent('role', $event)"
-          :entry-component="!hideActions ? components.role : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#it')" href="#it" :title="$t('tabs.employee.it')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['it']"
-          content-type="it"
-          :columns="it"
-          @show="loadContent('it', $event)"
-          :entry-component="!hideActions ? components.it : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#tilknytninger')" href="#tilknytninger" :title="$tc('tabs.employee.association', 2)">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['association']"
-          content-type="association"
-          :columns="association"
-          @show="loadContent('association', $event)"
-          :entry-component="!hideActions ? components.association : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#orlov')" href="#orlov" :title="$t('tabs.employee.leave')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['leave']"
-          content-type="leave"
-          :columns="leave"
-          @show="loadContent('leave', $event)"
-          :entry-component="!hideActions ? components.leave : undefined"
-        />
-      </b-tab>
-
-      <b-tab @click="navigateToTab('#leder')" href="#leder" :title="$t('tabs.employee.manager')">
-        <mo-table-detail
-          type="EMPLOYEE"
-          :uuid="uuid"
-          :content="content['manager']"
-          content-type="manager"
-          :columns="manager"
-          @show="loadContent('manager', $event)"
-          :entry-component="!hideActions ? components.manager : undefined"
+          hide-create
         />
       </b-tab>
     </b-tabs>
@@ -105,11 +21,11 @@ SPDX-License-Identifier: MPL-2.0
 
 <script>
 /**
- * A employee detail tabs component.
+ * A engagement detail tabs component.
  */
 
 import { mapGetters } from 'vuex'
-import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
+import { MoEngagementEntry, MoEmployeeAddressEntry, MoItSystemEntry, MoAssociationEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
@@ -140,8 +56,8 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
-      currentDetail: 'employee',
+      tabs: ['#engagement', '#adresser', '#it', '#tilknytninger'],
+      currentDetail: 'engagement',
       _atDate: undefined,
       /**
        * The leave, it, address, engagement, association, role, manager component value.
@@ -170,25 +86,15 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
-      employee: [
-        { label: 'name', data: 'name', field: null },
-        { label: 'nickname', data: 'nickname', field: null },
-      ],
 
       /**
-       * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
-       * MoAssociationEntry, MoLeaveEntry, MoManagerEntry component.
        * Used to add the components in the tabs.
        */
       components: {
-        employee: MoEmployeeEntry,
         engagement: MoEngagementEntry,
         address: MoEmployeeAddressEntry,
-        role: MoRoleEntry,
         it: MoItSystemEntry,
         association: MoAssociationEntry,
-        leave: MoLeaveEntry,
-        manager: MoManagerEntry
       }
     }
   },
@@ -199,7 +105,6 @@ export default {
 
       let columns = [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'engagement_id', data: 'user_key', field: null },
         { label: 'job_function', data: 'job_function' },
         { label: 'engagement_type', data: 'engagement_type' }
       ]

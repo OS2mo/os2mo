@@ -19,23 +19,41 @@ const Service = axios.create({
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
   }
 })
+const ApiV1 = axios.create({
+  baseURL: '/api/v1',
+  headers: {
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-Client-Name': 'OS2mo-UI',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
+  }
+})
+
+function get_by_axios (url, axios) {
+return axios
+  .get(url)
+  .catch(err => {
+    console.warn('request failed', err)
+
+    if (err.response.status === 401) {
+      return store.dispatch(Auth.actions.AUTH_REQUEST)
+    }
+
+    return new Promise(function (resolve, reject) {
+      reject(err)
+    })
+  })
+}
+
+
 
 export default {
   get (url) {
-    return Service
-      .get(url)
-      .catch(err => {
-        console.warn('request failed', err)
-
-        if (err.response.status === 401) {
-          return store.dispatch(Auth.actions.AUTH_REQUEST)
-        }
-
-        return new Promise(function (resolve, reject) {
-          reject(err)
-        })
-      })
+    return get_by_axios(url, Service)
   },
-
-  post: Service.post
+  post: Service.post,
+  api_v1_get(url){
+    return get_by_axios(url, ApiV1)
+  }
 }
