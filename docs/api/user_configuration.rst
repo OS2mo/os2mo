@@ -45,6 +45,7 @@ available options are:
 * ``manager_inheritance`` Whether manager inheritance should be enabled for the UI
 * ``substitute_roles`` Comma-separated list of uuids of association-roles for which having a substitute is possible
 * ``extension_field_ui_labels`` Comma-separated list of labels used when displaying extension attributes
+* ``show_engagement_hyperlink`` Whether to hyperlink to the detailed engagement page
 
 If a option is identicated for a given unit, this will be used. If the option
 is not available, it will inherit the value from the nearest parent in the
