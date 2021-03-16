@@ -17,6 +17,12 @@ SPDX-License-Identifier: MPL-2.0
               :validity="entry.validity"
       />
 
+      <mo-input-text
+        class="engagement_id"
+        v-model="entry.user_key"
+        :label="$t('input_fields.engagement_id')"
+      />
+
       <mo-facet-picker
         facet="engagement_job_function"
         v-model="entry.job_function"
@@ -34,6 +40,8 @@ SPDX-License-Identifier: MPL-2.0
                        v-model="entry.primary"
                        required
       />
+
+
     </div>
   </div>
 </template>
@@ -43,7 +51,7 @@ SPDX-License-Identifier: MPL-2.0
  * A engagement entry component.
  */
 
-import { MoInputDateRange } from '@/components/MoInput'
+import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
@@ -57,6 +65,7 @@ export default {
   name: 'MoEngagementEntry',
 
   components: {
+    MoInputText,
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker
