@@ -10,6 +10,7 @@ New features
 * #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage
 * #39853: Users can now specify a date when searching. This allows finding inactive organisation units, etc.
 * #41915: Prepare MO to utilize FastAPI LoRa.
+* #42112: Allow UI to set and change engagement ID (bvn)
 
 Version 1.15.0, 2021-03-08
 ==========================
