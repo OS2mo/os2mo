@@ -145,7 +145,20 @@ export default {
         contents = [contents[this.index]]
       }
 
+      // default handler
       let handler = this.column_handlers[this.column]
+
+      // special case handler
+      if (this.label === "engagement_id"){
+        handler = 'EngagementDetail'
+
+        // remap user_key to object {user_key: ..., uuid: ...}
+        this.field = this.column
+        let content = {'uuid': this.value.uuid};
+        content[this.field] = this.value[this.column]
+        contents = [content]
+      }
+
       const parts = []
       for (let i = 0; i < contents.length; i++) {
         let c = contents[i]

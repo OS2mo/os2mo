@@ -63,23 +63,9 @@ export default {
        * The leave, it, address, engagement, association, role, manager component value.
        * Used to detect changes and restore the value for columns.
        */
-      role: [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'role_type', data: 'role_type' }
-      ],
       it: [
         { label: 'it_system', data: 'itsystem' },
         { label: 'user_key', data: null, field: 'user_key' }
-      ],
-      leave: [
-        { label: 'leave_type', data: 'leave_type' },
-        { label: 'engagement', field: null, data: 'engagement' }
-      ],
-      manager: [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'responsibility', data: 'responsibility' },
-        { label: 'manager_type', data: 'manager_type' },
-        { label: 'manager_level', data: 'manager_level' }
       ],
       address: [
         { label: 'address_type', data: 'address_type' },
@@ -104,6 +90,7 @@ export default {
       let conf = this.$store.getters['conf/GET_CONF_DB']
 
       let columns = [
+        { label: 'person', data: 'person' },
         { label: 'org_unit', data: 'org_unit' },
         { label: 'job_function', data: 'job_function' },
         { label: 'engagement_type', data: 'engagement_type' }
