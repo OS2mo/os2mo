@@ -18,6 +18,7 @@ SPDX-License-Identifier: MPL-2.0
 
       <b-tab @click="navigateToTab('#engagementer')" href="#engagementer" :title="$t('tabs.employee.engagements')">
         <mo-table-detail
+          v-if="engagement !== undefined"
           type="EMPLOYEE"
           :uuid="uuid"
           :content="content['engagement'] "
@@ -115,6 +116,7 @@ import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { Facet } from '@/store/actions/facet'
 import { AtDate } from '@/store/actions/atDate'
+import { columns } from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -197,20 +199,21 @@ export default {
     engagement () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
 
-      let columns = [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'engagement_id', data: 'user_key', field: null },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' }
-      ]
-
-      if (conf.show_primary_engagement) {
-        columns.splice(2, 0,
-          { label: 'primary', data: 'primary' }
-        )
+      if (!('extension_field_ui_labels' in conf)) {
+        return undefined
       }
 
-      return columns
+      let dyn_columns = [{ label: 'org_unit', data: 'org_unit' }]
+      dyn_columns = dyn_columns.concat(columns)
+      if (conf.show_primary_engagement) {
+        dyn_columns.push({ label: 'primary', data: 'primary' })
+      }
+
+      let extension_labels = conf.extension_field_ui_labels.split(',')
+      dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
+        ({ label: label, data: 'extension_' + String(index+1) }) ))
+
+      return dyn_columns
     },
 
     association () {

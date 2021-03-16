@@ -127,6 +127,7 @@ import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoMana
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { AtDate } from '@/store/actions/atDate'
+import { columns } from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -232,19 +233,21 @@ export default {
     },
 
     engagement () {
-      let columns = [
-        { label: 'person', data: 'person' },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'engagement_type', data: 'engagement_type' }
+      let dyn_columns = [
+        { label: 'person', data: 'person' }
       ]
 
       if (this.orgUnitInfo.user_settings.orgunit.show_primary_engagement) {
-        columns.splice(1, 0,
-          { label: 'primary', data: 'primary' }
+        dyn_columns.push({ label: 'primary', data: 'primary' }
         )
       }
+      dyn_columns = dyn_columns.concat(columns)
+      let extension_labels =
+        (this.orgUnitInfo.user_settings.orgunit.extension_field_ui_labels).split(',')
+      dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
+        ({ label: label, data: 'extension_' + String(index+1) }) ))
 
-      return columns
+      return dyn_columns
     },
 
     association () {
