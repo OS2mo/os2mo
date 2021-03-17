@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 const Engagement = () => import(/* webpackChunkName: "engagement" */ './')
-const MoEmployeeList = () => import(/* webpackChunkName: "engagement" */ './MoEmployeeList')
 const EngagementDetail = () => import(/* webpackChunkName: "engagement" */ './EngagementDetail')
 
 export default {
@@ -12,11 +11,6 @@ export default {
   redirect: { name: 'EngagementList' },
 
   children: [
-    {
-      path: 'liste',
-      name: 'EngagementList',
-      component: MoEmployeeList
-    },
     {
       path: ':uuid',
       name: 'EngagementDetail',

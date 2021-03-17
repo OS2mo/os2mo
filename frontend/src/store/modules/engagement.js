@@ -19,7 +19,7 @@ const state = defaultState
 
 const actions = {
   [_engagement.actions.SET_ENGAGEMENT] ({ commit }, payload) {
-    return Service.api_v1_get(`/engagement?uuid=${payload}`)
+    return Service.api_v1_get(`/engagement/by_uuid?uuid=${payload}`)
       .then(response => {
         commit(_engagement.mutations.SET_ENGAGEMENT,
             response.data.length ? response.data[0] : {})
@@ -32,7 +32,6 @@ const actions = {
 
   [_engagement.actions.SET_DETAIL] ({ state, commit }, payload) {
     let uuid = payload.uuid
-
     // Build query string from payload
     const params = new URLSearchParams()
     params.append('validity', payload.validity || 'present')
@@ -46,11 +45,15 @@ const actions = {
     }
 
     // special handling if we're asking about our own id
-    if (uuid){
+    let path = `/${payload.detail}`
+    if (payload.detail === "engagement" && uuid){
+        path += "/by_uuid"
         params.append('uuid', uuid)
+    } else if (uuid) {
+        params.append('engagement', uuid)
     }
-
-    return Service.api_v1_get(`/${payload.detail}?${params}`)
+    // Service.get(`/e/23d2dfc7-6ceb-47cf-97ed-db6beadcb09b/details/${payload.detail}?${params}`)
+    return Service.api_v1_get(`${path}?${params}`)
       .then(response => {
         let content = {
           key: payload.detail,

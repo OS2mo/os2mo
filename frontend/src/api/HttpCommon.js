@@ -31,19 +31,19 @@ const ApiV1 = axios.create({
 })
 
 function get_by_axios (url, axios) {
-return axios
-  .get(url)
-  .catch(err => {
-    console.warn('request failed', err)
+  return axios
+    .get(url)
+    .catch(err => {
+      console.warn('request failed', err)
 
-    if (err.response.status === 401) {
-      return store.dispatch(Auth.actions.AUTH_REQUEST)
-    }
+      if (err.response.status === 401) {
+        return store.dispatch(Auth.actions.AUTH_REQUEST)
+      }
 
-    return new Promise(function (resolve, reject) {
-      reject(err)
+      return new Promise(function (resolve, reject) {
+        reject(err)
+      })
     })
-  })
 }
 
 
@@ -53,7 +53,7 @@ export default {
     return get_by_axios(url, Service)
   },
   post: Service.post,
-  api_v1_get(url){
+  api_v1_get(url) {
     return get_by_axios(url, ApiV1)
   }
 }

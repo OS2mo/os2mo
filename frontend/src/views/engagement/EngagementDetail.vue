@@ -64,7 +64,6 @@ export default {
       engagementDetails: Engagement.getters.GET_DETAILS,
       atDate: AtDate.getters.GET,
     }),
-
   },
 
   watch: {

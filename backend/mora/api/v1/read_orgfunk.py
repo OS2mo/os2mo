@@ -6,6 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from mora import common
+from mora.exceptions import ErrorCodes
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
@@ -196,6 +197,8 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         at: Optional[Any] = None,
         validity: Optional[Any] = None,
     ):
+        if not set(current_query.args.keys()) <= {"at", "validity", "uuid"}:
+            raise ErrorCodes.E_INVALID_INPUT()
         return await orgfunk_endpoint(
             orgfunk_type=orgfunk, query_args=to_dict(current_query.args)
         )

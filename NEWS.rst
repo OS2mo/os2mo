@@ -9,6 +9,7 @@ New features
 * #42073: New /api/v1/ endpoints introduced, API currently still unstable
 * #42779: Added new address scope: Multifield Text (2-fields)
 * #41914: Replaced Flask with FastAPI
+* #42034: Added entities as proper frontend entity (behind configuration)
 
 Version 1.16.0, 2021-04-06
 ==========================

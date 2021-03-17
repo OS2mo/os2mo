@@ -15,6 +15,18 @@ SPDX-License-Identifier: MPL-2.0
           hide-create
         />
       </b-tab>
+
+      <b-tab @click="navigateToTab('#adresser')" href="#adresser" :title="$t('tabs.engagement.addresses')">
+        <mo-table-detail
+          type="ENGAGEMENT"
+          :uuid="uuid"
+          :content="content['address']"
+          content-type="address"
+          :columns="address"
+          @show="loadContent('address', $event)"
+          :entry-component="!hideActions ? components.address : undefined"
+        />
+      </b-tab>
     </b-tabs>
   </div>
 </template>
@@ -41,7 +53,7 @@ export default {
 
   props: {
     /**
-     * Defines a unique identifier which must be unique.
+     * Defines a unique identifier.
      */
     uuid: String,
 
