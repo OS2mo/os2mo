@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest import TestCase
 
 import contextlib
 import copy
@@ -14,7 +15,6 @@ from copy import deepcopy
 
 import aioresponses
 import flask
-import flask_testing
 import jinja2
 import requests
 import requests_mock
@@ -24,6 +24,8 @@ from mora.exceptions import ImproperlyConfigured
 from mora.request_wide_bulking import request_wide_bulk
 from mora.util import restrictargs
 from yarl import URL
+
+from fastapi.testclient import TestClient
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -396,7 +398,7 @@ class mock(requests_mock.Mocker):
             self.__overrider.__exit__(None, None, None)
 
 
-class _BaseTestCase(flask_testing.TestCase):
+class _BaseTestCase(TestCase):
     '''Base class for MO testcases w/o LoRA access.
     '''
 
@@ -404,6 +406,8 @@ class _BaseTestCase(flask_testing.TestCase):
 
     def setUp(self):
         super().setUp()
+        app = self.create_app()
+        self.client = TestClient(app)
 
     def create_app(self, overrides=None):
         # make sure the configured organisation is always reset
@@ -529,7 +533,7 @@ class _BaseTestCase(flask_testing.TestCase):
             kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
             kwargs['headers'] = {'Content-Type': 'application/json'}
 
-        return self.client.open(path, **kwargs)
+        return self.client.get(path, **kwargs)
 
     @staticmethod
     def __sort_inner_lists(obj):

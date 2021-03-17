@@ -3,15 +3,16 @@
 
 import os
 import typing
-
-from fastapi import FastAPI
 from fastapi import APIRouter
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware import Middleware
+from starlette_context.middleware import RawContextMiddleware
 
-import mora.async_util
 from mora import __version__, log
 from mora import health
+from mora.auth import base
 from . import exceptions
 from . import lora
 from . import service
@@ -75,7 +76,13 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
 
     log.init()
 
-    app = FastAPI()
+    middleware = [
+        Middleware(
+            RawContextMiddleware
+        )
+    ]
+    app = FastAPI(middleware=middleware)
+
 
     # app.config.update(settings.app_config)
     # app.url_map.converters['uuid'] = util.StrUUIDConverter
