@@ -7,9 +7,9 @@ import uuid
 from typing import Any, Dict
 
 import flask
-import mora.async_util
 import requests
 
+import mora.async_util
 from . import facet
 from . import handlers
 from . import org
@@ -169,16 +169,22 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON,
                                               required=False)
 
-        manager_uuid = util.get_mapping_uuid(req, mapping.MANAGER,
-                                             required=False)
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT,
+                                                required=False)
 
         number_of_uuids = len(
-            list(filter(None, [org_unit_uuid, employee_uuid, manager_uuid])))
+            list(
+                filter(
+                    lambda x: x is not None,
+                    [org_unit_uuid, employee_uuid, engagement_uuid],
+                )
+            )
+        )
 
         if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                'Must supply exactly one org unit UUID, '
-                'employee UUID or manager UUID', obj=req)
+                f'Must supply exactly one {mapping.ORG_UNIT} UUID, '
+                f'{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID', obj=req)
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -226,10 +232,15 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedefunktioner=[manager_uuid] if manager_uuid else [],
+            tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else [],
             opgaver=handler.get_lora_properties(),
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
+
+        if engagement_uuid:
+            func["relationer"]["tilknyttedefunktioner"][0][
+                "objekttype"
+            ] = mapping.ENGAGEMENT
 
         self.payload = func
         self.uuid = func_id
@@ -263,16 +274,22 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         }
 
         number_of_uuids = len(
-            list(filter(None, [
-                data.get(mapping.PERSON),
-                data.get(mapping.ORG_UNIT),
-                data.get(mapping.MANAGER),
-            ])))
+            list(
+                filter(
+                    lambda x: x is not None,
+                    [
+                        data.get(mapping.PERSON),
+                        data.get(mapping.ORG_UNIT),
+                        data.get(mapping.ENGAGEMENT),
+                    ],
+                )
+            )
+        )
 
         if number_of_uuids > 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                'Must supply at most one org unit UUID, '
-                'employee UUID or manager UUID', obj=req)
+                f'Must supply at most one of {mapping.ORG_UNIT} UUID, '
+                f'{mapping.PERSON} UUID and {mapping.ENGAGEMENT} UUID', obj=req)
 
         original_data = req.get('original')
         if original_data:
@@ -310,12 +327,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 },
             ))
 
-        if mapping.MANAGER in data:
+        if mapping.ENGAGEMENT in data:
             update_fields.append((
                 mapping.ASSOCIATED_FUNCTION_FIELD,
                 {
                     'uuid':
-                        util.get_mapping_uuid(data, mapping.MANAGER),
+                        util.get_mapping_uuid(data, mapping.ENGAGEMENT),
+                    mapping.OBJECTTYPE: mapping.ENGAGEMENT,
                 },
             ))
 

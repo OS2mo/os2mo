@@ -10,7 +10,6 @@ This section describes how to interact with employee manager roles.
 import uuid
 
 import mora.async_util
-from . import address
 from . import handlers
 from . import org
 from .validation import validator
@@ -56,28 +55,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
-        self.addresses = []
-        addr_ids = []
-        addresses = util.checked_get(req, mapping.ADDRESS, [])
-        for address_obj in addresses:
-            addr_id = str(uuid.uuid4())
-            addr_ids.append(addr_id)
-
-            address_obj['manager'] = {
-                'uuid': func_id
-            }
-            address_obj['uuid'] = addr_id
-            if not address_obj.get('validity'):
-                address_obj['validity'] = util.checked_get(
-                    req, mapping.VALIDITY, {})
-
-            self.addresses.append(
-                address.AddressRequestHandler(
-                    address_obj,
-                    mapping.RequestType.CREATE,
-                )
-            )
-
         if manager_level_uuid:
             opgaver.append({
                 'objekttype': 'lederniveau',
@@ -102,7 +79,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
-            tilknyttedefunktioner=addr_ids,
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
@@ -112,12 +88,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.EMPLOYEE_UUID: employee_uuid,
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
-
-    def submit(self):
-        if hasattr(self, 'addresses'):
-            for addr in self.addresses:
-                addr.submit()
-        return super().submit()
 
     def prepare_edit(self, req: dict):
         manager_uuid = req.get('uuid')
@@ -223,46 +193,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                     'uuid': util.get_mapping_uuid(data, mapping.MANAGER_LEVEL),
                 },
             ))
-
-        self.addresses = []
-        for address_obj in util.checked_get(data, mapping.ADDRESS, []):
-
-            addr_uuid = address_obj.get(mapping.UUID)
-
-            # if UUID, perform update
-            if addr_uuid:
-                addr_handler = address.AddressRequestHandler(
-                    {
-                        'data': {
-                            **address_obj,
-                            'validity': data.get(mapping.VALIDITY)
-                        },
-                        'uuid': address_obj.get(mapping.UUID)
-                    },
-                    mapping.RequestType.EDIT
-                )
-            else:
-                addr_uuid = str(uuid.uuid4())
-                addr_handler = address.AddressRequestHandler(
-                    {
-                        'uuid': addr_uuid,
-                        'manager': {
-                            'uuid': manager_uuid
-                        },
-                        'validity': data.get(mapping.VALIDITY),
-                        **address_obj,
-                    },
-                    mapping.RequestType.CREATE
-                )
-
-            update_fields.append((
-                mapping.ASSOCIATED_MANAGER_ADDRESSES_FIELD,
-                {
-                    'uuid': addr_uuid
-                },
-            ))
-
-            self.addresses.append(addr_handler)
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original,
