@@ -15,11 +15,11 @@ import copy
 import datetime
 import functools
 import io
-import operator
-
 import itertools
 import json
+import logging
 import marshal
+import operator
 import os
 import re
 import tempfile
@@ -27,16 +27,11 @@ import typing
 import urllib.parse
 import uuid
 
-import flask
 import dateutil.parser
 import dateutil.tz
 import werkzeug.routing
-import logging
 
 from mora import conf_db
-
-import starlette_context
-
 from . import exceptions
 from . import mapping
 
@@ -208,66 +203,66 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-def restrictargs(*allowed: str, required: typing.Iterable[str] = None):
-    '''Function decorator for checking and verifying Flask request arguments
-
-    If any argument other than those listed is set and has a value,
-    the function logs an error and return HTTP 501.
-
-    '''
-    if required is None:
-        required = []
-
-    allowed_values = {v.lower() for v in allowed}
-    required_values = {v.lower() for v in required}
-    all_allowed_values = allowed_values | required_values
-
-    def wrap(f):
-        @functools.wraps(f)
-        def wrapper(*args, **kwargs):
-            if flask.g.get('are_args_valid'):
-                return f(*args, **kwargs)
-
-            invalidargs = {
-                k for k, v in flask.request.args.items()
-                if v and k.lower() not in all_allowed_values
-            }
-            missing = {
-                k for k in required_values
-                if not flask.request.args.get(k, None)
-            }
-
-            flask.g.are_args_valid = not (missing or invalidargs)
-
-            if not flask.g.are_args_valid:
-                msg = '\n'.join((
-                    'Unsupported request arguments:',
-                    'URL: {}',
-                    'Required: {}',
-                    'Allowed: {}',
-                    'Given: {}',
-                    'Missing: {}',
-                    'Unsupported: {}'
-                )).format(
-                    flask.request.url,
-                    ', '.join(sorted(required_values)),
-                    ', '.join(sorted(allowed_values)),
-                    ', '.join(sorted(flask.request.args)),
-                    ', '.join(sorted(missing)),
-                    ', '.join(sorted(invalidargs)),
-                )
-
-                flask.current_app.logger.error(msg)
-
-                return msg, 501
-
-            return f(*args, **kwargs)
-
-        wrapper.restricts_args = True
-
-        return wrapper
-
-    return wrap
+# def restrictargs(*allowed: str, required: typing.Iterable[str] = None):
+#     '''Function decorator for checking and verifying Flask request arguments
+#
+#     If any argument other than those listed is set and has a value,
+#     the function logs an error and return HTTP 501.
+#
+#     '''
+#     if required is None:
+#         required = []
+#
+#     allowed_values = {v.lower() for v in allowed}
+#     required_values = {v.lower() for v in required}
+#     all_allowed_values = allowed_values | required_values
+#
+#     def wrap(f):
+#         @functools.wraps(f)
+#         def wrapper(*args, **kwargs):
+#             if flask.g.get('are_args_valid'):
+#                 return f(*args, **kwargs)
+#
+#             invalidargs = {
+#                 k for k, v in flask.request.args.items()
+#                 if v and k.lower() not in all_allowed_values
+#             }
+#             missing = {
+#                 k for k in required_values
+#                 if not flask.request.args.get(k, None)
+#             }
+#
+#             flask.g.are_args_valid = not (missing or invalidargs)
+#
+#             if not flask.g.are_args_valid:
+#                 msg = '\n'.join((
+#                     'Unsupported request arguments:',
+#                     'URL: {}',
+#                     'Required: {}',
+#                     'Allowed: {}',
+#                     'Given: {}',
+#                     'Missing: {}',
+#                     'Unsupported: {}'
+#                 )).format(
+#                     flask.request.url,
+#                     ', '.join(sorted(required_values)),
+#                     ', '.join(sorted(allowed_values)),
+#                     ', '.join(sorted(flask.request.args)),
+#                     ', '.join(sorted(missing)),
+#                     ', '.join(sorted(invalidargs)),
+#                 )
+#
+#                 flask.current_app.logger.error(msg)
+#
+#                 return msg, 501
+#
+#             return f(*args, **kwargs)
+#
+#         wrapper.restricts_args = True
+#
+#         return wrapper
+#
+#     return wrap
 
 
 def is_urn(v):
@@ -295,25 +290,25 @@ def uniqueify(xs):
     return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())
 
 
-def log_exception(msg=''):
-    data = flask.request.get_json()
-
-    if data:
-        if 'password' in data:
-            data['password'] = 'X' * 8
-
-        data_str = '\n' + json.dumps(data, indent=2)
-
-    else:
-        data_str = ''
-
-    flask.current_app.logger.exception(
-        'AN ERROR OCCURRED in {!r}: {}\n{}'.format(
-            flask.request.url,
-            msg,
-            data_str,
-        )
-    )
+# def log_exception(msg=''):
+#     data = flask.request.get_json()
+#
+#     if data:
+#         if 'password' in data:
+#             data['password'] = 'X' * 8
+#
+#         data_str = '\n' + json.dumps(data, indent=2)
+#
+#     else:
+#         data_str = ''
+#
+#     flask.current_app.logger.exception(
+#         'AN ERROR OCCURRED in {!r}: {}\n{}'.format(
+#             flask.request.url,
+#             msg,
+#             data_str,
+#         )
+#     )
 
 
 def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
@@ -780,14 +775,14 @@ def get_args_flag(name: str):
     '''
     # TODO: Fix this
 
+    # v = flask.request.args.get(name, '')
+
+    # if v.lower() in ('', '0', 'no', 'n', 'false'):
+    #     return False
+    # else:
+    #     return bool(v)
+
     return False
-
-    v = flask.request.args.get(name, '')
-
-    if v.lower() in ('', '0', 'no', 'n', 'false'):
-        return False
-    else:
-        return bool(v)
 
 
 class StrUUIDConverter(werkzeug.routing.UUIDConverter):

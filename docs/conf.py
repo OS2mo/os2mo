@@ -18,8 +18,6 @@ import os
 import sys
 from unittest.mock import MagicMock
 
-from jinja2 import Template
-
 TOP_DIR = os.path.dirname(os.path.dirname(__file__))
 BACKEND_DIR = os.path.join(TOP_DIR, 'backend')
 FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
@@ -27,7 +25,7 @@ FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
 DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 
-os.environ['FLASK_ENV'] = 'docs'
+os.environ['ENV'] = 'docs'
 
 #
 # -- Generated files ------------------------------------------------------

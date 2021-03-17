@@ -14,7 +14,7 @@ from urllib.parse import parse_qsl
 from copy import deepcopy
 
 import aioresponses
-import flask
+from fastapi.encoders import jsonable_encoder
 import jinja2
 import requests
 import requests_mock
@@ -290,7 +290,7 @@ async def load_sample_structures(minimal=False):
 
 def create_app():
     """
-    Returns a flask app with testing API for e2e-test enabled. It is a superset
+    Returns an app with testing API for e2e-test enabled. It is a superset
     to `mora.app.create_app()`.
 
     """
@@ -304,14 +304,14 @@ def create_app():
 
         await load_sample_structures()
 
-        return flask.jsonify({"testcafe-db-setup": True})
+        return jsonable_encoder({"testcafe-db-setup": True})
 
     @app_object.route("/testing/testcafe-db-teardown")
     @restrictargs()
     def _testcafe_db_teardown():
         _mox_testing_api("db-teardown")
 
-        return flask.jsonify({"testcafe-db-teardown": True})
+        return jsonable_encoder({"testcafe-db-teardown": True})
 
     return app_object
 
@@ -331,17 +331,17 @@ def override_config(overrides: dict):
         settings.update_dict(settings.config, original)
 
 
-@contextlib.contextmanager
-def override_app_config(**overrides):
-    originals = {}
-
-    for k, v in overrides.items():
-        originals[k] = flask.current_app.config[k]
-        flask.current_app.config[k] = v
-
-    yield
-
-    flask.current_app.config.update(overrides)
+# @contextlib.contextmanager
+# def override_app_config(**overrides):
+#     originals = {}
+#
+#     for k, v in overrides.items():
+#         originals[k] = flask.current_app.config[k]
+#         flask.current_app.config[k] = v
+#
+#     yield
+#
+#     flask.current_app.config.update(overrides)
 
 
 class mock(requests_mock.Mocker):

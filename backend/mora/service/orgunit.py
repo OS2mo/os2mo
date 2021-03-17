@@ -17,7 +17,9 @@ import locale
 import operator
 import uuid
 from asyncio import create_task, gather
+from datetime import date
 from itertools import chain
+<<<<<<< HEAD
 from typing import Any, Awaitable, Dict, Optional, Iterable, List
 from typing import Any, Awaitable, Dict, Optional, List
 
@@ -25,6 +27,15 @@ from fastapi import APIRouter, Request, Body
 
 import requests
 from mora.request_scoped.query_args import current_query
+=======
+from typing import Any, Awaitable, Dict, List
+from typing import Optional
+from uuid import UUID
+
+import requests
+from fastapi import APIRouter, Body
+from fastapi import Query
+>>>>>>> 5d6d8b48 (attempt at ripping out flask (should create a lot of bugs))
 from more_itertools import unzip
 
 import mora.async_util
@@ -76,7 +87,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
 
     def prepare_create(self, req):
-        req = flask.request.get_json()
+        # req = flask.request.get_json()
 
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
@@ -615,11 +626,6 @@ async def get_one_orgunit(c: lora.Connector,
 
     return r
 
-from datetime import date
-from typing import Optional
-from fastapi import Query
-from uuid import UUID
-
 
 
 @router.get('/{type}/{parentid}/children')
@@ -737,7 +743,7 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
 @router.get('/ou/ancestor-tree')
 async def get_unit_ancestor_tree(
     uuid: Optional[List[UUID]] = None,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     '''Obtain the tree of ancestors for the given units.
 
@@ -982,8 +988,10 @@ async def get_orgunit(unitid: UUID, only_primary_uuid : Optional[bool] = None, c
 
 
 @router.get('/ou/{unitid}/refresh')
-async def trigger_external_integration(unitid: UUID,
-                                       only_primary_uuid : Optional[bool] = None):
+async def trigger_external_integration(
+    unitid: UUID,
+    only_primary_uuid: Optional[bool] = None
+):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
@@ -1022,14 +1030,14 @@ def get_details_from_query_args(args):
 
 
 @router.get('/o/{orgid}/ou/')
-#@util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
+# @util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
 async def list_orgunits(
     orgid: UUID,
     start: Optional[int] = 0,
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     root: Optional[str] = None,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     '''Query organisational units in an organisation.
 
@@ -1141,7 +1149,7 @@ async def list_orgunits(
         uuid_filters.append(entry_under_root)
 
     # TODO: Fix up
-    #details = get_details_from_query_args(flask.request.args)
+    # details = get_details_from_query_args(flask.request.args)
     details = {}
 
     async def get_minimal_orgunit(*args, **kwargs):
@@ -1156,12 +1164,12 @@ async def list_orgunits(
 
 
 @router.get('/o/{orgid}/ou/tree')
-#@util.restrictargs('at', 'query', 'uuid')
+# @util.restrictargs('at', 'query', 'uuid')
 async def list_orgunit_tree(
     orgid: UUID,
     query: Optional[str] = None,
     uuid: Optional[List[UUID]] = None,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     '''Query organisational units in an organisation.
 

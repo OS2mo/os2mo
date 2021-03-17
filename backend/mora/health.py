@@ -3,15 +3,13 @@
 
 import logging
 
-from fastapi import APIRouter
-
 import requests
-from functools import wraps
+from fastapi import APIRouter
 from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
 
 import mora.async_util
-from mora import lora, util, conf_db
+from mora import conf_db, lora
 from mora.exceptions import HTTPException
 from mora.settings import config
 from mora.triggers.internal import amqp_trigger
@@ -27,7 +25,7 @@ def register_health_endpoint(func):
     HEALTH_ENDPOINTS.append(func)
 
     url = "/" + func.__name__
-    restricted_args_func = func#util.restrictargs()(func)
+    restricted_args_func = func  # util.restrictargs()(func)
     endpoint_func = router.get(url)(restricted_args_func)
     return endpoint_func
 
@@ -89,7 +87,7 @@ def session_database():
     if not config["saml_sso"]["enable"]:
         return None
 
-    return session_database_health(flask.current_app)
+    # return session_database_health(flask.current_app)
 
 
 @register_health_endpoint
@@ -158,7 +156,7 @@ def idp():
     if not config["saml_sso"]["enable"] or config["saml_sso"]["idp_metadata_file"]:
         return None
 
-    return idp_health(flask.current_app)
+    # return idp_health(flask.current_app)
 
 
 @router.get("/")

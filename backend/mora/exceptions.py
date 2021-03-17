@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import traceback
 import typing
 from enum import Enum
 
-import flask
+from fastapi.encoders import jsonable_encoder
 import werkzeug.exceptions
 
 
@@ -142,24 +141,24 @@ class HTTPException(werkzeug.exceptions.HTTPException):
             **extras,
         }
 
-        # this aids debugging
-        if flask.current_app.debug:
-            if cause is None:
-                cause = self.__cause__ or self
-
-            if isinstance(cause, Exception):
-                body.update(
-                    exception=str(cause),
-                    context=traceback.format_exc().splitlines(),
-                )
-            elif cause:
-                body['context'] = cause
+        # # this aids debugging
+        # if flask.current_app.debug:
+        #     if cause is None:
+        #         cause = self.__cause__ or self
+        #
+        #     if isinstance(cause, Exception):
+        #         body.update(
+        #             exception=str(cause),
+        #             context=traceback.format_exc().splitlines(),
+        #         )
+        #     elif cause:
+        #         body['context'] = cause
 
         super().__init__(body['description'])
 
         try:
             self.body = body
-            self.response = flask.jsonify(body)
+            self.response = jsonable_encoder(body)
             if self.response:
                 self.response.status_code = self.key.code
         except RuntimeError:

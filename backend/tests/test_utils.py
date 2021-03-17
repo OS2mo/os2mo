@@ -1,17 +1,13 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import unittest
 import datetime
 
 import dateutil.tz
-import flask
 import freezegun
 
 from mora import exceptions
 from mora import util
-from mora import mapping
-
 from .util import TestCase
 
 
@@ -757,4 +753,3 @@ class TestUtils(TestCase):
             },
             ctxt.exception.response.json,
         )
-

@@ -1,19 +1,20 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import logging
 import random
 
 import service_person_stamdata_udvidet
 import pathlib
 import requests
-import flask
 from .. import util
 from .. import exceptions
 from .. import settings
 
+logger = logging.getLogger(__name__)
 
-def is_dummy_mode(app):
-    if app.env != 'production':
+
+def is_dummy_mode():
+    if settings.config['ENV'] != 'production':
         # force dummy during tests and development, and make it
         # configurable in production
         #
@@ -24,8 +25,8 @@ def is_dummy_mode(app):
     return settings.config['dummy_mode']
 
 
-def check_config(app):
-    if is_dummy_mode(app):
+def check_config():
+    if is_dummy_mode():
         return True
 
     config = settings.config
@@ -68,7 +69,7 @@ def get_citizen(cpr):
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
-    if is_dummy_mode(flask.current_app):
+    if is_dummy_mode():
         return _get_citizen_stub(cpr)
     else:
         sp_uuids = {
@@ -86,10 +87,10 @@ def get_citizen(cpr):
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
             else:
-                flask.current_app.logger.exception(e)
+                logger.exception(e)
                 raise e
         except requests.exceptions.SSLError as e:
-            flask.current_app.logger.exception(e)
+            logger.exception(e)
             exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 

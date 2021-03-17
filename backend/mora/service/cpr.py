@@ -13,16 +13,14 @@ from fastapi import APIRouter
 
 from .. import exceptions
 from .. import mapping
-from .. import util
 from ..integrations.serviceplatformen import get_citizen
-
 
 router = APIRouter()
 
 
 @router.get('/e/cpr_lookup/')
 # @util.restrictargs(required=['q'])
-def search_cpr(q:str):
+def search_cpr(q: str):
     """
     Search for a CPR number in Serviceplatformen and retrieve the associated
     information
@@ -42,6 +40,7 @@ def search_cpr(q:str):
       }
 
     """
+    cpr = q
     try:
         sp_data = get_citizen(cpr)
     except KeyError:
