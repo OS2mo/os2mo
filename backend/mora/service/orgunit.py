@@ -21,7 +21,6 @@ from itertools import chain
 from typing import Any, Awaitable, Dict, Optional
 
 import flask
-import requests
 from more_itertools import unzip
 
 import mora.async_util
@@ -35,7 +34,6 @@ from .. import common, conf_db
 from .. import exceptions
 from .. import lora
 from .. import mapping
-from .. import settings
 from .. import util
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
@@ -292,6 +290,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
+    def prepare_refresh(self, request: dict):
+        unitid = request[mapping.UUID]
+        self.uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
+
     def submit(self):
         c = lora.Connector()
 
@@ -304,12 +307,21 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 for r in self.details_requests:
                     r.submit()
 
+        elif self.request_type == mapping.RequestType.REFRESH:
+            pass
         else:
             self.result = mora.async_util.async_to_sync(c.organisationenhed.update)(
                 self.payload,
                 self.uuid)
 
-        return super().submit()
+        submit = super().submit()
+        if self.request_type == mapping.RequestType.REFRESH:
+            return {
+                "message": "\n".join(
+                    map(str, self.trigger_results_before + self.trigger_results_after)
+                )
+            }
+        return submit
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -906,10 +918,9 @@ async def get_orgunit(unitid):
     return flask.jsonify(r)
 
 
-@blueprint.route('/ou/<uuid:unitid>/trigger-external')
+@blueprint.route('/ou/<uuid:unitid>/refresh')
 @util.restrictargs()
-@mora.async_util.async_to_sync
-async def trigger_external_integration(unitid):
+def trigger_external_integration(unitid):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
@@ -918,30 +929,17 @@ async def trigger_external_integration(unitid):
     c = common.get_connector()
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    org_unit = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
-                                     only_primary_uuid=only_primary_uuid)
+    org_unit = mora.async_util.async_to_sync(get_one_orgunit)(
+        c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
+    )
     if not org_unit:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
 
-    external_path = settings.config['external_integration']['org_unit']
-
-    try:
-        r = requests.post(
-            external_path,
-            json=org_unit
-        )
-
-        r.raise_for_status()
-
-        return flask.jsonify(
-            {
-                'message': r.json().get('output'),
-                'status_code': r.status_code
-            }
-        )
-    except requests.RequestException as e:
-        error_msg = e.response.text if e.response is not None else str(e)
-        raise exceptions.ErrorCodes.E_INTEGRATION_ERROR(error_msg)
+    request = {}
+    request[mapping.UUID] = unitid
+    handler = OrgUnitRequestHandler(request, mapping.RequestType.REFRESH)
+    result = handler.submit()
+    return flask.jsonify(result)
 
 
 def get_details_from_query_args(args):

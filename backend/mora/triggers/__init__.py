@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import functools
 import importlib
 import logging
 from itertools import chain
@@ -72,13 +71,15 @@ class Trigger:
             .get(trigger_dict[cls.REQUEST_TYPE], {})
             .get(trigger_dict[cls.EVENT_TYPE], [])
         )
+        results = []
         for t in triggers:
             try:
-                t(trigger_dict)
+                results.append(t(trigger_dict))
             except cls.Error as e:
                 ErrorCodes.E_INTEGRATION_ERROR(str(e), **e.extra)
             except Exception as e:
                 ErrorCodes.E_INTEGRATION_ERROR(str(e))
+        return results
 
     @classmethod
     def on(cls, role_type, request_type: RequestType, event_type: EventType):
@@ -98,12 +99,6 @@ class Trigger:
         def decorator(function):
             "ensure function in registry"
             registry.add(function)
-
-            @functools.wraps(function)
-            def wrapper(trigger_dict):
-                "call wrapped function with arg"
-                return function(trigger_dict)
-
-            return wrapper
+            return function
 
         return decorator

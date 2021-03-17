@@ -33,7 +33,7 @@ export default {
         return
       }
       this.isLoading = true
-      return Service.get(`/ou/${this.uuid}/trigger-external`)
+      return Service.get(`/ou/${this.uuid}/refresh`)
         .then(response => {
           this.$store.commit(
             'log/newWorkLog',

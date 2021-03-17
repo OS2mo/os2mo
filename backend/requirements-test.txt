@@ -93,7 +93,7 @@ multidict==5.1.0
     #   yarl
 notsouid==0.0.3
     # via -r requirements-test.in
-os2mo-http-trigger-protocol==0.0.2
+os2mo-http-trigger-protocol==0.0.3
     # via
     #   -c requirements.txt
     #   -r requirements-test.in

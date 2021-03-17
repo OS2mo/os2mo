@@ -27,7 +27,7 @@ _OBJECT_TYPES = (
     "related_unit",
     "role",
 )
-_ACTIONS = ("create", "delete", "update")
+_ACTIONS = ("create", "delete", "update", "refresh")
 
 
 def publish_message(service, object_type, action, service_uuid, date):
@@ -92,6 +92,7 @@ def amqp_sender(trigger_dict):
         mapping.RequestType.CREATE: "create",
         mapping.RequestType.EDIT: "update",
         mapping.RequestType.TERMINATE: "delete",
+        mapping.RequestType.REFRESH: "refresh",
     }[trigger_dict[triggers.Trigger.REQUEST_TYPE]]
 
     amqp_messages = []
