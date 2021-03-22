@@ -743,6 +743,9 @@ class Tests(util.LoRATestCase):
             "org_unit_level": {
                 'uuid': "0f015b67-f250-43bb-9160-043ec19fad48"
             },
+            "org_unit_hierarchy": {
+                'uuid': "12345678-abcd-abcd-1234-12345678abcd"
+            },
             "details": [
                 {
                     "type": "address",
@@ -860,6 +863,15 @@ class Tests(util.LoRATestCase):
                 ],
                 'niveau': [{
                     'uuid': '0f015b67-f250-43bb-9160-043ec19fad48',
+                    'virkning': {
+                        'from': '2016-02-04 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-10-22 00:00:00+02',
+                        'to_included': False
+                    }
+                }],
+                'opmærkning': [{
+                    'uuid': '12345678-abcd-abcd-1234-12345678abcd',
                     'virkning': {
                         'from': '2016-02-04 00:00:00+01',
                         'from_included': True,

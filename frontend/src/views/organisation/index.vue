@@ -8,10 +8,14 @@ SPDX-License-Identifier: MPL-2.0
           <div class="card-body">
             <h4 class="card-title">
               <icon name="folder-open"/>
-              {{$t('common.overview')}}
+              {{ $t('common.overview') }}
             </h4>
+            <div v-if="options.length > 1">
+              <span>{{ $t('shared.belongs_to') }}:</span>
+              <b-form-select v-model="opm" :options="options" />
+            </div>
             <div id="tree-wrapper">
-              <mo-org-tree-view v-model="selected"/>
+              <mo-org-tree-view ref="orgtree" v-model="selected" />
             </div>
           </div>
         </div>
@@ -30,13 +34,23 @@ SPDX-License-Identifier: MPL-2.0
  */
 import MoOrganisationUnitWorkflows from '@/views/organisation/workflows'
 import MoOrgTreeView from '@/components/MoTreeView/MoOrgTreeView'
+import { Facet } from '@/store/actions/facet'
 import { mapState } from 'vuex'
+import bFormSelect from 'bootstrap-vue/es/components/form-select/form-select'
 
 export default {
   components: {
     MoOrganisationUnitWorkflows,
-    MoOrgTreeView
+    MoOrgTreeView,
+    'b-form-select': bFormSelect,
   },
+
+  data () {
+    return {
+      opm: null,
+    }
+  },
+
   computed: {
     /**
      * Get organisation uuid.
@@ -49,15 +63,37 @@ export default {
           this.$router.push({ name: 'OrganisationLandingPage' })
         }
       },
-
       get () {
         return this.route.params.uuid
       }
     },
 
+    options: {
+      get () {
+        let facet = this.$store.getters[Facet.getters.GET_FACET]("org_unit_hierarchy")
+        let result = [{ value: null, text: this.$t('shared.entire_organisation') }]
+        if ('classes' in facet) {
+          for (var cl of facet.classes) {
+            result.push({ value: cl.uuid, text: cl.name })
+          }
+        }
+        return result
+      },
+    },
+
     ...mapState({
       route: 'route'
     })
+  },
+
+  watch: {
+    opm (newVal) {
+      // Reset currently displayed org unit
+      this.selected = null
+
+      // Update org tree according to the filter value
+      this.$refs.orgtree.setFilter(newVal)
+    }
   },
 
   methods: {
@@ -75,6 +111,10 @@ export default {
 
   mounted () {
     this.updateSplitHeight()
+
+    this.$store.dispatch(
+      Facet.actions.SET_FACET, { facet: "org_unit_hierarchy" }
+    )
   },
 
   destroyed () {
@@ -105,8 +145,15 @@ export default {
     padding: 1.25rem 0 2.5rem 1.25rem;
   }
 
+  select {
+    display: inline-block;
+    width: auto;
+    margin-right: 1.25rem;
+  }
+
   #tree-wrapper {
-    height: 100%;
+    height: calc(100% - 40px);
+    overflow-x: auto;
     overflow-y: auto;
   }
 

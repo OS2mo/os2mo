@@ -1,11 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-from queue import Queue, Empty
 import collections
+from asyncio import create_task
+from queue import Empty, Queue
 from typing import Dict
+
+from anytree import Node
+from anytree.search import findall
+
 from ..lora import Scope
-from ..mapping import FieldTuple
+from ..mapping import (
+    ORG_UNIT_EGENSKABER_FIELD,
+    ORG_UNIT_NAME_KEY,
+    PARENT_FIELD,
+    FieldTuple,
+)
 
 
 def queue_iterator(queue):
@@ -114,3 +123,43 @@ async def prepare_ancestor_tree(connector_entry: Scope, mapping_parent: FieldTup
         await task
 
     return root_uuids, children, cache
+
+
+def build_tree_from_org_units(org_units):
+    """Return a list of tree roots in the list `org_units`"""
+
+    # Convert an item in the LoRa JSON response to a `Node` instance
+    def node(id, ou):
+        parentid = PARENT_FIELD.get_uuid(ou)
+        attrs = ORG_UNIT_EGENSKABER_FIELD.get(ou)
+        name = attrs[0][ORG_UNIT_NAME_KEY]
+        return Node(name=name, id=id, pid=parentid, obj=ou)
+
+    nodes = {id: node(id, ou) for id, ou in org_units}
+    roots = []
+
+    for node in nodes.values():
+        if (node.pid is None) or (node.pid not in nodes):
+            # This node has no parent, or has an unknown parent ID.
+            # Add it to the list of tree roots.
+            roots.append(node)
+        else:
+            # This node has a parent. Add this node as child of parent.
+            parent = nodes[node.pid]
+            node.parent = parent
+
+    return roots
+
+
+def find_nodes(roots, anchor, predicate):
+    for root in roots:
+        # Find nodes matching predicate
+        for match in findall(root, predicate):
+            # Find the nodes which are immediate children of `anchor` and also
+            # match the predicate.
+            for parent in match.ancestors:
+                if parent.pid == anchor:
+                    yield parent
+            # Yield matching node itself
+            if match.pid == anchor:
+                yield match

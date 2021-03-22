@@ -206,6 +206,18 @@ class Tests(util.LoRATestCase):
             ],
         )
 
+    def test_children_filtered(self):
+        # When asking for "&opm=<uuid>", the result should only contain
+        # org units which have an 'opmærkning' with a UUID of '<uuid>'.
+        # With the default test database contents, that means nothing should be
+        # returned.
+        self.load_sample_structures()
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children'
+            '?opm=class-uuid',
+            [],
+        )
+
     def test_orgunit_search(self):
         self.load_sample_structures()
 

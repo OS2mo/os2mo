@@ -19,7 +19,8 @@ const state = {
   manager_type: undefined,
   org_unit_type: undefined,
   responsibility: undefined,
-  role_type: undefined
+  role_type: undefined,
+  org_unit_hierarchy: undefined,
 }
 
 
