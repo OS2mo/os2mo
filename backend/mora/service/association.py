@@ -23,7 +23,7 @@ from .. import util
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'association'
+    role_type = mapping.ASSOCIATION
     function_key = mapping.ASSOCIATION_KEY
 
     @staticmethod

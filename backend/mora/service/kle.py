@@ -20,7 +20,7 @@ blueprint = flask.Blueprint('kle', __name__, static_url_path='',
 
 
 class KLERequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'kle'
+    role_type = mapping.KLE
     function_key = mapping.KLE_KEY
 
     def prepare_create(self, req):

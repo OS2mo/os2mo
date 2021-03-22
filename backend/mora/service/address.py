@@ -159,7 +159,7 @@ async def address_autocomplete(orgid):
 
 
 class AddressRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'address'
+    role_type = mapping.ADDRESS
     function_key = mapping.ADDRESS_KEY
 
     def prepare_create(self, req):

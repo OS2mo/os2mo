@@ -212,10 +212,15 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def _get_lora_object(cls, c, search_fields):
-        object_tuples = await c.organisationfunktion.get_all(
-            funktionsnavn=cls.function_key,
-            **search_fields,
-        )
+        if mapping.UUID in search_fields:
+            object_tuples = await c.organisationfunktion.get_all_by_uuid(
+                uuids=[search_fields[mapping.UUID]]
+            )
+        else:
+            object_tuples = await c.organisationfunktion.get_all(
+                funktionsnavn=cls.function_key,
+                **search_fields,
+            )
 
         return object_tuples
 

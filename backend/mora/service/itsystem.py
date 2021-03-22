@@ -36,7 +36,7 @@ MO_OBJ_TYPE = Dict[str, Any]
 
 
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'it'
+    role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
 
     def prepare_create(self, req):

@@ -22,7 +22,7 @@ from ..triggers import Trigger
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'leave'
+    role_type = mapping.LEAVE
     function_key = mapping.LEAVE_KEY
 
     def prepare_create(self, req):

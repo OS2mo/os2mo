@@ -18,6 +18,7 @@ from . import lora
 from . import service
 from . import settings
 from . import util
+from .api.v1 import read_orgfunk
 from .auth import base
 from .integrations import serviceplatformen
 from . import triggers
@@ -46,7 +47,6 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     app = flask.Flask(__name__, root_path=distdir, template_folder=templatedir)
 
     app.config.update(settings.app_config)
-
     app.url_map.converters['uuid'] = util.StrUUIDConverter
 
     if overrides is not None:
@@ -58,6 +58,7 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     base.blueprint.before_request(flask_saml_sso.check_saml_authentication)
     app.register_blueprint(base.blueprint)
     app.register_blueprint(health.blueprint)
+    app.register_blueprint(read_orgfunk.blueprint)
 
     for blueprint in service.blueprints:
         blueprint.before_request(flask_saml_sso.check_saml_authentication)

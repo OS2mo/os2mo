@@ -27,7 +27,7 @@ from ..triggers import Trigger
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'engagement'
+    role_type = mapping.ENGAGEMENT
     function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
