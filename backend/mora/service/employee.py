@@ -24,7 +24,7 @@ from uuid import UUID
 from fastapi import APIRouter, Body
 
 import mora.async_util
-from mora.request_scoped_globals import request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
 from . import handlers
 from . import org
 from .validation import validator
@@ -625,9 +625,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
     mora.async_util.async_to_sync(common.add_history_entry)(
         c.bruger, employee_uuid, "Afslut medarbejder")
 
-    # TODO:
-
-    return result, 200
+    return result
 
 
 @router.post('/e/create', status_code=201)

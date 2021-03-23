@@ -10,15 +10,13 @@ which describes its arguments and options.
 
 import logging
 import os
+import sys
 import time
 
 import click
 import sqlalchemy
-import sys
 
-from . import settings, conf_db
-from . import app as mora_app
-
+from . import conf_db, settings
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +40,6 @@ def initdb(wait):
     on an already initialized database.
     """
     return
-
 
 
 @group.command()

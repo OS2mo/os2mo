@@ -34,7 +34,7 @@ from mora import conf_db
 from . import exceptions
 from . import mapping
 # use this string rather than nothing or N/A in UI -- it's the em dash
-from .request_scoped_globals import request_args
+from .request_scoped.query_args import current_query
 
 PLACEHOLDER = "\u2014"
 
@@ -775,7 +775,7 @@ def get_args_flag(name: str):
 
     """
 
-    v = request_args.get(name, '')
+    v = current_query.args.get(name, '')
 
     if v.lower() in ('', '0', 'no', 'n', 'false'):
         return False

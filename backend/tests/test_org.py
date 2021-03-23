@@ -24,7 +24,7 @@ class Tests(util.TestCase):
             'error_key': 'E_ORG_UNCONFIGURED',
             'status': 400,
             'description': 'Organisation has not been configured'
-        }, r.json)
+        }, r.json())
 
     @patch('mora.service.org.get_valid_organisations', new=async_helper2)
     def test_more_than_one_org_in_mo(self):
@@ -35,4 +35,4 @@ class Tests(util.TestCase):
             'error_key': 'E_ORG_TOO_MANY',
             'status': 400,
             'description': 'Too many organisations in lora, max one allowed'
-        }, r.json)
+        }, r.json())

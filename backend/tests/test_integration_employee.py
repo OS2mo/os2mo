@@ -33,7 +33,7 @@ class Tests(util.LoRATestCase):
 
         with notsouid.freeze_uuid(mock_uuid):
             r = self.request('/service/e/create', json=payload)
-        userid = r.json
+        userid = r.json()
 
         expected = {
             "livscykluskode": "Importeret",
@@ -270,7 +270,7 @@ class Tests(util.LoRATestCase):
             'status': 400,
             'error_key': 'E_ORG_NOT_ALLOWED',
             'error': True
-        }, r.json)
+        }, r.json())
 
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.
@@ -345,7 +345,7 @@ class Tests(util.LoRATestCase):
 
         r = self.request('/service/e/{}/details/engagement'.format(
             employee_uuid))
-        self.assertEqual(1, len(r.json), 'One engagement should exist')
+        self.assertEqual(1, len(r.json()), 'One engagement should exist')
 
     def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
@@ -458,7 +458,7 @@ class Tests(util.LoRATestCase):
         )
 
         engagement = self.request('/service/e/{}/details/engagement'.format(
-            employee_uuid)).json
+            employee_uuid)).json()
         self.assertEqual([], engagement,
                          'No engagement should have been created')
 

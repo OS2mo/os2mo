@@ -6,7 +6,6 @@ import os
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
-from .. import util
 from .. import exceptions
 from ..settings import app_config
 

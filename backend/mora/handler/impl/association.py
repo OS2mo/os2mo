@@ -9,7 +9,7 @@ from mora import exceptions
 from .. import reading
 from ... import mapping
 from ... import util
-from ...request_scoped_globals import request_args
+from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -86,8 +86,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        only_primary_uuid = request_args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
         need_sub = substitute_uuid and util.is_substitute_allowed(association_type)
         substitute = None
         if need_sub:

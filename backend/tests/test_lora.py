@@ -227,7 +227,7 @@ class Tests(util.TestCase):
                         'error_key': error_key,
                         'description': 'go away',
                     },
-                    ctxt.exception.response.json,
+                    ctxt.exception.detail,
                 )
 
             with self.subTest('{} - text'.format(status_in)):
@@ -247,11 +247,10 @@ class Tests(util.TestCase):
                         'error_key': error_key,
                         'description': 'I hate you',
                     },
-                    ctxt.exception.response.json,
+                    ctxt.exception.detail,
                 )
 
     @util.MockAioresponses()
-    @util.override_app_config(DEBUG=True)
     def test_error_debug(self, m):
         with util.override_lora_url():
             m.get(
@@ -273,12 +272,8 @@ class Tests(util.TestCase):
                     'status': 500,
                     'error_key': 'E_UNKNOWN',
                     'description': 'go away',
-                    'context': {
-                        'message': 'go away',
-                        'something': 'other',
-                    },
                 },
-                ctxt.exception.response.json,
+                ctxt.exception.detail,
             )
 
     @util.MockAioresponses()
@@ -486,8 +481,17 @@ class Tests(util.TestCase):
         # Assert the 'noop' error does not raise an exception
         self.assertIsNone(lora.raise_on_status(status_code, msg_noop))
         # Assert that any other error does raise an exception
-        with self.assertRaisesRegex(exceptions.HTTPException, msg_other):
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
             lora.raise_on_status(status_code, msg_other)
+        self.assertEqual(
+            {
+                'error': True,
+                'status': status_code,
+                'error_key': 'E_INVALID_INPUT',
+                'description': msg_other,
+            },
+            ctxt.exception.detail
+        )
 
     @util.MockAioresponses()
     def test_noop_update_returns_null(self, m):

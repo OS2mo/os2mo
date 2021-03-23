@@ -3,17 +3,20 @@
 
 import freezegun
 from mock import call, patch
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
+
 from mora import lora, mapping
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
+from mora.request_scoped.query_args import current_query
+from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
 from mora.service.orgunit import (
-    UnitDetails, _get_count_related, get_children, get_orgunit, get_one_orgunit,
-    get_unit_ancestor_tree,
+    get_children, get_orgunit, get_unit_ancestor_tree,
 )
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException, register
-from os2mo_http_trigger_protocol import MOTriggerRegister
 from tests import util
 
 
@@ -139,8 +142,8 @@ class TestAddressLookup(util.TestCase):
         mock.get(
             "http://mox/organisation/organisationenhed"
             "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
-            "&virkningfra=-infinity"
-            "&konsolider=True",
+                                "&virkningfra=-infinity"
+                                "&konsolider=True",
             payload={
                 "results": [
                     [
@@ -257,7 +260,6 @@ class TestTriggerExternalIntegration(util.TestCase):
         Trigger.registry = {}
         register(None)
         t_fetch_mock.assert_called()
-
         response_msg = "Something good happened"
         t_sender_mock.return_value = response_msg
 
@@ -327,19 +329,25 @@ class TestGetCountRelated(util.TestCase):
         self._multiple = {"association", "engagement"}
 
     def test_valid_name(self):
-        with self.app.test_request_context("?count=association"):
+        with current_query.temporary_args(ImmutableMultiDict({'count': 'association'})):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_valid_name_repeated(self):
-        with self.app.test_request_context("?count=association&count=association"):
+        with current_query.temporary_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'association')])
+        ):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_multiple_valid_names(self):
-        with self.app.test_request_context("?count=association&count=engagement"):
+        with current_query.temporary_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'engagement')])
+        ):
             self.assertSetEqual(self._multiple, _get_count_related())
 
     def test_invalid_name(self):
-        with self.app.test_request_context("?count=association&count=foobar"):
+        with current_query.temporary_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'foobar')])
+        ):
             with self.assertRaises(HTTPException):
                 _get_count_related()
 

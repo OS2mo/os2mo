@@ -3,46 +3,75 @@
 
 from unittest import mock
 
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+from mora import app
+from mora.async_util import async_to_sync
 from tests import util
 
 
 class Tests(util.TestCase):
     def test_failing_service(self):
         self.assertRequestResponse(
-            '/service/kaflaflibob',
+            "/service/kaflaflibob",
             {
-                'error': True,
-                'error_key': 'E_NO_SUCH_ENDPOINT',
-                'description': 'No such endpoint.',
-                'status': 404,
+                "error": True,
+                "error_key": "E_NO_SUCH_ENDPOINT",
+                "description": "No such endpoint.",
+                "status": 404,
             },
             status_code=404,
         )
 
-    @mock.patch('mora.common.get_connector')
-    def test_exception_handling(self, p):
-        p.side_effect = ValueError('go away')
-
-        self.assertRequestResponse(
-            '/service/ou/00000000-0000-0000-0000-000000000000/',
-            {
-                'error': True,
-                'error_key': 'E_UNKNOWN',
-                'description': 'go away',
-                'status': 500,
-            },
-            status_code=500,
-            drop_keys=['stacktrace'],
+    def test_fallback_handler(self):
+        resp = async_to_sync(app.fallback_handler)(
+            mock.MagicMock(), ValueError("go away")
         )
 
-    def test_restrictargs_everywhere(self):
-        unfiltered = {
-            viewname
-            for viewname, viewfunc in self.app.view_functions.items()
-            if '.' in viewname and not hasattr(viewfunc, 'restricts_args')
-        }
+        self.assertIsInstance(resp, JSONResponse)
+        self.assertEqual(500, resp.status_code)
+        self.assertEqual(
+            b'{"error":true,"description":"go away",'
+            b'"status":500,"error_key":"E_UNKNOWN"}',
+            resp.body,
+        )
 
-        print('\n'.join(sorted(unfiltered)))
 
-        self.assertFalse(unfiltered,
-                         'no blueprints may have unrestricted arguments!')
+class PatchedAppTests(util.TestCase):
+    fb = app.fallback_handler
+
+    def setUp(self):
+        self.mock_fallback = mock.AsyncMock()
+        app.fallback_handler = self.mock_fallback
+        super().setUp()
+
+    def tearDown(self):
+        app.fallback_handler = self.fb
+        super().tearDown()
+
+    @mock.patch("mora.common.get_connector")
+    def test_exception_handling(self, p):
+        vErr = ValueError("go away")
+        p.side_effect = vErr
+        with self.assertRaises(ValueError):
+            self.assertRequestResponse(
+                "/service/ou/00000000-0000-0000-0000-000000000000/",
+                {
+                    "error": True,
+                    "error_key": "E_UNKNOWN",
+                    "description": "go away",
+                    "status": 500,
+                },
+                status_code=500,
+            )
+
+        calls = self.mock_fallback.call_args_list
+        self.assertEqual(1, len(calls))
+        args = calls[0][0]
+        kwargs = calls[0][1]
+        self.assertEqual(2, len(args))
+        self.assertEqual({}, kwargs)
+        self.assertIsInstance(args[0], Request)
+        self.assertIsInstance(args[1], ValueError)
+        self.assertEqual(str(vErr), str(args[1]))

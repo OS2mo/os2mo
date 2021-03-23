@@ -1,31 +1,30 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest import TestCase
-
 import contextlib
 import copy
 import json
 import os
 import pprint
 import re
-from typing import Union
-from unittest.mock import patch, MagicMock
-from urllib.parse import parse_qsl
 from copy import deepcopy
+from typing import Union
+from unittest import TestCase
+from unittest.mock import MagicMock
+from unittest.mock import patch
+from urllib.parse import parse_qsl
 
 import aioresponses
-from fastapi.encoders import jsonable_encoder
 import jinja2
 import requests
 import requests_mock
+from fastapi.encoders import jsonable_encoder
+from fastapi.testclient import TestClient
+from yarl import URL
+
 from mora import app, conf_db, lora, service, settings
 from mora.async_util import async_to_sync
 from mora.exceptions import ImproperlyConfigured
-from mora.request_wide_bulking import request_wide_bulk
-from mora.util import restrictargs
-from yarl import URL
-
-from fastapi.testclient import TestClient
+from mora.request_scoped.bulking import request_wide_bulk
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -297,7 +296,7 @@ def create_app():
     app_object = app.create_app()
 
     @app_object.route("/testing/testcafe-db-setup")
-    @restrictargs()
+    # @restrictargs()
     @async_to_sync
     async def _testcafe_db_setup():
         _mox_testing_api("db-setup")
@@ -307,7 +306,7 @@ def create_app():
         return jsonable_encoder({"testcafe-db-setup": True})
 
     @app_object.route("/testing/testcafe-db-teardown")
-    @restrictargs()
+    # @restrictargs()
     def _testcafe_db_teardown():
         _mox_testing_api("db-teardown")
 
@@ -331,17 +330,17 @@ def override_config(overrides: dict):
         settings.update_dict(settings.config, original)
 
 
-# @contextlib.contextmanager
-# def override_app_config(**overrides):
-#     originals = {}
-#
-#     for k, v in overrides.items():
-#         originals[k] = flask.current_app.config[k]
-#         flask.current_app.config[k] = v
-#
-#     yield
-#
-#     flask.current_app.config.update(overrides)
+@contextlib.contextmanager
+def override_app_config(**overrides):
+    originals = {}
+
+    for k, v in overrides.items():
+        originals[k] = settings.config[k]
+        settings.config[k] = v
+
+    yield
+
+    settings.config.update(overrides)
 
 
 class mock(requests_mock.Mocker):
@@ -399,8 +398,9 @@ class mock(requests_mock.Mocker):
 
 
 class _BaseTestCase(TestCase):
-    '''Base class for MO testcases w/o LoRA access.
-    '''
+    """
+    Base class for MO testcases w/o LoRA access.
+    """
 
     maxDiff = None
 
@@ -413,17 +413,9 @@ class _BaseTestCase(TestCase):
         # make sure the configured organisation is always reset
         # every before test
         service.org.ConfiguredOrganisation.valid = False
+        app_ = app.create_app()
 
-        return app.create_app({
-            'ENV': 'testing',
-            'DUMMY_MODE': True,
-            'DEBUG': False,
-            'TESTING': True,
-            'LIVESERVER_PORT': 0,
-            'PRESERVE_CONTEXT_ON_EXCEPTION': False,
-            'SECRET_KEY': 'secret',
-            **(overrides or {})
-        })
+        return app_
 
     @property
     def lora_url(self):
@@ -446,12 +438,19 @@ class _BaseTestCase(TestCase):
 
         '''
         r = self.request(path, **kwargs)
+        actual = r.json()
 
-        actual = (
-            json.loads(r.get_data(True))
-            if r.mimetype == 'application/json'
-            else r.get_data(True)
-        )
+        if r.headers.get('content-type') == 'application/json':
+            actual = r.json()
+        else:
+            print(r.headers, r.content, r.raw)
+            actual = r.text
+
+        # actual = (
+        #     json.loads(r.get_data(True))
+        #     if r.mimetype == 'application/json'
+        #     else r.get_data(True)
+        # )
 
         if status_code is None:
             if message is None:
@@ -474,7 +473,8 @@ class _BaseTestCase(TestCase):
                 )
 
             if r.status_code != status_code:
-                pprint.pprint(actual)
+                ppa = pprint.pformat(actual)
+                print(f'actual response:\n{ppa}')
 
                 self.fail(message)
 
@@ -529,9 +529,10 @@ class _BaseTestCase(TestCase):
             # ...so check that the arguments we override don't exist
             assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
 
-            kwargs['method'] = 'POST'
+            # kwargs['method'] = 'POST'
             kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
             kwargs['headers'] = {'Content-Type': 'application/json'}
+            return self.client.post(path, **kwargs)
 
         return self.client.get(path, **kwargs)
 

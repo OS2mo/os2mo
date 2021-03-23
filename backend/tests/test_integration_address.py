@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
 
 import freezegun
 
@@ -33,7 +32,7 @@ address_type_facet = {
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True)
+@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class Writing(util.LoRATestCase):
     maxDiff = None
 
@@ -1163,7 +1162,7 @@ class Writing(util.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True)
+@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class Reading(util.LoRATestCase):
 
     def test_missing_class(self, mock):
@@ -1334,35 +1333,31 @@ class Reading(util.LoRATestCase):
             functionid,
         )
 
-        with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
-            self.assertRequestResponse(
-                '/service/ou/{}/details/address'.format(unitid),
-                [{
-                    'address_type': {
-                        'example': '<UUID>',
-                        'facet': address_type_facet,
-                        'full_name': 'Postadresse',
-                        'name': 'Postadresse',
-                        'owner': None,
-                        'scope': 'DAR',
-                        'top_level_facet': address_type_facet,
-                        'user_key': 'OrgEnhedPostadresse',
-                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
-                    },
-                    'href': None,
-                    'name': 'Ukendt',
-                    'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'org_unit': {
-                        'name': 'Overordnet Enhed',
-                        'user_key': 'root',
-                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'validity': {'from': '2016-01-01', 'to': None}
-                    },
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                    'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-                    'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
-                }],
-            )
-
-            self.assertRegex(log_res.output[0],
-                             "ADDRESS LOOKUP FAILED")
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': {
+                    'example': '<UUID>',
+                    'facet': address_type_facet,
+                    'full_name': 'Postadresse',
+                    'name': 'Postadresse',
+                    'owner': None,
+                    'scope': 'DAR',
+                    'top_level_facet': address_type_facet,
+                    'user_key': 'OrgEnhedPostadresse',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
+                },
+                'href': None,
+                'name': 'Ukendt',
+                'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+            }],
+        )

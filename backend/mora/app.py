@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import logging
 import os
-import typing
 from copy import deepcopy
+from pathlib import Path
 
-from fastapi import APIRouter
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,8 +13,7 @@ from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
-from mora import __version__, log
-from mora import health
+from mora import __version__, health, log, triggers
 from mora.auth import base
 from . import exceptions
 from . import lora
@@ -29,10 +27,17 @@ from . import triggers
 from mora.auth import base
 from .exceptions import ErrorCodes, http_exception_to_json_response
 import request_scoped_globals
+from mora.integrations import serviceplatformen
+from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.query_args import current_query
+from . import exceptions, lora, service
+from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
+from .settings import config
 
 basedir = os.path.dirname(__file__)
-templatedir = os.path.join(basedir, 'templates')
-distdir = os.path.join(basedir, '..', '..', 'frontend', 'dist')
+templatedir = os.path.join(basedir, "templates")
+distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
+logger = logging.getLogger(__name__)
 
 
 def meta_router():
@@ -64,46 +69,90 @@ def meta_router():
         """Serve favicon.ico on `/favicon.ico`."""
         return FileResponse(distdir + "/favicon.ico")
 
-    @router.get("/service/<path:path>")
-    def no_such_endpoint(path=""):
+    @router.get("/service/{rest_of_path:path}")
+    def no_such_endpoint(rest_of_path):
         """Throw an error on unknown `/service/` endpoints."""
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     return router
 
 
-def create_app(overrides: typing.Optional[typing.Dict[str, typing.Any]] = None):
-    '''Create and return a Flask app instance for MORA.
+async def fallback_handler(request, exc):
+    """
+    Ensure a nicely formatted json response, with
+    minimal knowledge about the exception available.
+    :param request:
+    :param exc:
+    :return:
+    """
+    err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
+    return http_exception_to_json_response(exc=err)
 
-    :param dict overrides: Settings to override prior to extension
-                           instantiation.
 
-    '''
+async def request_validation_handler(
+    request: Request, exc: RequestValidationError
+):
+    """
+    Ensure a nicely formatted json response, with
 
+    :param request:
+    :param exc:
+    :return:
+    """
+    if config["ENV"] in ["development", "testing"]:
+        logger.debug(
+            f"os2mo err details\n{exc}\n"
+            f"request url:\n{request.url}\n"
+            f"request params:\n{request.query_params}"
+        )
+
+    err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
+    return http_exception_to_json_response(exc=err)
+
+
+async def http_exception_handler(request: Request, exc: HTTPException):
+    if config["ENV"] in ["development", "testing"]:
+        if exc.stack is not None:
+            for frame in exc.stack:
+                logger.debug(frame)
+        if exc.traceback is not None:
+            logger.debug(f"os2mo traceback\n{exc.traceback}")
+
+    return http_exception_to_json_response(exc=exc)
+
+
+def create_app():
+    """
+    Create and return a FastApi app instance for MORA.
+    """
     log.init()
 
-    middleware = [
-        Middleware(
-            RawContextMiddleware
-        )
-    ]
+    middleware = [Middleware(RawContextMiddleware)]
     app = FastAPI(
-        middleware=middleware
+        middleware=middleware,
     )
 
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
-        request_scoped_globals.request_args = deepcopy(request.query_params)
-        request_scoped_globals.request_wide_bulk.clear()
+        current_query.args = deepcopy(request.query_params)
+        await request_wide_bulk.clear()
+        # # HACK: needed to access the body of the request in the middleware
+        # # https://github.com/encode/starlette/issues/495#issuecomment-513138055
+
+        # async def set_body(request: Request, body: bytes):
+        #     async def receive() -> Message:
+        #         return {"type": "http.request", "body": body}
+        #
+        #     request._receive = receive
+        #
+        # async def get_body(request: Request) -> bytes:
+        #     body = await request.body()
+        #     await set_body(request, body)
+        #     return body
         response = await call_next(request)
         return response
 
-    # app.config.update(settings.app_config)
-    # app.url_map.converters['uuid'] = util.StrUUIDConverter
-
-    # if overrides is not None:
-    #    app.config.update(overrides)
-
+    # router include order matters
     app.include_router(base.router, prefix="/service", tags=["Service"])
 
     app.include_router(
@@ -112,46 +161,26 @@ def create_app(overrides: typing.Optional[typing.Dict[str, typing.Any]] = None):
         tags=["Health"],
     )
 
+    for router in service.routers:
+        app.include_router(router, prefix="/service", tags=["Service"])
     app.include_router(
         meta_router(),
         tags=["Meta"],
     )
 
-    for router in service.routers:
-        app.include_router(router, prefix="/service", tags=["Service"])
-
-    #    @app.errorhandler(Exception)
-    #    def handle_invalid_usage(error):
-    #        """
-    #        Handles errors in case an exception is raised.
-    #
-    #        :param error: The error raised.
-    #        :return: JSON describing the problem and the apropriate status code.
-    #        """
-    #
-    #        if not isinstance(error, werkzeug.routing.RoutingException):
-    #            util.log_exception('unhandled exception')
-    #
-    #        if not isinstance(error, werkzeug.exceptions.HTTPException):
-    #            error = exceptions.HTTPException(
-    #                description=str(error),
-    #            )
-    #
-    #        return error.get_response(flask.request.environ)
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
     # `flaskr/static` directory.
+    serviceplatformen.check_config()
+    triggers.register(app)
+    if os.path.exists(distdir):
+        app.mount("/", StaticFiles(directory=distdir), name="static")
+    else:
+        logger.warning(f'No dist directory to serve! (Missing: {distdir})')
 
-    # serviceplatformen.check_config(app)
-    # triggers.register(app)
-
-    app.mount("/", StaticFiles(directory=distdir), name="static")
-
-    @app.exception_handler(RequestValidationError)
-    async def custom_exception_handler(request: Request, exc: RequestValidationError):
-        # if config['ENV'] in ['development', 'testing']:
-        #     err = ErrorCodes.E_INVALID_INPUT.to_http_exception(exc.detail)
-        err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
-        return http_exception_to_json_response(exc=err)
+    app.add_exception_handler(Exception, fallback_handler)
+    app.add_exception_handler(FastAPIHTTPException, fallback_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)
+    app.add_exception_handler(HTTPException, http_exception_handler)
 
     return app

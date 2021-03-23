@@ -18,7 +18,7 @@ services:
     environment:
       # `vue-cli-service serve` will proxy request to `/service` and `/saml`to
       # this endpoint. Defined in `frontend/vue.config.js`.
-      - BASE_URL=http://mo:5000
+      - BASE_URL=http://mo:80
     # To reload on file changes, we mount the current folder into `/code`.
     # However we do not want node_modules on the host machine, so we create an
     # additional volume for it.

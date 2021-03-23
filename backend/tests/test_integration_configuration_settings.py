@@ -78,7 +78,6 @@ class Tests(ConfigTestCase):
         service_url = '/service/ou/{}/'.format(uuid)
         response = self.assertRequest(service_url)
         user_settings = response['user_settings']['orgunit']
-        print(user_settings)
         self.assertTrue(user_settings['show_user_key'])
         self.assertFalse(user_settings['show_location'])
 

@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from fastapi import APIRouter, Body
-from uuid import UUID
 import logging
-from .. import util, conf_db, settings
+from uuid import UUID
+
+from fastapi import APIRouter, Body
+
+from .. import conf_db, settings
 
 logger = logging.getLogger("mo_configuration")
 

@@ -26,7 +26,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from ..request_scoped_globals import request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
 from ..triggers import Trigger
 
 router = APIRouter()

@@ -17,28 +17,25 @@ inserting/updating organisational units and employees
 
 '''
 import json
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter
-import mora.async_util
 
 from . import employee
 from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import mapping
-from .. import util
-
 
 router = APIRouter()
 
 
 @router.get('/ou/{unitid}/integration-data')
-#@util.restrictargs('at')
+# @util.restrictargs('at')
 async def get_org_unit_integration_data(
     unitid: UUID,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     """Get organisational unit with integration data
 
@@ -90,10 +87,10 @@ async def get_org_unit_integration_data(
 
 
 @router.get('/e/{employeeid}/integration-data')
-#@util.restrictargs('at')
+# @util.restrictargs('at')
 async def get_employee_integration_data(
     employeeid: UUID,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     """Get employee with integration data
 

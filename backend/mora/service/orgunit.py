@@ -30,25 +30,25 @@ from typing import Any, Awaitable, Dict, List
 from typing import Optional
 from uuid import UUID
 
-import requests
 from fastapi import APIRouter, Body
 from fastapi import Query
 from more_itertools import unzip
 
 import mora.async_util
-from mora.request_scoped_globals import request_args, request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
 from . import facet
 from . import handlers
 from . import org
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from .. import common, conf_db, settings
+from .. import common, conf_db
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
+from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -84,8 +84,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
 
     def prepare_create(self, req):
-        # req = flask.request.get_json()
-
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(
@@ -627,6 +625,7 @@ async def get_one_orgunit(c: lora.Connector,
 
 @router.get('/{type}/{parentid}/children')
 async def get_children(type, parentid: UUID, at: Optional[date] = Query(None), count: Optional[bool]=False, org_unit_hierarchy: str=""):
+
     '''Obtain the list of nested units within an organisation or an
     organisational unit.
 
@@ -641,7 +640,7 @@ async def get_children(type, parentid: UUID, at: Optional[date] = Query(None), c
     :>jsonarr string name: Human-readable name of the unit.
     :>jsonarr string user_key: Short, unique key identifying the unit.
     :>jsonarr object validity: Validity range of the organisational unit.
-    :>jsonarr uuid uuid: Machine-friendly UUID of the unit.
+    :>jsonarr uuid uui: Machine-friendly UUID of the unit.
     :>jsonarr int child_count: Number of org. units nested immediately beneath
                                the organisation.
 
@@ -739,8 +738,9 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
 
 @router.get('/ou/ancestor-tree')
 async def get_unit_ancestor_tree(
-    uuid: Optional[List[UUID]] = None,
-    only_primary_uuid: Optional[bool] = None
+    uuid: List[UUID] = Query(...),
+    only_primary_uuid: bool = Query(False),
+    org_unit_hierarchy: str = ""
 ):
     '''Obtain the tree of ancestors for the given units.
 
@@ -797,11 +797,9 @@ async def get_unit_ancestor_tree(
     '''
 
     c = common.get_connector()
-    unitids = current_query.args.getlist('uuid')
-    only_primary_uuid = current_query.args.get('only_primary_uuid')
-    org_unit_hierarchy = current_query.args.get('org_unit_hierarchy')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
+    unitids = list(map(str, uuid))
     return await get_unit_tree(
             c,
             unitids,
@@ -876,7 +874,8 @@ async def get_unit_tree(
 
 
 @router.get('/ou/{unitid}/')
-async def get_orgunit(unitid: UUID, only_primary_uuid : Optional[bool] = None, count: Optional[bool]=False):
+async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
+                      count: Optional[bool] = False):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -970,7 +969,6 @@ async def get_orgunit(unitid: UUID, only_primary_uuid : Optional[bool] = None, c
     c = common.get_connector()
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
-
     # only_primary_uuid = flask.request.args.get('only_primary_uuid')
     only_primary_uuid = False
     r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
@@ -987,7 +985,7 @@ async def get_orgunit(unitid: UUID, only_primary_uuid : Optional[bool] = None, c
 @router.get('/ou/{unitid}/refresh')
 async def trigger_external_integration(
     unitid: UUID,
-    only_primary_uuid: Optional[bool] = None
+    only_primary_uuid: bool = False
 ):
     """
     Trigger external integration for a given org unit UUID
@@ -1145,8 +1143,7 @@ async def list_orgunits(
 
         uuid_filters.append(entry_under_root)
 
-    details = get_details_from_query_args(request_args)
-    details = {}
+    details = get_details_from_query_args(current_query.args)
 
     async def get_minimal_orgunit(*args, **kwargs):
         return await get_one_orgunit(
@@ -1164,10 +1161,11 @@ async def list_orgunits(
 async def list_orgunit_tree(
     orgid: UUID,
     query: Optional[str] = None,
-    uuid: Optional[List[UUID]] = None,
-    only_primary_uuid: Optional[bool] = None
+    uuid: Optional[List[UUID]] = Query(None),
+    only_primary_uuid: bool = False
 ):
-    '''Query organisational units in an organisation.
+    """
+    Query organisational units in an organisation.
 
     .. :quickref: Unit; Tree
 
@@ -1230,7 +1228,7 @@ async def list_orgunit_tree(
        }
      ]
 
-    '''
+    """
     orgid = str(orgid)
     c = common.get_connector()
 
@@ -1243,7 +1241,8 @@ async def list_orgunit_tree(
         kwargs.update(vilkaarligattr='%{}%'.format(query))
 
     unitids = (
-        uuid if uuid else (await c.organisationenhed.fetch(**kwargs))
+        list(map(str, uuid)) if uuid is not None else (
+            await c.organisationenhed.fetch(**kwargs))
     )
 
     return await get_unit_tree(

@@ -10,7 +10,7 @@ import tempfile
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock()
+@util.mock(real_http=True)
 class Tests(util.TestCase):
     maxDiff = None
 
@@ -140,7 +140,7 @@ class TestConfig(util.TestCase):
         "are not considered in dummy mode"
         with util.override_app_config(ENV='production'):
             with util.override_config({"dummy_mode": True}):
-                self.assertTrue(serviceplatformen.check_config(self.app))
+                self.assertTrue(serviceplatformen.check_config())
 
     def test_serviceplatformen_missing_path(self):
         with util.override_app_config(ENV='production'):
@@ -151,7 +151,7 @@ class TestConfig(util.TestCase):
                     ValueError,
                     "Serviceplatformen certificate path must be configured"
                 ):
-                    serviceplatformen.check_config(self.app)
+                    serviceplatformen.check_config()
 
     def test_serviceplatformen_empty_file(self):
         with tempfile.NamedTemporaryFile() as tf:
@@ -164,7 +164,7 @@ class TestConfig(util.TestCase):
                         ValueError,
                         "Serviceplatformen certificate can not be empty"
                     ):
-                        serviceplatformen.check_config(self.app)
+                        serviceplatformen.check_config()
 
     def test_serviceplatformen_invalid_values(self):
         with tempfile.NamedTemporaryFile() as tf:
@@ -181,7 +181,7 @@ class TestConfig(util.TestCase):
                         "Serviceplatformen uuids must be valid: "
                         "uuid, system_uuid"
                     ):
-                        serviceplatformen.check_config(self.app)
+                        serviceplatformen.check_config()
 
         # the temporary file has now been deleted by tempfile cm
         # but name still exists
@@ -194,4 +194,4 @@ class TestConfig(util.TestCase):
                     FileNotFoundError,
                     "Serviceplatformen certificate not found"
                 ):
-                    serviceplatformen.check_config(self.app)
+                    serviceplatformen.check_config()

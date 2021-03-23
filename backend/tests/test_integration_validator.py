@@ -215,7 +215,7 @@ class TestValidator(TestHelper):
             ])
 
         self.assertEqual(
-            ctxt.exception.response.json,
+            ctxt.exception.detail,
             {
                 'description': 'Manager has the same responsibility more than '
                                'once.',

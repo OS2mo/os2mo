@@ -6,7 +6,7 @@ from asyncio import create_task, gather
 
 from .. import reading
 from ... import mapping
-from ...request_scoped_globals import request_args
+from ...request_scoped.query_args import current_query
 from ...service import facet
 from ...service import orgunit
 
@@ -28,8 +28,7 @@ class KLEReader(reading.OrgFunkReadingHandler):
             super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         kle_types = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
-        only_primary_uuid = request_args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         # via tasks, await request_bulked_get_one_class_full, then prepare a gather of
         # those (resulting) promises for later collection

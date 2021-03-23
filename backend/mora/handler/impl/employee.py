@@ -10,7 +10,7 @@ from ... import exceptions
 from ... import mapping
 from ... import util
 from ...lora import Connector
-from ...request_scoped_globals import request_args
+from ...request_scoped.query_args import current_query
 from ...service import employee
 
 ROLE_TYPE = "employee"
@@ -46,8 +46,7 @@ class EmployeeReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        only_primary_uuid = request_args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         employee_object = await employee.get_one_employee(
             c,

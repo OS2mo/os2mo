@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 def handle_requests(
-    reqs: typing.List[dict],
+    reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
     request_type: mapping.RequestType
 ):
     if isinstance(reqs, dict):
@@ -47,7 +47,7 @@ def handle_requests(
 
 @router.post('/details/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)):
+def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
@@ -423,7 +423,7 @@ def create(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)):
+def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
@@ -928,13 +928,12 @@ def edit(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)):
     See :ref:`Adresses <address>` for more information.
 
     """
-
     return handle_requests(reqs, mapping.RequestType.EDIT)
 
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate(reqs: dict = Body(...)):
+def terminate(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     '''Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation
@@ -943,7 +942,7 @@ def terminate(reqs: dict = Body(...)):
               :http:post:`/service/details/create` and
               :http:post:`/service/details/edit`.
     :<jsonarr str uuid: The UUID of the related to terminate.
-    :<json boolean vacate: *Optional* - mark applicable — currently
+    :<json boolean vacate: *Optiona l* - mark applicable — currently
         only ``manager`` -- functions as _vacant_, i.e. simply detach
         the employee from them.
     :<jsonarr object validity: A validity object; but only the ``to`` is

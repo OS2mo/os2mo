@@ -722,7 +722,7 @@ class Tests(util.LoRATestCase):
             [],
         )
 
-    @util.mock('aabogade.json', allow_mox=True)
+    @util.mock('aabogade.json', allow_mox=True, real_http=True)
     def test_create_org_unit(self, m):
         self.load_sample_structures()
 
@@ -795,7 +795,7 @@ class Tests(util.LoRATestCase):
         }
 
         r = self.request('/service/ou/create', json=payload)
-        unitid = r.json
+        unitid = r.json()
 
         expected = {
             "livscykluskode": "Importeret",
@@ -1417,7 +1417,7 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01')
-    @util.mock('aabogade.json', allow_mox=True)
+    @util.mock('aabogade.json', allow_mox=True, real_http=True)
     def test_edit_org_unit_extending_end(self, m):
         self.load_sample_structures()
 
@@ -1490,7 +1490,7 @@ class Tests(util.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01')
-    @util.mock('aabogade.json', allow_mox=True)
+    @util.mock('aabogade.json', allow_mox=True, real_http=True)
     def test_edit_org_unit_earlier_start_on_created(self, m):
         self.load_sample_structures()
 

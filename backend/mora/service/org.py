@@ -1,23 +1,23 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''
+"""
 Organisation
 ------------
 
 This section describes how to interact with organisations.
+"""
 
-'''
 from asyncio import create_task, gather
+from uuid import UUID
 
 from fastapi import APIRouter
-import werkzeug
 
-import mora.async_util
 from .. import common
+from .. import exceptions
 from .. import mapping
 from .. import util
-from .. import exceptions
+from ..exceptions import ErrorCodes
 
 router = APIRouter()
 
@@ -82,8 +82,7 @@ async def get_valid_organisations():
 
 
 @router.get('/o/')
-#@util.restrictargs('at')
-#@mora.async_util.async_to_sync
+# @util.restrictargs('at')
 async def list_organisations():
     '''List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
@@ -118,11 +117,11 @@ async def list_organisations():
     return [await get_configured_organisation()]
 
 
-@router.get('/o/<uuid:orgid>/')
-#@util.restrictargs('at')
-#@mora.async_util.async_to_sync
-async def get_organisation(orgid):
-    '''Obtain the initial level of an organisation.
+@router.get('/o/{orgid}/')
+# @util.restrictargs('at')
+async def get_organisation(orgid: UUID):
+    """
+    Obtain the initial level of an organisation.
 
     .. :quickref: Organisation; Getter
 
@@ -163,16 +162,15 @@ async def get_organisation(orgid):
        "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
      }
 
-    '''
-
+    """
+    orgid = str(orgid)
     c = common.get_connector()
-
     org = await c.organisation.get(orgid)
 
     try:
         attrs = org['attributter']['organisationegenskaber'][0]
     except (KeyError, TypeError):
-        raise werkzeug.exceptions.NotFound
+        ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     units = await c.organisationenhed.fetch(tilhoerer=orgid, gyldighed='Aktiv')
     children = await c.organisationenhed.fetch(overordnet=orgid, gyldighed='Aktiv')
@@ -196,7 +194,7 @@ async def get_organisation(orgid):
     managers = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
                                                   funktionsnavn=mapping.MANAGER_KEY)
 
-    return {
+    ret = {
         'name': attrs['organisationsnavn'],
         'user_key': attrs['brugervendtnoegle'],
         'uuid': orgid,
@@ -209,3 +207,4 @@ async def get_organisation(orgid):
         'role_count': len(roles),
         'manager_count': len(managers),
     }
+    return ret

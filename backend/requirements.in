@@ -22,3 +22,4 @@ fastapi
 jinja2
 aiofiles
 starlette-context
+werkzeug

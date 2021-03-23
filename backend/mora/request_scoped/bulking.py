@@ -1,9 +1,7 @@
-# SPDX-FileCopyrightText: 2021 Magenta ApS
+# SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Lock
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
-
-from starlette.datastructures import ImmutableMultiDict
 
 from mora.common import get_connector
 from mora.lora import Connector, LoraObjectType
@@ -176,5 +174,3 @@ class __BulkBookkeeper:
 
 # I'm a singleton
 request_wide_bulk = __BulkBookkeeper()
-# me too
-request_args: ImmutableMultiDict = ImmutableMultiDict()

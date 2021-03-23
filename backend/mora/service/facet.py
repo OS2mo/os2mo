@@ -24,7 +24,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request
 
-from mora.request_scoped_globals import request_args, request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
+from ..request_scoped.query_args import current_query
 from .tree_helper import prepare_ancestor_tree
 from .. import common
 from .. import exceptions
@@ -173,7 +174,7 @@ async def get_class(
     classid = str(classid)
 
     c = common.get_connector()
-    class_details = map_query_args_to_class_details(request_args)
+    class_details = map_query_args_to_class_details(current_query.args)
 
     return await get_one_class(
         c, classid, details=class_details, only_primary_uuid=only_primary_uuid
@@ -622,7 +623,7 @@ async def get_classes(
       }
     '''
     orgid = str(orgid)
-    class_details = map_query_args_to_class_details(request_args)
+    class_details = map_query_args_to_class_details(current_query.args)
 
     return await get_classes_under_facet(
         orgid, facet, details=class_details,

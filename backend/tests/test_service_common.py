@@ -17,12 +17,6 @@ from . import util
 class TestClass(util.TestCase):
     maxDiff = None
 
-    def test_exception_stringification(self):
-        self.assertEqual(
-            "500 Internal Server Error: Unknown Error.",
-            str(exceptions.HTTPException()),
-        )
-
     def test_update_payload_complex(self):
         # Arrange
         fields = [
@@ -1824,7 +1818,7 @@ class TestClass(util.TestCase):
             )
 
         self.assertEqual(
-            cm.exception.body,
+            cm.exception.detail,
             {
                 'description': 'Not found.',
                 'error': True,

@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from typing import Optional
-from fastapi import APIRouter, Body
 
-import mora.async_util
+from fastapi import APIRouter, Body
 
 from . import validator
 from .. import facet
@@ -13,10 +12,10 @@ from ... import lora
 from ... import mapping
 from ... import util
 
-router = APIRouter()
+_router = APIRouter()
 
 
-@router.post('/org-unit/')
+@_router.post('/org-unit/')
 async def org_unit_validity(req: dict = Body(...)):
     """
     Verify that an org unit is valid within a given set of start/end dates
@@ -60,7 +59,7 @@ async def org_unit_validity(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/employee/')
+@_router.post('/employee/')
 async def employee_validity(req: dict = Body(...)):
     """
     Verify that an employee is valid within a given set of start/end dates
@@ -98,7 +97,7 @@ async def employee_validity(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/cpr/')
+@_router.post('/cpr/')
 async def check_cpr(req: dict = Body(...)):
     """
     Verify that an employee with the given CPR no. does not already exist
@@ -134,7 +133,7 @@ async def check_cpr(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/active-engagements/')
+@_router.post('/active-engagements/')
 async def employee_engagements(req: dict = Body(...)):
     """
     Verify that an employee has active engagements
@@ -173,7 +172,7 @@ async def employee_engagements(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/existing-associations/')
+@_router.post('/existing-associations/')
 async def employee_existing_associations(req: dict = Body(...)):
     """
     Verify that an employee does not have existing associations for a given
@@ -222,7 +221,7 @@ async def employee_existing_associations(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/movable-org-unit/')
+@_router.post('/movable-org-unit/')
 async def movable_org_unit(req: dict = Body(...)):
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
 
@@ -231,7 +230,7 @@ async def movable_org_unit(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/candidate-parent-org-unit/')
+@_router.post('/candidate-parent-org-unit/')
 async def candidate_parent_org_unit(req: dict = Body(...)):
     """
     Verify that a given parent is a suitable candidate for an org unit move,
@@ -279,10 +278,10 @@ async def candidate_parent_org_unit(req: dict = Body(...)):
     return {"success": True}
 
 
-@router.post('/address/')
+@_router.post('/address/')
 async def address_value(
     req: dict = Body(...),
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     """
     Verify that a given address value conforms to the format for the given
@@ -327,3 +326,8 @@ async def address_value(
     handler.validate_value(value)
 
     return {"success": True}
+
+
+# important to include AFTER path_operations are in place
+router = APIRouter()
+router.include_router(_router, prefix='/validate')

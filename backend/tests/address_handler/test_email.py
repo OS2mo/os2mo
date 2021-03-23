@@ -3,6 +3,8 @@
 
 from unittest.mock import patch
 
+from mora.request_scoped.query_args import current_query
+
 import mora.async_util
 from mora import exceptions
 from mora.service.address_handler import email
@@ -115,5 +117,5 @@ class EmailAddressHandlerTests(util.TestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid email address
 
         # Act & Assert
-        with self.create_app().test_request_context('?force=1'):
+        with current_query.temporary_args({'force': '1'}):
             self.handler.validate_value(value)
