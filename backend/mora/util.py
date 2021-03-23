@@ -29,13 +29,13 @@ import uuid
 
 import dateutil.parser
 import dateutil.tz
-import werkzeug.routing
 
 from mora import conf_db
 from . import exceptions
 from . import mapping
-
 # use this string rather than nothing or N/A in UI -- it's the em dash
+from .request_scoped_globals import request_args
+
 PLACEHOLDER = "\u2014"
 
 _sentinel = object()
@@ -767,26 +767,24 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
 
 
 def get_args_flag(name: str):
-    '''Get an argument from the Flask request as a boolean flag.
+    """
+    Get an argument from the Flask request as a boolean flag.
 
     A 'flag' argument is false either when not set or one of the
     values '0', 'false', 'no' or 'n'. Anything else is true.
 
-    '''
-    # TODO: Fix this
+    """
 
-    # v = flask.request.args.get(name, '')
+    v = request_args.get(name, '')
 
-    # if v.lower() in ('', '0', 'no', 'n', 'false'):
-    #     return False
-    # else:
-    #     return bool(v)
-
-    return False
+    if v.lower() in ('', '0', 'no', 'n', 'false'):
+        return False
+    else:
+        return bool(v)
 
 
-class StrUUIDConverter(werkzeug.routing.UUIDConverter):
-    """Custom URL converter returning UUIDs as strings rather than UUIDs"""
-
-    def to_python(self, value):
-        return str(value)
+# class StrUUIDConverter(werkzeug.routing.UUIDConverter):
+#     """Custom URL converter returning UUIDs as strings rather than UUIDs"""
+#
+#     def to_python(self, value):
+#         return str(value)

@@ -3,11 +3,15 @@
 
 import os
 import typing
+from copy import deepcopy
+
 from fastapi import APIRouter
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware import Middleware
+from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
 from mora import __version__, log
@@ -23,6 +27,8 @@ from .auth import base
 from .integrations import serviceplatformen
 from . import triggers
 from mora.auth import base
+from .exceptions import ErrorCodes, http_exception_to_json_response
+import request_scoped_globals
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, 'templates')
@@ -66,7 +72,7 @@ def meta_router():
     return router
 
 
-def create_app(overrides: typing.Dict[str, typing.Any] = None):
+def create_app(overrides: typing.Optional[typing.Dict[str, typing.Any]] = None):
     '''Create and return a Flask app instance for MORA.
 
     :param dict overrides: Settings to override prior to extension
@@ -81,13 +87,21 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
             RawContextMiddleware
         )
     ]
-    app = FastAPI(middleware=middleware)
+    app = FastAPI(
+        middleware=middleware
+    )
 
+    @app.middleware("http")
+    async def manage_request_scoped_globals(request: Request, call_next):
+        request_scoped_globals.request_args = deepcopy(request.query_params)
+        request_scoped_globals.request_wide_bulk.clear()
+        response = await call_next(request)
+        return response
 
     # app.config.update(settings.app_config)
     # app.url_map.converters['uuid'] = util.StrUUIDConverter
 
-    #if overrides is not None:
+    # if overrides is not None:
     #    app.config.update(overrides)
 
     app.include_router(base.router, prefix="/service", tags=["Service"])
@@ -106,24 +120,24 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     for router in service.routers:
         app.include_router(router, prefix="/service", tags=["Service"])
 
-#    @app.errorhandler(Exception)
-#    def handle_invalid_usage(error):
-#        """
-#        Handles errors in case an exception is raised.
-#
-#        :param error: The error raised.
-#        :return: JSON describing the problem and the apropriate status code.
-#        """
-#
-#        if not isinstance(error, werkzeug.routing.RoutingException):
-#            util.log_exception('unhandled exception')
-#
-#        if not isinstance(error, werkzeug.exceptions.HTTPException):
-#            error = exceptions.HTTPException(
-#                description=str(error),
-#            )
-#
-#        return error.get_response(flask.request.environ)
+    #    @app.errorhandler(Exception)
+    #    def handle_invalid_usage(error):
+    #        """
+    #        Handles errors in case an exception is raised.
+    #
+    #        :param error: The error raised.
+    #        :return: JSON describing the problem and the apropriate status code.
+    #        """
+    #
+    #        if not isinstance(error, werkzeug.routing.RoutingException):
+    #            util.log_exception('unhandled exception')
+    #
+    #        if not isinstance(error, werkzeug.exceptions.HTTPException):
+    #            error = exceptions.HTTPException(
+    #                description=str(error),
+    #            )
+    #
+    #        return error.get_response(flask.request.environ)
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
     # `flaskr/static` directory.
@@ -132,5 +146,12 @@ def create_app(overrides: typing.Dict[str, typing.Any] = None):
     # triggers.register(app)
 
     app.mount("/", StaticFiles(directory=distdir), name="static")
+
+    @app.exception_handler(RequestValidationError)
+    async def custom_exception_handler(request: Request, exc: RequestValidationError):
+        # if config['ENV'] in ['development', 'testing']:
+        #     err = ErrorCodes.E_INVALID_INPUT.to_http_exception(exc.detail)
+        err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
+        return http_exception_to_json_response(exc=err)
 
     return app

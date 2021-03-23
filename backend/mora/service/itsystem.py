@@ -11,12 +11,12 @@ This section describes how to interact with IT systems.
 '''
 
 import itertools
-from uuid import UUID, uuid4
 from typing import Any, Awaitable, Dict, Optional
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter
-import mora.async_util
 
+import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -26,7 +26,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from ..request_wide_bulking import request_wide_bulk
+from ..request_scoped_globals import request_wide_bulk
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -199,7 +199,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
 
 @router.get('/o/{orgid}/it/')
-#@util.restrictargs('at')
+# @util.restrictargs('at')
 async def list_it_systems(orgid: UUID):
     """List the IT systems available within the given organisation.
 

@@ -21,7 +21,6 @@ from fastapi import APIRouter, Body
 from . import handlers
 from .. import exceptions
 from .. import mapping
-from .. import util
 
 router = APIRouter()
 
@@ -48,7 +47,7 @@ def handle_requests(
 
 @router.post('/details/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create(reqs: dict = Body(...)):
+def create(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)):
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
@@ -424,7 +423,7 @@ def create(reqs: dict = Body(...)):
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(reqs: dict = Body(...)):
+def edit(reqs: typing.Union[typing.Dict, typing.List[typing.Dict]] = Body(...)):
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation

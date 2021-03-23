@@ -19,7 +19,6 @@ import uuid
 from asyncio import create_task, gather
 from datetime import date
 from itertools import chain
-<<<<<<< HEAD
 from typing import Any, Awaitable, Dict, Optional, Iterable, List
 from typing import Any, Awaitable, Dict, Optional, List
 
@@ -27,7 +26,6 @@ from fastapi import APIRouter, Request, Body
 
 import requests
 from mora.request_scoped.query_args import current_query
-=======
 from typing import Any, Awaitable, Dict, List
 from typing import Optional
 from uuid import UUID
@@ -35,11 +33,10 @@ from uuid import UUID
 import requests
 from fastapi import APIRouter, Body
 from fastapi import Query
->>>>>>> 5d6d8b48 (attempt at ripping out flask (should create a lot of bugs))
 from more_itertools import unzip
 
 import mora.async_util
-from mora.request_wide_bulking import request_wide_bulk
+from mora.request_scoped_globals import request_args, request_wide_bulk
 from . import facet
 from . import handlers
 from . import org
@@ -1148,8 +1145,7 @@ async def list_orgunits(
 
         uuid_filters.append(entry_under_root)
 
-    # TODO: Fix up
-    # details = get_details_from_query_args(flask.request.args)
+    details = get_details_from_query_args(request_args)
     details = {}
 
     async def get_minimal_orgunit(*args, **kwargs):

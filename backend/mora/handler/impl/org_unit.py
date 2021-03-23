@@ -8,6 +8,7 @@ from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
+from ...request_scoped_globals import request_args
 from ...service import orgunit
 
 ROLE_TYPE = "org_unit"
@@ -47,8 +48,7 @@ class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        #only_primary_uuid = flask.request.args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = request_args.get('only_primary_uuid')
 
         return await orgunit.get_one_orgunit(
             c,

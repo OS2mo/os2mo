@@ -6,6 +6,7 @@ from asyncio import create_task
 
 from .. import reading
 from ... import mapping
+from ...request_scoped_globals import request_args
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -32,14 +33,14 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         base_obj_task = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = request_args.get('only_primary_uuid')
 
         facet_task = create_task(facet.request_bulked_get_one_class_full(
             address_type,
             only_primary_uuid=only_primary_uuid))
 
-        address_task = create_task(handler.get_mo_address_and_properties(only_primary_uuid))
+        address_task = create_task(
+            handler.get_mo_address_and_properties(only_primary_uuid))
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(

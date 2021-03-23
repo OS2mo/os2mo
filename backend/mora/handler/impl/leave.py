@@ -4,10 +4,10 @@ import logging
 from asyncio import create_task
 
 from mora import lora
-
 from .engagement import EngagementReader
 from .. import reading
 from ... import mapping
+from ...request_scoped_globals import request_args
 from ...service import employee
 from ...service import facet
 
@@ -28,8 +28,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = request_args.get('only_primary_uuid')
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -40,8 +39,6 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             leave_type,
             only_primary_uuid=only_primary_uuid))
 
-        # only_primary_uuid = flask.request.args.get("only_primary_uuid")
-        only_primary_uuid = False
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
         else:

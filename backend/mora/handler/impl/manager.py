@@ -8,6 +8,8 @@ from typing import Any, Awaitable, Dict, Iterable
 from .. import reading
 from ... import mapping
 from ... import util
+from ...request_scoped_globals import request_args, request_wide_bulk
+from ...service import address
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -39,8 +41,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         manager = list(await super().get(c, search_fields))
 
         if not manager:
-            # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-            only_primary_uuid = False
+            only_primary_uuid = request_args.get('only_primary_uuid')
             ou = await orgunit.get_one_orgunit(
                 c, object_id, details=orgunit.UnitDetails.FULL,
                 only_primary_uuid=only_primary_uuid
@@ -65,8 +66,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = request_args.get('only_primary_uuid')
 
         if person:
             person_task = create_task(

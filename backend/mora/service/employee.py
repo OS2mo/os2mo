@@ -12,19 +12,19 @@ For more information regarding reading relations involving employees, refer to
 :http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
-from uuid import UUID
-from typing import Optional
 import copy
 import enum
 import uuid
 from functools import partial
 from operator import contains, itemgetter
 from typing import Any, Awaitable, Dict, Union
+from typing import Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Body
 
 import mora.async_util
-from mora.request_wide_bulking import request_wide_bulk
+from mora.request_scoped_globals import request_wide_bulk
 from . import handlers
 from . import org
 from .validation import validator
@@ -33,8 +33,8 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..settings import app_config
 from ..lora import LoraObjectType
+from ..settings import app_config
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -307,7 +307,8 @@ async def request_bulked_get_one_employee(userid: str,
                                      only_primary_uuid=only_primary_uuid)
 
 
-async def get_one_employee(c: lora.Connector, userid, user=None,
+async def get_one_employee(c: lora.Connector, userid,
+                           user: Optional[Dict[str, Any]] = None,
                            details=EmployeeDetails.MINIMAL,
                            only_primary_uuid: bool = False):
     config = app_config
@@ -362,14 +363,14 @@ async def get_one_employee(c: lora.Connector, userid, user=None,
 
 
 @router.get('/o/{orgid}/e/')
-#@util.restrictargs('at', 'start', 'limit', 'query', 'associated')
+# @util.restrictargs('at', 'start', 'limit', 'query', 'associated')
 async def list_employees(
-    orgid:UUID,
+    orgid: UUID,
     start: Optional[int] = 0,
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     associated: Optional[bool] = None,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     '''Query employees in an organisation.
 
@@ -476,10 +477,10 @@ async def list_employees(
 
 
 @router.get('/e/{id}/')
-#@util.restrictargs('at')
+# @util.restrictargs('at')
 async def get_employee(
     id: UUID,
-    only_primary_uuid : Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None
 ):
     '''Retrieve an employee.
 
@@ -532,7 +533,8 @@ async def get_employee(
     '''
     c = common.get_connector()
     r = await get_one_employee(
-        c, id, user=None, details=EmployeeDetails.FULL, only_primary_uuid=only_primary_uuid
+        c, id, user=None, details=EmployeeDetails.FULL,
+        only_primary_uuid=only_primary_uuid
     )
 
     if not r:

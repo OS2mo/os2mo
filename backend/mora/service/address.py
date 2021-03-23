@@ -4,11 +4,11 @@
 import collections
 import re
 import uuid
-from uuid import UUID
 from typing import Any, Dict, Optional
+from uuid import UUID
 
-import mora.async_util
 import requests
+from fastapi import APIRouter, Query
 
 import mora.async_util
 from . import facet
@@ -22,6 +22,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..request_scoped_globals import request_args
 from ..triggers import Trigger
 
 session = requests.Session()
@@ -31,7 +32,6 @@ session.headers = {
 
 MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
-from fastapi import APIRouter, Query
 router = APIRouter()
 
 
@@ -52,7 +52,7 @@ async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, 
 
 
 @router.get('/o/{orgid}/address_autocomplete/')
-#@util.restrictargs('global', required=['q'])
+# @util.restrictargs('global', required=['q'])
 async def address_autocomplete(
     orgid: UUID,
     q: str,
@@ -198,8 +198,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                                   required=True)
 
         c = lora.Connector()
-        # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-        only_primary_uuid = False
+        only_primary_uuid = request_args.get('only_primary_uuid')
 
         type_obj = mora.async_util.async_to_sync(facet.get_one_class
                                                  )(c,
@@ -364,8 +363,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True)
-            # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-            only_primary_uuid = False
+            only_primary_uuid = request_args.get('only_primary_uuid')
 
             type_obj = mora.async_util.async_to_sync(
                 facet.get_one_class)(c,

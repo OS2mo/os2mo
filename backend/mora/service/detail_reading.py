@@ -20,14 +20,13 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-
+from typing import Any, Optional
 from uuid import UUID
+
 from fastapi import APIRouter
 
-import mora.async_util
 from . import handlers
 from .. import common
-from .. import util
 
 router = APIRouter()
 
@@ -93,9 +92,16 @@ async def list_details(type, id: UUID):
 @router.get(
     '/{type}/{id}/details/{function}',
 )
-#@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
+# @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
 #                  'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
-async def get_detail(type, id:UUID, function):
+async def get_detail(type, id: UUID, function,
+                     at: Optional[Any] = None,
+                     validity: Optional[Any] = None,
+                     inherit_manager: Optional[Any] = None,
+                     calculate_primary: Optional[Any] = None,
+                     only_primary_uuid: Optional[Any] = None,
+                     first_party_perspective: Optional[Any] = None,
+                     ):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     :http:get:`/service/(any:type)/(uuid:id)/details/` for the

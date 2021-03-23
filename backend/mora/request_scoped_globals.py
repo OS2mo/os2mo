@@ -3,7 +3,8 @@
 from asyncio import Lock
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
-g = {}
+from starlette.datastructures import ImmutableMultiDict
+
 from mora.common import get_connector
 from mora.lora import Connector, LoraObjectType
 
@@ -13,12 +14,28 @@ UUID = str
 
 class __BulkBookkeeper:
     """
-    Singleton. Probably broken now without flask-features. Asyncio-concurrency safe via lock
+    Singleton. Probably broken now without flask-features.
+    Asyncio-concurrency safe via locks
     """
-    # TODO: Implement locking all over?
 
     def __init__(self):
-        self.__locks: Optional[Dict[LoraObjectType, Lock]] = {}
+        self.__locks: Dict[LoraObjectType, Lock] = {}
+        self.__raw_cache = {}
+
+    async def clear(self):
+        """
+        acquire all locks and clear cache
+
+        :return:
+        """
+        try:
+            for lock in self.__locks.values():
+                await lock.acquire()
+
+            self.__raw_cache.clear()
+        finally:
+            for lock in self.__locks.values():
+                lock.release()
 
     def __get_lock(self, type_: LoraObjectType) -> Lock:
         """
@@ -53,11 +70,11 @@ class __BulkBookkeeper:
 
     @property
     def __unprocessed_cache(self) -> Dict[LoraObjectType, Set[UUID]]:
-        return g.setdefault(self.__class__.__name__, {})
+        return self.__raw_cache.setdefault(self.__class__.__name__, {})
 
     @property
     def __processed_cache(self) -> Dict[LoraObjectType, Dict[UUID, Optional[LORA_OBJ]]]:
-        return g.setdefault(self.__class__.__name__ + '_processed', {})
+        return self.__raw_cache.setdefault(self.__class__.__name__ + '_processed', {})
 
     async def __raw_get_all(self, type_: LoraObjectType,
                             uuids: Set[str]) -> Iterable[Tuple[UUID, LORA_OBJ]]:
@@ -113,11 +130,12 @@ class __BulkBookkeeper:
         :return:
         """
         key = self.__class__.__name__ + '_connector'
-        if key in g:  # manually checking avoids creating unneeded connectors
-            return g.get(key)
+        # manually checking avoids creating unneeded connectors
+        if key in self.__raw_cache:
+            return self.__raw_cache.get(key)
 
         # set and return
-        return g.setdefault(key, get_connector())
+        return self.__raw_cache.setdefault(key, get_connector())
 
     async def add(self, type_: LoraObjectType, uuid: str):
         """
@@ -158,3 +176,5 @@ class __BulkBookkeeper:
 
 # I'm a singleton
 request_wide_bulk = __BulkBookkeeper()
+# me too
+request_args: ImmutableMultiDict = ImmutableMultiDict()
