@@ -85,9 +85,9 @@ describe('views/organisation/index.vue', () => {
     expect(env.wrapper.vm.options).toEqual(env.expectedDropdownItems)
   })
 
-  it('should reset the route when the `opm` filter is changed', async () => {
+  it('should reset the route when the `orgUnitHierarchy` filter is changed', async () => {
     const env = mountComponent()
-    env.wrapper.vm.$options.watch.opm.call(env.wrapper.vm, 'class-uuid')
+    env.wrapper.vm.$options.watch.orgUnitHierarchy.call(env.wrapper.vm, 'class-uuid')
     expect(env.wrapper.vm.$router).toEqual(
       [{ name: 'OrganisationLandingPage' }]
     )

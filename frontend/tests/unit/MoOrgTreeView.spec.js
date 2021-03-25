@@ -47,7 +47,7 @@ describe('MoOrgTreeView.vue', () => {
   it('should use `_extraQueryArgs` when `setFilter` is called', async () => {
     const env = mountComponent()
     env.wrapper.vm.setFilter('class-uuid')
-    expect(env.wrapper.vm._extraQueryArgs).toEqual({ opm: 'class-uuid' })
+    expect(env.wrapper.vm._extraQueryArgs).toEqual({ org_unit_hierarchy: 'class-uuid' })
     expect(spyGetAncestorTree).toHaveBeenCalledWith(
       orgUnitUuid, dateA, env.wrapper.vm._extraQueryArgs,
     )

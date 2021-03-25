@@ -108,7 +108,7 @@ export default {
 
   methods: {
     setFilter (val) {
-      this._extraQueryArgs = val === null ? undefined : { opm: val }
+      this._extraQueryArgs = val === null ? undefined : { org_unit_hierarchy: val }
       this.$refs.treeview.updateTree(true)
     },
   },

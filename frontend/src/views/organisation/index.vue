@@ -12,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
             </h4>
             <div v-if="options.length > 1">
               <span>{{ $t('shared.belongs_to') }}:</span>
-              <b-form-select v-model="opm" :options="options" />
+              <b-form-select v-model="orgUnitHierarchy" :options="options" />
             </div>
             <div id="tree-wrapper">
               <mo-org-tree-view ref="orgtree" v-model="selected" />
@@ -47,7 +47,7 @@ export default {
 
   data () {
     return {
-      opm: null,
+      orgUnitHierarchy: null,
     }
   },
 
@@ -70,7 +70,7 @@ export default {
 
     options: {
       get () {
-        let facet = this.$store.getters[Facet.getters.GET_FACET]("org_unit_hierarchy")
+        let facet = this.$store.getters[Facet.getters.GET_FACET]('org_unit_hierarchy')
         let result = [{ value: null, text: this.$t('shared.entire_organisation') }]
         if ('classes' in facet) {
           for (var cl of facet.classes) {
@@ -87,7 +87,7 @@ export default {
   },
 
   watch: {
-    opm (newVal) {
+    orgUnitHierarchy (newVal) {
       // Reset currently displayed org unit
       this.selected = null
 
