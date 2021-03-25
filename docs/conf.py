@@ -89,6 +89,7 @@ MOCK_MODULES = [
     'alembic.config',
     'aiohttp',
     'anytree',
+    'anytree.search',
 
     'mora.log',
 
