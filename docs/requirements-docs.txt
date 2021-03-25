@@ -6,8 +6,6 @@
 #
 alabaster==0.7.12
     # via sphinx
-anytree==2.8.0
-    # via -r requirements-docs.in
 babel==2.8.0
     # via sphinx
 certifi==2019.11.28
