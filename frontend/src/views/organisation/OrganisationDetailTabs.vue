@@ -244,9 +244,10 @@ export default {
       dyn_columns = dyn_columns.concat(columns)
       let extension_labels =
         (this.orgUnitInfo.user_settings.orgunit.extension_field_ui_labels).split(',')
-      dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
-        ({ label: label, data: 'extension_' + String(index+1) }) ))
-
+      if (extension_labels.length > 0 && extension_labels[0] !== "") {
+        dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
+          ({label: label, data: 'extension_' + String(index + 1)})))
+      }
       return dyn_columns
     },
 
