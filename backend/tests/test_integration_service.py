@@ -214,7 +214,7 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
         self.assertRequestResponse(
             '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children'
-            '?org_unit_hierarchy=class-uuid',
+            '?org_unit_hierarchy=321f1a2f-e185-42ef-a5f3-bebb2c69f1ba',
             [],
         )
 

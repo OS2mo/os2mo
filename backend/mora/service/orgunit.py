@@ -28,7 +28,7 @@ from mora.request_wide_bulking import request_wide_bulk
 from . import facet
 from . import handlers
 from . import org
-from .tree_helper import prepare_ancestor_tree, build_tree_from_org_units, find_nodes
+from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from .. import common, conf_db
 from .. import exceptions
@@ -683,38 +683,24 @@ async def get_children(type, parentid):
     org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
 
     return flask.jsonify(
-        await _get_immediate_matching_children(c, parentid, obj, org_unit_hierarchy)
-        if org_unit_hierarchy else
-        await _get_immediate_children(c, parentid, obj)
+        await _get_immediate_children(c, parentid, org_unit_hierarchy)
     )
 
 
-async def _get_immediate_matching_children(
+async def _get_immediate_children(
     connector: lora.Connector,
     parentid: str,
-    root: dict,
     org_unit_hierarchy: str,
 ):
-    def match_uuid_org_unit_hierarchy(node):
-        uuid = mapping.ORG_UNIT_HIERARCHY_FIELD.get_uuid(node.obj)
-        return uuid == org_unit_hierarchy
+    params = {
+        "overordnet": parentid,
+        "gyldighed": 'Aktiv',
+    }
+    if org_unit_hierarchy:
+        params['opmærkning'] = org_unit_hierarchy
 
-    all_org_units = await connector.organisationenhed.get_all(
-        gyldighed='Aktiv',
-    )
-    roots = build_tree_from_org_units(all_org_units)
-    matches = list(find_nodes(roots, parentid, match_uuid_org_unit_hierarchy))
-    immediate_children_objects = await _collect_child_objects(
-        connector, [(node.id, node.obj) for node in matches]
-    )
-    immediate_children_objects.sort(key=operator.itemgetter('name'))
-    return immediate_children_objects
-
-
-async def _get_immediate_children(connector, parentid, root):
     immediate_children = await connector.organisationenhed.get_all(
-        overordnet=parentid,
-        gyldighed='Aktiv',
+        **params
     )
     immediate_children_objects = await _collect_child_objects(
         connector, immediate_children
