@@ -35,6 +35,7 @@ SPDX-License-Identifier: MPL-2.0
 import MoOrganisationUnitWorkflows from '@/views/organisation/workflows'
 import MoOrgTreeView from '@/components/MoTreeView/MoOrgTreeView'
 import { Facet } from '@/store/actions/facet'
+import { Organisation } from '@/store/actions/organisation'
 import { mapState } from 'vuex'
 import bFormSelect from 'bootstrap-vue/es/components/form-select/form-select'
 
@@ -112,9 +113,11 @@ export default {
   mounted () {
     this.updateSplitHeight()
 
-    this.$store.dispatch(
-      Facet.actions.SET_FACET, { facet: "org_unit_hierarchy" }
-    )
+    this.$store.dispatch(Organisation.actions.SET_ORGANISATION).then(response => {
+      this.$store.dispatch(
+        Facet.actions.SET_FACET, { facet: "org_unit_hierarchy" }
+      )
+    })
   },
 
   destroyed () {
