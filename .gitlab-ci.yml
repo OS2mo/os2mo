@@ -293,12 +293,12 @@ Release feature branch:
     - if: $CI_COMMIT_REF_NAME =~ /^feature\/.+$/
   script:
     - export IMAGE_FEATURE=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//_/g')
-    - echo "Releasing ${CI_REGISTRY_IMAGE}:${IMAGE_FEATURE}"
+    - echo "Releasing ${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
     - skopeo copy
       --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
       --dest-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
       "docker://${IMAGE_SHA}"
-      "docker://${CI_REGISTRY_IMAGE}:${IMAGE_FEATURE}"
+      "docker://${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
 
 Release dev:
   <<: *release-default
