@@ -30,6 +30,7 @@ import request_scoped_globals
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
+from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
 from .settings import config
@@ -53,9 +54,9 @@ def meta_router():
 
     @router.get("/")
     @router.get("/organisation/")
-    @router.get("/organisation/<path:path>")
+    @router.get("/organisation/{path:path}")
     @router.get("/medarbejder/")
-    @router.get("/medarbejder/<path:path>")
+    @router.get("/medarbejder/{path:path}")
     @router.get("/hjaelp/")
     @router.get("/organisationssammenkobling/")
     @router.get("/forespoergsler/")
@@ -167,6 +168,9 @@ def create_app():
         meta_router(),
         tags=["Meta"],
     )
+
+    if config['ENV'] in ['testing', 'development']:
+        app = setup_test_routing(app)
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the

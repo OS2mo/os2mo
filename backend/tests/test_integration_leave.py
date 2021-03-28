@@ -1,19 +1,20 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import freezegun
 from unittest.mock import patch
 
+import freezegun
+
 import mora.async_util
+import tests.cases
 from mora import lora
-from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 
 
 @freezegun.freeze_time('2018-01-01', tz_offset=1)
 @patch('uuid.uuid4', new=lambda: mock_uuid)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_leave(self):

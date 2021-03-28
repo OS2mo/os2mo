@@ -5,13 +5,13 @@ import freezegun
 from yarl import URL
 
 import mora.async_util
+import tests.cases
 from mora import exceptions
 from mora.service import address
-
 from tests import util
 
 
-class TestAddressLookup(util.TestCase):
+class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time('2016-06-06')
     @util.MockAioresponses(passthrough=['http://localhost'])
     def test_autocomplete_no_municipality(self, mock):

@@ -6,6 +6,7 @@ from mock import call, patch
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
+import tests.cases
 from mora import lora, mapping
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
@@ -20,7 +21,7 @@ from mora.triggers.internal.http_trigger import HTTPTriggerException, register
 from tests import util
 
 
-class TestAddressLookup(util.TestCase):
+class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time("2018-03-15")
     @util.MockAioresponses()
     def test_unit_past(self, mock):
@@ -164,7 +165,7 @@ class TestAddressLookup(util.TestCase):
         )
 
 
-class TestTriggerExternalIntegration(util.TestCase):
+class TestTriggerExternalIntegration(tests.cases.TestCase):
     @patch("mora.service.orgunit.get_one_orgunit")
     def test_returns_404_on_unknown_unit(self, mock):
         mock.return_value = {}
@@ -287,7 +288,7 @@ class TestTriggerExternalIntegration(util.TestCase):
         )
 
 
-class TestGetOneOrgUnit(util.LoRATestCase):
+class TestGetOneOrgUnit(tests.cases.LoRATestCase):
     def setUp(self):
         self.load_sample_structures(minimal=True)
         self._connector = lora.Connector(
@@ -322,7 +323,7 @@ class TestGetOneOrgUnit(util.LoRATestCase):
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
 
 
-class TestGetCountRelated(util.TestCase):
+class TestGetCountRelated(tests.cases.TestCase):
     def setUp(self):
         super().setUp()
         self._simple = {"association"}

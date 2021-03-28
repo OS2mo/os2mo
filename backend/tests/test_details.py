@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import tests.cases
 
 
-from . import util
-
-
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     def test_create_invalid_type(self):

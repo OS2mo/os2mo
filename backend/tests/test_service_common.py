@@ -5,16 +5,16 @@ import freezegun
 from yarl import URL
 
 import mora.async_util
+import tests.cases
 from mora import common
 from mora import exceptions
-from mora import util as mora_util
 from mora import lora
 from mora import mapping
-
+from mora import util as mora_util
 from . import util
 
 
-class TestClass(util.TestCase):
+class TestClass(tests.cases.TestCase):
     maxDiff = None
 
     def test_update_payload_complex(self):

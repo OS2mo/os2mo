@@ -24,9 +24,6 @@ CMD ["yarn", "dev"]
 
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
 
-ENV OS2MO_SYSTEM_CONFIG_PATH=/app/docker/docker-settings.toml
-ENV OS2MO_USER_CONFIG_PATH=/user-settings.toml
-
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
 LABEL org.opencontainers.image.licenses="MPL-2.0"

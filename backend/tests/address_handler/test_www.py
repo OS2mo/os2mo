@@ -3,13 +3,11 @@
 
 from unittest.mock import patch
 
-from mora.request_scoped.query_args import current_query
-
 import mora.async_util
+import tests.cases
 from mora import exceptions
+from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import www
-
-from .. import util
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
@@ -17,7 +15,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class WWWAddressHandlerTests(util.TestCase):
+class WWWAddressHandlerTests(tests.cases.TestCase):
     handler = www.WWWAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'http://www.test.org/'

@@ -3,7 +3,7 @@
 
 from mora import settings
 from mora.conf_db import set_configuration
-from tests.util import ConfigTestCase
+from tests.cases import ConfigTestCase
 
 
 class Tests(ConfigTestCase):

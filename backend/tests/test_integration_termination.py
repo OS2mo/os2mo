@@ -6,11 +6,11 @@ import copy
 import freezegun
 
 import mora.async_util
+import tests.cases
 from mora import lora
-from . import util
 
 
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2000-12-01')
     def test_terminate_employee(self):
         self.load_sample_structures()

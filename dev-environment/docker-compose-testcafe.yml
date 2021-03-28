@@ -20,3 +20,6 @@ services:
       - ./testcafe-artifacts:/artifacts
     environment:
       - BASE_URL=http://mo:80
+    depends_on:
+      - mo
+      - mox

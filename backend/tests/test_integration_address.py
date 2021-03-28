@@ -4,6 +4,7 @@
 import freezegun
 
 import mora.async_util
+import tests.cases
 from mora import lora
 from mora.util import get_effect_from
 from tests import util
@@ -33,7 +34,7 @@ address_type_facet = {
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
-class Writing(util.LoRATestCase):
+class Writing(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_errors(self, mock):
@@ -1163,7 +1164,7 @@ class Writing(util.LoRATestCase):
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
-class Reading(util.LoRATestCase):
+class Reading(tests.cases.LoRATestCase):
 
     def test_missing_class(self, mock):
         self.load_sample_structures(minimal=True)

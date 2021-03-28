@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from . import util
 from unittest.mock import patch
+
+import tests.cases
 
 
 async def async_helper1():
@@ -13,7 +13,7 @@ async def async_helper2():
     return [{}, {}]
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     @patch('mora.service.org.get_valid_organisations', new=async_helper1)

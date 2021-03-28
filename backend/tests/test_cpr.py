@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import tempfile
+
 import freezegun
 
-from . import util
+import tests.cases
 from mora import util as mora_util
 from mora.integrations import serviceplatformen
-import tempfile
+from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @util.mock(real_http=True)
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     def test_cpr_lookup_dummy_mode_true(self, m):
@@ -121,7 +123,7 @@ class Tests(util.TestCase):
         )
 
 
-class TestConfig(util.TestCase):
+class TestConfig(tests.cases.TestCase):
     def _sp_config(self, **overrides):
         UUID_OK = "12345678-9abc-def1-1111-111111111111"
 

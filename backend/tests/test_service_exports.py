@@ -3,10 +3,10 @@
 
 import mock
 
-from . import util
+import tests.cases
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     @mock.patch('mora.service.exports.os.path.isdir', lambda x: False)

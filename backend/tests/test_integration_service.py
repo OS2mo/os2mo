@@ -6,6 +6,7 @@ from unittest.mock import patch
 import freezegun
 
 import mora.async_util
+import tests.cases
 from . import util
 
 org_unit_type_facet = {
@@ -23,7 +24,7 @@ org_unit_address_type_facet = {
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
 @patch('mora.conf_db.get_configuration',
        new=lambda *x: {})
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     @classmethod

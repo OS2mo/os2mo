@@ -3,12 +3,10 @@
 
 from unittest.mock import patch
 
-from mora.request_scoped.query_args import current_query
-
 import mora.async_util
 from mora import exceptions
+from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import phone
-
 from . import base
 
 

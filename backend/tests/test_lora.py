@@ -6,16 +6,16 @@ import freezegun
 from aioresponses import aioresponses
 
 import mora.async_util
+import tests.cases
 from mora import exceptions
 from mora import lora
 from mora import settings
 from mora import util as mora_util
-
 from . import util
 
 
 @freezegun.freeze_time('2010-06-01', tz_offset=2)
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
 
     @util.MockAioresponses()
     def test_get_effects(self, m):

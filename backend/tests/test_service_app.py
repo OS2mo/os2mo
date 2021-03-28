@@ -6,12 +6,12 @@ from unittest import mock
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+import tests.cases
 from mora import app
 from mora.async_util import async_to_sync
-from tests import util
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     def test_failing_service(self):
         self.assertRequestResponse(
             "/service/kaflaflibob",
@@ -38,7 +38,7 @@ class Tests(util.TestCase):
         )
 
 
-class PatchedAppTests(util.TestCase):
+class PatchedAppTests(tests.cases.TestCase):
     fb = app.fallback_handler
 
     def setUp(self):

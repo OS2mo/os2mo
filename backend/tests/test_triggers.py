@@ -3,13 +3,13 @@
 
 import freezegun
 
+import tests.cases
 from mora.exceptions import HTTPException
 from mora.mapping import EventType, RequestType
 from mora.service.handlers import (
     RequestHandler
 )
 from mora.triggers import Trigger
-from . import util
 
 
 class MockHandler(RequestHandler):
@@ -29,7 +29,7 @@ class MockHandler(RequestHandler):
         super().submit()
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     def tearDown(self):
@@ -171,7 +171,7 @@ class Tests(util.TestCase):
 
 
 @freezegun.freeze_time('2016-01-01')
-class TriggerlessTests(util.LoRATestCase):
+class TriggerlessTests(tests.cases.LoRATestCase):
     """ Trigger functionality (and there by also amqp as that is triggered)
     can be disabled by the 'triggerless' flag
     This test is supposed to test/show the the difference

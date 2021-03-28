@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from mock import patch, MagicMock
+from mock import MagicMock, patch
 
+import tests.cases
 from mora import util as mora_util
-from . import util
 
 
-class TestValidateAPI(util.TestCase):
+class TestValidateAPI(tests.cases.TestCase):
 
     @patch('mora.service.validate.validator.is_date_range_in_org_unit_range')
     def test_candidate_org_unit(self, mock):

@@ -4,8 +4,7 @@
 import freezegun
 import notsouid
 
-from tests import util
-
+import tests.cases
 
 kle_aspekt_facet = {
     'description': '',
@@ -21,7 +20,7 @@ kle_nummer_facet = {
 
 
 @freezegun.freeze_time('2018-01-01', tz_offset=1)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',

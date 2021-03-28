@@ -2,17 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import datetime
+
 from mock import patch
 
 import mora.async_util
+import tests.cases
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
-from tests import util
 
 
-class TestHelper(util.LoRATestCase):
+class TestHelper(tests.cases.LoRATestCase):
     maxDiff = None
     ORG = '456362c4-0ee4-4e5e-a72c-751239745e62'
     SAMF_UNIT = 'b688513d-11f7-4efc-b679-ab082a2055d0'

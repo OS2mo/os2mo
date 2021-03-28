@@ -4,17 +4,18 @@
 import copy
 
 import freezegun
-import mora.async_util
 from mock import patch
+
+import mora.async_util
+import tests.cases
 from mora import lora
 from mora import mapping
-from tests import util
 
 substitute_association = {'name': 'i18n:substitute_association'}  # const
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     @patch(
@@ -1453,7 +1454,7 @@ class Tests(util.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class AddressTests(util.LoRATestCase):
+class AddressTests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_terminate_association_directly(self):

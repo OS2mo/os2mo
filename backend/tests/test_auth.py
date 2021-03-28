@@ -3,6 +3,7 @@
 import freezegun
 import pytest
 
+import tests.cases
 from . import util
 
 IDP_URL = 'mock://idp'
@@ -17,7 +18,7 @@ EMPL_URL = (
 
 
 @freezegun.freeze_time('2001-01-01')
-class MockTests(util.TestCase):
+class MockTests(tests.cases.TestCase):
 
     @util.MockAioresponses(passthrough=['http://localhost'])
     def test_access_denied(self, mock):

@@ -8,7 +8,7 @@ import freezegun
 
 from mora import exceptions
 from mora import util
-from .util import TestCase
+from .cases import TestCase
 
 
 @freezegun.freeze_time('2015-06-01T01:10')
