@@ -61,7 +61,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         expected = {
             'href': None,
             'name': '0a3f50a0-23c9-32b8-e044-0003ba298018',
-            'value': '0a3f50a0-23c9-32b8-e044-0003ba298018'
+            'value': '0a3f50a0-23c9-32b8-e044-0003ba298018',
+            'value2': None,
         }
 
         # Act
@@ -161,7 +162,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         expected = {
             'href': None,
             'name': '00000000-0000-0000-0000-000000000000',
-            'value': '00000000-0000-0000-0000-000000000000'
+            'value': '00000000-0000-0000-0000-000000000000',
+            'value2': None
         }
 
         # Act & Assert
@@ -184,7 +186,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         expected = {
             'href': None,
             'name': 'Ukendt',
-            'value': '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
+            'value': '300f16fd-fb60-4fec-8a2a-8d391e86bf3f',
+            'value2': None
         }
 
         # Act

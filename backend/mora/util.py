@@ -392,6 +392,9 @@ def urnquote(s):
 
     '''
 
+    if not s:
+        return ""
+
     with io.StringIO('w') as buf:
         for character in s.encode('utf-8'):
             if character in URN_SAFE:
@@ -789,3 +792,12 @@ def get_args_flag(name: str):
 #
 #     def to_python(self, value):
 #         return str(value)
+
+
+def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
+    """
+    wraps obj in a list, unless it is already a list
+    :param obj: Anything
+    :return: List-wrapped obj
+    """
+    return obj if isinstance(obj, list) else [obj]

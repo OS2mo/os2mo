@@ -1,13 +1,14 @@
 In development
 ==============
-* #41914: Replaced Flask with FastAPI
+
 
 New features
 ------------
 
 * #42778: Make CPR optional
 * #42073: New /api/v1/ endpoints introduced, API currently still unstable
-
+* #42779: Added new address scope: Multifield Text (2-fields)
+* #41914: Replaced Flask with FastAPI
 
 Version 1.16.0, 2021-04-06
 ==========================

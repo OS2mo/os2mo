@@ -65,6 +65,7 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
             'href': None,
             'name': '1234567890',
             'value': '1234567890',
+            'value2': None,
             'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 

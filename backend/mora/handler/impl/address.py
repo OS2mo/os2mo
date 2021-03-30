@@ -23,12 +23,11 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
-
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
 
-        scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get("objekttype")
+        scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = base.get_handler_for_scope(scope).from_effect(effect)
 
         base_obj_task = create_task(

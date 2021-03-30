@@ -64,6 +64,7 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
             'href': 'mailto:mail@mail.dk',
             'name': 'mail@mail.dk',
             'value': 'mail@mail.dk',
+            'value2': None,
             'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 

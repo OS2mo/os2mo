@@ -644,6 +644,7 @@ class Writing(tests.cases.LoRATestCase):
                             "to": None,
                         },
                         "value": "root@example.com",
+                        "value2": None,
                     },
                 ],
                 amqp_topics={'employee.address.create': 1},
@@ -1203,6 +1204,7 @@ class Reading(tests.cases.LoRATestCase):
                         'href': 'mailto:goofy@example.com',
                         'name': 'goofy@example.com',
                         'value': 'goofy@example.com',
+                        'value2': None,
                         'user_key': 'bruger@example.comw',
                         'person': {
                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
@@ -1221,6 +1223,7 @@ class Reading(tests.cases.LoRATestCase):
                                 '10.19938084&mlat=56.17102843&zoom=16',
                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
                         'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'value2': None,
                         'user_key': 'Christiansborg Slotsplads 1, '
                                     '1218 København K',
                         'person': {
@@ -1298,7 +1301,8 @@ class Reading(tests.cases.LoRATestCase):
                 },
                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                 'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                'value2': None
             }],
         )
 
@@ -1364,6 +1368,7 @@ class Reading(tests.cases.LoRATestCase):
                 },
                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                 'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                'value2': None,
             }],
         )

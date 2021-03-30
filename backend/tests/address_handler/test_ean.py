@@ -69,6 +69,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
             'href': None,
             'name': value,
             'value': value,
+            'value2': None,
             'visibility': {'uuid': '1f6295e8-9000-43ec-b694-4d288fa158bb'}
         }
 
