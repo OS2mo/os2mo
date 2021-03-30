@@ -1,0 +1,32 @@
+{
+  "employee": {
+    "new_employee": "New employee",
+    "leave": "Leave",
+    "move_engagement": "Move employment",
+    "move_many_engagements": "Move many employments",
+    "terminate_employee": "Disable employee",
+    "labels": {
+      "address": "@:shared.address",
+      "association": "@:shared.association",
+      "engagement": "Employment",
+      "it_system": "@:shared.it_system",
+      "manager": "@:shared.manager",
+      "role": "@:shared.role"
+    },
+    "messages": {
+      "following_will_be_terminated": "The following will be terminated for the employee:"
+    }
+  },
+  "organisation": {
+    "create_unit": "Create unit",
+    "rename_unit": "Rename unit",
+    "move_unit": "Move unit",
+    "terminate_unit": "Terminate unit",
+    "labels": {
+      "address": "@:shared.address"
+    },
+    "messages": {
+      "following_will_be_terminated": "The following will be terminated for the unit:"
+    }
+  }
+}
