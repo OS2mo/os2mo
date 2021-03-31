@@ -481,10 +481,11 @@ def create_organisationsenhed_payload(
 def create_bruger_payload(
     valid_from: str,
     valid_to: str,
-    fornavn: str,
-    efternavn: str,
-    kaldenavn_fornavn: str,
-    kaldenavn_efternavn: str,
+    fornavn: typing.Optional[str],
+    efternavn: typing.Optional[str],
+    kaldenavn_fornavn: typing.Optional[str],
+    kaldenavn_efternavn: typing.Optional[str],
+    seniority: typing.Optional[str],
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
@@ -542,6 +543,9 @@ def create_bruger_payload(
 
     if kaldenavn_efternavn is not None:
         extensions['kaldenavn_efternavn'] = kaldenavn_efternavn
+
+    if seniority is not None:
+        extensions['seniority'] = seniority
 
     if extensions:
         user['attributter']['brugerudvidelser'] = [

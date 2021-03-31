@@ -17,6 +17,7 @@ import enum
 import uuid
 from functools import partial
 from operator import contains, itemgetter
+from pprint import pprint
 from typing import Any, Awaitable, Dict, Union
 from typing import Optional
 from uuid import UUID
@@ -91,6 +92,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
         userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
+        seniority = req.get(mapping.SENIORITY, None)
 
         try:
             valid_from = \
@@ -112,6 +114,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             efternavn=surname,
             kaldenavn_fornavn=nickname_givenname,
             kaldenavn_efternavn=nickname_surname,
+            seniority=seniority,
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
@@ -193,10 +196,18 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         nickname_givenname, nickname_surname = self._handle_nickname(data)
 
+        seniority = data.get(mapping.SENIORITY, None)
+
+        # clear rather than skip if exists, but value is None
+        if mapping.SENIORITY in data:
+            seniority = ''
+
         if nickname_givenname is not None:
             changed_extended_props['kaldenavn_fornavn'] = nickname_givenname
         if nickname_surname is not None:
             changed_extended_props['kaldenavn_efternavn'] = nickname_surname
+        if seniority is not None:
+            changed_extended_props['seniority'] = seniority
 
         if mapping.INTEGRATION_DATA in data:
             changed_props['integrationsdata'] = common.stable_json_dumps(
@@ -231,7 +242,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
-
+        pprint(req)
+        pprint(payload)
         self.payload = payload
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
