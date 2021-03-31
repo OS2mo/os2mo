@@ -8,6 +8,7 @@ New features
 * #42073: New /api/v1/ endpoints introduced, API currently still unstable
 * #42779: Added new address scope: Multifield Text (2-fields)
 * #41914: Replaced Flask with FastAPI
+* #42780: Added seniority field (and conf_db setting to hide it)
 * #42034: Added entities as proper frontend entity (behind configuration)
 
 Version 1.16.1, 2021-04-20
@@ -15,7 +16,6 @@ Version 1.16.1, 2021-04-20
 
 Bug fixes
 ---------
-
 * #43091: Fix DAR health endpoint timeout issue
 
 Version 1.16.0, 2021-04-06

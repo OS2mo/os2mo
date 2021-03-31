@@ -29,7 +29,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('shared.seniority')"
         v-model="employee.seniority"
         v-bind:clear-button="true"
-        fluid
+        v-if="show_seniority"
       />
 
     <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
@@ -169,7 +169,11 @@ export default {
         'name' in this.employee &&
         (this.employee.name === '' || this.employee.name == null)
       )
-  }
+  },
+    show_seniority() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_seniority
+    }
   },
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {

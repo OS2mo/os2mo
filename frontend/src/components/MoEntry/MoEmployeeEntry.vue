@@ -17,6 +17,7 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('shared.seniority')"
         v-model="entry.seniority"
         v-bind:clear-button="true"
+        v-if="show_seniority"
       />
     </div>
     <div class="form-row nickname">
@@ -81,6 +82,12 @@ export default {
      */
     validity (newVal) {
       this.entry.validity = newVal
+    }
+  },
+  computed: {
+    show_seniority() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_seniority
     }
   },
 
