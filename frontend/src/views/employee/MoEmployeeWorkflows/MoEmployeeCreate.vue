@@ -25,6 +25,13 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
 
+    <mo-input-date
+        :label="$t('shared.seniority')"
+        v-model="employee.seniority"
+        v-bind:clear-button="true"
+        fluid
+      />
+
     <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
     <mo-engagement-entry v-model="engagement"/>
 
@@ -86,7 +93,7 @@ SPDX-License-Identifier: MPL-2.0
 import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr'
-import { MoInputText } from '@/components/MoInput'
+import { MoInputText, MoInputDate } from '@/components/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
 import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
@@ -101,6 +108,7 @@ export default {
     ButtonSubmit,
     MoCpr,
     MoInputText,
+    MoInputDate,
     MoAddMany,
     MoEngagementEntry
   },

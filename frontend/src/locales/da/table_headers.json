@@ -33,5 +33,6 @@
   "substitute": "@:shared.substitute",
   "first_party_association_type": "Rolle",
   "third_party_associated": "Tilknyttet",
-  "third_party_association_type": "Tilknyttedes rolle"
+  "third_party_association_type": "Tilknyttedes rolle",
+  "seniority": "@:shared.seniority"
 }

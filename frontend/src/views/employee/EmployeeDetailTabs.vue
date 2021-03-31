@@ -175,6 +175,7 @@ export default {
       employee: [
         { label: 'name', data: 'name', field: null },
         { label: 'nickname', data: 'nickname', field: null },
+        { label: 'seniority', data: 'seniority', field: null },
       ],
 
       /**

@@ -7,11 +7,16 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="form-row name">
-      <label>{{ $t('shared.name') }}</label>
       <mo-input-text
+        :label="$t('shared.name')"
         :placeholder="$t('input_fields.name')"
         v-model="entry.name"
         required
+      />
+      <mo-input-date
+        :label="$t('shared.seniority')"
+        v-model="entry.seniority"
+        v-bind:clear-button="true"
       />
     </div>
     <div class="form-row nickname">
@@ -32,7 +37,7 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A organisation unit entry component.
  */
-import { MoInputText, MoInputDateRange } from '@/components/MoInput'
+import { MoInputText, MoInputDateRange, MoInputDate } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
 
 export default {
@@ -42,6 +47,7 @@ export default {
 
   components: {
     MoInputDateRange,
+    MoInputDate,
     MoInputText
   },
 
