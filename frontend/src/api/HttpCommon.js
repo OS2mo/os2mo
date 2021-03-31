@@ -57,4 +57,3 @@ export default {
     return get_by_axios(url, ApiV1)
   }
 }
-frontend/src/locales/da/shared.json

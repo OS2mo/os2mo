@@ -17,7 +17,6 @@ import enum
 import uuid
 from functools import partial
 from operator import contains, itemgetter
-from pprint import pprint
 from typing import Any, Awaitable, Dict, Union
 from typing import Optional
 from uuid import UUID
@@ -199,7 +198,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         seniority = data.get(mapping.SENIORITY, None)
 
         # clear rather than skip if exists, but value is None
-        if mapping.SENIORITY in data:
+        if seniority is None and mapping.SENIORITY in data:
             seniority = ''
 
         if nickname_givenname is not None:
@@ -242,8 +241,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
-        pprint(req)
-        pprint(payload)
         self.payload = payload
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid

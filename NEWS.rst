@@ -3,7 +3,6 @@ In development
 
 New features
 ------------
-
 * #42778: Make CPR optional
 * #42073: New /api/v1/ endpoints introduced, API currently still unstable
 * #42779: Added new address scope: Multifield Text (2-fields)

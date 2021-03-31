@@ -15,7 +15,7 @@ from mora.conf_db.alembic.helpers.session import get_session
 
 # revision identifiers, used by Alembic.
 revision = 'd879327dade8'
-down_revision = '4b81d9a86c80'
+down_revision = '43fef976e18f'
 branch_labels = None
 depends_on = None
 

@@ -679,6 +679,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': '',
                     'nickname_givenname': '',
                     'nickname_surname': '',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -695,6 +696,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': 'Donald Duck',
                     'nickname_givenname': 'Donald',
                     'nickname_surname': 'Duck',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -711,6 +713,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': 'George Geef',
                     'nickname_givenname': 'George',
                     'nickname_surname': 'Geef',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -727,6 +730,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': '',
                     'nickname_givenname': '',
                     'nickname_surname': '',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -760,6 +764,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': 'Donald Duck',
                 'nickname_givenname': 'Donald',
                 'nickname_surname': 'Duck',
+                'seniority': '',
                 'uuid': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
                 'user_key': 'andersand',
                 'cpr_no': '0906340000',
@@ -780,6 +785,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': 'George Geef',
                 'nickname_givenname': 'George',
                 'nickname_surname': 'Geef',
+                'seniority': '',
                 'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
                 'user_key': 'fedtmule',
                 'cpr_no': '1205320000',
@@ -817,6 +823,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': '',
                 'nickname_givenname': '',
                 'nickname_surname': '',
+                'seniority': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -833,6 +840,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': 'Donald Duck',
                 'nickname_givenname': 'Donald',
                 'nickname_surname': 'Duck',
+                'seniority': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -849,6 +857,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': 'George Geef',
                 'nickname_givenname': 'George',
                 'nickname_surname': 'Geef',
+                'seniority': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -865,6 +874,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': '',
                 'nickname_givenname': '',
                 'nickname_surname': '',
+                'seniority': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -881,6 +891,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': 'Daisy Duck',
                 'nickname_givenname': 'Daisy',
                 'nickname_surname': 'Duck',
+                'seniority': '',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -933,6 +944,7 @@ class Tests(tests.cases.LoRATestCase):
                         'nickname': 'Donald Duck',
                         'nickname_givenname': 'Donald',
                         'nickname_surname': 'Duck',
+                        'seniority': '',
                         'org': {
                             'name': 'Aarhus Universitet',
                             'user_key': 'AU',
@@ -949,6 +961,7 @@ class Tests(tests.cases.LoRATestCase):
                         'nickname': 'George Geef',
                         'nickname_givenname': 'George',
                         'nickname_surname': 'Geef',
+                        'seniority': '',
                         'org': {
                             'name': 'Aarhus Universitet',
                             'user_key': 'AU',
@@ -976,6 +989,7 @@ class Tests(tests.cases.LoRATestCase):
                         'nickname': 'Donald Duck',
                         'nickname_givenname': 'Donald',
                         'nickname_surname': 'Duck',
+                        'seniority': '',
                         'org': {
                             'name': 'Aarhus Universitet',
                             'user_key': 'AU',
@@ -992,6 +1006,7 @@ class Tests(tests.cases.LoRATestCase):
                         'nickname': 'Daisy Duck',
                         'nickname_givenname': 'Daisy',
                         'nickname_surname': 'Duck',
+                        'seniority': '',
                         'org': {
                             'name': 'Aarhus Universitet',
                             'user_key': 'AU',
@@ -1018,6 +1033,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': 'Donald Duck',
                     'nickname_givenname': 'Donald',
                     'nickname_surname': 'Duck',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -1044,6 +1060,7 @@ class Tests(tests.cases.LoRATestCase):
                     'nickname': 'Donald Duck',
                     'nickname_givenname': 'Donald',
                     'nickname_surname': 'Duck',
+                    'seniority': '',
                     'org': {
                         'name': 'Aarhus Universitet',
                         'user_key': 'AU',
@@ -1102,6 +1119,7 @@ class Tests(tests.cases.LoRATestCase):
                         'nickname': 'Donald Duck',
                         'nickname_givenname': 'Donald',
                         'nickname_surname': 'Duck',
+                        'seniority': '',
                         'org': {
                             'name': 'Aarhus Universitet',
                             'user_key': 'AU',

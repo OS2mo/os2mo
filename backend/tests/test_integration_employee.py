@@ -26,6 +26,7 @@ class Tests(tests.cases.LoRATestCase):
             "surname": "von Testperson",
             "nickname_givenname": "Torkild",
             "nickname_surname": "Sejfyr",
+            'seniority': '2017-01-01',
             "cpr_no": "0101501234",
             "org": {
                 'uuid': "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -58,6 +59,7 @@ class Tests(tests.cases.LoRATestCase):
                         'efternavn': 'von Testperson',
                         'kaldenavn_fornavn': 'Torkild',
                         'kaldenavn_efternavn': 'Sejfyr',
+                        'seniority': '2017-01-01',
                         'virkning': {
                             'from': '1950-01-01 '
                                     '00:00:00+01',
@@ -120,6 +122,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname_givenname': 'Torkild',
                 'nickname_surname': 'Sejfyr',
                 'nickname': 'Torkild Sejfyr',
+                'seniority': '2017-01-01',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -327,6 +330,7 @@ class Tests(tests.cases.LoRATestCase):
                 'name': 'Torkild Von Testperson',
                 'nickname_surname': '',
                 'nickname_givenname': '',
+                'seniority': '',
                 'nickname': '',
                 'org': {
                     'name': 'Aarhus Universitet',
@@ -543,6 +547,7 @@ class Tests(tests.cases.LoRATestCase):
                 "surname": "2 Employee",
                 "nickname_givenname": "Testmand",
                 "nickname_surname": "Whatever",
+                'seniority': '2017-01-01',
             },
         }]
 
@@ -580,6 +585,7 @@ class Tests(tests.cases.LoRATestCase):
             'efternavn': '2 Employee',
             'kaldenavn_fornavn': 'Testmand',
             'kaldenavn_efternavn': 'Whatever',
+            'seniority': '2017-01-01',
             'virkning': {
                 'from': '2017-01-01 00:00:00+01',
                 'from_included': True,
@@ -679,6 +685,7 @@ class Tests(tests.cases.LoRATestCase):
                 "surname": "Gore",
                 "nickname_givenname": "John",
                 "nickname_surname": "Morfar",
+                'seniority': '2017-01-01',
             },
             "uuid": userid
         }]
@@ -725,6 +732,7 @@ class Tests(tests.cases.LoRATestCase):
             'efternavn': 'Gore',
             'kaldenavn_fornavn': 'John',
             'kaldenavn_efternavn': 'Morfar',
+            'seniority': '2017-01-01',
             'virkning': {
                 'from': '2017-02-02 00:00:00+01',
                 'from_included': True,
@@ -788,6 +796,82 @@ class Tests(tests.cases.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
+    def test_edit_remove_seniority(self):
+        # A generic example of editing an employee
+
+        self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        req = [{
+            "type": "employee",
+            "original": None,
+            "data": {
+                "validity": {
+                    "from": "2017-02-02",
+                },
+                "user_key": "regnbøfssalat",
+                'seniority': '2017-01-01',
+            },
+            "uuid": userid
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=req,
+            amqp_topics={'employee.employee.update': 1},
+        )
+
+        expected_seniorities = ['2017-01-01', None]
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        self.assertEqual(
+            expected_seniorities,
+            list(
+                map(
+                    lambda x: x.get("seniority", None),
+                    actual["attributter"]["brugerudvidelser"],
+                )
+            ),
+        )
+
+        req = [{
+            "type": "employee",
+            "original": None,
+            "data": {
+                "validity": {
+                    "from": "2017-02-03",
+                },
+                'seniority': None,
+            },
+            "uuid": userid
+        }]
+
+        self.assertRequestResponse(
+            '/service/details/edit',
+            [userid],
+            json=req,
+            amqp_topics={'employee.employee.update': 2},
+        )
+
+        expected_seniorities = [None, None, '2017-01-01']
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+
+        self.assertEqual(
+            expected_seniorities,
+            sorted(
+                map(
+                    lambda x: x.get("seniority", None),
+                    actual["attributter"]["brugerudvidelser"],
+                ),
+                key=lambda x: "" if x is None else x,
+            ),
+        )
+
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     def test_get_integration_data(self):
         self.load_sample_structures()
@@ -806,6 +890,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': "Daisy Duck",
                 'nickname_givenname': "Daisy",
                 'nickname_surname': "Duck",
+                'seniority': '',
                 'uuid': 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
             }
         )
@@ -854,6 +939,7 @@ class Tests(tests.cases.LoRATestCase):
                 'nickname': "Daisy Duck",
                 'nickname_givenname': "Daisy",
                 'nickname_surname': "Duck",
+                'seniority': '',
                 'uuid': employee_uuid
             },
             amqp_topics={'employee.employee.update': 1},

@@ -42,8 +42,6 @@ const actions = {
       org: state.organisation,
       details: create
     }
-    console.log('mw', state.employee)
-    console.log('mw', newEmployee)
 
     return Service.post('/e/create', newEmployee)
       .then(response => {
