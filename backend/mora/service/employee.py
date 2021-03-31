@@ -331,6 +331,7 @@ async def get_one_employee(c: lora.Connector, userid,
     efternavn = extensions.get('efternavn', '')
     kaldenavn_fornavn = extensions.get('kaldenavn_fornavn', '')
     kaldenavn_efternavn = extensions.get('kaldenavn_efternavn', '')
+    seniority = extensions.get(mapping.SENIORITY, '')
 
     r = {
         mapping.GIVENNAME: fornavn,
@@ -340,6 +341,7 @@ async def get_one_employee(c: lora.Connector, userid,
         mapping.NICKNAME_SURNAME: kaldenavn_efternavn,
         mapping.NICKNAME: " ".join((kaldenavn_fornavn, kaldenavn_efternavn)).strip(),
         mapping.UUID: userid,
+        mapping.SENIORITY: seniority,
     }
 
     if details is EmployeeDetails.FULL:
