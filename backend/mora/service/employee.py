@@ -9,7 +9,7 @@ Employees
 This section describes how to interact with employees.
 
 For more information regarding reading relations involving employees, refer to
-:http:get:`/service/(any:type)/(uuid:id)/details/`
+http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 import copy
@@ -499,7 +499,7 @@ async def get_employee(
     :<json string nickname_surname: The surname part of the nickname.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
-        yielded by :http:get:`/service/o/`.
+        yielded by http:get:`/service/o/`.
     :>json string cpr_no: CPR number of for the corresponding person.
         Please note that this is the only means for obtaining the CPR
         number; due to confidentiality requirements, all other end
@@ -660,7 +660,7 @@ def create_employee(req: dict = Body(...)):
     space.
 
     For more information on the available details,
-    see: :http:post:`/service/details/create`.
+    see: http:post:`/service/details/create`.
     Note, that the ``person`` parameter is implicit in these payload, and
     should not be given.
 

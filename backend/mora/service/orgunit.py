@@ -8,7 +8,7 @@ Organisational units
 This section describes how to interact with organisational units.
 
 For more information regarding reading relations involving organisational
-units, refer to :http:get:`/service/(any:type)/(uuid:id)/details/`
+units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 import copy
@@ -1268,12 +1268,12 @@ def create_org_unit(req: dict = Body(...)):
     :<json uuid time_planning: A class identifying the time planning strategy.
     :<json uuid org_unit_type: The type of org unit
     :<json list details: A list of details, see
-                         :http:get:`/service/(any:type)/(uuid:id)/details/`
+                         http:get:`/service/(any:type)/(uuid:id)/details/`
     :<json object validity: The validity of the created object.
 
     The parameter ``org_unit_type`` should contain
     an UUID obtained from the respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     Validity objects are defined as such:
 

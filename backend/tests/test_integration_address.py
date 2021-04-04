@@ -401,7 +401,8 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_add_org_unit_address_contact_open_hours(self, mock):
@@ -512,7 +513,8 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_add_employee_address(self, mock):
@@ -617,7 +619,8 @@ class Writing(tests.cases.LoRATestCase):
         with self.subTest('LoRA'):
             self.assertRegistrationsEqual(
                 expected,
-                mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+                mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                    addr_id)
             )
 
         with self.subTest('result'):
@@ -755,7 +758,8 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_create_engagement_with_address(self, mock):
@@ -809,12 +813,13 @@ class Writing(tests.cases.LoRATestCase):
             }
         }]
 
-        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+        addr_id = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedefunktioner=func_id)
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
-        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)['relationer'][
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)[
+            'relationer'][
             'tilknyttedefunktioner']
 
         self.assertEqual(expected_tilknyttedefunktioner, actual)
@@ -929,14 +934,14 @@ class Writing(tests.cases.LoRATestCase):
             }
         }
 
-        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+        addr_id = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedeenheder=unit_id)
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
         self.assertRegistrationsEqual(
             expected,
-            util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
     def test_edit_address(self, mock):
@@ -1062,7 +1067,7 @@ class Writing(tests.cases.LoRATestCase):
             }
         }
 
-        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1091,7 +1096,7 @@ class Writing(tests.cases.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
 
-        actual_reg = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual_reg = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         actual = sorted(
             actual_reg['attributter']['organisationfunktionegenskaber'],
             key=get_effect_from,
@@ -1149,7 +1154,7 @@ class Writing(tests.cases.LoRATestCase):
             json=req,
         )
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_response = util.async_to_sync(c.organisationfunktion.get)(
+        actual_response = mora.async_util.async_to_sync(c.organisationfunktion.get)(
             uuid=created[0])
         actual = actual_response['relationer']['tilknyttedefunktioner']
         expected = [{'objekttype': 'engagement',
@@ -1170,7 +1175,7 @@ class Reading(tests.cases.LoRATestCase):
         self.load_sample_structures(minimal=True)
 
         # The relevant address_type klasse is not present in the minimal dataset
-        util.async_to_sync(util.load_fixture)(
+        mora.async_util.async_to_sync(util.load_fixture)(
             'organisation/organisationfunktion',
             'create_organisationfunktion_email_andersand.json',
         )
@@ -1250,7 +1255,7 @@ class Reading(tests.cases.LoRATestCase):
                 json=[],
             )
 
-        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+        mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
             {
                 'relationer': {
                     'adresser': [
@@ -1316,7 +1321,7 @@ class Reading(tests.cases.LoRATestCase):
             status_code=500,
         )
 
-        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+        mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
             {
                 'relationer': {
                     'adresser': [

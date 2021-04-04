@@ -88,6 +88,7 @@ MOCK_MODULES = [
     'anytree.search',
     'aiofiles',
     'aiofiles.os',
+    'aioresponses',
     'fastapi',
     'fastapi.exceptions',
     'fastapi.responses',
@@ -101,9 +102,9 @@ MOCK_MODULES = [
     'starlette.datastructures',
     'starlette_context',
     'starlette_context.middleware',
-
+    'requests_mock',
     'mora.log',
-
+    'mora.exceptions',
     'onelogin',
     'onelogin.saml2',
     'onelogin.saml2.auth',
@@ -111,6 +112,7 @@ MOCK_MODULES = [
     'onelogin.saml2.xml_utils',
     'onelogin.saml2.constants',
     'onelogin.saml2.idp_metadata_parser',
+    'yarl',
 ]
 sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 

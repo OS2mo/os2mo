@@ -567,7 +567,7 @@ async def get_classes(
 
     :param uuid orgid: Restrict search to this organisation.
     :param string facet: One of the facet names listed by
-        :http:get:`/service/o/(uuid:orgid)/f/`
+        http:get:`/service/o/(uuid:orgid)/f/`
 
     :queryparam int start: Index of first item for paging.
     :queryparam int limit: Maximum items.

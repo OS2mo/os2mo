@@ -604,13 +604,14 @@ def get_effect_validity(effect):
 
 
 def get_valid_from(obj, fallback=None) -> datetime.datetime:
-    '''Extract the start of the validity interval in ``obj``, or otherwise
+    """
+    Extract the start of the validity interval in ``obj``, or otherwise
     ``fallback``, and return it as a timestamp delimiting the
     corresponding interval.
 
-    :raises mora.exceptions.HTTPException: if the given timestamp does
+    raises mora.exceptions.HTTPException: if the given timestamp does
       not correspond to midnight in Central Europe.
-    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+    raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
       specifiy a validity start.
 
     .. doctest::
@@ -629,7 +630,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
       mora.exceptions.HTTPException: \
       400 Bad Request: '2000-01-01T13:00:00+01:00' is not at midnight!
 
-    '''
+    """
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -664,9 +665,9 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
 
     :see also: :py:func:`to_iso_date`
 
-    :raises mora.exceptions.HTTPException: if the given timestamp does
+    raises mora.exceptions.HTTPException: if the given timestamp does
       not correspond to midnight in Central Europe.
-    :raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
+    raises mora.exceptions.HTTPException: if neither ``obj`` nor ``fallback``
       specifiy a validity start.
 
     .. doctest::

@@ -11,8 +11,8 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/details/create`
-* :http:post:`/service/details/edit`
+* http:post:`/service/details/create`
+* http:post:`/service/details/edit`
 
 
 '''
@@ -104,7 +104,7 @@ async def get_detail(type, id: UUID, function,
                      ):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
-    :http:get:`/service/(any:type)/(uuid:id)/details/` for the
+    http:get:`/service/(any:type)/(uuid:id)/details/` for the
     available list of endpoints.
 
     .. :quickref: Detail; Get
@@ -143,7 +143,7 @@ async def get_detail(type, id: UUID, function,
         employee.
     :param uuid id: The UUID to query, i.e. the ID of the employee or
         unit.
-    :param function: See :http:get:`/service/(any:type)/(uuid:id)/details/`
+    :param function: See http:get:`/service/(any:type)/(uuid:id)/details/`
         for the available values for this field.
 
     :status 200: Always.
@@ -158,17 +158,17 @@ async def get_detail(type, id: UUID, function,
         highest _scope_
 
     :<jsonarr object job_function:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object engagement_type:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object org_unit:
-        See :http:get:`/service/ou/(uuid:unitid)/`.
+        See http:get:`/service/ou/(uuid:unitid)/`.
     :<jsonarr object person:
-        See :http:get:`/service/e/(uuid:id)/`.
+        See http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string validity: The validity times of the object.
     :<jsonarr object primary:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr boolean is_primary: Whether this is the primary engagement
         for the relevant person. **Note** that this option is only returned
         if ``calculate_primary`` is specificied
@@ -279,11 +279,11 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
     **Example IT response**:
 
     :<jsonarr object itsystem:
-        See :http:get:`/service/o/(uuid:orgid)/it/`.
+        See http:get:`/service/o/(uuid:orgid)/it/`.
     :<jsonarr object org_unit:
-        See :http:get:`/service/ou/(uuid:unitid)/`.
+        See http:get:`/service/ou/(uuid:unitid)/`.
     :<jsonarr object person:
-        See :http:get:`/service/e/(uuid:id)/`.
+        See http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Typically the account name.
     :<jsonarr string validity: The validity times of the object.
@@ -518,7 +518,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
 
     **Example org_unit response**:
 
-    An array of objects as returned by :http:get:`/service/ou/(uuid:unitid)/`.
+    An array of objects as returned by http:get:`/service/ou/(uuid:unitid)/`.
 
     .. sourcecode:: json
 
@@ -558,7 +558,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
 
     **Example employee response**:
 
-    An array of objects as returned by :http:get:`/service/e/(uuid:id)/`.
+    An array of objects as returned by http:get:`/service/e/(uuid:id)/`.
 
     .. sourcecode:: json
 
