@@ -18,7 +18,7 @@ import operator
 import uuid
 from asyncio import create_task, gather
 from itertools import chain
-from typing import Any, Awaitable, Dict, Optional
+from typing import Any, Awaitable, Dict, Optional, Iterable, List
 
 import flask
 from more_itertools import unzip
@@ -103,6 +103,9 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         org_unit_level = util.get_mapping_uuid(req, mapping.ORG_UNIT_LEVEL,
                                                required=False)
 
+        org_unit_hierarchy = util.get_mapping_uuid(req, mapping.ORG_UNIT_HIERARCHY,
+                                                   required=False)
+
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
 
@@ -120,6 +123,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 },
             ] if time_planning_uuid else [],
             niveau=org_unit_level,
+            opmærkning=org_unit_hierarchy,
             overordnet=parent_uuid,
             integration_data=integration_data,
         )
@@ -232,6 +236,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             update_fields.append((
                 mapping.ORG_UNIT_LEVEL_FIELD,
                 {'uuid': org_unit_level}
+            ))
+
+        if data.get(mapping.ORG_UNIT_HIERARCHY):
+            org_unit_hierarchy = util.get_mapping_uuid(data, mapping.ORG_UNIT_HIERARCHY)
+            update_fields.append((
+                mapping.ORG_UNIT_HIERARCHY_FIELD,
+                {'uuid': org_unit_hierarchy}
             ))
 
         if mapping.TIME_PLANNING in data and data.get(mapping.TIME_PLANNING):
@@ -603,7 +614,7 @@ async def get_one_orgunit(c: lora.Connector,
 
 
 @blueprint.route('/<any(o,ou):type>/<uuid:parentid>/children')
-@util.restrictargs('at', 'count')
+@util.restrictargs('at', 'count', 'org_unit_hierarchy')
 @mora.async_util.async_to_sync
 async def get_children(type, parentid):
     '''Obtain the list of nested units within an organisation or an
@@ -669,33 +680,56 @@ async def get_children(type, parentid):
     if not obj or not obj.get('attributter'):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
-    all_children = await c.organisationenhed.get_all(overordnet=parentid,
-                                                     gyldighed='Aktiv')
+    org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
+
+    return flask.jsonify(
+        await _get_immediate_children(c, parentid, org_unit_hierarchy)
+    )
+
+
+async def _get_immediate_children(
+    connector: lora.Connector,
+    parentid: str,
+    org_unit_hierarchy: str,
+):
+    params = {
+        "overordnet": parentid,
+        "gyldighed": 'Aktiv',
+    }
+    if org_unit_hierarchy:
+        params['opmærkning'] = org_unit_hierarchy
+
+    immediate_children = await connector.organisationenhed.get_all(
+        **params
+    )
+    immediate_children_objects = await _collect_child_objects(
+        connector, immediate_children
+    )
+    immediate_children_objects.sort(key=operator.itemgetter('name'))
+    return immediate_children_objects
+
+
+async def _collect_child_objects(connector, children: Iterable[Dict]):
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
-
-    children = await gather(
+    return await gather(
         *[
             create_task(
                 get_one_orgunit(
-                    c,
+                    connector,
                     childid,
                     child,
                     only_primary_uuid=only_primary_uuid,
                     count_related=count_related,
                 )
             )
-            for childid, child in all_children
+            for childid, child in children
         ]
     )
 
-    children.sort(key=operator.itemgetter('name'))
-
-    return flask.jsonify(children)
-
 
 @blueprint.route('/ou/ancestor-tree')
-@util.restrictargs('at', 'uuid')
+@util.restrictargs('at', 'uuid', 'org_unit_hierarchy')
 @mora.async_util.async_to_sync
 async def get_unit_ancestor_tree():
     '''Obtain the tree of ancestors for the given units.
@@ -755,13 +789,26 @@ async def get_unit_ancestor_tree():
     c = common.get_connector()
     unitids = flask.request.args.getlist('uuid')
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
 
-    return flask.jsonify(await get_unit_tree(c, unitids, with_siblings=True,
-                                             only_primary_uuid=only_primary_uuid))
+    return flask.jsonify(
+        await get_unit_tree(
+            c,
+            unitids,
+            with_siblings=True,
+            only_primary_uuid=only_primary_uuid,
+            org_unit_hierarchy=org_unit_hierarchy,
+        )
+    )
 
 
-async def get_unit_tree(c, unitids, with_siblings=False,
-                        only_primary_uuid: bool = False):
+async def get_unit_tree(
+    c: lora.Connector,
+    unitids: List[str],
+    with_siblings: bool = False,
+    only_primary_uuid: bool = False,
+    org_unit_hierarchy: str = None,
+):
     '''Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -789,11 +836,16 @@ async def get_unit_tree(c, unitids, with_siblings=False,
             for orgid in mapping.BELONGS_TO_FIELD.get_uuids(cache[uuid]):
                 return orgid
 
-        return {
+        args = {
             "overordnet": parent_uuid,
             "tilhoerer": get_org(uuid, cache),
             "gyldighed": 'Aktiv'
         }
+
+        if org_unit_hierarchy:
+            args.update({mapping.ORG_UNIT_HIERARCHY_KEY: org_unit_hierarchy})
+
+        return args
 
     root_uuids, children, cache = await prepare_ancestor_tree(
         c.organisationenhed,

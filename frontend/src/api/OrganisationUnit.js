@@ -31,9 +31,22 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getChildren (uuid, atDate) {
+  getChildren (uuid, atDate, extra) {
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/${uuid}/children?at=${atDate}`)
+
+    const params = new URLSearchParams()
+
+    if (atDate) {
+      params.append('at', atDate)
+    }
+
+    if (extra !== undefined) {
+      for (const key in extra) {
+        params.append(key, extra[key])
+      }
+    }
+
+    return Service.get(`/ou/${uuid}/children?${params}`)
       .then(response => {
         return response.data
       })
@@ -47,7 +60,7 @@ export default {
    * @param {Array|String} uuids - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getAncestorTree (uuids, atDate) {
+  getAncestorTree (uuids, atDate, extra) {
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
 
     if (!(uuids instanceof Array)) {
@@ -64,7 +77,13 @@ export default {
       params.append('uuid', uuid)
     }
 
-    return Service.get('/ou/ancestor-tree?' + params.toString())
+    if (extra !== undefined) {
+      for (const key in extra) {
+        params.append(key, extra[key])
+      }
+    }
+
+    return Service.get(`/ou/ancestor-tree?${params}`)
       .then(response => {
         return response.data
       })

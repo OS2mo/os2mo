@@ -14,6 +14,7 @@ New features
 * #42033: Made extension_X fields on engagements UI-wise configurable in conf_db
 * #41973: Allowed addresses pointing to engagements
 * #41894: Added refresh trigger event
+* #40932: Users can now filter the displayed organisation unit tree if the new facet 'org_unit_hierarchy' is set up.
 
 Version 1.15.0, 2021-03-08
 ==========================

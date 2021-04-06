@@ -2,6 +2,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <mo-tree-view
+    ref="treeview"
     v-model="treeValue"
     :multiple="multiple"
     :disabled-unit="disabledUnit"
@@ -76,17 +77,19 @@ export default {
   },
 
   data() {
+    let vm = this
+
     return {
       get_ancestor_tree(uuid, date) {
-        return OrganisationUnit.getAncestorTree(uuid, date)
+        return OrganisationUnit.getAncestorTree(uuid, date, vm._extraQueryArgs)
       },
 
       get_toplevel_children(uuid, date) {
-        return Organisation.getChildren(uuid, date)
+        return Organisation.getChildren(uuid, date, vm._extraQueryArgs)
       },
 
       get_children(uuid, date) {
-        return OrganisationUnit.getChildren(uuid, date)
+        return OrganisationUnit.getChildren(uuid, date, vm._extraQueryArgs)
       },
 
       get_store_uuid() {
@@ -97,8 +100,17 @@ export default {
          * whenever it changes.
          */
         return OrgStore.getters.GET_UUID
-      }
+      },
+
+      _extraQueryArgs: undefined,
     }
-  }
+  },
+
+  methods: {
+    setFilter (val) {
+      this._extraQueryArgs = val === null ? undefined : { org_unit_hierarchy: val }
+      this.$refs.treeview.updateTree(true)
+    },
+  },
 }
 </script>

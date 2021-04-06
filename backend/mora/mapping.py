@@ -104,6 +104,11 @@ TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
 ADDRESSES = 'addresses'
 ORG_UNIT_LEVEL = 'org_unit_level'
+ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
+
+# LoRa names for org unit keys
+ORG_UNIT_HIERARCHY_KEY = 'opmærkning'
+ORG_UNIT_NAME_KEY = 'enhedsnavn'
 
 RELATION_TRANSLATIONS = {
     'engagement': ENGAGEMENT_KEY.lower(),
@@ -157,15 +162,24 @@ class FieldTuple(object):
 
     __call__ = get
 
-    def get_uuids(self, obj):
+    def _get_elems(self, obj, key):
         for item in self.get(obj):
             try:
-                yield item['uuid']
+                yield item[key]
             except KeyError:
                 pass
 
+    def get_uuids(self, obj):
+        return self._get_elems(obj, 'uuid')
+
     def get_uuid(self, obj):
         return next(self.get_uuids(obj), None)
+
+    def get_urns(self, obj):
+        return self._get_elems(obj, 'urn')
+
+    def get_urn(self, obj):
+        return next(self.get_urns(obj), None)
 
     @property
     def path(self) -> typing.Tuple[str, str]:
@@ -266,6 +280,11 @@ ORG_UNIT_TYPE_FIELD = FieldTuple(
 ORG_UNIT_LEVEL_FIELD = FieldTuple(
     path=('relationer', 'niveau'),
     type=FieldTypes.ZERO_TO_ONE,
+)
+
+ORG_UNIT_HIERARCHY_FIELD = FieldTuple(
+    path=('relationer', 'opmærkning'),
+    type=FieldTypes.ZERO_TO_MANY,
 )
 
 PARENT_FIELD = FieldTuple(
@@ -442,7 +461,8 @@ ORG_UNIT_FIELDS = {
     ORG_UNIT_TYPE_FIELD,
     ORG_UNIT_TIME_PLANNING_FIELD,
     PARENT_FIELD,
-    ORG_UNIT_LEVEL_FIELD
+    ORG_UNIT_LEVEL_FIELD,
+    ORG_UNIT_HIERARCHY_FIELD,
 }
 
 ITSYSTEM_FIELDS = {

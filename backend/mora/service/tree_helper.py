@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import create_task
-from queue import Queue, Empty
 import collections
+from asyncio import create_task
+from queue import Empty, Queue
 from typing import Dict
+
 from ..lora import Scope
-from ..mapping import FieldTuple
+from ..mapping import (
+    FieldTuple,
+)
 
 
 def queue_iterator(queue):

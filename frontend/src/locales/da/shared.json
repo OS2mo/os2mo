@@ -48,5 +48,7 @@
   "substitute": "Stedfortræder",
   "it": "IT",
   "main_organisation": "hovedorganisationen",
-  "engagement_id": "ID"
+  "engagement_id": "ID",
+  "entire_organisation": "Bruttoorganisation",
+  "belongs_to": "Tilhører"
 }

@@ -13,7 +13,13 @@ const state = {
 
 const actions = {
   [_organisation.actions.SET_ORGANISATION] ({ commit }, payload) {
-    return Service.get(`/o/${payload}/`)
+    let url
+    if (payload == undefined) {
+      url = '/o/'
+    } else {
+      url = `/o/${payload}/`
+    }
+    return Service.get(url)
       .then(response => {
         commit(_organisation.mutations.SET_ORGANISATION, response.data)
         EventBus.$emit(Events.ORGANISATION_CHANGED, response.data)
@@ -26,6 +32,10 @@ const actions = {
 
 const mutations = {
   [_organisation.mutations.SET_ORGANISATION] (state, payload) {
+    // Fix bug (?) where 'payload' is a 1-item array rather than an object
+    if (payload[0] !== undefined) {
+      payload = payload[0]
+    }
     state.name = payload.name
     state.user_key = payload.user_key
     state.uuid = payload.uuid
