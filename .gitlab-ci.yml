@@ -247,6 +247,7 @@ Vue-unit-test:
 
 e2e-test:
   <<: *test-default
+  allow_failure: true
   image:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
