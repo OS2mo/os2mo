@@ -222,6 +222,8 @@ Unit-test:
       - $CI_PROJECT_DIR/coverage-html
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
+  tags:
+    - high-mem
 
 Vue-unit-test:
   <<: *test-default
@@ -259,7 +261,6 @@ e2e-test:
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo
-      command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
   script:
     - cd /
     - /opt/testcafe/docker/testcafe-docker.sh

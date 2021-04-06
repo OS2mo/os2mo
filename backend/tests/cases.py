@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
+from time import sleep
 from unittest.case import TestCase
 
 from starlette.testclient import TestClient
@@ -221,6 +222,7 @@ class LoRATestCase(_BaseTestCase):
 
     @async_to_sync
     async def load_sample_structures(self, minimal=False):
+        sleep(2)
         await load_sample_structures(minimal)
 
     @classmethod
