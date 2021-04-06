@@ -98,8 +98,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         valid_to = util.POSITIVE_INFINITY
 
-        mora.async_util.async_to_sync(validator.does_employee_with_cpr_already_exist)(
-            cpr, valid_from, valid_to, org_uuid, userid)
+        if cpr:
+            mora.async_util.async_to_sync(
+                validator.does_employee_with_cpr_already_exist
+            )(cpr, valid_from, valid_to, org_uuid, userid)
 
         user = common.create_bruger_payload(
             valid_from=valid_from,

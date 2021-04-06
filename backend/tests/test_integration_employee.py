@@ -140,15 +140,8 @@ class Tests(util.LoRATestCase):
 
         userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
 
-        self.assertRequestResponse(
+        self.assertRequest(
             '/service/e/create',
-            {
-                "cpr": "",
-                "description": "Not a valid CPR number.",
-                "error": True,
-                "error_key": "V_CPR_NOT_VALID",
-                "status": 400,
-            },
             json={
                 'givenname': 'Teodor',
                 'surname': 'Testfætter',
@@ -158,7 +151,6 @@ class Tests(util.LoRATestCase):
                 },
                 'uuid': userid,
             },
-            status_code=400,
         )
 
     def test_create_employee_fails_on_empty_payload(self):
