@@ -15,6 +15,7 @@ import time
 
 import click
 import sqlalchemy
+from mora.conf_db import create_db_table
 
 from . import conf_db, settings
 
@@ -39,6 +40,7 @@ def initdb(wait):
     This is supposed to be idempotent, so you can run it without fear
     on an already initialized database.
     """
+    create_db_table()
     return
 
 
