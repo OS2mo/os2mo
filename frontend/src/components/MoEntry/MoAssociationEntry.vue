@@ -10,10 +10,10 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <mo-employee-picker
+      v-model="entry.person"
       class="search-employee mb-3"
       v-if="!hideEmployeePicker && hideOrgPicker"
-      :label="$tc('input_fields.employee_substitute')"
-      v-model="entry.person"
+      :label="$tc('input_fields.employee_optional')"
       :validity="entry.validity"
     />
 
