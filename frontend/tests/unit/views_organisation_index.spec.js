@@ -9,7 +9,6 @@ import VueShortKey from 'vue-shortkey'
 import IndexView from '@/views/organisation/index'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
-import facet from '../../src/store/modules/facet'
 
 jest.mock('@/api/Organisation')
 jest.mock('@/api/OrganisationUnit')
@@ -62,6 +61,9 @@ describe('views/organisation/index.vue', () => {
             return { classes: facetClasses }
           }
         },
+      },
+      actions: {
+        'organisation/SET_ORGANISATION': jest.fn(),
       }
     })
 
