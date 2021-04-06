@@ -729,7 +729,7 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
 
 
 @blueprint.route('/ou/ancestor-tree')
-@util.restrictargs('at', 'uuid', 'org_unit_hierarchy')
+@util.restrictargs('at', 'uuid', 'count', 'org_unit_hierarchy')
 @mora.async_util.async_to_sync
 async def get_unit_ancestor_tree():
     '''Obtain the tree of ancestors for the given units.
@@ -790,6 +790,7 @@ async def get_unit_ancestor_tree():
     unitids = flask.request.args.getlist('uuid')
     only_primary_uuid = flask.request.args.get('only_primary_uuid')
     org_unit_hierarchy = flask.request.args.get('org_unit_hierarchy')
+    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
     return flask.jsonify(
         await get_unit_tree(
@@ -798,6 +799,7 @@ async def get_unit_ancestor_tree():
             with_siblings=True,
             only_primary_uuid=only_primary_uuid,
             org_unit_hierarchy=org_unit_hierarchy,
+            count_related=count_related,
         )
     )
 
@@ -808,6 +810,7 @@ async def get_unit_tree(
     with_siblings: bool = False,
     only_primary_uuid: bool = False,
     org_unit_hierarchy: str = None,
+    count_related: Optional[Dict] = None,
 ):
     '''Return a tree, bounded by the given unitid.
 
@@ -815,13 +818,18 @@ async def get_unit_tree(
     '''
 
     async def get_unit(unitid):
+        details = (
+            UnitDetails.NCHILDREN
+            if with_siblings and unitid not in children
+            else UnitDetails.MINIMAL
+        )
         r = await get_one_orgunit(
-            c, unitid, cache[unitid],
-            details=(
-                UnitDetails.NCHILDREN
-                if with_siblings and unitid not in children
-                else UnitDetails.MINIMAL
-            ), only_primary_uuid=only_primary_uuid,
+            c,
+            unitid,
+            cache[unitid],
+            details=details,
+            only_primary_uuid=only_primary_uuid,
+            count_related=count_related,
         )
         if unitid in children:
             r['children'] = await get_units(children[unitid])
