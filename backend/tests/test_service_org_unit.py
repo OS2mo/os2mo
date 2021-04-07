@@ -344,8 +344,9 @@ class TestGetCountRelated(util.TestCase):
                 _get_count_related()
 
 
-class TestGetOrgUnit(util.LoRATestCase):
+class TestGetOrgUnit(util.ConfigTestCase):
     def setUp(self):
+        super().setUp()
         self.load_sample_structures()
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         self._orgunit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
@@ -361,8 +362,9 @@ class TestGetOrgUnit(util.LoRATestCase):
             self.assertEqual(result.json["engagement_count"], 3)
 
 
-class TestGetChildren(util.LoRATestCase):
+class TestGetChildren(util.ConfigTestCase):
     def setUp(self):
+        super().setUp()
         self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
@@ -397,8 +399,9 @@ class TestGetChildren(util.LoRATestCase):
                     self.assertEqual(node.get(attr_name), attr_value)
 
 
-class TestGetUnitAncestorTree(util.LoRATestCase):
+class TestGetUnitAncestorTree(util.ConfigTestCase):
     def setUp(self):
+        super().setUp()
         self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
