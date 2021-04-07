@@ -79,7 +79,8 @@ def async_to_sync(f):
         if loop is not None:  # debug
             if loop.is_running():  # Explicit error handling to ease debugging
                 raise Exception(
-                    'asyncio does not allow nested (or reentrant) event loops')
+                    'asyncio does not allow nested (or reentrant) event loops'
+                )
 
         if loop is None:
             loop = asyncio.new_event_loop()

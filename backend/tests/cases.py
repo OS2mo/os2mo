@@ -222,7 +222,7 @@ class LoRATestCase(_BaseTestCase):
 
     @async_to_sync
     async def load_sample_structures(self, minimal=False):
-        sleep(2)
+        sleep(1)
         await load_sample_structures(minimal)
 
     @classmethod
