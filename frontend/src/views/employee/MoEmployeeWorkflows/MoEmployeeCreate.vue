@@ -2,7 +2,15 @@ SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="createEmployee">
-    <mo-cpr v-model="employee"/>
+    <mo-cpr v-if="enableCPR" v-model="employee"/>
+    <div class="form-row name">
+    <label>{{ $t('shared.name') }}</label>
+    <mo-input-text
+      :placeholder="$t('input_fields.givenname')"
+      v-model="employee.name"
+      :disabled=disableManualName
+    />
+    </div>
 
     <div class="form-row nickname">
       <label>{{ $t('shared.nickname') }}</label>
@@ -140,7 +148,20 @@ export default {
       'manager',
       'organisation',
       'backendValidationError'
-    ])
+    ]),
+
+    disableManualName() {
+      // disable when using cpr (as cpr implies a name)
+      return this.employee && 'cpr_no' in this.employee
+    },
+    enableCPR() {
+      // Keep enabled if name is disabled.
+      // Otherwise, disable if we have a non-empty name.
+      return this.disableManualName || !('name' in this.employee) || (
+        'name' in this.employee &&
+        (this.employee.name === '' || this.employee.name == null)
+      )
+  }
   },
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
