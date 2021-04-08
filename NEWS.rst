@@ -3,6 +3,16 @@ In development
 
 New features
 ------------
+
+* #42778: Make CPR optional
+* #42073: New /api/v1/ endpoints introduced, API currently still unstable
+
+
+Version 1.16.0, 2021-04-06
+==========================
+
+New features
+------------
 * #41387: Allowed frontend to create and edit (but not move) root units
 * #38904: Deprecated read-only
 * #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
@@ -15,8 +25,6 @@ New features
 * #41973: Allowed addresses pointing to engagements
 * #41894: Added refresh trigger event
 * #40932: Users can now filter the displayed organisation unit tree if the new facet 'org_unit_hierarchy' is set up.
-* #42778: Make CPR optional
-* #42073: New /api/v1/ endpoints introduced, API currently still unstable
 
 Version 1.15.0, 2021-03-08
 ==========================
