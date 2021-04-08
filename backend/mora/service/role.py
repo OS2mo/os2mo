@@ -23,7 +23,7 @@ from .. import util
 
 
 class RoleRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'role'
+    role_type = mapping.ROLE
     function_key = mapping.ROLE_KEY
 
     def prepare_create(self, req):

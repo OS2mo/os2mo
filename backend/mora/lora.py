@@ -15,9 +15,9 @@ from functools import partial
 from itertools import starmap
 
 import lora_utils
-import mora.async_util
 from more_itertools import divide
 
+import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
@@ -229,7 +229,6 @@ class Scope:
         ).get(self.base_path,
               params=param_bools_to_strings(
                   {**self.connector.defaults, **params})) as response:
-
             await _check_response(response)
 
             try:

@@ -74,6 +74,7 @@ EXTENSION_ATTRIBUTE_MAPPING = [
 ]
 
 # Association
+ASSOCIATION = 'association'
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
 SUBSTITUTE = 'substitute'
@@ -110,15 +111,38 @@ ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
 ORG_UNIT_HIERARCHY_KEY = 'opmærkning'
 ORG_UNIT_NAME_KEY = 'enhedsnavn'
 
+IT = 'it'
+KLE = 'kle'
+ROLE = 'role'
+LEAVE = 'leave'
+RELATED_UNIT = 'related_unit'
+
+
+class MoOrgFunk(enum.Enum):
+    """
+    Implemented MO-organisation functions. With non-trivial mapping to LoRa objs.
+    """
+    ENGAGEMENT = ENGAGEMENT
+    ASSOCIATION = ASSOCIATION
+    IT = IT
+    KLE = KLE
+    ROLE = ROLE
+    ADDRESS = ADDRESS
+    MANAGER = MANAGER
+    LEAVE = LEAVE
+    RELATED_UNIT = RELATED_UNIT
+
+
 RELATION_TRANSLATIONS = {
-    'engagement': ENGAGEMENT_KEY.lower(),
-    'association': ASSOCIATION_KEY.lower(),
-    'it': ITSYSTEM_KEY.lower(),
-    'kle': KLE_KEY.lower(),
-    'role': ROLE_KEY.lower(),
-    'address': ADDRESS_KEY.lower(),
-    'manager': MANAGER_KEY.lower(),
-    'leave': LEAVE_KEY.lower(),
+    ENGAGEMENT: ENGAGEMENT_KEY.lower(),
+    ASSOCIATION: ASSOCIATION_KEY.lower(),
+    IT: ITSYSTEM_KEY.lower(),
+    KLE: KLE_KEY.lower(),
+    ROLE: ROLE_KEY.lower(),
+    ADDRESS: ADDRESS_KEY.lower(),
+    MANAGER: MANAGER_KEY.lower(),
+    LEAVE: LEAVE_KEY.lower(),
+    RELATED_UNIT: RELATED_UNIT_KEY.lower(),
 }
 
 OBJECTTYPE = 'objekttype'

@@ -16,6 +16,7 @@ New features
 * #41894: Added refresh trigger event
 * #40932: Users can now filter the displayed organisation unit tree if the new facet 'org_unit_hierarchy' is set up.
 * #42778: Make CPR optional
+* #42073: New /api/v1/ endpoints introduced, API currently still unstable
 
 Version 1.15.0, 2021-03-08
 ==========================
