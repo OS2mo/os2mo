@@ -2,21 +2,13 @@ SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="search">
-    <div class="input-group">
-      <div class="input-group-prepend">
-        <span class="input-group-text"><icon name="search"/></span>
-      </div>
-      <v-autocomplete
-        :items="orderedListOptions"
-        v-model="item"
-        :get-label="getLabel"
-        :component-item="template"
-        @item-selected="selected"
-        @update-items="updateItems"
-        :auto-select-one-item="false"
-        :min-len="2"
-        :placeholder="$t('common.search')"
-        class="search-bar"
+    <div class="input-group input">
+      <autocomplete
+        :search="updateItems"
+        :getResultValue="getResultValue"
+        @submit="selected"
+        :autoSelect=true
+        :debounceTime=1
       />
     </div>
     <div class="input-group date-input">
@@ -36,8 +28,8 @@ SPDX-License-Identifier: MPL-2.0
 
 import sortBy from 'lodash.sortby'
 import Search from '@/api/Search'
-import VAutocomplete from 'v-autocomplete'
-import 'v-autocomplete/dist/v-autocomplete.css'
+import Autocomplete from '@trevoreyre/autocomplete-vue'
+import '@trevoreyre/autocomplete-vue/dist/style.css'
 import MoSearchBarTemplate from './MoSearchBarTemplate'
 import { MoInputDate } from '@/components/MoInput'
 import { AtDate } from '@/store/actions/atDate'
@@ -46,7 +38,7 @@ export default {
   name: 'MoSearchBar',
 
   components: {
-    VAutocomplete,
+    Autocomplete,
     MoInputDate
   },
 
@@ -61,7 +53,6 @@ export default {
        * Used to detect changes and restore the value.
        */
       item: null,
-      items: [],
       routeName: '',
 
       atDate: new Date(),
@@ -142,20 +133,30 @@ export default {
      */
     updateItems (query) {
       let vm = this
-      vm.items = []
       let org = this.$store.state.organisation
-      if (vm.routeName === 'EmployeeDetail') {
-        Search.employees(org.uuid, query)
-          .then(response => {
-            vm.items = response.length > 0 ? response : vm.noItem
-          })
-      }
-      if (vm.routeName === 'OrganisationDetail') {
-        Search.organisations(org.uuid, query, this.atDate)
-          .then(response => {
-            vm.items = response.length > 0 ? response : vm.noItem
-          })
-      }
+
+      return new Promise(resolve => {
+        if (query.length < 3) {
+          return resolve([])
+        }
+
+        if (vm.routeName === 'EmployeeDetail') {
+          Search.employees(org.uuid, query)
+            .then(response => {
+              resolve(response)
+            })
+        }
+        if (vm.routeName === 'OrganisationDetail') {
+          Search.organisations(org.uuid, query, this.atDate)
+            .then(response => {
+              resolve(response)
+            })
+        }
+      })
+    },
+
+    getResultValue(result) {
+      return result.name
     },
 
     /**
