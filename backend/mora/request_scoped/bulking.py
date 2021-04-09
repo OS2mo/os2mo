@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Lock
+from contextlib import asynccontextmanager
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
 from mora.common import get_connector
@@ -170,6 +171,13 @@ class __BulkBookkeeper:
 
             # HAVE to exist now, otherwise legit error
             return self.__processed_cache[type_][uuid]
+
+    @asynccontextmanager
+    async def cache_context(self):
+        try:
+            yield None
+        finally:
+            await self.clear()
 
 
 # I'm a singleton

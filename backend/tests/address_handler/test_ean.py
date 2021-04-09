@@ -122,5 +122,5 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid EAN
 
         # Act & Assert
-        with current_query.temporary_args({'force': '1'}):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)

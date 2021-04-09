@@ -144,9 +144,7 @@ def get_configuration(unitid=None):
         query = select([Config.setting, Config.value]).where(
             Config.object == unitid
         )
-        print(query)
         result = session.execute(query)
-        print(result)
         result = starmap(convert_bool, result)
         configuration = dict(result)
         logger.debug(

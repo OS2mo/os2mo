@@ -20,7 +20,7 @@ class _QueryArgs:
         self.__query_args = value
 
     @contextmanager
-    def temporary_args(self, value: ImmutableMultiDict):
+    def context_args(self, value: ImmutableMultiDict):
         org = self.args
         self.args = value
         try:

@@ -127,7 +127,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid DAR UUID
 
         # Act & Assert
-        with current_query.temporary_args({'force': '1'}):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)
 
     def test_failed_lookup_from_request(self, mock):
@@ -166,7 +166,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
 
         # Act & Assert
 
-        with current_query.temporary_args({'force': '1'}):
+        with current_query.context_args({'force': '1'}):
             request = {
                 'value': value
             }

@@ -118,5 +118,5 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid P-number
 
         # Act & Assert
-        with current_query.temporary_args({'force': '1'}):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)

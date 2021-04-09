@@ -330,23 +330,23 @@ class TestGetCountRelated(tests.cases.TestCase):
         self._multiple = {"association", "engagement"}
 
     def test_valid_name(self):
-        with current_query.temporary_args(ImmutableMultiDict({'count': 'association'})):
+        with current_query.context_args(ImmutableMultiDict({'count': 'association'})):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_valid_name_repeated(self):
-        with current_query.temporary_args(
+        with current_query.context_args(
             ImmutableMultiDict([('count', 'association'), ('count', 'association')])
         ):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_multiple_valid_names(self):
-        with current_query.temporary_args(
+        with current_query.context_args(
             ImmutableMultiDict([('count', 'association'), ('count', 'engagement')])
         ):
             self.assertSetEqual(self._multiple, _get_count_related())
 
     def test_invalid_name(self):
-        with current_query.temporary_args(
+        with current_query.context_args(
             ImmutableMultiDict([('count', 'association'), ('count', 'foobar')])
         ):
             with self.assertRaises(HTTPException):

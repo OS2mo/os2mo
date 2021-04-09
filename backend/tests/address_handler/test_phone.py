@@ -132,5 +132,5 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid phone number
 
         # Act & Assert
-        with current_query.temporary_args({'force': '1'}):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)

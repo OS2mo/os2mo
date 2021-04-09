@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
@@ -127,30 +128,38 @@ def create_app():
     Create and return a FastApi app instance for MORA.
     """
     log.init()
-
     middleware = [Middleware(RawContextMiddleware)]
     app = FastAPI(
         middleware=middleware,
     )
 
+    if config["enable_cors"]:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
-        current_query.args = deepcopy(request.query_params)
-        await request_wide_bulk.clear()
-        # # HACK: needed to access the body of the request in the middleware
-        # # https://github.com/encode/starlette/issues/495#issuecomment-513138055
+        with current_query.context_args(deepcopy(request.query_params)):
+            async with request_wide_bulk.cache_context():
+                # #HACK: needed to access the body of the request in the middleware
+                # #https://github.com/encode/starlette/issues/495#issuecomment-513138055
 
-        # async def set_body(request: Request, body: bytes):
-        #     async def receive() -> Message:
-        #         return {"type": "http.request", "body": body}
-        #
-        #     request._receive = receive
-        #
-        # async def get_body(request: Request) -> bytes:
-        #     body = await request.body()
-        #     await set_body(request, body)
-        #     return body
-        response = await call_next(request)
+                # async def set_body(request: Request, body: bytes):
+                #     async def receive() -> Message:
+                #         return {"type": "http.request", "body": body}
+                #
+                #     request._receive = receive
+                #
+                # async def get_body(request: Request) -> bytes:
+                #     body = await request.body()
+                #     await set_body(request, body)
+                #     return body
+                response = await call_next(request)
         return response
 
     # router include order matters
