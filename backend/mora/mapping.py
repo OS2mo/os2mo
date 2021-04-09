@@ -101,6 +101,10 @@ MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
 MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
+# Engagement association
+ENGAGEMENT_ASSOCIATION_KEY = 'engagement_association'
+ENGAGEMENT_ASSOCIATION_TYPE = 'engagement_association_type'
+
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
 TIME_PLANNING = 'time_planning'
@@ -133,6 +137,7 @@ class MoOrgFunk(enum.Enum):
     MANAGER = MANAGER
     LEAVE = LEAVE
     RELATED_UNIT = RELATED_UNIT
+    ENGAGEMENT_ASSOCIATION = ENGAGEMENT_ASSOCIATION_KEY
 
 
 RELATION_TRANSLATIONS = {

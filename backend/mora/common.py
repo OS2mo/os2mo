@@ -292,24 +292,58 @@ def inactivate_org_funktion_payload(enddate, note):
     return payload
 
 
+def to_lora_obj(
+    value: typing.Union[typing.Dict[str, str], str]
+) -> typing.Dict[str, str]:
+    """
+    transforms values to uniform lora-format
+    :param value: (potentially) High-level specification of lora obj
+    :return: concrete lora-understandable obj
+    """
+
+    if isinstance(value, str):  # if string, assume uuid
+        return {mapping.UUID: value}
+    elif isinstance(value, dict):  # if dict, do nothing
+        if value.keys() <= {mapping.UUID, mapping.OBJECTTYPE}:
+            return value
+        else:
+            raise ValueError(f"unexpected_lora_keys={value.keys()}")
+    raise TypeError(f"unexpected type: {type(value)}")
+
+
+def associated_orgfunc(
+    uuid: str, orgfunc_type: mapping.MoOrgFunk
+) -> typing.Dict[str, str]:
+    """
+    creates a lora-understandable object appropriate for
+    associating org funcstions with each other
+
+    :param uuid: uuid of the associated orgfunc
+    :param orgfunc_type: type of the orgfunc
+    :return:
+    """
+    return {mapping.UUID: uuid, mapping.OBJECTTYPE: orgfunc_type.value}
+
+
 def create_organisationsfunktion_payload(
     funktionsnavn: str,
     valid_from: str,
     valid_to: str,
     brugervendtnoegle: str,
-    tilknyttedebrugere: typing.List[str],
     tilknyttedeorganisationer: typing.List[str],
-    tilknyttedeenheder: typing.List[str] = None,
-    tilknyttedefunktioner: typing.List[str] = None,
-    tilknyttedeitsystemer: typing.List[str] = None,
-    tilknyttedeklasser: typing.List[str] = None,
-    funktionstype: str = None,
-    primær: str = None,
-    opgaver: typing.List[dict] = None,
-    adresser: typing.List[dict] = None,
-    integration_data: dict = None,
-    fraktion: str = None,
-    udvidelse_attributter: dict = None
+    tilknyttedebrugere: typing.Optional[typing.List[str]] = None,
+    tilknyttedeenheder: typing.Optional[typing.List[str]] = None,
+    tilknyttedefunktioner: typing.Optional[typing.List[
+        typing.Union[typing.Dict[str, str], str]]] = None,
+    tilknyttedeitsystemer: typing.Optional[typing.List[str]] = None,
+    tilknyttedeklasser: typing.Optional[typing.List[str]] = None,
+    funktionstype: typing.Optional[str] = None,
+    primær: typing.Optional[str] = None,
+    opgaver: typing.Optional[typing.List[dict]] = None,
+    adresser: typing.Optional[typing.List[dict]] = None,
+    integration_data: typing.Optional[dict] = None,
+    fraktion: typing.Optional[str] = None,
+    udvidelse_attributter: typing.Optional[dict] = None
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -360,9 +394,9 @@ def create_organisationsfunktion_payload(
         } for uuid in tilknyttedeenheder]
 
     if tilknyttedefunktioner:
-        org_funk['relationer']['tilknyttedefunktioner'] = [{
-            'uuid': uuid
-        } for uuid in tilknyttedefunktioner]
+        org_funk['relationer']['tilknyttedefunktioner'] = list(
+            map(to_lora_obj, tilknyttedefunktioner)
+        )
 
     if tilknyttedeitsystemer:
         org_funk['relationer']['tilknyttedeitsystemer'] = [{

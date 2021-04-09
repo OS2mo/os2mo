@@ -13,6 +13,7 @@ from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
+from ...lora import LoraObjectType
 
 
 def forceable(fn):
@@ -198,31 +199,55 @@ def is_distinct_responsibility(
 async def is_date_range_in_employee_range(employee_obj: typing.Dict,
                                           valid_from: datetime.datetime,
                                           valid_to: datetime.datetime):
+    return await is_date_range_in_obj_range(obj=employee_obj,
+                                            valid_from=valid_from,
+                                            valid_to=valid_to,
+                                            obj_type=LoraObjectType.user,
+                                            gyldighed_key="brugergyldighed")
+
+
+@forceable
+async def is_date_range_in_engagement_range(obj: typing.Dict,
+                                            valid_from: datetime.datetime,
+                                            valid_to: datetime.datetime):
+    return await is_date_range_in_obj_range(
+        obj=obj,
+        valid_from=valid_from,
+        valid_to=valid_to,
+        obj_type=LoraObjectType.org_func,
+        gyldighed_key="organisationfunktiongyldighed"
+    )
+
+
+@forceable
+async def is_date_range_in_obj_range(obj: typing.Dict,
+                                     valid_from: datetime.datetime,
+                                     valid_to: datetime.datetime,
+                                     obj_type: LoraObjectType,
+                                     gyldighed_key: str):
     scope = lora.Connector(
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to)
-    ).bruger
+    ).scope(obj_type)
     # If this is a not-yet created user, emulate check
-    if employee_obj.get('allow_nonexistent'):
-        employee_valid_from = employee_obj.get(mapping.VALID_FROM)
-        employee_valid_to = employee_obj.get(mapping.VALID_TO)
-        is_contained_in_range(employee_valid_from, employee_valid_to,
+    if obj.get('allow_nonexistent'):
+        obj_valid_from = obj.get(mapping.VALID_FROM)
+        obj_valid_to = obj.get(mapping.VALID_TO)
+        is_contained_in_range(obj_valid_from, obj_valid_to,
                               valid_from, valid_to,
                               exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
     else:
-        employee_uuid = employee_obj.get(mapping.UUID)
-        employee = await scope.get(employee_uuid)
+        uuid = obj.get(mapping.UUID)
+        existing_obj = await scope.get(uuid)
 
-        if not employee:
-            exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employee_uuid)
+        if not existing_obj:
+            exceptions.ErrorCodes.E_NOT_FOUND(scope=str(obj_type), uuid=uuid)
 
-        gyldighed_key = "brugergyldighed"
-
-        if not await _is_date_range_valid(employee, valid_from, valid_to, scope,
+        if not await _is_date_range_valid(existing_obj, valid_from, valid_to, scope,
                                           gyldighed_key):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
-                employee_uuid=employee_uuid,
-                **_get_active_validity(employee),
+                uuid=uuid,
+                **_get_active_validity(obj),
             )
 
 
@@ -336,12 +361,68 @@ async def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
         being edited to be exempt from validation.
     :return:
     """
+    return await does_uuid_have_existing_association(
+        uuid=employee_uuid,
+        uuid_search_key='tilknyttedebrugere',
+        org_unit_uuid=org_unit_uuid,
+        valid_from=valid_from,
+        association_function_key=mapping.ASSOCIATION_KEY,
+        association_uuid=association_uuid
+    )
+
+
+@forceable
+async def does_engagement_have_existing_association(engagement_uuid, org_unit_uuid,
+                                                    valid_from, association_uuid=None):
+    """
+    Check if an employee already has an active association for a given org
+    unit on a given date
+
+    :param engagement_uuid: UUID of the engagement
+    :param org_unit_uuid: UUID of the org unit
+    :param valid_from: The date to check
+    :param association_uuid: An optional uuid of an organisation
+        being edited to be exempt from validation.
+    :return:
+    """
+    return await does_uuid_have_existing_association(
+        uuid=engagement_uuid,
+        uuid_search_key='tilknyttedefunktioner',
+        org_unit_uuid=org_unit_uuid,
+        valid_from=valid_from,
+        association_function_key=mapping.ENGAGEMENT_ASSOCIATION_KEY,
+        association_uuid=association_uuid
+    )
+
+
+@forceable
+async def does_uuid_have_existing_association(uuid: str,
+                                              uuid_search_key: str,
+                                              org_unit_uuid,
+                                              valid_from,
+                                              association_function_key: str,
+                                              association_uuid=None):
+    """
+    Check if an employee already has an active association for a given org
+    unit on a given date
+
+    :param uuid: UUID of the obj
+    :param uuid_search_key: "lora-column" in which to look for the uuid
+    :param org_unit_uuid: UUID of the org unit
+    :param valid_from: The date to check
+    :param association_function_key: The key denoting the association type
+    :param association_uuid: An optional uuid of an organisation
+        being edited to be exempt from validation.
+    :return:
+    """
     c = lora.Connector(effective_date=valid_from)
 
-    r = await c.organisationfunktion.fetch(tilknyttedeenheder=org_unit_uuid,
-                                           tilknyttedebrugere=employee_uuid,
-                                           gyldighed='Aktiv',
-                                           funktionsnavn=mapping.ASSOCIATION_KEY)
+    r = await c.organisationfunktion.fetch(
+        tilknyttedeenheder=org_unit_uuid,
+        gyldighed='Aktiv',
+        funktionsnavn=association_function_key,
+        **{uuid_search_key: uuid}
+    )
 
     if association_uuid is not None and association_uuid in r:
         return
