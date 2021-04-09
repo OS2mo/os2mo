@@ -27,6 +27,17 @@ SPDX-License-Identifier: MPL-2.0
           :entry-component="!hideActions ? components.address : undefined"
         />
       </b-tab>
+      <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association" :title="$tc('tabs.engagement.association', 2)">
+        <mo-table-detail
+          type="ENGAGEMENT"
+          :uuid="uuid"
+          :content="content['engagement_association']"
+          content-type="engagement_association"
+          :columns="engagement_association"
+          @show="loadContent('engagement_association', $event)"
+          :entry-component="!hideActions ? components.engagement_association : undefined"
+        />
+      </b-tab>
     </b-tabs>
   </div>
 </template>
@@ -37,11 +48,10 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { mapGetters } from 'vuex'
-import { MoEngagementEntry, MoEmployeeAddressEntry, MoItSystemEntry, MoAssociationEntry } from '@/components/MoEntry'
+import { MoEngagementEntry, MoEmployeeAddressEntry, MoAssociationEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
-import { Facet } from '@/store/actions/facet'
 import { AtDate } from '@/store/actions/atDate'
 
 export default {
@@ -68,22 +78,24 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#engagement', '#adresser', '#it', '#tilknytninger'],
+      tabs: ['#engagement', '#adresser', '#engagement_association'],
       currentDetail: 'engagement',
       _atDate: undefined,
       /**
-       * The leave, it, address, engagement, association, role, manager component value.
+       * The component values.
        * Used to detect changes and restore the value for columns.
        */
-      it: [
-        { label: 'it_system', data: 'itsystem' },
-        { label: 'user_key', data: null, field: 'user_key' }
-      ],
+
       address: [
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
+      engagement_association: [
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'association_type', data: 'engagement_association_type' },
+      ],
+
 
       /**
        * Used to add the components in the tabs.
@@ -91,8 +103,7 @@ export default {
       components: {
         engagement: MoEngagementEntry,
         address: MoEmployeeAddressEntry,
-        it: MoItSystemEntry,
-        association: MoAssociationEntry,
+        engagement_association: MoAssociationEntry,
       }
     }
   },
@@ -110,41 +121,6 @@ export default {
 
       if (conf.show_primary_engagement) {
         columns.splice(2, 0,
-          { label: 'primary', data: 'primary' }
-        )
-      }
-
-      return columns
-    },
-
-    association () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
-      let columns = [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'first_party_association_type', data: 'first_party_association_type' },
-        { label: 'third_party_associated', data: 'third_party_associated' },
-        { label: 'third_party_association_type', data: 'third_party_association_type' }
-      ]
-
-      if (conf.association_dynamic_facets) {
-        let dynamics = conf.association_dynamic_facets.split(',').filter(elem => elem != "")
-        // Function called to determine header label
-        let label_function_generator = function(uuid) {
-            return function() {
-                return facet_getter(uuid)['description']
-            }
-        }
-        for (const dynamic of dynamics) {
-          this.$store.dispatch(Facet.actions.SET_FACET, {facet: dynamic, full: true})
-          columns.push({
-            label: 'dynamic_class', label_function: label_function_generator(dynamic), data: dynamic
-          })
-        }
-      }
-
-      if (conf.show_primary_association) {
-        columns.splice(1, 0,
           { label: 'primary', data: 'primary' }
         )
       }
@@ -181,7 +157,6 @@ export default {
         detail: contentType,
         validity: event,
         atDate: this._atDate,
-        extra: contentType === 'association' ? {'first_party_perspective': '1'} : {},
       }
       this.currentDetail = contentType
       this.$emit('show', payload)
