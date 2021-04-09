@@ -12,7 +12,7 @@ class _QueryArgs:
         self.__query_args: ImmutableMultiDict = ImmutableMultiDict()
 
     @property
-    def args(self):
+    def args(self) -> ImmutableMultiDict:
         return self.__query_args
 
     @args.setter

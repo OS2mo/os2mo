@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter
-
 from mora import common
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.request_scoped.query_args import current_query
+from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
 
@@ -60,8 +60,9 @@ async def _query_orgfunk(
     return ret
 
 
-async def orgfunk_endpoint(orgfunk_type: MoOrgFunk,
-                           query_args: Dict[str, Any]) -> Dict[str, Any]:
+async def orgfunk_endpoint(
+    orgfunk_type: MoOrgFunk, query_args: Dict[str, Any]
+) -> Dict[str, Any]:
     c = common.get_connector()
     search_params = _extract_search_params(query_args=query_args)
     return await _query_orgfunk(
@@ -75,7 +76,8 @@ async def search_engagement(
     validity: Optional[Any] = None,
 ) -> Dict[str, Any]:
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ENGAGEMENT, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.ENGAGEMENT,
+        query_args={"at": at, "validity": validity},
     )
 
 
@@ -85,7 +87,8 @@ async def search_association(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ASSOCIATION, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.ASSOCIATION,
+        query_args={"at": at, "validity": validity},
     )
 
 
@@ -95,7 +98,7 @@ async def search_it(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.IT, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.IT, query_args={"at": at, "validity": validity}
     )
 
 
@@ -105,7 +108,7 @@ async def search_kle(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.KLE, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.KLE, query_args={"at": at, "validity": validity}
     )
 
 
@@ -115,7 +118,7 @@ async def search_role(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ROLE, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.ROLE, query_args={"at": at, "validity": validity}
     )
 
 
@@ -125,8 +128,12 @@ async def search_address(
     validity: Optional[Any] = None,
     engagement: Optional[str] = None,
 ):
+    args = {"at": at, "validity": validity}
+    if engagement is not None:
+        args[MoOrgFunk.ENGAGEMENT.value] = engagement
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ADDRESS, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.ADDRESS,
+        query_args=args,
     )
 
 
@@ -136,7 +143,7 @@ async def search_leave(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.LEAVE, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.LEAVE, query_args={"at": at, "validity": validity}
     )
 
 
@@ -146,7 +153,7 @@ async def search_manager(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.MANAGER, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.MANAGER, query_args={"at": at, "validity": validity}
     )
 
 
@@ -156,8 +163,25 @@ async def search_related_unit(
     validity: Optional[Any] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.RELATED_UNIT, query_args=current_query.args
+        orgfunk_type=MoOrgFunk.RELATED_UNIT,
+        query_args={"at": at, "validity": validity},
     )
+
+
+def to_dict(multi_dict: ImmutableMultiDict) -> Dict[Any, Union[Any, List[Any]]]:
+    """
+    flattens a multi-dict to a simple dictionary, collecting items in lists as needed
+    :param multi_dict:
+    :return:
+    """
+    # convert to dictionary
+    dictionary = {key: multi_dict.getlist(key) for key in multi_dict}
+
+    # unpack lists of one
+    return {
+        key: list_value[0] if len(list_value) == 1 else list_value
+        for key, list_value in dictionary.items()
+    }
 
 
 def uuid_func_factory(orgfunk: MoOrgFunk):
@@ -173,7 +197,7 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         validity: Optional[Any] = None,
     ):
         return await orgfunk_endpoint(
-            orgfunk_type=orgfunk, query_args=current_query.args
+            orgfunk_type=orgfunk, query_args=to_dict(current_query.args)
         )
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"

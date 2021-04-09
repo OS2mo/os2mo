@@ -869,7 +869,7 @@ async def get_unit_tree(
 
 @router.get('/ou/{unitid}/')
 async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
-                      count: Optional[str] = None):
+                      count: Optional[str] = None) -> Dict[str, Any]:
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
