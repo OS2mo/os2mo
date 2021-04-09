@@ -1,20 +1,18 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
+from uuid import UUID
 
-import flask
+from fastapi import APIRouter
 
-from mora import async_util, common
-from mora.exceptions import ErrorCodes
+from mora import common
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
-from mora.util import restrictargs
+from mora.request_scoped.query_args import current_query
 
-blueprint = flask.Blueprint(
-    "read", __name__, static_url_path="", url_prefix="/api/v1"
-)
+router = APIRouter(prefix="/api/v1")
 
 ORGFUNK_VALUES = tuple(map(lambda x: x.value, MoOrgFunk))
 
@@ -71,102 +69,94 @@ async def orgfunk_endpoint(orgfunk_type: MoOrgFunk,
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.ENGAGEMENT.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_engagement() -> flask.Response:
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.ENGAGEMENT, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.ENGAGEMENT.value}")
+async def search_engagement(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+) -> Dict[str, Any]:
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ENGAGEMENT, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.ASSOCIATION.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_association():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.ASSOCIATION, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.ASSOCIATION.value}")
+async def search_association(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ASSOCIATION, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.IT.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_it():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.IT, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.IT.value}")
+async def search_it(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.IT, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.KLE.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_kle():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.KLE, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.KLE.value}")
+async def search_kle(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.KLE, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.ROLE.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_role():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.ROLE, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.ROLE.value}")
+async def search_role(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ROLE, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.ADDRESS.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_address():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.ADDRESS, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.ADDRESS.value}")
+async def search_address(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    engagement: Optional[str] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ADDRESS, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.LEAVE.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_leave():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.LEAVE, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.LEAVE.value}")
+async def search_leave(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.LEAVE, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.MANAGER.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_manager():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.MANAGER, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.MANAGER.value}")
+async def search_manager(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.MANAGER, query_args=current_query.args
     )
 
 
-@blueprint.route(f"/{MoOrgFunk.RELATED_UNIT.value}")
-@restrictargs("at", "validity", *ORGFUNK_VALUES)
-@async_util.async_to_sync
-async def search_related_unit():
-    return flask.jsonify(
-        await orgfunk_endpoint(
-            orgfunk_type=MoOrgFunk.RELATED_UNIT, query_args=flask.request.args
-        )
+@router.get(f"/{MoOrgFunk.RELATED_UNIT.value}")
+async def search_related_unit(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.RELATED_UNIT, query_args=current_query.args
     )
 
 
@@ -177,14 +167,13 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
     :return: expose-ready function
     """
 
-    @restrictargs("at", "validity", required=["uuid"])
-    @async_util.async_to_sync
-    async def get_orgfunk_by_uuid():
-        # Better implementation available once FastAPI
-        if not set(flask.request.args.keys()) <= {"at", "validity", "uuid"}:
-            raise ErrorCodes.E_INVALID_INPUT()
+    async def get_orgfunk_by_uuid(
+        uuid: UUID,
+        at: Optional[Any] = None,
+        validity: Optional[Any] = None,
+    ):
         return await orgfunk_endpoint(
-            orgfunk_type=orgfunk, query_args=flask.request.args
+            orgfunk_type=orgfunk, query_args=current_query.args
         )
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
@@ -192,4 +181,4 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
 
 
 for orgfunk in MoOrgFunk:
-    blueprint.route(f"/{orgfunk.value}/by_uuid")(uuid_func_factory(orgfunk))
+    router.get(f"/{orgfunk.value}/by_uuid")(uuid_func_factory(orgfunk))

@@ -14,25 +14,15 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
-from mora import __version__, health, log, triggers
+from mora import __version__, health, log
 from mora.auth import base
-from . import exceptions
-from . import lora
-from . import service
-from . import settings
-from . import util
-from .api.v1 import read_orgfunk
-from .auth import base
-from .integrations import serviceplatformen
-from . import triggers
-from mora.auth import base
-from .exceptions import ErrorCodes, http_exception_to_json_response
-import request_scoped_globals
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
+from . import triggers
+from .api.v1 import read_orgfunk
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
 from .settings import config
 
@@ -173,6 +163,7 @@ def create_app():
 
     for router in service.routers:
         app.include_router(router, prefix="/service", tags=["Service"])
+    app.include_router(read_orgfunk.router)
     app.include_router(
         meta_router(),
         tags=["Meta"],

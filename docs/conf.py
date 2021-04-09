@@ -32,7 +32,6 @@ os.environ['ENV'] = 'docs'
 #
 sys.path.insert(0, BACKEND_DIR)
 
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -97,6 +96,7 @@ MOCK_MODULES = [
     'fastapi.testclient',
     'starlette',
     'starlette.middleware',
+    'starlette.middleware.cors',
     'starlette.requests',
     'starlette.responses',
     'starlette.datastructures',
@@ -120,7 +120,6 @@ asyncio_mock = MagicMock()
 asyncio_mock.get_event_loop.return_value.is_running.return_value = False
 sys.modules.update({"asyncio": asyncio_mock})
 
-
 apidoc_module_dir = '../backend/mora'
 apidoc_output_dir = 'backend'
 
@@ -136,7 +135,6 @@ source_suffix = ['.rst', '.md']
 source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
-
 
 # https://stackoverflow.com/a/30624034
 nitpick_ignore = [
@@ -160,7 +158,6 @@ nitpick_ignore = [
     ("py:class", "uuid"),
 ]
 
-
 #
 # References to other Sphinx documentation sites.
 #
@@ -172,7 +169,6 @@ intersphinx_mapping = {
 }
 
 primary_domain = 'py'
-
 
 # The master toctree document.
 master_doc = 'index'
@@ -218,7 +214,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -258,12 +253,10 @@ html_sidebars = {
     ]
 }
 
-
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Os2modoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -293,7 +286,6 @@ latex_documents = [
      'Magenta ApS', 'manual'),
 ]
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -302,7 +294,6 @@ man_pages = [
     (master_doc, 'mora', 'OS2MO 2.0 Documentation',
      [author], 1)
 ]
-
 
 # -- Options for Texinfo output -------------------------------------------
 
