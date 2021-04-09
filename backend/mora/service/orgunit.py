@@ -19,14 +19,8 @@ import uuid
 from asyncio import create_task, gather
 from datetime import date
 from itertools import chain
-from typing import Any, Awaitable, Dict, Optional, Iterable, List
-from typing import Any, Awaitable, Dict, Optional, List
-
-from fastapi import APIRouter, Request, Body
-
-import requests
-from mora.request_scoped.query_args import current_query
 from typing import Any, Awaitable, Dict, List
+from typing import Iterable
 from typing import Optional
 from uuid import UUID
 
@@ -622,10 +616,9 @@ async def get_one_orgunit(c: lora.Connector,
     return r
 
 
-
 @router.get('/{type}/{parentid}/children')
-async def get_children(type, parentid: UUID, at: Optional[date] = Query(None), count: Optional[bool]=False, org_unit_hierarchy: str=""):
-
+async def get_children(type, parentid: UUID, at: Optional[date] = Query(None),
+                       count: Optional[str] = None, org_unit_hierarchy: str = ""):
     '''Obtain the list of nested units within an organisation or an
     organisational unit.
 
@@ -801,13 +794,14 @@ async def get_unit_ancestor_tree(
 
     unitids = list(map(str, uuid))
     return await get_unit_tree(
-            c,
-            unitids,
-            with_siblings=True,
-            only_primary_uuid=only_primary_uuid,
-            org_unit_hierarchy=org_unit_hierarchy,
-            count_related=count_related,
-        )
+        c,
+        unitids,
+        with_siblings=True,
+        only_primary_uuid=only_primary_uuid,
+        org_unit_hierarchy=org_unit_hierarchy,
+        count_related=count_related,
+    )
+
 
 async def get_unit_tree(
     c: lora.Connector,
@@ -875,7 +869,7 @@ async def get_unit_tree(
 
 @router.get('/ou/{unitid}/')
 async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
-                      count: Optional[bool] = False):
+                      count: Optional[str] = None):
     '''Get an organisational unit
 
     .. :quickref: Unit; Get
@@ -969,8 +963,6 @@ async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
     c = common.get_connector()
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
-    # only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    only_primary_uuid = False
     r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
                               only_primary_uuid=only_primary_uuid,
                               count_related=count_related,
