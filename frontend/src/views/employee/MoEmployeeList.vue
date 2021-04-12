@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
         <h3>{{$t('input_fields.search_for_name_or_cpr')}}</h3>
       </div>
       <div class="input-group input-group-lg justify-content-md-center">
-        <mo-search-bar class="form-control-lg col-4" hide-date-input />
+        <mo-search-bar hide-date-input />
       </div>
     </div>
   </div>

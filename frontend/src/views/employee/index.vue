@@ -1,13 +1,11 @@
 SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <div class="row">
-    <div class="col-12 workflow-padding">
+  <div class="row" id="employee">
+    <div class="col-12">
       <router-view :key="route.params.uuid"/>
-
       <mo-log/>
     </div>
-
     <mo-employee-workflows/>
   </div>
 </template>
@@ -34,15 +32,7 @@ export default {
 </script>
 
 <style scoped>
-  @media (min-width: 768px) {
-   .workflow-padding {
-    padding-right: 75px;
-    }
-   }
-
-   @media (max-width: 768px) {
-   .workflow-padding {
-    padding-top: 30px;
-    }
+  #employee {
+    padding: 0 15px 0 15px;
   }
 </style>

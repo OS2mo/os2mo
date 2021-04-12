@@ -36,10 +36,6 @@ nav button.dropdown-toggle {
   margin-left: -1em;
 }
 
-.container-fluid {
-  padding-right: 0;
-}
-
 .container-top-margin {
   margin-top: 60px;
 }
@@ -52,8 +48,11 @@ table th {
   border-top: 0 !important;
 }
 
+.v-autocomplete {
+  width: 20vw;
+}
+
 .v-autocomplete .v-autocomplete-input-group .v-autocomplete-input {
-  display: flex;
   width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;

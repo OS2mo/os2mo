@@ -1,7 +1,7 @@
 SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <div>
+  <div id="organisation">
     <Split id="split-container">
       <SplitArea :size="25">
         <div class="card">
@@ -127,16 +127,8 @@ export default {
 </script>
 
 <style scoped>
-  @media (min-width: 768px) {
-   .workflow-padding {
-      padding-right: 75px;
-    }
-  }
-
-  @media (max-width: 768px) {
-   .workflow-padding {
-      padding-top: 30px;
-    }
+  #organisation {
+    padding: 0 0 0 15px;
   }
 
   .card {
@@ -144,8 +136,11 @@ export default {
   }
 
   .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     overflow: hidden;
-    padding: 1.25rem 0 2.5rem 1.25rem;
+    padding: 1.25rem 0 0 1.25rem;
   }
 
   select {
@@ -155,9 +150,8 @@ export default {
   }
 
   #tree-wrapper {
-    height: calc(100% - 40px);
-    overflow-x: auto;
-    overflow-y: auto;
+    height: 100%;
+    overflow: auto;
   }
 
   .unit-tree {
