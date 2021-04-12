@@ -196,7 +196,7 @@ class OrgFunkRequestHandler(RequestHandler):
 
         original = mora.async_util.async_to_sync(
             lora.Connector(effective_date=date).organisationfunktion.get)(self.uuid)
-
+        print(get_key_for_function(original), self.function_key)
         if (
             original is None or
             util.is_reg_valid(original) and

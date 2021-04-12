@@ -20,22 +20,7 @@ MO_OBJ_TYPE = Dict[str, Any]
 
 @reading.register(ROLE_TYPE)
 class AssociationReader(reading.OrgFunkReadingHandler):
-    function_key = mapping.ASSOCIATION_KEY
-
-    # @staticmethod
-    # async def __dynamic_classes_helper(classes: Iterable[str],
-    #                                    only_primary_uuid: bool = False
-    #                                    ) -> List[MO_OBJ_TYPE]:
-    #     """
-    #     helper, is an awaitable, that will gather a bunch of classes in a list
-    #     :param classes:
-    #     :return: list of classes (AT LEAST) bulked together
-    #     """
-    #
-    #     return await gather(*[await facet.request_bulked_get_one_class_full(
-    #         cla,
-    #         only_primary_uuid=only_primary_uuid
-    #     ) for cla in classes])
+    function_key = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
