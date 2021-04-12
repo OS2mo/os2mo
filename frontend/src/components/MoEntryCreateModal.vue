@@ -125,7 +125,7 @@ export default {
      * If it has a entry component.
      */
     hasEntryComponent() {
-      return this.entryComponent !== undefined
+      return this.entryComponent !== undefined || true
     },
 
     /**

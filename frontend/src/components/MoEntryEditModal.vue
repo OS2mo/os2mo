@@ -341,7 +341,7 @@ export default {
               contentType: this.contentType,
               value: {
                 type: this.$tc(`shared.${this.entry.type}`, 1),
-                name: this.entry.name ? this.entry.name : this.entry.user_key
+                name: this.$t(``)
               }
             },
             {root: true})

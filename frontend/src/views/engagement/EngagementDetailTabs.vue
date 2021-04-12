@@ -48,7 +48,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { mapGetters } from 'vuex'
-import { MoEngagementEntry, MoEmployeeAddressEntry, MoAssociationEntry } from '@/components/MoEntry'
+import { MoEngagementEntry, MoEmployeeAddressEntry, MoEngagementAssociationEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
@@ -93,7 +93,7 @@ export default {
       ],
       engagement_association: [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'association_type', data: 'engagement_association_type' },
+        { label: 'engagement_association_type', data: 'engagement_association_type' },
       ],
 
 
@@ -103,7 +103,7 @@ export default {
       components: {
         engagement: MoEngagementEntry,
         address: MoEmployeeAddressEntry,
-        engagement_association: MoAssociationEntry,
+        engagement_association: MoEngagementAssociationEntry,
       }
     }
   },
@@ -136,7 +136,7 @@ export default {
   watch: {
     atDate (newVal) {
       this._atDate = newVal
-      for (var validity of ['present', 'past', 'future']) {
+      for (const validity of ['present', 'past', 'future']) {
         this.loadContent(this.currentDetail, validity)
       }
     },
