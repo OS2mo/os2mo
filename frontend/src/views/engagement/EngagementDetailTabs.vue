@@ -27,7 +27,7 @@ SPDX-License-Identifier: MPL-2.0
           :entry-component="!hideActions ? components.address : undefined"
         />
       </b-tab>
-      <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association" :title="$tc('tabs.engagement.association', 2)">
+      <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association" :title="$tc('tabs.engagement.engagement_association', 2)">
         <mo-table-detail
           type="ENGAGEMENT"
           :uuid="uuid"

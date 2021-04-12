@@ -2,7 +2,7 @@
   "current_super_unit": "Nuværende overenhed",
   "account_name": "Kontonavn",
   "association_type": "@:shared.association_type",
-  "engagement_association_type": "@:shared.association_type",
+  "engagement_association_type": "@:shared.engagement_association_type",
   "visibility": "Synlighed",
   "employee": "@:shared.employee",
   "employee_optional": "Angiv medarbejder (Valgfri)",

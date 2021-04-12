@@ -7,7 +7,7 @@ import freezegun
 
 import mora.async_util
 from mora import lora
-from tests import util
+from tests.cases import LoRATestCase
 
 
 class EngAssocUtils:
@@ -18,7 +18,7 @@ class EngAssocUtils:
     user_key = "1234"
     validity = {
         "from": "2017-12-01",
-        "to": "2017-12-01",
+        "to": "2018-12-01",
     }
     payload = [
         {
@@ -73,7 +73,7 @@ class EngAssocUtils:
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(util.LoRATestCase):
+class Tests(LoRATestCase):
     maxDiff = None
 
     def test_create_engagement_association(self):
@@ -105,7 +105,7 @@ class Tests(util.LoRATestCase):
                     {
                         "virkning": {
                             "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
+                            "to": "2018-12-02 00:00:00+01",
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01",
                         },
@@ -119,7 +119,7 @@ class Tests(util.LoRATestCase):
                     {
                         "virkning": {
                             "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
+                            "to": "2018-12-02 00:00:00+01",
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01",
                         },
@@ -130,7 +130,7 @@ class Tests(util.LoRATestCase):
                     {
                         "virkning": {
                             "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
+                            "to": "2018-12-02 00:00:00+01",
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01",
                         },
@@ -141,7 +141,7 @@ class Tests(util.LoRATestCase):
                     {
                         "virkning": {
                             "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
+                            "to": "2018-12-02 00:00:00+01",
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01",
                         },
@@ -155,7 +155,7 @@ class Tests(util.LoRATestCase):
                         "virkning": {
                             "from": "2017-12-01 " "00:00:00+01",
                             "from_included": True,
-                            "to": "2017-12-02 " "00:00:00+01",
+                            "to": "2018-12-02 " "00:00:00+01",
                             "to_included": False,
                         },
                     }
@@ -166,7 +166,7 @@ class Tests(util.LoRATestCase):
                     {
                         "virkning": {
                             "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
+                            "to": "2018-12-02 00:00:00+01",
                             "from_included": True,
                             "from": "2017-12-01 00:00:00+01",
                         },
@@ -188,7 +188,7 @@ class Tests(util.LoRATestCase):
             c.organisationfunktion.get
         )(associationid)
 
-        self.assertRegistrationsEqual(actual_association, expected)
+        self.assertRegistrationsEqual(expected, actual_association)
 
         expected = EngAssocUtils.expected_created()
 
@@ -308,7 +308,7 @@ class Tests(util.LoRATestCase):
         self.load_sample_structures()
 
         # Check the POST request
-        #  ##### CREATE
+
         (
             association_uuid,
             unitid,
@@ -318,22 +318,26 @@ class Tests(util.LoRATestCase):
             validity,
             payload,
         ) = EngAssocUtils.create_payload()
+
         self.assertRequestResponse(
             "/service/details/create",
             [association_uuid],
             json=payload,
         )
 
+        new_valid_to = "2017-12-30"
         expected = EngAssocUtils.expected_created()
-        expected[0]["validity"]["to"] = "2017-11-30"
+        expected[0]["validity"]["to"] = new_valid_to
 
         payload = {
             "type": "engagement_association",
             "uuid": association_uuid,
             "validity": {
-                "to": "2017-11-30"
+                "to": new_valid_to
             }
         }
+
+        # ### TERMINATE
         self.assertRequestResponse(
             "/service/details/terminate",
             association_uuid,

@@ -8,12 +8,13 @@ from uuid import UUID
 from fastapi import APIRouter
 from starlette.datastructures import ImmutableMultiDict
 
-from mora import common
+from mora import common, mapping
 from mora.exceptions import ErrorCodes
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.request_scoped.query_args import current_query
+from mora.util import ensure_list
 
 router = APIRouter(prefix="/api/v1")
 
@@ -140,6 +141,21 @@ async def search_address(
     )
 
 
+@router.get(f"/{MoOrgFunk.ENGAGEMENT_ASSOCIATION.value}")
+async def search_engagement_association(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    engagement: Optional[str] = None,
+):
+    args = {"at": at, "validity": validity}
+    if engagement is not None:
+        args[MoOrgFunk.ENGAGEMENT.value] = engagement
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ENGAGEMENT_ASSOCIATION,
+        query_args=args,
+    )
+
+
 @router.get(f"/{MoOrgFunk.LEAVE.value}")
 async def search_leave(
     at: Optional[Any] = None,
@@ -198,11 +214,15 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         uuid: UUID,
         at: Optional[Any] = None,
         validity: Optional[Any] = None,
+        only_primary_uuid: Optional[Any] = None,
     ):
-        if not set(current_query.args.keys()) <= {"at", "validity", "uuid"}:
+        if not set(current_query.args.keys()) <= {"at", "validity", mapping.UUID,
+                                                  "only_primary_uuid"}:
             raise ErrorCodes.E_INVALID_INPUT()
+        args = to_dict(current_query.args)
+        args[mapping.UUID] = ensure_list(args[mapping.UUID])
         return await orgfunk_endpoint(
-            orgfunk_type=orgfunk, query_args=to_dict(current_query.args)
+            orgfunk_type=orgfunk, query_args=args
         )
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"

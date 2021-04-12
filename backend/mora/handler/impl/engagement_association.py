@@ -4,12 +4,11 @@ import logging
 from asyncio import create_task
 from typing import Any, Dict
 
-import flask
-
-from mora.request_wide_bulking import request_wide_bulk
+from mora.request_scoped.query_args import current_query
 from .engagement import get_engagement
 from .. import reading
 from ... import mapping
+from ...request_scoped.bulking import request_wide_bulk
 from ...service import facet
 from ...service import orgunit
 
@@ -32,7 +31,7 @@ class EngagementAssociationReader(reading.OrgFunkReadingHandler):
 
         # substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
         # need_sub = substitute_uuid and util.is_substitute_allowed(association_type)
         # substitute = None
         # if need_sub:

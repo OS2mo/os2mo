@@ -3,7 +3,7 @@
 
 '''
 EngagementAssociations
-------------
+----------------------
 
 This section describes how to interact with employee associations.
 
@@ -235,21 +235,3 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
             # "employee_uuid": employee_uuid,
             "org_unit_uuid": org_unit_uuid,
         })
-
-    def prepare_terminate(self, request: Dict[Any, Any]):
-        """Initialize a 'termination' request. Performs validation and all
-        necessary processing
-
-        Unlike the other handlers for ``organisationfunktion``, this
-        one checks for and handles the ``vacate`` field in the
-        request. If this is set, the manager is merely marked as
-        *vacant*, i.e. without an employee or person.
-
-        :param request: A dict containing a request
-
-        """
-        # if util.checked_get(request, 'vacate', False):
-        #     self.termination_field = mapping.USER_FIELD
-        #     self.termination_value = {}
-
-        super().prepare_terminate(request)

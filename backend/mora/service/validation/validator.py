@@ -241,6 +241,9 @@ async def is_date_range_in_obj_range(obj: typing.Dict,
         existing_obj = await scope.get(uuid)
 
         if not existing_obj:
+            # special case for backwards compatibility
+            if obj_type is LoraObjectType.user:
+                exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=uuid)
             exceptions.ErrorCodes.E_NOT_FOUND(scope=str(obj_type), uuid=uuid)
 
         if not await _is_date_range_valid(existing_obj, valid_from, valid_to, scope,

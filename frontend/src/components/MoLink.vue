@@ -155,11 +155,18 @@ export default {
         if ('show_engagement_hyperlink' in conf && conf.show_engagement_hyperlink) {
           handler = 'EngagementDetail'
 
+          if (this.field === null){
           // remap contents from "some_user_key" to {user_key: some_user_key, uuid: ...}
           field = this.column
           let content = {'uuid': this.value.uuid};
           content[field] = this.value[this.column]
           contents = [content]
+          } else {
+          let content = {'uuid': this.value['engagement'].uuid};
+          content[field] = this.value['engagement'][field]
+          contents = [content]
+          }
+
         }
       }
 

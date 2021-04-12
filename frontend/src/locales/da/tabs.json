@@ -15,6 +15,7 @@
     "engagements": "Engagementer",
     "it": "IT",
     "association": "@:shared.association",
+    "engagement_association": "@:shared.engagement_association",
     "roles": "Roller",
     "related": "Relateret",
     "managers": "Ledere",
@@ -23,7 +24,7 @@
   "engagement": {
     "engagement": "Engagement",
     "addresses": "Adresser",
-    "association": "@:shared.association"
+    "engagement_association": "@:shared.engagement_association"
   },
   "log": {
     "worklog": "Arbejdslog"

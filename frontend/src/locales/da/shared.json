@@ -10,7 +10,7 @@
     "start_date": "Startdato",
     "end_date": "Slutdato"
   },
-  "engagement_association": "@:shared.association",
+  "engagement_association": "Engagementers Tilknytninger",
   "engagement_association_type": "@:shared.association_type",
   "engagement_type": "Engagementstype",
   "employee": "Medarbejder | Medarbejdere",
