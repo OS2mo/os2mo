@@ -3,8 +3,7 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-navbar/>
-
-    <div class="container-fluid container-top-margin">
+    <div>
       <router-view/>
     </div>
   </div>

@@ -347,9 +347,16 @@ export default {
 <style scoped>
   table {
     width: 100%;
-    width: calc(100% - 0rem);
     border-collapse: collapse;
     margin-top: 0;
+  }
+
+  /* IE11 needs a table width in pixels */
+  /* This IE-specific media query is only read by IE11 */
+  @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  table {
+      max-width: 768px;
+    }
   }
 
   th, td {
@@ -361,8 +368,7 @@ export default {
   }
 
   .scroll {
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: auto;
   }
 
   .link {
