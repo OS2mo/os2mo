@@ -41,6 +41,3 @@ echo "Waiting for rabbitmq"
 python3 -m mora.cli wait-for-rabbitmq --seconds 30 || exit
 echo "OK"
 echo ""
-
-echo "Initialization complete, starting app"
-exec "$@"

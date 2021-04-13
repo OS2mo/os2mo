@@ -9,21 +9,18 @@ This section describes functionality for retrieving information about people
 based on their CPR number.
 """
 
-import flask
+from fastapi import APIRouter
 
 from .. import exceptions
 from .. import mapping
-from .. import util
 from ..integrations.serviceplatformen import get_citizen
 
-
-blueprint = flask.Blueprint('cpr', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
-@blueprint.route('/e/cpr_lookup/')
-@util.restrictargs(required=['q'])
-def search_cpr():
+@router.get('/e/cpr_lookup/')
+# @util.restrictargs(required=['q'])
+def search_cpr(q: str):
     """
     Search for a CPR number in Serviceplatformen and retrieve the associated
     information
@@ -43,8 +40,7 @@ def search_cpr():
       }
 
     """
-    cpr = flask.request.args['q']
-
+    cpr = q
     try:
         sp_data = get_citizen(cpr)
     except KeyError:
@@ -53,7 +49,7 @@ def search_cpr():
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
     except Exception:
         exceptions.ErrorCodes.E_UNKNOWN(cpr=cpr)
-    return flask.jsonify(format_cpr_response(sp_data, cpr))
+    return format_cpr_response(sp_data, cpr)
 
 
 def format_cpr_response(sp_data: dict, cpr: str):

@@ -4,14 +4,13 @@ import logging
 from asyncio import create_task, gather
 from typing import List, Tuple, Union
 
-import flask
-
 from .. import reading
 from ... import lora
 from ... import mapping
 from ... import util
 from ...exceptions import ErrorCodes
-from ...request_wide_bulking import request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
+from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -40,7 +39,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(

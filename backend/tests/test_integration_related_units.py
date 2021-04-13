@@ -3,8 +3,8 @@
 
 import freezegun
 
+import tests.cases
 from mora import util as mora_util
-from . import util
 
 HUM = {
     'org_unit': [
@@ -66,7 +66,7 @@ HIST = {
 
 
 @freezegun.freeze_time('2017-06-01', tz_offset=2)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_reading(self):

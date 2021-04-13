@@ -4,10 +4,10 @@
 from unittest.mock import patch
 
 import mora.async_util
+import tests.cases
 from mora import exceptions
+from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import email
-
-from .. import util
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
@@ -15,7 +15,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class EmailAddressHandlerTests(util.TestCase):
+class EmailAddressHandlerTests(tests.cases.TestCase):
     handler = email.EmailAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'mail@mail.dk'
@@ -115,5 +115,5 @@ class EmailAddressHandlerTests(util.TestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid email address
 
         # Act & Assert
-        with self.create_app().test_request_context('?force=1'):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)

@@ -1,14 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import tests.cases
 
 
-from . import util
-
-
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
-    def test_invalid_type(self):
+    def test_create_invalid_type(self):
         self.assertRequestResponse(
             '/service/details/create',
             {
@@ -24,6 +22,7 @@ class Tests(util.TestCase):
             status_code=400,
         )
 
+    def test_edit_invalid_type(self):
         self.assertRequestResponse(
             '/service/details/edit',
             {
@@ -39,6 +38,7 @@ class Tests(util.TestCase):
             status_code=400,
         )
 
+    def test_invalid_json(self):
         self.assertRequestResponse(
             '/service/details/edit',
             {
@@ -52,6 +52,7 @@ class Tests(util.TestCase):
             status_code=400,
         )
 
+    def test_request_invalid_type(self):
         self.assertRequestResponse(
             '/service/e/00000000-0000-0000-0000-000000000000/details/blyf',
             {

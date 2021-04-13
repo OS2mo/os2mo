@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from tests.cases import ConfigTestCase
 
 from mora import settings
 from mora.conf_db import set_configuration
-from tests.util import ConfigTestCase
 
 
 class Tests(ConfigTestCase):
@@ -78,7 +78,6 @@ class Tests(ConfigTestCase):
         service_url = '/service/ou/{}/'.format(uuid)
         response = self.assertRequest(service_url)
         user_settings = response['user_settings']['orgunit']
-        print(user_settings)
         self.assertTrue(user_settings['show_user_key'])
         self.assertFalse(user_settings['show_location'])
 

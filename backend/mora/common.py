@@ -15,21 +15,21 @@ import collections
 import copy
 import datetime
 import functools
+import json
 import typing
 import uuid
-import json
 
-import flask
 import werkzeug
 
 from . import exceptions
 from . import lora
 from . import mapping
 from . import util
+from .request_scoped.query_args import current_query
 
 
 def get_connector(**loraparams) -> lora.Connector:
-    args = flask.request.args
+    args = current_query.args
 
     if args.get('at'):
         loraparams['effective_date'] = util.from_iso_time(args['at'])

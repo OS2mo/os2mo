@@ -13,7 +13,6 @@ import setuptools
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 __init___path = os.path.join(BACKEND_DIR, "mora", "__init__.py")
-# this is the way flask does it
 with io.open(__init___path, "rt", encoding="utf8") as f:
     version = re.search(r'__version__ = "(.*?)"', f.read()).group(1)
 

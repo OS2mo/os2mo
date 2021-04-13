@@ -8,6 +8,7 @@
 
 hide_cpr_numbers = false
 dummy_mode = false
+ENV='production'
 
 # If the application is deployed behind a proxy. Makes url_for generate URLs
 # for this specific server name regardless of where the request comes from.

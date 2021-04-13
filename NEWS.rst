@@ -1,5 +1,6 @@
 In development
 ==============
+* #41914: Replaced Flask with FastAPI
 
 New features
 ------------

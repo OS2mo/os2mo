@@ -11,24 +11,22 @@ organisational units
 
 For more information regarding reading relations, refer to:
 
-* :http:get:`/service/(any:type)/(uuid:id)/details/`
+* http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 import typing
 
-import flask
+from fastapi import APIRouter, Body
 
 from . import handlers
 from .. import exceptions
 from .. import mapping
-from .. import util
 
-blueprint = flask.Blueprint('detail_writing', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 def handle_requests(
-    reqs: typing.List[dict],
+    reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
     request_type: mapping.RequestType
 ):
     if isinstance(reqs, dict):
@@ -47,9 +45,9 @@ def handle_requests(
     return uuids
 
 
-@blueprint.route('/details/create', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def create():
+@router.post('/details/create', status_code=201)
+# @util.restrictargs('force', 'triggerless')
+def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
@@ -92,7 +90,7 @@ def create():
     space.
 
     For more information on the available details,
-    see: :http:post:`/service/details/create`.
+    see: http:post:`/service/details/create`.
     Note, that the ``person`` parameter is implicit in these payload, and
     should not be given.
 
@@ -145,7 +143,7 @@ def create():
 
     The parameters ``job_function`` and ``engagement_type`` should contain
     UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -196,7 +194,7 @@ def create():
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -225,7 +223,7 @@ def create():
     :<json string type: ``"it"``
     :<json string user_key: The account name on the IT system.
     :<json object itsystem: The IT system to create a relation to, as
-        returned by :http:get:`/service/o/(uuid:orgid)/it/`.
+        returned by http:get:`/service/o/(uuid:orgid)/it/`.
     :<json object org_unit: the UUID of the associated unit, if any
     :<json object person: the UUID of the associated employee, if any
 
@@ -259,7 +257,7 @@ def create():
 
     The parameter ``role_type`` should contain a UUID obtained from the
     respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -297,7 +295,7 @@ def create():
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
     should contain UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     It is also possible to create a vacant manager position. To do this, use
@@ -354,7 +352,7 @@ def create():
 
     The parameter ``leave_type`` should contain a UUID obtained from the
     respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -383,7 +381,7 @@ def create():
     :<jsonarr string type: ``"address"``
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
-        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr string value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
@@ -420,17 +418,12 @@ def create():
       ]
 
     """
-
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.CREATE)),
-        201
-    )
+    return handle_requests(reqs, mapping.RequestType.CREATE)
 
 
-@blueprint.route('/details/edit', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def edit():
+@router.post('/details/edit')
+# @util.restrictargs('force', 'triggerless')
+def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
@@ -572,7 +565,7 @@ def edit():
 
     The parameters ``job_function`` and ``engagement_type`` should contain
     UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -633,7 +626,7 @@ def edit():
 
     The parameters ``job_function`` and ``association_type`` should contain
     UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -754,7 +747,7 @@ def edit():
 
     The parameter ``role_type`` should contain a UUID obtained from the
     respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -809,7 +802,7 @@ def edit():
 
     The parameter ``leave_type`` should contain a UUID obtained from the
     respective facet endpoint.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
 
     .. sourcecode:: json
 
@@ -866,7 +859,7 @@ def edit():
 
     The parameters ``manager_type``, ``responsibility`` and ``manager_level``
     should contain UUIDs obtained from their respective facet endpoints.
-    See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+    See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     For the ``address`` parameter, see :ref:`Adresses <address>`.
 
     .. sourcecode:: json
@@ -922,7 +915,7 @@ def edit():
     :<jsonarr string type: ``"address"``
     :<jsonarr object address_type: The type of the address, exactly as
         returned by returned by
-        :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object value: The value of the address field. Please
         note that as a special case, this should be a UUID for *DAR*
         addresses.
@@ -935,26 +928,21 @@ def edit():
     See :ref:`Adresses <address>` for more information.
 
     """
-
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.EDIT)),
-        200
-    )
+    return handle_requests(reqs, mapping.RequestType.EDIT)
 
 
-@blueprint.route('/details/terminate', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def terminate():
+@router.post('/details/terminate')
+# @util.restrictargs('force', 'triggerless')
+def terminate(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     '''Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation
 
     :<jsonarr str type: Same as for
-              :http:post:`/service/details/create` and
-              :http:post:`/service/details/edit`.
+              http:post:`/service/details/create` and
+              http:post:`/service/details/edit`.
     :<jsonarr str uuid: The UUID of the related to terminate.
-    :<json boolean vacate: *Optional* - mark applicable — currently
+    :<json boolean vacate: *Optiona l* - mark applicable — currently
         only ``manager`` -- functions as _vacant_, i.e. simply detach
         the employee from them.
     :<jsonarr object validity: A validity object; but only the ``to`` is
@@ -988,8 +976,4 @@ def terminate():
 
     '''
 
-    reqs = flask.request.get_json()
-    return (
-        flask.jsonify(handle_requests(reqs, mapping.RequestType.TERMINATE)),
-        200
-    )
+    return handle_requests(reqs, mapping.RequestType.TERMINATE)

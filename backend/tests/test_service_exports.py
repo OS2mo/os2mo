@@ -3,10 +3,10 @@
 
 import mock
 
-from . import util
+import tests.cases
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     @mock.patch('mora.service.exports.os.path.isdir', lambda x: False)
@@ -75,7 +75,7 @@ class Tests(util.TestCase):
 
     @mock.patch('mora.service.exports.os.path.isdir', lambda x: True)
     @mock.patch('mora.service.exports.os.path.isfile', lambda x: True)
-    @mock.patch('mora.service.exports.flask.send_from_directory')
+    @mock.patch('mora.service.exports.FileResponse')
     def test_get_export_file_returns_file(self, mock_send_file):
         """Ensure we return a file if found"""
 

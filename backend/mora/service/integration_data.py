@@ -17,25 +17,26 @@ inserting/updating organisational units and employees
 
 '''
 import json
+from typing import Optional
+from uuid import UUID
 
-import flask
-import mora.async_util
+from fastapi import APIRouter
 
 from . import employee
 from . import orgunit
 from .. import common
 from .. import exceptions
 from .. import mapping
-from .. import util
 
-blueprint = flask.Blueprint('integration-data', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
-@blueprint.route('/ou/<uuid:unitid>/integration-data', methods=['GET'])
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
-async def get_org_unit_integration_data(unitid):
+@router.get('/ou/{unitid}/integration-data')
+# @util.restrictargs('at')
+async def get_org_unit_integration_data(
+    unitid: UUID,
+    only_primary_uuid: Optional[bool] = None
+):
     """Get organisational unit with integration data
 
     .. :quickref: Unit ; integration data
@@ -67,8 +68,8 @@ async def get_org_unit_integration_data(unitid):
         }
 
     """
+    unitid = str(unitid)
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     r = await orgunit.get_one_orgunit(c, unitid,
                                       details=orgunit.UnitDetails.INTEGRATION,
@@ -82,13 +83,15 @@ async def get_org_unit_integration_data(unitid):
     else:
         r[mapping.INTEGRATION_DATA] = {}
 
-    return flask.jsonify(r)
+    return r
 
 
-@blueprint.route('/e/<uuid:employeeid>/integration-data', methods=['GET'])
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
-async def get_employee_integration_data(employeeid):
+@router.get('/e/{employeeid}/integration-data')
+# @util.restrictargs('at')
+async def get_employee_integration_data(
+    employeeid: UUID,
+    only_primary_uuid: Optional[bool] = None
+):
     """Get employee with integration data
 
     .. :quickref: Employee; integration data
@@ -114,8 +117,8 @@ async def get_employee_integration_data(employeeid):
         }
 
     """
+    employeeid = str(employeeid)
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
     r = await employee.get_one_employee(c, employeeid,
                                         details=employee.EmployeeDetails.INTEGRATION,
@@ -129,4 +132,4 @@ async def get_employee_integration_data(employeeid):
     else:
         r[mapping.INTEGRATION_DATA] = {}
 
-    return flask.jsonify(r)
+    return r

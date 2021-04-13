@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import tests.cases
 from mora.async_util import async_to_sync
-from mora.lora import Connector
 from mora.handler.reading import OrgFunkReadingHandler
-from . import util
+from mora.lora import Connector
 
 
-class TestOrgFunkReadingHandler(util.LoRATestCase):
+class TestOrgFunkReadingHandler(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures(minimal=True)

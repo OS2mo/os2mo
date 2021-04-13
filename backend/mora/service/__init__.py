@@ -22,20 +22,20 @@ from . import role  # noqa
 from . import configuration
 from .validation import validate
 
-blueprints = (
-    address.blueprint,
-    cpr.blueprint,
-    detail_reading.blueprint,
-    detail_writing.blueprint,
-    employee.blueprint,
-    exports.blueprint,
-    facet.blueprint,
-    integration_data.blueprint,
-    itsystem.blueprint,
-    kle.blueprint,
-    org.blueprint,
-    orgunit.blueprint,
-    related.blueprint,
-    configuration.blueprint,
-    validate.blueprint,
+routers = (
+    address.router,
+    cpr.router,
+    detail_reading.router,
+    detail_writing.router,
+    employee.router,
+    exports.router,
+    facet.router,
+    integration_data.router,
+    itsystem.router,
+    kle.router,
+    org.router,
+    orgunit.router,
+    related.router,
+    configuration.router,
+    validate.router,
 )

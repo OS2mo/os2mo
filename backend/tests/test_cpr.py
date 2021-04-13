@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import tempfile
+
 import freezegun
 
-from . import util
+import tests.cases
 from mora import util as mora_util
 from mora.integrations import serviceplatformen
-import tempfile
+from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock()
-class Tests(util.TestCase):
+@util.mock(real_http=True)
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     def test_cpr_lookup_dummy_mode_true(self, m):
@@ -121,7 +123,7 @@ class Tests(util.TestCase):
         )
 
 
-class TestConfig(util.TestCase):
+class TestConfig(tests.cases.TestCase):
     def _sp_config(self, **overrides):
         UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
@@ -140,7 +142,7 @@ class TestConfig(util.TestCase):
         "are not considered in dummy mode"
         with util.override_app_config(ENV='production'):
             with util.override_config({"dummy_mode": True}):
-                self.assertTrue(serviceplatformen.check_config(self.app))
+                self.assertTrue(serviceplatformen.check_config())
 
     def test_serviceplatformen_missing_path(self):
         with util.override_app_config(ENV='production'):
@@ -151,7 +153,7 @@ class TestConfig(util.TestCase):
                     ValueError,
                     "Serviceplatformen certificate path must be configured"
                 ):
-                    serviceplatformen.check_config(self.app)
+                    serviceplatformen.check_config()
 
     def test_serviceplatformen_empty_file(self):
         with tempfile.NamedTemporaryFile() as tf:
@@ -164,7 +166,7 @@ class TestConfig(util.TestCase):
                         ValueError,
                         "Serviceplatformen certificate can not be empty"
                     ):
-                        serviceplatformen.check_config(self.app)
+                        serviceplatformen.check_config()
 
     def test_serviceplatformen_invalid_values(self):
         with tempfile.NamedTemporaryFile() as tf:
@@ -181,7 +183,7 @@ class TestConfig(util.TestCase):
                         "Serviceplatformen uuids must be valid: "
                         "uuid, system_uuid"
                     ):
-                        serviceplatformen.check_config(self.app)
+                        serviceplatformen.check_config()
 
         # the temporary file has now been deleted by tempfile cm
         # but name still exists
@@ -194,4 +196,4 @@ class TestConfig(util.TestCase):
                     FileNotFoundError,
                     "Serviceplatformen certificate not found"
                 ):
-                    serviceplatformen.check_config(self.app)
+                    serviceplatformen.check_config()

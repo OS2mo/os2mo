@@ -9,7 +9,7 @@ Employees
 This section describes how to interact with employees.
 
 For more information regarding reading relations involving employees, refer to
-:http:get:`/service/(any:type)/(uuid:id)/details/`
+http:get:`/service/(any:type)/(uuid:id)/details/`
 
 '''
 import copy
@@ -18,11 +18,13 @@ import uuid
 from functools import partial
 from operator import contains, itemgetter
 from typing import Any, Awaitable, Dict, Union
+from typing import Optional
+from uuid import UUID
 
-import flask
+from fastapi import APIRouter, Body
 
 import mora.async_util
-from mora.request_wide_bulking import request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
 from . import handlers
 from . import org
 from .validation import validator
@@ -32,10 +34,10 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
+from ..settings import app_config
 from ..triggers import Trigger
 
-blueprint = flask.Blueprint('employee', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 @enum.unique
@@ -305,10 +307,11 @@ async def request_bulked_get_one_employee(userid: str,
                                      only_primary_uuid=only_primary_uuid)
 
 
-async def get_one_employee(c: lora.Connector, userid, user=None,
+async def get_one_employee(c: lora.Connector, userid,
+                           user: Optional[Dict[str, Any]] = None,
                            details=EmployeeDetails.MINIMAL,
                            only_primary_uuid: bool = False):
-    config = flask.current_app.config
+    config = app_config
 
     if only_primary_uuid:
         return {
@@ -359,10 +362,16 @@ async def get_one_employee(c: lora.Connector, userid, user=None,
     return r
 
 
-@blueprint.route('/o/<uuid:orgid>/e/')
-@util.restrictargs('at', 'start', 'limit', 'query', 'associated')
-@mora.async_util.async_to_sync
-async def list_employees(orgid):
+@router.get('/o/{orgid}/e/')
+# @util.restrictargs('at', 'start', 'limit', 'query', 'associated')
+async def list_employees(
+    orgid: UUID,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    query: Optional[str] = None,
+    associated: Optional[bool] = None,
+    only_primary_uuid: Optional[bool] = None
+):
     '''Query employees in an organisation.
 
     .. :quickref: Employee; List & search
@@ -419,27 +428,26 @@ async def list_employees(orgid):
      }
 
     '''
+    orgid = str(orgid)
 
     # TODO: share code with list_orgunits?
 
     c = common.get_connector()
-    config = flask.current_app.config
-
-    args = flask.request.args
+    config = app_config
 
     kwargs = dict(
-        limit=int(args.get('limit', 0)),
-        start=int(args.get('start', 0)),
+        limit=limit,
+        start=start,
         gyldighed='Aktiv',
     )
 
-    if 'query' in args:
-        if util.is_cpr_number(args['query']) and not config.get('HIDE_CPR_NUMBERS'):
+    if query:
+        if util.is_cpr_number(query) and not config.get('HIDE_CPR_NUMBERS'):
             kwargs.update(
-                tilknyttedepersoner='urn:dk:cpr:person:' + args['query'],
+                tilknyttedepersoner='urn:dk:cpr:person:' + query,
             )
         else:
-            query = args['query']
+            query = query
             query = query.split(' ')
             for i in range(0, len(query)):
                 query[i] = '%' + query[i] + '%'
@@ -447,7 +455,7 @@ async def list_employees(orgid):
 
     uuid_filters = []
     # Filter search_result to only show employees with associations
-    if 'associated' in args and args['associated']:
+    if associated:
         # NOTE: This call takes ~500ms on fixture-data
         assocs = await c.organisationfunktion.get_all(
             funktionsnavn="Tilknytning"
@@ -456,22 +464,24 @@ async def list_employees(orgid):
         assocs = set(map(mapping.USER_FIELD.get_uuid, assocs))
         uuid_filters.append(partial(contains, assocs))
 
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-
     async def get_full_employee(*args, **kwargs):
-        return await get_one_employee(*args, **kwargs, details=EmployeeDetails.FULL,
-                                      only_primary_uuid=only_primary_uuid)
+        return await get_one_employee(
+            *args, **kwargs, details=EmployeeDetails.FULL,
+            only_primary_uuid=only_primary_uuid
+        )
 
     search_result = await c.bruger.paged_get(
         get_full_employee, uuid_filters=uuid_filters, **kwargs
     )
-    return flask.jsonify(search_result)
+    return search_result
 
 
-@blueprint.route('/e/<uuid:id>/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
-async def get_employee(id):
+@router.get('/e/{id}/')
+# @util.restrictargs('at')
+async def get_employee(
+    id: UUID,
+    only_primary_uuid: Optional[bool] = None
+):
     '''Retrieve an employee.
 
     .. :quickref: Employee; Get
@@ -489,7 +499,7 @@ async def get_employee(id):
     :<json string nickname_surname: The surname part of the nickname.
     :>json string uuid: Machine-friendly UUID.
     :>json object org: The organisation that this employee belongs to, as
-        yielded by :http:get:`/service/o/`.
+        yielded by http:get:`/service/o/`.
     :>json string cpr_no: CPR number of for the corresponding person.
         Please note that this is the only means for obtaining the CPR
         number; due to confidentiality requirements, all other end
@@ -522,19 +532,19 @@ async def get_employee(id):
 
     '''
     c = common.get_connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
-    r = await get_one_employee(c, id, user=None, details=EmployeeDetails.FULL,
-                               only_primary_uuid=only_primary_uuid)
+    r = await get_one_employee(
+        c, id, user=None, details=EmployeeDetails.FULL,
+        only_primary_uuid=only_primary_uuid
+    )
 
-    if r:
-        return flask.jsonify(r)
-    else:
+    if not r:
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
+    return r
 
 
-@blueprint.route('/e/<uuid:employee_uuid>/terminate', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def terminate_employee(employee_uuid):
+@router.post('/e/{employee_uuid}/terminate')
+# @util.restrictargs('force', 'triggerless')
+def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
     instead.
@@ -563,7 +573,7 @@ def terminate_employee(employee_uuid):
       }
 
     """
-    request = flask.request.get_json()
+    employee_uuid = str(employee_uuid)
     date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=date, virkningtil='infinity')
@@ -604,7 +614,7 @@ def terminate_employee(employee_uuid):
     for handler in request_handlers:
         handler.submit()
 
-    result = flask.jsonify(employee_uuid)
+    result = employee_uuid
 
     trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
@@ -615,14 +625,12 @@ def terminate_employee(employee_uuid):
     mora.async_util.async_to_sync(common.add_history_entry)(
         c.bruger, employee_uuid, "Afslut medarbejder")
 
-    # TODO:
-
-    return result, 200
+    return result
 
 
-@blueprint.route('/e/create', methods=['POST'])
-@util.restrictargs('force', 'triggerless')
-def create_employee():
+@router.post('/e/create', status_code=201)
+# @util.restrictargs('force', 'triggerless')
+def create_employee(req: dict = Body(...)):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -652,7 +660,7 @@ def create_employee():
     space.
 
     For more information on the available details,
-    see: :http:post:`/service/details/create`.
+    see: http:post:`/service/details/create`.
     Note, that the ``person`` parameter is implicit in these payload, and
     should not be given.
 
@@ -690,9 +698,8 @@ def create_employee():
     :returns: UUID of created employee
 
     """
-    req = flask.request.get_json()
     request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
-    return flask.jsonify(request.submit()), 201
+    return request.submit()
 
 
 def _inject_persons(details, employee_uuid, valid_from, valid_to):

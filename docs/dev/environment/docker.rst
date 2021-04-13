@@ -47,12 +47,12 @@ For at starte en OS2MO container køres følgende:
 
 .. code-block:: bash
 
-    docker run -p 5000:5000 -v /path/to/user-settings.toml:/user-settings.toml magentaaps/os2mo:latest
+    docker run -p 5000:80 -v /path/to/user-settings.toml:/user-settings.toml magentaaps/os2mo:latest
 
 Den henter docker imaget fra Docker Hub og starter en container i forgrunden.
-``-p 5000:5000`` `binds port
+``-p 5000:80`` `binds port
 <https://docs.docker.com/engine/reference/commandline/run/#publish-or-expose-port--p---expose>`_
-``5000`` på host maskinen til port ``5000`` i containeren. ``-v`` `binder
+``5000`` på host maskinen til port ``80`` i containeren. ``-v`` `binder
 <https://docs.docker.com/engine/reference/commandline/run/#mount-volume--v---read-only>`_
 ``/path/to/user-settings.toml`` på host maskinen til ``/user-settings.toml``
 inde i containeren.

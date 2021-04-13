@@ -5,7 +5,7 @@ import collections
 import datetime
 import functools
 import typing
-from asyncio import gather, create_task
+from asyncio import create_task, gather
 
 from more_itertools import pairwise
 
@@ -16,10 +16,11 @@ from ... import util
 
 
 def forceable(fn):
-    '''Decorator that allows optionally bypassing validation, using the
+    """
+    Decorator that allows optionally bypassing validation, using the
     ``force`` query argument.
 
-    '''
+    """
 
     if asyncio.iscoroutinefunction(fn):
         @functools.wraps(fn)

@@ -1,18 +1,14 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import unittest
 import datetime
 
 import dateutil.tz
-import flask
 import freezegun
 
 from mora import exceptions
 from mora import util
-from mora import mapping
-
-from .util import TestCase
+from .cases import TestCase
 
 
 @freezegun.freeze_time('2015-06-01T01:10')
@@ -28,37 +24,37 @@ class TestUtils(TestCase):
     def test_to_lora_time(self):
         tests = {
             self.today:
-            '2015-06-01T00:00:00+02:00',
+                '2015-06-01T00:00:00+02:00',
 
             self.now:
-            '2015-06-01T01:10:00+02:00',
+                '2015-06-01T01:10:00+02:00',
 
             '01-06-2017':
-            '2017-06-01T00:00:00+02:00',
+                '2017-06-01T00:00:00+02:00',
 
             '31-12-2017':
-            '2017-12-31T00:00:00+01:00',
+                '2017-12-31T00:00:00+01:00',
 
             'infinity': 'infinity',
             '-infinity': '-infinity',
 
             '2017-07-31T22:00:00+00:00':
-            '2017-08-01T00:00:00+02:00',
+                '2017-08-01T00:00:00+02:00',
 
             # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
             # we get it as a space
             '2017-07-31T22:00:00 00:00':
-            '2017-08-01T00:00:00+02:00',
+                '2017-08-01T00:00:00+02:00',
 
             datetime.date(2015, 6, 1):
-            '2015-06-01T00:00:00+02:00',
+                '2015-06-01T00:00:00+02:00',
 
             # check parsing of raw dates
             '2018-01-01':
-            '2018-01-01T00:00:00+01:00',
+                '2018-01-01T00:00:00+01:00',
 
             '2018-06-01':
-            '2018-06-01T00:00:00+02:00',
+                '2018-06-01T00:00:00+02:00',
         }
 
         for value, expected in tests.items():
@@ -563,14 +559,23 @@ class TestUtils(TestCase):
             }),
         )
 
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "End date is before start date"):
+        with self.assertRaises(exceptions.HTTPException) as err:
             util.get_validities({
                 'validity': {
                     'from': '2019-03-05',
                     'to': '2018-03-05',
                 },
             })
+
+        self.assertEqual(
+            {'description': 'End date is before start date.',
+             'error': True,
+             'error_key': 'V_END_BEFORE_START',
+             'obj': {
+                 'validity': {'from': '2019-03-05', 'to': '2018-03-05'}},
+             'status': 400},
+            err.exception.detail
+        )
 
     def test_get_uuid(self):
         testid = '00000000-0000-0000-0000-000000000000'
@@ -679,47 +684,107 @@ class TestUtils(TestCase):
         )
 
         with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "Missing nonexistent"):
+                                    "ErrorCodes.V_MISSING_REQUIRED_VALUE"):
             util.checked_get(mapping, 'nonexistent', [], required=True)
 
         with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "Missing nonexistent"):
+                                    "ErrorCodes.V_MISSING_REQUIRED_VALUE"):
             util.checked_get(mapping, 'nonexistent', {}, required=True)
 
         # bad value
-        with self.assertRaisesRegex(
-                exceptions.HTTPException,
-                'Invalid \'dict\', expected list, got: {"1337": 1337}',
-        ):
+        with self.assertRaises(exceptions.HTTPException) as err:
             util.checked_get(mapping, 'dict', [])
 
-        with self.assertRaisesRegex(
-                exceptions.HTTPException,
-                r"Invalid 'list', expected dict, got: \[1337\]",
-        ):
-            util.checked_get(mapping, 'list', {})
+        self.assertEqual({'actual': {1337: 1337},
+                          'description': 'Invalid \'dict\', '
+                                         'expected list, got: {"1337": 1337}',
+                          'error': True,
+                          'error_key': 'E_INVALID_TYPE',
+                          'expected': 'list',
+                          'key': 'dict',
+                          'obj': {'dict': {1337: 1337},
+                                  'empty_dict': {},
+                                  'empty_list': [],
+                                  'empty_str': '',
+                                  'int': 1337,
+                                  'list': [1337],
+                                  'null': None,
+                                  'string': '1337'},
+                          'status': 400}, err.exception.detail)
 
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "cannot be empty"):
+        with self.assertRaises(exceptions.HTTPException) as err:
+            util.checked_get(mapping, 'list', {})
+        self.assertEqual({'actual': [1337],
+                          'description': "Invalid 'list', expected dict, got: [1337]",
+                          'error': True,
+                          'error_key': 'E_INVALID_TYPE',
+                          'expected': 'dict',
+                          'key': 'list',
+                          'obj': {'dict': {1337: 1337},
+                                  'empty_dict': {},
+                                  'empty_list': [],
+                                  'empty_str': '',
+                                  'int': 1337,
+                                  'list': [1337],
+                                  'null': None,
+                                  'string': '1337'},
+                          'status': 400}, err.exception.detail)
+
+        with self.assertRaises(exceptions.HTTPException) as err:
             util.checked_get(mapping, 'empty_list', [], required=True,
                              can_be_empty=False)
+        self.assertEqual({'description': "'empty_list' cannot be empty",
+                          'error': True,
+                          'error_key': 'V_MISSING_REQUIRED_VALUE',
+                          'key': 'empty_list',
+                          'obj': {'dict': {1337: 1337},
+                                  'empty_dict': {},
+                                  'empty_list': [],
+                                  'empty_str': '',
+                                  'int': 1337,
+                                  'list': [1337],
+                                  'null': None,
+                                  'string': '1337'},
+                          'status': 400}, err.exception.detail)
 
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "cannot be empty"):
+        with self.assertRaises(exceptions.HTTPException) as err:
             util.checked_get(mapping, 'empty_dict', {}, required=True,
                              can_be_empty=False)
+        self.assertEqual({'description': "'empty_dict' cannot be empty",
+                          'error': True,
+                          'error_key': 'V_MISSING_REQUIRED_VALUE',
+                          'key': 'empty_dict',
+                          'obj': {'dict': {1337: 1337},
+                                  'empty_dict': {},
+                                  'empty_list': [],
+                                  'empty_str': '',
+                                  'int': 1337,
+                                  'list': [1337],
+                                  'null': None,
+                                  'string': '1337'},
+                          'status': 400}, err.exception.detail)
 
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "cannot be empty"):
+        with self.assertRaises(exceptions.HTTPException) as err:
             util.checked_get(mapping, 'empty_str', "", required=True,
                              can_be_empty=False)
 
+        self.assertEqual({'description': "'empty_str' cannot be empty",
+                          'error': True,
+                          'error_key': 'V_MISSING_REQUIRED_VALUE',
+                          'key': 'empty_str',
+                          'obj': {'dict': {1337: 1337},
+                                  'empty_dict': {},
+                                  'empty_list': [],
+                                  'empty_str': '',
+                                  'int': 1337,
+                                  'list': [1337],
+                                  'null': None,
+                                  'string': '1337'},
+                          'status': 400}, err.exception.detail)
+
     def test_get_urn(self):
         with self.subTest('bad string'):
-            with self.assertRaisesRegex(
-                exceptions.HTTPException,
-                "invalid urn for 'urn': '42'",
-            ) as ctxt:
+            with self.assertRaises(exceptions.HTTPException) as ctxt:
                 util.get_urn({'urn': '42'})
 
             self.assertEqual(
@@ -730,18 +795,10 @@ class TestUtils(TestCase):
                     'obj': {'urn': '42'},
                     'status': 400,
                 },
-                ctxt.exception.response.json,
+                ctxt.exception.detail,
             )
 
-            self.assertEqual(
-                "400 Bad Request: invalid urn for 'urn': '42'",
-                str(ctxt.exception),
-            )
-
-        with self.assertRaisesRegex(
-            exceptions.HTTPException,
-            "Invalid 'urn', expected str, got: 42",
-        ) as ctxt:
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
             util.get_urn({'urn': 42})
 
         self.assertEqual(
@@ -755,56 +812,5 @@ class TestUtils(TestCase):
                 'obj': {'urn': 42},
                 'status': 400,
             },
-            ctxt.exception.response.json,
+            ctxt.exception.detail,
         )
-
-
-class TestAppUtils(unittest.TestCase):
-    def test_restrictargs(self):
-        app = flask.Flask(__name__)
-
-        @app.route('/')
-        @util.restrictargs('hest')
-        def root():
-            return 'Hest!'
-
-        client = app.test_client()
-
-        with app.app_context():
-            self.assertEqual(client.get('/').status,
-                             '200 OK')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?hest=').status,
-                             '200 OK')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?hest=42').status,
-                             '200 OK')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?HeSt=42').status,
-                             '200 OK')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?fest=').status,
-                             '200 OK')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?fest=42').status,
-                             '501 NOT IMPLEMENTED')
-
-        with app.app_context():
-            self.assertEqual(client.get('/?hest=42').status,
-                             '200 OK')
-
-            # verify that we only perform the check once -- normally,
-            # this will only happen if a request invokes another
-            # request
-            self.assertEqual(client.get('/?fest=42').status,
-                             '200 OK')
-
-    def test_mapping_fieldtype(self):
-        self.assertEqual("FieldTuple(('relationer', 'tilknyttedeitsystemer'), "
-                         "FieldTypes.ADAPTED_ZERO_TO_MANY, None)",
-                         str(mapping.SINGLE_ITSYSTEM_FIELD))

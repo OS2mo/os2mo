@@ -8,7 +8,6 @@ handlers for the various detail types.
 
 import abc
 import inspect
-
 import typing
 
 import mora.async_util
@@ -17,7 +16,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..mapping import RequestType, EventType
+from ..mapping import EventType, RequestType
 from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active

@@ -11,8 +11,8 @@ API.
 For details on how to create and edit these metadata, refer to the sections on
 creating and editing relations for employees and organisational units:
 
-* :http:post:`/service/details/create`
-* :http:post:`/service/details/edit`
+* http:post:`/service/details/create`
+* http:post:`/service/details/edit`
 
 
 '''
@@ -20,16 +20,15 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
+from typing import Any, Optional
+from uuid import UUID
 
-import flask
+from fastapi import APIRouter
 
-import mora.async_util
 from . import handlers
 from .. import common
-from .. import util
 
-blueprint = flask.Blueprint('detail_reading', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 DetailType = collections.namedtuple('DetailType', [
     'search',
@@ -42,10 +41,8 @@ DETAIL_TYPES = {
 }
 
 
-@blueprint.route('/<any("e", "ou"):type>/<uuid:id>/details/')
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def list_details(type, id):
+@router.get('/{type}/{id}/details/')
+async def list_details(type, id: UUID):
     '''List the available 'detail' types under this entry.
 
     .. :quickref: Detail; List
@@ -67,6 +64,7 @@ async def list_details(type, id):
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
     '''
+    id = str(id)
 
     c = common.get_connector(virkningfra='-infinity',
                              virkningtil='infinity')
@@ -88,19 +86,25 @@ async def list_details(type, id):
 
     r['org_unit'] = bool(scope.path == 'organisation/organisationenhed' and reg)
 
-    return flask.jsonify(r)
+    return r
 
 
-@blueprint.route(
-    '/<any("e", "ou"):type>/<uuid:id>/details/<function>',
+@router.get(
+    '/{type}/{id}/details/{function}',
 )
-@util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
-                   'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
-@mora.async_util.async_to_sync
-async def get_detail(type, id, function):
+# @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
+#                  'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
+async def get_detail(type, id: UUID, function,
+                     at: Optional[Any] = None,
+                     validity: Optional[Any] = None,
+                     inherit_manager: Optional[Any] = None,
+                     calculate_primary: Optional[Any] = None,
+                     only_primary_uuid: Optional[Any] = None,
+                     first_party_perspective: Optional[Any] = None,
+                     ):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
-    :http:get:`/service/(any:type)/(uuid:id)/details/` for the
+    http:get:`/service/(any:type)/(uuid:id)/details/` for the
     available list of endpoints.
 
     .. :quickref: Detail; Get
@@ -139,7 +143,7 @@ async def get_detail(type, id, function):
         employee.
     :param uuid id: The UUID to query, i.e. the ID of the employee or
         unit.
-    :param function: See :http:get:`/service/(any:type)/(uuid:id)/details/`
+    :param function: See http:get:`/service/(any:type)/(uuid:id)/details/`
         for the available values for this field.
 
     :status 200: Always.
@@ -154,17 +158,17 @@ async def get_detail(type, id, function):
         highest _scope_
 
     :<jsonarr object job_function:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object engagement_type:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr object org_unit:
-        See :http:get:`/service/ou/(uuid:unitid)/`.
+        See http:get:`/service/ou/(uuid:unitid)/`.
     :<jsonarr object person:
-        See :http:get:`/service/e/(uuid:id)/`.
+        See http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string validity: The validity times of the object.
     :<jsonarr object primary:
-        See :http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
+        See http:get:`/service/o/(uuid:orgid)/f/(facet)/`.
     :<jsonarr boolean is_primary: Whether this is the primary engagement
         for the relevant person. **Note** that this option is only returned
         if ``calculate_primary`` is specificied
@@ -275,11 +279,11 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
     **Example IT response**:
 
     :<jsonarr object itsystem:
-        See :http:get:`/service/o/(uuid:orgid)/it/`.
+        See http:get:`/service/o/(uuid:orgid)/it/`.
     :<jsonarr object org_unit:
-        See :http:get:`/service/ou/(uuid:unitid)/`.
+        See http:get:`/service/ou/(uuid:unitid)/`.
     :<jsonarr object person:
-        See :http:get:`/service/e/(uuid:id)/`.
+        See http:get:`/service/e/(uuid:id)/`.
     :<jsonarr string uuid: Machine-friendly UUID.
     :<jsonarr string user_key: Typically the account name.
     :<jsonarr string validity: The validity times of the object.
@@ -514,7 +518,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
 
     **Example org_unit response**:
 
-    An array of objects as returned by :http:get:`/service/ou/(uuid:unitid)/`.
+    An array of objects as returned by http:get:`/service/ou/(uuid:unitid)/`.
 
     .. sourcecode:: json
 
@@ -554,7 +558,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
 
     **Example employee response**:
 
-    An array of objects as returned by :http:get:`/service/e/(uuid:id)/`.
+    An array of objects as returned by http:get:`/service/e/(uuid:id)/`.
 
     .. sourcecode:: json
 
@@ -648,9 +652,10 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
      ]
 
     '''
+    id = str(id)
     c = common.get_connector()
 
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return flask.jsonify(await cls.get_from_type(c, type, id))
+    return await cls.get_from_type(c, type, id)

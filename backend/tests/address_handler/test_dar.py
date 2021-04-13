@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import mora.async_util
 from mora import exceptions
+from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import dar
 from . import base
 from .. import util
 
 
-@util.mock('dawa-addresses.json', allow_mox=True)
+@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class DarAddressHandlerTests(base.AddressHandlerTestCase):
     handler = dar.DARAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
@@ -126,7 +127,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid DAR UUID
 
         # Act & Assert
-        with self.create_app().test_request_context('?force=1'):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)
 
     def test_failed_lookup_from_request(self, mock):
@@ -136,12 +137,19 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         value = '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'
 
         # Act & Assert
-        with self.assertRaisesRegex(exceptions.HTTPException,
-                                    "Invalid address"):
+        with self.assertRaises(exceptions.HTTPException) as err:
             request = {
                 'value': value
             }
             self.handler.from_request(request)
+        self.assertEqual(
+            {'description': 'Invalid address',
+             'error': True,
+             'error_key': 'V_INVALID_ADDRESS_DAR',
+             'status': 400,
+             'value': '300f16fd-fb60-4fec-8a2a-8d391e86bf3f'},
+            err.exception.detail
+        )
 
     @mora.async_util.async_to_sync
     async def test_lookup_from_request_with_force_succeeds(self, mock):
@@ -157,7 +165,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         }
 
         # Act & Assert
-        with self.create_app().test_request_context('?force=1'):
+
+        with current_query.context_args({'force': '1'}):
             request = {
                 'value': value
             }

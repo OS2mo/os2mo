@@ -1,19 +1,20 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import flask
 import logging
-from .. import util, conf_db, settings
+from uuid import UUID
+
+from fastapi import APIRouter, Body
+
+from .. import conf_db, settings
 
 logger = logging.getLogger("mo_configuration")
 
-blueprint = flask.Blueprint('configuration', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
-@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['POST'])
-@util.restrictargs()
-def set_org_unit_configuration(unitid):
+@router.post('/ou/{unitid}/configuration')
+def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
     """Set a configuration setting for an ou.
 
     .. :quickref: Unit; Create configuration setting.
@@ -34,13 +35,12 @@ def set_org_unit_configuration(unitid):
 
     :returns: True
     """
-    configuration = flask.request.get_json()
-    return flask.jsonify(conf_db.set_configuration(configuration, unitid))
+    unitid = str(unitid)
+    return conf_db.set_configuration(configuration, unitid)
 
 
-@blueprint.route('/ou/<uuid:unitid>/configuration', methods=['GET'])
-@util.restrictargs()
-def get_org_unit_configuration(unitid):
+@router.get('/ou/{unitid}/configuration')
+def get_org_unit_configuration(unitid: UUID):
     """Read configuration settings for an ou.
 
     .. :quickref: Unit; Read configuration setting.
@@ -51,13 +51,13 @@ def get_org_unit_configuration(unitid):
 
     :returns: Configuration settings for unit
     """
+    unitid = str(unitid)
     configuration = conf_db.get_configuration(unitid)
-    return flask.jsonify(configuration)
+    return configuration
 
 
-@blueprint.route('/configuration', methods=['POST'])
-@util.restrictargs('at')
-def set_global_configuration():
+@router.post('/configuration')
+def set_global_configuration(configuration: dict = Body(...)):
     """Set or modify a gloal configuration setting.
 
     .. :quickref: Set or modify a global configuration setting.
@@ -76,12 +76,10 @@ def set_global_configuration():
 
     :returns: True
     """
-    configuration = flask.request.get_json()
-    return flask.jsonify(conf_db.set_configuration(configuration))
+    return conf_db.set_configuration(configuration)
 
 
-@blueprint.route('/configuration', methods=['GET'])
-@util.restrictargs('at')
+@router.get('/configuration')
 def get_global_configuration():
     """Read configuration settings for an ou.
 
@@ -94,11 +92,10 @@ def get_global_configuration():
     """
 
     configuration = conf_db.get_configuration()
-    return flask.jsonify(configuration)
+    return configuration
 
 
-@blueprint.route('/navlinks', methods=['GET'])
-@util.restrictargs()
+@router.get('/navlinks')
 def get_navlinks():
     """Retrieve nav links.
 
@@ -110,4 +107,4 @@ def get_navlinks():
     """
 
     navlinks = settings.config.get("navlinks", [{}])
-    return flask.jsonify(navlinks)
+    return navlinks

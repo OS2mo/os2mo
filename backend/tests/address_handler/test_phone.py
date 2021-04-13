@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import mora.async_util
 from mora import exceptions
+from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import phone
-
 from . import base
 
 
@@ -132,5 +132,5 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid phone number
 
         # Act & Assert
-        with self.create_app().test_request_context('?force=1'):
+        with current_query.context_args({'force': '1'}):
             self.handler.validate_value(value)

@@ -18,8 +18,6 @@ import os
 import sys
 from unittest.mock import MagicMock
 
-from jinja2 import Template
-
 TOP_DIR = os.path.dirname(os.path.dirname(__file__))
 BACKEND_DIR = os.path.join(TOP_DIR, 'backend')
 FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
@@ -27,13 +25,12 @@ FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
 DOCS_DIR = os.path.join(TOP_DIR, 'docs')
 BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
 
-os.environ['FLASK_ENV'] = 'docs'
+os.environ['ENV'] = 'docs'
 
 #
 # -- Generated files ------------------------------------------------------
 #
 sys.path.insert(0, BACKEND_DIR)
-
 
 # -- General configuration ------------------------------------------------
 
@@ -52,8 +49,6 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.httpdomain',
-    'sphinxcontrib.autohttp.flask',
-    'sphinxcontrib.autohttp.flaskqref',
     'sphinxcontrib.apidoc',
     'sphinx_click.ext',
 ]
@@ -90,9 +85,26 @@ MOCK_MODULES = [
     'aiohttp',
     'anytree',
     'anytree.search',
-
+    'aiofiles',
+    'aiofiles.os',
+    'aioresponses',
+    'fastapi',
+    'fastapi.exceptions',
+    'fastapi.responses',
+    'fastapi.staticfiles',
+    'fastapi.encoders',
+    'fastapi.testclient',
+    'starlette',
+    'starlette.middleware',
+    'starlette.middleware.cors',
+    'starlette.requests',
+    'starlette.responses',
+    'starlette.datastructures',
+    'starlette_context',
+    'starlette_context.middleware',
+    'requests_mock',
     'mora.log',
-
+    'mora.exceptions',
     'onelogin',
     'onelogin.saml2',
     'onelogin.saml2.auth',
@@ -100,13 +112,13 @@ MOCK_MODULES = [
     'onelogin.saml2.xml_utils',
     'onelogin.saml2.constants',
     'onelogin.saml2.idp_metadata_parser',
+    'yarl',
 ]
 sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 
 asyncio_mock = MagicMock()
 asyncio_mock.get_event_loop.return_value.is_running.return_value = False
 sys.modules.update({"asyncio": asyncio_mock})
-
 
 apidoc_module_dir = '../backend/mora'
 apidoc_output_dir = 'backend'
@@ -123,7 +135,6 @@ source_suffix = ['.rst', '.md']
 source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
-
 
 # https://stackoverflow.com/a/30624034
 nitpick_ignore = [
@@ -147,7 +158,6 @@ nitpick_ignore = [
     ("py:class", "uuid"),
 ]
 
-
 #
 # References to other Sphinx documentation sites.
 #
@@ -159,7 +169,6 @@ intersphinx_mapping = {
 }
 
 primary_domain = 'py'
-
 
 # The master toctree document.
 master_doc = 'index'
@@ -205,7 +214,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -245,12 +253,10 @@ html_sidebars = {
     ]
 }
 
-
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Os2modoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -280,7 +286,6 @@ latex_documents = [
      'Magenta ApS', 'manual'),
 ]
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -289,7 +294,6 @@ man_pages = [
     (master_doc, 'mora', 'OS2MO 2.0 Documentation',
      [author], 1)
 ]
-
 
 # -- Options for Texinfo output -------------------------------------------
 

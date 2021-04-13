@@ -3,17 +3,17 @@
 
 import os
 
-import flask
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
 
-from .. import util
 from .. import exceptions
+from ..settings import app_config
 
-blueprint = flask.Blueprint('exports', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
-@blueprint.route('/exports/')
-@util.restrictargs()
+@router.get('/exports/')
+# @util.restrictargs()
 def list_export_files():
     """
     List the available exports
@@ -31,7 +31,7 @@ def list_export_files():
         "export2.xlsx"
       ]
     """
-    export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
+    export_dir = app_config['QUERY_EXPORT_DIR']
     if not os.path.isdir(export_dir):
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
     dir_contents = os.listdir(export_dir)
@@ -39,11 +39,11 @@ def list_export_files():
         file for file in dir_contents if
         os.path.isfile(os.path.join(export_dir, file))
     ]
-    return flask.jsonify(files)
+    return files
 
 
-@blueprint.route('/exports/<string:file_name>')
-@util.restrictargs()
+@router.get('/exports/{file_name}')
+# @util.restrictargs()
 def get_export_file(file_name: str):
     """
     Fetch a export file with a given name
@@ -54,7 +54,7 @@ def get_export_file(file_name: str):
 
     :return: The file corresponding to the given export file name
     """
-    export_dir = flask.current_app.config['QUERY_EXPORT_DIR']
+    export_dir = app_config['QUERY_EXPORT_DIR']
     if not os.path.isdir(export_dir):
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
 
@@ -62,4 +62,4 @@ def get_export_file(file_name: str):
     if not os.path.isfile(file_path):
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
 
-    return flask.send_from_directory(export_dir, file_name)
+    return FileResponse(export_dir + "/" + file_name)

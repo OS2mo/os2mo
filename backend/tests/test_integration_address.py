@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
 
 import freezegun
 
 import mora.async_util
+import tests.cases
 from mora import lora
 from mora.util import get_effect_from
 from tests import util
@@ -33,8 +33,8 @@ address_type_facet = {
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True)
-class Writing(util.LoRATestCase):
+@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
+class Writing(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_errors(self, mock):
@@ -401,7 +401,8 @@ class Writing(util.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_add_org_unit_address_contact_open_hours(self, mock):
@@ -512,7 +513,8 @@ class Writing(util.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_add_employee_address(self, mock):
@@ -617,7 +619,8 @@ class Writing(util.LoRATestCase):
         with self.subTest('LoRA'):
             self.assertRegistrationsEqual(
                 expected,
-                mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+                mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                    addr_id)
             )
 
         with self.subTest('result'):
@@ -755,7 +758,8 @@ class Writing(util.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                addr_id)
         )
 
     def test_create_engagement_with_address(self, mock):
@@ -809,12 +813,13 @@ class Writing(util.LoRATestCase):
             }
         }]
 
-        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+        addr_id = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedefunktioner=func_id)
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
-        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)['relationer'][
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)[
+            'relationer'][
             'tilknyttedefunktioner']
 
         self.assertEqual(expected_tilknyttedefunktioner, actual)
@@ -929,14 +934,14 @@ class Writing(util.LoRATestCase):
             }
         }
 
-        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+        addr_id = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
             tilknyttedeenheder=unit_id)
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
         self.assertRegistrationsEqual(
             expected,
-            util.async_to_sync(c.organisationfunktion.get)(addr_id)
+            mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
     def test_edit_address(self, mock):
@@ -1062,7 +1067,7 @@ class Writing(util.LoRATestCase):
             }
         }
 
-        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -1091,7 +1096,7 @@ class Writing(util.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
 
-        actual_reg = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual_reg = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         actual = sorted(
             actual_reg['attributter']['organisationfunktionegenskaber'],
             key=get_effect_from,
@@ -1149,7 +1154,7 @@ class Writing(util.LoRATestCase):
             json=req,
         )
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_response = util.async_to_sync(c.organisationfunktion.get)(
+        actual_response = mora.async_util.async_to_sync(c.organisationfunktion.get)(
             uuid=created[0])
         actual = actual_response['relationer']['tilknyttedefunktioner']
         expected = [{'objekttype': 'engagement',
@@ -1163,14 +1168,14 @@ class Writing(util.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True)
-class Reading(util.LoRATestCase):
+@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
+class Reading(tests.cases.LoRATestCase):
 
     def test_missing_class(self, mock):
         self.load_sample_structures(minimal=True)
 
         # The relevant address_type klasse is not present in the minimal dataset
-        util.async_to_sync(util.load_fixture)(
+        mora.async_util.async_to_sync(util.load_fixture)(
             'organisation/organisationfunktion',
             'create_organisationfunktion_email_andersand.json',
         )
@@ -1250,7 +1255,7 @@ class Reading(util.LoRATestCase):
                 json=[],
             )
 
-        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+        mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
             {
                 'relationer': {
                     'adresser': [
@@ -1316,7 +1321,7 @@ class Reading(util.LoRATestCase):
             status_code=500,
         )
 
-        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+        mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
             {
                 'relationer': {
                     'adresser': [
@@ -1334,35 +1339,31 @@ class Reading(util.LoRATestCase):
             functionid,
         )
 
-        with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
-            self.assertRequestResponse(
-                '/service/ou/{}/details/address'.format(unitid),
-                [{
-                    'address_type': {
-                        'example': '<UUID>',
-                        'facet': address_type_facet,
-                        'full_name': 'Postadresse',
-                        'name': 'Postadresse',
-                        'owner': None,
-                        'scope': 'DAR',
-                        'top_level_facet': address_type_facet,
-                        'user_key': 'OrgEnhedPostadresse',
-                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
-                    },
-                    'href': None,
-                    'name': 'Ukendt',
-                    'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'org_unit': {
-                        'name': 'Overordnet Enhed',
-                        'user_key': 'root',
-                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-                        'validity': {'from': '2016-01-01', 'to': None}
-                    },
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                    'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-                    'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
-                }],
-            )
-
-            self.assertRegex(log_res.output[0],
-                             "ADDRESS LOOKUP FAILED")
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': {
+                    'example': '<UUID>',
+                    'facet': address_type_facet,
+                    'full_name': 'Postadresse',
+                    'name': 'Postadresse',
+                    'owner': None,
+                    'scope': 'DAR',
+                    'top_level_facet': address_type_facet,
+                    'user_key': 'OrgEnhedPostadresse',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
+                },
+                'href': None,
+                'name': 'Ukendt',
+                'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+            }],
+        )

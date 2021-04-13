@@ -4,6 +4,8 @@
 # os2mo configuration for gitlab-ci.
 
 dummy_mode = true
+ENV = 'testing'
+
 
 [lora]
 url = "http://mox:80/"

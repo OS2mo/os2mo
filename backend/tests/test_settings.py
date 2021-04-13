@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import tests.cases
 from mora import settings
 
-from tests import util
 
-
-class TestSettings(util.TestCase):
+class TestSettings(tests.cases.TestCase):
     def test_dict_key_intersection(self):
         d1 = {
             'config1': {

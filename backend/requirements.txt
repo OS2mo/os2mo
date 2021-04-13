@@ -4,6 +4,8 @@
 #
 #    pip-compile requirements.in
 #
+aiofiles==0.6.0
+    # via -r requirements.in
 aiohttp==3.7.3
     # via -r requirements.in
 alembic==1.4.3
@@ -14,16 +16,12 @@ async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
     # via aiohttp
-cachelib==0.1.1
-    # via flask-session
 certifi==2020.6.20
     # via requests
 chardet==3.0.4
     # via
     #   aiohttp
     #   requests
-click==7.1.2
-    # via flask
 decorator==4.4.2
     # via validators
 defusedxml==0.6.0
@@ -45,6 +43,8 @@ flask==1.1.2
     #   flask-sqlalchemy
 git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.1#egg=flask_saml_sso
     # via -r requirements.in
+fastapi==0.63.0
+    # via -r requirements.in
 gunicorn==20.0.4
     # via -r requirements.in
 idna==2.10
@@ -59,7 +59,11 @@ itsdangerous==1.1.0
     #   flask-saml-sso
 jinja2==2.11.2
     # via
-    #   flask
+itsdangerous==1.1.0
+    # via flask
+jinja2==2.11.2
+    # via
+    #   -r requirements.in
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
     # via -r requirements.in
@@ -67,6 +71,7 @@ lxml==4.5.2
     # via
     #   -r requirements.in
     #   xmlsec
+    # via -r requirements.in
 mako==1.1.3
     # via alembic
 markupsafe==1.1.1
@@ -87,6 +92,7 @@ psycopg2-binary==2.8.6
     # via -r requirements.in
 pydantic==1.7.3
     # via os2mo-http-trigger-protocol
+    # via fastapi
 python-dateutil==2.8.1
     # via
     #   -r requirements.in
@@ -100,6 +106,9 @@ requests==2.24.0
     # via
     #   -r requirements.in
     #   flask-saml-sso
+requests==2.24.0
+    # via
+    #   -r requirements.in
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
     # via -r requirements.in
@@ -119,6 +128,13 @@ sqlalchemy==1.3.22
     #   alembic
     #   flask-sqlalchemy
     #   sqlalchemy-utils
+    #   sqlalchemy-utils
+starlette-context==0.3.1
+    # via -r requirements.in
+starlette==0.13.6
+    # via
+    #   fastapi
+    #   starlette-context
 toml==0.10.1
     # via -r requirements.in
 typing-extensions==3.7.4.3
@@ -135,6 +151,44 @@ xmltodict==0.12.0
     # via service-person-stamdata-udvidet
 yarl==1.6.3
     # via aiohttp
+aiofiles==0.6.0           # via -r requirements.in
+aiohttp==3.7.3            # via -r requirements.in
+alembic==1.4.3            # via -r requirements.in
+async-timeout==3.0.1      # via aiohttp
+attrs==20.3.0             # via aiohttp
+certifi==2020.6.20        # via requests
+chardet==3.0.4            # via aiohttp, requests
+decorator==4.4.2          # via validators
+fastapi==0.63.0           # via -r requirements.in
+gunicorn==20.0.4          # via -r requirements.in
+idna==2.10                # via requests, yarl
+jinja2==2.11.2            # via -r requirements.in, service-person-stamdata-udvidet
+git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils  # via -r requirements.in
+lxml==4.5.2               # via -r requirements.in
+mako==1.1.3               # via alembic
+markupsafe==1.1.1         # via jinja2, mako
+more-itertools==8.5.0     # via -r requirements.in
+multidict==5.1.0          # via aiohttp, yarl
+os2mo-http-trigger-protocol==0.0.3  # via -r requirements.in
+pika==1.1.0               # via -r requirements.in
+psycopg2-binary==2.8.6    # via -r requirements.in
+pydantic==1.7.3           # via fastapi, os2mo-http-trigger-protocol
+python-dateutil==2.8.1    # via -r requirements.in, alembic, lora-utils
+python-editor==1.0.4      # via alembic
+requests==2.24.0          # via -r requirements.in, service-person-stamdata-udvidet
+git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0  # via -r requirements.in
+six==1.15.0               # via python-dateutil, sqlalchemy-utils, validators
+sqlalchemy-utils==0.36.8  # via -r requirements.in
+sqlalchemy==1.3.22        # via -r requirements.in, alembic, sqlalchemy-utils
+starlette-context==0.3.1  # via -r requirements.in
+starlette==0.13.6         # via fastapi, starlette-context
+toml==0.10.1              # via -r requirements.in
+typing-extensions==3.7.4.3  # via aiohttp
+urllib3==1.25.10          # via requests
+validators==0.18.0        # via -r requirements.in
+werkzeug==1.0.1           # via -r requirements.in
+xmltodict==0.12.0         # via service-person-stamdata-udvidet
+yarl==1.6.3               # via aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

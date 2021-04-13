@@ -9,10 +9,10 @@ This section describes how to interact with related units.
 
 '''
 from asyncio import create_task, gather
+from uuid import UUID
 
-import flask
+from fastapi import APIRouter, Body
 
-import mora.async_util
 from . import handlers
 from .. import common
 from .. import exceptions
@@ -20,8 +20,7 @@ from .. import lora
 from .. import mapping
 from .. import util
 
-blueprint = flask.Blueprint('related_unit', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
@@ -41,10 +40,11 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
         raise NotImplementedError
 
 
-@blueprint.route('/ou/<uuid:origin>/map', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def map_org_units(origin):
+@router.post('/ou/{origin}/map')
+async def map_org_units(
+    origin: UUID,
+    req: dict = Body(...)
+):
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
@@ -103,8 +103,7 @@ async def map_org_units(origin):
     and they must not be terminated.
 
     """
-
-    req = flask.request.get_json()
+    origin = str(origin)
 
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
@@ -172,7 +171,7 @@ async def map_org_units(origin):
         if destid not in preexisting
     ]
 
-    return flask.jsonify({
+    return {
         'deleted': sorted(
             await gather(*[create_task(c.organisationfunktion.update(req, funcid))
                            for funcid, req in edits.items()])
@@ -182,4 +181,4 @@ async def map_org_units(origin):
                            for req in creations])
         ),
         'unchanged': sorted(destinations & preexisting.keys())
-    })
+    }

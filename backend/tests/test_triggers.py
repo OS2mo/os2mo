@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
-from . import util
-from mora.triggers import Trigger
+
+import tests.cases
+from mora.exceptions import HTTPException
 from mora.mapping import EventType, RequestType
 from mora.service.handlers import (
     RequestHandler
 )
-from mora.exceptions import HTTPException
+from mora.triggers import Trigger
 
 
 class MockHandler(RequestHandler):
@@ -28,7 +29,7 @@ class MockHandler(RequestHandler):
         super().submit()
 
 
-class Tests(util.TestCase):
+class Tests(tests.cases.TestCase):
     maxDiff = None
 
     def tearDown(self):
@@ -46,8 +47,13 @@ class Tests(util.TestCase):
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Exception("Bummer")
-        with self.assertRaisesRegex(HTTPException, "400 Bad Request: Bummer"):
+
+        with self.assertRaises(HTTPException) as err:
             MockHandler({}, RequestType.EDIT)
+        self.assertEqual({'description': 'Bummer',
+                          'error': True,
+                          'error_key': 'E_INTEGRATION_ERROR',
+                          'status': 400}, err.exception.detail)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_own_error(self):
@@ -55,6 +61,7 @@ class Tests(util.TestCase):
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Trigger.Error("Bummer", stage="final")
+
         with self.assertRaises(HTTPException) as ctxt:
             MockHandler({}, RequestType.EDIT)
         self.assertEqual({
@@ -63,7 +70,7 @@ class Tests(util.TestCase):
             'stage': 'final',
             'description': 'Bummer',
             'status': 400
-        }, ctxt.exception.body)
+        }, ctxt.exception.detail)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_edit(self):
@@ -77,6 +84,7 @@ class Tests(util.TestCase):
                 'role_type': 'mock',
                 'uuid': 'edit'
             }, trigger_dict)
+
         MockHandler({}, RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
@@ -92,6 +100,7 @@ class Tests(util.TestCase):
                 'uuid': 'edit',
                 'result': 'okidoki'
             }, trigger_dict)
+
         MockHandler({}, RequestType.EDIT).submit()
         self.assertTrue(self.trigger_called)
 
@@ -107,6 +116,7 @@ class Tests(util.TestCase):
                 'role_type': 'mock',
                 'uuid': 'create'
             }, trigger_dict)
+
         MockHandler({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
@@ -122,6 +132,7 @@ class Tests(util.TestCase):
                 'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
+
         MockHandler({}, RequestType.CREATE).submit()
         self.assertTrue(self.trigger_called)
 
@@ -137,6 +148,7 @@ class Tests(util.TestCase):
                 'role_type': 'mock',
                 'uuid': 'terminate'
             }, trigger_dict)
+
         MockHandler({}, RequestType.TERMINATE)
         self.assertTrue(self.trigger_called)
 
@@ -153,12 +165,13 @@ class Tests(util.TestCase):
                 'role_type': 'mock',
                 'result': 'okidoki'
             }, trigger_dict)
+
         MockHandler({}, RequestType.TERMINATE).submit()
         self.assertTrue(self.trigger_called)
 
 
 @freezegun.freeze_time('2016-01-01')
-class TriggerlessTests(util.LoRATestCase):
+class TriggerlessTests(tests.cases.LoRATestCase):
     """ Trigger functionality (and there by also amqp as that is triggered)
     can be disabled by the 'triggerless' flag
     This test is supposed to test/show the the difference

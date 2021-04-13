@@ -1,23 +1,28 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
 
 import freezegun
 from mock import call, patch
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
+
+import tests.cases
 from mora import lora, mapping
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
+from mora.request_scoped.query_args import current_query
+from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
 from mora.service.orgunit import (
-    UnitDetails, _get_count_related, get_children, get_orgunit, get_one_orgunit,
-    get_unit_ancestor_tree,
+    get_children, get_orgunit, get_unit_ancestor_tree,
 )
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException, register
-from os2mo_http_trigger_protocol import MOTriggerRegister
 from tests import util
 
 
-class TestAddressLookup(util.TestCase):
+class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time("2018-03-15")
     @util.MockAioresponses()
     def test_unit_past(self, mock):
@@ -139,8 +144,8 @@ class TestAddressLookup(util.TestCase):
         mock.get(
             "http://mox/organisation/organisationenhed"
             "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
-            "&virkningfra=-infinity"
-            "&konsolider=True",
+                                "&virkningfra=-infinity"
+                                "&konsolider=True",
             payload={
                 "results": [
                     [
@@ -161,7 +166,7 @@ class TestAddressLookup(util.TestCase):
         )
 
 
-class TestTriggerExternalIntegration(util.TestCase):
+class TestTriggerExternalIntegration(tests.cases.TestCase):
     @patch("mora.service.orgunit.get_one_orgunit")
     def test_returns_404_on_unknown_unit(self, mock):
         mock.return_value = {}
@@ -257,7 +262,6 @@ class TestTriggerExternalIntegration(util.TestCase):
         Trigger.registry = {}
         register(None)
         t_fetch_mock.assert_called()
-
         response_msg = "Something good happened"
         t_sender_mock.return_value = response_msg
 
@@ -285,7 +289,7 @@ class TestTriggerExternalIntegration(util.TestCase):
         )
 
 
-class TestGetOneOrgUnit(util.LoRATestCase):
+class TestGetOneOrgUnit(tests.cases.LoRATestCase):
     def setUp(self):
         self.load_sample_structures(minimal=True)
         self._connector = lora.Connector(
@@ -320,49 +324,55 @@ class TestGetOneOrgUnit(util.LoRATestCase):
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
 
 
-class TestGetCountRelated(util.TestCase):
+class TestGetCountRelated(tests.cases.TestCase):
     def setUp(self):
         super().setUp()
         self._simple = {"association"}
         self._multiple = {"association", "engagement"}
 
     def test_valid_name(self):
-        with self.app.test_request_context("?count=association"):
+        with current_query.context_args(ImmutableMultiDict({'count': 'association'})):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_valid_name_repeated(self):
-        with self.app.test_request_context("?count=association&count=association"):
+        with current_query.context_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'association')])
+        ):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_multiple_valid_names(self):
-        with self.app.test_request_context("?count=association&count=engagement"):
+        with current_query.context_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'engagement')])
+        ):
             self.assertSetEqual(self._multiple, _get_count_related())
 
     def test_invalid_name(self):
-        with self.app.test_request_context("?count=association&count=foobar"):
+        with current_query.context_args(
+            ImmutableMultiDict([('count', 'association'), ('count', 'foobar')])
+        ):
             with self.assertRaises(HTTPException):
                 _get_count_related()
 
 
-class TestGetOrgUnit(util.ConfigTestCase):
+class TestGetOrgUnit(tests.cases.ConfigTestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
-        self._orgunit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+        self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
     def test_count_association(self):
-        with self.app.test_request_context("?count=association"):
-            result = get_orgunit(self._orgunit_uuid)
-            self.assertEqual(result.json["association_count"], 1)
+        with current_query.context_args(ImmutableMultiDict({"count": "association"})):
+            result = async_to_sync(get_orgunit)(self._orgunit_uuid)
+            self.assertEqual(result["association_count"], 1)
 
     def test_count_engagement(self):
-        with self.app.test_request_context("?count=engagement"):
-            result = get_orgunit(self._orgunit_uuid)
-            self.assertEqual(result.json["engagement_count"], 3)
+        with current_query.context_args(ImmutableMultiDict({"count": "engagement"})):
+            result = async_to_sync(get_orgunit)(self._orgunit_uuid)
+            self.assertEqual(result["engagement_count"], 3)
 
 
-class TestGetChildren(util.ConfigTestCase):
+class TestGetChildren(tests.cases.ConfigTestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
@@ -372,22 +382,22 @@ class TestGetChildren(util.ConfigTestCase):
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         # We need the UUID of a *parent* OU to test `get_children`.
         # Below is the UUID of "Overordnet Enhed".
-        self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+        self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
     def test_count_association(self):
-        with self.app.test_request_context("?count=association"):
-            result = get_children("ou", self._orgunit_uuid)
+        with current_query.context_args(ImmutableMultiDict({"count": "association"})):
+            result = async_to_sync(get_children)("ou", self._orgunit_uuid)
             self._assert_matching_ou_has(
-                result.json,
+                result,
                 user_key="hum",
                 association_count=1,
             )
 
     def test_count_engagement(self):
-        with self.app.test_request_context("?count=engagement"):
-            result = get_children("ou", self._orgunit_uuid)
+        with current_query.context_args(ImmutableMultiDict({"count": "engagement"})):
+            result = async_to_sync(get_children)("ou", self._orgunit_uuid)
             self._assert_matching_ou_has(
-                result.json,
+                result,
                 user_key="hum",
                 engagement_count=3,
             )
@@ -399,7 +409,7 @@ class TestGetChildren(util.ConfigTestCase):
                     self.assertEqual(node.get(attr_name), attr_value)
 
 
-class TestGetUnitAncestorTree(util.ConfigTestCase):
+class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
@@ -409,24 +419,24 @@ class TestGetUnitAncestorTree(util.ConfigTestCase):
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         # We need the UUID of a *child* OU to test `get_unit_ancestor_tree`.
         # Below is the UUID of "Filosofisk Institut".
-        self._orgunit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
+        self._orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
 
     def test_count_association(self):
-        query = f"?uuid={self._orgunit_uuid}&count=association"
-        with self.app.test_request_context(query):
-            result = get_unit_ancestor_tree()
+        with current_query.context_args(ImmutableMultiDict({"count": "association"})):
+            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
+                                                           only_primary_uuid=False)
             self._assert_matching_ou_has(
-                result.json,
+                result,
                 user_key="hum",
                 association_count=1,
             )
 
     def test_count_engagement(self):
-        query = f"?uuid={self._orgunit_uuid}&count=engagement"
-        with self.app.test_request_context(query):
-            result = get_unit_ancestor_tree()
+        with current_query.context_args(ImmutableMultiDict({"count": "engagement"})):
+            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
+                                                           only_primary_uuid=False)
             self._assert_matching_ou_has(
-                result.json,
+                result,
                 user_key="hum",
                 engagement_count=3,
             )

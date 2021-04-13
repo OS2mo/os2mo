@@ -4,10 +4,11 @@
 import collections
 import re
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+from uuid import UUID
 
-import flask
 import requests
+from fastapi import APIRouter, Query
 
 import mora.async_util
 from . import facet
@@ -21,6 +22,7 @@ from .. import lora
 from .. import mapping
 from .. import settings
 from .. import util
+from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 
 session = requests.Session()
@@ -30,30 +32,33 @@ session.headers = {
 
 MUNICIPALITY_CODE_PATTERN = re.compile(r'urn:dk:kommune:(\d+)')
 
-blueprint = flask.Blueprint('address', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 async def get_address_type(effect):
     c = lora.Connector()
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
+    only_primary_uuid = current_query.args.get('only_primary_uuid')
 
-    return await facet.get_one_class(c, address_type_uuid,
-                                     only_primary_uuid=only_primary_uuid)
+    return await facet.get_one_class(
+        c, address_type_uuid, only_primary_uuid=only_primary_uuid
+    )
 
 
-async def get_one_address(effect) -> Dict[Any, Any]:
+async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, Any]:
     scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
     handler = base.get_handler_for_scope(scope).from_effect(effect)
 
-    return await handler.get_mo_address_and_properties()
+    return await handler.get_mo_address_and_properties(only_primary_uuid)
 
 
-@blueprint.route('/o/<uuid:orgid>/address_autocomplete/')
-@util.restrictargs('global', required=['q'])
-@mora.async_util.async_to_sync
-async def address_autocomplete(orgid):
+@router.get('/o/{orgid}/address_autocomplete/')
+# @util.restrictargs('global', required=['q'])
+async def address_autocomplete(
+    orgid: UUID,
+    q: str,
+    global_lookup: Optional[bool] = Query(False, alias="global")
+):
     """Perform address autocomplete, resolving both ``adgangsadresse`` and
     ``adresse``.
 
@@ -89,8 +94,7 @@ async def address_autocomplete(orgid):
       ]
 
     """
-    q = flask.request.args['q']
-    global_lookup = util.get_args_flag('global')
+    orgid = str(orgid)
 
     if not global_lookup:
         org = await lora.Connector().organisation.get(orgid)
@@ -147,7 +151,7 @@ async def address_autocomplete(orgid):
     ).json():
         addrs.setdefault(addr['tekst'], addr['adresse']['id'])
 
-    return flask.jsonify([
+    return [
         {
             "location": {
                 "name": k,
@@ -155,7 +159,7 @@ async def address_autocomplete(orgid):
             },
         }
         for k in addrs
-    ])
+    ]
 
 
 class AddressRequestHandler(handlers.OrgFunkRequestHandler):
@@ -195,7 +199,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                                   required=True)
 
         c = lora.Connector()
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         type_obj = mora.async_util.async_to_sync(facet.get_one_class
                                                  )(c,
@@ -360,7 +364,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True)
-            only_primary_uuid = flask.request.args.get('only_primary_uuid')
+            only_primary_uuid = current_query.args.get('only_primary_uuid')
 
             type_obj = mora.async_util.async_to_sync(
                 facet.get_one_class)(c,
