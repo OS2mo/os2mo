@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from ... import util
-from ... import mapping
 from . import base
+from ... import mapping
+from ... import util
 
 
 class TextAddressHandler(base.AddressHandler):

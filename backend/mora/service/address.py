@@ -24,6 +24,7 @@ from .. import settings
 from .. import util
 from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
+from ..util import ensure_list
 
 session = requests.Session()
 session.headers = {
@@ -226,13 +227,16 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 valid_from,
                 valid_to)
 
+        lora_addr = handler.get_lora_address()
+        addresses = ensure_list(lora_addr)
+
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ADDRESS_KEY,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
             funktionstype=address_type_uuid,
-            adresser=[handler.get_lora_address()],
+            adresser=addresses,
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
@@ -373,11 +377,18 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
+            lora_addr = handler.get_lora_address()
+            if isinstance(lora_addr, list):
+                update_fields.extend(map(
+                    lambda x: (mapping.ADDRESSES_FIELD, x),
+                    lora_addr
+                ))
 
-            update_fields.append((
-                mapping.SINGLE_ADDRESS_FIELD,
-                handler.get_lora_address(),
-            ))
+            else:
+                update_fields.append((
+                    mapping.SINGLE_ADDRESS_FIELD,
+                    lora_addr,
+                ))
 
             update_fields.append((
                 mapping.ADDRESS_TYPE_FIELD,
@@ -402,7 +413,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original,
                                        payload)
-
         self.payload = payload
         self.uuid = function_uuid
         self.trigger_dict.update({

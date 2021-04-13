@@ -65,6 +65,7 @@ class WWWAddressHandlerTests(tests.cases.TestCase):
             'href': None,
             'name': 'http://www.test.org/',
             'value': 'http://www.test.org/',
+            'value2': None,
             'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 

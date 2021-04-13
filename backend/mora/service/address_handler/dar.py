@@ -46,10 +46,7 @@ class DARAddressHandler(base.AddressHandler):
             )
         except LookupError:
             logger.warning(
-                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
-                    # TODO: Used to be:
-                    # flask.request.url,
-                    "PLEASE FIX THIS",
+                'ADDRESS LOOKUP FAILED: {}'.format(
                     handler.value,
                 ),
             )

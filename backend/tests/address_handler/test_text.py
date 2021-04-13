@@ -63,6 +63,7 @@ class TextAddressHandlerTests(tests.cases.TestCase):
             'href': None,
             'name': 'Test text whatever',
             'value': 'Test text whatever',
+            'value2': None,
             'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 

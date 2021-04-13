@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import abc
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 
 from ... import exceptions
 from ... import lora
@@ -29,14 +29,16 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     scope = None
     prefix = None
     _value = None
+    _value2 = None
 
     @classmethod
     def _register(cls):
         ADDRESS_HANDLERS[cls.scope] = cls
 
-    def __init__(self, value, visibility):
+    def __init__(self, value, visibility, value2=None):
         self.visibility = visibility
         self._value = value
+        self._value2 = value2
 
     @classmethod
     def from_effect(cls, effect):
@@ -73,9 +75,14 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         return self.prefix + self._value
 
     @property
-    def value(self):
+    def value(self) -> str:
         """The editable value"""
         return self._value
+
+    @property
+    def value2(self) -> str:
+        """The editable value"""
+        return self._value2
 
     @property
     def name(self):
@@ -111,7 +118,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             )
         return properties
 
-    def get_lora_address(self):
+    def get_lora_address(self) -> Union[List[Dict[str, str]], Dict[str, str]]:
         """
         Get a LoRa object fragment for the address
 
@@ -177,7 +184,8 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             mapping.HREF: self.href,
             mapping.NAME: self.name,
             mapping.VALUE: self.value,
-            **await self.__get_mo_properties(only_primary_uuid)
+            mapping.VALUE2: self.value2,
+            **await self.__get_mo_properties(only_primary_uuid),
         }
 
 

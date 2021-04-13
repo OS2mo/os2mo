@@ -79,6 +79,7 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
             'href': 'tel:12345678',
             'name': '12345678',
             'value': '12345678',
+            'value2': None,
             'visibility': {
                 'uuid': visibility
             }
