@@ -73,8 +73,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
 
     def prepare_create(self, req):
-        req = flask.request.get_json()
-
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(
