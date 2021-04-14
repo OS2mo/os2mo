@@ -20,6 +20,12 @@
     "managers": "Ledere",
     "kle": "KLE-opmærkninger"
   },
+  "engagement": {
+    "engagement": "Engagement",
+    "addresses": "Adresser",
+    "it": "IT",
+    "association": "@:shared.association"
+  },
   "log": {
     "worklog": "Arbejdslog"
   }

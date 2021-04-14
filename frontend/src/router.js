@@ -5,6 +5,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import employeeRouter from '@/views/employee/router'
 import organisationRouter from '@/views/organisation/router'
+import engagementRouter from '@/views/engagement/router'
 import moduleRouters from '@/modules/router'
 
 const MoBase = () => import('@/MoBase')
@@ -33,7 +34,8 @@ let BaseRouter = {
   component: MoBase,
   children: [
     employeeRouter,
-    organisationRouter
+    organisationRouter,
+    engagementRouter
   ]
 }
 

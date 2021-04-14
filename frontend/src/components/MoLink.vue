@@ -62,7 +62,7 @@ export default {
     },
   },
 
-  data () {
+  data() {
     return {
       /**
        * The column_handlers component value.
@@ -82,7 +82,7 @@ export default {
     /**
      * Returns columns and fields.
      */
-    classes () {
+    classes() {
       if (this.column && this.field) {
         return [this.column + '-' + this.field]
       } else if (this.column) {
@@ -97,7 +97,7 @@ export default {
     /**
      * Defines contents, columns and value.
      */
-    parts () {
+    parts() {
       let contents = this.column ? this.value[this.column] : this.value
 
       if (this.column === 'address_type' && this.value) {
@@ -115,7 +115,7 @@ export default {
       if (this.label === 'dynamic_class' && this.value) {
         let entry = this.fetch_entry(this.column)
         if (entry !== null) {
-            contents = [{'name': entry['full_name']}]
+          contents = [{'name': entry['full_name']}]
         }
       }
 
@@ -145,12 +145,29 @@ export default {
         contents = [contents[this.index]]
       }
 
+      // default handler
       let handler = this.column_handlers[this.column]
+      let field = this.field
+
+      // special case handler
+      if (this.label === 'engagement_id') {
+        let conf = this.$store.getters['conf/GET_CONF_DB']
+        if ('show_engagement_hyperlink' in conf && conf.show_engagement_hyperlink) {
+          handler = 'EngagementDetail'
+
+          // remap contents from "some_user_key" to {user_key: some_user_key, uuid: ...}
+          field = this.column
+          let content = {'uuid': this.value.uuid};
+          content[field] = this.value[this.column]
+          contents = [content]
+        }
+      }
+
       const parts = []
       for (let i = 0; i < contents.length; i++) {
         let c = contents[i]
         let p = {}
-        p.text = (this.field ? c[this.field] : c) || '\u2014'
+        p.text = (field ? c[field] : c) || '\u2014'
         p.href = c ? c.href : ''
         if (handler && c && c.uuid) {
           p.target = {
@@ -176,7 +193,7 @@ export default {
      */
     find(arr, test, ctx) {
       let result = null;
-      arr.some(function(el, i) {
+      arr.some(function (el, i) {
         return test.call(ctx, el, i, arr) ? ((result = el), true) : false;
       });
       return result;
@@ -195,7 +212,9 @@ export default {
       // Find the correct element if it exists
       return this.find(
         this.value.dynamic_classes,
-        item => { return item['top_level_facet']['uuid'] == dynamic}
+        item => {
+          return item['top_level_facet']['uuid'] == dynamic
+        }
       )
     }
   }
@@ -207,6 +226,7 @@ ul {
   list-style-type: none;
   padding: 0;
 }
+
 .multiline {
   white-space: pre-wrap;
 }
