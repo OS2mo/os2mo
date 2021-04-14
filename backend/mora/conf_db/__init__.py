@@ -7,7 +7,6 @@ from functools import lru_cache
 from itertools import starmap
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config as AlembicConfig
 from sqlalchemy import Column, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -111,7 +110,7 @@ def create_db_table():
 
     # Tell Alembic that our DB schema is now up-to-date, so Alembic does not
     # try to upgrade the schema.
-    command.stamp(alembic_cfg, "head")
+    # command.stamp(alembic_cfg, "head")
 
     logger.info("Configuration database initialised.")
 
