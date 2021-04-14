@@ -3,9 +3,10 @@
 
 from __future__ import generator_stop
 
+import math
+
 import asyncio
 import logging
-import multiprocessing
 import re
 import typing
 import uuid
@@ -16,7 +17,7 @@ from itertools import starmap
 
 import lora_utils
 import mora.async_util
-from more_itertools import divide
+from more_itertools import chunked
 
 from . import exceptions
 from . import settings
@@ -278,16 +279,29 @@ class Scope:
 
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-        # heuristic, depends on who is serving this app
-        n_chunk_target = multiprocessing.cpu_count() * 2 + 1
-        length = len(uuids)
-        min_size = 20
-        n_chunks = n_chunk_target
-        if length < min_size:
-            n_chunks = 1
 
-        # chunk to get some 'fake' performance by parallelize
-        uuid_chunks = divide(n_chunks, uuids)
+        # There is currently an issue in uvicorn related to long request URLs
+        # https://github.com/encode/uvicorn/issues/344
+        # Until it is fixed we need to enfore a max length of requests
+
+        # I haven't been able to determine exactly how long requests can be
+        # The following value is based purely on experimentation
+        max_uuid_part_length = 5000
+        # length of uuid + '?uuid=' = 42
+        uuids_per_chunk = math.floor(max_uuid_part_length / 42)
+        uuid_chunks = chunked(uuids, uuids_per_chunk)
+
+        # # heuristic, depends on who is serving this app
+        # n_chunk_target = multiprocessing.cpu_count() * 2 + 1
+        # length = len(uuids)
+        # min_size = 20
+        # n_chunks = n_chunk_target
+        # if length < min_size:
+        #     n_chunks = 1
+        #
+        # # chunk to get some 'fake' performance by parallelize
+        # uuid_chunks = divide(n_chunks, uuids)
+
         need_flat = await gather(*[create_task(self.fetch(uuid=list(ch)))
                                    for ch in uuid_chunks])
         ret = [x for chunk in need_flat for x in chunk]
