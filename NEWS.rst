@@ -9,6 +9,7 @@ New features
 * #41560: New org-funk: Owners
 * #44181: Add Opentelemetry instrumentation
 * #43364: Reimplement settings using Pydantic and environment variables
+* #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
 
 Version 1.18.0, 2021-07-01
 ==========================

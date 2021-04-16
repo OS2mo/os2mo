@@ -7,7 +7,7 @@
     "EMPLOYEE_TERMINATE": "The employee {name} has been disabled.",
     "FUNCTION_CREATE": "A \"{type}\" field has been created.",
     "FUNCTION_EDIT": "A \"{type}\" field for {name} has been edited.",
-    "FUNCTION_TERMINATE": "A \"{type}\" field for {name} has been disabled on {date}.",
+    "FUNCTION_TERMINATE": "A \"{type}\" field for {name} has been disabled on {to}.",
     "ORGANISATION_CREATE": "The organisational unit {name} has been created under {parent}.",
     "ORGANISATION_EDIT": "The organisational unit {name} has been edited.",
     "ORGANISATION_RENAME": "The organisational unit {original_name} has been renamed {new_name}.",

@@ -190,7 +190,6 @@ export default {
 
     isDeletable () {
       switch (this.contentType) {
-        case 'org_unit': return false
         case 'employee': return false
         case 'related': return false
         default:

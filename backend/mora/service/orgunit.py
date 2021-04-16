@@ -13,6 +13,7 @@ units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 '''
 import copy
 import enum
+import logging
 import locale
 import operator
 import uuid
@@ -46,6 +47,8 @@ from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 def flatten(list_of_lists):
@@ -290,11 +293,29 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
-        date = util.get_valid_to(request)
+        validity = request.get('validity', {})
+        if 'from' in validity and 'to' in validity:
+            # When `validity` contains *both* `from` and `to`, construct a
+            # `virkning` of the given dates.
+            virkning = common._create_virkning(
+                util.get_valid_from(request),
+                util.get_valid_to(request),
+            )
+        else:
+            # DEPRECATED: Terminating an org unit by giving *only* a "to date"
+            # is now deprecated.
+            virkning = common._create_virkning(
+                util.get_valid_to(request),
+                'infinity'
+            )
+            logger.warning(
+                'terminate org unit called without "from" in "validity"',
+            )
+
         obj_path = ('tilstande', 'organisationenhedgyldighed')
         val_inactive = {
             'gyldighed': 'Inaktiv',
-            'virkning': common._create_virkning(date, 'infinity')
+            'virkning': virkning,
         }
 
         payload = util.set_obj_value(dict(), obj_path, [val_inactive])
@@ -1328,9 +1349,14 @@ def create_org_unit(req: dict = Body(...)):
     return request.submit()
 
 
-async def terminate_org_unit_validation(unitid, date):
-    c = lora.Connector(effective_date=util.to_iso_date(date))
+async def terminate_org_unit_validation(unitid, request):
+    validity = request.get('validity', {})
+    if 'from' in validity and 'to' in validity:
+        date = util.get_valid_from(request)
+    else:
+        date = util.get_valid_to(request)
 
+    c = lora.Connector(effective_date=util.to_iso_date(date))
     await validator.is_date_range_in_org_unit_range(
         {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
     )
@@ -1375,69 +1401,71 @@ async def terminate_org_unit_validation(unitid, date):
         )
 
 
-@router.post('/ou/{unitid}/terminate')
-# @util.restrictargs('force', 'triggerless')
+@router.post(
+    '/ou/{unitid}/terminate',
+    responses={
+        200: {
+            'description': 'The termination succeeded',
+            'model': UUID,
+        },
+        404: {'description': 'No such unit found'},
+        409: {'description': 'Validation failed'},
+    },
+)
 def terminate_org_unit(
     unitid: UUID,
     request: dict = Body(...)
 ):
     """Terminates an organisational unit from a specified date.
 
-    .. :quickref: Unit; Terminate
-
-    :query boolean force: When ``true``, bypass validations.
-
-    :statuscode 200: The termination succeeded.
-    :statuscode 404: No such unit found.
-    :statuscode 409: Validation failed, see below.
-
-    :param unitid: The UUID of the organisational unit to be terminated.
-
-    :<json object validity: The date on which the termination should happen,
-        in ISO 8601.
-
-    **Example Request**:
-
-    .. sourcecode:: json
-
-      {
-        "validity": {
-          "to": "2015-12-31"
+    ## Example request body
+        {
+            "validity": {
+                "from": "2020-12-31",
+                "to": "2021-12-31"
+            }
         }
-      }
 
-    :returns: UUID of the terminated org unit
-
-    **Validation**:
+    ## Validation
 
     Prior to terminating an organisational unit, all nested units and
-    association details must be terminated. Should this not be the
-    case, we return a :http:statuscode:`409`, and a response such as this:
+    associated details must be terminated. Should this not be the case, we
+    return an HTTP status code `409`, and a response such as this:
 
-    .. sourcecode:: json
+        {
+            "description": "cannot terminate unit with 1 active children",
+            "error": true,
+            "cause": "validation",
+            "status": 400,
+            "child_count": 1,
+            "role_count": 0,
+            "child_units": [
+                {
+                    "child_count": 0,
+                    "name": "Afdeling for Fremtidshistorik",
+                    "user_key": "frem",
+                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
+                }
+            ]
+        }
 
-      {
-          "description": "cannot terminate unit with 1 active children",
-          "error": true,
-          "cause": "validation",
-          "status": 400,
+    ## History
 
-          "child_count": 1,
-          "role_count": 0,
-          "child_units": [
-              {
-                  "child_count": 0,
-                  "name": "Afdeling for Fremtidshistorik",
-                  "user_key": "frem",
-                  "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48"
-              }
-          ]
-      }
+    This endpoint also accepts a request body which leaves out the ``from``
+    element of ``validity``:
 
+        {
+            "validity": {
+                "to": "2021-12-31"
+            }
+        }
+
+    In this case, the org unit is terminated by being set "inactive" from the
+    "to"-date to "infinity". This behavior is deprecated and should no longer
+    be used.
     """
     unitid = str(unitid)
-    date = util.get_valid_to(request)
-    mora.async_util.async_to_sync(terminate_org_unit_validation)(unitid, date)
+    mora.async_util.async_to_sync(terminate_org_unit_validation)(unitid, request)
     request[mapping.UUID] = unitid
     handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
     return handler.submit()
