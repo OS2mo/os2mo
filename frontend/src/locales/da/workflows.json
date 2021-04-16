@@ -26,7 +26,8 @@
       "address": "@:shared.address"
     },
     "messages": {
-      "following_will_be_terminated": "Følgende vil blive afsluttet for enheden:"
+      "following_will_be_terminated": "Følgende vil blive afsluttet for enheden:",
+      "registration_will_be_terminated": "Dette vil afslutte registreringen for perioden:"
     }
   }
 }

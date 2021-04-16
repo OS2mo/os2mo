@@ -2,7 +2,7 @@ SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="unit-tree">
-    <mo-loader v-show="isLoading"/>
+    <mo-loader v-show="isLoading" />
     <div v-show="!isLoading" class="scroll">
       <liquor-tree
         :ref="_nameId"
@@ -12,14 +12,10 @@ SPDX-License-Identifier: MPL-2.0
         @node:checked="onNodeCheckedChanged"
         @node:unchecked="onNodeCheckedChanged"
       >
-
         <div class="tree-scope" slot-scope="{ node }" :title="node.text">
           <template>
-            <icon name="users"/>
-
-            <span class="text">
-                {{ node.text }}
-              </span>
+            <icon name="users" />
+            <span class="text">{{ node.text }}</span>
           </template>
         </div>
       </liquor-tree>
@@ -440,7 +436,8 @@ export default {
           throw error
         })
     },
-    listener(){
+
+    listener () {
       this.updateTree(true)
     },
 

@@ -4,6 +4,8 @@ Version 1.19.0, 2021-07-07
 New features
 ------------
 
+* #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
+
 Version 1.18.1, 2021-07-07
 ==========================
 

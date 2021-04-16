@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import freezegun
 import notsouid
+from parameterized import parameterized
 
 import mora.async_util
 import tests.cases
@@ -24,6 +25,29 @@ org_unit_level_facet = {
     'user_key': 'org_unit_level',
     'uuid': '77c39616-dd98-4cf5-87fb-cdb9f3a0e455'
 }
+
+
+def expected_error_response(error_key, **overrides):
+    errors = {
+        "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES": {
+            "description": "Cannot terminate unit with active children and roles.",
+            "roles": "Relateret Enhed",
+            "child_count": 1,
+        },
+        "V_TERMINATE_UNIT_WITH_ROLES": {
+            "description": "Cannot terminate unit with active roles.",
+            "roles": "Engagement, Leder, Relateret Enhed, Rolle, Tilknytning"
+        },
+        "V_DATE_OUTSIDE_ORG_UNIT_RANGE": {
+            "description": "Date range exceeds validity range of associated org unit.",
+            "org_unit_uuid": None,
+            "valid_from": None,
+            "valid_to": None,
+            "wanted_valid_from": None,
+            "wanted_valid_to": None,
+        },
+    }
+    return {"error_key": error_key, **dict(errors[error_key], **overrides)}
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
@@ -2612,16 +2636,31 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
             json=req)
 
-    def test_terminate_org_unit(self):
+    @parameterized.expand([
+        # Test new payload, which includes both "from" and "to" dates
+        (
+            # The payload asks for an *inactive* period from Jan 1, 2017 to
+            # Jan 1, 2018.
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # Upon termination, the org unit will have an *active* period from
+            # Jan 1, 2016 to Dec 31, 2016 (the day before its termination.)
+            {"from": "2016-01-01", "to": "2016-12-31"},
+        ),
+        # Test old payload, which only has a "to" date
+        (
+            # The payload asks for an *inactive* period beginning infinitely
+            # far in the past and ending on Oct 21, 2016.
+            {"to": "2016-10-21"},
+            # Upon termination, the org unit will have an *active* period from
+            # Jan 1, 2016 to Oct 21, 2016 (the day of its termination.)
+            {"from": "2016-01-01", "to": "2016-10-21"},
+        ),
+    ])
+    def test_terminate_org_unit(self, inactive_validity, expected_validity):
         self.load_sample_structures()
 
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
-
-        payload = {
-            "validity": {
-                "to": "2016-10-21"
-            }
-        }
+        payload = {"validity": inactive_validity}
 
         self.assertRequestResponse(
             '/service/ou/{}/terminate'.format(unitid),
@@ -2709,8 +2748,8 @@ class Tests(tests.cases.LoRATestCase):
                 'time_planning': None,
                 'user_key': 'fil',
                 'user_settings': {'orgunit': {}},
-                'uuid': '85715fc7-925d-401b-822d-467eb4b163b6',
-                'validity': {'from': '2016-01-01', 'to': '2016-10-21'}
+                'uuid': unitid,
+                'validity': expected_validity,
             }],
             amqp_topics={'org_unit.org_unit.delete': 1},
         )
@@ -2723,122 +2762,116 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
-    def test_terminate_org_unit_validations(self):
+    @parameterized.expand([
+        # Test new payload, which includes both "from" and "to" dates
+        ({"from": "2017-01-01", "to": "2018-01-01"},),
+        # Test old payload, which only has a "to" date
+        ({"to": "2016-10-21"},),
+    ])
+    def test_terminate_org_unit_invalid_uuid(self, validity):
         self.load_sample_structures()
-
+        unitid = "00000000-0000-0000-0000-000000000000"
         self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "00000000-0000-0000-0000-000000000000",
-            ),
+            '/service/ou/{}/terminate'.format(unitid),
             {
                 'error': True,
                 'error_key': 'E_ORG_UNIT_NOT_FOUND',
                 'description': 'Org unit not found.',
-                'org_unit_uuid': '00000000-0000-0000-0000-000000000000',
+                'org_unit_uuid': unitid,
                 'status': 404,
             },
+            json={"validity": validity},
             status_code=404,
-            json={
-                "validity": {
-                    "to": "2016-12-31"
-                }
-            },
         )
 
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+    @parameterized.expand([
+        # Test new payload, which includes both "from" and "to" dates
+        (
+            # org unit uuid
+            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            # payload
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # expected error response
+            expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
+                child_count=2,
             ),
-            {
-                'error': True,
-                'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
-                'description': 'Cannot terminate unit with '
-                               'active children and roles.',
-                'roles': 'Relateret Enhed',
-                'child_count': 1,
-            },
+        ),
+
+        # Test old payload, which only has a "to" date
+        (
+            # org unit uuid
+            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            # payload
+            {"to": "2017-01-01"},
+            # expected error response
+            expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "2017-01-01"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
+                child_count=2,
+            ),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "2018-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning",
+                child_count=1,
+            ),
+        ),
+    ])
+    def test_terminate_org_unit_active_children_and_roles(
+        self, org_unit_uuid, validity, expected_error_response
+    ):
+        self.load_sample_structures()
+        self.assertRequestResponse(
+            "/service/ou/{}/terminate".format(org_unit_uuid),
+            {"error": True, "status": 400, **expected_error_response},
+            json={"validity": validity},
             status_code=400,
-            json={
-                "validity": {
-                    "to": "2017-01-01"
-                }
-            },
+            amqp_topics={'org_unit.org_unit.delete': 1},
+        )
+
+    def test_terminate_org_unit_validations_other(self):
+        self.load_sample_structures()
+
+        unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
+        unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(unitid_a),
+            unitid_a,
+            json={"validity": {"to": "2018-12-31"}},
+            amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
         self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            ),
+            '/service/ou/{}/terminate'.format(unitid_b),
             {
-                'error': True,
-                'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
-                'description': 'Cannot terminate unit with '
-                               'active children and roles.',
-
-                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
-                'child_count': 2,
-            },
-            status_code=400,
-            json={
-                "validity": {
-                    "to": "2017-05-31"
-                }
-            },
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            ),
-            {
-                'error': True,
-                'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES',
-                'description': 'Cannot terminate unit with '
-                               'active children and roles.',
-
-                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
-                'child_count': 1,
-            },
-            status_code=400,
-            json={
-                "validity": {
-                    "to": "2018-12-31"
-                }
-            },
-        )
-
-        for unitid in (
-            '85715fc7-925d-401b-822d-467eb4b163b6',
-        ):
-            self.assertRequestResponse(
-                '/service/ou/{}/terminate'.format(
-                    unitid,
-                ),
-                unitid,
-                json={
-                    "validity": {
-                        "to": "2018-12-31"
-                    }
-                },
-                amqp_topics={'org_unit.org_unit.delete': 1},
-            )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            ),
-            {
-                'error': True,
-                'status': 400,
-                'error_key': 'V_TERMINATE_UNIT_WITH_ROLES',
-                'description': 'Cannot terminate unit with active roles.',
-                'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
+                "error": True,
+                "status": 400,
+                **expected_error_response("V_TERMINATE_UNIT_WITH_ROLES")
             },
             status_code=400,
             json={
@@ -2850,80 +2883,70 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.delete': 1},
         )
 
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+    @parameterized.expand([
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "1999-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                valid_from="2016-01-01",
+                valid_to=None,
+                wanted_valid_from="1999-12-31",
+                wanted_valid_to="1999-12-31",
             ),
-            {
-                'description': 'Date range exceeds validity range of '
-                               'associated org unit.',
-                'error': True,
-                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'status': 400,
-                'org_unit_uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
-                'valid_from': '2016-01-01',
-                'valid_to': None,
-                'wanted_valid_from': '1999-12-31',
-                'wanted_valid_to': '1999-12-31',
-            },
-            status_code=400,
-            json={
-                "validity": {
-                    "to": "1999-12-31"
-                }
-            },
-            amqp_topics={'org_unit.org_unit.delete': 1},
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # message
+            None,
+        ),
+        (
+            # org unit uuid
+            "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # payload
+            {"to": "2099-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
+                valid_from="2016-01-01",
+                valid_to="2018-12-31",
+                wanted_valid_from="2099-12-31",
+                wanted_valid_to="2099-12-31",
             ),
-            {
-                'description': 'Date range exceeds validity range of '
-                               'associated org unit.',
-                'error': True,
-                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'status': 400,
-                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                'valid_from': '2016-01-01',
-                'valid_to': '2018-12-31',
-                'wanted_valid_from': '2099-12-31',
-                'wanted_valid_to': '2099-12-31',
-            },
-            status_code=400,
-            json={
-                "validity": {
-                    "to": "2099-12-31"
-                }
-            },
-            amqp_topics={'org_unit.org_unit.delete': 1},
-        )
-
-        self.assertRequestResponse(
-            '/service/ou/{}/terminate'.format(
-                "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # message
+            None,
+        ),
+        (
+            # org unit uuid
+            "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # payload
+            {"to": "2015-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
+                valid_from="2016-01-01",
+                valid_to="2018-12-31",
+                wanted_valid_from="2015-12-31",
+                wanted_valid_to="2015-12-31",
             ),
-            {
-                'description': 'Date range exceeds validity range of '
-                               'associated org unit.',
-                'error': True,
-                'error_key': 'V_DATE_OUTSIDE_ORG_UNIT_RANGE',
-                'status': 400,
-                'org_unit_uuid': '04c78fc2-72d2-4d02-b55f-807af19eac48',
-                'valid_from': '2016-01-01',
-                'valid_to': '2018-12-31',
-                'wanted_valid_from': '2015-12-31',
-                'wanted_valid_to': '2015-12-31',
-            },
+            # message
+            "No terminating on creation date!",
+        ),
+    ])
+    def test_terminate_org_unit_date_outside_org_unit_range(
+        self, org_unit_uuid, validity, expected_error_response, message,
+    ):
+        self.load_sample_structures()
+        self.assertRequestResponse(
+            '/service/ou/{}/terminate'.format(org_unit_uuid),
+            {"error": True, "status": 400, **expected_error_response},
+            json={"validity": validity},
             status_code=400,
-            json={
-                "validity": {
-                    "to": "2015-12-31"
-                }
-            },
             amqp_topics={'org_unit.org_unit.delete': 1},
-            message='No terminating on creation date!'
+            message=message,
         )
 
     @unittest.expectedFailure

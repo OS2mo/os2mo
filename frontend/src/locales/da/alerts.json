@@ -7,7 +7,7 @@
     "EMPLOYEE_TERMINATE": "Medarbejderen {name} er blevet afsluttet.",
     "FUNCTION_CREATE": "Et \"{type}\" felt er blevet oprettet.",
     "FUNCTION_EDIT": "Et \"{type}\" felt for {name} er blevet redigeret.",
-    "FUNCTION_TERMINATE": "Et \"{type}\" felt for {name} er blevet afsluttet pr. {date}.",
+    "FUNCTION_TERMINATE": "Et \"{type}\" felt for {name} er blevet afsluttet pr. {to}.",
     "ORGANISATION_CREATE": "Organisationsenheden {name} er blevet oprettet under {parent}.",
     "ORGANISATION_EDIT": "Organisationsenheden {name} er blevet redigeret.",
     "ORGANISATION_RENAME": "Organisationsenheden {original_name} er blevet omdøbt til {new_name}.",

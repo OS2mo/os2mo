@@ -33,6 +33,7 @@
   "manager_function": "Lederfunktion | Lederfunktioner",
   "overview": "Overblik",
   "organisation_mapping": "Organisationssammenkobling",
+  "org_unit": "Organisationsenhed",
   "org_unit_level": "Enhedsniveau",
   "org_unit_type": "Enhedstype",
   "primary": "Primær",
@@ -53,5 +54,6 @@
   "engagement_id": "ID",
   "entire_organisation": "Bruttoorganisation",
   "belongs_to": "Tilhører",
-  "seniority": "Anciennitet"
+  "seniority": "Anciennitet",
+  "none": "Ingen"
 }
