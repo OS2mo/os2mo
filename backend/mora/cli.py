@@ -18,6 +18,7 @@ import sqlalchemy
 
 from mora.auth.saml_sso.base import create_sessions_table
 from mora.conf_db import create_db_table
+from mora.object_store import create_client, get_bucket_name
 
 from . import conf_db, settings
 
@@ -47,6 +48,8 @@ def initdb(wait):
     if settings.SAML_AUTH_ENABLE:
         create_sessions_table()
 
+    print("OK")
+
 
 @group.command()
 @click.option("--wait", default=_SLEEPING_TIME, type=int,
@@ -61,6 +64,7 @@ def checkdb(wait):
 
     _wait_for_service("Database is up", check_db,
                       sqlalchemy.exc.OperationalError, wait)
+    print("OK")
 
 
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):
@@ -71,7 +75,8 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
             return int(wait - (i * _SLEEPING_TIME))
         except unavailable_exception:
             click.echo(
-                "%s is unavailable - attempt %s/%s" % (name, i, attempts))
+                "%s is unavailable - attempt %s/%s" % (name, i, attempts)
+            )
             if i >= attempts:
                 sys.exit(1)
             time.sleep(_SLEEPING_TIME)
@@ -81,7 +86,7 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
 def check_configuration_db_status():
     success, error_msg = conf_db.health_check()
     if success:
-        logger.info("Configuration database passed health check")
+        print("OK")
     else:
         logger.critical(error_msg)
         sys.exit(3)
@@ -112,8 +117,55 @@ def wait_for_rabbitmq(seconds):
         pika.exceptions.AMQPConnectionError,
         seconds,
     )
+    print("OK")
 
     return 8
+
+
+@group.command()
+@click.option("--seconds", default=_SLEEPING_TIME, type=int,
+              help="Wait up to n seconds for minio.")
+def wait_for_minio(seconds):
+    if not settings.config["minio"]["enable"]:
+        logger.info("Object Store is disabled. Exports will not be available.")
+        return 0
+
+    from minio.error import S3Error
+
+    def connector():
+        client = create_client()
+        # Call for potential Exception side-effect
+        client.list_buckets()
+
+    _wait_for_service(
+        "minio",
+        connector,
+        S3Error,
+        seconds,
+    )
+    print("OK")
+
+    return 9
+
+
+@group.command()
+@click.option("--seconds", default=_SLEEPING_TIME, type=int,
+              help="Wait up to n seconds for minio.")
+def ensure_minio_bucket(seconds):
+    if not settings.config["minio"]["enable"]:
+        logger.info("Object Store is disabled. Buckets will not be created.")
+        return 0
+
+    bucket_name = get_bucket_name()
+
+    client = create_client()
+    if client.bucket_exists(bucket_name):
+        print("OK: Bucket exists")
+        return
+    client.make_bucket(bucket_name)
+    print("OK: Bucket created")
+
+    return 10
 
 
 if __name__ == '__main__':

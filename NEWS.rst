@@ -4,7 +4,8 @@ In development
 New features
 ------------
 
-
+* #43046: Made exports read an S3 object store instead of the local filesystem
+  Several new configuration variables have been added to configure the S3 object store.
 
 Version 1.17.0, 2021-05-12
 ==========================

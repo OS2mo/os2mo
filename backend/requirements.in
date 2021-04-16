@@ -23,6 +23,7 @@ jinja2
 aiofiles
 starlette-context
 werkzeug
+minio
 
 
 # SAML SSO dependencies

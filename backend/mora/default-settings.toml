@@ -123,5 +123,12 @@ log_level = "WARNING"
 org_unit = ""
 
 
+[minio]
+enable = false
+url = "object_store:9000"
+access_key = ""
+secret_key = ""
+secure = false
+
 [[navlinks]]
 # Default to empty set of navlinks

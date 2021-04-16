@@ -4,10 +4,12 @@
 import os
 
 from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
+from minio.error import S3Error
 
 from .. import exceptions
 from ..settings import app_config
+from ..object_store import create_client, get_bucket_name
 
 router = APIRouter()
 
@@ -31,14 +33,9 @@ def list_export_files():
         "export2.xlsx"
       ]
     """
-    export_dir = app_config['QUERY_EXPORT_DIR']
-    if not os.path.isdir(export_dir):
-        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
-    dir_contents = os.listdir(export_dir)
-    files = [
-        file for file in dir_contents if
-        os.path.isfile(os.path.join(export_dir, file))
-    ]
+    client = create_client()
+    objects = client.list_objects(get_bucket_name())
+    files = [obj.object_name for obj in objects]
     return files
 
 
@@ -54,12 +51,15 @@ def get_export_file(file_name: str):
 
     :return: The file corresponding to the given export file name
     """
-    export_dir = app_config['QUERY_EXPORT_DIR']
-    if not os.path.isdir(export_dir):
-        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
+    client = create_client()
+    try:
+        s3object = client.get_object(get_bucket_name(), file_name)
+    except S3Error as error:
+        if error.code == "NoSuchKey":
+            exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
+        raise error
 
-    file_path = os.path.join(export_dir, file_name)
-    if not os.path.isfile(file_path):
-        exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
+    async def filedata():
+        yield s3object.data
 
-    return FileResponse(export_dir + "/" + file_name)
+    return StreamingResponse(filedata())

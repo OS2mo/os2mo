@@ -19,7 +19,9 @@ attrs==20.3.0
 cachelib==0.1.1
     # via flask-session
 certifi==2020.6.20
-    # via requests
+    # via
+    #   minio
+    #   requests
 chardet==3.0.4
     # via
     #   aiohttp
@@ -68,6 +70,8 @@ markupsafe==1.1.1
     # via
     #   jinja2
     #   mako
+minio==7.0.3
+    # via -r requirements.in
 more-itertools==8.5.0
     # via -r requirements.in
 multidict==5.1.0
@@ -131,7 +135,9 @@ typing-extensions==3.7.4.3
     #   aiohttp
     #   pydantic
 urllib3==1.25.10
-    # via requests
+    # via
+    #   minio
+    #   requests
 validators==0.18.0
     # via -r requirements.in
 werkzeug==1.0.1

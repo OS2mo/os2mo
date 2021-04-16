@@ -23,6 +23,11 @@ host = "mox-db"
 enable = true
 host = "msg_broker"
 
+[minio]
+enable = true
+access_key = "accesskey123"
+secret_key = "secretkey123"
+
 [log]
 log_level = "INFO"
 
