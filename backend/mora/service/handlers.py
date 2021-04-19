@@ -200,7 +200,7 @@ class OrgFunkRequestHandler(RequestHandler):
 
         if (
             original is None or
-            not util.is_reg_valid(original) or
+            util.is_reg_valid(original) and
             get_key_for_function(original) != self.function_key
         ):
             exceptions.ErrorCodes.E_NOT_FOUND(
