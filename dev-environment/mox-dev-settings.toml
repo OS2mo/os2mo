@@ -17,3 +17,7 @@ path = "oio_rest/oio_rest/db_extensions/mo-01.json"
 
 [testing_api]
 enable = true
+
+
+[truncate_api]
+enable = true

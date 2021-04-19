@@ -9,7 +9,6 @@ Create Date: 2020-12-11 09:16:22.469457
 """
 from alembic import op
 
-# revision identifiers, used by Alembic.
 from mora.conf_db.alembic.helpers.new_defaults import (add_default_fields,
                                                        remove_default_fields)
 from mora.conf_db.alembic.helpers.session import get_session

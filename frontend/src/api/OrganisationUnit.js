@@ -5,6 +5,7 @@ import Service from './HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 import URLSearchParams from '@ungap/url-search-params'
+import i18n from '../i18n.js'
 
 export default {
 
@@ -14,7 +15,6 @@ export default {
    * @returns {Object} organisation unit object
    */
   get (uuid, atDate) {
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/ou/${uuid}/?at=${atDate}`)
       .then(response => {
@@ -31,10 +31,22 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getChildren (uuid, atDate) {
-    atDate = atDate || new Date()
+  getChildren (uuid, atDate, extra) {
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/${uuid}/children?at=${atDate}`)
+
+    const params = new URLSearchParams()
+
+    if (atDate) {
+      params.append('at', atDate)
+    }
+
+    if (extra !== undefined) {
+      for (const key in extra) {
+        params.append(key, extra[key])
+      }
+    }
+
+    return Service.get(`/ou/${uuid}/children?${params}`)
       .then(response => {
         return response.data
       })
@@ -48,8 +60,7 @@ export default {
    * @param {Array|String} uuids - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getAncestorTree (uuids, atDate) {
-    atDate = atDate || new Date()
+  getAncestorTree (uuids, atDate, extra) {
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
 
     if (!(uuids instanceof Array)) {
@@ -66,7 +77,13 @@ export default {
       params.append('uuid', uuid)
     }
 
-    return Service.get('/ou/ancestor-tree?' + params.toString())
+    if (extra !== undefined) {
+      for (const key in extra) {
+        params.append(key, extra[key])
+      }
+    }
+
+    return Service.get(`/ou/ancestor-tree?${params}`)
       .then(response => {
         return response.data
       })
@@ -103,7 +120,6 @@ export default {
    */
   getDetail (uuid, detail, validity, atDate) {
     validity = validity || 'present'
-    atDate = atDate || new Date()
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`)
       .then(response => {
@@ -125,7 +141,10 @@ export default {
       .then(response => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE',
-            value: {name: create.name, parent: create.parent.name}})
+            value: {
+            name: create.name,
+                parent:
+                    create.parent ? create.parent.name : i18n.t('shared.main_organisation')}})
         return response.data
       })
       .catch(error => {

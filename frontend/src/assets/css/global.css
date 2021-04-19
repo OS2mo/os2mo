@@ -1,6 +1,11 @@
 /* SPDX-FileCopyrightText: 2017-2020 Magenta ApS
    SPDX-License-Identifier: MPL-2.0 */
 
+#app {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   background-color: #f2efed;
   background-image: url('../logo/os2_logo_white.svg');
@@ -11,6 +16,34 @@ body {
   overflow-x:hidden; /*Keeps workflow buttons from overflowing the page*/
 }
 
+nav {
+  height: 50px;
+}
+
+nav button.dropdown-toggle {
+  margin-top: -3px;
+  color: #e5e0de;
+}
+
+.logo {
+  background-image: url('../logo/os2_small.svg');
+  background-repeat: no-repeat; /*Prevent showing multiple background images*/
+  background-position: center;
+  background-color:#002f5d;
+  background-size: 60px;
+  width: 60px;
+  height: 50px;
+  margin-left: -1em;
+}
+
+.container-fluid {
+  padding-right: 0;
+}
+
+.container-top-margin {
+  margin-top: 60px;
+}
+
 table {
   margin-top: 1rem;
 }
@@ -19,12 +52,8 @@ table th {
   border-top: 0 !important;
 }
 
-.v-autocomplete {
-  width: 100%;
-}
-
 .v-autocomplete .v-autocomplete-input-group .v-autocomplete-input {
-  display: block;
+  display: flex;
   width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
@@ -34,7 +63,7 @@ table th {
   background-image: none;
   background-clip: padding-box;
   border: 1px solid #ced4da;
-  border-radius: 0.25rem;
+  border-radius: 0 0.25rem 0.25rem 0;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
 
@@ -51,13 +80,4 @@ table th {
 .form-row.name label, .form-row.nickname label {
   width: 100%;
   padding: 0.5rem 0 0 5px;
-}
-
-.container-fluid {
-  padding-right: 0;
-}
-
-nav button.dropdown-toggle {
-  margin-top: -3px;
-  color: #e5e0de;
 }

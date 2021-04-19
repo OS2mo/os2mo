@@ -10,7 +10,7 @@ dummy_mode = true
 enable_cors = true
 
 [lora]
-url = "http://mox:8080/"
+url = "http://mox:80/"
 
 [session.database]
 host = "mox-db"

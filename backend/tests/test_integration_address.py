@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import logging
 
 import freezegun
 
 import mora.async_util
 from mora import lora
+from mora.util import get_effect_from
 from tests import util
 
 ean_class = {
@@ -60,8 +61,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
-                    'description': 'Must supply exactly one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply exactly one org_unit UUID, '
+                                   'person UUID or engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -93,8 +94,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/create',
                 {
-                    'description': 'Must supply exactly one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply exactly one org_unit UUID, '
+                                   'person UUID or engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -289,8 +290,8 @@ class Writing(util.LoRATestCase):
             self.assertRequestResponse(
                 '/service/details/edit',
                 {
-                    'description': 'Must supply at most one org unit UUID, '
-                                   'employee UUID or manager UUID',
+                    'description': 'Must supply at most one of org_unit UUID, '
+                                   'person UUID and engagement UUID',
                     'error': True,
                     'error_key': 'E_INVALID_INPUT',
                     'obj': req[0],
@@ -757,651 +758,611 @@ class Writing(util.LoRATestCase):
             mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
-#     def test_create_manager_with_address(self, mock):
-#         self.load_sample_structures()
-#
-#         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-#
-#         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-#
-#         func_id, = self.assertRequest(
-#             '/service/details/create',
-#             json=[{
-#                 "type": "manager",
-#                 "org_unit": {
-#                     'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-#                 },
-#                 "person": {
-#                     'uuid': userid
-#                 },
-#                 "responsibility": [{
-#                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9",
-#                 }],
-#                 "manager_type": {
-#                     'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"
-#                 },
-#                 "manager_level": {
-#                     "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-#                 },
-#                 "validity": {
-#                     "from": "2017-12-01",
-#                     "to": "2017-12-01",
-#                 },
-#                 "address": [{
-#                     "type": "address",
-#                     'address_type': {
-#                         'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                     },
-#                     'value': 'root@example.com',
-#                     "validity": {
-#                         "from": "2017-01-02",
-#                     },
-#                 }],
-#             }],
-#             amqp_topics={
-#                 'org_unit.manager.create': 1,
-#                 'employee.manager.create': 1,
-#             },
-#         )
-#
-#         expected = {
-#             'attributter': {
-#                 'organisationfunktionegenskaber': [{
-#                     'brugervendtnoegle': 'root@example.com',
-#                     'funktionsnavn': 'Adresse',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'livscykluskode': 'Importeret',
-#             'note': 'Oprettet i MO',
-#             'relationer': {
-#                 'adresser': [{
-#                     'objekttype': 'EMAIL',
-#                     'urn': 'urn:mailto:root@example.com',
-#                     'virkning': {
-#                         'from': '2017-01-02 00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'organisatoriskfunktionstype': [{
-#                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedefunktioner': [{
-#                     'uuid': func_id,
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedeorganisationer': [{
-#                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'tilstande': {
-#                 'organisationfunktiongyldighed': [{
-#                     'gyldighed': 'Aktiv',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             }
-#         }
-#
-#         addr_id = mora_util.async_to_sync(c.organisationfunktion.fetch)(
-#             tilknyttedefunktioner=func_id)
-#         assert len(addr_id) == 1
-#         addr_id = addr_id[0]
-#
-#         self.assertRegistrationsEqual(
-#             expected,
-#             mora_util.async_to_sync(c.organisationfunktion.get)(addr_id)
-#         )
-#
-#     def test_create_org_unit_with_address(self, mock):
-#         self.load_sample_structures()
-#
-#         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-#
-#         unit_id = self.assertRequest(
-#             '/service/ou/create',
-#             json={
-#                 "name": "Fake Corp",
-#                 "integration_data": {"fakekey": 42},
-#                 "parent": {
-#                     'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
-#                 },
-#                 "org_unit_type": {
-#                     'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
-#                 },
-#                 "validity": {
-#                     "from": "2016-02-04",
-#                 },
-#                 "details": [
-#                     {
-#                         "type": "address",
-#                         'address_type': {
-#                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                         },
-#                         'value': 'root@example.com',
-#                         "validity": {
-#                             "from": "2017-01-02",
-#                         },
-#                     },
-#                 ]
-#             },
-#             amqp_topics={
-#                 'org_unit.address.create': 1,
-#                 'org_unit.org_unit.create': 1,
-#             },
-#         )
-#
-#         expected = {
-#             'attributter': {
-#                 'organisationfunktionegenskaber': [{
-#                     'brugervendtnoegle': 'root@example.com',
-#                     'funktionsnavn': 'Adresse',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'livscykluskode': 'Importeret',
-#             'note': 'Oprettet i MO',
-#             'relationer': {
-#                 'adresser': [{
-#                     'objekttype': 'EMAIL',
-#                     'urn': 'urn:mailto:root@example.com',
-#                     'virkning': {
-#                         'from': '2017-01-02 00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'organisatoriskfunktionstype': [{
-#                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedeenheder': [{
-#                     'uuid': unit_id,
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedeorganisationer': [{
-#                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'tilstande': {
-#                 'organisationfunktiongyldighed': [{
-#                     'gyldighed': 'Aktiv',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             }
-#         }
-#
-#         addr_id = mora_util.async_to_sync(c.organisationfunktion.fetch)(
-#             tilknyttedeenheder=unit_id)
-#         assert len(addr_id) == 1
-#         addr_id = addr_id[0]
-#
-#         self.assertRegistrationsEqual(
-#             expected,
-#             mora_util.async_to_sync(c.organisationfunktion.get)(addr_id)
-#         )
-#
-#     def test_edit_address(self, mock):
-#         self.load_sample_structures()
-#
-#         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-#
-#         addr_id = '414044e0-fe5f-4f82-be20-1e107ad50e80'
-#
-#         self.assertRequest(
-#             '/service/details/edit',
-#             json=[
-#                 {
-#                     "type": "address",
-#                     "uuid": addr_id,
-#                     "data": {
-#                         'address_type': {
-#                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                         },
-#                         'value': 'root@example.com',
-#                         "validity": {
-#                             "from": "2017-01-02",
-#                         },
-#                     },
-#                 }
-#             ],
-#             amqp_topics={'org_unit.address.update': 1},
-#         )
-#
-#         expected = {
-#             'attributter': {
-#                 'organisationfunktionegenskaber': [{
-#                     'brugervendtnoegle': 'Nordre '
-#                                          'Ringgade '
-#                                          '1, '
-#                                          '8000 '
-#                                          'Aarhus '
-#                                          'C',
-#                     'funktionsnavn': 'Adresse',
-#                     'virkning': {
-#                         'from': '2016-01-01 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'livscykluskode': 'Rettet',
-#             'note': 'Rediger Adresse',
-#             'relationer': {
-#                 'adresser': [{
-#                     'objekttype': 'DAR',
-#                     'urn': 'urn:dar:b1f1817d-5f02-4331-b8b3-97330a5d3197',
-#                     'virkning': {
-#                         'from': '2016-01-01 00:00:00+01',
-#                         'from_included': True,
-#                         'to': '2017-01-02 00:00:00+01',
-#                         'to_included': False
-#                     }
-#                 }, {
-#                     'objekttype': 'EMAIL',
-#                     'urn': 'urn:mailto:root@example.com',
-#                     'virkning': {
-#                         'from': '2017-01-02 00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'organisatoriskfunktionstype': [{
-#                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e',
-#                     'virkning': {
-#                         'from': '2016-01-01 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': '2017-01-02 '
-#                               '00:00:00+01',
-#                         'to_included': False
-#                     }
-#                 }, {
-#                     'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-#                     'virkning': {
-#                         'from': '2017-01-02 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedeenheder': [{
-#                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-#                     'virkning': {
-#                         'from': '2016-01-01 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }],
-#                 'tilknyttedeorganisationer': [{
-#                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
-#                     'virkning': {
-#                         'from': '2016-01-01 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             },
-#             'tilstande': {
-#                 'organisationfunktiongyldighed': [{
-#                     'gyldighed': 'Aktiv',
-#                     'virkning': {
-#                         'from': '2016-01-01 '
-#                                 '00:00:00+01',
-#                         'from_included': True,
-#                         'to': 'infinity',
-#                         'to_included': False
-#                     }
-#                 }]
-#             }
-#         }
-#
-#         actual = mora_util.async_to_sync(c.organisationfunktion.get)(addr_id)
-#
-#         self.assertRegistrationsEqual(expected, actual)
-#
-#     def test_edit_address_user_key(self, mock):
-#         self.load_sample_structures()
-#
-#         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-#
-#         addr_id = '414044e0-fe5f-4f82-be20-1e107ad50e80'
-#
-#         self.assertRequest(
-#             '/service/details/edit',
-#             json=[
-#                 {
-#                     "type": "address",
-#                     "uuid": addr_id,
-#                     "data": {
-#                         "user_key": "gedebukkebensoverogundergeneralkrigs"
-#                                     "kommandørsergenten",
-#                         'validity': {'from': '2018-01-01', 'to': '2019-12-31'},
-#                     },
-#                 }
-#             ],
-#             amqp_topics={'org_unit.address.update': 1},
-#         )
-#
-#         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
-#
-#         actual_reg = mora_util.async_to_sync(c.organisationfunktion.get)(addr_id)
-#         actual = sorted(
-#             actual_reg['attributter']['organisationfunktionegenskaber'],
-#             key=mora_util.get_effect_from,
-#         )
-#
-#         expected = [
-#             {
-#                 "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
-#                 "funktionsnavn": "Adresse",
-#                 "virkning": {
-#                     "from": "2016-01-01 00:00:00+01",
-#                     "from_included": True,
-#                     "to": "2018-01-01 00:00:00+01",
-#                     "to_included": False,
-#                 },
-#             },
-#             {
-#                 "brugervendtnoegle": (
-#                     "gedebukkebensoverogundergeneralkrigskommandørsergenten"
-#                 ),
-#                 "funktionsnavn": "Adresse",
-#                 "virkning": {
-#                     "from": "2018-01-01 00:00:00+01",
-#                     "from_included": True,
-#                     "to": "2020-01-01 00:00:00+01",
-#                     "to_included": False,
-#                 },
-#             },
-#             {
-#                 "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
-#                 "funktionsnavn": "Adresse",
-#                 "virkning": {
-#                     "from": "2020-01-01 00:00:00+01",
-#                     "from_included": True,
-#                     "to": "infinity",
-#                     "to_included": False,
-#                 },
-#             },
-#         ]
-#
-#         self.assertEqual(actual, expected)
-#
-# # @freezegun.freeze_time('2017-01-01', tz_offset=1)
-# # @util.mock('dawa-addresses.json', allow_mox=True)
-# # class Reading(util.LoRATestCase):
-# #
-# #     def test_missing_class(self, mock):
-# #         self.load_sample_structures(minimal=True)
-# #
-# #         # The relevant address_type klasse is not present in the minimal dataset
-# #         mora_util.async_to_sync(util.load_fixture)(
-# #             'organisation/organisationfunktion',
-# #             'create_organisationfunktion_email_andersand.json',
-# #         )
-# #
-# #         r = self.assertRequest(
-# #             '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
-# #             '/details/address',
-# #         )
-# #
-# #         self.assertEqual(None, r[0]['address_type'])
-# #
-# #     def test_reading(self, mock):
-# #         self.load_sample_structures()
-# #
-# #         with self.subTest('Addresses present'):
-# #             self.assertRequestResponse(
-# #                 '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
-# #                 '/details/address?validity=present&only_primary_uuid=1',
-# #                 [
-# #                     {
-# #                         'uuid': '64ea02e2-8469-4c54-a523-3d46729e86a7',
-# #                         'address_type': {
-# #                             'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
-# #                         },
-# #                         'href': 'mailto:goofy@example.com',
-# #                         'name': 'goofy@example.com',
-# #                         'value': 'goofy@example.com',
-# #                         'user_key': 'bruger@example.comw',
-# #                         'person': {
-# #                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
-# #                         },
-# #                         'validity': {
-# #                             'from': '1932-05-12',
-# #                             'to': None,
-# #                         },
-# #                     },
-# #                     {
-# #                         'uuid': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
-# #                         'address_type': {
-# #                             'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
-# #                         },
-# #                         'href': 'https://www.openstreetmap.org/?mlon='
-# #                                 '10.19938084&mlat=56.17102843&zoom=16',
-# #                         'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-# #                         'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
-# #                         'user_key': 'Christiansborg Slotsplads 1, '
-# #                                     '1218 København K',
-# #                         'person': {
-# #                             'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
-# #                         },
-# #                         'validity': {
-# #                             'from': '1932-05-12',
-# #                             'to': None,
-# #                         },
-# #                     },
-# #                 ],
-# #             )
-# #
-# #         with self.subTest('No addresses'):
-# #             self.assertRequestResponse(
-# #                 '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
-# #                 '/details/address?validity=present',
-# #                 [],
-# #             )
-# #
-# #     def test_missing_address(self, mock):
-# #         self.load_sample_structures()
-# #
-# #         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-# #         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
-# #         functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
-# #
-# #         for t in ('adresser', 'adgangsadresser',
-# #                   'historik/adresser', 'historik/adgangsadresser'):
-# #             mock.get(
-# #                 'https://dawa.aws.dk/' + t,
-# #                 json=[],
-# #             )
-# #
-# #         mora_util.async_to_sync(lora.Connector().organisationfunktion.update)(
-# #             {
-# #                 'relationer': {
-# #                     'adresser': [
-# #                         {
-# #                             'objekttype': "DAR",
-# #                             'urn': "urn:dar:{}".format(addrid),
-# #                             'virkning': {
-# #                                 'from': '2016-01-01',
-# #                                 'to': '2020-01-01',
-# #                             },
-# #                         },
-# #                     ],
-# #                 },
-# #             },
-# #             functionid,
-# #         )
-# #
-# #         self.assertRequestResponse(
-# #             '/service/ou/{}/details/address'.format(unitid),
-# #             [{
-# #                 'address_type': {
-# #                     'example': '<UUID>',
-# #                     'facet': address_type_facet,
-# #                     'full_name': 'Postadresse',
-# #                     'name': 'Postadresse',
-# #                     'owner': None,
-# #                     'scope': 'DAR',
-# #                     'top_level_facet': address_type_facet,
-# #                     'user_key': 'OrgEnhedPostadresse',
-# #                     'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
-# #                 },
-# #                 'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
-# #                 'href': None,
-# #                 'name': 'Ukendt',
-# #                 'org_unit': {
-# #                     'name': 'Overordnet Enhed',
-# #                     'user_key': 'root',
-# #                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-# #                     'validity': {'from': '2016-01-01', 'to': None}
-# #                 },
-# #                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-# #                 'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-# #                 'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
-# #             }],
-# #         )
-# #
-# #     def test_missing_error(self, mock):
-# #         self.load_sample_structures()
-# #
-# #         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-# #         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
-# #         functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
-# #
-# #         mock.get(
-# #             'https://dawa.aws.dk/adresser',
-# #             json={
-# #                 "type": "ResourceNotFoundError",
-# #                 "title": "The resource was not found",
-# #                 "details": {
-# #                     "id": "bd7e5317-4a9e-437b-8923-11156406b117",
-# #                 },
-# #             },
-# #             status_code=500,
-# #         )
-# #
-# #         mora_util.async_to_sync(lora.Connector().organisationfunktion.update)(
-# #             {
-# #                 'relationer': {
-# #                     'adresser': [
-# #                         {
-# #                             'objekttype': 'DAR',
-# #                             'urn': "urn:dar:{}".format(addrid),
-# #                             'virkning': {
-# #                                 'from': '2016-01-01',
-# #                                 'to': '2020-01-01',
-# #                             },
-# #                         },
-# #                     ],
-# #                 },
-# #             },
-# #             functionid,
-# #         )
-# #
-# #         with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
-# #             self.assertRequestResponse(
-# #                 '/service/ou/{}/details/address'.format(unitid),
-# #                 [{
-# #                     'address_type': {
-# #                         'example': '<UUID>',
-# #                         'facet': address_type_facet,
-# #                         'full_name': 'Postadresse',
-# #                         'name': 'Postadresse',
-# #                         'owner': None,
-# #                         'scope': 'DAR',
-# #                         'top_level_facet': address_type_facet,
-# #                         'user_key': 'OrgEnhedPostadresse',
-# #                         'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
-# #                     },
-# #                     'href': None,
-# #                     'name': 'Ukendt',
-# #                     'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
-# #                     'org_unit': {
-# #                         'name': 'Overordnet Enhed',
-# #                         'user_key': 'root',
-# #                         'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
-# #                         'validity': {'from': '2016-01-01', 'to': None}
-# #                     },
-# #                     'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-# #                     'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-# #                     'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
-# #                 }],
-# #             )
-# #
-# #             self.assertRegex(log_res.output[0],
-# #                              "ADDRESS LOOKUP FAILED")
+    def test_create_engagement_with_address(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+        payload = [
+            {
+                "type": "engagement",
+                "person": {'uuid': userid},
+                "primary": {'uuid': "d60d1fd6-e561-463c-9a43-2fa99d27c7a3"},
+                "org_unit": {'uuid': "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {
+                    'uuid': "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {
+                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "user_key": "1234",
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+                "address": [
+                    {"type": "address",
+                     'address_type': {'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0', },
+                     'value': 'root@example.com',
+                     "validity": {"from": "2017-01-02", },
+                     }
+                ],
+            }
+        ]
+
+        func_id, = self.assertRequest(
+            '/service/details/create',
+            json=payload,
+            amqp_topics={
+                'employee.engagement.create': 1,
+                'org_unit.engagement.create': 1,
+            },
+        )
+        expected_tilknyttedefunktioner = [{
+            'uuid': func_id,
+            'objekttype': 'engagement',
+            'virkning': {
+                'from': '2017-01-02 '
+                        '00:00:00+01',
+                'from_included': True,
+                'to': 'infinity',
+                'to_included': False
+            }
+        }]
+
+        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+            tilknyttedefunktioner=func_id)
+        assert len(addr_id) == 1
+        addr_id = addr_id[0]
+
+        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)['relationer'][
+            'tilknyttedefunktioner']
+
+        self.assertEqual(expected_tilknyttedefunktioner, actual)
+
+    def test_create_org_unit_with_address(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        unit_id = self.assertRequest(
+            '/service/ou/create',
+            json={
+                "name": "Fake Corp",
+                "integration_data": {"fakekey": 42},
+                "parent": {
+                    'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
+                },
+                "org_unit_type": {
+                    'uuid': "ca76a441-6226-404f-88a9-31e02e420e52"
+                },
+                "validity": {
+                    "from": "2016-02-04",
+                },
+                "details": [
+                    {
+                        "type": "address",
+                        'address_type': {
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        },
+                        'value': 'root@example.com',
+                        "validity": {
+                            "from": "2017-01-02",
+                        },
+                    },
+                ]
+            },
+            amqp_topics={
+                'org_unit.address.create': 1,
+                'org_unit.org_unit.create': 1,
+            },
+        )
+
+        expected = {
+            'attributter': {
+                'organisationfunktionegenskaber': [{
+                    'brugervendtnoegle': 'root@example.com',
+                    'funktionsnavn': 'Adresse',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Importeret',
+            'note': 'Oprettet i MO',
+            'relationer': {
+                'adresser': [{
+                    'objekttype': 'EMAIL',
+                    'urn': 'urn:mailto:root@example.com',
+                    'virkning': {
+                        'from': '2017-01-02 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': unit_id,
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        addr_id = util.async_to_sync(c.organisationfunktion.fetch)(
+            tilknyttedeenheder=unit_id)
+        assert len(addr_id) == 1
+        addr_id = addr_id[0]
+
+        self.assertRegistrationsEqual(
+            expected,
+            util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        )
+
+    def test_edit_address(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        addr_id = '414044e0-fe5f-4f82-be20-1e107ad50e80'
+
+        self.assertRequest(
+            '/service/details/edit',
+            json=[
+                {
+                    "type": "address",
+                    "uuid": addr_id,
+                    "data": {
+                        'address_type': {
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        },
+                        'value': 'root@example.com',
+                        "validity": {
+                            "from": "2017-01-02",
+                        },
+                    },
+                }
+            ],
+            amqp_topics={'org_unit.address.update': 1},
+        )
+
+        expected = {
+            'attributter': {
+                'organisationfunktionegenskaber': [{
+                    'brugervendtnoegle': 'Nordre '
+                                         'Ringgade '
+                                         '1, '
+                                         '8000 '
+                                         'Aarhus '
+                                         'C',
+                    'funktionsnavn': 'Adresse',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'livscykluskode': 'Rettet',
+            'note': 'Rediger Adresse',
+            'relationer': {
+                'adresser': [{
+                    'objekttype': 'DAR',
+                    'urn': 'urn:dar:b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                    'virkning': {
+                        'from': '2016-01-01 00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-01-02 00:00:00+01',
+                        'to_included': False
+                    }
+                }, {
+                    'objekttype': 'EMAIL',
+                    'urn': 'urn:mailto:root@example.com',
+                    'virkning': {
+                        'from': '2017-01-02 00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'organisatoriskfunktionstype': [{
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': '2017-01-02 '
+                              '00:00:00+01',
+                        'to_included': False
+                    }
+                }, {
+                    'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                    'virkning': {
+                        'from': '2017-01-02 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeenheder': [{
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }],
+                'tilknyttedeorganisationer': [{
+                    'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            },
+            'tilstande': {
+                'organisationfunktiongyldighed': [{
+                    'gyldighed': 'Aktiv',
+                    'virkning': {
+                        'from': '2016-01-01 '
+                                '00:00:00+01',
+                        'from_included': True,
+                        'to': 'infinity',
+                        'to_included': False
+                    }
+                }]
+            }
+        }
+
+        actual = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+
+        self.assertRegistrationsEqual(expected, actual)
+
+    def test_edit_address_user_key(self, mock):
+        self.load_sample_structures()
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+
+        addr_id = '414044e0-fe5f-4f82-be20-1e107ad50e80'
+
+        self.assertRequest(
+            '/service/details/edit',
+            json=[
+                {
+                    "type": "address",
+                    "uuid": addr_id,
+                    "data": {
+                        "user_key": "gedebukkebensoverogundergeneralkrigs"
+                                    "kommandørsergenten",
+                        'validity': {'from': '2018-01-01', 'to': '2019-12-31'},
+                    },
+                }
+            ],
+            amqp_topics={'org_unit.address.update': 1},
+        )
+
+        c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
+
+        actual_reg = util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual = sorted(
+            actual_reg['attributter']['organisationfunktionegenskaber'],
+            key=get_effect_from,
+        )
+
+        expected = [
+            {
+                "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "2018-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "brugervendtnoegle": (
+                    "gedebukkebensoverogundergeneralkrigskommandørsergenten"
+                ),
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2018-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "2020-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "brugervendtnoegle": "Nordre Ringgade 1, 8000 Aarhus C",
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "2020-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        self.assertEqual(actual, expected)
+
+    def test_create_address_related_to_engagement(self, mock):
+        self.load_sample_structures()
+
+        engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
+
+        req = [{"type": "address",
+                'address_type': {'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0', },
+                'value': 'root@example.com', "validity": {"from": "2017-01-02", },
+                "engagement": {"uuid": engagement_uuid}}]
+
+        created = self.assertRequest(
+            '/service/details/create',
+            json=req,
+        )
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        actual_response = util.async_to_sync(c.organisationfunktion.get)(
+            uuid=created[0])
+        actual = actual_response['relationer']['tilknyttedefunktioner']
+        expected = [{'objekttype': 'engagement',
+                     'uuid': engagement_uuid,
+                     'virkning': {'from': '2017-01-02 '
+                                          '00:00:00+01',
+                                  'from_included': True,
+                                  'to': 'infinity',
+                                  'to_included': False}}]
+        self.assertEqual(actual, expected)
+
+
+@freezegun.freeze_time('2017-01-01', tz_offset=1)
+@util.mock('dawa-addresses.json', allow_mox=True)
+class Reading(util.LoRATestCase):
+
+    def test_missing_class(self, mock):
+        self.load_sample_structures(minimal=True)
+
+        # The relevant address_type klasse is not present in the minimal dataset
+        util.async_to_sync(util.load_fixture)(
+            'organisation/organisationfunktion',
+            'create_organisationfunktion_email_andersand.json',
+        )
+
+        r = self.assertRequest(
+            '/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a'
+            '/details/address',
+        )
+
+        self.assertEqual(None, r[0]['address_type'])
+
+    def test_reading(self, mock):
+        self.load_sample_structures()
+
+        with self.subTest('Addresses present'):
+            self.assertRequestResponse(
+                '/service/e/6ee24785-ee9a-4502-81c2-7697009c9053'
+                '/details/address?validity=present&only_primary_uuid=1',
+                [
+                    {
+                        'uuid': '64ea02e2-8469-4c54-a523-3d46729e86a7',
+                        'address_type': {
+                            'uuid': 'c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0',
+                        },
+                        'href': 'mailto:goofy@example.com',
+                        'name': 'goofy@example.com',
+                        'value': 'goofy@example.com',
+                        'user_key': 'bruger@example.comw',
+                        'person': {
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
+                        'validity': {
+                            'from': '1932-05-12',
+                            'to': None,
+                        },
+                    },
+                    {
+                        'uuid': 'cd6008bc-1ad2-4272-bc1c-d349ef733f52',
+                        'address_type': {
+                            'uuid': '4e337d8e-1fd2-4449-8110-e0c8a22958ed',
+                        },
+                        'href': 'https://www.openstreetmap.org/?mlon='
+                                '10.19938084&mlat=56.17102843&zoom=16',
+                        'name': 'Nordre Ringgade 1, 8000 Aarhus C',
+                        'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197',
+                        'user_key': 'Christiansborg Slotsplads 1, '
+                                    '1218 København K',
+                        'person': {
+                            'uuid': '6ee24785-ee9a-4502-81c2-7697009c9053',
+                        },
+                        'validity': {
+                            'from': '1932-05-12',
+                            'to': None,
+                        },
+                    },
+                ],
+            )
+
+        with self.subTest('No addresses'):
+            self.assertRequestResponse(
+                '/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0'
+                '/details/address?validity=present',
+                [],
+            )
+
+    def test_missing_address(self, mock):
+        self.load_sample_structures()
+
+        unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+        addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
+        functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
+
+        for t in ('adresser', 'adgangsadresser',
+                  'historik/adresser', 'historik/adgangsadresser'):
+            mock.get(
+                'https://dawa.aws.dk/' + t,
+                json=[],
+            )
+
+        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+            {
+                'relationer': {
+                    'adresser': [
+                        {
+                            'objekttype': "DAR",
+                            'urn': "urn:dar:{}".format(addrid),
+                            'virkning': {
+                                'from': '2016-01-01',
+                                'to': '2020-01-01',
+                            },
+                        },
+                    ],
+                },
+            },
+            functionid,
+        )
+
+        self.assertRequestResponse(
+            '/service/ou/{}/details/address'.format(unitid),
+            [{
+                'address_type': {
+                    'example': '<UUID>',
+                    'facet': address_type_facet,
+                    'full_name': 'Postadresse',
+                    'name': 'Postadresse',
+                    'owner': None,
+                    'scope': 'DAR',
+                    'top_level_facet': address_type_facet,
+                    'user_key': 'OrgEnhedPostadresse',
+                    'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
+                },
+                'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
+                'href': None,
+                'name': 'Ukendt',
+                'org_unit': {
+                    'name': 'Overordnet Enhed',
+                    'user_key': 'root',
+                    'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                    'validity': {'from': '2016-01-01', 'to': None}
+                },
+                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+            }],
+        )
+
+    def test_missing_error(self, mock):
+        self.load_sample_structures()
+
+        unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+        addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
+        functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
+
+        mock.get(
+            'https://dawa.aws.dk/adresser',
+            json={
+                "type": "ResourceNotFoundError",
+                "title": "The resource was not found",
+                "details": {
+                    "id": "bd7e5317-4a9e-437b-8923-11156406b117",
+                },
+            },
+            status_code=500,
+        )
+
+        util.async_to_sync(lora.Connector().organisationfunktion.update)(
+            {
+                'relationer': {
+                    'adresser': [
+                        {
+                            'objekttype': 'DAR',
+                            'urn': "urn:dar:{}".format(addrid),
+                            'virkning': {
+                                'from': '2016-01-01',
+                                'to': '2020-01-01',
+                            },
+                        },
+                    ],
+                },
+            },
+            functionid,
+        )
+
+        with self.assertLogs(self.app.logger, logging.WARNING) as log_res:
+            self.assertRequestResponse(
+                '/service/ou/{}/details/address'.format(unitid),
+                [{
+                    'address_type': {
+                        'example': '<UUID>',
+                        'facet': address_type_facet,
+                        'full_name': 'Postadresse',
+                        'name': 'Postadresse',
+                        'owner': None,
+                        'scope': 'DAR',
+                        'top_level_facet': address_type_facet,
+                        'user_key': 'OrgEnhedPostadresse',
+                        'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'
+                    },
+                    'href': None,
+                    'name': 'Ukendt',
+                    'user_key': 'Nordre Ringgade 1, 8000 Aarhus C',
+                    'org_unit': {
+                        'name': 'Overordnet Enhed',
+                        'user_key': 'root',
+                        'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
+                        'validity': {'from': '2016-01-01', 'to': None}
+                    },
+                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
+                    'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
+                    'value': 'bd7e5317-4a9e-437b-8923-11156406b117'
+                }],
+            )
+
+            self.assertRegex(log_res.output[0],
+                             "ADDRESS LOOKUP FAILED")

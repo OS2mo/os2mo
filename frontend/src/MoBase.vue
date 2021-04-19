@@ -21,9 +21,3 @@ export default {
   name: 'MoBase'
 }
 </script>
-
-<style>
-  .container-top-margin {
-    margin-top: 4em;
-  }
-</style>

@@ -21,3 +21,4 @@ sqlalchemy
 sqlalchemy-utils
 aiohttp
 os2mo-http-trigger-protocol
+anytree

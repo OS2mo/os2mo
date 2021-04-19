@@ -22,7 +22,10 @@ const actions = {
   [_conf.actions.SET_NAVLINKS]: ({ commit }) => {
     return Service.get(`/navlinks`)
       .then(response => {
-        commit(_conf.mutations.SET_NAVLINKS, response.data)
+        let nonEmptyNavLinks = response.data.filter(
+          navlink => navlink && navlink.href !== undefined
+        )
+        commit(_conf.mutations.SET_NAVLINKS, nonEmptyNavLinks)
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })

@@ -29,7 +29,7 @@ export default {
       return 'facet-' + this._uid
     },
 
-    async get_entry(newVal, validity) {
+    async get_entry(newVal) {
       let details = [Facet.ClassDetails.TOP_LEVEL_FACET]
       return await Class.get(newVal, details)
     },

@@ -2,17 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import logging
-import operator
 from asyncio import create_task, gather
-from typing import Any, Awaitable, Dict, Iterable, Optional
+from typing import Any, Awaitable, Dict, Iterable
 
 import flask
 
 from .. import reading
 from ... import mapping
 from ... import util
-from ...request_wide_bulking import request_wide_bulk
-from ...service import address
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -20,18 +17,6 @@ from ...service import orgunit
 ROLE_TYPE = "manager"
 
 logger = logging.getLogger(__name__)
-
-
-async def address_helper(c, address_uuid) -> Optional[Dict[Any, Any]]:
-    orgfunc = await c.organisationfunktion.get(uuid=address_uuid)
-    try:
-        addr = await address.get_one_address(orgfunc)
-    except IndexError:
-        # empty ["relationer"]["adresser"]
-        return None
-    addr["address_type"] = await address.get_address_type(orgfunc)
-    addr["uuid"] = address_uuid
-    return addr
 
 
 @reading.register(ROLE_TYPE)
@@ -76,7 +61,6 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         person = mapping.USER_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)
-        addresses = list(mapping.FUNCTION_ADDRESS_FIELD.get_uuids(effect))
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
@@ -112,24 +96,11 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             only_primary_uuid=only_primary_uuid
         ))
 
-        address_tasks = [
-            create_task(address_helper(request_wide_bulk.connector, address_uuid))
-            for address_uuid in addresses]
-
         func: Dict[Any, Any] = {
             **await base_obj,
             mapping.RESPONSIBILITY: gather(*resp_tasks),
             mapping.ORG_UNIT: await org_unit_task,
-            mapping.ADDRESS: [],
         }
-
-        addr_results = await gather(*address_tasks)
-        func[mapping.ADDRESS].extend([addr for addr in addr_results
-                                      if addr is not None])
-
-        func[mapping.ADDRESS] = sorted(
-            func[mapping.ADDRESS], key=operator.itemgetter(mapping.NAME)
-        )
 
         if person:
             func[mapping.PERSON] = await person_task

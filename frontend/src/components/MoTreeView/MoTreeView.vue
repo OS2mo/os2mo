@@ -28,10 +28,11 @@ SPDX-License-Identifier: MPL-2.0
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 import { EventBus, Events } from '@/EventBus'
 import MoLoader from '@/components/atoms/MoLoader'
 import LiquorTree from 'liquor-tree'
-
+import { AtDate } from '@/store/actions/atDate'
 
 export default {
   components: {
@@ -50,11 +51,6 @@ export default {
      * @model
      */
     value: { type: [String, Array] },
-
-    /**
-     * Defines the date for rendering the tree; used for the time machine.
-     */
-    atDate: { type: [Date, String] },
 
     /**
      * UUID of unselectable unit.
@@ -149,7 +145,11 @@ export default {
       }
 
       return visitNode(this.tree.getRootNode(), 0)
-    }
+    },
+
+    ...mapGetters({
+      'atDate': AtDate.getters.GET
+    })
   },
 
   data () {
@@ -181,20 +181,22 @@ export default {
           return vm.fetch(node)
         }
       },
-      isLoading: true
+
+      isLoading: true,
+
+      _atDate: undefined,
     }
   },
 
   mounted () {
-
+    this._atDate = this.$store.getters[AtDate.getters.GET]
     EventBus.$on(Events.UPDATE_TREE_VIEW, this.listener)
     this.updateTree()
-
   },
 
   beforeDestroy () {
     EventBus.$off(Events.UPDATE_TREE_VIEW, this.listener)
- },
+  },
 
   watch: {
     /**
@@ -257,7 +259,8 @@ export default {
     /**
      * Re-render the tree when the date changes.
      */
-    atDate () {
+    atDate (newVal) {
+      this._atDate = newVal
       this.updateTree(true)
     }
   },
@@ -397,11 +400,18 @@ export default {
         this.tree.remove({}, true)
       }
       if (this.multiple ? this.value.length > 0 : this.value) {
-        this.get_ancestor_tree(this.value, this.atDate)
-          .then(this.addNodes)
+        this.get_ancestor_tree(this.value, this._atDate).then(response => {
+          // Check if ancestor is empty
+          if (response.length === 0) {
+            // Ancestor tree is empty, reset to top-level children
+            this.get_toplevel_children(this.unitUuid, this._atDate).then(this.addNodes)
+          } else {
+            // Add ancestor tree
+            this.addNodes(response)
+          }
+        })
       } else if (this.unitUuid) {
-        this.get_toplevel_children(this.unitUuid, this.atDate)
-          .then(this.addNodes)
+        this.get_toplevel_children(this.unitUuid, this._atDate).then(this.addNodes)
       }
     },
 
@@ -421,7 +431,7 @@ export default {
       // duplicates
       node.fetching = true
 
-      return this.get_children(node.id, this.atDate)
+      return this.get_children(node.id, this._atDate)
         .then(response => {
           node.fetching = false
           return response.map(vm.toNode.bind(vm))
@@ -431,6 +441,11 @@ export default {
         })
     },
     listener(){
+      this.updateTree(true)
+    },
+
+    updateValidity (validity) {
+      this._atDate = validity.from
       this.updateTree(true)
     }
   }

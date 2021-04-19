@@ -13,8 +13,7 @@
     "ORGANISATION_RENAME": "Organisationsenheden {original_name} er blevet omdøbt til {new_name}.",
     "ORGANISATION_MOVE": "Organisationsenheden {name} er blevet flyttet til {parent}.",
     "ORGANISATION_TERMINATE": "Organisationsenheden {name} er blevet afsluttet pr. {terminate}.",
-    "ORGANISATION_EXTERNAL_FUNCTION": "{message}",
-    "READ_ONLY_MODE": "OS2mo kører i øjeblikket i skrivebeskyttet tilstand"
+    "ORGANISATION_EXTERNAL_FUNCTION": "{message}"
 
   },
   "error": {
@@ -49,8 +48,7 @@
     "V_INVALID_ADDRESS_PNUMBER": "Feltet skal indeholde 10 cifre.",
     "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en gyldig webadresse.",
     "E_UNKNOWN": "Uspecificeret fejl",
-    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}",
-    "E_READ_ONLY": "OS2mo kører i øjeblikket i skrivebeskyttet tilstand"
+    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",

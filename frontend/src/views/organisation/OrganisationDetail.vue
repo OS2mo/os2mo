@@ -58,6 +58,7 @@ import MoLog from '@/components/MoLog/MoLog'
 import MoLoader from '@/components/atoms/MoLoader'
 import OrganisationDetailTabs from './OrganisationDetailTabs'
 import { OrganisationUnit } from '@/store/actions/organisationUnit'
+import { AtDate } from '@/store/actions/atDate'
 
 export default {
   components: {
@@ -66,18 +67,22 @@ export default {
     MoLoader,
     OrganisationDetailTabs
   },
+
   data () {
     return {
-      latestEvent: undefined
+      latestEvent: undefined,
+      _atDate: undefined,
     }
   },
+
   computed: {
     /**
      * Get organisation uuid.
      */
     ...mapGetters({
       orgUnit: OrganisationUnit.getters.GET_ORG_UNIT,
-      orgUnitDetails: OrganisationUnit.getters.GET_DETAILS
+      orgUnitDetails: OrganisationUnit.getters.GET_DETAILS,
+      atDate: AtDate.getters.GET,
     }),
 
     ...mapState({
@@ -87,23 +92,38 @@ export default {
     orgUnitIntegration () {
       return this.$store.getters['conf/GET_CONF_DB'].show_org_unit_button
     }
-
   },
+
+  watch: {
+    atDate (newVal) {
+      this._atDate = newVal
+      if (this.latestEvent) {
+        this.loadContent(this.latestEvent)
+      }
+    },
+  },
+
   created () {
     this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
     this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
   },
+
   mounted () {
+    this._atDate = this.$store.getters[AtDate.getters.GET]
     EventBus.$on(Events.ORGANISATION_UNIT_CHANGED, this.listener)
   },
+
   beforeDestroy () {
     EventBus.$off(Events.ORGANISATION_UNIT_CHANGED, this.listener)
   },
+
   methods: {
     loadContent (event) {
+      event.atDate = this._atDate
       this.latestEvent = event
       this.$store.dispatch(OrganisationUnit.actions.SET_DETAIL, event)
     },
+
     listener () {
       this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
       this.loadContent(this.latestEvent)

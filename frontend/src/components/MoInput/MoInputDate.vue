@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
       :language="da"
       monday-first
       bootstrap-styling
-      clear-button
+      :clear-button="clearButton"
       :disabled-dates="disabledDates"
       :disabled="disabled"
     />
@@ -53,7 +53,17 @@ export default {
      * @default null
      * @type {Object}
      */
-    validDates: Object
+    validDates: Object,
+
+    /**
+     * Whether to display 'clear' button
+     * @default true
+     * @type {Boolean}
+     */
+    clearButton: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   data () {

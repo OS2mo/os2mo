@@ -52,7 +52,7 @@ const actions = {
   [_orgUnit.actions.SET_DETAIL] ({ state, commit }, payload) {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
-    let atDate = payload.atDate || new Date()
+    let atDate = payload.atDate
     let inheritManagerFlag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     if (payload.detail === 'manager' && state.user_settings.orgunit.inherit_manager) {

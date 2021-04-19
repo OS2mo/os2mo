@@ -26,11 +26,22 @@ variables:
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+  FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-frontend
 
   IMAGE_DEV: ${RELEASE_REGISTRY_IMAGE}:dev
   IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
   IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
   IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
+
+
+# Only run pipeline when pushing a tag or a branch.
+# This is a workaround for a bug causing detached pipelines on MRs
+# See: https://gitlab.com/gitlab-org/gitlab/-/issues/34756
+#      https://docs.gitlab.com/ee/ci/yaml/#workflowrules-templates
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
 
 
 # Lint stage
@@ -100,6 +111,24 @@ Build OS2MO:
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
       --destination=${IMAGE_SHA}
 
+Build frontend:
+  stage: build
+  needs: []
+  image:
+    # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
+    name: gcr.io/kaniko-project/executor:debug-v0.16.0
+    entrypoint: [""]
+  tags:
+    - docker
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
+      --destination=${FRONTEND_IMAGE_SHA}
+      --target=frontend
+
 Build docs:
   image: python:3.8
   stage: build
@@ -145,7 +174,8 @@ Build docs:
     SESSIONS_DB_USER: sessions
     SESSIONS_DB_PASSWORD: sessions
     # for mox service
-    MOX_USER_CONFIG_PATH: /code/dev-environment/settings-for-mo-test.toml
+    MOX_USER_CONFIG_PATH: /app/dev-environment/settings-for-mo-test.toml
+    MAX_WORKERS: "1"
     # for mo
     OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-ci-settings.toml
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
@@ -173,13 +203,8 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:latest
+    - name: magentaaps/lora:dev
       alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
   script:
     - pytest
       --cov=mora
@@ -197,21 +222,40 @@ Unit-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
+Vue-unit-test:
+  <<: *test-default
+  image:
+    name: ${FRONTEND_IMAGE_SHA}
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  needs: ["Build frontend"]
+  script:
+    - cd /code/frontend
+    - yarn install --dev
+    - yarn test:unit
+      --coverage
+      --coverageReporters=cobertura
+      --coverageReporters=html
+      --coverageReporters=text-summary
+      --coverageDirectory=$CI_PROJECT_DIR/coverage
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage
+    reports:
+      cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
+
 e2e-test:
   <<: *test-default
+  allow_failure: true
   image:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:latest
+    - name: magentaaps/lora:dev
       alias: mox
-      command: [
-      "gunicorn",
-      "--config", "docker/gunicorn-settings.py",
-      "--workers", "1", # Single threaded in dev
-      "oio_rest:app"]
     - name: ${IMAGE_SHA}
       alias: mo
       command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
@@ -223,6 +267,7 @@ e2e-test:
         --selector-timeout 30000
         --screenshot $CI_PROJECT_DIR/artifacts
         --video $CI_PROJECT_DIR/artifacts
+
   artifacts:
     when: always
     paths:
@@ -243,6 +288,18 @@ e2e-test:
   before_script:
     - apk add skopeo
 
+Release feature branch:
+  <<: *release-default
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /^feature\/.+$/
+  script:
+    - export IMAGE_FEATURE=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//_/g')
+    - echo "Releasing ${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
+    - skopeo copy
+      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
+      --dest-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
+      "docker://${IMAGE_SHA}"
+      "docker://${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
 
 Release dev:
   <<: *release-default

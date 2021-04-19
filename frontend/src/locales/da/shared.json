@@ -46,5 +46,9 @@
   "kle": "KLE-opmærkning | KLE-opmærkninger",
   "add_more": "Tilføj flere",
   "substitute": "Stedfortræder",
-  "it": "IT"
+  "it": "IT",
+  "main_organisation": "hovedorganisationen",
+  "engagement_id": "ID",
+  "entire_organisation": "Bruttoorganisation",
+  "belongs_to": "Tilhører"
 }

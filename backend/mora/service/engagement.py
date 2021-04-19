@@ -10,10 +10,14 @@ employees and organisational units.
 
 '''
 import uuid
+from itertools import chain
+
+from more_itertools import partition, repeatfunc, take
 
 import mora.async_util
 from . import handlers
 from . import org
+from .address import AddressRequestHandler
 from .validation import validator
 from .. import common
 from .. import lora
@@ -77,12 +81,38 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             udvidelse_attributter=extension_attributes
         )
 
+        # deal with addresses
+        addresses = util.checked_get(req, mapping.ADDRESS, [])
+        addr_ids = take(len(addresses), map(str, repeatfunc(uuid.uuid4)))
+
+        for address_obj, addr_id in zip(addresses, addr_ids):
+            address_obj[mapping.ENGAGEMENT] = {
+                mapping.UUID: func_id,
+                mapping.OBJECTTYPE: mapping.ENGAGEMENT
+            }
+            address_obj['uuid'] = addr_id
+            if not address_obj.get('validity'):
+                address_obj['validity'] = util.checked_get(
+                    req, mapping.VALIDITY, {}
+                )
+
+        self.addresses = map(lambda adr_obj: AddressRequestHandler(
+            adr_obj,
+            mapping.RequestType.CREATE,
+        ), addresses)
+
         self.payload = payload
         self.uuid = func_id
         self.trigger_dict.update({
             Trigger.EMPLOYEE_UUID: employee_uuid,
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
+
+    def submit(self):
+        if hasattr(self, 'addresses'):
+            for addr in self.addresses:
+                addr.submit()
+        return super().submit()
 
     def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
@@ -200,6 +230,53 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
             {'uuid': employee_uuid},
             new_from, new_to)
+
+        def to_edit_request(address_obj):
+            addr_uuid = address_obj.get(mapping.UUID)
+            addr_handler = AddressRequestHandler(
+                {
+                    'data': {
+                        **address_obj,
+                        'validity': data.get(mapping.VALIDITY)
+                    },
+                    'uuid': address_obj.get(mapping.UUID)
+                },
+                mapping.RequestType.EDIT
+            )
+            return addr_uuid, addr_handler
+
+        def to_create_request(address_obj):
+            addr_uuid = str(uuid.uuid4())
+            addr_handler = AddressRequestHandler(
+                {
+                    mapping.UUID: addr_uuid,
+                    mapping.ENGAGEMENT: {
+                        mapping.UUID: engagement_uuid
+                    },
+                    mapping.VALIDITY: data.get(mapping.VALIDITY),
+                    **address_obj,
+                },
+                mapping.RequestType.CREATE
+            )
+            return addr_uuid, addr_handler
+
+        addresses = util.checked_get(data, mapping.ADDRESS, [])
+        create_addresses, edit_addresses = partition(
+            lambda address_obj: mapping.UUID in address_obj,
+            addresses
+        )
+        edit_requests = map(to_edit_request, edit_addresses)
+        create_requests = map(to_create_request, create_addresses)
+
+        self.addresses = []
+        for addr_uuid, addr_handler in chain(edit_requests, create_requests):
+            update_fields.append((
+                mapping.ASSOCIATED_MANAGER_ADDRESSES_FIELD,
+                {
+                    'uuid': addr_uuid
+                },
+            ))
+            self.addresses.append(addr_handler)
 
         self.payload = payload
         self.uuid = engagement_uuid

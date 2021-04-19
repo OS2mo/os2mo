@@ -1,3 +1,21 @@
+Version 1.16.0, 2021-04-06
+==========================
+
+New features
+------------
+* #41387: Allowed frontend to create and edit (but not move) root units
+* #38904: Deprecated read-only
+* #39857: When selecting an organisation unit from a tree dropdown, you can now type to search by name
+* #40863: MO backend can now expose the number of associations and engagements in each organisation unit
+* #41658: Run Vue unittests in Gitlab CI. This adds a new 'Build frontend' step to our 'build' stage, as well as a new 'Vue-unit-tests' stage to our 'test' stage
+* #39853: Users can now specify a date when searching. This allows finding inactive organisation units, etc.
+* #41915: Prepare MO to utilize FastAPI LoRa.
+* #42112: Allow UI to set and change engagement ID (bvn)
+* #42033: Made extension_X fields on engagements UI-wise configurable in conf_db
+* #41973: Allowed addresses pointing to engagements
+* #41894: Added refresh trigger event
+* #40932: Users can now filter the displayed organisation unit tree if the new facet 'org_unit_hierarchy' is set up.
+
 Version 1.15.0, 2021-03-08
 ==========================
 
@@ -28,7 +46,6 @@ New features
 
 * #40303: Add "Links" dropdown to top navigation, displaying custom links for an organisation
 * #40960: Performance improvement: Bulk calls to lora (with request-wide cache , but  without automation-magic)
-
 
 Version 1.13.0, 2021-01-22
 ==========================

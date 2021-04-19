@@ -2,7 +2,7 @@ SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
 <div>
-  <button class="btn btn-outline-danger" v-b-modal="nameId" :disabled="disabled">
+  <button class="btn btn-outline-danger" v-b-modal="nameId">
     <icon name="ban" />
   </button>
 
@@ -70,11 +70,7 @@ export default {
     content: {
       type: Object,
       required: true
-    },
-    /**
-     * Whether the button is disabled
-     */
-    disabled: { type: Boolean, default: false }
+    }
   },
 
   data () {

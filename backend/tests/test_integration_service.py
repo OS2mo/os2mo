@@ -206,6 +206,18 @@ class Tests(util.LoRATestCase):
             ],
         )
 
+    def test_children_filtered(self):
+        # When asking for "&org_unit_hierarchy=<uuid>", the result should only
+        # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
+        # With the default test database contents, that means nothing should be
+        # returned.
+        self.load_sample_structures()
+        self.assertRequestResponse(
+            '/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children'
+            '?org_unit_hierarchy=321f1a2f-e185-42ef-a5f3-bebb2c69f1ba',
+            [],
+        )
+
     def test_orgunit_search(self):
         self.load_sample_structures()
 
@@ -425,6 +437,28 @@ class Tests(util.LoRATestCase):
                     'items': [],
                     'offset': 0,
                     'total': 0
+                }
+            )
+
+        with self.subTest('search and return paths'):
+            # When asking for "&details=path", the result should include a
+            # "location" for each matching org unit
+            self.assertRequestResponse(
+                '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/'
+                '?query=samf&details=path',
+                {
+                    'items': [{
+                        'location': 'Overordnet Enhed',
+                        'name': 'Samfundsvidenskabelige fakultet',
+                        'user_key': 'samf',
+                        'uuid': 'b688513d-11f7-4efc-b679-ab082a2055d0',
+                        'validity': {
+                            'from': '2017-01-01',
+                            'to': None
+                        },
+                    }],
+                    'offset': 0,
+                    'total': 1
                 }
             )
 
@@ -1258,14 +1292,6 @@ class Tests(util.LoRATestCase):
 
         func = [
             {
-                'address': [{
-                    'address_type': {'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
-                    'href': 'https://www.openstreetmap.org/?mlon=10.19938084'
-                            '&mlat=56.17102843&zoom=16',
-                    'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                    'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                    'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-                }],
                 'manager_level': {
                     'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
                 },

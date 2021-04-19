@@ -302,14 +302,6 @@ class Tests(util.LoRATestCase):
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
         expected = {
-            'address': [{
-                'address_type': {'uuid': '28d71012-2919-4b67-a2f0-7b59ed52561e'},
-                'href': 'https://www.openstreetmap.org/?mlon=10.19938084'
-                        '&mlat=56.17102843&zoom=16',
-                'name': 'Nordre Ringgade 1, 8000 Aarhus C',
-                'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
-                'value': 'b1f1817d-5f02-4331-b8b3-97330a5d3197'
-            }],
             'manager_level': {
                 'uuid': 'ca76a441-6226-404f-88a9-31e02e420e52',
             },

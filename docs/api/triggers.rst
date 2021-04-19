@@ -1,13 +1,15 @@
 Customization and Triggers
 ==========================
 
-In order to keep customizations out of the main code base os2mo makes use of
+In order to keep customizations out of the main code base OS2mo makes use of
 a 'customer' directory meant to be used as a mount point for importing
 customer specific code into the os2mo runtime.
 
 The intended way of customizing code is through the use of triggers.
 
-A Trigger is a function decorated using ``mora.triggers.Trigger.on``. This decorator ensures that the decorated function is called on a certain stage of the lifecycle of a certin kind of request for a certain role type. There are currently two such stages:
+A Trigger is a function decorated using ``mora.triggers.Trigger.on``.
+This decorator ensures that the decorated function is called on a certain stage of the lifecycle of a certin kind of request for a certain role type.
+There are currently two such stages:
 
  * ``ON_BEFORE``: this is typically fired after the request's prepare phase
  * ``ON_AFTER``: this is typically fired after the request's commit phase
@@ -22,14 +24,16 @@ Currently all Role Types (Organizational unit, Employee, Address to name a few) 
 Triggers deployed in OS2mo
 --------------------------
 
-OS2mo itself uses triggers for internal purposes. They reside in ``mora.triggers.internal`` module.
-See the ``amqp_trigger.py`` or ``http_trigger.py`` for examples.
+OS2mo itself uses triggers for internal purposes.
+They reside in ``mora.triggers.internal`` module.
+See the ``amqp_trigger.py`` and ``http_trigger.py`` for examples.
 
 
 Trigger configuration
 ---------------------
 
-Inclusion of Triggers in OS2mo are handled through a single configuration value called ``TRIGGER_MODULES`` which is a list of fully qualified names for trigger modules. In order for OS2mo to support triggering of the amqp module the default value of ``TRIGGER_MODULES`` is ``["mora.triggers.internal.amqp_trigger"]``
+Inclusion of Triggers in OS2mo are handled through a single configuration value called ``TRIGGER_MODULES`` which is a list of fully qualified names for trigger modules.
+The AMQP and HTTP Trigger modules are loaded directly, and thus do not need to be in ``TRIGGER_MODULES``.
 
 In order to convey settings directly to triggers we suggest using the fully qualified path as a prefix for configuration values which address that trigger, for example:
 
@@ -95,6 +99,49 @@ It can be reasonable to turn off trigger-functionality when for example loading 
 Using triggerless requests also disables amqp-messages.
 
 .. DANGER::
-   using ``triggerless mode`` is discouraged if You are not fully aware of all implications. It is meant to be used solely for purposes like initial data load or for integrations that prefer to do all heavy lifting by themselves.
+   using ``triggerless mode`` is discouraged if you are not fully aware of all implications.
+   It is meant to be used solely for purposes like initial data load or for integrations that prefer to do all heavy lifting by themselves.
 
 
+HTTP Trigger module
+-------------------
+The HTTP Trigger module is loaded, but not enabled by default.
+
+To enable the module add the following to MO's configuration:
+
+::
+
+    [triggers.http_trigger]
+    enabled = true
+    http_endpoints = [
+        "endpoint_to_trigger:9037"
+    ]
+
+Then restart MO, on startup MO will now send a request to ``/triggers`` on each of the configured endpoints.
+
+The ``/triggers`` endpoint is expected to return JSON list of ``MOTriggerRegister`` payloads.
+The JSON Schema for the ``MOTriggerRegister`` can be generated with:
+
+::
+
+    pip install os2mo-http-trigger-protocol
+    python3 -c "from os2mo_http_trigger_protocol import MOTriggerRegister; print(MOTriggerRegister.schema_json())"
+
+An example of the return value is:
+
+::
+
+    [{
+        "event_type": "ON_BEFORE",
+        "request_type": "CREATE",
+        "role_type": "org_unit",
+        "url": "/triggers/ou/create",
+        "timeout": 60,
+    }]
+
+Which instructs MO to send a HTTP POST request to ``/triggers/ou/create`` before an organizational unit is created.
+The request will timeout after ``60`` seconds, and expects a status-code ``200`` return if no issues were encountered.
+If the request is answered with an erroneous status code, it will block the creation in MO.
+
+For an example implementation of a compliant endpoint receiver, please see:
+* https://github.com/OS2mo/OS2mo-http-trigger-example

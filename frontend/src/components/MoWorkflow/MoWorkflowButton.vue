@@ -1,7 +1,7 @@
 SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <button type="button" class="btn btn-primary btn-workflow" :disabled="disabled">
+  <button type="button" class="btn btn-primary btn-workflow">
     <icon class="btn-icon" :name="icon"/>
     <label class="btn-label">{{label}}</label>
   </button>
@@ -24,12 +24,7 @@ export default {
     /**
      * Defines a required icon.
      */
-    icon: { type: String, required: true },
-
-    /**
-     * Whether the button is disabled
-     */
-    disabled: { type: Boolean, default: false }
+    icon: { type: String, required: true }
   }
 }
 </script>

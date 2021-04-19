@@ -74,7 +74,9 @@ const actions = {
 
   getEmployees ({ state, commit }) {
     if (!state.orgUnitSource) return
-    OrganisationUnit.getDetail(state.orgUnitSource.uuid, 'engagement')
+    let validity = undefined
+    let atDate = state.moveDate
+    OrganisationUnit.getDetail(state.orgUnitSource.uuid, 'engagement', validity, atDate)
       .then(response => {
         commit('updateEmployees', response)
       })

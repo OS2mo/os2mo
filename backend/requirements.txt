@@ -8,6 +8,8 @@ aiohttp==3.7.3
     # via -r requirements.in
 alembic==1.4.3
     # via -r requirements.in
+anytree==2.8.0
+    # via -r requirements.in
 async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
@@ -77,7 +79,7 @@ multidict==5.1.0
     # via
     #   aiohttp
     #   yarl
-os2mo-http-trigger-protocol==0.0.2
+os2mo-http-trigger-protocol==0.0.3
     # via -r requirements.in
 pika==1.1.0
     # via -r requirements.in
@@ -103,6 +105,7 @@ git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
     # via -r requirements.in
 six==1.15.0
     # via
+    #   anytree
     #   flask-cors
     #   isodate
     #   python-dateutil
