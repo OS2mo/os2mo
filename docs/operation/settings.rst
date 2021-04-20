@@ -28,3 +28,21 @@ This is the content of :file:`backend/mora/default-settings.toml`:
 .. literalinclude:: ../../backend/mora/default-settings.toml
     :language: toml
     :lines: 9-
+
+
+The :code:`[[navlinks]]` setting can contain one or more links. These links will be
+visible from a "Links" menu in the MO top navigation. Here is an example:
+
+.. code::
+
+    [[navlinks]]
+    href = "https://google.com"
+    text = "Google"
+
+    [[navlinks]]
+    href = "https://magenta.dk"
+    text = "Magenta"
+
+See the TOML documentation on
+`arrays of tables <https://toml.io/en/v1.0.0#array-of-tables>`_ for more
+details on the syntax used.

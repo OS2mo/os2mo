@@ -627,8 +627,19 @@ async def get_children(type, parentid: UUID, at: Optional[date] = Query(None),
     :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
     :param uuid parentid: The UUID of the parent.
 
-    :queryparam date at: Show the children valid at this point in time,
-        in ISO-8601 format.
+    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
+               The tree returned will only include organisational units that
+               were valid at the specified 'at date'.
+    :query count: the name(s) of related objects to count for each unit.
+                  *Optional*. If `count=association`, each organisational unit
+                  in the tree is annotated with an additional
+                  `association_count` key which contains the number of
+                  associations in the unit. `count=engagement` is also allowed.
+                  It is allowed to pass more than one `count` query parameter.
+    :query org_unit_hierarchy: the UUID of an optional 'org unit hierarchy'.
+                               *Optional*. The tree returned is filtered to
+                               contain only organisational units which belong
+                               to the given hierarchy.
 
     :>jsonarr string name: Human-readable name of the unit.
     :>jsonarr string user_key: Short, unique key identifying the unit.
@@ -747,9 +758,22 @@ async def get_unit_ancestor_tree(
 
     .. :quickref: Unit; Ancestor tree
 
-    :queryparam unitid: The UUID of the organisational unit.
+    :query unitid: the UUID of the organisational unit. *Required*.
+    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
+               The tree returned will only include organisational units that
+               were valid at the specified 'at date'.
+    :query count: the name(s) of related objects to count for each unit.
+                  *Optional*. If `count=association`, each organisational unit
+                  in the tree is annotated with an additional
+                  `association_count` key which contains the number of
+                  associations in the unit. `count=engagement` is also allowed.
+                  It is allowed to pass more than one `count` query parameter.
+    :query org_unit_hierarchy: the UUID of an optional 'org unit hierarchy'.
+                               *Optional*. The tree returned is filtered to
+                               contain only organisational units which belong
+                               to the given hierarchy.
 
-    :see: http:get:`/service/ou/(uuid:unitid)/`.
+    :see: :http:get:`/service/ou/(uuid:unitid)/`
 
     **Example Response**:
 
@@ -876,8 +900,15 @@ async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
 
     :param uuid unitid: UUID of the unit to retrieve.
 
-    :queryparam date at: Show the unit at this point in time,
-        in ISO-8601 format.
+    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
+               The tree returned will only include organisational units that
+               were active at the specified 'at date'.
+    :query count: the name(s) of related objects to count for each unit.
+                  *Optional*. If `count=association`, each organisational unit
+                  in the tree is annotated with an additional
+                  `association_count` key which contains the number of
+                  associations in the unit. `count=engagement` is also allowed.
+                  It is allowed to pass more than one `count` query parameter.
 
     :>json string name: The name of the org unit
     :>json string user_key: A unique key for the org unit.
