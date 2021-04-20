@@ -139,7 +139,7 @@ def dar():
     """
     url = "https://dawa.aws.dk/autocomplete"
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=2)
         if r.status_code == 200:
             return True
         else:
