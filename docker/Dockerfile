@@ -13,7 +13,7 @@ WORKDIR /app/frontend
 COPY frontend/package.json .
 COPY frontend/yarn.lock .
 # We fail hard if the yaml.lock is outdated.
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile && yarn cache clean
 
 COPY frontend .
 RUN yarn build
