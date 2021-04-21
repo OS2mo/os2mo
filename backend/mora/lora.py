@@ -88,6 +88,20 @@ async def _check_response(r):
     return r
 
 
+def uuid_to_str(value):
+    """Used to convert UUIDs to str in nested structures"""
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    elif isinstance(value, dict):
+        return {k: uuid_to_str(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return list(map(uuid_to_str, value))
+    elif isinstance(value, set):
+        return set(map(uuid_to_str, value))
+    else:
+        return value
+
+
 def exotics_to_str(value):
     """
     just to converting "exotic"-types to str, even if nested in an other structure
@@ -378,6 +392,8 @@ class Scope:
             return registrations[0]
 
     async def create(self, obj, uuid=None):
+        obj = uuid_to_str(obj)
+
         if uuid:
             async with mora.async_util.async_session(
             ).put('{}/{}'.format(self.base_path, uuid),

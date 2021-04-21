@@ -20,11 +20,15 @@ import enum
 import locale
 from asyncio import create_task, gather
 from typing import Any, Awaitable, Dict, List, Optional, Set
-from uuid import UUID
+from uuid import UUID, uuid4
+from more_itertools import one
 
 from fastapi import APIRouter, Request
 
 from mora.request_scoped.bulking import request_wide_bulk
+from mora.service.models import MOClass
+import mora.async_util
+from . import handlers
 from .tree_helper import prepare_ancestor_tree
 from .. import common
 from .. import exceptions
@@ -721,6 +725,63 @@ async def get_all_classes(
     return await get_classes_under_facet(
         None, facet, only_primary_uuid=only_primary_uuid, start=start, limit=limit
     )
+
+
+class ClassRequestHandler(handlers.RequestHandler):
+    role_type = "class"
+
+    def prepare_create(self, request: dict):
+        valid_from = util.NEGATIVE_INFINITY
+        valid_to = util.POSITIVE_INFINITY
+
+        facet_bvn = request['facet']
+        facetids = mora.async_util.async_to_sync(get_facetids)(facet_bvn)
+        facet_uuid = one(facetids)
+
+        mo_class = request['class_model']
+
+        clazz = common.create_klasse_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            facet_uuid=facet_uuid,
+            org_uuid=mo_class.org_uuid,
+            bvn=mo_class.user_key,
+            title=mo_class.name,
+            scope=mo_class.scope
+        )
+
+        self.payload = clazz
+        self.uuid = mo_class.uuid or str(uuid4())
+
+    def submit(self) -> str:
+        c = lora.Connector()
+
+        if self.request_type == mapping.RequestType.CREATE:
+            self.result = mora.async_util.async_to_sync(c.klasse.create)(
+                self.payload,
+                self.uuid)
+        else:
+            self.result = mora.async_util.async_to_sync(c.klasse.update)(
+                self.payload,
+                self.uuid)
+
+        return super().submit()
+
+
+@router.post('/f/{facet}/')
+def create_or_update_class(
+    facet: str,
+    class_model: MOClass,
+):
+    """Will create a new class if there's no UUID or it doesnt match an exiting class
+    Will update an existing class if there's a matching UUID
+
+    :param facet: One of the facet bvns/uuids.
+    :param class_model: Pydantic BaseModel for a class
+    """
+    req = {'facet': facet, 'class_model': class_model}
+    request = ClassRequestHandler(req, mapping.RequestType.CREATE)
+    return request.submit()
 
 
 @router.get('/f/{facet}/children')
