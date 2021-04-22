@@ -25,3 +25,6 @@ host = "msg_broker"
 
 [log]
 log_level = "INFO"
+
+[query_export]
+directory = "/queries"
