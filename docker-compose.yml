@@ -47,6 +47,8 @@ services:
     # We also change the Flask app to one where a testing API for testcafe
     # e2e-tests is enabled.
     volumes:
+      # Uncomment this with the path you would like to use for queries
+      # - /tmp:/queries
       - ./backend:/app/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
       - ./.pytest_cache:/app/.pytest_cache
