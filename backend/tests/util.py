@@ -19,7 +19,7 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from yarl import URL
 
-from mora import lora, settings
+from mora import conf_db, lora, settings
 from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -295,6 +295,7 @@ def setup_test_routing(app):
     async def _testcafe_db_setup():
         _mox_testing_api("db-setup")
         await load_sample_structures()
+        load_sample_confdb()
         return jsonable_encoder({"testcafe-db-setup": True})
 
     @testing_router.get("/testing/testcafe-db-teardown")
@@ -463,3 +464,46 @@ class CopyingMock(MagicMock):
         args = deepcopy(args)
         kwargs = deepcopy(kwargs)
         return super().__call__(*args, **kwargs)
+
+
+def load_sample_confdb():
+    """Ensure MO configuration has all feature flags turned on during
+    end-to-end tests.
+
+    Used during TestCafe test runs.
+    """
+
+    # Base sample configuration
+    configuration = {
+        # comma-separated list of UUIDs
+        "substitute_roles": "",
+        # comma-separated list of UUIDs
+        "association_dynamic_facets": "",
+        # comma-separated list of labels
+        "extension_field_ui_labels": "",
+    }
+
+    # Names of all feature flags which should be turned on during test
+    feature_flags = {
+        "inherit_manager",
+        "show_cpr_no",
+        "show_engagement_hyperlink",
+        "show_kle",
+        "show_level",
+        "show_location",
+        "show_org_unit_button",
+        "show_primary_association",
+        "show_primary_engagement",
+        "show_roles",
+        "show_time_planning",
+        "show_user_key",
+        "show_user_key_in_search",
+    }
+
+    # Update configuration, setting all feature flags to "True"
+    configuration.update(dict.fromkeys(feature_flags, "True"))
+
+    # Update `orgunit_settings` table in `mora` database
+    conf_db.set_configuration({"org_units": configuration})
+
+    return configuration

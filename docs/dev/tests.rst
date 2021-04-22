@@ -80,3 +80,10 @@ TestCafe køres med kommandoen:
 forventeligt, og kan ignoreres. De normale services defineret i
 :file:`docker-compose.yml` er fra kaldet til ``docker-compose -f
 dev-environment/docker-compose-testcafe.yml`` set som `orphans`.)
+
+Vær desuden opmærksom på, at end-to-end testene køres med den MO-konfiguration,
+der er defineret i ``tests.util.load_sample_confdb``.
+I denne MO-konfiguration er alle "feature flags" slået til, således at
+frontend-koden kører med et fuldt MO feature-sæt.
+Hvis du tilføjer flere MO feature flags, er det derfor en god ide at tilføje
+navnet på dit feature flag til ``tests.util.load_sample_confdb``.
