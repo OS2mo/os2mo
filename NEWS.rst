@@ -10,6 +10,7 @@ New features
 * #42780: Added seniority field (and conf_db setting to hide it)
 * #42034: Added entities as proper frontend entity (behind configuration)
 * #42864: Added new org_func: engagement_association, linking engagements to org_units
+* #42033: Improved on the UI-aspects of extension_X fields
 
 Version 1.16.1, 2021-04-20
 ==========================
