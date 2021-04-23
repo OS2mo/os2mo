@@ -139,7 +139,7 @@ import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoMana
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { AtDate } from '@/store/actions/atDate'
-import { columns } from "../shared/engagement_tab";
+import {columns, generate_extension_columns} from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -262,10 +262,7 @@ export default {
       dyn_columns = dyn_columns.concat(columns)
       let extension_labels =
         (this.orgUnitInfo.user_settings.orgunit.extension_field_ui_labels).split(',')
-      if (extension_labels.length > 0 && extension_labels[0] !== "") {
-        dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
-          ({label: label, data: 'extension_' + String(index + 1)})))
-      }
+      dyn_columns = dyn_columns.concat(generate_extension_columns(extension_labels))
       return dyn_columns
     },
 

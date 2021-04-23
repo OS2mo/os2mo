@@ -8,3 +8,4 @@ from . import phone  # noqa
 from . import pnumber  # noqa
 from . import text  # noqa
 from . import www  # noqa
+from . import multifield_text  # noqa

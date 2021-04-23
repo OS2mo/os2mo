@@ -375,8 +375,10 @@ async def does_employee_have_existing_association(employee_uuid, org_unit_uuid,
 
 
 @forceable
-async def does_engagement_have_existing_association(engagement_uuid, org_unit_uuid,
-                                                    valid_from, association_uuid=None):
+async def does_engagement_have_existing_association(engagement_uuid: str,
+                                                    org_unit_uuid: str,
+                                                    valid_from: str,
+                                                    association_uuid=None):
     """
     Check if an employee already has an active association for a given org
     unit on a given date
@@ -401,8 +403,8 @@ async def does_engagement_have_existing_association(engagement_uuid, org_unit_uu
 @forceable
 async def does_uuid_have_existing_association(uuid: str,
                                               uuid_search_key: str,
-                                              org_unit_uuid,
-                                              valid_from,
+                                              org_unit_uuid: str,
+                                              valid_from: str,
                                               association_function_key: str,
                                               association_uuid=None):
     """

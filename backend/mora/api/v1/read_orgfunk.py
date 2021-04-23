@@ -145,7 +145,7 @@ async def search_address(
 async def search_engagement_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    engagement: Optional[str] = None,
+    engagement: Optional[UUID] = None,
 ):
     args = {"at": at, "validity": validity}
     if engagement is not None:

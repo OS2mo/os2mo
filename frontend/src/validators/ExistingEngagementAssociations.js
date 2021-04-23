@@ -14,10 +14,8 @@ export default {
     if (!validity || !validity.from || !orgUnit) {
       return true
     }
-    // TODO
-    // return Validate.existingAssociations(orgUnit, validity,
-    //   associationUuid)
-    return true
+    return Validate.existingEngagementAssociations(orgUnit, validity,
+      associationUuid)
   },
 
   getMessage: common.getMessage

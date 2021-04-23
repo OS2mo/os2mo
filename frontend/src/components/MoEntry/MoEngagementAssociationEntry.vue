@@ -70,7 +70,7 @@ export default {
 
     validations() {
       return {
-        existing_associations: [
+        existing_engagement_associations: [
           this.entry.org_unit,
           this.entry.validity,
           this.entry.uuid

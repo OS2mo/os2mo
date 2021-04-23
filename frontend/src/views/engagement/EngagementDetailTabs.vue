@@ -53,6 +53,7 @@ import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { AtDate } from '@/store/actions/atDate'
+import {generate_extension_columns} from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -81,11 +82,11 @@ export default {
       tabs: ['#engagement', '#adresser', '#engagement_association'],
       currentDetail: 'engagement',
       _atDate: undefined,
+
       /**
        * The component values.
        * Used to detect changes and restore the value for columns.
        */
-
       address: [
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
@@ -95,7 +96,6 @@ export default {
         { label: 'org_unit', data: 'org_unit' },
         { label: 'engagement_association_type', data: 'engagement_association_type' },
       ],
-
 
       /**
        * Used to add the components in the tabs.
@@ -124,6 +124,9 @@ export default {
           { label: 'primary', data: 'primary' }
         )
       }
+
+      let extension_labels = conf.extension_field_ui_labels.split(',')
+      columns = columns.concat(generate_extension_columns(extension_labels))
 
       return columns
     },
