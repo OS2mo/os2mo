@@ -172,10 +172,6 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
-      employee: [
-        { label: 'name', data: 'name', field: null },
-        { label: 'nickname', data: 'nickname', field: null },
-      ],
 
       /**
        * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
@@ -196,6 +192,20 @@ export default {
   },
 
   computed: {
+    employee() {
+        let cols =[
+        { label: 'name', data: 'name', field: null },
+        { label: 'nickname', data: 'nickname', field: null },
+      ]
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      if (conf.show_seniority) {
+        cols.push(
+          { label: 'seniority', data: 'seniority', field: null }
+        )
+      }
+      return cols
+    },
+
     engagement () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
 

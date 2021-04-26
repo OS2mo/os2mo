@@ -41,6 +41,7 @@ USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
 IS_PRIMARY = 'is_primary'
+SENIORITY = 'seniority'
 
 # Address
 ADDRESS_KEY = 'Adresse'

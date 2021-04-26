@@ -50,5 +50,6 @@
   "main_organisation": "hovedorganisationen",
   "engagement_id": "ID",
   "entire_organisation": "Bruttoorganisation",
-  "belongs_to": "Tilhører"
+  "belongs_to": "Tilhører",
+  "seniority": "Anciennitet"
 }
