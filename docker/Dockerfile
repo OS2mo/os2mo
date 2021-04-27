@@ -83,7 +83,7 @@ COPY LICENSE .
 COPY backend/mora/main.py .
 COPY docker/prestart.sh /app/prestart.sh
 # Install the application as editable. This makes it possible to mount
-# `/code/backend` to your host and edit the files during development.
+# `/app/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
 RUN pip3 install --no-cache-dir -e backend
 
