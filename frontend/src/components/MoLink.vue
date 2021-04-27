@@ -17,10 +17,11 @@ SPDX-License-Identifier: MPL-2.0
   </ul>
 </template>
 
-<script>
-/**
+<script>/**
  * A link component.
  */
+import {display_method} from "../helpers/ownerUtils";
+
 
 export default {
   props: {
@@ -73,7 +74,8 @@ export default {
         'parent': 'OrganisationDetail',
         'person': 'EmployeeDetail',
         'substitute': 'EmployeeDetail',
-        'third_party_associated': 'EmployeeDetail'
+        'third_party_associated': 'EmployeeDetail',
+        'owner': 'EmployeeDetail'
       }
     }
   },
@@ -100,6 +102,13 @@ export default {
     parts() {
       let contents = this.column ? this.value[this.column] : this.value
 
+      if (this.label === 'dynamic_class' && this.value) {
+        let entry = this.fetch_entry(this.column)
+        if (entry !== null) {
+          contents = [{'name': entry['full_name']}]
+        }
+      }
+
       if (this.column === 'address_type' && this.value) {
         let address = this.value['address']
 
@@ -110,16 +119,7 @@ export default {
         } else {
           contents = this.value['address_type']
         }
-      }
-
-      if (this.label === 'dynamic_class' && this.value) {
-        let entry = this.fetch_entry(this.column)
-        if (entry !== null) {
-          contents = [{'name': entry['full_name']}]
-        }
-      }
-
-      if (this.column === 'visibility' && this.value) {
+      } else if (this.column === 'visibility' && this.value) {
         let address = this.value['address']
 
         if (address instanceof Array) {
@@ -129,12 +129,12 @@ export default {
         } else {
           contents = this.value['visibility']
         }
-      }
-
-      if (this.column === 'engagement') {
+      } else if (this.column === 'engagement') {
         let engagementName = this.value['engagement']['job_function']['name']
         let orgUnitName = this.value['engagement']['org_unit']['name']
         contents = `${engagementName}, ${orgUnitName}`
+      } else if (this.column === 'owner_inference_priority') {
+        contents = display_method(contents)
       }
 
       if (!contents) {

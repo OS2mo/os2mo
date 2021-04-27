@@ -3,7 +3,7 @@
 
 import Vue from 'vue'
 import Service from '@/api/HttpCommon'
-import { _organisationUnit as _orgUnit } from '../actions/organisationUnit'
+import {_organisationUnit as _orgUnit} from '../actions/organisationUnit'
 
 const defaultState = () => {
   return {
@@ -22,16 +22,27 @@ const defaultState = () => {
 }
 
 const state = defaultState
+const relevantPerson = new Map([
+  ['manager', (obj => obj.person)],
+  ['owner', (obj => obj.owner)]
+])
 
 const ShowIfInherited = (orgUnitUuid, content) => {
-  if (content.key !== 'manager') return content
-  /* for managers show if inherited */
-  for (let i = 0; i < content.value.length; i++) {
-    if (content.value[i].org_unit.uuid !== orgUnitUuid) {
-      if (content.value[i].person) {
-        content.value[i].person.name += ' (*)'
-        content.value[i].inherited = true
-      }
+  if (content.key === 'manager' || content.key === 'owner') {
+    /* show if inherited */
+    if (content.value) {
+      let person_method = relevantPerson.get(content.key)
+      content.value.forEach(
+        (element) => {
+          if (element.org_unit.uuid !== orgUnitUuid) {
+            let person = person_method(element)
+            if (person) {
+              person.name += ' (*)'
+              element.inherited = true
+            }
+          }
+        }
+      )
     }
   }
   return content
@@ -53,12 +64,14 @@ const actions = {
     payload.validity = payload.validity || 'present'
     let uuid = payload.uuid || state.uuid
     let atDate = payload.atDate
-    let inheritManagerFlag = ''
+    let inheritFlag = ''
     if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
     if (payload.detail === 'manager' && state.user_settings.orgunit.inherit_manager) {
-      inheritManagerFlag = '&inherit_manager=1'
+      inheritFlag = '&inherit_manager=1'
+    } else if (payload.detail === 'owner') {
+      inheritFlag = '&inherit_owner=1'
     }
-    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inheritManagerFlag}`)
+    return Service.get(`/ou/${uuid}/details/${payload.detail}?validity=${payload.validity}&at=${atDate}${inheritFlag}`)
       .then(response => {
         let content = ShowIfInherited(state.uuid, {
           key: payload.detail,

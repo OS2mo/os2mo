@@ -326,6 +326,17 @@ async def get_org_unit_by_uuid(
     )
 
 
+@router.get(f"/{MoOrgFunk.OWNER.value}")
+async def search_owner_unit(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+):
+    return await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.OWNER,
+        query_args={"at": at, "validity": validity},
+    )
+
+
 def to_dict(multi_dict: ImmutableMultiDict) -> Dict[Any, Union[Any, List[Any]]]:
     """
     flattens a multi-dict to a simple dictionary, collecting items in lists as needed

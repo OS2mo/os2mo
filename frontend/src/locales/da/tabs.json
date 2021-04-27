@@ -7,7 +7,8 @@
     "it": "IT",
     "association": "@:shared.association",
     "leave": "Orlov",
-    "manager": "Leder"
+    "manager": "Leder",
+    "owner": "Owner"
   },
   "organisation": {
     "unit": "Enhed",
@@ -19,12 +20,14 @@
     "roles": "Roller",
     "related": "Relateret",
     "managers": "Ledere",
+    "owner": "Owners",
     "kle": "KLE-opmærkninger"
   },
   "engagement": {
     "engagement": "Engagement",
     "addresses": "Adresser",
-    "engagement_association": "@:shared.engagement_association"
+    "engagement_association": "@:shared.engagement_association",
+    "association": "@:shared.association"
   },
   "log": {
     "worklog": "Arbejdslog"

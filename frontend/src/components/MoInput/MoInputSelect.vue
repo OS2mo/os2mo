@@ -16,7 +16,7 @@ SPDX-License-Identifier: MPL-2.0
     >
       <option disabled selected>{{label}}</option>
       <option v-for="(o, index) in options" :key="index" :value="o">
-          {{o.name}}
+          {{display_method(o)}}
       </option>
     </select>
 
@@ -47,9 +47,19 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    display_method: {
+      type: Function,
+      default: (value => value.name)}
+  },
+  watch: {
+    /**
+     * Whenever selected change, update val.
+     */
+    internalValue (val) {
+      this.$emit('input', val)
     }
   },
-
   computed: {
     /**
      * Are there any options

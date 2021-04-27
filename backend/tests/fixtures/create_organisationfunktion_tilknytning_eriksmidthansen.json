@@ -1,0 +1,82 @@
+{
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "bvn",
+                "funktionsnavn": "Tilknytning",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning",
+    "relationer": {
+        "organisatoriskfunktionstype": [
+            {
+                "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "opgaver": [
+            {
+                "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedebrugere": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedeenheder": [
+            {
+                "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+      "primær": [
+        {
+          "uuid": "89b6cef8-3d03-49ac-816f-f7530b383411",
+          "virkning": {
+            "from": "2005-12-01 00:00:00+01:00",
+            "to": "infinity"
+          }
+        }
+      ]
+    },
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2005-12-01 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    }
+}

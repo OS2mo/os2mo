@@ -25,6 +25,8 @@ from . import exceptions
 from . import lora
 from . import mapping
 from . import util
+from .exceptions import ErrorCodes
+from .mapping import OwnerInferencePriority
 from .request_scoped.query_args import current_query
 
 
@@ -343,7 +345,8 @@ def create_organisationsfunktion_payload(
     adresser: typing.Optional[typing.List[dict]] = None,
     integration_data: typing.Optional[dict] = None,
     fraktion: typing.Optional[str] = None,
-    udvidelse_attributter: typing.Optional[dict] = None
+    udvidelse_attributter: typing.Optional[dict] = None,
+    tilknyttedepersoner: typing.Optional[typing.List[str]] = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -387,7 +390,14 @@ def create_organisationsfunktion_payload(
             for brugerid in tilknyttedebrugere
             if brugerid
         ]
-
+    if tilknyttedepersoner:
+        org_funk['relationer']['tilknyttedepersoner'] = [
+            {
+                'uuid': person_uuid,
+            }
+            for person_uuid in tilknyttedepersoner
+            if person_uuid
+        ]
     if tilknyttedeenheder:
         org_funk['relationer']['tilknyttedeenheder'] = [{
             'uuid': uuid
@@ -731,3 +741,20 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
 def stable_json_dumps(v):
     """like :py:func:`json.dumps()`, but stable."""
     return json.dumps(v, sort_keys=True, allow_nan=False, ensure_ascii=False)
+
+
+def parse_owner_inference_priority_str(
+    inference_priority_candidate: str
+) -> OwnerInferencePriority:
+    """
+    Attempt at parsing string to Enum, raises on bad input
+    :param inference_priority_candidate:
+    :return:
+    """
+    try:
+        return OwnerInferencePriority(inference_priority_candidate)
+    except ValueError:
+        ErrorCodes.E_INVALID_INPUT(
+            f"Invalid {mapping.OWNER_INFERENCE_PRIORITY}: "
+            f"{inference_priority_candidate}"
+        )

@@ -20,6 +20,7 @@
   "job_function": "Stillingsbetegnelse",
   "leave_type": "Orlovstype",
   "manager": "Leder | Ledere",
+  "owner": "Owner | Owners",
   "manager_level": "Lederniveau",
   "manager_type": "Ledertype",
   "name": "Navn",

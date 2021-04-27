@@ -253,6 +253,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 'tilknyttedebrugere',
                 'tilknyttedefunktioner',
                 'tilknyttedeitsystemer',
+                'tilknyttedepersoner',
                 'primær',
             ),
             'tilstande': (

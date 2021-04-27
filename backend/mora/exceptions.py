@@ -9,8 +9,6 @@ from starlette.responses import JSONResponse
 
 from mora import settings
 
-TRACEBACK_HEADER_KEY = 'os2mo_tb'
-
 
 class ErrorCodes(Enum):
     '''This enumeration describes the possible errors codes returned by
@@ -151,14 +149,12 @@ class HTTPException(fastapiHTTPException):
             **extras,
         }
 
-        # used to have this kind of debug option, easy to get it back
         if settings.config['ENV'] in ['testing', 'development']:
             if cause is None:
                 cause = self.__cause__ or self
-
-            # just for debugging, remove if change as needed:
+            # just for debugging, remove or change as needed:
+            self.stack = traceback.format_stack()
             if isinstance(cause, Exception):
-                self.stack = traceback.format_stack()
                 self.traceback = traceback.format_exc()
 
         super().__init__(status_code=self.key.code, detail=body)
