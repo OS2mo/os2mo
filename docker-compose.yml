@@ -23,8 +23,8 @@ services:
     # However we do not want node_modules on the host machine, so we create an
     # additional volume for it.
     volumes:
-      - .:/code/
-      - /code/frontend/node_modules
+      - .:/app/
+      - /app/frontend/node_modules
     depends_on:
       - mo
     ports:
