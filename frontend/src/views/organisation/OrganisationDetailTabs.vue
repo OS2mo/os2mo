@@ -112,6 +112,18 @@ SPDX-License-Identifier: MPL-2.0
           @show="loadContent('related_unit', $event)"
         />
       </b-tab>
+        <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association"
+         :title="$t('tabs.organisation.engagement_association')"
+         v-if="orgUnitInfo.user_settings.orgunit.show_engagement_hyperlink">
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['engagement_association']"
+          content-type="engagement_association"
+          :columns="engagement_association"
+          @show="loadContent('engagement_association', $event)"
+        />
+      </b-tab>
     </b-tabs>
   </div>
 </template>
@@ -123,11 +135,11 @@ SPDX-License-Identifier: MPL-2.0
 
 import { mapGetters } from 'vuex'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
-import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry } from '@/components/MoEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry, MoEngagementAssociationEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { AtDate } from '@/store/actions/atDate'
-import { columns } from "../shared/engagement_tab";
+import {columns, generate_extension_columns} from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -194,6 +206,11 @@ export default {
         { label: 'related_org_unit', data: 'org_unit', index: 1 }
       ],
 
+      engagement_association: [
+        { label: 'engagement_id', data: 'engagement', field: 'user_key' },
+        { label: 'engagement_association_type', data: 'engagement_association_type'},
+      ],
+
       /**
        * The MoOrganisationUnitEntry, MoAddressEntry component.
        * Used to add edit and create for orgUnit and address.
@@ -204,7 +221,8 @@ export default {
         itSystem: MoItSystemEntry,
         manager: MoManagerEntry,
         association: MoAssociationEntry,
-        kle: MoKLEEntry
+        kle: MoKLEEntry,
+        engagement_association: MoEngagementAssociationEntry
       }
     }
   },
@@ -244,10 +262,7 @@ export default {
       dyn_columns = dyn_columns.concat(columns)
       let extension_labels =
         (this.orgUnitInfo.user_settings.orgunit.extension_field_ui_labels).split(',')
-      if (extension_labels.length > 0 && extension_labels[0] !== "") {
-        dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
-          ({label: label, data: 'extension_' + String(index + 1)})))
-      }
+      dyn_columns = dyn_columns.concat(generate_extension_columns(extension_labels))
       return dyn_columns
     },
 

@@ -54,7 +54,6 @@ class _BaseTestCase(TestCase):
 
         '''
         r = self.request(path, **kwargs)
-        actual = r.json()
 
         if r.headers.get('content-type') == 'application/json':
             actual = r.json()

@@ -240,15 +240,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else [],
+            tilknyttedefunktioner=[common.associated_orgfunc(
+                uuid=engagement_uuid,
+                orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+            )] if engagement_uuid else [],
             opgaver=handler.get_lora_properties(),
             integration_data=req.get(mapping.INTEGRATION_DATA),
         )
-
-        if engagement_uuid:
-            func["relationer"]["tilknyttedefunktioner"][0][
-                "objekttype"
-            ] = mapping.ENGAGEMENT
 
         self.payload = func
         self.uuid = func_id

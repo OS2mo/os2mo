@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 from asyncio import create_task, gather
-from typing import List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+from uuid import UUID
 
 from .. import reading
 from ... import lora
@@ -183,3 +184,26 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True, )
 
         return sorted_classes
+
+
+async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, Any]]:
+    """
+    convenience, for an often used pattern: Eagerly getting an engagement.
+    :param c:
+    :param uuid: uuid of engagement
+    :return: First, engagement found (or None)
+    """
+    engagements_task = create_task(EngagementReader.get(
+        c, {"uuid": [uuid]}
+    ))
+    engagements = await engagements_task
+    if len(engagements) == 0:
+        logger.warning(f"Engagement {uuid} returned no results")
+        return None
+
+    if len(engagements) > 1:
+        logger.warning(
+            f"Engagement {uuid} returned more than one result"
+        )
+
+    return engagements[0]

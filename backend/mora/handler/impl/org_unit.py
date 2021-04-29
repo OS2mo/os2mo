@@ -28,7 +28,6 @@ class OrgUnitReader(reading.ReadingHandler):
     async def get_from_type(cls, c, type, objid):
         if type != "ou":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
         object_tuples = await c.organisationenhed.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 

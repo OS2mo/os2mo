@@ -215,7 +215,7 @@ class OrgFunkReadingHandler(ReadingHandler):
     async def _get_lora_object(cls, c, search_fields):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(
-                uuids=[search_fields[mapping.UUID]]
+                uuids=search_fields[mapping.UUID]
             )
         else:
             object_tuples = await c.organisationfunktion.get_all(

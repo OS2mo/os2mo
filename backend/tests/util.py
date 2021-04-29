@@ -106,6 +106,7 @@ async def load_sample_structures(minimal=False):
         'association_type': 'ef71fe9c-7901-48e2-86d8-84116e210202',
         'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
         'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
+        'engagement_association_type': 'c8a8935e-6f0e-4ca3-b1ea-79556f9b6317',
         'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
         'kle_number': '27935dbb-c173-4116-a4b5-75022315749d',
         'kle_aspect': '8a29b2cf-ef98-46f4-9794-0e39354d6ddf',
@@ -225,6 +226,9 @@ async def load_sample_structures(minimal=False):
             'kle_udfoerende': 'f9748c65-3354-4682-a035-042c534c6b4e',
             # kle_number
             'kle_number': 'd7c12965-6207-4c82-88b8-68dbf6667492',
+            # engagement_association_type
+            'ea_k1': '5695e331-d837-473f-9b00-6f528fbd23f6',
+            'ea_k2': '51cc63b8-d8d1-4b74-95df-7c105c9c88dd',
         })
 
         functions.update({

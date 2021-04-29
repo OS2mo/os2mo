@@ -106,9 +106,9 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     if config["ENV"] in ["development", "testing"]:
         if exc.stack is not None:
             for frame in exc.stack:
-                logger.debug(frame)
+                logger.info(frame)
         if exc.traceback is not None:
-            logger.debug(f"os2mo traceback\n{exc.traceback}")
+            logger.info(f"os2mo traceback\n{exc.traceback}")
 
     return http_exception_to_json_response(exc=exc)
 

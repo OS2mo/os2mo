@@ -10,16 +10,15 @@ export default {
    * Create a new engagement detail
    */
   createEntry (create) {
-      console.log('mw', create)
     return Service.post('/details/create', create)
       .then(response => {
         EventBus.$emit(Events.ENGAGEMENT_CHANGED)
         return response
       })
       .catch(error => {
-        EventBus.$emit(Events.ENGAGEMENT_CHANGED)
         store.commit('log/newError', { type: 'ERROR', value: error.response })
-        return error.response
+        console.log('mw', error.response.data)
+        return error.response.data
       })
   },
 

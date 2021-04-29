@@ -4,8 +4,10 @@
 import logging
 from asyncio import create_task
 
+from .engagement import get_engagement
 from .. import reading
 from ... import mapping
+from ...request_scoped.bulking import request_wide_bulk
 from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
@@ -26,6 +28,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
+        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = base.get_handler_for_scope(scope).from_effect(effect)
@@ -53,14 +56,24 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 only_primary_uuid=only_primary_uuid
             ))
 
+        if engagement_uuid is not None:
+            if only_primary_uuid:
+                engagement = {mapping.UUID: engagement_uuid}
+            else:
+                engagement = await get_engagement(request_wide_bulk.connector,
+                                                  uuid=engagement_uuid)
+
         r = {
             **await base_obj_task,
             mapping.ADDRESS_TYPE: await facet_task,
             **await address_task,
         }
+
         if person:
             r[mapping.PERSON] = await person_task
         if org_unit:
             r[mapping.ORG_UNIT] = await org_unit_task
+        if engagement_uuid is not None:
+            r[mapping.ENGAGEMENT] = engagement
 
         return r

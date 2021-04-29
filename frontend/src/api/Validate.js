@@ -134,5 +134,21 @@ export default {
       }, err => {
         return createErrorPayload(err)
       })
-  }
+  },
+
+  existingEngagementAssociations (orgUnit, validity, associationUuid) {
+    const payload = {
+      'org_unit': orgUnit,
+      'validity': validity,
+      'uuid': associationUuid
+    }
+    return Validate
+      .post('/existing-associations/', payload).then(result => {
+        return true
+      }, err => {
+        return createErrorPayload(err)
+      })
+  },
+
+
 }

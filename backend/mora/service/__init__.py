@@ -3,11 +3,13 @@
 
 from . import address
 from . import association  # noqa
+from . import configuration
 from . import cpr
 from . import detail_reading
 from . import detail_writing
 from . import employee
 from . import engagement  # noqa
+from . import engagement_association  # noqa
 from . import exports
 from . import facet
 from . import integration_data
@@ -19,7 +21,6 @@ from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
-from . import configuration
 from .validation import validate
 
 routers = (

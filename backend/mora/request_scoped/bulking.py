@@ -18,6 +18,7 @@ class __BulkBookkeeper:
     """
 
     def __init__(self):
+        self.__global_lock = Lock()
         self.__locks: Dict[LoraObjectType, Lock] = {}
         self.__raw_cache = {}
 
@@ -36,16 +37,17 @@ class __BulkBookkeeper:
             for lock in self.__locks.values():
                 lock.release()
 
-    def __get_lock(self, type_: LoraObjectType) -> Lock:
+    async def __get_lock(self, type_: LoraObjectType) -> Lock:
         """
         get a lock (and creates one if missing)
         :param type_:
         :return: Asyncio(!) lock, not process/thread-safe locks
         """
-        # manually checking avoids creating unneeded Locks
-        if type_ in self.__locks:
-            return self.__locks[type_]
-        return self.__locks.setdefault(type_, Lock())
+        async with self.__global_lock:
+            # manually checking avoids creating unneeded Locks
+            if type_ in self.__locks:
+                return self.__locks[type_]
+            return self.__locks.setdefault(type_, Lock())
 
     def _disable_caching(self):
         """
@@ -144,7 +146,7 @@ class __BulkBookkeeper:
         :param uuid:
         :return:
         """
-        async with self.__get_lock(type_):
+        async with await self.__get_lock(type_):
             self.__add(type_=type_, uuid=uuid)
 
     async def get_lora_object(self, type_: LoraObjectType, uuid: str) -> LORA_OBJ:
@@ -155,7 +157,7 @@ class __BulkBookkeeper:
         :return: The (possibly cached) object from LoRa
         """
 
-        async with self.__get_lock(type_):
+        async with await self.__get_lock(type_):
             # if uuid processed, return obj
             try:
                 return self.__processed_cache[type_][uuid]

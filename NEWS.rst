@@ -9,6 +9,7 @@ New features
 * #41914: Replaced Flask with FastAPI
 * #42780: Added seniority field (and conf_db setting to hide it)
 * #42034: Added entities as proper frontend entity (behind configuration)
+* #42864: Added new org_func: engagement_association, linking engagements to org_units
 
 Version 1.16.1, 2021-04-20
 ==========================
