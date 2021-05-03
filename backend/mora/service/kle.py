@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import uuid
 
 from fastapi import APIRouter
-import uuid
+import lora_connector as lora
 
 import mora.async_util
 from . import handlers
@@ -10,7 +11,6 @@ from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger

@@ -9,6 +9,7 @@ from uuid import UUID
 
 import requests
 from fastapi import APIRouter, Query
+import lora_connector as lora
 
 import mora.async_util
 from . import facet
@@ -18,7 +19,6 @@ from .address_handler import base
 from .validation import validator
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import settings
 from .. import util

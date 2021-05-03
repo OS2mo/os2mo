@@ -6,9 +6,10 @@ import freezegun
 from mock import call, patch
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
+import lora_connector as lora
 
 import tests.cases
-import lora_connector as lora, mapping
+from mora import mapping
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader

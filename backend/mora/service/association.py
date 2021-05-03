@@ -11,12 +11,13 @@ This section describes how to interact with employee associations.
 import uuid
 from typing import Any, Dict
 
+import lora_connector as lora
+
 import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
 from .. import common, conf_db
-import lora_connector as lora
 from .. import mapping
 from .. import util
 

@@ -4,12 +4,13 @@
 import logging
 from typing import Any, Dict
 
+from lora_connector import Connector
+
 from .. import reading
 from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
-from lora_connector import Connector
 from ...request_scoped.query_args import current_query
 from ...service import employee
 

@@ -8,9 +8,10 @@ from asyncio import create_task, gather
 from inspect import isawaitable
 from typing import Any, Dict, Iterable, List, Tuple
 
+from lora_connector import Connector
+
 from .. import exceptions, util
 from .. import mapping
-from lora_connector import Connector
 
 logger = logging.getLogger(__name__)
 

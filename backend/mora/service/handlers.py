@@ -11,10 +11,11 @@ import inspect
 import logging
 import typing
 
+import lora_connector as lora
+
 import mora.async_util
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..mapping import EventType, RequestType

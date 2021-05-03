@@ -27,6 +27,8 @@ from uuid import UUID
 from fastapi import APIRouter, Body
 from fastapi import Query
 from more_itertools import unzip
+import lora_connector as lora
+from lora_connector import LoraObjectType
 
 import mora.async_util
 from mora.request_scoped.bulking import request_wide_bulk
@@ -37,11 +39,9 @@ from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from .. import common, conf_db
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..handler.reading import get_handler_for_type
-from lora_connector import LoraObjectType
 from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 

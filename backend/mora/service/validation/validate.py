@@ -4,11 +4,11 @@
 from typing import Optional
 
 from fastapi import APIRouter, Body
+import lora_connector as lora
 
 from . import validator
 from .. import facet
 from ..address_handler import base
-import lora_connector as lora
 from ... import mapping
 from ... import util
 

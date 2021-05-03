@@ -9,12 +9,13 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 
+import lora_connector as lora
+
 import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
 from .. import common
-import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger

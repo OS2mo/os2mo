@@ -10,6 +10,7 @@ This section describes how to interact with employee roles.
 '''
 
 import uuid
+import lora_connector as lora
 
 import mora.async_util
 from . import handlers
@@ -17,7 +18,6 @@ from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
 

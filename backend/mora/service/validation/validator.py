@@ -8,12 +8,12 @@ import typing
 from asyncio import create_task, gather
 
 from more_itertools import pairwise
+import lora_connector as lora
+from lora_connector import LoraObjectType
 
 from ... import exceptions
-import lora_connector as lora
 from ... import mapping
 from ... import util
-from lora_connector import LoraObjectType
 
 
 def forceable(fn):

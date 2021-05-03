@@ -15,6 +15,8 @@ from typing import Any, Awaitable, Dict, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter
+import lora_connector as lora
+from lora_connector import LoraObjectType
 
 import mora.async_util
 from . import handlers
@@ -22,10 +24,8 @@ from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
-from lora_connector import LoraObjectType
 from mora.request_scoped.bulking import request_wide_bulk
 from ..triggers import Trigger
 

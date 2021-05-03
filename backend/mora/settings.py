@@ -31,6 +31,7 @@ import os
 import sys
 
 import toml
+from lora_connector import set_lora_url
 
 logger = logging.getLogger(__name__)
 
@@ -292,5 +293,4 @@ AMQP_HOST = config['amqp']['host']
 AMQP_PORT = config['amqp']['port']
 TRIGGER_MODULES = config['triggers']['modules']
 
-from lora_connector import set_lora_url
 set_lora_url(LORA_URL)

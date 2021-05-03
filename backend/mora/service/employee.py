@@ -22,6 +22,8 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Body
+import lora_connector as lora
+from lora_connector import LoraObjectType
 
 import mora.async_util
 from mora.request_scoped.bulking import request_wide_bulk
@@ -30,10 +32,8 @@ from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
-import lora_connector as lora
 from .. import mapping
 from .. import util
-from lora_connector import LoraObjectType
 from ..settings import app_config
 from ..triggers import Trigger
 

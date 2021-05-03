@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 [tool.poetry]
 name = "lora_connector"
 version = "0.1.0"
