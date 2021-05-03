@@ -8,7 +8,7 @@ from fastapi import APIRouter, Body
 from . import validator
 from .. import facet
 from ..address_handler import base
-from ... import lora
+import lora_connector as lora
 from ... import mapping
 from ... import util
 

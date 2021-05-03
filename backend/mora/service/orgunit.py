@@ -37,11 +37,11 @@ from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from .. import common, conf_db
 from .. import exceptions
-from .. import lora
+import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..handler.reading import get_handler_for_type
-from ..lora import LoraObjectType
+from lora_connector import LoraObjectType
 from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 

@@ -291,3 +291,6 @@ AMQP_OS2MO_EXCHANGE = config['amqp']['os2mo_exchange']
 AMQP_HOST = config['amqp']['host']
 AMQP_PORT = config['amqp']['port']
 TRIGGER_MODULES = config['triggers']['modules']
+
+from lora_connector import set_lora_url
+set_lora_url(LORA_URL)

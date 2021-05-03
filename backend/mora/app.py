@@ -14,13 +14,15 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
+from lora_connector import get_lora_version
+
 from mora import __version__, health, log
 from mora.auth import base
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
 from tests.util import setup_test_routing
-from . import exceptions, lora, service
+from . import exceptions, service
 from . import triggers
 from .api.v1 import read_orgfunk
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
@@ -37,7 +39,7 @@ def meta_router():
 
     @router.get("/version/")
     async def version():
-        lora_version = await lora.get_version()
+        lora_version = await get_lora_version()
         return {
             "mo_version": __version__,
             "lora_version": lora_version,

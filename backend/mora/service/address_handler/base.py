@@ -5,7 +5,7 @@ import abc
 from typing import Any, Dict, List, Union
 
 from ... import exceptions
-from ... import lora
+import lora_connector as lora
 from ... import mapping
 from ... import util
 from ...service import facet

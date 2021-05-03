@@ -6,7 +6,7 @@ import notsouid
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)

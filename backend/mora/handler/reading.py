@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 from .. import exceptions, util
 from .. import mapping
-from ..lora import Connector
+from lora_connector import Connector
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
 import tests.cases
-from mora import lora, mapping
+import lora_connector as lora, mapping
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader

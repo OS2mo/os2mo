@@ -7,11 +7,11 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from starlette.datastructures import ImmutableMultiDict
+from lora_connector import Connector
 
 from mora import common, mapping
 from mora.exceptions import ErrorCodes
 from mora.handler.reading import get_handler_for_type
-from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.request_scoped.query_args import current_query
 from mora.util import ensure_list

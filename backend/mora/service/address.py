@@ -18,7 +18,7 @@ from .address_handler import base
 from .validation import validator
 from .. import common
 from .. import exceptions
-from .. import lora
+import lora_connector as lora
 from .. import mapping
 from .. import settings
 from .. import util

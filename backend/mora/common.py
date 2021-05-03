@@ -20,9 +20,9 @@ import typing
 import uuid
 
 import werkzeug
+import lora_connector as lora
 
 from . import exceptions
-from . import lora
 from . import mapping
 from . import util
 from .request_scoped.query_args import current_query

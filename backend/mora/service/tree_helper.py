@@ -5,7 +5,7 @@ from asyncio import create_task
 from queue import Empty, Queue
 from typing import Dict
 
-from ..lora import Scope
+from lora_connector import Scope
 from ..mapping import (
     FieldTuple,
 )

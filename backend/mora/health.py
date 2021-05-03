@@ -8,8 +8,10 @@ from fastapi import APIRouter
 from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
 
+from lora_connector import Connector
+
 import mora.async_util
-from mora import conf_db, lora
+from mora import conf_db
 from mora.exceptions import HTTPException
 from mora.settings import config
 from mora.triggers.internal import amqp_trigger
@@ -110,7 +112,7 @@ async def dataset():
     exists in the system
     :return: True if data. False if not.
     """
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    c = Connector(virkningfra="-infinity", virkningtil="infinity")
     try:
         org = await c.organisation.fetch(bvn="%")
         if not org:

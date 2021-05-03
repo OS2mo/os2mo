@@ -3,7 +3,7 @@
 import logging
 from asyncio import create_task
 
-from mora import lora
+import lora_connector as lora
 from .engagement import get_engagement
 from .. import reading
 from ... import mapping

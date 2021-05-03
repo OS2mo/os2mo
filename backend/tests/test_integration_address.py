@@ -5,7 +5,7 @@ import freezegun
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 from mora.util import get_effect_from
 from tests import util
 

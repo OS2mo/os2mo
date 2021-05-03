@@ -14,7 +14,7 @@ import typing
 import mora.async_util
 from .. import common
 from .. import exceptions
-from .. import lora
+import lora_connector as lora
 from .. import mapping
 from .. import util
 from ..mapping import EventType, RequestType

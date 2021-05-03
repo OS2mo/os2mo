@@ -4,8 +4,9 @@ from asyncio import Lock
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
+from lora_connector import Connector, LoraObjectType
+
 from mora.common import get_connector
-from mora.lora import Connector, LoraObjectType
 
 LORA_OBJ = Dict[Any, Any]
 UUID = str

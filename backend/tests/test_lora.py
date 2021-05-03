@@ -8,7 +8,7 @@ from aioresponses import aioresponses
 import mora.async_util
 import tests.cases
 from mora import exceptions
-from mora import lora
+import lora_connector as lora
 from mora import settings
 from mora import util as mora_util
 from . import util

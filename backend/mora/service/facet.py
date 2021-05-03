@@ -28,10 +28,10 @@ from mora.request_scoped.bulking import request_wide_bulk
 from .tree_helper import prepare_ancestor_tree
 from .. import common
 from .. import exceptions
-from .. import lora
+import lora_connector as lora
 from .. import mapping
 from .. import util
-from ..lora import LoraObjectType
+from lora_connector import LoraObjectType
 from ..request_scoped.query_args import current_query
 
 router = APIRouter()

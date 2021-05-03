@@ -8,7 +8,7 @@ from mock import patch
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 from mora import mapping
 
 substitute_association = {'name': 'i18n:substitute_association'}  # const

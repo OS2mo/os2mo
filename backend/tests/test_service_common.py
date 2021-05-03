@@ -8,7 +8,7 @@ import mora.async_util
 import tests.cases
 from mora import common
 from mora import exceptions
-from mora import lora
+import lora_connector as lora
 from mora import mapping
 from mora import util as mora_util
 from . import util

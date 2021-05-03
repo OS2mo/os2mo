@@ -6,7 +6,7 @@ import copy
 import freezegun
 
 import mora.async_util
-from mora import lora
+import lora_connector as lora
 from tests.cases import LoRATestCase
 
 

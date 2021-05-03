@@ -30,10 +30,10 @@ from . import org
 from .validation import validator
 from .. import common
 from .. import exceptions
-from .. import lora
+import lora_connector as lora
 from .. import mapping
 from .. import util
-from ..lora import LoraObjectType
+from lora_connector import LoraObjectType
 from ..settings import app_config
 from ..triggers import Trigger
 

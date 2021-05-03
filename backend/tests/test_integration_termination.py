@@ -7,7 +7,7 @@ import freezegun
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 
 
 class Tests(tests.cases.LoRATestCase):

@@ -68,6 +68,9 @@ RUN pip3 install --no-cache-dir \
   -r backend/requirements-test.txt \
   -r backend/requirements-lint.txt
 
+COPY lora_connector /lora_connector
+RUN pip3 install --no-cache-dir /lora_connector && rm -rf /lora_connector
+
 
 # CI settings
 COPY dev-environment/mo-ci-settings.toml ./dev-environment/mo-ci-settings.toml

@@ -9,7 +9,7 @@ import notsouid
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 from mora import util as mora_util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'

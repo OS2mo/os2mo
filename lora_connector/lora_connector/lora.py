@@ -18,12 +18,20 @@ from itertools import starmap
 import lora_utils
 from more_itertools import chunked
 
-import mora.async_util
+from .async_util import async_session
 from . import exceptions
-from . import settings
 from . import util
 
 logger = logging.getLogger(__name__)
+
+LORA_URL = ""
+
+def set_lora_url(lora_url):
+    global LORA_URL
+    LORA_URL = lora_url
+
+def get_lora_url():
+    return LORA_URL
 
 
 @unique
@@ -223,10 +231,10 @@ class Scope:
 
     @property
     def base_path(self):
-        return settings.LORA_URL + self.path
+        return get_lora_url() + self.path
 
     async def fetch(self, **params):
-        async with mora.async_util.async_session(
+        async with async_session(
         ).get(self.base_path,
               params=param_exotics_to_strings(
                   {**self.connector.defaults, **params})) as response:
@@ -379,7 +387,7 @@ class Scope:
 
     async def create(self, obj, uuid=None):
         if uuid:
-            async with mora.async_util.async_session(
+            async with async_session(
             ).put('{}/{}'.format(self.base_path, uuid),
                   json=obj) as r:
 
@@ -387,19 +395,19 @@ class Scope:
                     await _check_response(r)
                     return (await r.json())['uuid']
         else:
-            async with mora.async_util.async_session(
+            async with async_session(
             ).post(self.base_path,
                    json=obj) as r:
                 await _check_response(r)
                 return (await r.json())['uuid']
 
     async def delete(self, uuid):
-        async with mora.async_util.async_session(
+        async with async_session(
         ).delete('{}/{}'.format(self.base_path, uuid)) as response:
             await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with mora.async_util.async_session(
+        async with async_session(
         ).patch('{}/{}'.format(self.base_path, uuid), json=obj) as response:
             await _check_response(response)
             return (await response.json()).get('uuid', uuid)
@@ -423,8 +431,8 @@ class Scope:
 
 
 async def get_version():
-    async with mora.async_util.async_session(
-    ).get(settings.LORA_URL + "version") as response:
+    async with async_session(
+    ).get(get_lora_url() + "version") as response:
         try:
             return (await response.json())["lora_version"]
         except ValueError:

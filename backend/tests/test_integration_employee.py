@@ -6,7 +6,7 @@ import notsouid
 
 import mora.async_util
 import tests.cases
-from mora import lora
+import lora_connector as lora
 from . import util
 
 
