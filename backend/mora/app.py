@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException
+from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,7 +15,7 @@ from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
 from mora import __version__, health, log
-from mora.auth import base
+from mora.auth import base, saml_sso
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
@@ -23,8 +23,10 @@ from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import read_orgfunk
+from .auth.saml_sso import check_saml_authentication
+from .auth.saml_sso.session import SessionInterface
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config
+from .settings import config, app_config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -153,7 +155,10 @@ def create_app():
         return response
 
     # router include order matters
-    app.include_router(base.router, prefix="/service", tags=["Service"])
+    app.include_router(
+        base.router, prefix="/service", tags=["Service"],
+        dependencies=[Depends(check_saml_authentication)]
+    )
 
     app.include_router(
         health.router,
@@ -162,12 +167,19 @@ def create_app():
     )
 
     for router in service.routers:
-        app.include_router(router, prefix="/service", tags=["Service"])
-    app.include_router(read_orgfunk.router)
+        app.include_router(
+            router, prefix="/service", tags=["Service"],
+            dependencies=[Depends(check_saml_authentication)]
+        )
+    app.include_router(
+        read_orgfunk.router,
+        dependencies=[Depends(check_saml_authentication)]
+    )
     app.include_router(
         meta_router(),
         tags=["Meta"],
     )
+    saml_sso.init_app(app)
 
     if config['ENV'] in ['testing', 'development']:
         app = setup_test_routing(app)
@@ -186,5 +198,24 @@ def create_app():
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
     app.add_exception_handler(RequestValidationError, request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
+
+    if app_config["SAML_AUTH_ENABLE"]:
+        @app.middleware('http')
+        async def session_middleware(request: Request, call_next):
+            """
+            Adds a server-side SQL session to the request
+            Can be removed once Keycloak is implemented
+            """
+            session_interface = SessionInterface()
+            session = session_interface.open_session(request)
+
+            request.state.session_interface = session_interface
+            request.state.session = session
+
+            response = await call_next(request)
+
+            session_interface.save_session(session, response)
+
+            return response
 
     return app
