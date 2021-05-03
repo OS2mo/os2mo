@@ -3,10 +3,9 @@
 
 from __future__ import generator_stop
 
-import math
-
 import asyncio
 import logging
+import math
 import re
 import typing
 import uuid
@@ -18,9 +17,8 @@ from itertools import starmap
 import lora_utils
 from more_itertools import chunked
 
+from . import exceptions, util
 from .async_util import async_session
-from . import exceptions
-from . import util
 
 logger = logging.getLogger(__name__)
 
