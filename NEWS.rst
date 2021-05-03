@@ -12,6 +12,7 @@ New features
 * #42864: Added new org_func: engagement_association, linking engagements to org_units
 * #42033: Improved on the UI-aspects of extension_X fields
 * #42920: Added create and update facet class endpoint
+* #43300: Implement auth for FastAPI
 
 Version 1.16.1, 2021-04-20
 ==========================

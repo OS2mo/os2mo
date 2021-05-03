@@ -23,3 +23,11 @@ jinja2
 aiofiles
 starlette-context
 werkzeug
+
+
+# SAML SSO dependencies
+python3-saml
+itsdangerous
+python-multipart
+flask-session
+FastAPI-SQLAlchemy
