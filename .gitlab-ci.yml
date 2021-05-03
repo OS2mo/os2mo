@@ -393,17 +393,16 @@ Release master:
 
 Create MR to deploy to test servers:
   stage: deploy
-  needs: []  # needs: ["Release master"]
+  needs: ["Release master"]
   image: alpine
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  # rules:
-  #     # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-  #     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+  rules:
+      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
   tags:
     - docker
   script:
-    - export CI_COMMIT_TAG=CarlsTestTag
     - apk add git
     - git config --global user.email "labs@magenta-aps.dk"
     - git config --global user.name "OS2MO Config Updater"
