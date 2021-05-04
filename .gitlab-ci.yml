@@ -6,7 +6,7 @@ variables:
 cache:
   key: "${CI_JOB_NAME}"
   paths:
-    - .venv
+    - .venv/
     - .cache/pip
     - .cache/pre-commit
 
