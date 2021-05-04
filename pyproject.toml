@@ -2,7 +2,12 @@
 name = "os2mo-data-models"
 version = "0.1.0"
 description = "Pydantic data models for OS2mo"
-authors = ["Nina Jensen <nkj@magenta.dk>"]
+authors = ["Magenta <info@magenta.dk>"]
+license = "MPL-2.0"
+readme = "README.md"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/rammearkitektur/os2mo-data-models"
+keywords = ["os2mo", "data models"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
