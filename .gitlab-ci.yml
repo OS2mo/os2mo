@@ -12,6 +12,7 @@ cache:
 
 stages:
   - lint
+  - test
 
 # Job templates
 .install-deps-template: &install-deps
@@ -26,9 +27,25 @@ stages:
   image: python:3.8
   stage: lint
 
+.test-template: &test
+  # Coverage needed too
+  <<: *install-deps
+  stage: test
+  script: poetry run pytest
+
 # Lint jobs
 Lint Project:
   <<: *lint
   script: 
       - pre-commit install
       - pre-commit run --all-files
+
+# Test jobs
+Python 3.8:
+  <<: *test
+  image: python:3.8
+
+Python 3.9:
+  <<: *test
+  image: python:3.9
+
