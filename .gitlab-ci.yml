@@ -1,8 +1,14 @@
 # Global
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PRE_COMMIT_HOME: "$CI_PROJECT_DIR/.cache/pre-commit"
+
 cache:
   key: "${CI_JOB_NAME}"
   paths:
     - .venv
+    - .cache/pip
+    - .cache/pre-commit
 
 stages:
   - lint
@@ -21,7 +27,7 @@ stages:
   stage: lint
 
 # Lint jobs
-Lint project:
+Lint Project:
   <<: *lint
   script: 
       - pre-commit install
