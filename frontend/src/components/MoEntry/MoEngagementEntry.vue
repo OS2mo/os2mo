@@ -10,11 +10,11 @@ SPDX-License-Identifier: MPL-2.0
 
     <div class="form-row">
       <mo-organisation-unit-picker
-              class="col"
-              :label="$t('input_fields.select_unit')"
-              v-model="entry.org_unit"
-              required
-              :validity="entry.validity"
+        class="col"
+        :label="$t('input_fields.select_unit')"
+        v-model="entry.org_unit"
+        required
+        :validity="entry.validity"
       />
 
       <mo-input-text
@@ -40,8 +40,15 @@ SPDX-License-Identifier: MPL-2.0
                        v-model="entry.primary"
                        required
       />
+    </div>
 
-
+    <div class="form-row" v-for="(v, row_index) in numberOfExtensionRows" :key="row_index">
+      <mo-input-text v-for="n in 2"
+        v-if="extensionFields.length >= (2 * row_index + n)"
+        class="'extension_field"
+        v-model="entry['extension_' + (2 * row_index + n)]"
+        :label="extensionFields[(2 * row_index + n - 1)]"
+      />
     </div>
   </div>
 </template>
@@ -51,7 +58,7 @@ SPDX-License-Identifier: MPL-2.0
  * A engagement entry component.
  */
 
-import { MoInputText, MoInputDateRange } from '@/components/MoInput'
+import {MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
 import MoEntryBase from './MoEntryBase'
@@ -82,13 +89,27 @@ export default {
     /**
      * Hide the dates.
      */
-    datePickerHidden () {
+    datePickerHidden() {
       return this.validity != null
     },
-    showPrimary () {
+    showPrimary() {
       let conf = this.$store.getters['conf/GET_CONF_DB']
-
       return conf.show_primary_engagement
+    },
+
+    extensionFields() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      let extension_labels = conf.extension_field_ui_labels.split(',')
+      if (extension_labels.length > 0 && extension_labels[0] !== "") {
+        return extension_labels
+      }
+      return []
+    },
+
+    numberOfExtensionRows() {
+      let length = this.extensionFields.length
+      let n_rows = Math.ceil(length / 2)
+      return new Array(n_rows)
     }
   },
 
@@ -97,7 +118,7 @@ export default {
      * Whenever entry change update.
      */
     entry: {
-      handler (newVal) {
+      handler(newVal) {
         newVal.type = 'engagement'
         this.$emit('input', newVal)
       },
@@ -107,7 +128,7 @@ export default {
     /**
      * When validity change update newVal.
      */
-    validity (newVal) {
+    validity(newVal) {
       this.entry.validity = newVal
     }
   }
