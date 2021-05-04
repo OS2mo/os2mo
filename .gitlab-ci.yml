@@ -12,7 +12,7 @@ stages:
   before_script:
     - pip install poetry pre-commit
     - poetry --version
-    - poetry config settings.virtualenvs.in-project true
+    - poetry config virtualenvs.in-project true
     - poetry install -vv
 
 .lint-template: &lint
