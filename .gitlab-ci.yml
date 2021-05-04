@@ -21,6 +21,7 @@ stages:
     - poetry --version
     - poetry config virtualenvs.in-project true
     - poetry install -vv
+    - pre-commit install
 
 .lint-template: &lint
   <<: *install-deps
@@ -37,7 +38,6 @@ stages:
 Lint Project:
   <<: *lint
   script: 
-      - pre-commit install
       - pre-commit run --all-files
 
 # Test jobs
