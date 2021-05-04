@@ -1,4 +1,6 @@
+# ---------------------------------------------------------------------------
 # Global
+# ---------------------------------------------------------------------------
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PRE_COMMIT_HOME: "$CI_PROJECT_DIR/.cache/pre-commit"
@@ -13,8 +15,11 @@ cache:
 stages:
   - lint
   - test
+  - deploy
 
-# Job templates
+# ---------------------------------------------------------------------------
+# Templates
+# ---------------------------------------------------------------------------
 .install-deps-template: &install-deps
   before_script:
     - pip install poetry pre-commit
@@ -34,18 +39,40 @@ stages:
   stage: test
   script: poetry run pytest
 
-# Lint jobs
+.deploy-template: &deploy
+  <<: *install-deps
+  image: python:3.8
+  stage: deploy
+  rules:
+      - if: $CI_COMMIT_BRANCH == "master"
+      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+      
+
+
+
+# ---------------------------------------------------------------------------
+# Lint
+# ---------------------------------------------------------------------------
 Lint Project:
   <<: *lint
   script: 
       - pre-commit run --all-files
 
-# Test jobs
-Python 3.8:
+# ---------------------------------------------------------------------------
+# Test
+# ---------------------------------------------------------------------------
+Test on Python 3.8:
   <<: *test
   image: python:3.8
 
-Python 3.9:
+Test on Python 3.9:
   <<: *test
   image: python:3.9
 
+# ---------------------------------------------------------------------------
+# Deploy
+# ---------------------------------------------------------------------------
+Deploy to PyPI:
+  <<: *deploy
+  script: poetry publish --build -u OS2mo -p $PYPI_PWD
