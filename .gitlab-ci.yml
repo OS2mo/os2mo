@@ -1,0 +1,28 @@
+# Global
+cache:
+  key: "${CI_JOB_NAME}"
+  paths:
+    - .venv
+
+stages:
+  - lint
+
+# Job templates
+.install-deps-template: &install-deps
+  before_script:
+    - pip install poetry pre-commit
+    - poetry --version
+    - poetry config settings.virtualenvs.in-project true
+    - poetry install -vv
+
+.lint-template: &lint
+  <<: *install-deps
+  image: python:3.8
+  stage: lint
+
+# Lint jobs
+Lint project:
+  <<: *lint
+  script: 
+      - pre-commit install
+      - pre-commit run --all-files
