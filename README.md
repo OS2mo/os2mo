@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
 # OS2mo Data Models
 
 OS2mo data validation models powered by [pydantic](https://github.com/samuelcolvin/pydantic/#pydantic).
-
+<!--
 ## Getting Started
 
 TODO: README section missing!
@@ -43,4 +43,4 @@ TODO: README section missing!
 
 This project uses REUSE (https://reuse.software) for licensing. See the
 LICENCES folder for licenses used in the project.
-
+-->
