@@ -36,6 +36,7 @@ stages:
 .test-template: &test
   # Coverage needed too
   <<: *install-deps
+  needs: []
   stage: test
   script: poetry run pytest
 
