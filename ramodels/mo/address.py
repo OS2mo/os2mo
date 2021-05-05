@@ -14,22 +14,22 @@ from ._shared import EngagementRef
 from ._shared import OrgUnitRef
 from ._shared import Person
 from ._shared import Validity
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Address implementations
 # --------------------------------------------------------------------------------------
 
 
-class AddressType(OS2Base):
+class AddressType(RABase):
     uuid: UUID
 
 
-class OrganisationRef(OS2Base):
+class OrganisationRef(RABase):
     uuid: UUID
 
 
-class Visibility(OS2Base):
+class Visibility(RABase):
     uuid: UUID
 
 
@@ -38,7 +38,7 @@ class Visibility(OS2Base):
 # --------------------------------------------------------------------------------------
 
 
-class Address(OS2Base):
+class Address(RABase):
     type: Literal["address"] = "address"
     uuid: UUID
     value: str

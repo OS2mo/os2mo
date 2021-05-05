@@ -14,26 +14,26 @@ from ._shared import EngagementRef
 from ._shared import OrgUnitRef
 from ._shared import Person
 from ._shared import Validity
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Engagement implementations
 # --------------------------------------------------------------------------------------
 
 
-class JobFunction(OS2Base):
+class JobFunction(RABase):
     uuid: UUID
 
 
-class EngagementType(OS2Base):
+class EngagementType(RABase):
     uuid: UUID
 
 
-class Primary(OS2Base):
+class Primary(RABase):
     uuid: UUID
 
 
-class EngagementAssociationType(OS2Base):
+class EngagementAssociationType(RABase):
     uuid: UUID
 
 
@@ -42,7 +42,7 @@ class EngagementAssociationType(OS2Base):
 # --------------------------------------------------------------------------------------
 
 
-class Engagement(OS2Base):
+class Engagement(RABase):
     type: Literal["engagement"] = "engagement"
     uuid: UUID
     org_unit: OrgUnitRef
@@ -108,7 +108,7 @@ class Engagement(OS2Base):
         )
 
 
-class EngagementAssociation(OS2Base):
+class EngagementAssociation(RABase):
     type: Literal["engagement_association"] = "engagement_association"
     uuid: UUID
     # user_key: str

@@ -13,42 +13,42 @@ from uuid import UUID
 from pydantic import Field
 
 from ._shared import EffectiveTime
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Organisation implementations
 # --------------------------------------------------------------------------------------
 
 
-class Authority(OS2Base):
+class Authority(RABase):
     urn: str
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
-class OrganisationProperties(OS2Base):
+class OrganisationProperties(RABase):
     user_key: str = Field(alias="brugervendtnoegle")
     name: str = Field(alias="organisationsnavn")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
-class OrganisationAttributes(OS2Base):
+class OrganisationAttributes(RABase):
     properties: List[OrganisationProperties] = Field(
         alias="organisationegenskaber", min_items=1, max_items=1
     )
 
 
-class OrganisationValidState(OS2Base):
+class OrganisationValidState(RABase):
     state: str = Field("Aktiv", alias="gyldighed")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
-class OrganisationStates(OS2Base):
+class OrganisationStates(RABase):
     valid_state: List[OrganisationValidState] = Field(
         alias="organisationgyldighed", min_items=1, max_items=1
     )
 
 
-class OrganisationRelations(OS2Base):
+class OrganisationRelations(RABase):
     authority: List[Authority] = Field(alias="myndighed", min_items=1, max_items=1)
 
 
@@ -57,7 +57,7 @@ class OrganisationRelations(OS2Base):
 # --------------------------------------------------------------------------------------
 
 
-class Organisation(OS2Base):
+class Organisation(RABase):
     attributes: OrganisationAttributes = Field(alias="attributter")
     states: OrganisationStates = Field(alias="tilstande")
     relations: Optional[OrganisationRelations] = Field(alias="relationer")

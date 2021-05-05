@@ -7,19 +7,28 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
-from os2models.base import OS2Base
+from pydantic import Field
+
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
-# Employee model
+# Shared models
 # --------------------------------------------------------------------------------------
 
 
-class Employee(OS2Base):
-    type: Literal["employee"] = "employee"
+class EffectiveTime(RABase):
+    from_date: str = Field(alias="from")
+    to_date: str = Field(alias="to")
+
+
+class Published(RABase):
+    published: str = Field("Publiceret", alias="publiceret")
+    effective_time: EffectiveTime = Field(alias="virkning")
+
+
+class Responsible(RABase):
+    object_type: Literal["organisation"] = Field("organisation", alias="objekttype")
     uuid: UUID
-    name: str
-    cpr_no: Optional[str] = None
-    seniority: Optional[str] = None
+    effective_time: EffectiveTime = Field(alias="virkning")

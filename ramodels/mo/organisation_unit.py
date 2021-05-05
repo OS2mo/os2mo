@@ -11,26 +11,26 @@ from typing import Optional
 from uuid import UUID
 
 from ._shared import Validity
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Organisation Unit implementations
 # --------------------------------------------------------------------------------------
 
 
-class Parent(OS2Base):
+class Parent(RABase):
     uuid: UUID
 
 
-class OrgUnitHierarchy(OS2Base):
+class OrgUnitHierarchy(RABase):
     uuid: UUID
 
 
-class OrgUnitType(OS2Base):
+class OrgUnitType(RABase):
     uuid: UUID
 
 
-class OrgUnitLevel(OS2Base):
+class OrgUnitLevel(RABase):
     uuid: UUID
 
 
@@ -39,7 +39,7 @@ class OrgUnitLevel(OS2Base):
 # --------------------------------------------------------------------------------------
 
 
-class OrganisationUnit(OS2Base):
+class OrganisationUnit(RABase):
     type: Literal["org_unit"] = "org_unit"
     uuid: UUID
     user_key: str

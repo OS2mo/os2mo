@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import List
+from typing import Literal
 from typing import Optional
 from uuid import UUID
 
@@ -15,91 +16,78 @@ from pydantic import Field
 from ._shared import EffectiveTime
 from ._shared import Published
 from ._shared import Responsible
-from .facet import FacetRef
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
-# Klasse implementations
+# Facet implementations
 # --------------------------------------------------------------------------------------
 
 
-class KlasseProperties(OS2Base):
+class FacetProperties(RABase):
     user_key: str = Field(alias="brugervendtnoegle")
-    title: str
-    scope: Optional[str] = Field(None, alias="omfang")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
-class KlasseAttributes(OS2Base):
-    properties: List[KlasseProperties] = Field(
-        alias="klasseegenskaber", min_items=1, max_items=1
+class FacetAttributes(RABase):
+    properties: List[FacetProperties] = Field(
+        alias="facetegenskaber", min_items=1, max_items=1
     )
 
 
-class KlasseStates(OS2Base):
+class FacetStates(RABase):
     published_state: List[Published] = Field(
-        alias="klassepubliceret", min_items=1, max_items=1
+        alias="facetpubliceret", min_items=1, max_items=1
     )
 
 
+class FacetRelations(RABase):
+    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
+
+
+class FacetRef(RABase):
+    object_type: Literal["facet"] = Field("facet", alias="objekttype")
+    uuid: UUID
+    effective_time: EffectiveTime = Field(alias="virkning")
+
+
 # --------------------------------------------------------------------------------------
-# Klasse implementations
+# Facet model
 # --------------------------------------------------------------------------------------
 
 
-class KlasseRelations(OS2Base):
-    responsible: List[Responsible] = Field(alias="ansvarlig")
-    facet: List[FacetRef] = Field(alias="ansvarlig")
-
-
-class Klasse(OS2Base):
-    attributes: KlasseAttributes = Field(alias="attributter")
-    states: KlasseStates = Field(alias="tilstande")
-    relations: KlasseRelations = Field(alias="relationer")
+class Facet(RABase):
+    attributes: FacetAttributes = Field(alias="attributter")
+    states: FacetStates = Field(alias="tilstande")
+    relations: FacetRelations = Field(alias="relationer")
     # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
     # for now, this value is included, and has to be excluded when converted to json
     uuid: Optional[UUID] = None  # Field(None, exclude=True)
 
+    # TODO: This should be done with validators setting dynamic fields instead
     @classmethod
     def from_simplified_fields(
         cls,
-        facet_uuid: UUID,  # uuid
         uuid: UUID,
-        user_key: str,  # rarely used
-        scope: Optional[str],
+        user_key: str,
         organisation_uuid: UUID,
-        title: str,
         date_from: str = "1930-01-01",
         date_to: str = "infinity",
     ):
         effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
-        attributes = KlasseAttributes(
+        attributes = FacetAttributes(
             properties=[
-                KlasseProperties(
-                    user_key=user_key,
-                    title=title,
-                    scope=scope,
-                    effective_time=effective_time,
-                )
+                FacetProperties(user_key=user_key, effective_time=effective_time)
             ]
         )
-        states = KlasseStates(
-            published_state=[Published(effective_time=effective_time)]
-        )
+        states = FacetStates(published_state=[Published(effective_time=effective_time)])
 
-        relations = KlasseRelations(
+        relations = FacetRelations(
             responsible=[
                 Responsible(
                     uuid=organisation_uuid,
                     effective_time=effective_time,
                 )
-            ],
-            facet=[
-                FacetRef(
-                    uuid=facet_uuid,
-                    effective_time=effective_time,
-                )
-            ],
+            ]
         )
         return cls(
             attributes=attributes,

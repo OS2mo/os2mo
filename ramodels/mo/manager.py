@@ -14,22 +14,22 @@ from uuid import UUID
 from ._shared import OrgUnitRef
 from ._shared import Person
 from ._shared import Validity
-from os2models.base import OS2Base
+from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Manager implementations
 # --------------------------------------------------------------------------------------
 
 
-class Responsibility(OS2Base):
+class Responsibility(RABase):
     uuid: UUID
 
 
-class ManagerLevel(OS2Base):
+class ManagerLevel(RABase):
     uuid: UUID
 
 
-class ManagerType(OS2Base):
+class ManagerType(RABase):
     uuid: UUID
 
 
@@ -38,7 +38,7 @@ class ManagerType(OS2Base):
 # --------------------------------------------------------------------------------------
 
 
-class Manager(OS2Base):
+class Manager(RABase):
     type: Literal["manager"] = "manager"
     uuid: UUID
     # user_key: str
