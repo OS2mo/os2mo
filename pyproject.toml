@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "os2models"
+name = "ramodels"
 version = "0.3.0"
 description = "Pydantic data models for OS2mo"
 authors = ["Magenta <info@magenta.dk>"]

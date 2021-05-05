@@ -6,30 +6,19 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import Optional
-from uuid import UUID
-
-from pydantic import Field
-
-from os2models.base import OS2Base
+from pydantic import BaseModel
+from pydantic import Extra
 
 # --------------------------------------------------------------------------------------
-# Shared models
+# Base models
 # --------------------------------------------------------------------------------------
 
 
-class Validity(OS2Base):
-    from_date: str = Field("1930-01-01", alias="from")
-    to_date: Optional[str] = Field(None, alias="to")
+class RABase(BaseModel):
+    """Base model for OS2 data models."""
 
-
-class Person(OS2Base):
-    uuid: UUID
-
-
-class OrgUnitRef(OS2Base):
-    uuid: UUID
-
-
-class EngagementRef(OS2Base):
-    uuid: UUID
+    class Config:
+        allow_mutation = False
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
