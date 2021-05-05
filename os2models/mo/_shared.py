@@ -6,22 +6,30 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from .address import Address
-from .employee import Employee
-from .engagement import Engagement
-from .engagement import EngagementAssociation
-from .manager import Manager
-from .organisation_unit import OrganisationUnit
+from typing import Optional
+from uuid import UUID
+
+from pydantic import Field
+
+from os2models.base import OS2Base
 
 # --------------------------------------------------------------------------------------
-# All
+# Shared models
 # --------------------------------------------------------------------------------------
 
-__all__ = [
-    "Address",
-    "Employee",
-    "Engagement",
-    "EngagementAssociation",
-    "Manager",
-    "OrganisationUnit",
-]
+
+class Validity(OS2Base):
+    from_date: str = Field("1930-01-01", alias="from")
+    to_date: Optional[str] = Field(None, alias="to")
+
+
+class Person(OS2Base):
+    uuid: UUID
+
+
+class OrgUnitRef(OS2Base):
+    uuid: UUID
+
+
+class EngagementRef(OS2Base):
+    uuid: UUID
