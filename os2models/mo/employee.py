@@ -6,22 +6,20 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from .address import Address
-from .employee import Employee
-from .engagement import Engagement
-from .engagement import EngagementAssociation
-from .manager import Manager
-from .organisation_unit import OrganisationUnit
+from typing import Literal
+from typing import Optional
+from uuid import UUID
+
+from os2models.base import OS2Base
 
 # --------------------------------------------------------------------------------------
-# All
+# Employee model
 # --------------------------------------------------------------------------------------
 
-__all__ = [
-    "Address",
-    "Employee",
-    "Engagement",
-    "EngagementAssociation",
-    "Manager",
-    "OrganisationUnit",
-]
+
+class Employee(OS2Base):
+    type: Literal["employee"] = "employee"
+    uuid: UUID
+    name: str
+    cpr_no: Optional[str] = None
+    seniority: Optional[str] = None
