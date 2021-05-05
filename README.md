@@ -8,6 +8,11 @@ SPDX-License-Identifier: MPL-2.0
 
 OS2mo data validation models powered by [pydantic](https://github.com/samuelcolvin/pydantic/#pydantic).
 
+## Versioning
+This project uses [Semantic Versioning](https://semver.org/) with the following strategy:
+- MAJOR: Incompatible changes to existing data models
+- MINOR: Backwards compatible updates to existing data models OR new models added
+- PATCH: Backwards compatible bug fixes
 
 <!--
 ## Getting Started
