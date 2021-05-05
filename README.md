@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
 
 # MoLoRa Data Models
 
-MoLoRa data validation models powered by [pydantic](https://github.com/samuelcolvin/pydantic/#pydantic).
+RAModels - MoLoRa data validation models powered by [pydantic](https://github.com/samuelcolvin/pydantic/#pydantic).
 
 ## Versioning
 This project uses [Semantic Versioning](https://semver.org/) with the following strategy:
