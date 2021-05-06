@@ -27,7 +27,6 @@ class RABase(BaseModel):
         return super().__new__(cls)
 
     class Config:
-        allow_mutation = False
         frozen = True
         allow_population_by_field_name = True
         extra = Extra.forbid
