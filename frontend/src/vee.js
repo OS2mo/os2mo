@@ -4,13 +4,19 @@
 /**
  * Imports and set up vee-validate.
  * If more filters are needed, remember to import them here!
- * See more at: https://baianat.github.io/vee-validate/concepts/bundle-size.html
  */
 
+/* Vue and vee imports */
 import Vue from 'vue'
 import { Validator, install as VeeValidate } from 'vee-validate/dist/vee-validate.minimal.esm.js'
 import { required, url, digits, email, min, max, numeric, max_value } from 'vee-validate/dist/rules.esm.js' // eslint-disable-line
+
+/* Import vee i18n content */
+import veeEn from 'vee-validate/dist/locale/en'
 import veeDa from 'vee-validate/dist/locale/da'
+
+/* Local imports */
+import i18n from '@/i18n.js'
 import ActiveEngagements from './validators/ActiveEngagements'
 import Address from './validators/Address'
 import CandidateParentOrgUnit from './validators/CandidateParentOrgUnit'
@@ -23,17 +29,19 @@ import OrgUnit from './validators/OrgUnit'
 import MovableOrgUnit from "./validators/MovableOrgUnit";
 
 /**
- * See configuration options here:
- * https://baianat.github.io/vee-validate/configuration.html
+ * Integration with `vue-i18n`:
+ * https://github.com/logaretm/vee-validate/blob/2.1.2/docs/guide/localization.md#vuei18n-integration
  */
 const veeConfig = {
-  dateFormat: 'DD-MM-YYYY',
+  i18n,
+  dictionary: {
+    en: veeEn,
+    da: veeDa,
+  },
+  inject: false,
   delay: 100,
-  locale: 'da',
-  inject: false
+  dateFormat: 'DD-MM-YYYY',  // TODO: Should probably depend on the locale?
 }
-
-Validator.localize('da', veeDa)
 
 Validator.extend('required', required)
 Validator.extend('digits', digits)

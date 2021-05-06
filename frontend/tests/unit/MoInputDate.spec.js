@@ -5,6 +5,7 @@ import { createLocalVue, mount } from '@vue/test-utils'
 import VeeValidate from 'vee-validate'
 import DateTimePicker from 'vuejs-datepicker'
 import MoInputDate from '@/components/MoInput/MoInputDate.vue'
+import i18n from '@/i18n.js'
 
 describe('MoInputDate.vue', () => {
   let mountComponent = (propsData) => {
@@ -14,6 +15,7 @@ describe('MoInputDate.vue', () => {
 
     const wrapper = mount(MoInputDate, {
       localVue,
+      i18n,
       propsData: propsData,
     })
 

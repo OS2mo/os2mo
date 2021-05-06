@@ -3,6 +3,7 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+      <mo-locale-picker />
       <div class="col text-center">
         <h1>{{$t('common.welcome_message')}}</h1>
         <h4>{{$t('common.welcome_tagline')}}</h4>
@@ -32,8 +33,13 @@ SPDX-License-Identifier: MPL-2.0
  */
 import Frontpage from '@/api/Frontpage'
 import Version from '@/api/Version'
+import MoLocalePicker from '@/components/MoLocalePicker.vue'
 
 export default {
+  components: {
+    MoLocalePicker,
+  },
+
   data () {
     return {
       menu: [],
@@ -69,6 +75,13 @@ export default {
   #login-wrapper {
     text-align: center;
     margin-top: 10em;
+  }
+
+  #locale-picker {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    z-index: 1111;
   }
 
   .version {

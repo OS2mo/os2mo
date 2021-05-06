@@ -3,25 +3,48 @@
 
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
-import { da } from './locales/da'
+import { en, da } from 'vuejs-datepicker/dist/locale'
 
 Vue.use(VueI18n)
 
-const messages = {
-  da: da,
+function loadLocaleMessages() {
+  const messages = {}
+
+  // Match on "./locales/da/shared.json", "./locales/en/tabs.json", etc.
+  const locales = require.context("./locales", true, /(\w+)\/(\w+)\.json/i)
+
+  locales.keys().forEach(key => {
+    const matched = key.match(/(\w+)\/(\w+)\.json/i)
+    if (matched && matched.length > 2) {
+      const locale = matched[1]  // = 'da', 'en', etc.
+      const section = matched[2]  // = 'shared', 'tabs', etc.
+
+      // Add the JSON contents under its locale and section
+      if (!(locale in messages)) {
+        messages[locale] = {}
+      }
+      messages[locale][section] = locales(key)
+    }
+  });
+
+  return messages
+}
+
+export default new VueI18n({
+  locale: localStorage.moLocale || process.env.VUE_APP_I18N_LOCALE || "da",
+  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "da",
+  messages: loadLocaleMessages(),
+});
+
+export function getDatepickerLocales() {
+  return {
+    en: en,
+    da: da,
+  }
 }
 
 const translation_prefix = 'i18n:'
 const translation_prefix_length = translation_prefix.length
-
-
-let i18n = new VueI18n({
-    locale: 'da', // set locale
-    messages
-});
-
-
-export default i18n
 
 /**
 * Test whether a string should be translated

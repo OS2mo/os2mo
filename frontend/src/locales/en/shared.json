@@ -1,14 +1,14 @@
 {
   "welcome_message": "Welcome to GIR",
   "welcome_tagline": "Global Identity Repository",
-  "address": "Addresse | Addresses",
+  "address": "Address | Addresses",
   "association": "Affiliation | Affiliations",
   "association_type": "Affiliation role",
   "address_type": "Address type",
   "date": {
     "date": "Date",
-    "start_date": "Startdate",
-    "end_date": "Enddate"
+    "start_date": "Start date",
+    "end_date": "End date"
   },
   "engagement_type": "Employment type",
   "employee": "Employee | Employees",

@@ -47,13 +47,16 @@ SPDX-License-Identifier: MPL-2.0
         :is="shortcut.template"
       />
 
-      <b-dropdown id="ddown1" variant="primary">
-        <template slot="button-content">
-          <icon name="user"/> {{username}}
-        </template>
+      <mo-locale-picker />
 
+      <b-dropdown variant="primary">
+        <template slot="button-content">
+          <icon name="user" />
+          {{ username }}
+        </template>
         <b-dropdown-item @click="logout()">
-          <icon name="sign-out-alt"/> {{$t('common.sign_out')}}
+          <icon name="sign-out-alt" />
+          {{ $t('common.sign_out') }}
         </b-dropdown-item>
       </b-dropdown>
     </div>
@@ -61,7 +64,9 @@ SPDX-License-Identifier: MPL-2.0
 </template>
 
 <script>
+import { Validator } from 'vee-validate'
 import MoNavbar from '@/api/MoNavbar'
+import MoLocalePicker from '@/components/MoLocalePicker.vue'
 import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
 import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
 import Service from '@/api/HttpCommon'
@@ -74,8 +79,9 @@ export default {
   components: {
     MoSearchBar,
     MoOrganisationPicker,
+    MoLocalePicker,
     'b-dropdown': bDropdown,
-    'b-dropdown-item': bDropdownItem
+    'b-dropdown-item': bDropdownItem,
   },
 
   data () {
@@ -112,7 +118,7 @@ export default {
     logout () {
       let vm = this
       this.$store.dispatch(Auth.actions.AUTH_LOGOUT, vm.user)
-    }
+    },
   }
 }
 </script>

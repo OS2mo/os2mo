@@ -48,9 +48,9 @@
     "V_INVALID_ADDRESS_PNUMBER": "10 digits are required.",
     "V_INVALID_ADDRESS_WWW": "A valid web address is required.",
     "E_UNKNOWN": "Unspecified error.",
-    "E_INTEGRATION_ERROR": "Integratio error, {description}"
+    "E_INTEGRATION_ERROR": "Integration error, {description}"
   },
   "no_search_results": "No results match your search.",
-  "page_not_found": "SPage not found",
+  "page_not_found": "Page not found",
   "fallback": "An unknown error occurred: “{description}” ({error_key})"
 }

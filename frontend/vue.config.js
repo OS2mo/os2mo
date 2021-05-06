@@ -48,7 +48,9 @@ module.exports = {
   ],
   pluginOptions: {
     i18n: {
+      // Specifies the default locale for vue-i18n
       locale: 'da',
+      // Specifies the default fallback locale for vue-i18n
       fallbackLocale: 'da',
       localeDir: 'i18n',
       enableInSFC: false
