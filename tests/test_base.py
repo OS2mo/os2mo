@@ -20,7 +20,7 @@ from ramodels.base import RABase
 class TestRABase:
     def test_init(self):
         # RABase should not be able to be instantiated
-        with pytest.raises(TypeError, match="RABase may not be instantiated"):
+        with pytest.raises(TypeError, match="may not be instantiated"):
             RABase()
 
 
