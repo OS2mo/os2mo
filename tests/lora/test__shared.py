@@ -6,24 +6,39 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from uuid import uuid4
+
 import pytest
 
-from ramodels.mo._shared import MOBase
+from ramodels.lora._shared import LoraBase
 
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
 
 
-class TestMOBase:
+class TestLoraBase:
     def test_init(self):
-        # MOBase cannot be instantiated
+        # LoraBase cannot be instantiated
         with pytest.raises(TypeError, match="may not be instantiated"):
-            MOBase()
+            LoraBase()
 
     def test_fields(self):
-        # Subclasses of MOBase should have a UUID field
-        class MOSub(MOBase):
+        # Subclasses of LoraBase should have a UUID field
+        class LoraSub(LoraBase):
             pass
 
-        assert MOSub.__fields__.get("uuid")
+        assert LoraSub.__fields__.get("uuid")
+
+    def test_validators(self):
+        class LoraSub(LoraBase):
+            pass
+
+        # UUIDs should be auto-generated
+        lora_sub = LoraSub()
+        assert lora_sub.uuid.version == 4
+
+        # But we should also be able to set them explicitly
+        test_uuid = uuid4()
+        lora_sub_with_uuid = LoraSub(uuid=test_uuid)
+        assert lora_sub_with_uuid.uuid == test_uuid
