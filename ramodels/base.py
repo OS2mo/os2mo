@@ -6,6 +6,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Any
+
 from pydantic import BaseModel
 from pydantic import Extra
 
@@ -15,7 +17,14 @@ from pydantic import Extra
 
 
 class RABase(BaseModel):
-    """Base model for OS2 data models."""
+    """Base model for RA data models."""
+
+    # TODO: This is duplicated to each class that cannot be instantiated.
+    # We should probably find a better solution.
+    def __new__(cls, *args, **kwargs) -> Any:
+        if cls is RABase:
+            raise TypeError("RABase may not be instantiated")
+        return super().__new__(cls)
 
     class Config:
         allow_mutation = False
