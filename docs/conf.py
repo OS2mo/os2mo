@@ -60,6 +60,7 @@ autodoc_default_flags = [
 
 MOCK_MODULES = [
     'flask_session',
+    'flask_session.sessions',
     'lxml',
     'lxml.etree',
     'service_person_stamdata_udvidet',
@@ -73,6 +74,7 @@ MOCK_MODULES = [
     'sqlalchemy',
     'sqlalchemy.sql',
     'sqlalchemy.orm',
+    'sqlalchemy.exc',
     'sqlalchemy.ext',
     'sqlalchemy.ext.declarative',
     'sqlalchemy_utils',
@@ -94,6 +96,7 @@ MOCK_MODULES = [
     'fastapi.staticfiles',
     'fastapi.encoders',
     'fastapi.testclient',
+    'fastapi_sqlalchemy',
     'starlette',
     'starlette.middleware',
     'starlette.middleware.cors',
@@ -108,6 +111,7 @@ MOCK_MODULES = [
     'onelogin',
     'onelogin.saml2',
     'onelogin.saml2.auth',
+    'onelogin.saml2.settings',
     'onelogin.saml2.response',
     'onelogin.saml2.xml_utils',
     'onelogin.saml2.constants',
