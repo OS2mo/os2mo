@@ -11,26 +11,17 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from ._shared import ManagerLevel
+from ._shared import ManagerType
+from ._shared import MOBase
 from ._shared import OrgUnitRef
-from ._shared import Person
+from ._shared import PersonRef
+from ._shared import Responsibility
 from ._shared import Validity
-from ramodels.base import RABase
 
 # --------------------------------------------------------------------------------------
 # Manager implementations
 # --------------------------------------------------------------------------------------
-
-
-class Responsibility(RABase):
-    uuid: UUID
-
-
-class ManagerLevel(RABase):
-    uuid: UUID
-
-
-class ManagerType(RABase):
-    uuid: UUID
 
 
 # --------------------------------------------------------------------------------------
@@ -38,12 +29,11 @@ class ManagerType(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class Manager(RABase):
+class Manager(MOBase):
     type: Literal["manager"] = "manager"
-    uuid: UUID
     # user_key: str
     org_unit: OrgUnitRef
-    person: Person
+    person: PersonRef
     responsibility: List[Responsibility]
     manager_level: ManagerLevel
     manager_type: ManagerType
@@ -62,7 +52,7 @@ class Manager(RABase):
         from_date: str = "1930-01-01",
         to_date: Optional[str] = None,
     ):
-        person = Person(uuid=person_uuid)
+        person = PersonRef(uuid=person_uuid)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         responsibility = [Responsibility(uuid=responsibility_uuid)]
         manager_level = ManagerLevel(uuid=manager_level_uuid)

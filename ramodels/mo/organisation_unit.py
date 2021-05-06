@@ -10,42 +10,25 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from ._shared import MOBase
+from ._shared import OrgUnitHierarchy
+from ._shared import OrgUnitLevel
+from ._shared import OrgUnitType
+from ._shared import ParentRef
 from ._shared import Validity
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Organisation Unit implementations
-# --------------------------------------------------------------------------------------
-
-
-class Parent(RABase):
-    uuid: UUID
-
-
-class OrgUnitHierarchy(RABase):
-    uuid: UUID
-
-
-class OrgUnitType(RABase):
-    uuid: UUID
-
-
-class OrgUnitLevel(RABase):
-    uuid: UUID
-
 
 # --------------------------------------------------------------------------------------
 # Organisation Unit model
 # --------------------------------------------------------------------------------------
 
 
-class OrganisationUnit(RABase):
+class OrganisationUnit(MOBase):
     type: Literal["org_unit"] = "org_unit"
     uuid: UUID
     user_key: str
     validity: Validity
     name: str
-    parent: Optional[Parent] = None
+    parent: Optional[ParentRef] = None
     org_unit_hierarchy: Optional[OrgUnitHierarchy] = None
     org_unit_type: OrgUnitType
     org_unit_level: OrgUnitLevel
@@ -65,7 +48,7 @@ class OrganisationUnit(RABase):
     ) -> "OrganisationUnit":
         parent = None
         if parent_uuid:
-            parent = Parent(uuid=parent_uuid)
+            parent = ParentRef(uuid=parent_uuid)
 
         org_unit_hierarchy = None
         if org_unit_hierarchy_uuid:

@@ -10,27 +10,14 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from ._shared import AddressType
 from ._shared import EngagementRef
+from ._shared import MOBase
+from ._shared import OrganisationRef
 from ._shared import OrgUnitRef
-from ._shared import Person
+from ._shared import PersonRef
 from ._shared import Validity
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Address implementations
-# --------------------------------------------------------------------------------------
-
-
-class AddressType(RABase):
-    uuid: UUID
-
-
-class OrganisationRef(RABase):
-    uuid: UUID
-
-
-class Visibility(RABase):
-    uuid: UUID
+from ._shared import Visibility
 
 
 # --------------------------------------------------------------------------------------
@@ -38,14 +25,13 @@ class Visibility(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class Address(RABase):
+class Address(MOBase):
     type: Literal["address"] = "address"
-    uuid: UUID
     value: str
     value2: Optional[str]
     address_type: AddressType
     org: OrganisationRef
-    person: Optional[Person] = None
+    person: Optional[PersonRef] = None
     org_unit: Optional[OrgUnitRef] = None
     engagement: Optional[EngagementRef] = None
     validity: Validity
@@ -71,7 +57,7 @@ class Address(RABase):
         validity = Validity(from_date=from_date, to_date=to_date)
         person = None
         if person_uuid:
-            person = Person(uuid=person_uuid)
+            person = PersonRef(uuid=person_uuid)
         org_unit = None
         if org_unit_uuid:
             org_unit = OrgUnitRef(uuid=org_unit_uuid)

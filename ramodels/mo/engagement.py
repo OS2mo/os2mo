@@ -10,43 +10,25 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from ._shared import EngagementAssociationType
 from ._shared import EngagementRef
+from ._shared import EngagementType
+from ._shared import JobFunction
+from ._shared import MOBase
 from ._shared import OrgUnitRef
-from ._shared import Person
+from ._shared import PersonRef
+from ._shared import Primary
 from ._shared import Validity
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Engagement implementations
-# --------------------------------------------------------------------------------------
-
-
-class JobFunction(RABase):
-    uuid: UUID
-
-
-class EngagementType(RABase):
-    uuid: UUID
-
-
-class Primary(RABase):
-    uuid: UUID
-
-
-class EngagementAssociationType(RABase):
-    uuid: UUID
-
 
 # --------------------------------------------------------------------------------------
 # Engagement models
 # --------------------------------------------------------------------------------------
 
 
-class Engagement(RABase):
+class Engagement(MOBase):
     type: Literal["engagement"] = "engagement"
-    uuid: UUID
     org_unit: OrgUnitRef
-    person: Person
+    person: PersonRef
     job_function: JobFunction
     engagement_type: EngagementType
     validity: Validity
@@ -89,7 +71,7 @@ class Engagement(RABase):
         return cls(
             uuid=uuid,
             org_unit=OrgUnitRef(uuid=org_unit_uuid),
-            person=Person(uuid=person_uuid),
+            person=PersonRef(uuid=person_uuid),
             job_function=JobFunction(uuid=job_function_uuid),
             engagement_type=EngagementType(uuid=engagement_type_uuid),
             validity=Validity(from_date=from_date, to_date=to_date),
@@ -108,9 +90,8 @@ class Engagement(RABase):
         )
 
 
-class EngagementAssociation(RABase):
+class EngagementAssociation(MOBase):
     type: Literal["engagement_association"] = "engagement_association"
-    uuid: UUID
     # user_key: str
     org_unit: OrgUnitRef
     engagement: EngagementRef
