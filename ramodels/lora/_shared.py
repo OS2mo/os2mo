@@ -38,7 +38,7 @@ class LoraBase(RABase):
     # However, the beta version of default_factory is still unstable and prone to
     # side-effects.
     @validator("uuid", pre=True, always=True)
-    def set_uuid(cls, _uuid: UUID) -> UUID:
+    def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
         return _uuid or uuid4()
 
 
