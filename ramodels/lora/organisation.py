@@ -6,50 +6,19 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import List
 from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
 
+from ._shared import Authority
 from ._shared import EffectiveTime
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Organisation implementations
-# --------------------------------------------------------------------------------------
-
-
-class Authority(RABase):
-    urn: str
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-class OrganisationProperties(RABase):
-    user_key: str = Field(alias="brugervendtnoegle")
-    name: str = Field(alias="organisationsnavn")
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-class OrganisationAttributes(RABase):
-    properties: List[OrganisationProperties] = Field(
-        alias="organisationegenskaber", min_items=1, max_items=1
-    )
-
-
-class OrganisationValidState(RABase):
-    state: str = Field("Aktiv", alias="gyldighed")
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-class OrganisationStates(RABase):
-    valid_state: List[OrganisationValidState] = Field(
-        alias="organisationgyldighed", min_items=1, max_items=1
-    )
-
-
-class OrganisationRelations(RABase):
-    authority: List[Authority] = Field(alias="myndighed", min_items=1, max_items=1)
+from ._shared import LoraBase
+from ._shared import OrganisationAttributes
+from ._shared import OrganisationProperties
+from ._shared import OrganisationRelations
+from ._shared import OrganisationStates
+from ._shared import OrganisationValidState
 
 
 # --------------------------------------------------------------------------------------
@@ -57,14 +26,10 @@ class OrganisationRelations(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class Organisation(RABase):
+class Organisation(LoraBase):
     attributes: OrganisationAttributes = Field(alias="attributter")
     states: OrganisationStates = Field(alias="tilstande")
     relations: Optional[OrganisationRelations] = Field(alias="relationer")
-    # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
-    # for now, this value is included,
-    # and has to be excluded manually when converting to json
-    uuid: Optional[UUID] = None  # Field(None, exclude=True)
 
     # TODO: This should be done with validators setting dynamic fields instead
     @classmethod

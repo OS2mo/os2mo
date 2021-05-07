@@ -6,27 +6,24 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import Any
+import pytest
 
-from pydantic import BaseModel
-from pydantic import Extra
+from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
-# Base models
+# Tests
 # --------------------------------------------------------------------------------------
 
 
-class RABase(BaseModel):
-    """Base model for RA data models."""
+class TestMOBase:
+    def test_init(self):
+        # MOBase cannot be instantiated
+        with pytest.raises(TypeError, match="may not be instantiated"):
+            MOBase()
 
-    # TODO: This is duplicated to each class that cannot be instantiated.
-    # We should probably find a better solution.
-    def __new__(cls, *args, **kwargs) -> Any:
-        if cls is RABase:
-            raise TypeError("RABase may not be instantiated")
-        return super().__new__(cls)
+    def test_fields(self):
+        # Subclasses of MOBase should have a UUID field
+        class MOSub(MOBase):
+            pass
 
-    class Config:
-        frozen = True
-        allow_population_by_field_name = True
-        extra = Extra.forbid
+        assert MOSub.__fields__.get("uuid")

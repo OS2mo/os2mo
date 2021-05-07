@@ -6,59 +6,31 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import List
 from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
 
 from ._shared import EffectiveTime
+from ._shared import FacetRef
+from ._shared import KlasseAttributes
+from ._shared import KlasseProperties
+from ._shared import KlasseRelations
+from ._shared import KlasseStates
+from ._shared import LoraBase
 from ._shared import Published
 from ._shared import Responsible
-from .facet import FacetRef
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Klasse implementations
-# --------------------------------------------------------------------------------------
-
-
-class KlasseProperties(RABase):
-    user_key: str = Field(alias="brugervendtnoegle")
-    title: str = Field(alias="titel")
-    scope: Optional[str] = Field(None, alias="omfang")
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-class KlasseAttributes(RABase):
-    properties: List[KlasseProperties] = Field(
-        alias="klasseegenskaber", min_items=1, max_items=1
-    )
-
-
-class KlasseStates(RABase):
-    published_state: List[Published] = Field(
-        alias="klassepubliceret", min_items=1, max_items=1
-    )
 
 
 # --------------------------------------------------------------------------------------
-# Klasse implementations
+# Klasse model
 # --------------------------------------------------------------------------------------
 
 
-class KlasseRelations(RABase):
-    responsible: List[Responsible] = Field(alias="ansvarlig")
-    facet: List[FacetRef] = Field(alias="ansvarlig")
-
-
-class Klasse(RABase):
+class Klasse(LoraBase):
     attributes: KlasseAttributes = Field(alias="attributter")
     states: KlasseStates = Field(alias="tilstande")
     relations: KlasseRelations = Field(alias="relationer")
-    # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
-    # for now, this value is included, and has to be excluded when converted to json
-    uuid: Optional[UUID] = None  # Field(None, exclude=True)
 
     @classmethod
     def from_simplified_fields(

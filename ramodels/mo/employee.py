@@ -8,18 +8,16 @@
 # --------------------------------------------------------------------------------------
 from typing import Literal
 from typing import Optional
-from uuid import UUID
 
-from ramodels.base import RABase
+from ._shared import MOBase
 
 # --------------------------------------------------------------------------------------
 # Employee model
 # --------------------------------------------------------------------------------------
 
 
-class Employee(RABase):
+class Employee(MOBase):
     type: Literal["employee"] = "employee"
-    uuid: UUID
     name: str
     cpr_no: Optional[str] = None
     seniority: Optional[str] = None

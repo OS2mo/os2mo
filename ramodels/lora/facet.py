@@ -6,48 +6,18 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import List
-from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
 
 from ._shared import EffectiveTime
+from ._shared import FacetAttributes
+from ._shared import FacetProperties
+from ._shared import FacetRelations
+from ._shared import FacetStates
+from ._shared import LoraBase
 from ._shared import Published
 from ._shared import Responsible
-from ramodels.base import RABase
-
-# --------------------------------------------------------------------------------------
-# Facet implementations
-# --------------------------------------------------------------------------------------
-
-
-class FacetProperties(RABase):
-    user_key: str = Field(alias="brugervendtnoegle")
-    effective_time: EffectiveTime = Field(alias="virkning")
-
-
-class FacetAttributes(RABase):
-    properties: List[FacetProperties] = Field(
-        alias="facetegenskaber", min_items=1, max_items=1
-    )
-
-
-class FacetStates(RABase):
-    published_state: List[Published] = Field(
-        alias="facetpubliceret", min_items=1, max_items=1
-    )
-
-
-class FacetRelations(RABase):
-    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
-
-
-class FacetRef(RABase):
-    object_type: Literal["facet"] = Field("facet", alias="objekttype")
-    uuid: UUID
-    effective_time: EffectiveTime = Field(alias="virkning")
 
 
 # --------------------------------------------------------------------------------------
@@ -55,13 +25,10 @@ class FacetRef(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class Facet(RABase):
+class Facet(LoraBase):
     attributes: FacetAttributes = Field(alias="attributter")
     states: FacetStates = Field(alias="tilstande")
     relations: FacetRelations = Field(alias="relationer")
-    # TODO, PENDING: https://github.com/samuelcolvin/pydantic/pull/2231
-    # for now, this value is included, and has to be excluded when converted to json
-    uuid: Optional[UUID] = None  # Field(None, exclude=True)
 
     # TODO: This should be done with validators setting dynamic fields instead
     @classmethod
