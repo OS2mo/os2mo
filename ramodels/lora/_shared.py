@@ -104,7 +104,7 @@ class KlasseProperties(RABase):
 
 class KlasseRelations(RABase):
     responsible: List[Responsible] = Field(alias="ansvarlig")
-    facet: List[FacetRef] = Field(alias="ansvarlig")
+    facet: List[FacetRef]
 
 
 class KlasseAttributes(RABase):
