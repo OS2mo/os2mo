@@ -25,7 +25,7 @@ from ramodels.base import RABase
 
 class KlasseProperties(RABase):
     user_key: str = Field(alias="brugervendtnoegle")
-    title: str
+    title: str = Field(alias="titel")
     scope: Optional[str] = Field(None, alias="omfang")
     effective_time: EffectiveTime = Field(alias="virkning")
 
