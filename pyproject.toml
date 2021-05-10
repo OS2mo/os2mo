@@ -12,6 +12,7 @@ keywords = ["os2mo", "data models"]
 [tool.poetry.dependencies]
 python = "^3.8"
 pydantic = "1.8.2"
+python-dateutil = "2.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.3"
