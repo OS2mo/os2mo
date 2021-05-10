@@ -42,28 +42,25 @@ class Organisation(LoraBase):
         date_from: str = "1930-01-01",
         date_to: str = "infinity",
     ):
-        effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
-        attributes = OrganisationAttributes(
-            properties=[
-                OrganisationProperties(
-                    user_key=user_key, name=name, effective_time=effective_time
-                )
-            ]
+        # Inner fields
+        _effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
+        _properties = OrganisationProperties(
+            user_key=user_key, name=name, effective_time=_effective_time
         )
-        states = OrganisationStates(
-            valid_state=[OrganisationValidState(effective_time=effective_time)]
-        )
-
-        relations = None
+        _valid_state = OrganisationValidState(effective_time=_effective_time)
+        _authority = None
         if municipality_code:
-            relations = OrganisationRelations(
-                authority=[
-                    Authority(
-                        urn=f"urn:dk:kommune:{municipality_code}",
-                        effective_time=effective_time,
-                    )
-                ]
+            _authority = Authority(
+                urn=f"urn:dk:kommune:{municipality_code}",
+                effective_time=_effective_time,
             )
+
+        # Organisation fields
+        attributes = OrganisationAttributes(properties=[_properties])
+        states = OrganisationStates(valid_state=[_valid_state])
+        relations: Optional[OrganisationRelations] = (
+            OrganisationRelations(authority=[_authority]) if _authority else None
+        )
 
         return cls(
             attributes=attributes,
