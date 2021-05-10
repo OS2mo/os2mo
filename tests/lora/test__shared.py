@@ -6,10 +6,12 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+# from datetime import datetime
 from uuid import uuid4
 
 import pytest
 
+from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import LoraBase
 
 # --------------------------------------------------------------------------------------
@@ -42,3 +44,9 @@ class TestLoraBase:
         test_uuid = uuid4()
         lora_sub_with_uuid = LoraSub(uuid=test_uuid)
         assert lora_sub_with_uuid.uuid == test_uuid
+
+
+class TestInfiniteDatetime:
+    def test_init(self):
+        print(InfiniteDatetime(inf_dt=None))
+        assert False

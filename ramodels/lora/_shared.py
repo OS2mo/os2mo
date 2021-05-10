@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+# from datetime import datetime
 from typing import Any
 from typing import List
 from typing import Literal
@@ -13,10 +14,20 @@ from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
+from dateutil import tz as dt_tz
+from dateutil.parser import isoparse as dt_parser
 from pydantic import Field
 from pydantic import validator
 
 from ramodels.base import RABase
+
+# --------------------------------------------------------------------------------------
+# Globals
+# --------------------------------------------------------------------------------------
+
+# TODO: Perhaps it's worth reading from e.g. env vars here
+DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
+
 
 # --------------------------------------------------------------------------------------
 # LoRaBase
@@ -43,13 +54,37 @@ class LoraBase(RABase):
 
 
 # --------------------------------------------------------------------------------------
+# Infinite Datetime
+# --------------------------------------------------------------------------------------
+
+
+class InfiniteDatetime(RABase):
+    inf_dt: str
+
+    @validator("inf_dt", pre=True, always=True)
+    def parse_inf_dt(cls, inf_dt: Any) -> str:
+        _dt = str(inf_dt)
+        if inf_dt in {"-infinity", "infinity"}:
+            return _dt
+
+        try:
+            parsed_dt = dt_parser(_dt).replace(tzinfo=DEFAULT_TZ)
+        except Exception:
+            raise ValueError(
+                f"Unable to parse {inf_dt} as either ±infinity or a datetime"
+            )
+        else:
+            return str(parsed_dt)
+
+
+# --------------------------------------------------------------------------------------
 # Shared models
 # --------------------------------------------------------------------------------------
 
 
 class EffectiveTime(RABase):
-    from_date: str = Field(alias="from")
-    to_date: str = Field(alias="to")
+    from_date: InfiniteDatetime = Field(alias="from")
+    to_date: InfiniteDatetime = Field(alias="to")
 
 
 class Authority(RABase):
