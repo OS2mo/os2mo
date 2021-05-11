@@ -591,6 +591,74 @@ def create_bruger_payload(
     return user
 
 
+def create_klasse_payload(
+    valid_from: str,
+    valid_to: str,
+    bvn: str,
+    title: str,
+    facet_uuid: uuid.UUID,
+    org_uuid: uuid.UUID,
+    org_unit_uuid: typing.Optional[uuid.UUID] = None,
+    description: typing.Optional[str] = None,
+    scope: typing.Optional[str] = None,
+    parent_uuid: typing.Optional[uuid.UUID] = None,
+) -> dict:
+    virkning = _create_virkning(valid_from, valid_to)
+
+    # NOTE: This is used from SD, and should be split out as a library?
+    attributter = {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": bvn,
+                "titel": title,
+                "virkning": virkning,
+            }
+        ]
+    }
+    if description:
+        attributter["klasseegenskaber"][0]["beskrivelse"] = description
+    if scope:
+        attributter["klasseegenskaber"][0]["omfang"] = scope
+    tilstande = {
+        "klassepubliceret": [
+            {"publiceret": "Publiceret", "virkning": virkning}
+        ]
+    }
+    relationer = {
+        "facet": [
+            {"uuid": facet_uuid, "virkning": virkning, "objekttype": "Facet"}
+        ],
+        "overordnetklasse": [
+            {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
+        ],
+        "ansvarlig": [
+            {
+                "uuid": org_uuid,
+                "virkning": virkning,
+                "objekttype": "Organisation",
+            }
+        ],
+        "ejer": [
+            {
+                "uuid": org_unit_uuid,
+                "virkning": virkning,
+                "objekttype": "OrganisationEnhed",
+            }
+        ],
+    }
+    if parent_uuid is None:
+        del relationer["overordnetklasse"]
+    if org_unit_uuid is None:
+        del relationer["ejer"]
+    klasse = {
+        "attributter": attributter,
+        "relationer": relationer,
+        "tilstande": tilstande,
+    }
+
+    return klasse
+
+
 def replace_relation_value(relations: typing.List[dict],
                            old_entry: dict,
                            new_entry: dict = None) -> typing.List[dict]:

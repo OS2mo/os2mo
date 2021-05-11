@@ -109,7 +109,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    @abc.abstractmethod
     def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
@@ -117,6 +116,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
+        raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
 
     def prepare_terminate(self, request: dict):
         """

@@ -156,6 +156,7 @@ nitpick_ignore = [
     ("py:class", "click.exceptions.ClickException"),
     ("py:class", "string"),
     ("py:class", "uuid"),
+    ("py:class", "pydantic.main.BaseModel"),
 ]
 
 #
