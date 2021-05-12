@@ -15,6 +15,8 @@ import time
 
 import click
 import sqlalchemy
+
+from mora.auth.saml_sso.base import create_sessions_table
 from mora.conf_db import create_db_table
 
 from . import conf_db, settings
@@ -41,7 +43,9 @@ def initdb(wait):
     on an already initialized database.
     """
     create_db_table()
-    return
+
+    if settings.SAML_AUTH_ENABLE:
+        create_sessions_table()
 
 
 @group.command()
