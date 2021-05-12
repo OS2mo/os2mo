@@ -93,3 +93,10 @@ class TestInfiniteDatetime:
         with pytest.raises(ValidationError):
             for err_dt in [self.fail_int, self.fail_str]:
                 DTModel(dt=err_dt)
+
+    def test_infinity_ordering(self):
+        pos_inf_dt = InfiniteDatetime("infinity")
+        neg_inf_dt = InfiniteDatetime("-infinity")
+        assert neg_inf_dt < pos_inf_dt
+        assert (neg_inf_dt < neg_inf_dt) is False
+        assert (pos_inf_dt < pos_inf_dt) is False
