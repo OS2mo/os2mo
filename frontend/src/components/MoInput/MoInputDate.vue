@@ -5,15 +5,15 @@ SPDX-License-Identifier: MPL-2.0
     <label v-if="hasLabel" :for="identifier">{{label}}</label>
 
     <date-time-picker
-      v-model="internalValue"
       :open-date="initialValue"
-      format="dd-MM-yyyy"
-      :language="da"
-      monday-first
-      bootstrap-styling
+      :language="currentLanguage"
       :clear-button="clearButton"
       :disabled-dates="disabledDates"
       :disabled="disabled"
+      v-model="internalValue"
+      format="dd-MM-yyyy"
+      monday-first
+      bootstrap-styling
     />
 
     <input
@@ -24,7 +24,7 @@ SPDX-License-Identifier: MPL-2.0
       :v-validate="{required: required, date_in_range: validDates}"
     >
 
-    <span v-show="errors.has(identifier)" class="text-danger">
+    <span v-if="errors" v-show="errors.has(identifier)" class="text-danger">
       {{ errors.first(identifier) }}
     </span>
   </div>
@@ -36,9 +36,9 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import DateTimePicker from 'vuejs-datepicker'
-import { da } from 'vuejs-datepicker/dist/locale'
 import moment from 'moment'
 import MoInputBase from './MoInputBase'
+import { getDatepickerLocales } from '@/i18n.js'
 
 export default {
   extends: MoInputBase,
@@ -67,12 +67,7 @@ export default {
   },
 
   data () {
-    return {
-      /**
-       * Danish language translation for date picker
-       */
-      da: da
-    }
+    return getDatepickerLocales()
   },
 
   computed: {
@@ -103,6 +98,10 @@ export default {
         from: this.validDates && this.validDates.to ? new Date(this.validDates.to) : null,
         to: this.validDates && this.validDates.from ? new Date(this.validDates.from) : null
       }
+    },
+
+    currentLanguage () {
+      return getDatepickerLocales()[this.$i18n.locale]
     }
   },
 

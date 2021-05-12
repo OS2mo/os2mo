@@ -8,6 +8,7 @@ import moment from 'moment'
 import Search from '@/api/Search'
 import { AtDate } from '@/store/actions/atDate'
 import MoSearchBar from '@/components/MoSearchBar/MoSearchBar.vue'
+import i18n from '@/i18n.js'
 
 jest.mock('@/api/Search')
 
@@ -34,6 +35,7 @@ describe('MoSearchBar.vue', () => {
     wrapper = mount(MoSearchBar, {
       store,
       localVue,
+      i18n,
       mocks: { $t, $route },
     })
   })

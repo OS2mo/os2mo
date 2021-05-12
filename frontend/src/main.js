@@ -9,12 +9,13 @@ import VueShortKey from 'vue-shortkey'
 import store from './store'
 import { sync } from 'vuex-router-sync'
 import VueSplit from 'vue-split-panel'
+import FlagIcon from 'vue-flag-icon'
 import './vee.js'
 import '@babel/polyfill'
 import './icons.js'
 import 'bootstrap/dist/css/bootstrap.css'
 import './assets/css/global.css'
-import 'moment/locale/da'
+import 'moment/locale/da'  // TODO: do we need to load other locales?
 
 import '@/views/employee/install'
 import '@/views/organisation/install'
@@ -26,6 +27,7 @@ Vue.config.productionTip = false
 
 Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
 Vue.use(VueSplit)
+Vue.use(FlagIcon)
 
 new Vue({
   router,

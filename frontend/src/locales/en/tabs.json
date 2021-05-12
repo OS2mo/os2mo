@@ -1,0 +1,26 @@
+{
+  "employee": {
+    "employee": "Employee",
+    "engagements": "Employments",
+    "addresses": "Addresses",
+    "roles": "Roles",
+    "it": "IT",
+    "association": "@:shared.association",
+    "leave": "Leave",
+    "manager": "Manager"
+  },
+  "organisation": {
+    "unit": "Unit",
+    "addresses": "Addresses",
+    "engagements": "Employments",
+    "it": "IT",
+    "association": "@:shared.association",
+    "roles": "Roles",
+    "related": "Related",
+    "managers": "Managers",
+    "kle": "KLE-tags"
+  },
+  "log": {
+    "worklog": "Work log"
+  }
+}

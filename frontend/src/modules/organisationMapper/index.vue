@@ -31,9 +31,7 @@ SPDX-License-Identifier: MPL-2.0
           />
           <div class="card-body" v-else>
             <p class="card-text">
-              Vælg en enhed til venstre for at vise og ændre hvilke
-              enheder der svarer til den andre steder i
-              organisationen.
+              {{ $t('organisationMapper.help') }}
             </p>
           </div>
         </div>

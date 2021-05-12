@@ -3,8 +3,7 @@ In development
 
 New features
 ------------
-
-
+* #42774: Add English translation. The user can now choose Danish or English screen texts by clicking the flags in the nav bar
 
 Version 1.17.0, 2021-05-12
 ==========================

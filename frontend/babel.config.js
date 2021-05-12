@@ -12,5 +12,10 @@ module.exports = {
         exclude: ['transform-typeof-symbol'],
       }
     ]
-  ]
+  ],
+  env: {
+    test: {
+      plugins: ['require-context-hook']
+    }
+  }
 }
