@@ -17,11 +17,15 @@ from ramodels.lora._shared import FacetStates
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
 
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
 
 class TestFacet:
     def test_required_fields(self):
         effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
-        test_facet = Facet(
+        assert Facet(
             uuid=None,
             attributes=FacetAttributes(
                 properties=[
@@ -40,11 +44,10 @@ class TestFacet:
                 ]
             ),
         )
-        assert test_facet
 
     def test_optional_fields(self):
         effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
-        test_facet = Facet(
+        assert Facet(
             uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
             attributes=FacetAttributes(
                 properties=[
@@ -63,4 +66,3 @@ class TestFacet:
                 ]
             ),
         )
-        assert test_facet

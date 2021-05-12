@@ -18,11 +18,15 @@ from ramodels.lora._shared import KlasseStates
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
 
+# -----------------------------------------------------------------------------
+# Tests
+# -----------------------------------------------------------------------------
+
 
 class TestKlasse:
     def test_required_fields(self):
         effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
-        test_klasse = Klasse(
+        assert Klasse(
             uuid=None,
             attributes=KlasseAttributes(
                 properties=[
@@ -52,11 +56,10 @@ class TestKlasse:
                 ],
             ),
         )
-        assert test_klasse
 
     def test_optional_fields(self):
         effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
-        test_klasse = Klasse(
+        assert Klasse(
             uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
             attributes=KlasseAttributes(
                 properties=[
@@ -86,4 +89,3 @@ class TestKlasse:
                 ],
             ),
         )
-        assert test_klasse

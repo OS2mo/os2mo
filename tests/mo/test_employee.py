@@ -6,9 +6,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import uuid4
+from datetime import datetime
 
-from ramodels.mo.facet import FacetClass
+from ramodels.mo.employee import Employee
 
 
 # -----------------------------------------------------------------------------
@@ -16,13 +16,20 @@ from ramodels.mo.facet import FacetClass
 # -----------------------------------------------------------------------------
 
 
-class TestFacetClass:
+class TestEmployee:
     def test_required_fields(self):
-        """Fails if new required fields are added or existing is removed"""
-        assert FacetClass(name="Direktør", user_key="Direktør", org_uuid=uuid4())
+        """Will break if Required fields become Optional"""
+        assert Employee(
+            type="employee",
+            name="Anders And",
+        )
 
     def test_optional_fields(self):
-        """Fails if an optional field is removed"""
-        assert FacetClass(
-            name="Direktør", user_key="Direktør", scope="TEXT", org_uuid=uuid4()
+        """Backwards compatibility
+        Will break if Optional fields become Required"""
+        assert Employee(
+            type="employee",
+            name="Anders And",
+            cpr_no="0707614285",
+            seniority=datetime(year=2021, month=5, day=12),
         )
