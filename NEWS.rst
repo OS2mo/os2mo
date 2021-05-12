@@ -3,6 +3,14 @@ In development
 
 New features
 ------------
+
+
+
+Version 1.17.0, 2021-05-12
+==========================
+
+New features
+------------
 * #42778: Make CPR optional
 * #42073: New /api/v1/ endpoints introduced, API currently still unstable
 * #42779: Added new address scope: Multifield Text (2-fields)
