@@ -6,10 +6,14 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-# from datetime import datetime
+from datetime import datetime
+from typing import List
+from typing import Union
 from uuid import uuid4
 
 import pytest
+from pydantic import BaseModel
+from pydantic import ValidationError
 
 from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import LoraBase
@@ -47,6 +51,45 @@ class TestLoraBase:
 
 
 class TestInfiniteDatetime:
+    fail_int = 1
+    fail_str = "fail"
+    accept_dt: List[Union[str, datetime]] = [
+        "infinity",
+        "-infinity",
+        "2011-06-26",
+        datetime(2060, 12, 15),
+    ]
+
     def test_init(self):
-        print(InfiniteDatetime(inf_dt=None))
-        assert False
+        # Unfortunately, this currently works just fine :(
+        assert InfiniteDatetime(self.fail_int)
+        assert InfiniteDatetime(self.fail_str)
+
+    def test_from_value(self):
+        # This should always work
+        for dt in self.accept_dt:
+            assert InfiniteDatetime.from_value(dt)
+
+        # but this shouldn't
+        with pytest.raises(TypeError, match="string or datetime required"):
+            InfiniteDatetime.from_value(self.fail_int)  # type: ignore
+
+        # and this string cannot be parsed
+        with pytest.raises(
+            ValueError,
+            match=f"Unable to parse '{self.fail_str}' as an ISO-8601 datetime string",
+        ):
+            InfiniteDatetime.from_value(self.fail_str)
+
+    def test_in_model(self):
+        class DTModel(BaseModel):
+            dt: InfiniteDatetime
+
+        # Same values should work
+        for dt in self.accept_dt:
+            assert DTModel(dt=dt)
+
+        # But fail values should raise validation errors
+        with pytest.raises(ValidationError):
+            for err_dt in [self.fail_int, self.fail_str]:
+                DTModel(dt=err_dt)
