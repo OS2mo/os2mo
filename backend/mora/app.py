@@ -50,7 +50,6 @@ def meta_router():
     @router.get("/organisation/{path:path}")
     @router.get("/medarbejder/")
     @router.get("/medarbejder/{path:path}")
-    @router.get("/hjaelp/")
     @router.get("/organisationssammenkobling/")
     @router.get("/forespoergsler/")
     def index(path=""):
