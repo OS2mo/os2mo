@@ -80,3 +80,12 @@ table th {
   width: 100%;
   padding: 0.5rem 0 0 5px;
 }
+
+/* Override some of the styles provided by @trevoreyre/autocomplete-vue */
+.autocomplete-input {
+  border-radius: 0.25rem !important;
+  border: unset !important;
+  width: unset !important;
+  font-size: unset !important;
+  line-height: unset !important;
+}
