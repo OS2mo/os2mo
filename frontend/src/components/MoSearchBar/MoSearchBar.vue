@@ -3,12 +3,10 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="search">
     <div class="input-group input">
-      <autocomplete
+      <mo-autocomplete
         :search="updateItems"
         :getResultValue="getResultValue"
-        @submit="selected"
-        :autoSelect=true
-        :debounceTime=1
+        :onSubmit="selected"
       />
     </div>
     <div class="input-group date-input">
@@ -28,9 +26,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import sortBy from 'lodash.sortby'
 import Search from '@/api/Search'
-import Autocomplete from '@trevoreyre/autocomplete-vue'
-import '@trevoreyre/autocomplete-vue/dist/style.css'
-import MoSearchBarTemplate from './MoSearchBarTemplate'
+import MoAutocomplete from '@/components/MoAutocomplete/MoAutocomplete.vue'
 import { MoInputDate } from '@/components/MoInput'
 import { AtDate } from '@/store/actions/atDate'
 
@@ -38,42 +34,19 @@ export default {
   name: 'MoSearchBar',
 
   components: {
-    Autocomplete,
-    MoInputDate
+    MoAutocomplete,
+    MoInputDate,
   },
 
   props: {
-    'hideDateInput': Boolean
+    hideDateInput: Boolean,
   },
 
   data () {
     return {
-      /**
-       * The item, items, routeName component value.
-       * Used to detect changes and restore the value.
-       */
       item: null,
       routeName: '',
-
       atDate: new Date(),
-
-      /**
-       * The template component value.
-       * Used to add MoSearchBarTemplate to the v-autocomplete.
-       */
-      template: MoSearchBarTemplate,
-
-      /**
-       * The noItem component value.
-       * Used to give a default name.
-       */
-      noItem: [{ name: this.$t('alerts.no_search_results') }]
-    }
-  },
-
-  computed: {
-    orderedListOptions () {
-      return sortBy(this.items, 'name')
     }
   },
 
@@ -109,13 +82,6 @@ export default {
 
   methods: {
     /**
-     * Get label name.
-     */
-    getLabel (item) {
-      return item ? item.name : null
-    },
-
-    /**
      * Get to the route name.
      * So if we're viewing an employee, it goes to the employee detail.
      */
@@ -136,26 +102,26 @@ export default {
       let org = this.$store.state.organisation
 
       return new Promise(resolve => {
-        if (query.length < 3) {
+        if (query.length < 2) {
           return resolve([])
         }
 
         if (vm.routeName === 'EmployeeDetail') {
           Search.employees(org.uuid, query)
             .then(response => {
-              resolve(response)
+              resolve(sortBy(response, 'name'))
             })
         }
         if (vm.routeName === 'OrganisationDetail') {
           Search.organisations(org.uuid, query, this.atDate)
             .then(response => {
-              resolve(response)
+              resolve(sortBy(response, 'name'))
             })
         }
       })
     },
 
-    getResultValue(result) {
+    getResultValue (result) {
       return result.name
     },
 
@@ -184,15 +150,6 @@ export default {
     align-items: center; /* vertically center items inside input group */
     flex-wrap: nowrap;
     width: auto;
-  }
-  .search .input-group input {
-    width: 1%;
-  }
-  .search .input-group .input-group-prepend {
-    flex: unset;
-  }
-  .search .input-group .input-group-prepend .input-group-text {
-    display: inline;
   }
   .search .input-group.date-input {
     max-width: 10vw;

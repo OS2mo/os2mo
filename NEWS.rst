@@ -5,6 +5,10 @@ New features
 ------------
 * #42774: Add English translation. The user can now choose Danish or English screen texts by clicking the flags in the nav bar
 
+Bug fixes
+---------
+* #42821: The search input field sometimes "swallowed" the first few characters typed. Fixed.
+
 Version 1.17.0, 2021-05-12
 ==========================
 
