@@ -26,6 +26,7 @@ from pydantic import validator
 from ramodels.base import DEFAULT_TZ
 from ramodels.base import INF_SET
 from ramodels.base import RABase
+from ramodels.exceptions import ISOParseError
 
 
 # --------------------------------------------------------------------------------------
@@ -115,9 +116,7 @@ class InfiniteDatetime(str):
         try:
             dt = dt_isoparser(value)
         except ValueError:
-            raise ValueError(
-                f"Unable to parse '{value}' as an ISO-8601 datetime string"
-            )
+            raise ISOParseError(value)
         else:
             dt = dt if dt.tzinfo else dt.replace(tzinfo=DEFAULT_TZ)
             return cls(dt.isoformat())
