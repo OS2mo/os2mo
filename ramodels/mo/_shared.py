@@ -51,6 +51,10 @@ class EngagementType(RABase):
     uuid: UUID
 
 
+class AssociationType(RABase):
+    uuid: UUID
+
+
 class JobFunction(RABase):
     uuid: UUID
 
