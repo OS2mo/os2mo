@@ -19,21 +19,14 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-from dateutil import tz as dt_tz
 from dateutil.parser import isoparse as dt_isoparser
 from pydantic import Field
 from pydantic import validator
 
+from ramodels.base import DEFAULT_TZ
+from ramodels.base import INF_SET
 from ramodels.base import RABase
 
-# --------------------------------------------------------------------------------------
-# Globals
-# --------------------------------------------------------------------------------------
-
-# TODO: Perhaps it's worth reading from e.g. env vars here
-DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
-
-INF_SET = {"-infinity", "infinity"}
 
 # --------------------------------------------------------------------------------------
 # LoRaBase

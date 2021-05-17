@@ -8,8 +8,18 @@
 # --------------------------------------------------------------------------------------
 from typing import Any
 
+from dateutil import tz as dt_tz
 from pydantic import BaseModel
 from pydantic import Extra
+
+# --------------------------------------------------------------------------------------
+# Globals
+# --------------------------------------------------------------------------------------
+
+# TODO: Perhaps it's worth reading from e.g. env vars here
+DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
+
+INF_SET = {"-infinity", "infinity"}
 
 # --------------------------------------------------------------------------------------
 # Base models
