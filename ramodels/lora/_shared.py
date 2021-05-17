@@ -6,7 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-# from datetime import datetime
 from datetime import datetime
 from functools import total_ordering
 from typing import Any
@@ -19,14 +18,12 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-from dateutil.parser import isoparse as dt_isoparser
 from pydantic import Field
 from pydantic import validator
 
-from ramodels.base import DEFAULT_TZ
 from ramodels.base import INF_SET
 from ramodels.base import RABase
-from ramodels.exceptions import ISOParseError
+from ramodels.base import tz_isodate
 
 
 # --------------------------------------------------------------------------------------
@@ -96,7 +93,7 @@ class InfiniteDatetime(str):
 
         Raises:
             TypeError: If the value is not a 'str' or 'datetime' object.
-            ValueError: If the value cannot be parsed as either the strings
+            ISOParseError: If the value cannot be parsed as either the strings
                 "-infinity", "infinity", or an ISO-8601 datetime string.
 
         Returns:
@@ -106,20 +103,11 @@ class InfiniteDatetime(str):
         if not isinstance(value, (str, datetime)):
             raise TypeError("string or datetime required")
 
-        if isinstance(value, datetime):
-            dt = value if value.tzinfo else value.replace(tzinfo=DEFAULT_TZ)
-            return cls(dt.isoformat())
-
         if value in INF_SET:
             return cls(value)
 
-        try:
-            dt = dt_isoparser(value)
-        except ValueError:
-            raise ISOParseError(value)
-        else:
-            dt = dt if dt.tzinfo else dt.replace(tzinfo=DEFAULT_TZ)
-            return cls(dt.isoformat())
+        dt = tz_isodate(value)
+        return cls(dt.isoformat())
 
     def __repr__(self):
         return f"InfiniteDatetime({super().__repr__()})"
