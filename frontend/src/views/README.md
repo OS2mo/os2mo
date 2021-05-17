@@ -4,7 +4,6 @@ This folder contains the core views of OS2MO. These are:
 
 * employee
 * frontpage
-* login
 * organisation
 * page not found
 

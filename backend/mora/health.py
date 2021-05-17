@@ -10,7 +10,6 @@ from requests.exceptions import RequestException
 
 import mora.async_util
 from mora import conf_db, lora
-from mora.auth.saml_sso.health import session_database_health, idp_health
 from mora.exceptions import HTTPException
 from mora.settings import config
 from mora.triggers.internal import amqp_trigger
@@ -80,18 +79,6 @@ def oio_rest():
 
 
 @register_health_endpoint
-def session_database():
-    """
-    Check if the session database can be reached
-    :return: True if reachable. False if not. None if SAML SSO not enabled.
-    """
-    if not config["saml_sso"]["enable"]:
-        return None
-
-    return session_database_health()
-
-
-@register_health_endpoint
 def configuration_database():
     """
     Check if configuration database is reachable and initialized with default data
@@ -143,21 +130,6 @@ def dar():
             return False
     except RequestException:
         return False
-
-
-@register_health_endpoint
-def idp():
-    """Check whether the IdP for SAML SSO can be reached.
-
-    Works by trying to reach configured IdP metadata endpoint.
-
-    Return `True` if reachable. `False` if not. `None` if SAML SSO is
-    not enabled, or if metadata is configured to come from a file.
-    """
-    if not config["saml_sso"]["enable"] or config["saml_sso"]["idp_metadata_file"]:
-        return None
-
-    return idp_health()
 
 
 @router.get("/")

@@ -5,12 +5,36 @@ import pprint
 from time import sleep
 from unittest.case import TestCase
 
+import requests
 from starlette.testclient import TestClient
 
 from mora import app, conf_db, service, settings
 from mora.async_util import _local_cache, async_to_sync
+from mora.auth.keycloak.oidc import auth
 from mora.request_scoped.bulking import request_wide_bulk
 from tests.util import _mox_testing_api, load_sample_structures
+
+
+async def fake_auth():
+    return {
+        'acr': '1',
+        'allowed-origins': ['http://localhost:5001'],
+        'azp': 'vue',
+        'email': 'bruce@kung.fu',
+        'email_verified': False,
+        'exp': 1621779689,
+        'family_name': 'Lee',
+        'given_name': 'Bruce',
+        'iat': 1621779389,
+        'iss': 'http://localhost:8081/auth/realms/mo',
+        'jti': '25dbb58d-b3cb-4880-8b51-8b92ada4528a',
+        'name': 'Bruce Lee',
+        'preferred_username': 'bruce',
+        'scope': 'email profile',
+        'session_state': 'd94f8dc3-d930-49b3-a9dd-9cdc1893b86a',
+        'sub': 'c420894f-36ba-4cd5-b4f8-1b24bd8c53db',
+        'typ': 'Bearer'
+    }
 
 
 class _BaseTestCase(TestCase):
@@ -22,8 +46,11 @@ class _BaseTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
-        app = self.create_app()
-        self.client = TestClient(app)
+        self.app = self.create_app()
+        self.client = TestClient(self.app)
+
+        # Bypass Keycloak per default
+        self.app.dependency_overrides[auth] = fake_auth
 
     def create_app(self, overrides=None):
         # make sure the configured organisation is always reset
@@ -37,8 +64,26 @@ class _BaseTestCase(TestCase):
     def lora_url(self):
         return settings.LORA_URL
 
+    def get_token(self):
+        """
+        Get OIDC token from Keycloak to send with the request
+        to the MO backend.
+        """
+        r = requests.post(
+            'http://keycloak:8080'
+            '/auth/realms/mo/protocol/openid-connect/token',
+            data={
+                'grant_type': 'password',
+                'client_id': 'mo',
+                'username': 'bruce',
+                'password': 'bruce'
+            }
+        )
+        return r.json()['access_token']
+
     def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), amqp_topics=(), **kwargs):
+                      drop_keys=(), amqp_topics=(), set_auth_header=False,
+                      **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -53,6 +98,13 @@ class _BaseTestCase(TestCase):
                  JSON.
 
         '''
+
+        # Get OIDC token from Keycloak and add an auth request header
+        if set_auth_header:
+            kwargs.setdefault('headers', dict()).update(
+                {'Authorization': 'bearer ' + self.get_token()}
+            )
+
         r = self.request(path, **kwargs)
 
         if r.headers.get('content-type') == 'application/json':
@@ -102,7 +154,7 @@ class _BaseTestCase(TestCase):
         return actual
 
     def assertRequestResponse(self, path, expected, message=None,
-                              amqp_topics=(), **kwargs):
+                              amqp_topics=(), set_auth_header=False, **kwargs):
         '''Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
@@ -116,14 +168,17 @@ class _BaseTestCase(TestCase):
         '''
 
         actual = self.assertRequest(path, message=message,
-                                    amqp_topics=amqp_topics, **kwargs)
+                                    amqp_topics=amqp_topics,
+                                    set_auth_header=set_auth_header,
+                                    **kwargs)
 
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
 
         self.assertEqual(expected, actual, message)
 
-    def assertRequestFails(self, path, code, message=None, **kwargs):
+    def assertRequestFails(self, path, code, message=None,
+                           set_auth_header=False, **kwargs):
         '''Issue a request and assert that it fails with the given status.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -136,17 +191,19 @@ class _BaseTestCase(TestCase):
         '''
 
         self.assertRequest(path, message=message, status_code=code,
-                           **kwargs)
+                           set_auth_header=set_auth_header, **kwargs)
 
     def request(self, path, **kwargs):
         if 'json' in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
+            assert kwargs.keys().isdisjoint({'method', 'data'})
 
             # kwargs['method'] = 'POST'
             kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs['headers'] = {'Content-Type': 'application/json'}
+            kwargs.setdefault('headers', dict()).update(
+                {'Content-Type': 'application/json'}
+            )
             return self.client.post(path, **kwargs)
 
         return self.client.get(path, **kwargs)

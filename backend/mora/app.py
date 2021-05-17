@@ -15,7 +15,9 @@ from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
 from mora import __version__, health, log
-from mora.auth import base, saml_sso
+from mora.auth.exceptions import AuthError
+from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import auth_exception_handler
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
@@ -23,10 +25,8 @@ from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import reading_endpoints
-from .auth.saml_sso import check_saml_authentication
-from .auth.saml_sso.session import SessionInterface
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import app_config, config
+from .settings import config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -167,12 +167,6 @@ def create_app():
                 response = await call_next(request)
         return response
 
-    # router include order matters
-    app.include_router(
-        base.router, prefix="/service", tags=["Service"],
-        dependencies=[Depends(check_saml_authentication)]
-    )
-
     app.include_router(
         health.router,
         prefix="/health",
@@ -182,17 +176,16 @@ def create_app():
     for router in service.routers:
         app.include_router(
             router, prefix="/service", tags=["Service"],
-            dependencies=[Depends(check_saml_authentication)]
+            dependencies=[Depends(auth)]
         )
     app.include_router(
         reading_endpoints.router,
-        dependencies=[Depends(check_saml_authentication)]
+        dependencies=[Depends(auth)]
     )
     app.include_router(
         meta_router(),
         tags=["Meta"],
     )
-    saml_sso.init_app(app)
 
     if config['ENV'] in ['testing', 'development']:
         app = setup_test_routing(app)
@@ -210,26 +203,9 @@ def create_app():
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
-    app.add_exception_handler(RequestValidationError, request_validation_handler)
+    app.add_exception_handler(RequestValidationError,
+                              request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
-
-    if app_config["SAML_AUTH_ENABLE"]:
-        @app.middleware('http')
-        async def session_middleware(request: Request, call_next):
-            """
-            Adds a server-side SQL session to the request
-            Can be removed once Keycloak is implemented
-            """
-            session_interface = SessionInterface()
-            session = session_interface.open_session(request)
-
-            request.state.session_interface = session_interface
-            request.state.session = session
-
-            response = await call_next(request)
-
-            session_interface.save_session(session, response)
-
-            return response
+    app.add_exception_handler(AuthError, auth_exception_handler)
 
     return app

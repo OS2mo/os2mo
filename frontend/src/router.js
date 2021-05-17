@@ -9,7 +9,6 @@ import engagementRouter from '@/views/engagement/router'
 import moduleRouters from '@/modules/router'
 
 const MoBase = () => import('@/MoBase')
-const LoginPage = () => import(/* webpackChunkName: "login" */ '@/views/login')
 const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/views/frontpage')
 const PageNotFound = () => import('@/views/PageNotFound')
 
@@ -20,11 +19,6 @@ const GlobalRouter = [
     path: '',
     name: 'Landing',
     component: Landing
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: LoginPage
   }
 ]
 

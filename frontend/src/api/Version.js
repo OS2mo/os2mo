@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import axios from 'axios'
-import store from '@/store'
-import { Auth } from '@/store/actions/auth'
 
 /**
  * Defines the base url and headers for http calls

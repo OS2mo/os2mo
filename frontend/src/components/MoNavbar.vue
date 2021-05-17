@@ -69,11 +69,10 @@ import MoNavbar from '@/api/MoNavbar'
 import MoLocalePicker from '@/components/MoLocalePicker.vue'
 import MoSearchBar from '@/components/MoSearchBar/MoSearchBar'
 import MoOrganisationPicker from '@/components/MoPicker/MoOrganisationPicker'
-import Service from '@/api/HttpCommon'
 import bDropdown from 'bootstrap-vue/es/components/dropdown/dropdown'
 import bDropdownItem from 'bootstrap-vue/es/components/dropdown/dropdown-item'
-import { Auth } from '@/store/actions/auth'
 import { Conf } from '@/store/actions/conf'
+import keycloak from '@/main'
 
 export default {
   components: {
@@ -94,14 +93,7 @@ export default {
   },
 
   created () {
-    /**
-     * Called synchronously after the instance is created.
-     * Get user and then response data.
-     */
-    Service.get('/user').then(response => {
-      this.username = response.data || 'N/A'
-    })
-
+    this.username = keycloak.idTokenParsed.preferred_username
     this.shortcuts = MoNavbar.getShortcuts()
 
     this.$store.dispatch(Conf.actions.SET_NAVLINKS).then(
@@ -113,11 +105,11 @@ export default {
 
   methods: {
     /**
-     * Get the logout and redirect.
+     * Logout and redirect back to frontpage
      */
     logout () {
       let vm = this
-      this.$store.dispatch(Auth.actions.AUTH_LOGOUT, vm.user)
+      keycloak.logout({ redirectUri: window.location.origin })
     },
   }
 }

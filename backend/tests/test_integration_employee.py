@@ -34,7 +34,10 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         with notsouid.freeze_uuid(mock_uuid):
-            r = self.request('/service/e/create', json=payload)
+            r = self.request(
+                '/service/e/create',
+                json=payload
+            )
         userid = r.json()
 
         expected = {
@@ -267,7 +270,10 @@ class Tests(tests.cases.LoRATestCase):
                 'uuid': "3dcb1072-482e-491e-a8ad-647991d0bfcf"
             }
         }
-        r = self.request('/service/e/create', json=payload)
+        r = self.request(
+            '/service/e/create',
+            json=payload
+        )
         self.assertEqual({
             'description': 'Organisation is not allowed',
             'uuid': '3dcb1072-482e-491e-a8ad-647991d0bfcf',
@@ -348,8 +354,9 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        r = self.request('/service/e/{}/details/engagement'.format(
-            employee_uuid))
+        r = self.request(
+            '/service/e/{}/details/engagement'.format(employee_uuid)
+        )
         self.assertEqual(1, len(r.json()), 'One engagement should exist')
 
     def test_create_employee_with_details_fails_atomically(self):
@@ -462,8 +469,9 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-        engagement = self.request('/service/e/{}/details/engagement'.format(
-            employee_uuid)).json()
+        engagement = self.request(
+            '/service/e/{}/details/engagement'.format(employee_uuid)
+        ).json()
         self.assertEqual([], engagement,
                          'No engagement should have been created')
 

@@ -24,6 +24,7 @@ services:
     # additional volume for it.
     volumes:
       - .:/app/
+      - ./dev-environment/keycloak.json:/app/frontend/public/keycloak.json
       - /app/frontend/node_modules
     depends_on:
       - mo
@@ -91,7 +92,6 @@ services:
     image: magentaaps/postgres-os2mo:10-11.7-test
     env_file:
       - dev-environment/db.env
-      - dev-environment/sessions_db.env
       - dev-environment/conf_db.env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -120,3 +120,35 @@ services:
     ports:
       - "5672:5672"    # amqp port
       - "15672:15672"  # management port
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:13.0.0
+    depends_on:
+      - keycloak-db
+    command: [ "-Dkeycloak.migration.strategy=IGNORE_EXISTING" ]
+    ports:
+      - "8081:8080"
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_IMPORT: /tmp/realm.json
+      DB_VENDOR: POSTGRES
+      DB_ADDR: "keycloak-db"
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak
+      #PROXY_ADDRESS_FORWARDING: 'true'
+      #KEYCLOAK_FRONTEND_URL: https://proxy/auth
+      #KEYCLOAK_LOGLEVEL: DEBUG
+    volumes:
+      - type: bind
+        source: ./dev-environment/keycloak-realm.json
+        target: /tmp/realm.json
+
+  keycloak-db:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak

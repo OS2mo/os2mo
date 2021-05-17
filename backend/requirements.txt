@@ -20,12 +20,16 @@ cachelib==0.1.1
     # via flask-session
 certifi==2020.6.20
     # via requests
+cffi==1.14.5
+    # via cryptography
 chardet==3.0.4
     # via
     #   aiohttp
     #   requests
 click==7.1.2
     # via flask
+cryptography==3.4.7
+    # via pyjwt
 decorator==4.4.2
     # via validators
 defusedxml==0.6.0
@@ -80,10 +84,14 @@ pika==1.1.0
     # via -r requirements.in
 psycopg2-binary==2.8.6
     # via -r requirements.in
+pycparser==2.20
+    # via cffi
 pydantic==1.8.2
     # via
     #   fastapi
     #   os2mo-http-trigger-protocol
+pyjwt[crypto]==2.1.0
+    # via -r requirements.in
 python-dateutil==2.8.1
     # via
     #   -r requirements.in

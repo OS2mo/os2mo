@@ -1,7 +1,7 @@
 # Store
 
 The Vuex store is where we store the current state os the application.
-Only globally needed stores, such as `auth` and `organisation` are here.
+Only globally needed stores, such as `organisation` are here.
 Any other stores are loaded by the modules or views that require them.
 
 The idea is that we have an `actions/` and `modules/` folder. In the

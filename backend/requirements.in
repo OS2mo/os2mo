@@ -11,6 +11,7 @@ gunicorn
 service_person_stamdata_udvidet @ git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
 lora_utils @ git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
 pika
+pyjwt[crypto]
 toml
 more_itertools
 sqlalchemy
@@ -23,11 +24,3 @@ jinja2
 aiofiles
 starlette-context
 werkzeug
-
-
-# SAML SSO dependencies
-python3-saml
-itsdangerous
-python-multipart
-flask-session
-FastAPI-SQLAlchemy

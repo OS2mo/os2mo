@@ -24,7 +24,10 @@ class TestValidateAPI(tests.cases.TestCase):
             }
         }
 
-        self.client.post('/service/validate/org-unit/', json=payload)
+        self.client.post(
+            '/service/validate/org-unit/',
+            json=payload
+        )
 
         mock.assert_called_with(
             org_unit,
@@ -47,7 +50,10 @@ class TestValidateAPI(tests.cases.TestCase):
             }
         }
 
-        self.client.post('/service/validate/employee/', json=payload)
+        self.client.post(
+            '/service/validate/employee/',
+            json=payload
+        )
 
         mock.assert_called_with(
             person,
@@ -68,7 +74,10 @@ class TestValidateAPI(tests.cases.TestCase):
             }
         }
 
-        self.client.post('/service/validate/cpr/', json=payload)
+        self.client.post(
+            '/service/validate/cpr/',
+            json=payload
+        )
 
         mock.assert_called_with(
             cpr_no,
@@ -93,7 +102,10 @@ class TestValidateAPI(tests.cases.TestCase):
             }
         }
 
-        self.client.post('/service/validate/active-engagements/', json=payload)
+        self.client.post(
+            '/service/validate/active-engagements/',
+            json=payload
+        )
 
         mock.assert_called_with(
             person_uuid,
@@ -123,8 +135,10 @@ class TestValidateAPI(tests.cases.TestCase):
             "uuid": association_uuid
         }
 
-        self.client.post('/service/validate/existing-associations/',
-                         json=payload)
+        self.client.post(
+            '/service/validate/existing-associations/',
+            json=payload
+        )
 
         mock.assert_called_with(
             person_uuid,
@@ -152,8 +166,10 @@ class TestValidateAPI(tests.cases.TestCase):
             }
         }
 
-        self.client.post('/service/validate/candidate-parent-org-unit/',
-                         json=payload)
+        self.client.post(
+            '/service/validate/candidate-parent-org-unit/',
+            json=payload
+        )
 
         mock.assert_called_with(
             org_unit_uuid,
@@ -180,7 +196,10 @@ class TestValidateAPI(tests.cases.TestCase):
 
         get_handler_for_scope.return_value = handler = MagicMock()
 
-        self.client.post('/service/validate/address/', json=payload)
+        self.client.post(
+            '/service/validate/address/',
+            json=payload
+        )
 
         get_handler_for_scope.assert_called_with(scope)
         handler.validate_value.assert_called_with(value)
