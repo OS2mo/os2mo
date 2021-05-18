@@ -9,8 +9,10 @@
 from typing import Any
 from typing import Optional
 from uuid import UUID
+from uuid import uuid4
 
 from pydantic import Field
+from pydantic import validator
 
 from ramodels.base import RABase
 
@@ -20,14 +22,17 @@ from ramodels.base import RABase
 
 
 class MOBase(RABase):
-    # TODO: This is duplicated to each class that cannot be instantiated.
-    # We should probably find a better solution.
     def __new__(cls, *args, **kwargs) -> Any:
         if cls is MOBase:
             raise TypeError("MOBase may not be instantiated")
         return super().__new__(cls)
 
-    uuid: UUID
+    uuid: UUID = Field(None)
+
+    # Autogenerate UUID if necessary
+    @validator("uuid", pre=True, always=True)
+    def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
+        return _uuid or uuid4()
 
 
 # --------------------------------------------------------------------------------------
