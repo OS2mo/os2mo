@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
 from uuid import UUID
 
 from ramodels.lora import Facet
@@ -14,6 +15,7 @@ from ramodels.lora._shared import FacetAttributes
 from ramodels.lora._shared import FacetProperties
 from ramodels.lora._shared import FacetRelations
 from ramodels.lora._shared import FacetStates
+from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
 
@@ -24,7 +26,11 @@ from ramodels.lora._shared import Responsible
 
 class TestFacet:
     def test_required_fields(self):
-        effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
+        effective_time = EffectiveTime(
+            from_date=InfiniteDatetime(datetime.datetime.now()),
+            to_date=InfiniteDatetime("infinity"),
+        )
+
         assert Facet(
             uuid=None,
             attributes=FacetAttributes(
@@ -46,7 +52,11 @@ class TestFacet:
         )
 
     def test_optional_fields(self):
-        effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
+        effective_time = EffectiveTime(
+            from_date=InfiniteDatetime(datetime.datetime.now()),
+            to_date=InfiniteDatetime("infinity"),
+        )
+
         assert Facet(
             uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
             attributes=FacetAttributes(

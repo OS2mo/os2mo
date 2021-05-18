@@ -6,11 +6,13 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
 from uuid import UUID
 
 from ramodels.lora import Klasse
 from ramodels.lora._shared import EffectiveTime
 from ramodels.lora._shared import FacetRef
+from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import KlasseAttributes
 from ramodels.lora._shared import KlasseProperties
 from ramodels.lora._shared import KlasseRelations
@@ -25,7 +27,11 @@ from ramodels.lora._shared import Responsible
 
 class TestKlasse:
     def test_required_fields(self):
-        effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
+        effective_time = EffectiveTime(
+            from_date=InfiniteDatetime(datetime.datetime.now()),
+            to_date=InfiniteDatetime("infinity"),
+        )
+
         assert Klasse(
             uuid=None,
             attributes=KlasseAttributes(
@@ -58,7 +64,11 @@ class TestKlasse:
         )
 
     def test_optional_fields(self):
-        effective_time = EffectiveTime(from_date="1930-01-01", to_date="Infinity")
+        effective_time = EffectiveTime(
+            from_date=InfiniteDatetime(datetime.datetime.now()),
+            to_date=InfiniteDatetime("infinity"),
+        )
+
         assert Klasse(
             uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
             attributes=KlasseAttributes(
