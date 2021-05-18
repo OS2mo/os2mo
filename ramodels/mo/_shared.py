@@ -120,7 +120,7 @@ class Validity(RABase):
         return tz_isodate(from_date)
 
     @validator("to_date", pre=True, always=True)
-    def parse_to_date(cls, to_date: Any) -> Optional[datetime]:
+    def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
         return tz_isodate(to_date) if to_date is not None else None
 
 

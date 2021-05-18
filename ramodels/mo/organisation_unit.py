@@ -27,8 +27,8 @@ class OrganisationUnit(MOBase):
     user_key: str
     validity: Validity
     name: str
-    parent: Optional[ParentRef] = None
-    org_unit_hierarchy: Optional[OrgUnitHierarchy] = None
+    parent: Optional[ParentRef]
+    org_unit_hierarchy: Optional[OrgUnitHierarchy]
     org_unit_type: OrgUnitType
     org_unit_level: OrgUnitLevel
 
@@ -45,18 +45,19 @@ class OrganisationUnit(MOBase):
         from_date: str = "1930-01-01",
         to_date: Optional[str] = None,
     ) -> "OrganisationUnit":
-        parent = None
-        if parent_uuid:
-            parent = ParentRef(uuid=parent_uuid)
 
-        org_unit_hierarchy = None
-        if org_unit_hierarchy_uuid:
-            org_unit_hierarchy = OrgUnitHierarchy(uuid=org_unit_hierarchy_uuid)
+        parent = ParentRef(uuid=parent_uuid) if parent_uuid else None
+        org_unit_hierarchy = (
+            OrgUnitHierarchy(uuid=org_unit_hierarchy_uuid)
+            if org_unit_hierarchy_uuid
+            else None
+        )
+        validity = Validity(from_date=from_date, to_date=to_date)
 
         return cls(
             uuid=uuid,
             user_key=user_key,
-            validity=Validity(from_date=from_date, to_date=to_date),
+            validity=validity,
             name=name,
             parent=parent,
             org_unit_hierarchy=org_unit_hierarchy,

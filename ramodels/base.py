@@ -66,6 +66,6 @@ def tz_isodate(dt: Any) -> datetime:
         iso_dt = dt_isoparser(str(dt))
     except ValueError:
         raise ISOParseError(dt)
-    else:
-        iso_dt = iso_dt if iso_dt.tzinfo else iso_dt.replace(tzinfo=DEFAULT_TZ)
-        return iso_dt
+
+    iso_dt = iso_dt if iso_dt.tzinfo else iso_dt.replace(tzinfo=DEFAULT_TZ)
+    return iso_dt
