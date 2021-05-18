@@ -3,10 +3,10 @@
 
 from __future__ import generator_stop
 
-import math
-
 import asyncio
+import datetime
 import logging
+import math
 import re
 import typing
 import uuid
@@ -22,8 +22,23 @@ import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
+from .util import from_iso_time
 
 logger = logging.getLogger(__name__)
+
+
+def registration_changed_since(
+    reg: typing.Dict[str, typing.Any], since: datetime
+):
+    from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
+    if from_time == 'infinity':
+        return True
+    elif from_time == '-infinity':
+        return False
+    elif from_time is None:
+        raise ValueError(f"unexpected reg: {reg}")
+
+    return from_iso_time(from_time) > since
 
 
 @unique
@@ -252,7 +267,7 @@ class Scope:
             except IndexError:
                 return []
 
-    async def get_all(self, **params):
+    async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -274,15 +289,26 @@ class Scope:
         )
         response = await self.fetch(**dict(params), list=1)
 
+        if changed_since:
+            changed_since_filter = partial(registration_changed_since,
+                                           since=from_iso_time(changed_since))
+
         def gen():
-            for d in response:
-                yield d['id'], (d['registreringer'] if wantregs
-                                else d['registreringer'][0])
+            if changed_since:
+                for d in response:
+                    regs = list(filter(changed_since_filter, d['registreringer']))
+                    if regs:
+                        yield d['id'], (regs if wantregs else regs[0])
+            else:
+                for d in response:
+                    yield d['id'], (d['registreringer'] if wantregs
+                                    else d['registreringer'][0])
 
         return gen()
 
     async def get_all_by_uuid(self,
-                              uuids: typing.Union[typing.List, typing.Set]
+                              uuids: typing.Union[typing.List, typing.Set],
+                              changed_since: typing.Optional[datetime] = None,
                               ) -> typing.Iterable[typing.Tuple[str,
                                                                 typing.Dict[
                                                                     typing.Any,
@@ -320,11 +346,20 @@ class Scope:
         ret = [x for chunk in need_flat for x in chunk]
 
         # ret = await self.fetch(uuid=uuids)
+        if changed_since:
+            changed_since_filter = partial(registration_changed_since,
+                                           since=changed_since)
 
         # funny looking, but keeps api backwards compatible (ie avoiding 'async for')
         def gen():
-            for d in ret:
-                yield d['id'], (d['registreringer'][0])
+            if changed_since:
+                for d in ret:
+                    regs = list(filter(changed_since_filter, d['registreringer']))
+                    if regs:
+                        yield d['id'], (regs[0])
+            else:
+                for d in ret:
+                    yield d['id'], (d['registreringer'][0])
 
         return gen()
 

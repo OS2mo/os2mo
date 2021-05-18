@@ -1,13 +1,10 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from typing import Any, Dict, Union
-from typing import List, Optional
+import datetime
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter
-from starlette.datastructures import ImmutableMultiDict
-
 from mora import common, mapping
 from mora.exceptions import ErrorCodes
 from mora.handler.reading import get_handler_for_type
@@ -15,6 +12,7 @@ from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.request_scoped.query_args import current_query
 from mora.util import ensure_list
+from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
 
@@ -50,7 +48,10 @@ def _extract_search_params(
 
 
 async def _query_orgfunk(
-    c: Connector, orgfunk_type: MoOrgFunk, search_params: Dict[str, Any]
+    c: Connector,
+    orgfunk_type: MoOrgFunk,
+    search_params: Dict[str, Any],
+    changed_since: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     """
     helper, used to make the actual queries against LoRa
@@ -60,17 +61,22 @@ async def _query_orgfunk(
     :return:
     """
     cls = get_handler_for_type(orgfunk_type.value)
-    ret = await cls.get(c, search_params)
+    ret = await cls.get(c, search_params, changed_since=changed_since)
     return ret
 
 
 async def orgfunk_endpoint(
-    orgfunk_type: MoOrgFunk, query_args: Dict[str, Any]
+    orgfunk_type: MoOrgFunk,
+    query_args: Dict[str, Any],
+    changed_since: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     c = common.get_connector()
     search_params = _extract_search_params(query_args=query_args)
     return await _query_orgfunk(
-        c=c, orgfunk_type=orgfunk_type, search_params=search_params
+        c=c,
+        orgfunk_type=orgfunk_type,
+        search_params=search_params,
+        changed_since=changed_since,
     )
 
 
@@ -78,10 +84,12 @@ async def orgfunk_endpoint(
 async def search_engagement(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT,
         query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -89,10 +97,12 @@ async def search_engagement(
 async def search_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ASSOCIATION,
         query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -100,9 +110,12 @@ async def search_association(
 async def search_it(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.IT, query_args={"at": at, "validity": validity}
+        orgfunk_type=MoOrgFunk.IT,
+        query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -110,9 +123,12 @@ async def search_it(
 async def search_kle(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.KLE, query_args={"at": at, "validity": validity}
+        orgfunk_type=MoOrgFunk.KLE,
+        query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -120,9 +136,12 @@ async def search_kle(
 async def search_role(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ROLE, query_args={"at": at, "validity": validity}
+        orgfunk_type=MoOrgFunk.ROLE,
+        query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -130,6 +149,7 @@ async def search_role(
 async def search_address(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
     engagement: Optional[str] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -138,6 +158,7 @@ async def search_address(
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ADDRESS,
         query_args=args,
+        changed_since=changed_since,
     )
 
 
@@ -145,6 +166,7 @@ async def search_address(
 async def search_engagement_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
     engagement: Optional[UUID] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -153,6 +175,7 @@ async def search_engagement_association(
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT_ASSOCIATION,
         query_args=args,
+        changed_since=changed_since,
     )
 
 
@@ -160,9 +183,12 @@ async def search_engagement_association(
 async def search_leave(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.LEAVE, query_args={"at": at, "validity": validity}
+        orgfunk_type=MoOrgFunk.LEAVE,
+        query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -170,9 +196,12 @@ async def search_leave(
 async def search_manager(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.MANAGER, query_args={"at": at, "validity": validity}
+        orgfunk_type=MoOrgFunk.MANAGER,
+        query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 
@@ -180,10 +209,12 @@ async def search_manager(
 async def search_related_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.RELATED_UNIT,
         query_args={"at": at, "validity": validity},
+        changed_since=changed_since,
     )
 
 

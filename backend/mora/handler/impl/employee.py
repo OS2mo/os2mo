@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import datetime
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from .. import reading
 from ... import common
@@ -21,16 +21,22 @@ logger = logging.getLogger(__name__)
 @reading.register(ROLE_TYPE)
 class EmployeeReader(reading.ReadingHandler):
     @classmethod
-    async def get(cls, c: Connector, search_fields: Dict[Any, Any]):
-        object_tuples = await c.bruger.get_all(**search_fields)
+    async def get(cls, c: Connector, search_fields: Dict[Any, Any],
+                  changed_since: Optional[datetime] = None):
+        object_tuples = await c.bruger.get_all(
+            **search_fields, changed_since=changed_since
+        )
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(cls, c: Connector, type: str, objid):
+    async def get_from_type(cls, c: Connector, type: str, objid,
+                            changed_since: Optional[datetime] = None):
         if type != "e":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        object_tuples = await c.bruger.get_all_by_uuid(uuids=[objid])
+        object_tuples = await c.bruger.get_all_by_uuid(
+            uuids=[objid], changed_since=changed_since
+        )
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
