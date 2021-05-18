@@ -20,5 +20,5 @@ from ._shared import MOBase
 class Employee(MOBase):
     type: Literal["employee"] = "employee"
     name: str
-    cpr_no: Optional[str] = None
-    seniority: Optional[datetime] = None
+    cpr_no: Optional[str]
+    seniority: Optional[datetime]
