@@ -31,11 +31,11 @@ class Address(MOBase):
     value2: Optional[str]
     address_type: AddressType
     org: OrganisationRef
-    person: Optional[PersonRef] = None
-    org_unit: Optional[OrgUnitRef] = None
-    engagement: Optional[EngagementRef] = None
+    person: Optional[PersonRef]
+    org_unit: Optional[OrgUnitRef]
+    engagement: Optional[EngagementRef]
     validity: Validity
-    visibility: Optional[Visibility] = None
+    visibility: Optional[Visibility]
 
     @classmethod
     def from_simplified_fields(
@@ -55,18 +55,10 @@ class Address(MOBase):
         address_type = AddressType(uuid=address_type_uuid)
         org = OrganisationRef(uuid=org_uuid)
         validity = Validity(from_date=from_date, to_date=to_date)
-        person = None
-        if person_uuid:
-            person = PersonRef(uuid=person_uuid)
-        org_unit = None
-        if org_unit_uuid:
-            org_unit = OrgUnitRef(uuid=org_unit_uuid)
-        engagement = None
-        if engagement_uuid:
-            engagement = EngagementRef(uuid=engagement_uuid)
-        visibility = None
-        if visibility_uuid:
-            visibility = Visibility(uuid=visibility_uuid)
+        person = PersonRef(uuid=person_uuid) if person_uuid else None
+        org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
+        engagement = EngagementRef(uuid=engagement_uuid) if engagement_uuid else None
+        visibility = Visibility(uuid=visibility_uuid) if visibility_uuid else None
         return cls(
             uuid=uuid,
             value=value,
