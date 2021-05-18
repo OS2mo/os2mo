@@ -53,7 +53,6 @@ def meta_router():
     @router.get("/hjaelp/")
     @router.get("/organisationssammenkobling/")
     @router.get("/forespoergsler/")
-    @router.get("/tidsmaskine/")
     def index(path=""):
         """Serve index.html on `/` and unknown paths."""
         return FileResponse(distdir + "/index.html")
