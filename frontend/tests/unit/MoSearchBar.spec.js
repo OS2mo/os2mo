@@ -9,6 +9,8 @@ import Search from '@/api/Search'
 import { AtDate } from '@/store/actions/atDate'
 import MoSearchBar from '@/components/MoSearchBar/MoSearchBar.vue'
 import i18n from '@/i18n.js'
+import MoAutocomplete from '@/components/MoAutocomplete/MoAutocomplete.vue'
+import Autocomplete from '@trevoreyre/autocomplete-vue'
 
 jest.mock('@/api/Search')
 
@@ -32,6 +34,9 @@ describe('MoSearchBar.vue', () => {
     store.dispatch = jest.fn()
     store.replaceState({ organisation: { uuid: '1234' } })
 
+    // Mock resolved value of `Search.organisations` (actual value does not matter)
+    Search.organisations.mockResolvedValue([])
+
     wrapper = mount(MoSearchBar, {
       store,
       localVue,
@@ -54,12 +59,22 @@ describe('MoSearchBar.vue', () => {
     // Search query passed to `Search.organisations`
     const query = 'my query'
 
-    // Mock resolved value of `Search.organisations` (actual value does not matter)
-    Search.organisations.mockResolvedValue([])
-
     await wrapper.vm.updateItems(query)
     expect(Search.organisations).toHaveBeenCalledWith(
       store.state.organisation.uuid, query, nowFormatted
+    )
+  })
+
+  it('should call the search API when search input is entered', async () => {
+    const query = 'my query'
+
+    // Pretend to type query into autocomplete widget
+    const component = wrapper.findComponent(MoAutocomplete).findComponent(Autocomplete)
+    component.setData({ defaultValue: query })
+
+    // Assert that search function is called with query as input
+    expect(Search.organisations).toHaveBeenCalledWith(
+      store.state.organisation.uuid, query, expect.anything()
     )
   })
 })
