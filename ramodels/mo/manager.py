@@ -31,7 +31,6 @@ from ._shared import Validity
 
 class Manager(MOBase):
     type: Literal["manager"] = "manager"
-    # user_key: str
     org_unit: OrgUnitRef
     person: PersonRef
     responsibility: List[Responsibility]
@@ -43,7 +42,6 @@ class Manager(MOBase):
     def from_simplified_fields(
         cls,
         uuid: UUID,
-        # user_key: str,
         org_unit_uuid: UUID,
         person_uuid: UUID,
         responsibility_uuid: UUID,
@@ -61,7 +59,6 @@ class Manager(MOBase):
 
         return cls(
             uuid=uuid,
-            # user_key=        # user_key,
             org_unit=org_unit,
             person=person,
             responsibility=responsibility,
