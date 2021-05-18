@@ -41,11 +41,11 @@ class Klasse(LoraBase):
         scope: Optional[str],
         organisation_uuid: UUID,
         title: str,
-        date_from: str = "1930-01-01",
-        date_to: str = "infinity",
+        from_date: str = "1930-01-01",
+        to_date: str = "infinity",
     ):
         # Inner fields
-        _effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
+        _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = KlasseProperties(
             user_key=user_key,
             title=title,
