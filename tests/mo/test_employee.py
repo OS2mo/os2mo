@@ -18,15 +18,13 @@ from ramodels.mo.employee import Employee
 
 class TestEmployee:
     def test_required_fields(self):
-        """Will break if Required fields become Optional"""
+        # Fails if new required fields are added or existing is removed
         assert Employee(
-            type="employee",
             name="Anders And",
         )
 
     def test_optional_fields(self):
-        """Backwards compatibility
-        Will break if Optional fields become Required"""
+        # Fails if an optional field is removed
         assert Employee(
             type="employee",
             name="Anders And",

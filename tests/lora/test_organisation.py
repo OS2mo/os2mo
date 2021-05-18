@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
-from uuid import UUID
 
 from ramodels.lora import Organisation
 from ramodels.lora._shared import Authority
@@ -18,6 +17,7 @@ from ramodels.lora._shared import OrganisationProperties
 from ramodels.lora._shared import OrganisationRelations
 from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
+
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -31,20 +31,24 @@ class TestOrganisation:
             to_date=InfiniteDatetime("infinity"),
         )
 
-        assert Organisation(
-            uuid=None,
-            attributes=OrganisationAttributes(
-                properties=[
-                    OrganisationProperties(
-                        user_key="userkey", name="Name", effective_time=effective_time
-                    )
-                ]
-            ),
-            states=OrganisationStates(
-                valid_state=[OrganisationValidState(effective_time=effective_time)]
-            ),
-            relations=None,
+        properties = OrganisationProperties(
+            user_key="userkey", name="Name", effective_time=effective_time
         )
+
+        attributes = OrganisationAttributes(properties=[properties])
+
+        valid_state = OrganisationValidState(effective_time=effective_time)
+
+        states = OrganisationStates(valid_state=[valid_state])
+
+        organisation = Organisation(attributes=attributes, states=states)
+
+        assert effective_time
+        assert properties
+        assert attributes
+        assert valid_state
+        assert states
+        assert organisation
 
     def test_optional_fields(self):
         effective_time = EffectiveTime(
@@ -53,7 +57,6 @@ class TestOrganisation:
         )
 
         assert Organisation(
-            uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
             attributes=OrganisationAttributes(
                 properties=[
                     OrganisationProperties(

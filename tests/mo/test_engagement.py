@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import UUID
+from uuid import uuid4
 
 from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
@@ -25,15 +25,24 @@ from ramodels.mo.engagement import Engagement
 class TestEngagement:
     def test_required_fields(self):
         assert Engagement(
-            type="engagement",
-            org_unit=OrgUnitRef(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            person=PersonRef(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            job_function=JobFunction(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            engagement_type=EngagementType(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
+            org_unit=OrgUnitRef(uuid=uuid4()),
+            person=PersonRef(uuid=uuid4()),
+            job_function=JobFunction(uuid=uuid4()),
+            engagement_type=EngagementType(uuid=uuid4()),
             validity=Validity(from_date="1930-01-01", to_date=None),
-            primary=Primary(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
+            primary=Primary(uuid=uuid4()),
+            user_key="engagement",
+        )
+
+    def test_optional_fiels(self):
+        assert Engagement(
+            type="engagement",
+            org_unit=OrgUnitRef(uuid=uuid4()),
+            person=PersonRef(uuid=uuid4()),
+            job_function=JobFunction(uuid=uuid4()),
+            engagement_type=EngagementType(uuid=uuid4()),
+            validity=Validity(from_date="1930-01-01", to_date=None),
+            primary=Primary(uuid=uuid4()),
             user_key="engagement",
             extension_1="",
             extension_2="",

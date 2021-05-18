@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import UUID
+from uuid import uuid4
 
 from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import OrgUnitRef
@@ -23,11 +23,17 @@ from ramodels.mo.association import Association
 class TestAssociation:
     def test_required_fields(self):
         assert Association(
+            org_unit=OrgUnitRef(uuid=uuid4()),
+            person=PersonRef(uuid=uuid4()),
+            association_type=AssociationType(uuid=uuid4()),
+            validity=Validity(from_date="1930-01-01", to_date=None),
+        )
+
+    def test_optional_fields(self):
+        assert Association(
             type="association",
-            org_unit=OrgUnitRef(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            person=PersonRef(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            association_type=AssociationType(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
+            org_unit=OrgUnitRef(uuid=uuid4()),
+            person=PersonRef(uuid=uuid4()),
+            association_type=AssociationType(uuid=uuid4()),
             validity=Validity(from_date="1930-01-01", to_date=None),
         )

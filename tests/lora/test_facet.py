@@ -7,7 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
-from uuid import UUID
+from uuid import uuid4
 
 from ramodels.lora import Facet
 from ramodels.lora._shared import EffectiveTime
@@ -18,6 +18,7 @@ from ramodels.lora._shared import FacetStates
 from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
+
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -31,48 +32,28 @@ class TestFacet:
             to_date=InfiniteDatetime("infinity"),
         )
 
-        assert Facet(
-            uuid=None,
-            attributes=FacetAttributes(
-                properties=[
-                    FacetProperties(user_key="asd", effective_time=effective_time)
-                ]
-            ),
-            states=FacetStates(
-                published_state=[Published(effective_time=effective_time)]
-            ),
-            relations=FacetRelations(
-                responsible=[
-                    Responsible(
-                        uuid="c4ec1247-d040-45ca-8092-61a0aeca9b30",
-                        effective_time=effective_time,
-                    )
-                ]
-            ),
+        responsible = Responsible(
+            uuid=uuid4(),
+            effective_time=effective_time,
         )
 
-    def test_optional_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
-        )
+        properties = FacetProperties(user_key="asd", effective_time=effective_time)
 
-        assert Facet(
-            uuid=UUID("92b1d654-f4c5-4fdd-aeb7-73b9b674e91e"),
-            attributes=FacetAttributes(
-                properties=[
-                    FacetProperties(user_key="userkey", effective_time=effective_time)
-                ]
-            ),
-            states=FacetStates(
-                published_state=[Published(effective_time=effective_time)]
-            ),
-            relations=FacetRelations(
-                responsible=[
-                    Responsible(
-                        uuid="c4ec1247-d040-45ca-8092-61a0aeca9b30",
-                        effective_time=effective_time,
-                    )
-                ]
-            ),
-        )
+        attributes = FacetAttributes(properties=[properties])
+
+        published = Published(effective_time=effective_time)
+
+        states = FacetStates(published_state=[published])
+
+        relations = FacetRelations(responsible=[responsible])
+
+        facet = Facet(attributes=attributes, states=states, relations=relations)
+
+        assert effective_time
+        assert responsible
+        assert properties
+        assert attributes
+        assert published
+        assert states
+        assert relations
+        assert facet

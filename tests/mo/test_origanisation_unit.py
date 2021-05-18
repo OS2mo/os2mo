@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import UUID
+from uuid import uuid4
 
 from ramodels.mo._shared import OrgUnitHierarchy
 from ramodels.mo._shared import OrgUnitLevel
@@ -24,16 +24,11 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 class TestOrganisationUnit:
     def test_required_fields(self):
         assert OrganisationUnit(
-            type="org_unit",
             user_key="Andeby Kommune",
             validity=Validity(from_date="1930-01-01", to_date=None),
             name="Social og sundhed",
-            org_unit_type=OrgUnitType(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
-            org_unit_level=OrgUnitLevel(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
+            org_unit_type=OrgUnitType(uuid=uuid4()),
+            org_unit_level=OrgUnitLevel(uuid=uuid4()),
         )
 
     def test_optional_field(self):
@@ -42,14 +37,8 @@ class TestOrganisationUnit:
             user_key="Andeby Kommune",
             validity=Validity(from_date="1930-01-01", to_date=None),
             name="Social og sundhed",
-            parent=ParentRef(uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")),
-            org_unit_hierarchy=OrgUnitHierarchy(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
-            org_unit_type=OrgUnitType(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
-            org_unit_level=OrgUnitLevel(
-                uuid=UUID("26e30822-c9ee-4b5d-8412-bb28672a4d64")
-            ),
+            parent=ParentRef(uuid=uuid4()),
+            org_unit_hierarchy=OrgUnitHierarchy(uuid=uuid4()),
+            org_unit_type=OrgUnitType(uuid=uuid4()),
+            org_unit_level=OrgUnitLevel(uuid=uuid4()),
         )
