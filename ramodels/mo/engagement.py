@@ -68,14 +68,20 @@ class Engagement(MOBase):
         extension_9: Optional[str] = None,
         extension_10: Optional[str] = None,
     ):
+        org_unit = OrgUnitRef(uuid=org_unit_uuid)
+        person = PersonRef(uuid=person_uuid)
+        job_function = JobFunction(uuid=job_function_uuid)
+        engagement_type = EngagementType(uuid=engagement_type_uuid)
+        validity = Validity(from_date=from_date, to_date=to_date)
+        primary = Primary(uuid=primary_uuid)
         return cls(
             uuid=uuid,
-            org_unit=OrgUnitRef(uuid=org_unit_uuid),
-            person=PersonRef(uuid=person_uuid),
-            job_function=JobFunction(uuid=job_function_uuid),
-            engagement_type=EngagementType(uuid=engagement_type_uuid),
-            validity=Validity(from_date=from_date, to_date=to_date),
-            primary=Primary(uuid=primary_uuid),
+            org_unit=org_unit,
+            person=person,
+            job_function=job_function,
+            engagement_type=engagement_type,
+            validity=validity,
+            primary=primary,
             user_key=user_key,
             extension_1=extension_1,
             extension_2=extension_2,
