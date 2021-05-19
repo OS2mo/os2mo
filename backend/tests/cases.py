@@ -8,7 +8,7 @@ from unittest.case import TestCase
 from starlette.testclient import TestClient
 
 from mora import app, conf_db, service, settings
-from mora.async_util import async_to_sync
+from mora.async_util import _local_cache, async_to_sync
 from mora.request_scoped.bulking import request_wide_bulk
 from tests.util import _mox_testing_api, load_sample_structures
 
@@ -238,6 +238,16 @@ class LoRATestCase(_BaseTestCase):
     def setUp(self):
         _mox_testing_api("db-reset")
         super().setUp()
+
+    @async_to_sync
+    async def tearDown(self):
+        if (
+            hasattr(_local_cache, "async_session") and
+            _local_cache.async_session is not None
+        ):
+            await _local_cache.async_session.close()
+            _local_cache.async_session = None
+        super().tearDown()
 
 
 class ConfigTestCase(LoRATestCase):

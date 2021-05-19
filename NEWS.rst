@@ -4,6 +4,7 @@ In development
 New features
 ------------
 * #42774: Add English translation. The user can now choose Danish or English screen texts by clicking the flags in the nav bar
+* #42869: Added delta-api parameter "changed_since" to /api/v1/ endpoints
 
 Bug fixes
 ---------

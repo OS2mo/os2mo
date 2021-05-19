@@ -12,8 +12,8 @@ from tests.cases import LoRATestCase
 
 class EngAssocUtils:
     association_uuid = "00000000-0000-0000-0000-000000000000"
-    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-    engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
+    unitid = "fa2e23c9-860a-4c90-bcc6-2c0721869a25"
+    engagement_uuid = "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"
     engagement_association_type_uuid = "5695e331-d837-473f-9b00-6f528fbd23f6"
     user_key = "1234"
     validity = {

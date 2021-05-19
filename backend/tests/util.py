@@ -239,6 +239,7 @@ async def load_sample_structures(minimal=False):
             'adresse_hum': 'e1a9cede-8c9b-4367-b628-113834361871',
             'tlf_hum': '55848eca-4e9e-4f30-954b-78d55eec0473',
             'ean_hum': 'a0fe7d43-1e0d-4232-a220-87098024b34d',
+            'engagement_association': 'a0fe7d43-1e0d-4232-a220-87009134b45e',
         })
 
     for facetkey, facetid in facets.items():

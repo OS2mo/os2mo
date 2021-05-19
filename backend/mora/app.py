@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
+from fastapi import APIRouter, Depends, FastAPI, HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -26,7 +26,7 @@ from .api.v1 import reading_endpoints
 from .auth.saml_sso import check_saml_authentication
 from .auth.saml_sso.session import SessionInterface
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config, app_config
+from .settings import app_config, config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -69,15 +69,15 @@ def meta_router():
     return router
 
 
-async def fallback_handler(request, exc):
+async def fallback_handler(*args, **kwargs):
     """
     Ensure a nicely formatted json response, with
     minimal knowledge about the exception available.
-    :param request:
-    :param exc:
     :return:
     """
-    err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
+    err = ErrorCodes.E_UNKNOWN.to_http_exception(
+        message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
+    )
     return http_exception_to_json_response(exc=err)
 
 

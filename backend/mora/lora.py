@@ -22,7 +22,7 @@ import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
-from .util import from_iso_time
+from .util import DEFAULT_TIMEZONE, from_iso_time
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,9 @@ def registration_changed_since(
     elif from_time is None:
         raise ValueError(f"unexpected reg: {reg}")
 
+    # ensure timezone
+    if not since.tzinfo:
+        since = since.replace(tzinfo=DEFAULT_TIMEZONE)
     return from_iso_time(from_time) > since
 
 
@@ -291,7 +294,7 @@ class Scope:
 
         if changed_since:
             changed_since_filter = partial(registration_changed_since,
-                                           since=from_iso_time(changed_since))
+                                           since=changed_since)
 
         def gen():
             if changed_since:

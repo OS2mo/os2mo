@@ -2778,7 +2778,7 @@ class Tests(tests.cases.LoRATestCase):
                                'active children and roles.',
 
                 'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
+                         'Tilknytning, engagement_association',
                 'child_count': 2,
             },
             status_code=400,
@@ -2801,7 +2801,7 @@ class Tests(tests.cases.LoRATestCase):
                                'active children and roles.',
 
                 'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
+                         'Tilknytning, engagement_association',
                 'child_count': 1,
             },
             status_code=400,
@@ -2838,7 +2838,7 @@ class Tests(tests.cases.LoRATestCase):
                 'error_key': 'V_TERMINATE_UNIT_WITH_ROLES',
                 'description': 'Cannot terminate unit with active roles.',
                 'roles': 'Engagement, Leder, Relateret Enhed, Rolle, '
-                         'Tilknytning',
+                         'Tilknytning, engagement_association',
             },
             status_code=400,
             json={

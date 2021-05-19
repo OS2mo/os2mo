@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
@@ -11,6 +11,7 @@ from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
+from mora.util import date_to_datetime
 from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
@@ -64,10 +65,11 @@ async def _query_orgfunk(
     return ret
 
 
+@date_to_datetime
 async def orgfunk_endpoint(
     orgfunk_type: MoOrgFunk,
     query_args: Dict[str, Any],
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = None,
 ) -> Dict[str, Any]:
     c = common.get_connector()
     search_params = _extract_search_params(query_args=query_args)
@@ -80,10 +82,11 @@ async def orgfunk_endpoint(
 
 
 @router.get(f"/{MoOrgFunk.ENGAGEMENT.value}")
+@date_to_datetime
 async def search_engagement(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ) -> Dict[str, Any]:
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT,
@@ -93,10 +96,11 @@ async def search_engagement(
 
 
 @router.get(f"/{MoOrgFunk.ASSOCIATION.value}")
+@date_to_datetime
 async def search_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ASSOCIATION,
@@ -106,10 +110,11 @@ async def search_association(
 
 
 @router.get(f"/{MoOrgFunk.IT.value}")
+@date_to_datetime
 async def search_it(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.IT,
@@ -119,10 +124,11 @@ async def search_it(
 
 
 @router.get(f"/{MoOrgFunk.KLE.value}")
+@date_to_datetime
 async def search_kle(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.KLE,
@@ -132,10 +138,11 @@ async def search_kle(
 
 
 @router.get(f"/{MoOrgFunk.ROLE.value}")
+@date_to_datetime
 async def search_role(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ROLE,
@@ -145,10 +152,11 @@ async def search_role(
 
 
 @router.get(f"/{MoOrgFunk.ADDRESS.value}")
+@date_to_datetime
 async def search_address(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
     engagement: Optional[str] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -162,10 +170,11 @@ async def search_address(
 
 
 @router.get(f"/{MoOrgFunk.ENGAGEMENT_ASSOCIATION.value}")
+@date_to_datetime
 async def search_engagement_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
     engagement: Optional[UUID] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -179,10 +188,11 @@ async def search_engagement_association(
 
 
 @router.get(f"/{MoOrgFunk.LEAVE.value}")
+@date_to_datetime
 async def search_leave(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.LEAVE,
@@ -192,10 +202,11 @@ async def search_leave(
 
 
 @router.get(f"/{MoOrgFunk.MANAGER.value}")
+@date_to_datetime
 async def search_manager(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.MANAGER,
@@ -205,10 +216,11 @@ async def search_manager(
 
 
 @router.get(f"/{MoOrgFunk.RELATED_UNIT.value}")
+@date_to_datetime
 async def search_related_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.RELATED_UNIT,
@@ -218,10 +230,11 @@ async def search_related_unit(
 
 
 @router.get(f"/{EMPLOYEE_ROLE_TYPE}")
+@date_to_datetime
 async def search_employee(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     """
     This can be expanded with general search paramters
@@ -238,11 +251,12 @@ async def search_employee(
 
 
 @router.get(f"/{EMPLOYEE_ROLE_TYPE}/by_uuid")
+@date_to_datetime
 async def get_employee_by_uuid(
     uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     """
     As uuid is allowed, this cannot be expanded with general search
@@ -257,15 +271,18 @@ async def get_employee_by_uuid(
     c = common.get_connector()
     cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
     return await cls.get(
-        c, {"at": at, "validity": validity, "uuid": uuid}, changed_since=changed_since
+        c,
+        {"at": at, "validity": validity, "uuid": uuid},
+        changed_since=changed_since,
     )
 
 
 @router.get(f"/{ORG_UNIT_ROLE_TYPE}")
+@date_to_datetime
 async def search_org_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     """
     This can be expanded with general search paramters
@@ -283,11 +300,12 @@ async def search_org_unit(
 
 
 @router.get(f"/{ORG_UNIT_ROLE_TYPE}/by_uuid")
+@date_to_datetime
 async def get_org_unit_by_uuid(
     uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    changed_since: Optional[Union[datetime, date]] = Query(None),
 ):
     """
     As uuid is allowed, this cannot be expanded with general search

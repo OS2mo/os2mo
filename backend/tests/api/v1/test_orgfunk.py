@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 from unittest.mock import patch
+from uuid import UUID
 
 import freezegun
 from mora.api.v1.reading_endpoints import _extract_search_params
@@ -25,7 +26,6 @@ class Reading(TestCase):
             {orgfunk.value: f"some_val_{orgfunk.value}" for orgfunk in MoOrgFunk}
         )
         actual = _extract_search_params(base)
-        self.assertEqual(base, base)  # non-modifying
         self.assertEqual(expected, actual)
 
     def test_api_exposing_org_funk_endpoint(self):
@@ -70,9 +70,9 @@ class Reading(TestCase):
                             "validity": "present",
                             "at": "2017-01-01",
                             "uuid": [
-                                "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-                                "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                                UUID("2f16d140-d743-4c9f-9e0e-361da91a06f6"),
+                                UUID("3e702dd1-4103-4116-bb2d-b150aebe807d"),
                             ],
+                            "only_primary_uuid": None,
                         },
-                        changed_since=None,
                     )
