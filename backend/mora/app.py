@@ -92,7 +92,7 @@ async def request_validation_handler(
     :return:
     """
     if config["ENV"] in ["development", "testing"]:
-        logger.debug(
+        logger.info(
             f"os2mo err details\n{exc}\n"
             f"request url:\n{request.url}\n"
             f"request params:\n{request.query_params}"

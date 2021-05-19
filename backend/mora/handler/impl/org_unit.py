@@ -23,9 +23,8 @@ class OrgUnitReader(reading.ReadingHandler):
 
     @classmethod
     async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
-        object_tuples = await c.organisationenhed.get_all(
-            **search_fields, changed_since=changed_since
-        )
+        object_tuples = await cls._get_lora_object(c=c, search_fields=search_fields,
+                                                   changed_since=changed_since)
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
@@ -38,6 +37,22 @@ class OrgUnitReader(reading.ReadingHandler):
             changed_since=changed_since
         )
         return await cls._get_obj_effects(c, object_tuples)
+
+    @classmethod
+    async def _get_lora_object(cls, c, search_fields,
+                               changed_since: Optional[datetime] = None):
+        if mapping.UUID in search_fields:
+            object_tuples = await c.organisationenhed.get_all_by_uuid(
+                uuids=search_fields[mapping.UUID],
+                changed_since=changed_since,
+            )
+        else:
+            object_tuples = await c.organisationenhed.get_all(
+                changed_since=changed_since,
+                **search_fields,
+            )
+
+        return object_tuples
 
     @classmethod
     async def _get_effects(cls, c, obj, **params):

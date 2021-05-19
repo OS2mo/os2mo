@@ -4,16 +4,13 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from fastapi import APIRouter
-from mora import common, mapping
-from mora.exceptions import ErrorCodes
+from fastapi import APIRouter, Query
+from mora import common
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
-from mora.request_scoped.query_args import current_query
-from mora.util import ensure_list
 from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
@@ -226,6 +223,13 @@ async def search_employee(
     validity: Optional[Any] = None,
     changed_since: Optional[datetime] = None,
 ):
+    """
+    This can be expanded with general search paramters
+    :param at:
+    :param validity:
+    :param changed_since:
+    :return:
+    """
     c = common.get_connector()
     cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
     return await cls.get(
@@ -235,11 +239,21 @@ async def search_employee(
 
 @router.get(f"/{EMPLOYEE_ROLE_TYPE}/by_uuid")
 async def get_employee_by_uuid(
-    uuid: List[UUID],
+    uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
     changed_since: Optional[datetime] = None,
 ):
+    """
+    As uuid is allowed, this cannot be expanded with general search
+    parameters, a limitation posed by LoRa
+
+    :param uuid:
+    :param at:
+    :param validity:
+    :param changed_since:
+    :return:
+    """
     c = common.get_connector()
     cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
     return await cls.get(
@@ -253,6 +267,14 @@ async def search_org_unit(
     validity: Optional[Any] = None,
     changed_since: Optional[datetime] = None,
 ):
+    """
+    This can be expanded with general search paramters
+
+    :param at:
+    :param validity:
+    :param changed_since:
+    :return:
+    """
     c = common.get_connector()
     cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
     return await cls.get(
@@ -260,13 +282,23 @@ async def search_org_unit(
     )
 
 
-@router.get(f"/{ORG_UNIT_ROLE_TYPE}")
+@router.get(f"/{ORG_UNIT_ROLE_TYPE}/by_uuid")
 async def get_org_unit_by_uuid(
-    uuid: List[UUID],
+    uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
     changed_since: Optional[datetime] = None,
 ):
+    """
+    As uuid is allowed, this cannot be expanded with general search
+    parameters, a limitation posed by LoRa
+
+    :param uuid:
+    :param at:
+    :param validity:
+    :param changed_since:
+    :return:
+    """
     c = common.get_connector()
     cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
     return await cls.get(
@@ -300,20 +332,17 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
     """
 
     async def get_orgfunk_by_uuid(
-        uuid: List[UUID],
+        uuid: List[UUID] = Query(...),
         at: Optional[Any] = None,
         validity: Optional[Any] = None,
         only_primary_uuid: Optional[Any] = None,
     ):
-        if not set(current_query.args.keys()) <= {
-            "at",
-            "validity",
-            mapping.UUID,
-            "only_primary_uuid",
-        }:
-            raise ErrorCodes.E_INVALID_INPUT()
-        args = to_dict(current_query.args)
-        args[mapping.UUID] = ensure_list(args[mapping.UUID])
+        args = {
+            "at": at,
+            "validity": validity,
+            "uuid": uuid,
+            "only_primary_uuid": only_primary_uuid,
+        }
         return await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
