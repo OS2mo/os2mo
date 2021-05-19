@@ -24,7 +24,6 @@ from ._shared import Validity
 
 class OrganisationUnit(MOBase):
     type: Literal["org_unit"] = "org_unit"
-    uuid: UUID
     user_key: str
     validity: Validity
     name: str
