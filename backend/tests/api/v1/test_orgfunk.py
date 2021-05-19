@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import freezegun
 
-from mora.api.v1.read_orgfunk import _extract_search_params
+from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.mapping import MoOrgFunk
 from tests.cases import TestCase
 

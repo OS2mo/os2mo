@@ -22,7 +22,7 @@ from mora.request_scoped.query_args import current_query
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
-from .api.v1 import read_orgfunk
+from .api.v1 import reading_endpoints
 from .auth.saml_sso import check_saml_authentication
 from .auth.saml_sso.session import SessionInterface
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
@@ -170,7 +170,7 @@ def create_app():
             dependencies=[Depends(check_saml_authentication)]
         )
     app.include_router(
-        read_orgfunk.router,
+        reading_endpoints.router,
         dependencies=[Depends(check_saml_authentication)]
     )
     app.include_router(

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import datetime
 import logging
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from .. import reading

@@ -1,12 +1,14 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import datetime
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter
 from mora import common, mapping
 from mora.exceptions import ErrorCodes
+from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
+from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
@@ -218,6 +220,62 @@ async def search_related_unit(
     )
 
 
+@router.get(f"/{EMPLOYEE_ROLE_TYPE}")
+async def search_employee(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
+):
+    c = common.get_connector()
+    cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
+    return await cls.get(
+        c, {"at": at, "validity": validity}, changed_since=changed_since
+    )
+
+
+@router.get(f"/{EMPLOYEE_ROLE_TYPE}/by_uuid")
+async def get_employee_by_uuid(
+    uuid: List[UUID],
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
+):
+    c = common.get_connector()
+    cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
+    return await cls.get(
+        c, {"at": at, "validity": validity, "uuid": uuid}, changed_since=changed_since
+    )
+
+
+@router.get(f"/{ORG_UNIT_ROLE_TYPE}")
+async def search_org_unit(
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
+):
+    c = common.get_connector()
+    cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
+    return await cls.get(
+        c, {"at": at, "validity": validity}, changed_since=changed_since
+    )
+
+
+@router.get(f"/{ORG_UNIT_ROLE_TYPE}")
+async def get_org_unit_by_uuid(
+    uuid: List[UUID],
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
+):
+    c = common.get_connector()
+    cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
+    return await cls.get(
+        c,
+        {"at": at, "validity": validity, "uuid": uuid},
+        changed_since=changed_since,
+    )
+
+
 def to_dict(multi_dict: ImmutableMultiDict) -> Dict[Any, Union[Any, List[Any]]]:
     """
     flattens a multi-dict to a simple dictionary, collecting items in lists as needed
@@ -242,19 +300,21 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
     """
 
     async def get_orgfunk_by_uuid(
-        uuid: UUID,
+        uuid: List[UUID],
         at: Optional[Any] = None,
         validity: Optional[Any] = None,
         only_primary_uuid: Optional[Any] = None,
     ):
-        if not set(current_query.args.keys()) <= {"at", "validity", mapping.UUID,
-                                                  "only_primary_uuid"}:
+        if not set(current_query.args.keys()) <= {
+            "at",
+            "validity",
+            mapping.UUID,
+            "only_primary_uuid",
+        }:
             raise ErrorCodes.E_INVALID_INPUT()
         args = to_dict(current_query.args)
         args[mapping.UUID] = ensure_list(args[mapping.UUID])
-        return await orgfunk_endpoint(
-            orgfunk_type=orgfunk, query_args=args
-        )
+        return await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
     return get_orgfunk_by_uuid
