@@ -13,6 +13,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic import root_validator
 from pydantic import validator
 
 from ramodels.base import RABase
@@ -122,6 +123,14 @@ class Validity(RABase):
     @validator("to_date", pre=True, always=True)
     def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
         return tz_isodate(to_date) if to_date is not None else None
+
+    @root_validator
+    def check_from_leq_to(cls, values):
+        from_date, to_date = values.get("from_date"), values.get("to_date")
+        to_date = to_date if to_date else datetime.max
+        if all([from_date, to_date]) and not (from_date <= to_date):
+            raise ValueError("from_date must be less than or equal to to_date")
+        return values
 
 
 class Visibility(RABase):
