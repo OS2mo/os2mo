@@ -23,7 +23,8 @@ from ramodels.exceptions import ISOParseError
 # TODO: Perhaps it's worth reading from e.g. env vars here
 DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
 
-INF_SET = {"-infinity", "infinity"}
+POS_INF = "infinity"
+NEG_INF = "-infinity"
 
 # --------------------------------------------------------------------------------------
 # Base models

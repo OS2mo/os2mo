@@ -15,6 +15,8 @@ repos:
       - id: mypy
         language: system
         types: [file, python]
+        additional_dependencies:
+          - "pydantic"
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v2.5.0
