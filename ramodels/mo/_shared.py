@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import datetime
 from typing import Any
 from typing import Optional
 from uuid import UUID
@@ -15,6 +16,8 @@ from pydantic import Field
 from pydantic import validator
 
 from ramodels.base import RABase
+from ramodels.base import tz_isodate
+
 
 # --------------------------------------------------------------------------------------
 # MOBase
@@ -109,8 +112,16 @@ class Responsibility(RABase):
 
 
 class Validity(RABase):
-    from_date: str = Field("1930-01-01", alias="from")
-    to_date: Optional[str] = Field(None, alias="to")
+    from_date: datetime = Field(tz_isodate("1930-01-01"), alias="from")
+    to_date: Optional[datetime] = Field(alias="to")
+
+    @validator("from_date", pre=True, always=True)
+    def parse_from_date(cls, from_date: Any) -> datetime:
+        return tz_isodate(from_date)
+
+    @validator("to_date", pre=True, always=True)
+    def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
+        return tz_isodate(to_date) if to_date is not None else None
 
 
 class Visibility(RABase):

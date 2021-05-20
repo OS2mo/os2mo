@@ -6,7 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-# from datetime import datetime
 from datetime import datetime
 from functools import total_ordering
 from typing import Any
@@ -19,21 +18,13 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-from dateutil import tz as dt_tz
-from dateutil.parser import isoparse as dt_isoparser
 from pydantic import Field
 from pydantic import validator
 
+from ramodels.base import INF_SET
 from ramodels.base import RABase
+from ramodels.base import tz_isodate
 
-# --------------------------------------------------------------------------------------
-# Globals
-# --------------------------------------------------------------------------------------
-
-# TODO: Perhaps it's worth reading from e.g. env vars here
-DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
-
-INF_SET = {"-infinity", "infinity"}
 
 # --------------------------------------------------------------------------------------
 # LoRaBase
@@ -102,7 +93,7 @@ class InfiniteDatetime(str):
 
         Raises:
             TypeError: If the value is not a 'str' or 'datetime' object.
-            ValueError: If the value cannot be parsed as either the strings
+            ISOParseError: If the value cannot be parsed as either the strings
                 "-infinity", "infinity", or an ISO-8601 datetime string.
 
         Returns:
@@ -112,22 +103,11 @@ class InfiniteDatetime(str):
         if not isinstance(value, (str, datetime)):
             raise TypeError("string or datetime required")
 
-        if isinstance(value, datetime):
-            dt = value if value.tzinfo else value.replace(tzinfo=DEFAULT_TZ)
-            return cls(dt.isoformat())
-
         if value in INF_SET:
             return cls(value)
 
-        try:
-            dt = dt_isoparser(value)
-        except ValueError:
-            raise ValueError(
-                f"Unable to parse '{value}' as an ISO-8601 datetime string"
-            )
-        else:
-            dt = dt if dt.tzinfo else dt.replace(tzinfo=DEFAULT_TZ)
-            return cls(dt.isoformat())
+        dt = tz_isodate(value)
+        return cls(dt.isoformat())
 
     def __repr__(self):
         return f"InfiniteDatetime({super().__repr__()})"

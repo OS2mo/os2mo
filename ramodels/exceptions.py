@@ -6,19 +6,15 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from datetime import datetime
-from typing import Literal
-from typing import Optional
-
-from ._shared import MOBase
+from typing import Any
 
 # --------------------------------------------------------------------------------------
-# Employee model
+# Exceptions
 # --------------------------------------------------------------------------------------
 
 
-class Employee(MOBase):
-    type: Literal["employee"] = "employee"
-    name: str
-    cpr_no: Optional[str]
-    seniority: Optional[datetime]
+class ISOParseError(ValueError):
+    def __init__(self, fail_value: Any) -> None:
+        super().__init__(
+            f"Unable to parse '{fail_value}' as an ISO-8601 datetime string"
+        )

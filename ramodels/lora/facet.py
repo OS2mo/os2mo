@@ -30,32 +30,29 @@ class Facet(LoraBase):
     states: FacetStates = Field(alias="tilstande")
     relations: FacetRelations = Field(alias="relationer")
 
-    # TODO: This should be done with validators setting dynamic fields instead
     @classmethod
     def from_simplified_fields(
         cls,
         uuid: UUID,
         user_key: str,
         organisation_uuid: UUID,
-        date_from: str = "1930-01-01",
-        date_to: str = "infinity",
+        from_date: str = "1930-01-01",
+        to_date: str = "infinity",
     ):
-        effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
-        attributes = FacetAttributes(
-            properties=[
-                FacetProperties(user_key=user_key, effective_time=effective_time)
-            ]
+        # Inner fields
+        _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
+        _properties = FacetProperties(user_key=user_key, effective_time=_effective_time)
+        _published = Published(effective_time=_effective_time)
+        _responsible = Responsible(
+            uuid=organisation_uuid,
+            effective_time=_effective_time,
         )
-        states = FacetStates(published_state=[Published(effective_time=effective_time)])
 
-        relations = FacetRelations(
-            responsible=[
-                Responsible(
-                    uuid=organisation_uuid,
-                    effective_time=effective_time,
-                )
-            ]
-        )
+        # Facet fields
+        attributes = FacetAttributes(properties=[_properties])
+        states = FacetStates(published_state=[_published])
+        relations = FacetRelations(responsible=[_responsible])
+
         return cls(
             attributes=attributes,
             states=states,

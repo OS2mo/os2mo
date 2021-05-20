@@ -41,38 +41,32 @@ class Klasse(LoraBase):
         scope: Optional[str],
         organisation_uuid: UUID,
         title: str,
-        date_from: str = "1930-01-01",
-        date_to: str = "infinity",
+        from_date: str = "1930-01-01",
+        to_date: str = "infinity",
     ):
-        effective_time = EffectiveTime(from_date=date_from, to_date=date_to)
-        attributes = KlasseAttributes(
-            properties=[
-                KlasseProperties(
-                    user_key=user_key,
-                    title=title,
-                    scope=scope,
-                    effective_time=effective_time,
-                )
-            ]
+        # Inner fields
+        _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
+        _properties = KlasseProperties(
+            user_key=user_key,
+            title=title,
+            scope=scope,
+            effective_time=_effective_time,
         )
-        states = KlasseStates(
-            published_state=[Published(effective_time=effective_time)]
+        _published = Published(effective_time=_effective_time)
+        _responsible = Responsible(
+            uuid=organisation_uuid,
+            effective_time=_effective_time,
+        )
+        _facet = FacetRef(
+            uuid=facet_uuid,
+            effective_time=_effective_time,
         )
 
-        relations = KlasseRelations(
-            responsible=[
-                Responsible(
-                    uuid=organisation_uuid,
-                    effective_time=effective_time,
-                )
-            ],
-            facet=[
-                FacetRef(
-                    uuid=facet_uuid,
-                    effective_time=effective_time,
-                )
-            ],
-        )
+        # Klasse fields
+        attributes = KlasseAttributes(properties=[_properties])
+        states = KlasseStates(published_state=[_published])
+        relations = KlasseRelations(responsible=[_responsible], facet=[_facet])
+
         return cls(
             attributes=attributes,
             states=states,

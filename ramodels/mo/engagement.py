@@ -34,16 +34,16 @@ class Engagement(MOBase):
     validity: Validity
     primary: Primary
     user_key: str
-    extension_1: str = ""
-    extension_2: str = ""
-    extension_3: str = ""
-    extension_4: str = ""
-    extension_5: str = ""
-    extension_6: str = ""
-    extension_7: str = ""
-    extension_8: str = ""
-    extension_9: str = ""
-    extension_10: str = ""
+    extension_1: Optional[str]
+    extension_2: Optional[str]
+    extension_3: Optional[str]
+    extension_4: Optional[str]
+    extension_5: Optional[str]
+    extension_6: Optional[str]
+    extension_7: Optional[str]
+    extension_8: Optional[str]
+    extension_9: Optional[str]
+    extension_10: Optional[str]
 
     @classmethod
     def from_simplified_fields(
@@ -57,25 +57,31 @@ class Engagement(MOBase):
         to_date: Optional[str],
         primary_uuid: UUID,
         user_key: str,
-        extension_1: str = "",
-        extension_2: str = "",
-        extension_3: str = "",
-        extension_4: str = "",
-        extension_5: str = "",
-        extension_6: str = "",
-        extension_7: str = "",
-        extension_8: str = "",
-        extension_9: str = "",
-        extension_10: str = "",
+        extension_1: Optional[str] = None,
+        extension_2: Optional[str] = None,
+        extension_3: Optional[str] = None,
+        extension_4: Optional[str] = None,
+        extension_5: Optional[str] = None,
+        extension_6: Optional[str] = None,
+        extension_7: Optional[str] = None,
+        extension_8: Optional[str] = None,
+        extension_9: Optional[str] = None,
+        extension_10: Optional[str] = None,
     ):
+        org_unit = OrgUnitRef(uuid=org_unit_uuid)
+        person = PersonRef(uuid=person_uuid)
+        job_function = JobFunction(uuid=job_function_uuid)
+        engagement_type = EngagementType(uuid=engagement_type_uuid)
+        validity = Validity(from_date=from_date, to_date=to_date)
+        primary = Primary(uuid=primary_uuid)
         return cls(
             uuid=uuid,
-            org_unit=OrgUnitRef(uuid=org_unit_uuid),
-            person=PersonRef(uuid=person_uuid),
-            job_function=JobFunction(uuid=job_function_uuid),
-            engagement_type=EngagementType(uuid=engagement_type_uuid),
-            validity=Validity(from_date=from_date, to_date=to_date),
-            primary=Primary(uuid=primary_uuid),
+            org_unit=org_unit,
+            person=person,
+            job_function=job_function,
+            engagement_type=engagement_type,
+            validity=validity,
+            primary=primary,
             user_key=user_key,
             extension_1=extension_1,
             extension_2=extension_2,
@@ -92,7 +98,6 @@ class Engagement(MOBase):
 
 class EngagementAssociation(MOBase):
     type: Literal["engagement_association"] = "engagement_association"
-    # user_key: str
     org_unit: OrgUnitRef
     engagement: EngagementRef
     engagement_association_type: EngagementAssociationType
@@ -102,7 +107,6 @@ class EngagementAssociation(MOBase):
     def from_simplified_fields(
         cls,
         uuid: UUID,
-        # user_key: str,
         org_unit_uuid: UUID,
         engagement_uuid: UUID,
         engagement_association_type_uuid: UUID,
