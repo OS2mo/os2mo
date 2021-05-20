@@ -19,9 +19,11 @@ from uuid import UUID
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic import root_validator
 from pydantic import validator
 
-from ramodels.base import INF_SET
+from ramodels.base import NEG_INF
+from ramodels.base import POS_INF
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 
@@ -103,7 +105,7 @@ class InfiniteDatetime(str):
         if not isinstance(value, (str, datetime)):
             raise TypeError("string or datetime required")
 
-        if value in INF_SET:
+        if value in {POS_INF, NEG_INF}:
             return cls(value)
 
         dt = tz_isodate(value)
@@ -132,12 +134,14 @@ class InfiniteDatetime(str):
                 f"Comparison between {type(self)} and {type(other)} not defined"
             )
 
-        def _float(inf_dt: "InfiniteDatetime") -> float:
-            if inf_dt in INF_SET:
-                return float(inf_dt)
-            return datetime.fromisoformat(inf_dt).timestamp()
+        def _cast_dt(inf_dt: "InfiniteDatetime") -> datetime:
+            if inf_dt == POS_INF:
+                return datetime.max
+            if inf_dt == NEG_INF:
+                return datetime.min
+            return datetime.fromisoformat(inf_dt)
 
-        return _float(self) < _float(other)
+        return _cast_dt(self) < _cast_dt(other)
 
 
 # --------------------------------------------------------------------------------------
@@ -149,9 +153,18 @@ class EffectiveTime(RABase):
     from_date: InfiniteDatetime = Field(alias="from")
     to_date: InfiniteDatetime = Field(alias="to")
 
+    @root_validator
+    def check_from_lt_to(cls, values):
+        from_date, to_date = values.get("from_date"), values.get("to_date")
+        if all([from_date, to_date]) and not (from_date < to_date):
+            raise ValueError("from_date must be strictly less than to_date")
+        return values
+
 
 class Authority(RABase):
-    urn: str
+    urn: str = Field(
+        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
+    )
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
@@ -167,6 +180,8 @@ class FacetAttributes(RABase):
 
 
 class Published(RABase):
+    # TODO: published are actually Enums in LoRa, but it's currently not possible
+    # to lift them from LoRa systematically. We should definitely fix this!
     published: str = Field("Publiceret", alias="publiceret")
     effective_time: EffectiveTime = Field(alias="virkning")
 
@@ -196,13 +211,13 @@ class FacetRelations(RABase):
 class KlasseProperties(RABase):
     user_key: str = Field(alias="brugervendtnoegle")
     title: str = Field(alias="titel")
-    scope: Optional[str] = Field(None, alias="omfang")
+    scope: Optional[str] = Field(alias="omfang")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class KlasseRelations(RABase):
-    responsible: List[Responsible] = Field(alias="ansvarlig")
-    facet: List[FacetRef]
+    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
+    facet: List[FacetRef] = Field(min_items=1, max_items=1)
 
 
 class KlasseAttributes(RABase):
