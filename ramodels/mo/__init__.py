@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from ._shared import MOBase
 from .address import Address
+from .association import Association
 from .employee import Employee
 from .engagement import Engagement
 from .engagement import EngagementAssociation
@@ -21,6 +22,7 @@ from .organisation_unit import OrganisationUnit
 __all__ = [
     "MOBase",
     "Address",
+    "Association",
     "Employee",
     "Engagement",
     "EngagementAssociation",
