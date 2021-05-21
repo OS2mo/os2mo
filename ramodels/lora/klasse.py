@@ -38,9 +38,9 @@ class Klasse(LoraBase):
         facet_uuid: UUID,  # uuid
         uuid: UUID,
         user_key: str,  # rarely used
-        scope: Optional[str],
         organisation_uuid: UUID,
         title: str,
+        scope: Optional[str] = None,
         from_date: str = "1930-01-01",
         to_date: str = "infinity",
     ):

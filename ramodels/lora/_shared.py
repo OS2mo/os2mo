@@ -128,7 +128,7 @@ class InfiniteDatetime(str):
             TypeError: If other turns out to not be an instance of InfiniteDatetime.
 
         Returns:
-            bool: True if float(self) < float(other), otherwise False.
+            bool: True if dt(self) < dt(other), otherwise False.
         """
         if not isinstance(other, InfiniteDatetime):
             raise TypeError(

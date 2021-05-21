@@ -6,18 +6,17 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import datetime
-from uuid import uuid4
+from hypothesis import assume
+from hypothesis import given
+from hypothesis import strategies as st
 
+from .test__shared import valid_fp
+from .test__shared import valid_pub
+from .test__shared import valid_resp
 from ramodels.lora import Facet
-from ramodels.lora._shared import EffectiveTime
 from ramodels.lora._shared import FacetAttributes
-from ramodels.lora._shared import FacetProperties
 from ramodels.lora._shared import FacetRelations
 from ramodels.lora._shared import FacetStates
-from ramodels.lora._shared import InfiniteDatetime
-from ramodels.lora._shared import Published
-from ramodels.lora._shared import Responsible
 
 
 # -----------------------------------------------------------------------------
@@ -25,35 +24,44 @@ from ramodels.lora._shared import Responsible
 # -----------------------------------------------------------------------------
 
 
+@st.composite
+def valid_fa(draw):
+    fp_list = draw(st.lists(valid_fp(), min_size=1, max_size=1))
+    return FacetAttributes(properties=fp_list)
+
+
+@st.composite
+def valid_fs(draw):
+    pub_list = draw(st.lists(valid_pub(), min_size=1, max_size=1))
+    return FacetStates(published_state=pub_list)
+
+
+@st.composite
+def valid_fr(draw):
+    resp_list = draw(st.lists(valid_resp(), min_size=1, max_size=1))
+    return FacetRelations(responsible=resp_list)
+
+
+@st.composite
+def valid_dt_range(draw):
+    from_dt = draw(st.dates())
+    to_dt = draw(st.dates())
+    assume(from_dt < to_dt)
+    return from_dt.isoformat(), to_dt.isoformat()
+
+
 class TestFacet:
-    def test_required_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
-        )
+    @given(valid_fa(), valid_fs(), valid_fr())
+    def test_init(self, valid_fa, valid_fs, valid_fr):
+        assert Facet(attributes=valid_fa, states=valid_fs, relations=valid_fr)
 
-        responsible = Responsible(
-            uuid=uuid4(),
-            effective_time=effective_time,
-        )
+    iso_dt = st.dates().map(lambda date: date.isoformat())
 
-        properties = FacetProperties(user_key="asd", effective_time=effective_time)
+    @given(st.uuids(), st.text(), st.uuids(), valid_dt_range())
+    def test_from_simplified_fields(self, uuid, user_key, org_uuid, dt_range):
+        # This should be enough
+        assert Facet.from_simplified_fields(uuid, user_key, org_uuid)
 
-        attributes = FacetAttributes(properties=[properties])
-
-        published = Published(effective_time=effective_time)
-
-        states = FacetStates(published_state=[published])
-
-        relations = FacetRelations(responsible=[responsible])
-
-        facet = Facet(attributes=attributes, states=states, relations=relations)
-
-        assert effective_time
-        assert responsible
-        assert properties
-        assert attributes
-        assert published
-        assert states
-        assert relations
-        assert facet
+        # Optionals
+        from_dt, to_dt = dt_range
+        assert Facet.from_simplified_fields(uuid, user_key, org_uuid, from_dt, to_dt)

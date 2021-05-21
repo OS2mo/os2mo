@@ -6,80 +6,75 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import datetime
-from uuid import uuid4
+from hypothesis import assume
+from hypothesis import given
+from hypothesis import strategies as st
 
+from .test__shared import valid_fref
+from .test__shared import valid_klsprop
+from .test__shared import valid_pub
+from .test__shared import valid_resp
 from ramodels.lora import Klasse
-from ramodels.lora._shared import EffectiveTime
-from ramodels.lora._shared import FacetRef
-from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora._shared import KlasseAttributes
-from ramodels.lora._shared import KlasseProperties
 from ramodels.lora._shared import KlasseRelations
 from ramodels.lora._shared import KlasseStates
-from ramodels.lora._shared import Published
-from ramodels.lora._shared import Responsible
 
-
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Tests
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def valid_ka(draw):
+    kp_list = draw(st.lists(valid_klsprop(), min_size=1, max_size=1))
+    return KlasseAttributes(properties=kp_list)
+
+
+@st.composite
+def valid_ks(draw):
+    pub_list = draw(st.lists(valid_pub(), min_size=1, max_size=1))
+    return KlasseStates(published_state=pub_list)
+
+
+@st.composite
+def valid_kr(draw):
+    resp_list = draw(st.lists(valid_resp(), min_size=1, max_size=1))
+    fref_list = draw(st.lists(valid_fref(), min_size=1, max_size=1))
+    return KlasseRelations(responsible=resp_list, facet=fref_list)
+
+
+@st.composite
+def valid_dt_range(draw):
+    from_dt = draw(st.dates())
+    to_dt = draw(st.dates())
+    assume(from_dt < to_dt)
+    return from_dt.isoformat(), to_dt.isoformat()
 
 
 class TestKlasse:
-    def test_required_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
+    @given(valid_ka(), valid_ks(), valid_kr())
+    def test_init(self, valid_ka, valid_ks, valid_kr):
+        assert Klasse(attributes=valid_ka, states=valid_ks, relations=valid_kr)
+
+    @given(
+        st.uuids(),
+        st.uuids(),
+        st.text(),
+        st.text(),
+        st.uuids(),
+        st.text(),
+        valid_dt_range(),
+    )
+    def test_from_simplified_fields(
+        self, facet_uuid, uuid, user_key, scope, org_uuid, title, valid_dts
+    ):
+        # Required
+        assert Klasse.from_simplified_fields(
+            facet_uuid, uuid, user_key, org_uuid, title
         )
 
-        properties = KlasseProperties(
-            user_key="userkey",
-            title="Title",
-            effective_time=effective_time,
-        )
-
-        attributes = KlasseAttributes(properties=[properties])
-
-        published = Published(effective_time=effective_time)
-
-        states = KlasseStates(published_state=[published])
-
-        responsible = Responsible(
-            uuid=uuid4(),
-            effective_time=effective_time,
-        )
-
-        facet = FacetRef(
-            uuid=uuid4(),
-            effective_time=effective_time,
-        )
-
-        relations = KlasseRelations(responsible=[responsible], facet=[facet])
-
-        klasse = Klasse(attributes=attributes, states=states, relations=relations)
-
-        assert effective_time
-        assert properties
-        assert attributes
-        assert published
-        assert states
-        assert responsible
-        assert facet
-        assert relations
-        assert klasse
-
-    def test_optional_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
-        )
-
-        # Since the only field that is optional in Klasse is inside
-        # KlasseProperties, we only asser KlasseProperties
-        assert KlasseProperties(
-            user_key="userkey",
-            title="Title",
-            scope="Text",
-            effective_time=effective_time,
+        # Optional
+        from_dt, to_dt = valid_dts
+        assert Klasse.from_simplified_fields(
+            facet_uuid, uuid, user_key, org_uuid, title, scope, from_dt, to_dt
         )
