@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from ._shared import MOBase
 from .address import Address
 from .employee import Employee
 from .engagement import Engagement
@@ -18,6 +19,7 @@ from .organisation_unit import OrganisationUnit
 # --------------------------------------------------------------------------------------
 
 __all__ = [
+    "MOBase",
     "Address",
     "Employee",
     "Engagement",
