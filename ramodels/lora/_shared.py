@@ -18,6 +18,7 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
+from dateutil.tz import UTC
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -136,9 +137,9 @@ class InfiniteDatetime(str):
 
         def _cast_dt(inf_dt: "InfiniteDatetime") -> datetime:
             if inf_dt == POS_INF:
-                return datetime.max
+                return datetime.max.replace(tzinfo=UTC)
             if inf_dt == NEG_INF:
-                return datetime.min
+                return datetime.min.replace(tzinfo=UTC)
             return datetime.fromisoformat(inf_dt)
 
         return _cast_dt(self) < _cast_dt(other)

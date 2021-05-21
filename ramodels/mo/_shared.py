@@ -12,13 +12,13 @@ from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
+from dateutil.tz import UTC
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
 
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
-
 
 # --------------------------------------------------------------------------------------
 # MOBase
@@ -127,7 +127,7 @@ class Validity(RABase):
     @root_validator
     def check_from_leq_to(cls, values):
         from_date, to_date = values.get("from_date"), values.get("to_date")
-        to_date = to_date if to_date else datetime.max
+        to_date = to_date if to_date else datetime.max.replace(tzinfo=UTC)
         if all([from_date, to_date]) and not (from_date <= to_date):
             raise ValueError("from_date must be less than or equal to to_date")
         return values
