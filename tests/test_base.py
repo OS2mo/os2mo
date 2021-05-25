@@ -70,7 +70,9 @@ class TestTZISODate:
 
     @given(st.dates().map(lambda date: date.isoformat()))
     def test_str_input(self, dt_str):
-        assert tz_isodate(dt_str)
+        iso_dt = tz_isodate(dt_str)
+        assert iso_dt
+        assert iso_dt.tzinfo
 
     @given(st.text().filter(lambda s: not is_isodt_str(s)))
     def test_fail_input(self, fail_str):
