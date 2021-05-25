@@ -59,7 +59,7 @@ services:
       - mox
       - msg_broker
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 5s
       timeout: 5s
       retries: 3
