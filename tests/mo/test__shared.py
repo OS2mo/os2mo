@@ -6,6 +6,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import datetime
+
 import pytest
 from hypothesis import assume
 from hypothesis import given
@@ -32,6 +34,7 @@ from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
+from tests.conftest import valid_dt_range
 
 # --------------------------------------------------------------------------------------
 # MOBase
@@ -63,6 +66,12 @@ class TestAddressType:
         assert AddressType(uuid=hy_uuid)
 
 
+@st.composite
+def valid_addr_type(draw):
+    uuid = draw(st.uuids())
+    return AddressType(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # EngagementAssociationType
 # --------------------------------------------------------------------------------------
@@ -85,6 +94,12 @@ class TestEngagementRef:
         assert EngagementRef(uuid=hy_uuid)
 
 
+@st.composite
+def valid_eng(draw):
+    uuid = draw(st.uuids())
+    return EngagementRef(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # EngagementType
 # --------------------------------------------------------------------------------------
@@ -105,6 +120,12 @@ class TestAssociationType:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert AssociationType(uuid=hy_uuid)
+
+
+@st.composite
+def valid_assoc_type(draw):
+    uuid = draw(st.uuids())
+    return AssociationType(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
@@ -151,6 +172,12 @@ class TestOrganisationRef:
         assert OrganisationRef(uuid=hy_uuid)
 
 
+@st.composite
+def valid_org_ref(draw):
+    uuid = draw(st.uuids())
+    return OrganisationRef(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # OrgUnitHierarchy
 # --------------------------------------------------------------------------------------
@@ -184,6 +211,12 @@ class TestOrgUnitRef:
         assert OrgUnitRef(uuid=hy_uuid)
 
 
+@st.composite
+def valid_org_unit(draw):
+    uuid = draw(st.uuids())
+    return OrgUnitRef(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # OrgUnitType
 # --------------------------------------------------------------------------------------
@@ -215,6 +248,12 @@ class TestPersonRef:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert PersonRef(uuid=hy_uuid)
+
+
+@st.composite
+def valid_pers(draw):
+    uuid = draw(st.uuids())
+    return PersonRef(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
@@ -251,14 +290,26 @@ class TestValidity:
         assume(from_dt <= to_dt)
         assert Validity(from_date=from_dt, to_date=to_dt)
 
-    @given(st.tuples(st.datetimes(), st.datetimes()))
-    def test_validator(self, dt_tup):
+    @given(st.tuples(st.datetimes(), st.datetimes()), st.dates())
+    def test_validators(self, dt_tup, from_date_no_tz):
+        # tz unaware date becomes tz aware datetime
+        validity = Validity(from_date=from_date_no_tz)
+        assert isinstance(validity.from_date, datetime)
+        assert validity.from_date.tzinfo
+
+        # from_date > to_date should fail
         from_dt, to_dt = dt_tup
         assume(from_dt > to_dt)
         with pytest.raises(
             ValidationError, match="from_date must be less than or equal to to_date"
         ):
             Validity(from_date=from_dt, to_date=to_dt)
+
+
+@st.composite
+def valid_validity(draw):
+    from_dt, to_dt = draw(valid_dt_range())
+    return Validity(from_date=from_dt, to_date=to_dt)
 
 
 # --------------------------------------------------------------------------------------
@@ -270,3 +321,9 @@ class TestVisibility:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert Visibility(uuid=hy_uuid)
+
+
+@st.composite
+def valid_vis(draw):
+    uuid = draw(st.uuids())
+    return Visibility(uuid=uuid)
