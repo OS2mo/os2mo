@@ -73,11 +73,26 @@ async def fallback_handler(*args, **kwargs):
     """
     Ensure a nicely formatted json response, with
     minimal knowledge about the exception available.
+
+    When used to handle ANY error, special care needs to be taken. This is a custom
+    solution to a known problem:
+    https://stackoverflow.com/questions/61596911/catch-exception-in-fast-api-globally#comment113231014_61608398
+    https://github.com/tiangolo/fastapi/issues/2750#issuecomment-775526951
     :return:
     """
-    err = ErrorCodes.E_UNKNOWN.to_http_exception(
-        message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
-    )
+    # look for exception
+    if len(args) in [2, 3] and isinstance(args[-1], Exception):
+        exc = args[-1]
+    elif 'exc' in kwargs and isinstance(kwargs['exc'], Exception):
+        exc = kwargs['exc']
+    else:  # desperate fallback
+        err = ErrorCodes.E_UNKNOWN.to_http_exception(
+            message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
+        )
+        return http_exception_to_json_response(exc=err)
+
+    # properly, backwards compatible exception-handling
+    err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
     return http_exception_to_json_response(exc=err)
 
 
