@@ -219,6 +219,12 @@ class TestOrgUnitHierarchy:
         assert OrgUnitHierarchy(uuid=hy_uuid)
 
 
+@st.composite
+def valid_org_unit_hier(draw):
+    uuid = draw(st.uuids())
+    return OrganisationRef(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # OrgUnitLevel
 # --------------------------------------------------------------------------------------
@@ -228,6 +234,12 @@ class TestOrgUnitLevel:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert OrgUnitLevel(uuid=hy_uuid)
+
+
+@st.composite
+def valid_org_unit_level(draw):
+    uuid = draw(st.uuids())
+    return OrgUnitLevel(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
@@ -258,6 +270,12 @@ class TestOrgUnitType:
         assert OrgUnitType(uuid=hy_uuid)
 
 
+@st.composite
+def valid_org_unit_type(draw):
+    uuid = draw(st.uuids())
+    return OrgUnitType(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # ParentRef
 # --------------------------------------------------------------------------------------
@@ -267,6 +285,12 @@ class TestParentRef:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert ParentRef(uuid=hy_uuid)
+
+
+@st.composite
+def valid_parent(draw):
+    uuid = draw(st.uuids())
+    return ParentRef(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
