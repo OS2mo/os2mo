@@ -6,16 +6,17 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import uuid4
+from hypothesis import given
+from hypothesis import strategies as st
 
 from ramodels.mo import Manager
-from ramodels.mo._shared import ManagerLevel
-from ramodels.mo._shared import ManagerType
-from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
-from ramodels.mo._shared import Responsibility
-from ramodels.mo._shared import Validity
-
+from tests.conftest import valid_dt_range
+from tests.mo.test__shared import valid_man_level
+from tests.mo.test__shared import valid_man_type
+from tests.mo.test__shared import valid_org_unit
+from tests.mo.test__shared import valid_pers
+from tests.mo.test__shared import valid_resp
+from tests.mo.test__shared import valid_validity
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -23,23 +24,59 @@ from ramodels.mo._shared import Validity
 
 
 class TestManager:
-    def test_required_fields(self):
+    @given(
+        valid_org_unit(),
+        valid_pers(),
+        st.lists(valid_resp()),
+        valid_man_level(),
+        valid_man_type(),
+        valid_validity(),
+    )
+    def test_init(
+        self, org_unit, person, responsibility, manager_level, manager_type, validity
+    ):
         assert Manager(
-            org_unit=OrgUnitRef(uuid=uuid4()),
-            person=PersonRef(uuid=uuid4()),
-            responsibility=[Responsibility(uuid=uuid4())],
-            manager_level=ManagerLevel(uuid=uuid4()),
-            manager_type=ManagerType(uuid=uuid4()),
-            validity=Validity(from_date="1930-01-01", to_date=None),
+            org_unit=org_unit,
+            person=person,
+            responsibility=responsibility,
+            manager_level=manager_level,
+            manager_type=manager_type,
+            validity=validity,
         )
 
-    def test_optional_fields(self):
-        assert Manager(
-            type="manager",
-            org_unit=OrgUnitRef(uuid=uuid4()),
-            person=PersonRef(uuid=uuid4()),
-            responsibility=[Responsibility(uuid=uuid4())],
-            manager_level=ManagerLevel(uuid=uuid4()),
-            manager_type=ManagerType(uuid=uuid4()),
-            validity=Validity(from_date="1930-01-01", to_date=None),
+    @given(
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        valid_dt_range(),
+    )
+    def test_from_simplified_fields(
+        self,
+        uuid,
+        org_unit_uuid,
+        person_uuid,
+        resp_uuid,
+        man_level_uuid,
+        man_type_uuid,
+        valid_dts,
+    ):
+        # Required
+        assert Manager.from_simplified_fields(
+            uuid, org_unit_uuid, person_uuid, resp_uuid, man_level_uuid, man_type_uuid
+        )
+
+        # Optional
+        from_dt, to_dt = valid_dts
+        assert Manager.from_simplified_fields(
+            uuid,
+            org_unit_uuid,
+            person_uuid,
+            resp_uuid,
+            man_level_uuid,
+            man_type_uuid,
+            from_dt,
+            to_dt,
         )

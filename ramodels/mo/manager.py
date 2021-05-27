@@ -44,7 +44,7 @@ class Manager(MOBase):
         uuid: UUID,
         org_unit_uuid: UUID,
         person_uuid: UUID,
-        responsibility_uuid: UUID,
+        responsibility_uuid: UUID,  # TODO: this should accept a list of UUIDs
         manager_level_uuid: UUID,
         manager_type_uuid: UUID,
         from_date: str = "1930-01-01",

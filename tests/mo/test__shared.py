@@ -168,6 +168,12 @@ class TestManagerLevel:
         assert ManagerLevel(uuid=hy_uuid)
 
 
+@st.composite
+def valid_man_level(draw):
+    uuid = draw(st.uuids())
+    return ManagerLevel(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # ManagerType
 # --------------------------------------------------------------------------------------
@@ -177,6 +183,12 @@ class TestManagerType:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert ManagerType(uuid=hy_uuid)
+
+
+@st.composite
+def valid_man_type(draw):
+    uuid = draw(st.uuids())
+    return ManagerType(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
@@ -300,6 +312,12 @@ class TestResponsibility:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert Responsibility(uuid=hy_uuid)
+
+
+@st.composite
+def valid_resp(draw):
+    uuid = draw(st.uuids())
+    return Responsibility(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
