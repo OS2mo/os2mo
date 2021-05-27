@@ -83,6 +83,12 @@ class TestEngagementAssociationType:
         assert EngagementAssociationType(uuid=hy_uuid)
 
 
+@st.composite
+def valid_eng_assoc_type(draw):
+    uuid = draw(st.uuids())
+    return EngagementAssociationType(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # EngagementRef
 # --------------------------------------------------------------------------------------
@@ -111,6 +117,12 @@ class TestEngagementType:
         assert EngagementType(uuid=hy_uuid)
 
 
+@st.composite
+def valid_eng_type(draw):
+    uuid = draw(st.uuids())
+    return EngagementType(uuid=uuid)
+
+
 # --------------------------------------------------------------------------------------
 # AssociationType
 # --------------------------------------------------------------------------------------
@@ -137,6 +149,12 @@ class TestJobFunction:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert JobFunction(uuid=hy_uuid)
+
+
+@st.composite
+def valid_job_fun(draw):
+    uuid = draw(st.uuids())
+    return JobFunction(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------
@@ -265,6 +283,12 @@ class TestPrimary:
     @given(st.uuids())
     def test_init(self, hy_uuid):
         assert Primary(uuid=hy_uuid)
+
+
+@st.composite
+def valid_primary(draw):
+    uuid = draw(st.uuids())
+    return Primary(uuid=uuid)
 
 
 # --------------------------------------------------------------------------------------

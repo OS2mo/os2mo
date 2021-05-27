@@ -6,16 +6,22 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import uuid4
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+from pydantic import ValidationError
 
-from ramodels.mo._shared import EngagementType
-from ramodels.mo._shared import JobFunction
-from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
-from ramodels.mo._shared import Primary
-from ramodels.mo._shared import Validity
 from ramodels.mo.engagement import Engagement
-
+from ramodels.mo.engagement import EngagementAssociation
+from tests.conftest import valid_dt_range
+from tests.mo.test__shared import valid_eng
+from tests.mo.test__shared import valid_eng_assoc_type
+from tests.mo.test__shared import valid_eng_type
+from tests.mo.test__shared import valid_job_fun
+from tests.mo.test__shared import valid_org_unit
+from tests.mo.test__shared import valid_pers
+from tests.mo.test__shared import valid_primary
+from tests.mo.test__shared import valid_validity
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -23,35 +29,125 @@ from ramodels.mo.engagement import Engagement
 
 
 class TestEngagement:
-    def test_required_fields(self):
+    @given(
+        st.text().filter(lambda s: s != "engagement"),
+        valid_org_unit(),
+        valid_pers(),
+        valid_job_fun(),
+        valid_eng_type(),
+        valid_validity(),
+        valid_primary(),
+        st.text(),
+    )
+    def test_init(
+        self,
+        type,
+        org_unit,
+        person,
+        job_function,
+        engagement_type,
+        validity,
+        primary,
+        user_key,
+    ):
+        # Required
         assert Engagement(
-            org_unit=OrgUnitRef(uuid=uuid4()),
-            person=PersonRef(uuid=uuid4()),
-            job_function=JobFunction(uuid=uuid4()),
-            engagement_type=EngagementType(uuid=uuid4()),
-            validity=Validity(from_date="1930-01-01", to_date=None),
-            primary=Primary(uuid=uuid4()),
-            user_key="engagement",
+            org_unit=org_unit,
+            person=person,
+            job_function=job_function,
+            engagement_type=engagement_type,
+            validity=validity,
+            primary=primary,
+            user_key=user_key,
         )
 
-    def test_optional_fiels(self):
-        assert Engagement(
-            type="engagement",
-            org_unit=OrgUnitRef(uuid=uuid4()),
-            person=PersonRef(uuid=uuid4()),
-            job_function=JobFunction(uuid=uuid4()),
-            engagement_type=EngagementType(uuid=uuid4()),
-            validity=Validity(from_date="1930-01-01", to_date=None),
-            primary=Primary(uuid=uuid4()),
-            user_key="engagement",
-            extension_1="",
-            extension_2="",
-            extension_3="",
-            extension_4="",
-            extension_5="",
-            extension_6="",
-            extension_7="",
-            extension_8="",
-            extension_9="",
-            extension_10="",
+        # Optional
+        # Extensions 1 through 10 are optional, and currently not tested properly.
+
+        # type value error
+        with pytest.raises(ValidationError, match="unexpected value;"):
+            Engagement(
+                type=type,
+                org_unit=org_unit,
+                person=person,
+                job_function=job_function,
+                engagement_type=engagement_type,
+                validity=validity,
+                primary=primary,
+                user_key=user_key,
+            )
+
+    @given(
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        st.uuids(),
+        valid_dt_range(),
+        st.uuids(),
+        st.text(),
+    )
+    def test_from_simplified_fields(
+        self,
+        uuid,
+        org_unit,
+        person,
+        job_function,
+        engagement_type,
+        valid_dts,
+        primary,
+        user_key,
+    ):
+        from_dt, to_dt = valid_dts
+        assert Engagement.from_simplified_fields(
+            uuid,
+            org_unit,
+            person,
+            job_function,
+            engagement_type,
+            from_dt,
+            to_dt,
+            primary,
+            user_key,
+        )
+
+
+class TestEngagementAssociation:
+    @given(
+        st.text().filter(lambda s: s != "engagement_association"),
+        valid_org_unit(),
+        valid_eng(),
+        valid_eng_assoc_type(),
+        valid_validity(),
+    )
+    def test_init(self, type, org_unit, engagement, engagement_assoc, validity):
+        assert EngagementAssociation(
+            org_unit=org_unit,
+            engagement=engagement,
+            engagement_association_type=engagement_assoc,
+            validity=validity,
+        )
+
+        with pytest.raises(ValidationError, match="unexpected value;"):
+            EngagementAssociation(
+                type=type,
+                org_unit=org_unit,
+                engagement=engagement,
+                engagement_association_type=engagement_assoc,
+                validity=validity,
+            )
+
+    @given(st.uuids(), st.uuids(), st.uuids(), st.uuids(), valid_dt_range())
+    def test_from_simplified_fields(
+        self, uuid, org_unit_uuid, engagement_uuid, engagement_assoc_uuid, valid_dts
+    ):
+        # Required
+        assert EngagementAssociation.from_simplified_fields(
+            uuid, org_unit_uuid, engagement_uuid, engagement_assoc_uuid
+        )
+
+        # Optional
+        from_dt, to_dt = valid_dts
+        assert EngagementAssociation.from_simplified_fields(
+            uuid, org_unit_uuid, engagement_uuid, engagement_assoc_uuid, from_dt, to_dt
         )
