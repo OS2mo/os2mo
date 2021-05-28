@@ -19,7 +19,7 @@ from ._shared import MOBase
 from ramodels.base import tz_isodate
 
 # --------------------------------------------------------------------------------------
-# Employee modelcode_msd
+# Employee model
 # --------------------------------------------------------------------------------------
 
 
