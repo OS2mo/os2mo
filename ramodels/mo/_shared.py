@@ -126,9 +126,11 @@ class Validity(RABase):
 
     @root_validator
     def check_from_leq_to(cls, values):
-        from_date, to_date = values.get("from_date"), values.get("to_date")
-        to_date = to_date if to_date else datetime.max.replace(tzinfo=UTC)
-        if all([from_date, to_date]) and not (from_date <= to_date):
+        # Note: the values of from_date & to_date are not changed here
+        # just leq compared.
+        cmp_from_dt, _to_dt = values.get("from_date"), values.get("to_date")
+        cmp_to_dt = _to_dt if _to_dt else datetime.max.replace(tzinfo=UTC)
+        if all([cmp_from_dt, cmp_to_dt]) and not (cmp_from_dt <= cmp_to_dt):
             raise ValueError("from_date must be less than or equal to to_date")
         return values
 
