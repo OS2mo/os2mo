@@ -3,10 +3,6 @@
 
 version: '3.4'
 
-volumes:
-  os2mo_logs:
-  os2mo_queries:
-
 services:
   # We use two images in development. One frontend that runs `vue-cli-service
   # serve`, named `frontend` and one that runs flask named `mo`. The frontend
@@ -56,15 +52,12 @@ services:
       - ./backend:/app/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
       - ./.pytest_cache:/app/.pytest_cache
-      - os2mo_logs:/log
-      - os2mo_queries:/queries
     command: ["/start-reload.sh"]
     ports:
       - "5000:80"
     depends_on:
       - mox
       - msg_broker
-    read_only: true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 5s
@@ -87,7 +80,6 @@ services:
       - "8080:80"
     depends_on:
       - mox-db
-    read_only: true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/site-map"]
       interval: 5s
