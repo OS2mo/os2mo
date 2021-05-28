@@ -1,6 +1,6 @@
+--- # ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # Global
-# ---------------------------------------------------------------------------
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PRE_COMMIT_HOME: "$CI_PROJECT_DIR/.cache/pre-commit"
@@ -22,19 +22,18 @@ stages:
 # ---------------------------------------------------------------------------
 .install-deps-template: &install-deps
   before_script:
-    - pip install poetry pre-commit
+    - pip install poetry
     - poetry --version
     - poetry config virtualenvs.in-project true
     - poetry install -vv
-    - pre-commit install
+    - poetry run pre-commit install
 
 .lint-template: &lint
   <<: *install-deps
   image: python:3.8
   stage: lint
 
-.test-template: &test
-  # Coverage needed too
+.test-template: &test # Coverage needed too
   <<: *install-deps
   needs: []
   stage: test
@@ -45,19 +44,16 @@ stages:
   image: python:3.8
   stage: deploy
   rules:
-      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-      
-
-
+    # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 
 # ---------------------------------------------------------------------------
 # Lint
 # ---------------------------------------------------------------------------
 Lint Project:
   <<: *lint
-  script: 
-      - pre-commit run --all-files
+  script:
+    - poetry run pre-commit run --all-files
 
 # ---------------------------------------------------------------------------
 # Test
