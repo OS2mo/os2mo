@@ -6,13 +6,14 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import pytest
+from datetime import date
+
+from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
-from pydantic import ValidationError
 
 from ramodels.mo.organisation_unit import OrganisationUnit
-from tests.conftest import valid_dt_range
+from tests.conftest import unexpected_value_error
 from tests.mo.test__shared import valid_org_unit_hier
 from tests.mo.test__shared import valid_org_unit_level
 from tests.mo.test__shared import valid_org_unit_type
@@ -24,95 +25,63 @@ from tests.mo.test__shared import valid_validity
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def organisation_unit_strat(draw):
+    required = {
+        "user_key": st.text(),
+        "validity": valid_validity(),
+        "name": st.text(),
+        "org_unit_type": valid_org_unit_type(),
+        "org_unit_level": valid_org_unit_level(),
+    }
+    optional = {
+        "type": st.just("org_unit"),
+        "parent": valid_parent() | st.none(),
+        "org_unit_hierarchy": valid_org_unit_hier() | st.none(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
+@st.composite
+def organisation_unit_fsf_strat(draw):
+    iso_dt = st.dates().map(lambda date: date.isoformat())
+    required = {
+        "uuid": st.uuids(),
+        "user_key": st.text(),
+        "name": st.text(),
+        "org_unit_type_uuid": st.uuids(),
+        "org_unit_level_uuid": st.uuids(),
+    }
+    optional = {
+        "parent_uuid": st.uuids() | st.none(),
+        "org_unit_hierarchy_uuid": st.uuids() | st.none(),
+        "from_date": iso_dt,
+        "to_date": iso_dt | st.none(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")
+    if all([from_date, to_date]):
+        assume(date.fromisoformat(from_date) <= date.fromisoformat(to_date))
+    if from_date is None and to_date:
+        assume(date.fromisoformat(to_date) >= date(1930, 1, 1))
+    return st_dict
+
+
 class TestOrganisationUnit:
-    @given(
-        st.text().filter(lambda s: s != "org_unit"),
-        st.text(),
-        valid_validity(),
-        st.text(),
-        valid_parent(),
-        valid_org_unit_hier(),
-        valid_org_unit_type(),
-        valid_org_unit_level(),
-    )
-    def test_init(
-        self,
-        type,
-        user_key,
-        validity,
-        name,
-        parent,
-        org_unit_hier,
-        org_unit_type,
-        org_unit_level,
-    ):
+    @given(organisation_unit_strat())
+    def test_init(self, model_dict):
         # Required
-        assert OrganisationUnit(
-            user_key=user_key,
-            validity=validity,
-            name=name,
-            org_unit_type=org_unit_type,
-            org_unit_level=org_unit_level,
-        )
+        assert OrganisationUnit(**model_dict)
 
-        # Optional
-        assert OrganisationUnit(
-            user_key=user_key,
-            validity=validity,
-            name=name,
-            parent=parent,
-            org_unit_hierarchy=org_unit_hier,
-            org_unit_type=org_unit_type,
-            org_unit_level=org_unit_level,
-        )
+    @given(organisation_unit_strat(), st.text().filter(lambda s: s != "org_unit"))
+    def test_validators(self, model_dict, invalid_type):
+        with unexpected_value_error():
+            model_dict["type"] = invalid_type
+            OrganisationUnit(**model_dict)
 
-        # type value error
-        with pytest.raises(ValidationError, match="unexpected value;"):
-            OrganisationUnit(
-                type=type,
-                user_key=user_key,
-                validity=validity,
-                name=name,
-                org_unit_type=org_unit_type,
-                org_unit_level=org_unit_level,
-            )
-
-    @given(
-        st.uuids(),
-        st.text(),
-        st.text(),
-        st.uuids(),
-        st.uuids(),
-        st.uuids(),
-        st.uuids(),
-        valid_dt_range(),
-    )
-    def test_from_simplified_fields(
-        self,
-        uuid,
-        user_key,
-        name,
-        org_unit_type_uuid,
-        org_unit_level_uuid,
-        parent_uuid,
-        org_unit_hierarchy_uuid,
-        valid_dts,
-    ):
-        # Required
-        assert OrganisationUnit.from_simplified_fields(
-            uuid, user_key, name, org_unit_type_uuid, org_unit_level_uuid
-        )
-
-        # Optional
-        from_dt, to_dt = valid_dts
-        assert OrganisationUnit.from_simplified_fields(
-            uuid,
-            user_key,
-            name,
-            org_unit_type_uuid,
-            org_unit_level_uuid,
-            parent_uuid,
-            org_unit_hierarchy_uuid,
-            from_dt,
-            to_dt,
-        )
+    @given(organisation_unit_fsf_strat())
+    def test_from_simplified_fields(self, simp_fields_dict):
+        assert OrganisationUnit.from_simplified_fields(**simp_fields_dict)
