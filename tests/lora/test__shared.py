@@ -668,6 +668,12 @@ class TestOrganisationAttributes:
             OrganisationAttributes(**model_dict)
 
 
+@st.composite
+def valid_org_attrs(draw):
+    model_dict = draw(org_attr_strat())
+    return OrganisationAttributes(**model_dict)
+
+
 # --------------------------------------------------------------------------------------
 # OrganisationValidState
 # --------------------------------------------------------------------------------------
@@ -720,6 +726,12 @@ class TestOrganisationStates:
             OrganisationStates(**model_dict)
 
 
+@st.composite
+def valid_org_states(draw):
+    model_dict = draw(org_states_strat())
+    return OrganisationStates(**model_dict)
+
+
 # --------------------------------------------------------------------------------------
 # OrganisationRelations
 # --------------------------------------------------------------------------------------
@@ -745,3 +757,9 @@ class TestOrganisationRelations:
         model_dict["authority"] = invalid_auth
         with single_item_error():
             OrganisationRelations(**model_dict)
+
+
+@st.composite
+def valid_org_relations(draw):
+    model_dict = draw(org_relations_strat())
+    return OrganisationRelations(**model_dict)

@@ -6,17 +6,16 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import date
+
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
-from .test__shared import valid_auth
-from .test__shared import valid_orgprop
-from .test__shared import valid_orgstate
+from .test__shared import valid_org_attrs
+from .test__shared import valid_org_relations
+from .test__shared import valid_org_states
 from ramodels.lora import Organisation
-from ramodels.lora._shared import OrganisationAttributes
-from ramodels.lora._shared import OrganisationRelations
-from ramodels.lora._shared import OrganisationStates
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -24,47 +23,49 @@ from ramodels.lora._shared import OrganisationStates
 
 
 @st.composite
-def valid_oa(draw):
-    orgp_list = draw(st.lists(valid_orgprop(), min_size=1, max_size=1))
-    return OrganisationAttributes(properties=orgp_list)
+def organisation_strat(draw):
+    required = {
+        "attributes": valid_org_attrs(),
+        "states": valid_org_states(),
+    }
+    optional = {"relations": valid_org_relations() | st.none()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
 
 
 @st.composite
-def valid_os(draw):
-    orgs_list = draw(st.lists(valid_orgstate(), min_size=1, max_size=1))
-    return OrganisationStates(valid_state=orgs_list)
+def organisation_fsf_strat(draw):
+    required = {
+        "uuid": st.uuids(),
+        "name": st.text(),
+        "user_key": st.text(),
+    }
+    iso_dt = st.dates().map(lambda date: date.isoformat())
+    optional = {
+        "municipality_code": st.integers() | st.none(),
+        "from_date": iso_dt,
+        "to_date": iso_dt,
+    }
 
+    # mypy has for some reason decided that required has an invalid type :(
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
 
-@st.composite
-def valid_or(draw):
-    auth_list = draw(st.lists(valid_auth(), min_size=1, max_size=1))
-    return OrganisationRelations(authority=auth_list)
-
-
-@st.composite
-def valid_dt_range(draw):
-    from_dt = draw(st.dates())
-    to_dt = draw(st.dates())
-    assume(from_dt < to_dt)
-    return from_dt.isoformat(), to_dt.isoformat()
+    # from_date must be strictly less than to_date in all cases
+    if st_dict.get("to_date") and st_dict.get("from_date") is None:
+        assume(date.fromisoformat(st_dict["to_date"]) > date(1930, 1, 1))
+    if all([st_dict.get("from_date"), st_dict.get("to_date")]):
+        assume(
+            date.fromisoformat(st_dict["from_date"])
+            < date.fromisoformat(st_dict["to_date"])
+        )
+    return st_dict
 
 
 class TestOrganisation:
-    @given(valid_oa(), valid_os(), valid_or())
-    def test_init(self, valid_oa, valid_os, valid_or):
-        # Required
-        assert Organisation(attributes=valid_oa, states=valid_os)
+    @given(organisation_strat())
+    def test_init(self, model_dict):
+        assert Organisation(**model_dict)
 
-        # Optioanl
-        assert Organisation(attributes=valid_oa, states=valid_os, relations=valid_or)
-
-    @given(st.uuids(), st.text(), st.text(), st.integers(), valid_dt_range())
-    def test_from_simplified_fields(self, uuid, name, user_key, mun_code, valid_dts):
-        # Required
-        assert Organisation.from_simplified_fields(uuid, name, user_key)
-
-        # Optional
-        from_dt, to_dt = valid_dts
-        assert Organisation.from_simplified_fields(
-            uuid, name, user_key, mun_code, from_dt, to_dt
-        )
+    @given(organisation_fsf_strat())
+    def test_from_simplified_fields(self, simp_fields_dict):
+        assert Organisation.from_simplified_fields(**simp_fields_dict)
