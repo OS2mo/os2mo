@@ -306,6 +306,12 @@ class TestFacetAttributes:
             FacetAttributes(**invalid_model_dict)
 
 
+@st.composite
+def valid_facet_attrs(draw):
+    model_dict = draw(facet_attr_strat())
+    return FacetAttributes(**model_dict)
+
+
 # --------------------------------------------------------------------------------------
 # Published
 # --------------------------------------------------------------------------------------
@@ -362,6 +368,12 @@ class TestFacetStates:
     def test_validators(self, invalid_model_dict):
         with single_item_error():
             FacetStates(**invalid_model_dict)
+
+
+@st.composite
+def valid_facet_states(draw):
+    model_dict = draw(facet_states_strat())
+    return FacetStates(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -457,6 +469,12 @@ class TestFacetRelations:
     def test_validators(self, invalid_model_dict):
         with single_item_error():
             FacetRelations(**invalid_model_dict)
+
+
+@st.composite
+def valid_facet_relations(draw):
+    model_dict = draw(facet_relations_strat())
+    return FacetRelations(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
