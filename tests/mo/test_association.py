@@ -6,62 +6,70 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import pytest
+from datetime import date
+
+from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
-from pydantic import ValidationError
 
 from ramodels.mo.association import Association
-from tests.conftest import valid_dt_range
+from tests.conftest import unexpected_value_error
 from tests.mo.test__shared import valid_assoc_type
-from tests.mo.test__shared import valid_org_unit
+from tests.mo.test__shared import valid_org_unit_ref
 from tests.mo.test__shared import valid_pers
 from tests.mo.test__shared import valid_validity
-
 
 # ---------------------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------------------
 
 
+@st.composite
+def association_strat(draw):
+    required = {
+        "org_unit": valid_org_unit_ref(),
+        "person": valid_pers(),
+        "association_type": valid_assoc_type(),
+        "validity": valid_validity(),
+    }
+    optional = {"type": st.just("association")}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
+@st.composite
+def association_fsf_strat(draw):
+    required = {
+        "uuid": st.uuids(),
+        "org_unit_uuid": st.uuids(),
+        "person_uuid": st.uuids(),
+        "association_type_uuid": st.uuids(),
+    }
+
+    iso_dt = st.dates().map(lambda date: date.isoformat())
+    optional = {"from_date": iso_dt, "to_date": iso_dt | st.none()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+
+    from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")
+    if all([from_date, to_date]):
+        assume(date.fromisoformat(from_date) <= date.fromisoformat(to_date))
+    if from_date is None and to_date:
+        assume(date.fromisoformat(to_date) >= date(1930, 1, 1))
+
+    return st_dict
+
+
 class TestAssociation:
-    @given(
-        st.text().filter(lambda s: s != "association"),
-        valid_org_unit(),
-        valid_pers(),
-        valid_assoc_type(),
-        valid_validity(),
-    )
-    def test_init(self, type, org_unit, person, assoc_type, validity):
-        # Required
-        assert Association(
-            org_unit=org_unit,
-            person=person,
-            association_type=assoc_type,
-            validity=validity,
-        )
+    @given(association_strat())
+    def test_init(self, model_dict):
+        assert Association(**model_dict)
 
-        # type value error
-        with pytest.raises(ValidationError, match="unexpected value;"):
-            Association(
-                type=type,
-                org_unit=org_unit,
-                person=person,
-                association_type=assoc_type,
-                validity=validity,
-            )
+    @given(association_strat(), st.text().filter(lambda s: s != "association"))
+    def test_validators(self, model_dict, invalid_type):
+        model_dict["type"] = invalid_type
+        with unexpected_value_error():
+            Association(**model_dict)
 
-    @given(st.uuids(), st.uuids(), st.uuids(), st.uuids(), valid_dt_range())
-    def test_from_simplified_fields(
-        self, uuid, org_unit_uuid, person_uuid, assoc_type_uuid, valid_dts
-    ):
-        # Required
-        assert Association.from_simplified_fields(
-            uuid, org_unit_uuid, person_uuid, assoc_type_uuid
-        )
-
-        # Optional
-        from_dt, to_dt = valid_dts
-        assert Association.from_simplified_fields(
-            uuid, org_unit_uuid, person_uuid, assoc_type_uuid, from_dt, to_dt
-        )
+    @given(association_fsf_strat())
+    def test_from_simplified_fields(self, simp_fields_dict):
+        assert Association.from_simplified_fields(**simp_fields_dict)
