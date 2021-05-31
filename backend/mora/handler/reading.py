@@ -175,7 +175,7 @@ class OrgFunkReadingHandler(ReadingHandler):
 
         :param type: str
         :param objid: UUID
-        :param changed_since:
+        :param changed_since: Date used to filter registrations from LoRa
         :return: list of matching MO objects
         """
         return await cls.get(c, cls._get_search_fields(type, objid),

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Query
-from mora import common
+from mora import common, mapping
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
@@ -86,7 +86,7 @@ async def orgfunk_endpoint(
 async def search_engagement(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ) -> Dict[str, Any]:
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT,
@@ -100,7 +100,7 @@ async def search_engagement(
 async def search_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ASSOCIATION,
@@ -114,7 +114,7 @@ async def search_association(
 async def search_it(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.IT,
@@ -128,7 +128,7 @@ async def search_it(
 async def search_kle(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.KLE,
@@ -142,7 +142,7 @@ async def search_kle(
 async def search_role(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ROLE,
@@ -156,7 +156,7 @@ async def search_role(
 async def search_address(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
     engagement: Optional[str] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -174,7 +174,7 @@ async def search_address(
 async def search_engagement_association(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
     engagement: Optional[UUID] = None,
 ):
     args = {"at": at, "validity": validity}
@@ -192,7 +192,7 @@ async def search_engagement_association(
 async def search_leave(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.LEAVE,
@@ -206,7 +206,7 @@ async def search_leave(
 async def search_manager(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.MANAGER,
@@ -220,7 +220,7 @@ async def search_manager(
 async def search_related_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.RELATED_UNIT,
@@ -234,7 +234,7 @@ async def search_related_unit(
 async def search_employee(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     """
     This can be expanded with general search paramters
@@ -256,7 +256,7 @@ async def get_employee_by_uuid(
     uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     """
     As uuid is allowed, this cannot be expanded with general search
@@ -282,7 +282,7 @@ async def get_employee_by_uuid(
 async def search_org_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     """
     This can be expanded with general search paramters
@@ -305,7 +305,7 @@ async def get_org_unit_by_uuid(
     uuid: List[UUID] = Query(...),
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = Query(None),
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     """
     As uuid is allowed, this cannot be expanded with general search
@@ -314,7 +314,7 @@ async def get_org_unit_by_uuid(
     :param uuid:
     :param at:
     :param validity:
-    :param changed_since:
+    :param changed_since: Date used to filter registrations from LoRa
     :return:
     """
     c = common.get_connector()
@@ -358,7 +358,7 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         args = {
             "at": at,
             "validity": validity,
-            "uuid": uuid,
+            mapping.UUID: uuid,
             "only_primary_uuid": only_primary_uuid,
         }
         return await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)

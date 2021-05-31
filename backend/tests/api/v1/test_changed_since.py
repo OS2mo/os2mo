@@ -1,12 +1,28 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from urllib import parse
 
 import freezegun
 
 from mora.mapping import MoOrgFunk
 from mora.util import DEFAULT_TIMEZONE
 from tests.cases import ConfigTestCase
+
+
+def changed_since_parameters():
+    changed_since_future = datetime(9999, 1, 1)
+    changed_since_past = datetime(1930, 1, 1)
+    return (
+        [(funk.value, changed_since_future, False) for funk in MoOrgFunk]
+        + [(funk.value, changed_since_past, True) for funk in MoOrgFunk]
+        + [
+            ("employee", changed_since_future, False),
+            ("employee", changed_since_past, True),
+            ("org_unit", changed_since_future, False),
+            ("org_unit", changed_since_past, True),
+        ]
+    )
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -18,19 +34,7 @@ class ChangedSinceBasic(ConfigTestCase):
         """
         self.load_sample_structures(minimal=False)
 
-        changed_since_future = datetime(9999, 1, 1)
-        changed_since_past = datetime(1930, 1, 1)
-        changed_since_parameters = (
-            [(funk.value, changed_since_future, False) for funk in MoOrgFunk]
-            + [(funk.value, changed_since_past, True) for funk in MoOrgFunk]
-            + [
-                ("employee", changed_since_future, False),
-                ("employee", changed_since_past, True),
-                ("org_unit", changed_since_future, False),
-                ("org_unit", changed_since_past, True),
-            ]
-        )
-        for endpoint, changed_since, any_results in changed_since_parameters:
+        for endpoint, changed_since, any_results in changed_since_parameters():
             with self.subTest(endpoint=endpoint):
                 resp = self.assertRequest(
                     f"/api/v1/{endpoint}?changed_since={str(changed_since)}",
@@ -42,7 +46,7 @@ class ChangedSinceBasic(ConfigTestCase):
 class ChangedSinceEmployee(ConfigTestCase):
     def _req_endpoint(self, endpoint: str, changed_since: datetime, expected: bool):
         resp = self.assertRequest(
-            f"/api/v1/{endpoint}?changed_since={changed_since}".replace("+", "%2B"),
+            f"/api/v1/{endpoint}?changed_since={parse.quote(str(changed_since))}",
             200,
         )
         # Nothing changed since "now"

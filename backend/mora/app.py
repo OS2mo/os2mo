@@ -207,6 +207,7 @@ def create_app():
     else:
         logger.warning(f'No dist directory to serve! (Missing: {distdir})')
 
+    # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
     app.add_exception_handler(RequestValidationError, request_validation_handler)

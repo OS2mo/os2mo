@@ -808,14 +808,20 @@ def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
 
 
 def _date_to_datetime(value: Any) -> Any:
-    if isinstance(value, date):
-        return from_iso_time(value.isoformat())
+    """
+    helper, converts date objs to datetime
+    :param value: A potential candidate for conversion
+    :return:
+    """
+    if isinstance(value, date) and not isinstance(value, datetime.datetime):
+        # all dateimes are dates, but not all dates are datetimes
+        return datetime.datetime.combine(value, datetime.time(0, 0))
     return value
 
 
-def date_to_datetime(func):
+def date_to_datetime(func: typing.Callable) -> typing.Callable:
     """
-    decorator designed. Loops through args/kwargs and transforms "date"-objs to datetime
+    Loops through args/kwargs and transforms "date"-objs to datetime
     :param func:
     :return:
     """

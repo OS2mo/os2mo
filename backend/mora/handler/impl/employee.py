@@ -46,17 +46,14 @@ class EmployeeReader(reading.ReadingHandler):
         cls, c, search_fields, changed_since: Optional[datetime] = None
     ):
         if mapping.UUID in search_fields:
-            object_tuples = await c.bruger.get_all_by_uuid(
+            return await c.bruger.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
                 changed_since=changed_since,
             )
-        else:
-            object_tuples = await c.bruger.get_all(
-                changed_since=changed_since,
-                **search_fields,
-            )
-
-        return object_tuples
+        return await c.bruger.get_all(
+            changed_since=changed_since,
+            **search_fields,
+        )
 
     @classmethod
     async def _get_effects(cls, c, obj, **params):
