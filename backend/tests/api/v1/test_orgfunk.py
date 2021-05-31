@@ -3,10 +3,10 @@
 
 from copy import deepcopy
 from unittest.mock import patch
+from uuid import UUID
 
 import freezegun
-
-from mora.api.v1.read_orgfunk import _extract_search_params
+from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.mapping import MoOrgFunk
 from tests.cases import TestCase
 
@@ -26,7 +26,6 @@ class Reading(TestCase):
             {orgfunk.value: f"some_val_{orgfunk.value}" for orgfunk in MoOrgFunk}
         )
         actual = _extract_search_params(base)
-        self.assertEqual(base, base)  # non-modifying
         self.assertEqual(expected, actual)
 
     def test_api_exposing_org_funk_endpoint(self):
@@ -34,7 +33,7 @@ class Reading(TestCase):
         for orgfunk in MoOrgFunk:
             with self.subTest(orgfunk=orgfunk):
                 with patch(
-                    "mora.api.v1.read_orgfunk.orgfunk_endpoint",
+                    "mora.api.v1.reading_endpoints.orgfunk_endpoint",
                     return_value={"status": "ok"},
                 ) as mock:
                     resp = self.assertRequest(
@@ -45,14 +44,15 @@ class Reading(TestCase):
                     mock.assert_called_once_with(
                         orgfunk_type=orgfunk,
                         query_args={"validity": "present", "at": "2017-01-01"},
+                        changed_since=None,
                     )
 
     def test_api_exposing_org_funk_uuid_endpoint(self):
         # parametrized test
         for orgfunk in MoOrgFunk:
-            with self.subTest(orgfunk=orgfunk):
+            with self.subTest(endpoint_spec=orgfunk):
                 with patch(
-                    "mora.api.v1.read_orgfunk.orgfunk_endpoint",
+                    "mora.api.v1.reading_endpoints.orgfunk_endpoint",
                     return_value={"status": "ok"},
                 ) as mock:
                     resp = self.assertRequest(
@@ -70,8 +70,9 @@ class Reading(TestCase):
                             "validity": "present",
                             "at": "2017-01-01",
                             "uuid": [
-                                "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-                                "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                                UUID("2f16d140-d743-4c9f-9e0e-361da91a06f6"),
+                                UUID("3e702dd1-4103-4116-bb2d-b150aebe807d"),
                             ],
-                        }
+                            "only_primary_uuid": None,
+                        },
                     )

@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 from asyncio import create_task, gather
-from typing import Any, Dict, Iterable, List
+from datetime import datetime
+from typing import Any, Dict, Iterable, List, Optional
 
 from mora import exceptions
-
 from .. import reading
 from ... import mapping
 from ... import util
@@ -28,7 +28,8 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     @classmethod
-    async def get_from_type(cls, c, type, objid):
+    async def get_from_type(cls, c, type, objid,
+                            changed_since: Optional[datetime] = None):
 
         search_fields = {
             cls.SEARCH_FIELDS[type]: objid
@@ -40,8 +41,10 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             else:
                 # get both "vanilla" associations and
                 # associations where "objid" is the substitute, in some new fields
-                e_task = create_task(cls.get(c, search_fields))
-                f_task = create_task(cls.get(c, {'tilknyttedefunktioner': objid}))
+                e_task = create_task(
+                    cls.get(c, search_fields, changed_since=changed_since))
+                f_task = create_task(cls.get(c, {'tilknyttedefunktioner': objid},
+                                             changed_since=changed_since))
                 e_result = await e_task
                 f_result = await f_task
                 augmented_e = [{**x,
@@ -62,7 +65,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
 
                 return augmented_e + augmented_f
         else:  # default
-            return await cls.get(c, search_fields)
+            return await cls.get(c, search_fields, changed_since=changed_since)
 
     @staticmethod
     async def __dynamic_classes_helper(classes: Iterable[str],

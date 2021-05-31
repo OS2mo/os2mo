@@ -23,6 +23,7 @@ import collections
 from typing import Any, Optional
 from uuid import UUID
 
+from datetime import datetime
 from fastapi import APIRouter
 
 from . import handlers
@@ -101,6 +102,7 @@ async def get_detail(type, id: UUID, function,
                      calculate_primary: Optional[Any] = None,
                      only_primary_uuid: Optional[Any] = None,
                      first_party_perspective: Optional[Any] = None,
+                     changed_since: Optional[datetime] = None,
                      ):
     '''Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
@@ -658,4 +660,4 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
     from ..handler import reading
 
     cls = reading.get_handler_for_type(function)
-    return await cls.get_from_type(c, type, id)
+    return await cls.get_from_type(c, type, id, changed_since=changed_since)

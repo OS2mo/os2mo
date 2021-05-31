@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
+from fastapi import APIRouter, Depends, FastAPI, HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,11 +22,11 @@ from mora.request_scoped.query_args import current_query
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
-from .api.v1 import read_orgfunk
+from .api.v1 import reading_endpoints
 from .auth.saml_sso import check_saml_authentication
 from .auth.saml_sso.session import SessionInterface
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config, app_config
+from .settings import app_config, config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -69,14 +69,29 @@ def meta_router():
     return router
 
 
-async def fallback_handler(request, exc):
+async def fallback_handler(*args, **kwargs):
     """
     Ensure a nicely formatted json response, with
     minimal knowledge about the exception available.
-    :param request:
-    :param exc:
+
+    When used to handle ANY error, special care needs to be taken. This is a custom
+    solution to a known problem:
+    https://stackoverflow.com/questions/61596911/catch-exception-in-fast-api-globally#comment113231014_61608398
+    https://github.com/tiangolo/fastapi/issues/2750#issuecomment-775526951
     :return:
     """
+    # look for exception
+    if len(args) in [2, 3] and isinstance(args[-1], Exception):
+        exc = args[-1]
+    elif 'exc' in kwargs and isinstance(kwargs['exc'], Exception):
+        exc = kwargs['exc']
+    else:  # desperate fallback
+        err = ErrorCodes.E_UNKNOWN.to_http_exception(
+            message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
+        )
+        return http_exception_to_json_response(exc=err)
+
+    # properly, backwards compatible exception-handling
     err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
     return http_exception_to_json_response(exc=err)
 
@@ -92,7 +107,7 @@ async def request_validation_handler(
     :return:
     """
     if config["ENV"] in ["development", "testing"]:
-        logger.debug(
+        logger.info(
             f"os2mo err details\n{exc}\n"
             f"request url:\n{request.url}\n"
             f"request params:\n{request.query_params}"
@@ -170,7 +185,7 @@ def create_app():
             dependencies=[Depends(check_saml_authentication)]
         )
     app.include_router(
-        read_orgfunk.router,
+        reading_endpoints.router,
         dependencies=[Depends(check_saml_authentication)]
     )
     app.include_router(
@@ -192,6 +207,7 @@ def create_app():
     else:
         logger.warning(f'No dist directory to serve! (Missing: {distdir})')
 
+    # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
     app.add_exception_handler(RequestValidationError, request_validation_handler)

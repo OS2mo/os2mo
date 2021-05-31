@@ -26,6 +26,10 @@ import tempfile
 import typing
 import urllib.parse
 import uuid
+from asyncio import iscoroutinefunction
+from datetime import date
+from functools import wraps
+from typing import Any
 
 import dateutil.parser
 import dateutil.tz
@@ -801,3 +805,42 @@ def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
     :return: List-wrapped obj
     """
     return obj if isinstance(obj, list) else [obj]
+
+
+def _date_to_datetime(value: Any) -> Any:
+    """
+    helper, converts date objs to datetime
+    :param value: A potential candidate for conversion
+    :return:
+    """
+    if isinstance(value, date) and not isinstance(value, datetime.datetime):
+        # all dateimes are dates, but not all dates are datetimes
+        return datetime.datetime.combine(value, datetime.time(0, 0))
+    return value
+
+
+def date_to_datetime(func: typing.Callable) -> typing.Callable:
+    """
+    Loops through args/kwargs and transforms "date"-objs to datetime
+    :param func:
+    :return:
+    """
+    if iscoroutinefunction(func):
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            return await func(
+                *map(_date_to_datetime, args),
+                **{key: _date_to_datetime(val) for key, val in kwargs.items()},
+            )
+
+    else:
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(
+                *map(_date_to_datetime, args),
+                **{key: _date_to_datetime(val) for key, val in kwargs.items()},
+            )
+
+    return wrapper

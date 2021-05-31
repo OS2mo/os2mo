@@ -3,14 +3,14 @@
 
 from __future__ import generator_stop
 
-import math
-
 import asyncio
 import logging
+import math
 import re
 import typing
 import uuid
 from asyncio import create_task, gather
+from datetime import datetime
 from enum import Enum, unique
 from functools import partial
 from itertools import starmap
@@ -19,27 +19,73 @@ import lora_utils
 from more_itertools import chunked
 
 import mora.async_util
-from . import exceptions
-from . import settings
-from . import util
+from . import exceptions, settings, util
+from .util import DEFAULT_TIMEZONE, from_iso_time
 
 logger = logging.getLogger(__name__)
 
 
+def registration_changed_since(
+    reg: typing.Dict[str, typing.Any], since: datetime
+) -> bool:
+    from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
+    if from_time is None:
+        raise ValueError(f"unexpected reg: {reg}")
+    elif from_time == "infinity":
+        return True
+    elif from_time == "-infinity":
+        return False
+
+    # ensure timezone
+    if not since.tzinfo:
+        since = since.replace(tzinfo=DEFAULT_TIMEZONE)
+    return from_iso_time(from_time) > since
+
+
+def filter_registrations(
+    response: typing.List[typing.Dict[str, typing.Any]], wantregs: bool,
+    changed_since: typing.Optional[datetime] = None) -> typing.Iterable[
+    typing.Tuple[str, typing.Union[
+        typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]]]]:
+    """
+    Helper, to filter registrations
+    :param response: Registrations as received from LoRa
+    :param wantregs: Determines whether one or more registrations are returned per uuid
+    :param changed_since: datetime to filter by. If None, nothing is filtered
+    :return: Iterable of (uuid, registration(s))
+    """
+    changed_since_filter = None
+    if changed_since:
+        changed_since_filter = partial(registration_changed_since, since=changed_since)
+
+    # funny looking, but keeps api backwards compatible (ie avoiding 'async for')
+    def gen():
+        for d in response:
+            regs = iter(d["registreringer"])
+            if changed_since_filter is not None:
+                regs = filter(changed_since_filter, regs)
+            regs = list(regs)
+            if regs:
+                yield d["id"], (regs if wantregs else regs[0])
+
+    return gen()
+
+
 @unique
 class LoraObjectType(Enum):
-    org = 'organisation/organisation'
-    org_unit = 'organisation/organisationenhed'
-    org_func = 'organisation/organisationfunktion'
-    user = 'organisation/bruger'
-    it_system = 'organisation/itsystem'
-    class_ = 'klassifikation/klasse'
-    facet = 'klassifikation/facet'
-    classification = 'klassifikation/klassifikation'
+    org = "organisation/organisation"
+    org_unit = "organisation/organisationenhed"
+    org_func = "organisation/organisationfunktion"
+    user = "organisation/bruger"
+    it_system = "organisation/itsystem"
+    class_ = "klassifikation/klasse"
+    facet = "klassifikation/facet"
+    classification = "klassifikation/klassifikation"
 
 
-def raise_on_status(status_code: int, msg,
-                    cause: typing.Optional = None) -> typing.NoReturn:
+def raise_on_status(
+    status_code: int, msg, cause: typing.Optional = None
+) -> typing.NoReturn:
     """
     unified raising error codes
 
@@ -60,9 +106,7 @@ def raise_on_status(status_code: int, msg,
         # the update.)
         if noop_pattern.search(msg):
             logger.info(
-                "detected empty change, not raising E_INVALID_INPUT\n"
-                "msg=%r",
-                msg
+                "detected empty change, not raising E_INVALID_INPUT\n" "msg=%r", msg
             )
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
@@ -78,7 +122,7 @@ async def _check_response(r):
     if 400 <= r.status < 600:  # equivalent to requests.response.ok
         try:
             cause = await r.json()
-            msg = cause['message']
+            msg = cause["message"]
         except (ValueError, KeyError):
             cause = None
             msg = await r.text()
@@ -134,7 +178,6 @@ def param_exotics_to_strings(params: typing.Dict[
 
 
 class Connector:
-
     def __init__(self, **defaults):
         self.__validity = defaults.pop('validity', None) or 'present'
 
@@ -252,7 +295,7 @@ class Scope:
             except IndexError:
                 return []
 
-    async def get_all(self, **params):
+    async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -274,19 +317,15 @@ class Scope:
         )
         response = await self.fetch(**dict(params), list=1)
 
-        def gen():
-            for d in response:
-                yield d['id'], (d['registreringer'] if wantregs
-                                else d['registreringer'][0])
+        return filter_registrations(
+            response=response, wantregs=wantregs, changed_since=changed_since
+        )
 
-        return gen()
-
-    async def get_all_by_uuid(self,
-                              uuids: typing.Union[typing.List, typing.Set]
-                              ) -> typing.Iterable[typing.Tuple[str,
-                                                                typing.Dict[
-                                                                    typing.Any,
-                                                                    typing.Any]]]:
+    async def get_all_by_uuid(
+        self,
+        uuids: typing.Union[typing.List, typing.Set],
+        changed_since: typing.Optional[datetime] = None,
+    ) -> typing.Iterable[typing.Tuple[str, typing.Dict[typing.Any, typing.Any]]]:
 
         """Get a list of objects by their UUIDs.
 
@@ -320,13 +359,9 @@ class Scope:
         ret = [x for chunk in need_flat for x in chunk]
 
         # ret = await self.fetch(uuid=uuids)
-
-        # funny looking, but keeps api backwards compatible (ie avoiding 'async for')
-        def gen():
-            for d in ret:
-                yield d['id'], (d['registreringer'][0])
-
-        return gen()
+        return filter_registrations(
+            response=ret, wantregs=False, changed_since=changed_since
+        )
 
     async def paged_get(self,
                         func: typing.Callable[['Connector', typing.Any, typing.Any],
