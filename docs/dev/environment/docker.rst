@@ -74,6 +74,14 @@ Hvis du vil kører under en anden ``UID/GID``, kan du specificere det med
 `i docker-compose
 <https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir>`_.
 
+
+Særligt for macOS brugere: virtualization.framework
+---------------------------------------------------
+
+På macOS 11.0+ vil OS2MO ikke starte, hvis ``virtualization.framework`` er enabled i Docker preferences.
+Sørg for at have denne feature slået fra, inden du forsøger at starte Docker-miljøet op.
+
+
 --------------
 Docker-compose
 --------------
