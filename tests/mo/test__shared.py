@@ -117,8 +117,8 @@ class TestEngagementRef:
 
 
 @st.composite
-def valid_eng(draw):
-    model_dict = draw(eng_ref_strat)
+def valid_eng_ref(draw):
+    model_dict = draw(eng_ref_strat())
     return EngagementRef(**model_dict)
 
 
@@ -317,7 +317,7 @@ class TestOrgUnitRef:
 
 
 @st.composite
-def valid_org_unit(draw):
+def valid_org_unit_ref(draw):
     model_dict = draw(org_unit_ref_strat())
     return OrgUnitRef(**model_dict)
 
