@@ -8,9 +8,9 @@
 # --------------------------------------------------------------------------------------
 import re
 from datetime import datetime
+from functools import partial
 from typing import List
 from typing import Union
-from uuid import uuid4
 
 import pytest
 from hypothesis import assume
@@ -40,6 +40,20 @@ from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
+
+single_item_error = partial(
+    pytest.raises,
+    ValidationError,
+    match=r"ensure this value has at (most|least) 1 items",
+)
+
+unexpected_value_error = partial(
+    pytest.raises, ValidationError, match="unexpected value;"
+)
+
+at_least_one = partial(
+    pytest.raises, ValidationError, match="ensure this value has at least 1 items"
+)
 
 
 def single_item(model, key, list):
@@ -161,25 +175,30 @@ class TestInfiniteDatetime:
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def effective_time_strat(draw):
+    required = {"from_date": st.datetimes(), "to_date": st.datetimes()}
+    st_dict = draw(st.fixed_dictionaries(required))
+    assume(st_dict["from_date"] < st_dict["to_date"])
+    return st_dict
+
+
 class TestEffectiveTime:
     # TODO: This should generate valid InfiniteDatetimes
     # cf. previously mentioned strategy
 
-    @given(st.tuples(st.datetimes(), st.datetimes()))
+    @given(effective_time_strat())
     @example(
-        (
-            datetime.fromisoformat("3059-01-01T00:00:00.035840+01:00"),
-            datetime.fromisoformat("3059-01-01T00:00:00.035841+01:00"),
-        )
+        {
+            "from_date": datetime.fromisoformat("3059-01-01T00:00:00.035840+01:00"),
+            "to_date": datetime.fromisoformat("3059-01-01T00:00:00.035841+01:00"),
+        }
     )
-    def test_init(self, hy_dts):
-        from_dt, to_dt = hy_dts
-        assume(from_dt < to_dt)
-        assert EffectiveTime(from_date=from_dt, to_date=to_dt)
+    def test_init(self, model_dict):
+        assert EffectiveTime(**model_dict)
 
-    @given(st.tuples(st.datetimes(), st.datetimes()))
-    def test_validator(self, hy_dts):
-        from_dt, to_dt = hy_dts
+    @given(st.datetimes(), st.datetimes())
+    def test_validator(self, from_dt, to_dt):
         assume(from_dt >= to_dt)
         with pytest.raises(
             ValidationError, match="from_date must be strictly less than to_date"
@@ -189,38 +208,45 @@ class TestEffectiveTime:
 
 @st.composite
 def valid_edt(draw):
-    from_dt = draw(st.datetimes())
-    to_dt = draw(st.datetimes())
-    assume(from_dt < to_dt)
-    return EffectiveTime(from_date=from_dt, to_date=to_dt)
+    model_dict = draw(effective_time_strat())
+    return EffectiveTime(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
 # Authority
 # --------------------------------------------------------------------------------------
 
-
 urn_regex = re.compile(r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$")
 
 
+@st.composite
+def authority_strat(draw):
+    required = {
+        "urn": st.from_regex(urn_regex),
+        "effective_time": valid_edt(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
 class TestAuthority:
-    valid_urns = st.from_regex(urn_regex)
     invalid_urns = st.text().filter(lambda s: urn_regex.match(s) is None)
 
-    @given(valid_urns, valid_edt())
-    def test_init(self, valid_urn, valid_edt):
-        assert Authority(urn=valid_urn, effective_time=valid_edt)
+    @given(authority_strat())
+    def test_init(self, model_dict):
+        assert Authority(**model_dict)
 
-    @given(invalid_urns, valid_edt())
-    def test_validators(self, invalid_urn, valid_edt):
+    @given(authority_strat(), st.text().filter(lambda s: urn_regex.match(s) is None))
+    def test_validators(self, model_dict, invalid_urn):
+        model_dict["urn"] = invalid_urn
         with pytest.raises(ValidationError, match="string does not match regex"):
-            Authority(urn=invalid_urn, effective_time=valid_edt)
+            Authority(**model_dict)
 
 
 @st.composite
 def valid_auth(draw):
-    edt = draw(valid_edt())
-    return Authority(urn="urn:test:1337", effective_time=edt)
+    model_dict = draw(authority_strat())
+    return Authority(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -228,16 +254,23 @@ def valid_auth(draw):
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def facet_prop_strat(draw):
+    required = {"user_key": st.text(), "effective_time": valid_edt()}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
 class TestFacetProperties:
-    @given(st.text(), valid_edt())
-    def test_init(self, key_txt, valid_edt):
-        assert FacetProperties(user_key=key_txt, effective_time=valid_edt)
+    @given(facet_prop_strat())
+    def test_init(self, model_dict):
+        assert FacetProperties(**model_dict)
 
 
 @st.composite
 def valid_fp(draw):
-    edt = draw(valid_edt())
-    return FacetProperties(user_key="test", effective_time=edt)
+    model_dict = draw(facet_prop_strat())
+    return FacetProperties(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -245,14 +278,32 @@ def valid_fp(draw):
 # --------------------------------------------------------------------------------------
 
 
-class TestFacetAttributes:
-    @given(st.lists(valid_fp(), min_size=1, max_size=1))
-    def test_init(self, fp_list):
-        assert FacetAttributes(properties=fp_list)
+@st.composite
+def facet_attr_strat(draw):
+    required = {"properties": st.lists(valid_fp(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
-    @given(st.lists(valid_fp(), min_size=2))
-    def test_validators(self, invalid_fp_list):
-        single_item(FacetAttributes, "properties", invalid_fp_list)
+
+@st.composite
+def invalid_facet_attr_strat(draw):
+    required = {
+        "properties": st.lists(valid_fp(), min_size=2)
+        | st.lists(valid_fp(), max_size=0)
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestFacetAttributes:
+    @given(facet_attr_strat())
+    def test_init(self, model_dict):
+        assert FacetAttributes(**model_dict)
+
+    @given(invalid_facet_attr_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            FacetAttributes(**invalid_model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -260,20 +311,24 @@ class TestFacetAttributes:
 # --------------------------------------------------------------------------------------
 
 
-class TestPublished:
-    @given(st.text(), valid_edt())
-    def test_init(self, pub_txt, edt):
-        # required
-        assert Published(effective_time=edt)
+@st.composite
+def published_strat(draw):
+    required = {"effective_time": valid_edt()}
+    optional = {"published": st.text()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
 
-        # optional
-        assert Published(published=pub_txt, effective_time=edt)
+
+class TestPublished:
+    @given(published_strat())
+    def test_init(self, model_dict):
+        assert Published(**model_dict)
 
 
 @st.composite
 def valid_pub(draw):
-    edt = draw(valid_edt())
-    return Published(effective_time=edt)
+    model_dict = draw(published_strat())
+    return Published(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -281,14 +336,32 @@ def valid_pub(draw):
 # --------------------------------------------------------------------------------------
 
 
-class TestFacetStates:
-    @given(st.lists(valid_pub(), min_size=1, max_size=1))
-    def test_init(self, pub_list):
-        assert FacetStates(published_state=pub_list)
+@st.composite
+def facet_states_strat(draw):
+    required = {"published_state": st.lists(valid_pub(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
-    @given(st.lists(valid_pub(), min_size=2))
-    def test_validators(self, invalid_pub_list):
-        single_item(FacetStates, "published_state", invalid_pub_list)
+
+@st.composite
+def invalid_facet_states_strat(draw):
+    required = {
+        "published_state": st.lists(valid_pub(), min_size=2)
+        | st.lists(valid_pub(), max_size=0)
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestFacetStates:
+    @given(facet_states_strat())
+    def test_init(self, model_dict):
+        assert FacetStates(**model_dict)
+
+    @given(invalid_facet_states_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            FacetStates(**invalid_model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -296,23 +369,30 @@ class TestFacetStates:
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def responsible_strat(draw):
+    required = {"uuid": st.uuids(), "effective_time": valid_edt()}
+    optional = {"object_type": st.just("organisation")}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
 class TestResponsible:
-    @given(st.uuids(), valid_edt())
-    def test_init(self, hy_uuid, edt):
-        assert Responsible(object_type="organisation", uuid=hy_uuid, effective_time=edt)
+    @given(responsible_strat())
+    def test_init(self, model_dict):
+        assert Responsible(**model_dict)
 
-    not_org_str = st.text().filter(lambda s: s != "organisation")
-
-    @given(not_org_str, st.uuids(), valid_edt())
-    def test_validators(self, fail_str, hy_uuid, edt):
-        with pytest.raises(ValidationError, match="unexpected value;"):
-            Responsible(object_type=fail_str, uuid=hy_uuid, effective_time=edt)
+    @given(responsible_strat(), st.text().filter(lambda s: s != "organisation"))
+    def test_validators(self, model_dict, invalid_object_type):
+        model_dict["object_type"] = invalid_object_type
+        with unexpected_value_error():
+            Responsible(**model_dict)
 
 
 @st.composite
 def valid_resp(draw):
-    edt = draw(valid_edt())
-    return Responsible(object_type="organisation", uuid=uuid4(), effective_time=edt)
+    model_dict = draw(responsible_strat())
+    return Responsible(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -320,23 +400,30 @@ def valid_resp(draw):
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def facet_ref_strat(draw):
+    required = {"uuid": st.uuids(), "effective_time": valid_edt()}
+    optional = {"object_type": st.just("facet")}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
 class TestFacetRef:
-    @given(st.uuids(), valid_edt())
-    def test_init(self, hy_uuid, edt):
-        assert FacetRef(object_type="facet", uuid=hy_uuid, effective_time=edt)
+    @given(facet_ref_strat())
+    def test_init(self, model_dict):
+        assert FacetRef(**model_dict)
 
-    not_facet_str = st.text().filter(lambda s: s != "facet")
-
-    @given(not_facet_str, st.uuids(), valid_edt())
-    def test_validators(self, fail_str, hy_uuid, edt):
-        with pytest.raises(ValidationError, match="unexpected value;"):
-            FacetRef(object_type=fail_str, uuid=hy_uuid, effective_time=edt)
+    @given(facet_ref_strat(), st.text().filter(lambda s: s != "facet"))
+    def test_validators(self, model_dict, invalid_object_type):
+        model_dict["object_type"] = invalid_object_type
+        with unexpected_value_error():
+            FacetRef(**model_dict)
 
 
 @st.composite
 def valid_fref(draw):
-    edt = draw(valid_edt())
-    return FacetRef(object_type="facet", uuid=uuid4(), effective_time=edt)
+    model_dict = draw(facet_ref_strat())
+    return FacetRef(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -344,14 +431,32 @@ def valid_fref(draw):
 # --------------------------------------------------------------------------------------
 
 
-class TestFacetRelations:
-    @given(st.lists(valid_resp(), min_size=1, max_size=1))
-    def test_init(self, resp_list):
-        assert FacetRelations(responsible=resp_list)
+@st.composite
+def facet_relations_strat(draw):
+    required = {"responsible": st.lists(valid_resp(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
-    @given(st.lists(valid_resp(), min_size=2))
-    def test_validators(self, invalid_resp_list):
-        single_item(FacetRelations, "responsible", invalid_resp_list)
+
+@st.composite
+def invalid_facet_relations_strat(draw):
+    required = {
+        "responsible": st.lists(valid_resp(), min_size=2)
+        | st.lists(valid_resp(), max_size=0)
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestFacetRelations:
+    @given(facet_relations_strat())
+    def test_init(self, model_dict):
+        assert FacetRelations(**model_dict)
+
+    @given(invalid_facet_relations_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            FacetRelations(**invalid_model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -359,22 +464,28 @@ class TestFacetRelations:
 # --------------------------------------------------------------------------------------
 
 
-class TestKlasseProperties:
-    @given(st.text(), st.text(), st.text(), valid_edt())
-    def test_init(self, user_txt, title_txt, scope_txt, edt):
-        # required
-        assert KlasseProperties(user_key=user_txt, title=title_txt, effective_time=edt)
+@st.composite
+def klasse_prop_strat(draw):
+    required = {
+        "user_key": st.text(),
+        "title": st.text(),
+        "effective_time": valid_edt(),
+    }
+    optional = {"scope": st.text() | st.none()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
 
-        # optional
-        assert KlasseProperties(
-            user_key=user_txt, title=title_txt, scope=scope_txt, effective_time=edt
-        )
+
+class TestKlasseProperties:
+    @given(klasse_prop_strat())
+    def test_init(self, model_dict):
+        assert KlasseProperties(**model_dict)
 
 
 @st.composite
 def valid_klsprop(draw):
-    edt = draw(valid_edt())
-    return KlasseProperties(user_key="user", title="test", effective_time=edt)
+    model_dict = draw(klasse_prop_strat())
+    return KlasseProperties(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -382,47 +493,92 @@ def valid_klsprop(draw):
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def klasse_relations_strat(draw):
+    required = {
+        "responsible": st.lists(valid_resp(), min_size=1, max_size=1),
+        "facet": st.lists(valid_fref(), min_size=1, max_size=1),
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
 class TestKlasseRelations:
+    @given(klasse_relations_strat())
+    def test_init(self, model_dict):
+        assert KlasseRelations(**model_dict)
+
     @given(
-        st.lists(valid_resp(), min_size=1, max_size=1),
-        st.lists(valid_fref(), min_size=1, max_size=1),
+        klasse_relations_strat(),
+        st.lists(valid_resp(), min_size=2) | st.lists(valid_resp(), max_size=0),
     )
-    def test_init(self, resp_list, fref_list):
-        assert KlasseRelations(responsible=resp_list, facet=fref_list)
+    def test_validators_resp(self, model_dict, invalid_resp):
+        model_dict["responsible"] = invalid_resp
+        with single_item_error():
+            KlasseRelations(**model_dict)
 
-    @given(st.lists(valid_resp(), min_size=2))
-    def test_resp_length(self, invalid_resp):
-        single_item(KlasseRelations, "responsible", invalid_resp)
-
-    @given(st.lists(valid_fref(), min_size=2))
-    def test_fref_length(self, invalid_fref):
-        single_item(KlasseRelations, "facet", invalid_fref)
+    @given(
+        klasse_relations_strat(),
+        st.lists(valid_fref(), min_size=2) | st.lists(valid_resp(), max_size=0),
+    )
+    def test_validators_fref(self, model_dict, invalid_fref):
+        model_dict["facet"] = invalid_fref
+        with single_item_error():
+            KlasseRelations(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
 # KlasseAttributes
 # --------------------------------------------------------------------------------------
-class TestKlasseAttributes:
-    @given(st.lists(valid_klsprop(), min_size=1, max_size=1))
-    def test_init(self, valid_klsprop):
-        assert KlasseAttributes(properties=valid_klsprop)
 
-    @given(st.lists(valid_klsprop(), min_size=2))
-    def test_validators(self, invalid_klsprop):
-        single_item(KlasseAttributes, "properties", invalid_klsprop)
+
+@st.composite
+def klasse_attr_strat(draw):
+    required = {"properties": st.lists(valid_klsprop(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestKlasseAttributes:
+    @given(klasse_attr_strat())
+    def test_init(self, model_dict):
+        assert KlasseAttributes(**model_dict)
+
+    @given(
+        klasse_attr_strat(),
+        st.lists(valid_klsprop(), min_size=2) | st.lists(valid_klsprop(), max_size=0),
+    )
+    def test_validators(self, model_dict, invalid_klsprop):
+        model_dict["properties"] = invalid_klsprop
+        with single_item_error():
+            KlasseAttributes(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
 # KlasseStates
 # --------------------------------------------------------------------------------------
-class TestKlasseStates:
-    @given(st.lists(valid_pub(), min_size=1, max_size=1))
-    def test_init(self, pub_list):
-        assert KlasseStates(published_state=pub_list)
 
-    @given(st.lists(valid_pub(), min_size=2))
-    def test_validators(self, invalid_pub_list):
-        single_item(KlasseStates, "published_state", invalid_pub_list)
+
+@st.composite
+def klasse_states_strat(draw):
+    required = {"published_state": st.lists(valid_pub(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestKlasseStates:
+    @given(klasse_states_strat())
+    def test_init(self, model_dict):
+        assert KlasseStates(**model_dict)
+
+    @given(
+        klasse_states_strat(),
+        st.lists(valid_pub(), min_size=2) | st.lists(valid_pub(), max_size=0),
+    )
+    def test_validators(self, model_dict, invalid_pub_list):
+        model_dict["published_state"] = invalid_pub_list
+        with single_item_error():
+            KlasseStates(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -430,31 +586,50 @@ class TestKlasseStates:
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def org_prop_strat(draw):
+    required = {"user_key": st.text(), "name": st.text(), "effective_time": valid_edt()}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
 class TestOrganisationProperties:
-    @given(st.text(), st.text(), valid_edt())
-    def test_init(self, user_txt, name_txt, edt):
-        assert OrganisationProperties(
-            user_key=user_txt, name=name_txt, effective_time=edt
-        )
+    @given(org_prop_strat())
+    def test_init(self, model_dict):
+        assert OrganisationProperties(**model_dict)
 
 
 @st.composite
 def valid_orgprop(draw):
-    edt = draw(valid_edt())
-    return OrganisationProperties(user_key="user", name="test", effective_time=edt)
+    model_dict = draw(org_prop_strat())
+    return OrganisationProperties(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
 # OrganisationAttributes
 # --------------------------------------------------------------------------------------
-class TestOrganisationAttributes:
-    @given(st.lists(valid_orgprop(), min_size=1, max_size=1))
-    def test_init(self, valid_orgprop):
-        assert OrganisationAttributes(properties=valid_orgprop)
 
-    @given(st.lists(valid_orgprop(), min_size=2))
-    def test_validators(self, invalid_orgprop):
-        single_item(OrganisationAttributes, "properties", invalid_orgprop)
+
+@st.composite
+def org_attr_strat(draw):
+    required = {"properties": st.lists(valid_orgprop(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
+
+
+class TestOrganisationAttributes:
+    @given(org_attr_strat())
+    def test_init(self, model_dict):
+        assert OrganisationAttributes(**model_dict)
+
+    @given(
+        org_attr_strat(),
+        st.lists(valid_orgprop(), min_size=2) | st.lists(valid_orgprop(), max_size=0),
+    )
+    def test_validators(self, model_dict, invalid_orgprop):
+        model_dict["properties"] = invalid_orgprop
+        with single_item_error():
+            OrganisationAttributes(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -462,20 +637,24 @@ class TestOrganisationAttributes:
 # --------------------------------------------------------------------------------------
 
 
-class TestOrganisationValidState:
-    @given(st.text(), valid_edt())
-    def test_init(self, state_txt, edt):
-        # required
-        assert OrganisationValidState(effective_time=edt)
+@st.composite
+def org_valid_states_strat(draw):
+    required = {"effective_time": valid_edt()}
+    optional = {"state": st.text()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
 
-        # optional
-        assert OrganisationValidState(state=state_txt, effective_time=edt)
+
+class TestOrganisationValidState:
+    @given(org_valid_states_strat())
+    def test_init(self, model_dict):
+        assert OrganisationValidState(**model_dict)
 
 
 @st.composite
 def valid_orgstate(draw):
-    edt = draw(valid_edt())
-    return OrganisationValidState(effective_time=edt)
+    model_dict = draw(org_valid_states_strat())
+    return OrganisationValidState(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -483,14 +662,26 @@ def valid_orgstate(draw):
 # --------------------------------------------------------------------------------------
 
 
-class TestOrganisationStates:
-    @given(st.lists(valid_orgstate(), min_size=1, max_size=1))
-    def test_init(self, valid_orgstate):
-        assert OrganisationStates(valid_state=valid_orgstate)
+@st.composite
+def org_states_strat(draw):
+    required = {"valid_state": st.lists(valid_orgstate(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
-    @given(st.lists(valid_orgstate(), min_size=2))
-    def test_validators(self, invalid_orgstate):
-        single_item(OrganisationStates, "valid_state", invalid_orgstate)
+
+class TestOrganisationStates:
+    @given(org_states_strat())
+    def test_init(self, model_dict):
+        assert OrganisationStates(**model_dict)
+
+    @given(
+        org_states_strat(),
+        st.lists(valid_orgstate(), min_size=2) | st.lists(valid_orgstate(), max_size=0),
+    )
+    def test_validators(self, model_dict, invalid_orgstate):
+        model_dict["valid_state"] = invalid_orgstate
+        with single_item_error():
+            OrganisationStates(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -498,11 +689,23 @@ class TestOrganisationStates:
 # --------------------------------------------------------------------------------------
 
 
-class TestOrganisationRelations:
-    @given(st.lists(valid_auth(), min_size=1, max_size=1))
-    def test_init(self, valid_auth):
-        assert OrganisationRelations(authority=valid_auth)
+@st.composite
+def org_relations_strat(draw):
+    required = {"authority": st.lists(valid_auth(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
-    @given(st.lists(valid_auth(), min_size=2))
-    def test_validators(self, invalid_auth):
-        single_item(OrganisationRelations, "authority", invalid_auth)
+
+class TestOrganisationRelations:
+    @given(org_relations_strat())
+    def test_init(self, model_dict):
+        assert OrganisationRelations(**model_dict)
+
+    @given(
+        org_relations_strat(),
+        st.lists(valid_auth(), min_size=2) | st.lists(valid_auth(), max_size=0),
+    )
+    def test_validators(self, model_dict, invalid_auth):
+        model_dict["authority"] = invalid_auth
+        with single_item_error():
+            OrganisationRelations(**model_dict)
