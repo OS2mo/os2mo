@@ -6,8 +6,12 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from functools import partial
+
+import pytest
 from hypothesis import assume
 from hypothesis import strategies as st
+from pydantic import ValidationError
 
 # --------------------------------------------------------------------------------------
 # Shared fixtures and strategies
@@ -20,3 +24,8 @@ def valid_dt_range(draw):
     to_dt = draw(st.dates())
     assume(from_dt <= to_dt)
     return from_dt.isoformat(), to_dt.isoformat()
+
+
+unexpected_value_error = partial(
+    pytest.raises, ValidationError, match="unexpected value;"
+)

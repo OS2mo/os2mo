@@ -40,28 +40,13 @@ from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
+from tests.conftest import unexpected_value_error
 
 single_item_error = partial(
     pytest.raises,
     ValidationError,
     match=r"ensure this value has at (most|least) 1 items",
 )
-
-unexpected_value_error = partial(
-    pytest.raises, ValidationError, match="unexpected value;"
-)
-
-at_least_one = partial(
-    pytest.raises, ValidationError, match="ensure this value has at least 1 items"
-)
-
-
-def single_item(model, key, list):
-    with pytest.raises(ValidationError, match="ensure this value has at most 1 items"):
-        model(**{key: list})
-
-    with pytest.raises(ValidationError, match="ensure this value has at least 1 items"):
-        model(**{key: []})
 
 
 # --------------------------------------------------------------------------------------
