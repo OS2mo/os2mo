@@ -1,0 +1,712 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"root",
+        "type":"string"
+      },
+      {
+        "name":"org",
+        "type":"string"
+      },
+      {
+        "name":"sub org",
+        "type":"string"
+      },
+      {
+        "name":"2xsub org",
+        "type":"string"
+      },
+      {
+        "name":"3xsub org",
+        "type":"string"
+      },
+      {
+        "name":"Ansvar",
+        "type":"string"
+      },
+      {
+        "name":"Navn",
+        "type":"string"
+      },
+      {
+        "name":"Telefon",
+        "type":"string"
+      },
+      {
+        "name":"E-mail",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"0.20.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "root":"Kolding Kommune",
+      "org":null,
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Tracy Andersen",
+      "Telefon":"67338448",
+      "E-mail":"tracya@kolding.dk"
+    },
+    {
+      "index":1,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Margit Lysholm Mogensen",
+      "Telefon":"61743070",
+      "E-mail":"margitm@kolding.dk"
+    },
+    {
+      "index":2,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Budget og Planl\u00e6gning",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Jan Elkj\u00e6r Winther Nielsen",
+      "Telefon":"64535362",
+      "E-mail":"jann@kolding.dk"
+    },
+    {
+      "index":3,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Byudvikling",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Jesper H\u00f8jrup",
+      "Telefon":"74465447",
+      "E-mail":"jesperh@kolding.dk"
+    },
+    {
+      "index":4,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Erhverv",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Dorte Povlsen",
+      "Telefon":"71886681",
+      "E-mail":"dortep@kolding.dk"
+    },
+    {
+      "index":5,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"HR og organisation",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"J\u00f8rgen \u00d8sterg\u00e5rd S\u00f8rensen",
+      "Telefon":"51744883",
+      "E-mail":"j\u00f8rgens@kolding.dk"
+    },
+    {
+      "index":6,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Edith Hansen",
+      "Telefon":"21253834",
+      "E-mail":"edithh@kolding.dk"
+    },
+    {
+      "index":7,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Benedikte Kj\u00e6r Hansen",
+      "Telefon":"58317505",
+      "E-mail":"benedikteh@kolding.dk"
+    },
+    {
+      "index":8,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Bente Plougmand Nielsen",
+      "Telefon":"32034560",
+      "E-mail":"benten@kolding.dk"
+    },
+    {
+      "index":9,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Poul Vindum Andersen",
+      "Telefon":"36186776",
+      "E-mail":"poula@kolding.dk"
+    },
+    {
+      "index":10,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Almind b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Erna Husted Jensen",
+      "Telefon":"24610733",
+      "E-mail":"ernaj@kolding.dk"
+    },
+    {
+      "index":11,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Almind skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Sara Bendtsen H\u00f8egh",
+      "Telefon":"46181862",
+      "E-mail":"sarah@kolding.dk"
+    },
+    {
+      "index":12,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Bjert b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Wilhelmine Knudsen Thostrup",
+      "Telefon":"26440261",
+      "E-mail":"wilhelminet@kolding.dk"
+    },
+    {
+      "index":13,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Bjert skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Frederik Johnsen Zobbe",
+      "Telefon":"75158410",
+      "E-mail":"frederikz@kolding.dk"
+    },
+    {
+      "index":14,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Martin Vistrup Bonelli",
+      "Telefon":"25120448",
+      "E-mail":"marb@kolding.dk"
+    },
+    {
+      "index":15,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Niels Behrendt Thorhallsson",
+      "Telefon":"16707863",
+      "E-mail":"nielst@kolding.dk"
+    },
+    {
+      "index":16,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Anna Larsen",
+      "Telefon":"41211405",
+      "E-mail":"annl@kolding.dk"
+    },
+    {
+      "index":17,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Katrine Stendal R\u00e6vdal",
+      "Telefon":"42511746",
+      "E-mail":"katriner@kolding.dk"
+    },
+    {
+      "index":18,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Vivi Egede Laursen",
+      "Telefon":"62445281",
+      "E-mail":"vivil@kolding.dk"
+    },
+    {
+      "index":19,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Tina Engberg Bech Larsen",
+      "Telefon":"41613143",
+      "E-mail":"tinal@kolding.dk"
+    },
+    {
+      "index":20,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Nataniel Johannesen",
+      "Telefon":"10161275",
+      "E-mail":"natanielj@kolding.dk"
+    },
+    {
+      "index":21,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Margrethe Jensen",
+      "Telefon":"54336668",
+      "E-mail":"margje@kolding.dk"
+    },
+    {
+      "index":22,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Eskild H\u00f8jlund Andersen",
+      "Telefon":"53036423",
+      "E-mail":"eskilda@kolding.dk"
+    },
+    {
+      "index":23,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Alex Broch Skou",
+      "Telefon":"14181142",
+      "E-mail":"alexs@kolding.dk"
+    },
+    {
+      "index":24,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Marie Hove Mortensen",
+      "Telefon":"47154643",
+      "E-mail":"marm@kolding.dk"
+    },
+    {
+      "index":25,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"C Holmberg Hj\u00f8llund",
+      "Telefon":"12838625",
+      "E-mail":"ch@kolding.dk"
+    },
+    {
+      "index":26,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Chr Christensen",
+      "Telefon":"67515751",
+      "E-mail":"chrc@kolding.dk"
+    },
+    {
+      "index":27,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Marie Jovina Petersen",
+      "Telefon":"56724085",
+      "E-mail":"mariep@kolding.dk"
+    },
+    {
+      "index":28,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Poul Salling Pedersen",
+      "Telefon":"61337661",
+      "E-mail":"poulp@kolding.dk"
+    },
+    {
+      "index":29,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Kolding b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Sophie Egebjerg Hygebjerg",
+      "Telefon":"84242887",
+      "E-mail":"sophieh@kolding.dk"
+    },
+    {
+      "index":30,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Kolding skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Anne B\u00f8rager Nielsen",
+      "Telefon":"81840176",
+      "E-mail":"annen@kolding.dk"
+    },
+    {
+      "index":31,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Lunderskov b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Asta Jensen Bigum",
+      "Telefon":"63455337",
+      "E-mail":"astab@kolding.dk"
+    },
+    {
+      "index":32,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"M Kramer",
+      "Telefon":"71304828",
+      "E-mail":"mk@kolding.dk"
+    },
+    {
+      "index":33,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Friedrich N\u00f8rup",
+      "Telefon":"57143865",
+      "E-mail":"friedrichn@kolding.dk"
+    },
+    {
+      "index":34,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Marianne Rantzau Knudsen",
+      "Telefon":"56386202",
+      "E-mail":"mariannek@kolding.dk"
+    },
+    {
+      "index":35,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Ben B\u00e6kgaard Lundstedt",
+      "Telefon":"30013465",
+      "E-mail":"benl@kolding.dk"
+    },
+    {
+      "index":36,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Dorthea Lundgren Haahr Nielsen",
+      "Telefon":"20058317",
+      "E-mail":"dorthean@kolding.dk"
+    },
+    {
+      "index":37,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Svend Dahl Skovbon",
+      "Telefon":"73510522",
+      "E-mail":"svends@kolding.dk"
+    },
+    {
+      "index":38,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Thomas Hermansen",
+      "Telefon":"17037760",
+      "E-mail":"thomash@kolding.dk"
+    },
+    {
+      "index":39,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Bettina \u00d8stergaard Krogh",
+      "Telefon":"34845852",
+      "E-mail":"bettinak@kolding.dk"
+    },
+    {
+      "index":40,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Gerd J\u00e6ger Kock Henriksen",
+      "Telefon":"53612641",
+      "E-mail":"gerdh@kolding.dk"
+    },
+    {
+      "index":41,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Vamdrup b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Birgit Andersen Nielsen",
+      "Telefon":"71000464",
+      "E-mail":"birgitn@kolding.dk"
+    },
+    {
+      "index":42,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Vamdrup skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Aage Christensen Moesg\u00e5rd Egeberg",
+      "Telefon":"51377402",
+      "E-mail":"aagee@kolding.dk"
+    },
+    {
+      "index":43,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Viuf b\u00f8rnehus",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Sigrid Nielsen",
+      "Telefon":"83884310",
+      "E-mail":"sigridn@kolding.dk"
+    },
+    {
+      "index":44,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Viuf skole",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Elsa St\u00f8cken Andersen",
+      "Telefon":"20425400",
+      "E-mail":"elsaa@kolding.dk"
+    },
+    {
+      "index":45,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Social Indsats",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Amira Degn Bagge",
+      "Telefon":"70242647",
+      "E-mail":"amirab@kolding.dk"
+    },
+    {
+      "index":46,
+      "root":"Kolding Kommune",
+      "org":"Social og sundhed",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Grethe Friis Larsen",
+      "Telefon":"87484642",
+      "E-mail":"grethel@kolding.dk"
+    },
+    {
+      "index":47,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"B\u00f8rge Leerh\u00f8y Petersen",
+      "Telefon":"86470607",
+      "E-mail":"b\u00f8rgep@kolding.dk"
+    },
+    {
+      "index":48,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Belysning",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Erling Hansen Frederiksen",
+      "Telefon":"75600467",
+      "E-mail":"erlingf@kolding.dk"
+    },
+    {
+      "index":49,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Peder Katborg Thomsen",
+      "Telefon":"30030741",
+      "E-mail":"pedert@kolding.dk"
+    },
+    {
+      "index":50,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Kloakering",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Ester Breer Truelsen",
+      "Telefon":"72205266",
+      "E-mail":"estert@kolding.dk"
+    },
+    {
+      "index":51,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Kloakering",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"William Vinther",
+      "Telefon":"66662607",
+      "E-mail":"williamv@kolding.dk"
+    },
+    {
+      "index":52,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Park og vej",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Asbj\u00f8rn Trap Ladefoged",
+      "Telefon":"31751034",
+      "E-mail":"asbj\u00f8rnl@kolding.dk"
+    },
+    {
+      "index":53,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Renovation",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Svend Nielsen",
+      "Telefon":"37701652",
+      "E-mail":"sven@kolding.dk"
+    },
+    {
+      "index":54,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Renovation",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Ansvar":"Personale: ans\u00e6ttelse\/afskedigelse",
+      "Navn":"Vagn Halskov",
+      "Telefon":"88018381",
+      "E-mail":"vagnh@kolding.dk"
+    }
+  ]
+}

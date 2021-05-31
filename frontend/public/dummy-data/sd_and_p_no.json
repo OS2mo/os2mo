@@ -1,0 +1,664 @@
+{
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"root",
+        "type":"string"
+      },
+      {
+        "name":"org",
+        "type":"string"
+      },
+      {
+        "name":"sub org",
+        "type":"string"
+      },
+      {
+        "name":"2xsub org",
+        "type":"string"
+      },
+      {
+        "name":"3xsub org",
+        "type":"string"
+      },
+      {
+        "name":"Adresse",
+        "type":"string"
+      },
+      {
+        "name":"P-nummer",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"0.20.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "root":"Kolding Kommune",
+      "org":null,
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Castenskjoldsvej 2, 2., 6000 Kolding",
+      "P-nummer":"1866728518"
+    },
+    {
+      "index":1,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Baggesensvej 14, 6000 Kolding",
+      "P-nummer":"1880516418"
+    },
+    {
+      "index":2,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Budget og Planl\u00e6gning",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Kildeparken 64A, 6000 Kolding",
+      "P-nummer":"5424825851"
+    },
+    {
+      "index":3,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Byudvikling",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"S\u00f8gade 1C, st., 6580 Vamdrup",
+      "P-nummer":"3858102557"
+    },
+    {
+      "index":4,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"Erhverv",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Juliv\u00e6nget 51, Bramdrupdam, 6000 Kolding",
+      "P-nummer":"1104354713"
+    },
+    {
+      "index":5,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"HR og organisation",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Suomivej 4, 2. tv, 6000 Kolding",
+      "P-nummer":"8602643650"
+    },
+    {
+      "index":6,
+      "root":"Kolding Kommune",
+      "org":"Borgmesterens Afdeling",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Sct. J\u00f8rgens Gade 19, 6000 Kolding",
+      "P-nummer":"2048650855"
+    },
+    {
+      "index":7,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"M\u00f8lleparken 41, 6640 Lunderskov",
+      "P-nummer":"8504817135"
+    },
+    {
+      "index":8,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"S\u00f8nderbyvej 16L, Agtrup, 6091 Bjert",
+      "P-nummer":"4082245027"
+    },
+    {
+      "index":9,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Br\u00f8dsg\u00e5rdsvej 25, Stubdrup, 6000 Kolding",
+      "P-nummer":"1076771314"
+    },
+    {
+      "index":10,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Almind b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Vejlevej 436, 6000 Kolding",
+      "P-nummer":"2784041320"
+    },
+    {
+      "index":11,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Almind skole",
+      "3xsub org":null,
+      "Adresse":"Stagebjerg Alle 43, 6051 Almind",
+      "P-nummer":"5343455150"
+    },
+    {
+      "index":12,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Bjert b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Venusvej 20, 6000 Kolding",
+      "P-nummer":"4547583448"
+    },
+    {
+      "index":13,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Bjert b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Finmarken 102, 6000 Kolding",
+      "P-nummer":"2645762143"
+    },
+    {
+      "index":14,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Bjert skole",
+      "3xsub org":null,
+      "Adresse":"Skovvejen 16, 1. mf, 6000 Kolding",
+      "P-nummer":"7508406022"
+    },
+    {
+      "index":15,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"H\u00f8jvang Nord 28, 6580 Vamdrup",
+      "P-nummer":"4786025081"
+    },
+    {
+      "index":16,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Palmealle 32, 1. th, 6000 Kolding",
+      "P-nummer":"8117287631"
+    },
+    {
+      "index":17,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Adresse":"M\u00f8lleparken 44E, Vonsild, 6000 Kolding",
+      "P-nummer":"5675555234"
+    },
+    {
+      "index":18,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Christiansfeld skole",
+      "3xsub org":null,
+      "Adresse":"Olivenvej 65, Harte, 6000 Kolding",
+      "P-nummer":"6074565856"
+    },
+    {
+      "index":19,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Kragredevej 4, Bastrup, 6580 Vamdrup",
+      "P-nummer":"4744658211"
+    },
+    {
+      "index":20,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"S\u00f8nderborgvej 12, 1., 6000 Kolding",
+      "P-nummer":"6385158586"
+    },
+    {
+      "index":21,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Egtved skole",
+      "3xsub org":null,
+      "Adresse":"Birkedam 10X, Harte, 6000 Kolding",
+      "P-nummer":"8368186273"
+    },
+    {
+      "index":22,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Esbjergvej 20, 6000 Kolding",
+      "P-nummer":"5488118731"
+    },
+    {
+      "index":23,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Primulavej 15, 6000 Kolding",
+      "P-nummer":"4632736665"
+    },
+    {
+      "index":24,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Adresse":"Skovparken 99, 1. mf, 6000 Kolding",
+      "P-nummer":"7503240162"
+    },
+    {
+      "index":25,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Haderslev skole",
+      "3xsub org":null,
+      "Adresse":"K\u00e6mnerengen 68, 6000 Kolding",
+      "P-nummer":"2627471334"
+    },
+    {
+      "index":26,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Ole R\u00f8mers Vej 7, 6000 Kolding",
+      "P-nummer":"4165544352"
+    },
+    {
+      "index":27,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Juliv\u00e6nget 58, Bramdrupdam, 6000 Kolding",
+      "P-nummer":"1128505427"
+    },
+    {
+      "index":28,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Hejls skole",
+      "3xsub org":null,
+      "Adresse":"Fynsvej 101, 6000 Kolding",
+      "P-nummer":"3663781360"
+    },
+    {
+      "index":29,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Harev\u00e6nget 62, Strandhuse, 6000 Kolding",
+      "P-nummer":"1827447810"
+    },
+    {
+      "index":30,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Agtrupvej 198A, 6000 Kolding",
+      "P-nummer":"5651603147"
+    },
+    {
+      "index":31,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Jordrup skole",
+      "3xsub org":null,
+      "Adresse":"Vonsildvej 60, Vonsild, 6000 Kolding",
+      "P-nummer":"4881181612"
+    },
+    {
+      "index":32,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Kolding b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Olivenvej 61, Harte, 6000 Kolding",
+      "P-nummer":"5336865777"
+    },
+    {
+      "index":33,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Kolding skole",
+      "3xsub org":null,
+      "Adresse":"Egernvej 51, Strandhuse, 6000 Kolding",
+      "P-nummer":"6265831887"
+    },
+    {
+      "index":34,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Lunderskov b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Dalbyvej 22, Vonsild, 6000 Kolding",
+      "P-nummer":"6317582217"
+    },
+    {
+      "index":35,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Lunderskov skole",
+      "3xsub org":null,
+      "Adresse":"Bramdrupvej 4, Bramdrupdam, 6000 Kolding",
+      "P-nummer":"6527870440"
+    },
+    {
+      "index":36,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Bellah\u00f8jvej 6, Seest, 6000 Kolding",
+      "P-nummer":"2502420308"
+    },
+    {
+      "index":37,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Ankerhus 23, 6000 Kolding",
+      "P-nummer":"6361430577"
+    },
+    {
+      "index":38,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Adresse":"Munkev\u00e6nget 229, 6000 Kolding",
+      "P-nummer":"5616420628"
+    },
+    {
+      "index":39,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sj\u00f8lund skole",
+      "3xsub org":null,
+      "Adresse":"Hjerndrupvej 12, 6070 Christiansfeld",
+      "P-nummer":"5087062564"
+    },
+    {
+      "index":40,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Vejrupsgade 26, 3., 6000 Kolding",
+      "P-nummer":"7175426465"
+    },
+    {
+      "index":41,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Haderslevvej 131, kl., 6000 Kolding",
+      "P-nummer":"1676376784"
+    },
+    {
+      "index":42,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Sommersted skole",
+      "3xsub org":null,
+      "Adresse":"N\u00f8rrev\u00e6nget 21, Agtrup, 6091 Bjert",
+      "P-nummer":"8580388422"
+    },
+    {
+      "index":43,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Palmealle 24, 2. tv, 6000 Kolding",
+      "P-nummer":"8534433872"
+    },
+    {
+      "index":44,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup b\u00f8rnehus",
+      "3xsub org":"Administration",
+      "Adresse":"Gl. \u00c5lbovej 4, 6092 S\u00f8nder Stenderup",
+      "P-nummer":"8504774245"
+    },
+    {
+      "index":45,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup b\u00f8rnehus",
+      "3xsub org":"Teknisk Support",
+      "Adresse":"S\u00f8eg\u00e5rdsvej 15, 6640 Lunderskov",
+      "P-nummer":"5215602865"
+    },
+    {
+      "index":46,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"S\u00f8nder Stenderup skole",
+      "3xsub org":null,
+      "Adresse":"Sysselhaven 8, 6051 Almind",
+      "P-nummer":"4207273683"
+    },
+    {
+      "index":47,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Vamdrup b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Kirseb\u00e6rvej 16, st. 6, Bramdrupdam, 6000 Kolding",
+      "P-nummer":"2364231555"
+    },
+    {
+      "index":48,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Vamdrup skole",
+      "3xsub org":null,
+      "Adresse":"Seest Bakke 73, 6000 Kolding",
+      "P-nummer":"5010273086"
+    },
+    {
+      "index":49,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Viuf b\u00f8rnehus",
+      "3xsub org":null,
+      "Adresse":"Kirkeg\u00e5rds Alle 1, st., 6070 Christiansfeld",
+      "P-nummer":"2628541804"
+    },
+    {
+      "index":50,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Skoler og b\u00f8rnehaver",
+      "2xsub org":"Viuf skole",
+      "3xsub org":null,
+      "Adresse":"N\u00e6sbyvej 26, 6000 Kolding",
+      "P-nummer":"1405348520"
+    },
+    {
+      "index":51,
+      "root":"Kolding Kommune",
+      "org":"Skole og B\u00f8rn",
+      "sub org":"Social Indsats",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Egev\u00e6nget 40, 6640 Lunderskov",
+      "P-nummer":"1341888663"
+    },
+    {
+      "index":52,
+      "root":"Kolding Kommune",
+      "org":"Social og sundhed",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Fjordvej 11A, Strandhuse, 6000 Kolding",
+      "P-nummer":"5617104140"
+    },
+    {
+      "index":53,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":null,
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Stejlbjergvej 33, 2. tv, 6000 Kolding",
+      "P-nummer":"2382252517"
+    },
+    {
+      "index":54,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Belysning",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Palmealle 2, st. 7, 6000 Kolding",
+      "P-nummer":"6171087581"
+    },
+    {
+      "index":55,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Belysning",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Adresse":"Kongehusvej 16, 1., 6000 Kolding",
+      "P-nummer":"2236664205"
+    },
+    {
+      "index":56,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"IT-Support",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Langagervej 40, Seest, 6000 Kolding",
+      "P-nummer":"3404376343"
+    },
+    {
+      "index":57,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Kloakering",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Hjarupvej 10, 1. 115, Vonsild, 6000 Kolding",
+      "P-nummer":"1427818673"
+    },
+    {
+      "index":58,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Kloakering",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Adresse":"H. Thornings Vej 3, 6000 Kolding",
+      "P-nummer":"3325718075"
+    },
+    {
+      "index":59,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Park og vej",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Olaf Ryes Gade 7E, st. tv, 6000 Kolding",
+      "P-nummer":"7513376834"
+    },
+    {
+      "index":60,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Renovation",
+      "2xsub org":null,
+      "3xsub org":null,
+      "Adresse":"Hjarupvej 10, 2. 209, Vonsild, 6000 Kolding",
+      "P-nummer":"7476258322"
+    },
+    {
+      "index":61,
+      "root":"Kolding Kommune",
+      "org":"Teknik og Milj\u00f8",
+      "sub org":"Renovation",
+      "2xsub org":"Kantine",
+      "3xsub org":null,
+      "Adresse":"Fjordvej 160, 7, Strandhuse, 6000 Kolding",
+      "P-nummer":"7474822018"
+    }
+  ]
+}
