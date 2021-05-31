@@ -15,7 +15,7 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from ramodels.mo.employee import Employee
-
+from tests.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
 # Tests
@@ -29,31 +29,43 @@ def valid_cprs(draw):
     return valid_date.strftime("%d%m%y") + valid_code
 
 
+@st.composite
+def employee_strat(draw):
+    required = {"name": st.text()}
+    optional = {
+        "type": st.just("employee"),
+        "cpr_no": valid_cprs() | st.none(),
+        "seniority": st.datetimes() | st.none(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
 class TestEmployee:
     invalid_cprs = st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None)
+    st.text().filter(lambda s: s != "employee")
+
+    @given(employee_strat())
+    def test_init(self, model_dict):
+        assert Employee(**model_dict)
 
     @given(
+        employee_strat(),
         st.text().filter(lambda s: s != "employee"),
-        st.text(),
-        valid_cprs(),
+        st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None),
         st.dates(),
     )
-    def test_init(self, type, name, cpr_no, hy_date):
-        # Required
-        assert Employee(name=name)
-
-        # Optional
-        assert Employee(name=name, cpr_no=cpr_no, seniority=hy_date)
-
-        # type value error
-        with pytest.raises(ValidationError, match="unexpected value;"):
-            Employee(type=type, name=name)
-
-    @given(st.text(), invalid_cprs, st.dates())
-    def test_validators(self, name, invalid_cpr, hy_date):
+    def test_validators(self, model_dict, invalid_type, invalid_cpr, sen_date):
+        with unexpected_value_error():
+            _dict = model_dict.copy()
+            _dict["type"] = invalid_type
+            Employee(**_dict)
         with pytest.raises(ValidationError, match="string does not match regex"):
-            Employee(name=name, cpr_no=invalid_cpr)
+            _dict = model_dict.copy()
+            _dict["cpr_no"] = invalid_cpr
+            Employee(**_dict)
 
-        empl = Employee(name=name, seniority=hy_date)
+        model_dict["seniority"] = sen_date
+        empl = Employee(**model_dict)
         assert isinstance(empl.seniority, datetime)
         assert empl.seniority.tzinfo
