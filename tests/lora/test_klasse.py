@@ -6,18 +6,16 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import date
+
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
-from .test__shared import valid_fref
-from .test__shared import valid_klsprop
-from .test__shared import valid_pub
-from .test__shared import valid_resp
+from .test__shared import valid_klasse_attrs
+from .test__shared import valid_klasse_relations
+from .test__shared import valid_klasse_states
 from ramodels.lora import Klasse
-from ramodels.lora._shared import KlasseAttributes
-from ramodels.lora._shared import KlasseRelations
-from ramodels.lora._shared import KlasseStates
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -25,56 +23,47 @@ from ramodels.lora._shared import KlasseStates
 
 
 @st.composite
-def valid_ka(draw):
-    kp_list = draw(st.lists(valid_klsprop(), min_size=1, max_size=1))
-    return KlasseAttributes(properties=kp_list)
+def klasse_strat(draw):
+    required = {
+        "attributes": valid_klasse_attrs(),
+        "states": valid_klasse_states(),
+        "relations": valid_klasse_relations(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required))
+    return st_dict
 
 
 @st.composite
-def valid_ks(draw):
-    pub_list = draw(st.lists(valid_pub(), min_size=1, max_size=1))
-    return KlasseStates(published_state=pub_list)
+def klasse_fsf_strat(draw):
+    required = {
+        "facet_uuid": st.uuids(),
+        "uuid": st.uuids(),
+        "user_key": st.text(),
+        "organisation_uuid": st.uuids(),
+        "title": st.text(),
+    }
+    iso_dt = st.dates().map(lambda date: date.isoformat())
+    optional = {"scope": st.text() | st.none(), "from_date": iso_dt, "to_date": iso_dt}
 
+    # mypy has for some reason decided that required has an invalid type :(
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
 
-@st.composite
-def valid_kr(draw):
-    resp_list = draw(st.lists(valid_resp(), min_size=1, max_size=1))
-    fref_list = draw(st.lists(valid_fref(), min_size=1, max_size=1))
-    return KlasseRelations(responsible=resp_list, facet=fref_list)
-
-
-@st.composite
-def valid_dt_range(draw):
-    from_dt = draw(st.dates())
-    to_dt = draw(st.dates())
-    assume(from_dt < to_dt)
-    return from_dt.isoformat(), to_dt.isoformat()
+    # from_date must be strictly less than to_date in all cases
+    if st_dict.get("to_date") and st_dict.get("from_date") is None:
+        assume(date.fromisoformat(st_dict["to_date"]) > date(1930, 1, 1))
+    if all([st_dict.get("from_date"), st_dict.get("to_date")]):
+        assume(
+            date.fromisoformat(st_dict["from_date"])
+            < date.fromisoformat(st_dict["to_date"])
+        )
+    return st_dict
 
 
 class TestKlasse:
-    @given(valid_ka(), valid_ks(), valid_kr())
-    def test_init(self, valid_ka, valid_ks, valid_kr):
-        assert Klasse(attributes=valid_ka, states=valid_ks, relations=valid_kr)
+    @given(klasse_strat())
+    def test_init(self, model_dict):
+        assert Klasse(**model_dict)
 
-    @given(
-        st.uuids(),
-        st.uuids(),
-        st.text(),
-        st.text(),
-        st.uuids(),
-        st.text(),
-        valid_dt_range(),
-    )
-    def test_from_simplified_fields(
-        self, facet_uuid, uuid, user_key, scope, org_uuid, title, valid_dts
-    ):
-        # Required
-        assert Klasse.from_simplified_fields(
-            facet_uuid, uuid, user_key, org_uuid, title
-        )
-
-        # Optional
-        from_dt, to_dt = valid_dts
-        assert Klasse.from_simplified_fields(
-            facet_uuid, uuid, user_key, org_uuid, title, scope, from_dt, to_dt
-        )
+    @given(klasse_fsf_strat())
+    def test_from_simplified_fields(self, simp_fields_dict):
+        assert Klasse.from_simplified_fields(**simp_fields_dict)

@@ -545,6 +545,12 @@ class TestKlasseRelations:
             KlasseRelations(**model_dict)
 
 
+@st.composite
+def valid_klasse_relations(draw):
+    model_dict = draw(klasse_relations_strat())
+    return KlasseRelations(**model_dict)
+
+
 # --------------------------------------------------------------------------------------
 # KlasseAttributes
 # --------------------------------------------------------------------------------------
@@ -572,6 +578,12 @@ class TestKlasseAttributes:
             KlasseAttributes(**model_dict)
 
 
+@st.composite
+def valid_klasse_attrs(draw):
+    model_dict = draw(klasse_attr_strat())
+    return KlasseAttributes(**model_dict)
+
+
 # --------------------------------------------------------------------------------------
 # KlasseStates
 # --------------------------------------------------------------------------------------
@@ -597,6 +609,12 @@ class TestKlasseStates:
         model_dict["published_state"] = invalid_pub_list
         with single_item_error():
             KlasseStates(**model_dict)
+
+
+@st.composite
+def valid_klasse_states(draw):
+    model_dict = draw(klasse_states_strat())
+    return KlasseStates(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
