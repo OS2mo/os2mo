@@ -438,7 +438,8 @@ def facet_relations_strat(draw):
 @st.composite
 def invalid_facet_relations_strat(draw):
     required = {
-        "responsible": st.lists(valid_resp(), min_size=2)
+        # Max size explicitly set for faster data generation
+        "responsible": st.lists(valid_resp(), min_size=2, max_size=5)
         | st.lists(valid_resp(), max_size=0)
     }
     st_dict = draw(st.fixed_dictionaries(required))
@@ -511,18 +512,22 @@ class TestKlasseRelations:
     def test_init(self, model_dict):
         assert KlasseRelations(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         klasse_relations_strat(),
-        st.lists(valid_resp(), min_size=2) | st.lists(valid_resp(), max_size=0),
+        st.lists(valid_resp(), min_size=2, max_size=5)
+        | st.lists(valid_resp(), max_size=0),
     )
     def test_validators_resp(self, model_dict, invalid_resp):
         model_dict["responsible"] = invalid_resp
         with single_item_error():
             KlasseRelations(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         klasse_relations_strat(),
-        st.lists(valid_fref(), min_size=2) | st.lists(valid_resp(), max_size=0),
+        st.lists(valid_fref(), min_size=2, max_size=5)
+        | st.lists(valid_resp(), max_size=0),
     )
     def test_validators_fref(self, model_dict, invalid_fref):
         model_dict["facet"] = invalid_fref
@@ -553,9 +558,11 @@ class TestKlasseAttributes:
     def test_init(self, model_dict):
         assert KlasseAttributes(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         klasse_attr_strat(),
-        st.lists(valid_klsprop(), min_size=2) | st.lists(valid_klsprop(), max_size=0),
+        st.lists(valid_klsprop(), min_size=2, max_size=5)
+        | st.lists(valid_klsprop(), max_size=0),
     )
     def test_validators(self, model_dict, invalid_klsprop):
         model_dict["properties"] = invalid_klsprop
@@ -586,9 +593,11 @@ class TestKlasseStates:
     def test_init(self, model_dict):
         assert KlasseStates(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         klasse_states_strat(),
-        st.lists(valid_pub(), min_size=2) | st.lists(valid_pub(), max_size=0),
+        st.lists(valid_pub(), min_size=2, max_size=5)
+        | st.lists(valid_pub(), max_size=0),
     )
     def test_validators(self, model_dict, invalid_pub_list):
         model_dict["published_state"] = invalid_pub_list
@@ -643,9 +652,11 @@ class TestOrganisationAttributes:
     def test_init(self, model_dict):
         assert OrganisationAttributes(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         org_attr_strat(),
-        st.lists(valid_orgprop(), min_size=2) | st.lists(valid_orgprop(), max_size=0),
+        st.lists(valid_orgprop(), min_size=2, max_size=5)
+        | st.lists(valid_orgprop(), max_size=0),
     )
     def test_validators(self, model_dict, invalid_orgprop):
         model_dict["properties"] = invalid_orgprop
@@ -701,9 +712,11 @@ class TestOrganisationStates:
     def test_init(self, model_dict):
         assert OrganisationStates(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         org_states_strat(),
-        st.lists(valid_orgstate(), min_size=2) | st.lists(valid_orgstate(), max_size=0),
+        st.lists(valid_orgstate(), min_size=2, max_size=5)
+        | st.lists(valid_orgstate(), max_size=0),
     )
     def test_validators(self, model_dict, invalid_orgstate):
         model_dict["valid_state"] = invalid_orgstate
@@ -734,9 +747,11 @@ class TestOrganisationRelations:
     def test_init(self, model_dict):
         assert OrganisationRelations(**model_dict)
 
+    # Max size explicitly set for faster data generation
     @given(
         org_relations_strat(),
-        st.lists(valid_auth(), min_size=2) | st.lists(valid_auth(), max_size=0),
+        st.lists(valid_auth(), min_size=2, max_size=5)
+        | st.lists(valid_auth(), max_size=0),
     )
     def test_validators(self, model_dict, invalid_auth):
         model_dict["authority"] = invalid_auth

@@ -10,6 +10,8 @@ from datetime import date
 
 from hypothesis import assume
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 
 from .test__shared import valid_klasse_attrs
@@ -60,6 +62,8 @@ def klasse_fsf_strat(draw):
 
 
 class TestKlasse:
+    # Data generation will be slow due to the nested nature of LoRa models
+    @settings(suppress_health_check=[HealthCheck.too_slow])
     @given(klasse_strat())
     def test_init(self, model_dict):
         assert Klasse(**model_dict)

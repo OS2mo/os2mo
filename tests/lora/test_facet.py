@@ -10,6 +10,8 @@ from datetime import date
 
 from hypothesis import assume
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
 from hypothesis import strategies as st
 
 from .test__shared import valid_facet_attrs
@@ -59,6 +61,8 @@ def facet_fsf_strat(draw):
 
 
 class TestFacet:
+    # Data generation will be slow due to the nested nature of LoRa models
+    @settings(suppress_health_check=[HealthCheck.too_slow])
     @given(facet_strat())
     def test_init(self, model_dict):
         assert Facet(**model_dict)
