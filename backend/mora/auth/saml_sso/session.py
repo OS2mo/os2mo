@@ -109,7 +109,7 @@ class SessionInterface:
     def save_session(self, session: SqlAlchemySession, response):
         store_id = self.key_prefix + session.sid
 
-        expires = self.get_expiration_time()
+        expires = self.get_expiration_time(api_token=True)
 
         val = pickle.dumps(dict(session))
         with db():
