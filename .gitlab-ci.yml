@@ -37,7 +37,12 @@ stages:
   <<: *install-deps
   needs: []
   stage: test
-  script: poetry run pytest
+  script:
+    - poetry run pytest --cov=ramodels
+    - coverage xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
   variables:
     HYPOTHESIS_PROFILE: ci
 
