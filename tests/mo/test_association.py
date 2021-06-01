@@ -12,12 +12,12 @@ from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import AssociationType
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
+from ramodels.mo._shared import Validity
 from ramodels.mo.association import Association
 from tests.conftest import unexpected_value_error
-from tests.mo.test__shared import valid_assoc_type
-from tests.mo.test__shared import valid_org_unit_ref
-from tests.mo.test__shared import valid_pers
-from tests.mo.test__shared import valid_validity
 
 # ---------------------------------------------------------------------------------------
 # Tests
@@ -27,13 +27,13 @@ from tests.mo.test__shared import valid_validity
 @st.composite
 def association_strat(draw):
     required = {
-        "org_unit": valid_org_unit_ref(),
-        "person": valid_pers(),
-        "association_type": valid_assoc_type(),
-        "validity": valid_validity(),
+        "org_unit": st.builds(OrgUnitRef),
+        "person": st.builds(PersonRef),
+        "association_type": st.builds(AssociationType),
+        "validity": st.builds(Validity),
     }
     optional = {"type": st.just("association")}
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 
@@ -65,7 +65,7 @@ class TestAssociation:
         assert Association(**model_dict)
 
     @given(association_strat(), st.text().filter(lambda s: s != "association"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_invalid_type(self, model_dict, invalid_type):
         model_dict["type"] = invalid_type
         with unexpected_value_error():
             Association(**model_dict)

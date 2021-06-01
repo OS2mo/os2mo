@@ -13,13 +13,13 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from ramodels.mo import Manager
+from ramodels.mo._shared import ManagerLevel
+from ramodels.mo._shared import ManagerType
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
+from ramodels.mo._shared import Responsibility
+from ramodels.mo._shared import Validity
 from tests.conftest import unexpected_value_error
-from tests.mo.test__shared import valid_man_level
-from tests.mo.test__shared import valid_man_type
-from tests.mo.test__shared import valid_org_unit_ref
-from tests.mo.test__shared import valid_pers
-from tests.mo.test__shared import valid_resp
-from tests.mo.test__shared import valid_validity
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -29,16 +29,16 @@ from tests.mo.test__shared import valid_validity
 @st.composite
 def manager_strat(draw):
     required = {
-        "org_unit": valid_org_unit_ref(),
-        "person": valid_pers(),
-        "responsibility": st.lists(valid_resp()),
-        "manager_level": valid_man_level(),
-        "manager_type": valid_man_type(),
-        "validity": valid_validity(),
+        "org_unit": st.builds(OrgUnitRef),
+        "person": st.builds(PersonRef),
+        "responsibility": st.lists(st.builds(Responsibility)),
+        "manager_level": st.builds(ManagerLevel),
+        "manager_type": st.builds(ManagerType),
+        "validity": st.builds(Validity),
     }
     optional = {"type": st.just("manager")}
 
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 

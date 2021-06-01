@@ -10,15 +10,15 @@ from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import AddressType
+from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import OrganisationRef
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
+from ramodels.mo._shared import Validity
+from ramodels.mo._shared import Visibility
 from ramodels.mo.address import Address
 from tests.conftest import unexpected_value_error
-from tests.mo.test__shared import valid_addr_type
-from tests.mo.test__shared import valid_eng_ref
-from tests.mo.test__shared import valid_org_ref
-from tests.mo.test__shared import valid_org_unit_ref
-from tests.mo.test__shared import valid_pers
-from tests.mo.test__shared import valid_validity
-from tests.mo.test__shared import valid_vis
 
 # ---------------------------------------------------------------------------------------
 # Tests
@@ -29,20 +29,20 @@ from tests.mo.test__shared import valid_vis
 def address_strat(draw):
     required = {
         "value": st.text(),
-        "address_type": valid_addr_type(),
-        "org": valid_org_ref(),
-        "validity": valid_validity(),
+        "address_type": st.builds(AddressType),
+        "org": st.builds(OrganisationRef),
+        "validity": st.builds(Validity),
     }
 
     optional = {
         "type": st.just("address"),
         "value2": st.text() | st.none(),
-        "person": valid_pers() | st.none(),
-        "org_unit": valid_org_unit_ref() | st.none(),
-        "engagement": valid_eng_ref() | st.none(),
-        "visibility": valid_vis() | st.none(),
+        "person": st.builds(PersonRef) | st.none(),
+        "org_unit": st.builds(OrgUnitRef) | st.none(),
+        "engagement": st.builds(EngagementRef) | st.none(),
+        "visibility": st.builds(Visibility) | st.none(),
     }
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 
@@ -78,7 +78,7 @@ class TestAddress:
         assert Address(**model_dict)
 
     @given(address_strat(), st.text().filter(lambda s: s != "address"))
-    def test_validators(self, model_dict, invalid_type):
+    def test_invalid_type(self, model_dict, invalid_type):
         model_dict["type"] = invalid_type
         with unexpected_value_error():
             Address(**model_dict)

@@ -12,13 +12,13 @@ from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import OrgUnitHierarchy
+from ramodels.mo._shared import OrgUnitLevel
+from ramodels.mo._shared import OrgUnitType
+from ramodels.mo._shared import ParentRef
+from ramodels.mo._shared import Validity
 from ramodels.mo.organisation_unit import OrganisationUnit
 from tests.conftest import unexpected_value_error
-from tests.mo.test__shared import valid_org_unit_hier
-from tests.mo.test__shared import valid_org_unit_level
-from tests.mo.test__shared import valid_org_unit_type
-from tests.mo.test__shared import valid_parent
-from tests.mo.test__shared import valid_validity
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -29,18 +29,18 @@ from tests.mo.test__shared import valid_validity
 def organisation_unit_strat(draw):
     required = {
         "user_key": st.text(),
-        "validity": valid_validity(),
+        "validity": st.builds(Validity),
         "name": st.text(),
-        "org_unit_type": valid_org_unit_type(),
-        "org_unit_level": valid_org_unit_level(),
+        "org_unit_type": st.builds(OrgUnitType),
+        "org_unit_level": st.builds(OrgUnitLevel),
     }
     optional = {
         "type": st.just("org_unit"),
-        "parent": valid_parent() | st.none(),
-        "org_unit_hierarchy": valid_org_unit_hier() | st.none(),
+        "parent": st.builds(ParentRef) | st.none(),
+        "org_unit_hierarchy": st.builds(OrgUnitHierarchy) | st.none(),
     }
 
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 

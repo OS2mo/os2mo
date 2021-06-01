@@ -12,17 +12,17 @@ from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import EngagementAssociationType
+from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import EngagementType
+from ramodels.mo._shared import JobFunction
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
+from ramodels.mo._shared import Primary
+from ramodels.mo._shared import Validity
 from ramodels.mo.engagement import Engagement
 from ramodels.mo.engagement import EngagementAssociation
 from tests.conftest import unexpected_value_error
-from tests.mo.test__shared import valid_eng_assoc_type
-from tests.mo.test__shared import valid_eng_ref
-from tests.mo.test__shared import valid_eng_type
-from tests.mo.test__shared import valid_job_fun
-from tests.mo.test__shared import valid_org_unit_ref
-from tests.mo.test__shared import valid_pers
-from tests.mo.test__shared import valid_primary
-from tests.mo.test__shared import valid_validity
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -32,12 +32,12 @@ from tests.mo.test__shared import valid_validity
 @st.composite
 def engagement_strat(draw):
     required = {
-        "org_unit": valid_org_unit_ref(),
-        "person": valid_pers(),
-        "job_function": valid_job_fun(),
-        "engagement_type": valid_eng_type(),
-        "validity": valid_validity(),
-        "primary": valid_primary(),
+        "org_unit": st.builds(OrgUnitRef),
+        "person": st.builds(PersonRef),
+        "job_function": st.builds(JobFunction),
+        "engagement_type": st.builds(EngagementType),
+        "validity": st.builds(Validity),
+        "primary": st.builds(Primary),
         "user_key": st.text(),
     }
     optional = {
@@ -53,7 +53,7 @@ def engagement_strat(draw):
         "extension_9": st.text() | st.none(),
         "extension_10": st.text() | st.none(),
     }
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 
@@ -111,13 +111,13 @@ class TestEngagement:
 @st.composite
 def engagement_assoc_strat(draw):
     required = {
-        "org_unit": valid_org_unit_ref(),
-        "engagement": valid_eng_ref(),
-        "engagement_association_type": valid_eng_assoc_type(),
-        "validity": valid_validity(),
+        "org_unit": st.builds(OrgUnitRef),
+        "engagement": st.builds(EngagementRef),
+        "engagement_association_type": st.builds(EngagementAssociationType),
+        "validity": st.builds(Validity),
     }
     optional = {"type": st.just("engagement_association")}
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 

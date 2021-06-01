@@ -45,72 +45,76 @@ class MOBase(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class AddressType(RABase):
+class MORef(RABase):
     uuid: UUID
 
 
-class EngagementAssociationType(RABase):
-    uuid: UUID
+class AddressType(MORef):
+    pass
 
 
-class EngagementRef(RABase):
-    uuid: UUID
+class EngagementAssociationType(MORef):
+    pass
 
 
-class EngagementType(RABase):
-    uuid: UUID
+class EngagementRef(MORef):
+    pass
 
 
-class AssociationType(RABase):
-    uuid: UUID
+class EngagementType(MORef):
+    pass
 
 
-class JobFunction(RABase):
-    uuid: UUID
+class AssociationType(MORef):
+    pass
 
 
-class ManagerLevel(RABase):
-    uuid: UUID
+class JobFunction(MORef):
+    pass
 
 
-class ManagerType(RABase):
-    uuid: UUID
+class ManagerLevel(MORef):
+    pass
 
 
-class OrganisationRef(RABase):
-    uuid: UUID
+class ManagerType(MORef):
+    pass
 
 
-class OrgUnitHierarchy(RABase):
-    uuid: UUID
+class OrganisationRef(MORef):
+    pass
 
 
-class OrgUnitLevel(RABase):
-    uuid: UUID
+class OrgUnitHierarchy(MORef):
+    pass
 
 
-class OrgUnitRef(RABase):
-    uuid: UUID
+class OrgUnitLevel(MORef):
+    pass
 
 
-class OrgUnitType(RABase):
-    uuid: UUID
+class OrgUnitRef(MORef):
+    pass
 
 
-class ParentRef(RABase):
-    uuid: UUID
+class OrgUnitType(MORef):
+    pass
 
 
-class PersonRef(RABase):
-    uuid: UUID
+class ParentRef(MORef):
+    pass
 
 
-class Primary(RABase):
-    uuid: UUID
+class PersonRef(MORef):
+    pass
 
 
-class Responsibility(RABase):
-    uuid: UUID
+class Primary(MORef):
+    pass
+
+
+class Responsibility(MORef):
+    pass
 
 
 class Validity(RABase):
@@ -136,5 +140,5 @@ class Validity(RABase):
         return values
 
 
-class Visibility(RABase):
-    uuid: UUID
+class Visibility(MORef):
+    pass
