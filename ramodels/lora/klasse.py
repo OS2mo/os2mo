@@ -43,7 +43,7 @@ class Klasse(LoraBase):
         scope: Optional[str] = None,
         from_date: str = "1930-01-01",
         to_date: str = "infinity",
-    ):
+    ) -> "Klasse":
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = KlasseProperties(

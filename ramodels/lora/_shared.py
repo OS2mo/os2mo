@@ -10,6 +10,7 @@ from datetime import datetime
 from functools import total_ordering
 from typing import Any
 from typing import Callable
+from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Literal
@@ -37,7 +38,7 @@ from ramodels.base import tz_isodate
 class LoraBase(RABase):
     # TODO: This is duplicated to each class that cannot be instantiated.
     # We should probably find a better solution.
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is LoraBase:
             raise TypeError("LoraBase may not be instantiated")
         return super().__new__(cls)
@@ -112,7 +113,7 @@ class InfiniteDatetime(str):
         dt = tz_isodate(value)
         return cls(dt.isoformat())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"InfiniteDatetime({super().__repr__()})"
 
     def __lt__(self, other: Any) -> bool:
@@ -155,9 +156,11 @@ class EffectiveTime(RABase):
     to_date: InfiniteDatetime = Field(alias="to")
 
     @root_validator
-    def check_from_lt_to(cls, values):
+    def check_from_lt_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         from_date, to_date = values.get("from_date"), values.get("to_date")
-        if all([from_date, to_date]) and not (from_date < to_date):
+        # Mypy complains here about unsupported use of operators due to Nones,
+        # but we catch those with if all...
+        if all([from_date, to_date]) and not (from_date < to_date):  # type: ignore
             raise ValueError("from_date must be strictly less than to_date")
         return values
 

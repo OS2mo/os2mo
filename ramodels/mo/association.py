@@ -37,7 +37,7 @@ class Association(MOBase):
         association_type_uuid: UUID,
         from_date: str = "1930-01-01",
         to_date: Optional[str] = None,
-    ):
+    ) -> "Association":
         validity = Validity(from_date=from_date, to_date=to_date)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         person = PersonRef(uuid=person_uuid)

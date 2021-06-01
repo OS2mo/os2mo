@@ -51,7 +51,7 @@ class Address(MOBase):
         org_unit_uuid: Optional[UUID] = None,
         engagement_uuid: Optional[UUID] = None,
         visibility_uuid: Optional[UUID] = None,
-    ):
+    ) -> "Address":
         address_type = AddressType(uuid=address_type_uuid)
         org = OrganisationRef(uuid=org_uuid)
         validity = Validity(from_date=from_date, to_date=to_date)

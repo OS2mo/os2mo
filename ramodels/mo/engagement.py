@@ -67,7 +67,7 @@ class Engagement(MOBase):
         extension_8: Optional[str] = None,
         extension_9: Optional[str] = None,
         extension_10: Optional[str] = None,
-    ):
+    ) -> "Engagement":
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         person = PersonRef(uuid=person_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
@@ -112,7 +112,7 @@ class EngagementAssociation(MOBase):
         engagement_association_type_uuid: UUID,
         from_date: str = "1930-01-01",
         to_date: Optional[str] = None,
-    ):
+    ) -> "EngagementAssociation":
         validity = Validity(from_date=from_date, to_date=to_date)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         engagement = EngagementRef(uuid=engagement_uuid)

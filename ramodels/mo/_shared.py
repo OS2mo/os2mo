@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
+from typing import Dict
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
@@ -26,7 +27,7 @@ from ramodels.base import tz_isodate
 
 
 class MOBase(RABase):
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is MOBase:
             raise TypeError("MOBase may not be instantiated")
         return super().__new__(cls)
@@ -125,7 +126,7 @@ class Validity(RABase):
         return tz_isodate(to_date) if to_date is not None else None
 
     @root_validator
-    def check_from_leq_to(cls, values):
+    def check_from_leq_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         # Note: the values of from_date & to_date are not changed here
         # just leq compared.
         cmp_from_dt, _to_dt = values.get("from_date"), values.get("to_date")

@@ -38,7 +38,7 @@ class Facet(LoraBase):
         organisation_uuid: UUID,
         from_date: str = "1930-01-01",
         to_date: str = "infinity",
-    ):
+    ) -> "Facet":
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = FacetProperties(user_key=user_key, effective_time=_effective_time)
