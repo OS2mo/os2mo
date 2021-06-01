@@ -42,9 +42,6 @@ def employee_strat(draw):
 
 
 class TestEmployee:
-    invalid_cprs = st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None)
-    st.text().filter(lambda s: s != "employee")
-
     @given(employee_strat())
     def test_init(self, model_dict):
         assert Employee(**model_dict)
@@ -52,19 +49,26 @@ class TestEmployee:
     @given(
         employee_strat(),
         st.text().filter(lambda s: s != "employee"),
-        st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None),
-        st.dates(),
     )
-    def test_validators(self, model_dict, invalid_type, invalid_cpr, sen_date):
+    def test_invalid_type(self, model_dict, invalid_type):
         with unexpected_value_error():
-            _dict = model_dict.copy()
-            _dict["type"] = invalid_type
-            Employee(**_dict)
-        with pytest.raises(ValidationError, match="string does not match regex"):
-            _dict = model_dict.copy()
-            _dict["cpr_no"] = invalid_cpr
-            Employee(**_dict)
+            model_dict["type"] = invalid_type
+            Employee(**model_dict)
 
+    @given(
+        employee_strat(),
+        st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None),
+    )
+    def test_invalid_cpr(self, model_dict, invalid_cpr):
+        with pytest.raises(ValidationError, match="string does not match regex"):
+            model_dict["cpr_no"] = invalid_cpr
+            Employee(**model_dict)
+
+    @given(
+        employee_strat(),
+        st.dates() | st.dates().map(lambda date: date.isoformat()),
+    )
+    def test_validators(self, model_dict, sen_date):
         model_dict["seniority"] = sen_date
         empl = Employee(**model_dict)
         assert isinstance(empl.seniority, datetime)

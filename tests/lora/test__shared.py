@@ -215,8 +215,6 @@ def authority_strat(draw):
 
 
 class TestAuthority:
-    invalid_urns = st.text().filter(lambda s: urn_regex.match(s) is None)
-
     @given(authority_strat())
     def test_init(self, model_dict):
         assert Authority(**model_dict)
