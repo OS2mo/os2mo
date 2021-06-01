@@ -6,24 +6,30 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import os
+from datetime import timedelta
 from functools import partial
 
+import hypothesis as ht
 import pytest
-from hypothesis import assume
-from hypothesis import strategies as st
 from pydantic import ValidationError
+
+# --------------------------------------------------------------------------------------
+# Settings
+# --------------------------------------------------------------------------------------
+ht.settings.register_profile("ci", max_examples=100, deadline=None)
+ht.settings.register_profile("dev", max_examples=10, deadline=timedelta(seconds=2))
+ht.settings.register_profile(
+    "debug",
+    max_examples=10,
+    deadline=timedelta(seconds=2),
+    verbosity=ht.Verbosity.verbose,
+)
+ht.settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "default"))
 
 # --------------------------------------------------------------------------------------
 # Shared fixtures and strategies
 # --------------------------------------------------------------------------------------
-
-
-@st.composite
-def valid_dt_range(draw):
-    from_dt = draw(st.dates())
-    to_dt = draw(st.dates())
-    assume(from_dt <= to_dt)
-    return from_dt.isoformat(), to_dt.isoformat()
 
 
 unexpected_value_error = partial(
