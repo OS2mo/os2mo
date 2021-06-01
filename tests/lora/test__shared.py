@@ -9,17 +9,15 @@
 import re
 from datetime import datetime
 from functools import partial
-from typing import List
-from typing import Union
 
 import pytest
-from hypothesis import assume
 from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import BaseModel
 from pydantic import ValidationError
 
+from ramodels.exceptions import ISOParseError
 from ramodels.lora._shared import Authority
 from ramodels.lora._shared import EffectiveTime
 from ramodels.lora._shared import FacetAttributes
@@ -40,7 +38,10 @@ from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
+from tests.conftest import date_strat
+from tests.conftest import tz_dt_strat
 from tests.conftest import unexpected_value_error
+from tests.test_base import is_isodt_str
 
 single_item_error = partial(
     pytest.raises,
@@ -86,73 +87,102 @@ class TestLoraBase:
 # --------------------------------------------------------------------------------------
 
 
+@st.composite
+def inf_dt_strat(draw):
+    valid_str = (
+        date_strat().map(lambda date: date.isoformat())  # type: ignore
+        | st.just("-infinity")
+        | st.just("infinity")
+    )
+    return draw(tz_dt_strat() | valid_str)
+
+
 class TestInfiniteDatetime:
-    fail_int = 1
-    fail_str = "fail"
-    # TODO: We need a test strategy to generate this type of data
-    # Biggest issue is probably date/datetime strings?
-    accept_dt: List[Union[str, datetime]] = [
-        "infinity",
-        "-infinity",
-        "2011-06-26",
-        datetime(2060, 12, 15),
-    ]
-
-    @given(st.text(), st.integers())
-    def test_init(self, hy_str, hy_int):
+    @given(
+        st.text().filter(
+            lambda s: not is_isodt_str(s) and s not in {"-infinity", "infinity"}
+        ),
+        st.integers(),
+    )
+    def test_init(self, ht_str, ht_int):
         # Unfortunately, this currently works just fine :(
-        assert InfiniteDatetime(hy_str) == hy_str
-        assert InfiniteDatetime(hy_int) == str(hy_int)
+        assert isinstance(InfiniteDatetime(ht_str), InfiniteDatetime)
+        assert isinstance(InfiniteDatetime(ht_int), InfiniteDatetime)
 
-    @given(st.integers())
-    def test_from_value(self, hy_int):
+        # But a direct call to validate breaks
+        with pytest.raises(ISOParseError):
+            InfiniteDatetime.validate(ht_str)
+        with pytest.raises(TypeError):
+            InfiniteDatetime.validate(ht_int)
+
+    @given(
+        inf_dt_strat(),
+        st.text().filter(
+            lambda s: not is_isodt_str(s) and s not in {"-infinity", "infinity"}
+        ),
+        st.integers(),
+    )
+    def test_from_value(self, valid_infdt, ht_str, ht_int):
         # This should always work
-        for dt in self.accept_dt:
-            assert InfiniteDatetime.from_value(dt)
+        assert InfiniteDatetime.from_value(valid_infdt)
 
         # but this shouldn't
         with pytest.raises(TypeError, match="string or datetime required"):
-            InfiniteDatetime.from_value(hy_int)  # type: ignore
+            InfiniteDatetime.from_value(ht_int)  # type: ignore
 
         # and this string cannot be parsed
         with pytest.raises(
-            ValueError,
-            match=f"Unable to parse '{self.fail_str}' as an ISO-8601 datetime string",
+            ISOParseError,
+            match=re.escape(
+                f"Unable to parse '{ht_str}' as an ISO-8601 datetime string"
+            ),
         ):
-            InfiniteDatetime.from_value(self.fail_str)
+            InfiniteDatetime.from_value(ht_str)
 
-    @given(st.integers())
-    def test_in_model(self, hy_int):
+    @given(
+        inf_dt_strat(),
+        st.text().filter(
+            lambda s: not is_isodt_str(s) and s not in {"-infinity", "infinity"}
+        ),
+        st.integers(),
+    )
+    def test_in_model(self, valid_infdt, ht_str, ht_int):
         class DTModel(BaseModel):
             dt: InfiniteDatetime
 
-        # Same values should work
-        for dt in self.accept_dt:
-            assert DTModel(dt=dt)
+        assert DTModel(dt=valid_infdt)
 
         # But fail values should raise validation errors
         with pytest.raises(ValidationError):
-            for err_dt in [hy_int, self.fail_str]:
+            for err_dt in [ht_str, ht_int]:
                 DTModel(dt=err_dt)
 
-    @given(st.tuples(st.datetimes(), st.datetimes()))
+    @given(
+        st.tuples(
+            tz_dt_strat(),
+            tz_dt_strat(),
+        ).filter(lambda x: x[0] < x[1])
+    )
     @example(
         (
             datetime.fromisoformat("3059-01-01T00:00:00.035840+01:00"),
             datetime.fromisoformat("3059-01-01T00:00:00.035841+01:00"),
         )
     )
-    def test_ordering(self, hy_dts):
-        from_dt, to_dt = hy_dts
-        assume(from_dt < to_dt)
-        assert InfiniteDatetime(from_dt) < InfiniteDatetime(to_dt)
-
-    def test_infinity_ordering(self):
+    def test_ordering(self, ht_dts):
+        from_dt, to_dt = ht_dts
+        from_inf_dt, to_inf_dt = InfiniteDatetime(from_dt), InfiniteDatetime(to_dt)
         pos_inf_dt = InfiniteDatetime("infinity")
         neg_inf_dt = InfiniteDatetime("-infinity")
-        assert neg_inf_dt < pos_inf_dt
+        assert neg_inf_dt < from_inf_dt < to_inf_dt < pos_inf_dt
         assert (neg_inf_dt < neg_inf_dt) is False
         assert (pos_inf_dt < pos_inf_dt) is False
+
+
+@st.composite
+def valid_inf_dt(draw):
+    valid_input = draw(inf_dt_strat())
+    return InfiniteDatetime.from_value(valid_input)
 
 
 # --------------------------------------------------------------------------------------
@@ -162,29 +192,26 @@ class TestInfiniteDatetime:
 
 @st.composite
 def effective_time_strat(draw):
-    required = {"from_date": st.datetimes(), "to_date": st.datetimes()}
-    st_dict = draw(st.fixed_dictionaries(required))
-    assume(st_dict["from_date"] < st_dict["to_date"])
+    required = {
+        "from_date": valid_inf_dt(),
+        "to_date": valid_inf_dt(),
+    }
+    st_dict = draw(
+        st.fixed_dictionaries(required).filter(lambda d: d["from_date"] < d["to_date"])
+    )
     return st_dict
 
 
 class TestEffectiveTime:
-    # TODO: This should generate valid InfiniteDatetimes
-    # cf. previously mentioned strategy
-
     @given(effective_time_strat())
-    @example(
-        {
-            "from_date": datetime.fromisoformat("3059-01-01T00:00:00.035840+01:00"),
-            "to_date": datetime.fromisoformat("3059-01-01T00:00:00.035841+01:00"),
-        }
-    )
     def test_init(self, model_dict):
         assert EffectiveTime(**model_dict)
 
-    @given(st.datetimes(), st.datetimes())
-    def test_validator(self, from_dt, to_dt):
-        assume(from_dt >= to_dt)
+    @given(
+        st.tuples(valid_inf_dt(), valid_inf_dt()).filter(lambda dts: dts[0] <= dts[1])
+    )
+    def test_validator(self, dt_range):
+        to_dt, from_dt = dt_range
         with pytest.raises(
             ValidationError, match="from_date must be strictly less than to_date"
         ):
@@ -193,8 +220,14 @@ class TestEffectiveTime:
 
 @st.composite
 def valid_edt(draw):
-    model_dict = draw(effective_time_strat())
-    return EffectiveTime(**model_dict)
+    required = {
+        "from_date": tz_dt_strat(),
+        "to_date": tz_dt_strat(),
+    }
+    st_dict = draw(
+        st.fixed_dictionaries(required).filter(lambda d: d["from_date"] < d["to_date"])
+    )
+    return EffectiveTime(**st_dict)
 
 
 # --------------------------------------------------------------------------------------
@@ -271,7 +304,7 @@ def facet_attr_strat(draw):
 @st.composite
 def invalid_facet_attr_strat(draw):
     required = {
-        "properties": st.lists(valid_fp(), min_size=2)
+        "properties": st.lists(valid_fp(), min_size=2, max_size=5)
         | st.lists(valid_fp(), max_size=0)
     }
     st_dict = draw(st.fixed_dictionaries(required))

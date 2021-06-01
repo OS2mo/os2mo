@@ -7,18 +7,32 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import os
+from datetime import date
+from datetime import datetime
 from datetime import timedelta
 from functools import partial
 
 import hypothesis as ht
 import pytest
+from dateutil.tz import gettz
+from dateutil.tz import UTC
+from hypothesis import HealthCheck
+from hypothesis import strategies as st
+from hypothesis.extra import dateutil as ht_dateutil
 from pydantic import ValidationError
 
 # --------------------------------------------------------------------------------------
 # Settings
 # --------------------------------------------------------------------------------------
-ht.settings.register_profile("ci", max_examples=100, deadline=None)
-ht.settings.register_profile("dev", max_examples=10, deadline=timedelta(seconds=2))
+ht.settings.register_profile(
+    "ci", deadline=None, suppress_health_check=[HealthCheck.too_slow]
+)
+ht.settings.register_profile(
+    "dev",
+    max_examples=10,
+    deadline=timedelta(seconds=2),
+    suppress_health_check=[HealthCheck.too_slow],
+)
 ht.settings.register_profile(
     "debug",
     max_examples=10,
@@ -35,3 +49,21 @@ ht.settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "default"))
 unexpected_value_error = partial(
     pytest.raises, ValidationError, match="unexpected value;"
 )
+
+
+@st.composite
+def tz_dt_strat(draw):
+    dts = st.datetimes(
+        min_value=datetime(1930, 1, 1),
+        timezones=ht_dateutil.timezones().filter(
+            lambda tz: tz is UTC or tz is gettz("Europe/Copenhagen")
+        ),  # this is not great and I'm sorry
+        allow_imaginary=False,
+    )
+    return draw(dts)
+
+
+@st.composite
+def date_strat(draw):
+    dates = st.dates(min_value=date(1930, 1, 1))
+    return draw(dates)

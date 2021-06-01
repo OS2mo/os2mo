@@ -16,6 +16,8 @@ from pydantic import ValidationError
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 from ramodels.exceptions import ISOParseError
+from tests.conftest import date_strat
+from tests.conftest import tz_dt_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -62,13 +64,13 @@ def is_isodt_str(s):
 
 
 class TestTZISODate:
-    @given(st.datetimes())
+    @given(tz_dt_strat())
     def test_init(self, dt):
         iso_dt = tz_isodate(dt)
         assert iso_dt
         assert iso_dt.tzinfo
 
-    @given(st.dates().map(lambda date: date.isoformat()))
+    @given(date_strat().map(lambda date: date.isoformat()))  # type: ignore
     def test_str_input(self, dt_str):
         iso_dt = tz_isodate(dt_str)
         assert iso_dt
