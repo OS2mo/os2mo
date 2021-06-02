@@ -233,14 +233,11 @@ class TestEffectiveTime:
 
 @st.composite
 def valid_edt(draw):
-    required = {
-        "from_date": tz_dt_strat(),
-        "to_date": tz_dt_strat(),
-    }
-    st_dict = draw(
-        st.fixed_dictionaries(required).filter(lambda d: d["from_date"] < d["to_date"])
+    dt_range = st.tuples(st.datetimes(), st.datetimes()).filter(
+        lambda dts: dts[0] < dts[1]
     )
-    return EffectiveTime(**st_dict)
+    from_dt, to_dt = draw(dt_range)
+    return EffectiveTime(from_date=from_dt, to_date=to_dt)
 
 
 # --------------------------------------------------------------------------------------
