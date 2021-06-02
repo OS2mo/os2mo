@@ -27,7 +27,7 @@ def organisation_strat(draw):
         "attributes": valid_org_attrs(),
         "states": valid_org_states(),
     }
-    optional = {"relations": valid_org_relations() | st.none()}
+    optional = {"relations": st.none() | valid_org_relations()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
 
@@ -40,7 +40,7 @@ def organisation_fsf_strat(draw):
         "user_key": st.text(),
     }
     optional = {
-        "municipality_code": st.integers() | st.none(),
+        "municipality_code": st.none() | st.integers(),
         "from_date": from_date_strat(),
         "to_date": to_date_strat(),
     }

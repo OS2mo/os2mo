@@ -516,7 +516,7 @@ def klasse_prop_strat(draw):
         "title": st.text(),
         "effective_time": valid_edt(),
     }
-    optional = {"scope": st.text() | st.none()}
+    optional = {"scope": st.none() | st.text()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
 

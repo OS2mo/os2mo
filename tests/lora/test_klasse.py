@@ -42,7 +42,7 @@ def klasse_fsf_strat(draw):
         "title": st.text(),
     }
     optional = {
-        "scope": st.text() | st.none(),
+        "scope": st.none() | st.text(),
         "from_date": from_date_strat(),
         "to_date": to_date_strat(),
     }

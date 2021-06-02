@@ -41,16 +41,16 @@ def engagement_strat(draw):
     }
     optional = {
         "type": st.just("engagement"),
-        "extension_1": st.text() | st.none(),
-        "extension_2": st.text() | st.none(),
-        "extension_3": st.text() | st.none(),
-        "extension_4": st.text() | st.none(),
-        "extension_5": st.text() | st.none(),
-        "extension_6": st.text() | st.none(),
-        "extension_7": st.text() | st.none(),
-        "extension_8": st.text() | st.none(),
-        "extension_9": st.text() | st.none(),
-        "extension_10": st.text() | st.none(),
+        "extension_1": st.none() | st.text(),
+        "extension_2": st.none() | st.text(),
+        "extension_3": st.none() | st.text(),
+        "extension_4": st.none() | st.text(),
+        "extension_5": st.none() | st.text(),
+        "extension_6": st.none() | st.text(),
+        "extension_7": st.none() | st.text(),
+        "extension_8": st.none() | st.text(),
+        "extension_9": st.none() | st.text(),
+        "extension_10": st.none() | st.text(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
@@ -70,16 +70,16 @@ def engagement_fsf_strat(draw):
     }
     optional = {
         "to_date": st.none() | to_date_strat(),
-        "extension_1": st.text() | st.none(),
-        "extension_2": st.text() | st.none(),
-        "extension_3": st.text() | st.none(),
-        "extension_4": st.text() | st.none(),
-        "extension_5": st.text() | st.none(),
-        "extension_6": st.text() | st.none(),
-        "extension_7": st.text() | st.none(),
-        "extension_8": st.text() | st.none(),
-        "extension_9": st.text() | st.none(),
-        "extension_10": st.text() | st.none(),
+        "extension_1": st.none() | st.text(),
+        "extension_2": st.none() | st.text(),
+        "extension_3": st.none() | st.text(),
+        "extension_4": st.none() | st.text(),
+        "extension_5": st.none() | st.text(),
+        "extension_6": st.none() | st.text(),
+        "extension_7": st.none() | st.text(),
+        "extension_8": st.none() | st.text(),
+        "extension_9": st.none() | st.text(),
+        "extension_10": st.none() | st.text(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict

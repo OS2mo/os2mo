@@ -35,8 +35,8 @@ def organisation_unit_strat(draw):
     }
     optional = {
         "type": st.just("org_unit"),
-        "parent": st.builds(ParentRef) | st.none(),
-        "org_unit_hierarchy": st.builds(OrgUnitHierarchy) | st.none(),
+        "parent": st.none() | st.builds(ParentRef),
+        "org_unit_hierarchy": st.none() | st.builds(OrgUnitHierarchy),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -54,8 +54,8 @@ def organisation_unit_fsf_strat(draw):
         "from_date": from_date_strat(),
     }
     optional = {
-        "parent_uuid": st.uuids() | st.none(),
-        "org_unit_hierarchy_uuid": st.uuids() | st.none(),
+        "parent_uuid": st.none() | st.uuids(),
+        "org_unit_hierarchy_uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
     }
 

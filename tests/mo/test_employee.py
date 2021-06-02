@@ -34,8 +34,8 @@ def employee_strat(draw):
     required = {"name": st.text()}
     optional = {
         "type": st.just("employee"),
-        "cpr_no": valid_cprs() | st.none(),
-        "seniority": st.datetimes() | st.none(),
+        "cpr_no": st.none() | valid_cprs(),
+        "seniority": st.none() | st.datetimes(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict

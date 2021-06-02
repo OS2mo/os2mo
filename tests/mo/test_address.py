@@ -6,7 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -18,6 +17,8 @@ from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
 from ramodels.mo.address import Address
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
@@ -36,11 +37,11 @@ def address_strat(draw):
 
     optional = {
         "type": st.just("address"),
-        "value2": st.text() | st.none(),
-        "person": st.builds(PersonRef) | st.none(),
-        "org_unit": st.builds(OrgUnitRef) | st.none(),
-        "engagement": st.builds(EngagementRef) | st.none(),
-        "visibility": st.builds(Visibility) | st.none(),
+        "value2": st.none() | st.text(),
+        "person": st.none() | st.builds(PersonRef),
+        "org_unit": st.none() | st.builds(OrgUnitRef),
+        "engagement": st.none() | st.builds(EngagementRef),
+        "visibility": st.none() | st.builds(Visibility),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
@@ -48,27 +49,23 @@ def address_strat(draw):
 
 @st.composite
 def address_fsf_strat(draw):
-    iso_dt = st.dates().map(lambda date: date.isoformat())
     required = {
         "uuid": st.uuids(),
         "value": st.text(),
         "address_type_uuid": st.uuids(),
         "org_uuid": st.uuids(),
-        "from_date": iso_dt,
+        "from_date": from_date_strat(),
     }
     optional = {
-        "to_date": iso_dt | st.none(),
-        "value2": st.text() | st.none(),
-        "person_uuid": st.uuids() | st.none(),
-        "org_unit_uuid": st.uuids() | st.none(),
-        "engagement_uuid": st.uuids() | st.none(),
-        "visibility_uuid": st.uuids() | st.none(),
+        "to_date": st.none() | to_date_strat(),
+        "value2": st.none() | st.text(),
+        "person_uuid": st.none() | st.uuids(),
+        "org_unit_uuid": st.none() | st.uuids(),
+        "engagement_uuid": st.none() | st.uuids(),
+        "visibility_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
-    from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")
-    if all([from_date, to_date]):
-        assume(from_date <= to_date)
     return st_dict
 
 
