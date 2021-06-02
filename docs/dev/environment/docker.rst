@@ -190,7 +190,7 @@ Du har forsøgt at bygge og starte services med ``docker-compose up``, men proce
   os2mo_mo_1 exited with code 1
 
 **Mulig løsning**
-Prøv at fjerne gamle images med ``docker system prune`` og/eller genstart Docker, og forsøg igen.
+Prøv at fjerne gamle images med ``docker system prune``, genstart Docker, og forsøg igen.
 
 
 Container ``os2mo_frontend_1`` fejler med timeout
