@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from datetime import datetime
-from functools import total_ordering
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -59,7 +58,6 @@ class LoraBase(RABase):
 # --------------------------------------------------------------------------------------
 
 
-@total_ordering
 class InfiniteDatetime(str):
     # Inspired by
     # https://pydantic-docs.helpmanual.io/usage/types/#classes-with-__get_validators__
@@ -68,11 +66,6 @@ class InfiniteDatetime(str):
 
     Please note: This class is *not* meant to be instantiated directly.
     If a new object is desired, please use the from_value class method."""
-    # TODO: is there a better way to do this? Pydantic inits sometime during
-    # validation, so __new__ and __init__ methods cannot have calls to cls.validate
-    # because it results in recursion. :(
-    # Currently, this also means it's possible to init e.g. InfiniteDatetime(1) outside
-    # a pydantic context.
 
     @classmethod
     def from_value(cls, value: Union[str, datetime]) -> "InfiniteDatetime":
@@ -120,9 +113,6 @@ class InfiniteDatetime(str):
         # other is not explictly typed because mypy complains about LSP violations.
         """Implements the less than magic method for InfiniteDatetime.
 
-        The total_ordering decorator from functools is used to supply
-        the remaining rich comparison ordering methods.
-
         Args:
             other (Any): value to compare against.
         Raises:
@@ -145,6 +135,27 @@ class InfiniteDatetime(str):
 
         return _cast_dt(self) < _cast_dt(other)
 
+    def __le__(self, other: Any) -> bool:
+        """Implements the less than or equal to magic method for InfiniteDatetime.
+
+        This method is defined using __lt__ and __eq__.
+        """
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(self, other: Any) -> bool:
+        """Implements the greater than magic method for InfiniteDatetime.
+
+        This method is defined by negating __le__.
+        """
+        return not self.__le__(other)
+
+    def __ge__(self, other: Any) -> bool:
+        """Implements the less than or equal to magic method for InfiniteDatetime.
+
+        This method is defined using __gt__ and __eq__.
+        """
+        return self.__gt__(other) or self.__eq__(other)
+
 
 # --------------------------------------------------------------------------------------
 # Shared models
@@ -160,7 +171,7 @@ class EffectiveTime(RABase):
         from_date, to_date = values.get("from_date"), values.get("to_date")
         # Mypy complains here about unsupported use of operators due to Nones,
         # but we catch those with if all...
-        if all([from_date, to_date]) and not (from_date < to_date):  # type: ignore
+        if all([from_date, to_date]) and from_date >= to_date:  # type: ignore
             raise ValueError("from_date must be strictly less than to_date")
         return values
 

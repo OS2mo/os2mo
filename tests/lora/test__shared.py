@@ -167,11 +167,18 @@ class TestInfiniteDatetime:
         (
             datetime.fromisoformat("3059-01-01T00:00:00.035840+01:00"),
             datetime.fromisoformat("3059-01-01T00:00:00.035841+01:00"),
-        )
+        ),
+        (
+            datetime.fromisoformat("2000-01-01T00:00:00+01:00"),
+            datetime.fromisoformat("2000-01-01T00:00:00+00:00"),
+        ),
     )
     def test_ordering(self, ht_dts):
         from_dt, to_dt = ht_dts
         from_inf_dt, to_inf_dt = InfiniteDatetime(from_dt), InfiniteDatetime(to_dt)
+        assert from_inf_dt < to_inf_dt
+        assert (from_inf_dt >= to_inf_dt) is False
+
         pos_inf_dt = InfiniteDatetime("infinity")
         neg_inf_dt = InfiniteDatetime("-infinity")
         assert neg_inf_dt < from_inf_dt < to_inf_dt < pos_inf_dt
@@ -204,14 +211,20 @@ def effective_time_strat(draw):
 
 class TestEffectiveTime:
     @given(effective_time_strat())
+    @example(
+        {
+            "from_date": InfiniteDatetime("2000-01-01T00:00:00+01:00"),
+            "to_date": InfiniteDatetime("2000-01-01T00:00:00+00:00"),
+        }
+    )
     def test_init(self, model_dict):
         assert EffectiveTime(**model_dict)
 
     @given(
-        st.tuples(valid_inf_dt(), valid_inf_dt()).filter(lambda dts: dts[0] <= dts[1])
+        st.tuples(valid_inf_dt(), valid_inf_dt()).filter(lambda dts: dts[0] >= dts[1])
     )
     def test_validator(self, dt_range):
-        to_dt, from_dt = dt_range
+        from_dt, to_dt = dt_range
         with pytest.raises(
             ValidationError, match="from_date must be strictly less than to_date"
         ):
