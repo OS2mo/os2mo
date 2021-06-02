@@ -38,10 +38,11 @@ stages:
   needs: []
   stage: test
   script:
-    - poetry run pytest --cov=ramodels --cov-report=xml -n auto
+    - poetry run pytest --junitxml=report.xml --cov=ramodels -n auto
   artifacts:
+    when: always
     reports:
-      cobertura: coverage.xml
+      junit: report.xml
   variables:
     HYPOTHESIS_PROFILE: ci
 
