@@ -170,3 +170,38 @@ version af Docker og docker-compose på Ubuntu:
 
    sudo apt-get update
    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+
+
+
+.. _troubleshooting:
+
+---------------
+Troubleshooting
+---------------
+
+
+Container ``os2mo_mo_1`` fejler 
+-------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  mo_1          | rabbitmq is unavailable - attempt 120/120
+  os2mo_mo_1 exited with code 1
+
+Det kan være et issue med diskplads. 
+Prøv at fjerne gamle images med ``docker system prune`` og forsøg igen.
+
+
+Container ``os2mo_frontend_1`` fejler med timeout
+-------------------------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  ERROR: for os2mo_frontend_1  UnixHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=60)
+
+Prøv at justere miljøvariablen for timeout og forsøg igen. F.eks. med:
+... code-block:: bash
+  
+  env COMPOSE_HTTP_TIMEOUT=300 docker-compose up -d --build
