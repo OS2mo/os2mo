@@ -97,6 +97,16 @@ def inf_dt_strat(draw):
     return draw(tz_dt_strat() | valid_str)
 
 
+@st.composite
+def everything_except_inf_dt(draw):
+    not_inf_dt = (
+        st.from_type(type)
+        .flatmap(st.from_type)
+        .filter(lambda t: not isinstance(t, InfiniteDatetime))  # type: ignore
+    )
+    return draw(not_inf_dt)
+
+
 class TestInfiniteDatetime:
     @given(
         st.text().filter(
@@ -161,7 +171,8 @@ class TestInfiniteDatetime:
         st.tuples(
             tz_dt_strat(),
             tz_dt_strat(),
-        ).filter(lambda x: x[0] < x[1])
+        ).filter(lambda x: x[0] < x[1]),
+        everything_except_inf_dt(),
     )
     @example(
         (
@@ -173,11 +184,15 @@ class TestInfiniteDatetime:
             datetime.fromisoformat("2000-01-01T00:00:00+00:00"),
         ),
     )
-    def test_ordering(self, ht_dts):
+    def test_ordering(self, ht_dts, not_inf_dt):
         from_dt, to_dt = ht_dts
         from_inf_dt, to_inf_dt = InfiniteDatetime(from_dt), InfiniteDatetime(to_dt)
         assert from_inf_dt < to_inf_dt
         assert (from_inf_dt >= to_inf_dt) is False
+
+        # Not defined betweeen InfiniteDatetime and other things
+        with pytest.raises(TypeError):
+            from_inf_dt < not_inf_dt
 
         pos_inf_dt = InfiniteDatetime("infinity")
         neg_inf_dt = InfiniteDatetime("-infinity")
