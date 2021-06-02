@@ -29,7 +29,7 @@ ht.settings.register_profile(
 )
 ht.settings.register_profile(
     "dev",
-    max_examples=10,
+    max_examples=50,
     deadline=timedelta(seconds=2),
     suppress_health_check=[HealthCheck.too_slow],
 )
