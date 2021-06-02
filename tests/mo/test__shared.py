@@ -17,6 +17,8 @@ from pydantic import ValidationError
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import MORef
 from ramodels.mo._shared import Validity
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 
 # --------------------------------------------------------------------------------------
 # MOBase
@@ -62,15 +64,9 @@ class TestMORef:
 
 @st.composite
 def validity_strat(draw):
-    required = dict()  # type: ignore
-    optional = {"from_date": st.datetimes(), "to_date": st.datetimes() | st.none()}
+    required = {"from_date": from_date_strat()}
+    optional = {"to_date": st.none() | to_date_strat()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))
-    # from_date must be less than or equal to to_date in all cases
-    from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")
-    if all([from_date, to_date]):
-        assume(from_date <= to_date)
-    if from_date is None and to_date:
-        assume(to_date >= datetime(1930, 1, 1))
     return st_dict
 
 

@@ -6,9 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from datetime import date
-
-from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -18,6 +15,8 @@ from ramodels.mo._shared import OrgUnitType
 from ramodels.mo._shared import ParentRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.organisation_unit import OrganisationUnit
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
 # --------------------------------------------------------------------------------------
@@ -46,27 +45,21 @@ def organisation_unit_strat(draw):
 
 @st.composite
 def organisation_unit_fsf_strat(draw):
-    iso_dt = st.dates().map(lambda date: date.isoformat())
     required = {
         "uuid": st.uuids(),
         "user_key": st.text(),
         "name": st.text(),
         "org_unit_type_uuid": st.uuids(),
         "org_unit_level_uuid": st.uuids(),
+        "from_date": from_date_strat(),
     }
     optional = {
         "parent_uuid": st.uuids() | st.none(),
         "org_unit_hierarchy_uuid": st.uuids() | st.none(),
-        "from_date": iso_dt,
-        "to_date": iso_dt | st.none(),
+        "to_date": st.none() | to_date_strat(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
-    from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")
-    if all([from_date, to_date]):
-        assume(date.fromisoformat(from_date) <= date.fromisoformat(to_date))
-    if from_date is None and to_date:
-        assume(date.fromisoformat(to_date) >= date(1930, 1, 1))
     return st_dict
 
 

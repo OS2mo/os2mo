@@ -36,7 +36,7 @@ class Facet(LoraBase):
         uuid: UUID,
         user_key: str,
         organisation_uuid: UUID,
-        from_date: str = "1930-01-01",
+        from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Facet":
         # Inner fields

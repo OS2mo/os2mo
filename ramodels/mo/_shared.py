@@ -118,7 +118,7 @@ class Responsibility(MORef):
 
 
 class Validity(RABase):
-    from_date: datetime = Field(tz_isodate("1930-01-01"), alias="from")
+    from_date: datetime = Field(alias="from")
     to_date: Optional[datetime] = Field(alias="to")
 
     @validator("from_date", pre=True, always=True)

@@ -17,6 +17,8 @@ from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.association import Association
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
@@ -44,10 +46,10 @@ def association_fsf_strat(draw):
         "org_unit_uuid": st.uuids(),
         "person_uuid": st.uuids(),
         "association_type_uuid": st.uuids(),
+        "from_date": from_date_strat(),
     }
 
-    iso_dt = st.dates().map(lambda date: date.isoformat())
-    optional = {"from_date": iso_dt, "to_date": iso_dt | st.none()}
+    optional = {"to_date": st.none() | to_date_strat()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
 
     from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")

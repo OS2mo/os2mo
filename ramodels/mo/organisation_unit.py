@@ -40,9 +40,9 @@ class OrganisationUnit(MOBase):
         name: str,
         org_unit_type_uuid: UUID,
         org_unit_level_uuid: UUID,
+        from_date: str,
         parent_uuid: Optional[UUID] = None,
         org_unit_hierarchy_uuid: Optional[UUID] = None,
-        from_date: str = "1930-01-01",
         to_date: Optional[str] = None,
     ) -> "OrganisationUnit":
 

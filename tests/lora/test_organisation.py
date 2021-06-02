@@ -6,9 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from datetime import date
-
-from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -16,6 +13,8 @@ from .test__shared import valid_org_attrs
 from .test__shared import valid_org_relations
 from .test__shared import valid_org_states
 from ramodels.lora import Organisation
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -40,24 +39,15 @@ def organisation_fsf_strat(draw):
         "name": st.text(),
         "user_key": st.text(),
     }
-    iso_dt = st.dates().map(lambda date: date.isoformat())
     optional = {
         "municipality_code": st.integers() | st.none(),
-        "from_date": iso_dt,
-        "to_date": iso_dt,
+        "from_date": from_date_strat(),
+        "to_date": to_date_strat(),
     }
 
     # mypy has for some reason decided that required has an invalid type :(
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
 
-    # from_date must be strictly less than to_date in all cases
-    if st_dict.get("to_date") and st_dict.get("from_date") is None:
-        assume(date.fromisoformat(st_dict["to_date"]) > date(1930, 1, 1))
-    if all([st_dict.get("from_date"), st_dict.get("to_date")]):
-        assume(
-            date.fromisoformat(st_dict["from_date"])
-            < date.fromisoformat(st_dict["to_date"])
-        )
     return st_dict
 
 

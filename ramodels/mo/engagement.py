@@ -55,7 +55,7 @@ class Engagement(MOBase):
         engagement_type_uuid: UUID,
         primary_uuid: UUID,
         user_key: str,
-        from_date: str = "1930-01-01",
+        from_date: str,
         to_date: Optional[str] = None,
         extension_1: Optional[str] = None,
         extension_2: Optional[str] = None,
@@ -110,7 +110,7 @@ class EngagementAssociation(MOBase):
         org_unit_uuid: UUID,
         engagement_uuid: UUID,
         engagement_association_type_uuid: UUID,
-        from_date: str = "1930-01-01",
+        from_date: str,
         to_date: Optional[str] = None,
     ) -> "EngagementAssociation":
         validity = Validity(from_date=from_date, to_date=to_date)

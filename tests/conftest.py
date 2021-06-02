@@ -21,6 +21,7 @@ from hypothesis import strategies as st
 from hypothesis.extra import dateutil as ht_dateutil
 from pydantic import ValidationError
 
+
 # --------------------------------------------------------------------------------------
 # Settings
 # --------------------------------------------------------------------------------------
@@ -66,4 +67,26 @@ def tz_dt_strat(draw):
 @st.composite
 def date_strat(draw):
     dates = st.dates(min_value=date(1930, 1, 1))
+    return draw(dates)
+
+
+@st.composite
+def dt_minmax(draw):
+    dt_shared = st.shared(st.dates(min_value=date(1930, 1, 1)), key="dtminmax")
+    return draw(dt_shared)
+
+
+@st.composite
+def from_date_strat(draw):
+    max_date = draw(dt_minmax())
+    dates = st.dates(min_value=date(1930, 1, 1), max_value=max_date).map(
+        lambda date: date.isoformat()
+    )
+    return draw(dates)
+
+
+@st.composite
+def to_date_strat(draw):
+    min_date = draw(dt_minmax()) + timedelta(days=1)
+    dates = st.dates(min_value=min_date).map(lambda date: date.isoformat())
     return draw(dates)

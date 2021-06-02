@@ -41,7 +41,7 @@ class Klasse(LoraBase):
         organisation_uuid: UUID,
         title: str,
         scope: Optional[str] = None,
-        from_date: str = "1930-01-01",
+        from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Klasse":
         # Inner fields
