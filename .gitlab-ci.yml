@@ -38,6 +38,7 @@ stages:
   needs: []
   stage: test
   script:
+    - pip install coverage
     - poetry run pytest --cov=ramodels
     - coverage xml
   artifacts:
