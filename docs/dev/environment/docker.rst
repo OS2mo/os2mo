@@ -189,8 +189,8 @@ Du har forsøgt at bygge og starte services med ``docker-compose up``, men proce
   mo_1          | rabbitmq is unavailable - attempt 120/120
   os2mo_mo_1 exited with code 1
 
-Det kan være et issue med diskplads. 
-Prøv at fjerne gamle images med ``docker system prune`` og forsøg igen.
+**Mulig løsning**
+Prøv at fjerne gamle images med ``docker system prune`` og/eller genstart Docker, og forsøg igen.
 
 
 Container ``os2mo_frontend_1`` fejler med timeout
@@ -201,6 +201,7 @@ Du har forsøgt at bygge og starte services med ``docker-compose up``, men proce
 
   ERROR: for os2mo_frontend_1  UnixHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=60)
 
+**Mulig løsning**
 Prøv at justere miljøvariablen for timeout og forsøg igen. F.eks. med:
 ... code-block:: bash
   
