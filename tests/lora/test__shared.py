@@ -11,6 +11,7 @@ from datetime import datetime
 from functools import partial
 
 import pytest
+from hypothesis import assume
 from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
@@ -100,12 +101,15 @@ def inf_dt_strat(draw):
 
 @st.composite
 def everything_except_inf_dt(draw):
-    not_inf_dt = (
-        st.from_type(type)
-        .flatmap(st.from_type)
-        .filter(lambda t: not isinstance(t, InfiniteDatetime))  # type: ignore
-    )
-    return draw(not_inf_dt)
+    def not_instance_inf_dt(t) -> bool:
+        return not isinstance(t, InfiniteDatetime)
+
+    # Using filter here as per the from_type example in hypothesis gives a mypy
+    # covariant type error. Ignoring the error using type: ignore gives a SUPER WEIRD
+    # mypy error in line 886 (which doesn't exist). So I decided to use assume. /NKJ
+    types = st.from_type(type).flatmap(st.from_type)
+    assume(not_instance_inf_dt(types))
+    return draw(types)
 
 
 class TestInfiniteDatetime:
