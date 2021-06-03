@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 
 import pytest
+from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
@@ -43,6 +44,11 @@ def employee_strat(draw):
 
 class TestEmployee:
     @given(employee_strat())
+    @example({"name": "test", "cpr_no": "0101012101"})
+    @example({"name": "test", "cpr_no": "0101014101"})
+    @example({"name": "test", "cpr_no": "0101559101"})
+    @example({"name": "test", "cpr_no": "0101016101"})
+    @example({"name": "test", "cpr_no": "0101767101"})
     def test_init(self, model_dict):
         assert Employee(**model_dict)
 
@@ -58,10 +64,17 @@ class TestEmployee:
     @given(
         employee_strat(),
         st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None),
+        st.from_regex(r"^[3-9][2-9]\d{7}[1-9]$"),
     )
-    def test_invalid_cpr(self, model_dict, invalid_cpr):
+    def test_cpr_validation(self, model_dict, invalid_regex, invalid_date):
         with pytest.raises(ValidationError, match="string does not match regex"):
-            model_dict["cpr_no"] = invalid_cpr
+            model_dict["cpr_no"] = invalid_regex
+            Employee(**model_dict)
+
+        with pytest.raises(
+            ValidationError, match=f"CPR number {invalid_date} is not valid"
+        ):
+            model_dict["cpr_no"] = invalid_date
             Employee(**model_dict)
 
     @given(

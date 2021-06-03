@@ -62,8 +62,9 @@ class Employee(MOBase):
                 century = 1800
 
         err_msg = f"CPR number {cpr_no} is not valid."
-        if century not in {1800, 1900, 2000}:
-            raise ValueError(err_msg)
+        # Removed because that never happens.
+        # if century not in {1800, 1900, 2000}:
+        #     raise ValueError(err_msg)
         try:
             date.fromisoformat(f"{century+year}-{month}-{day}")
         except Exception:
