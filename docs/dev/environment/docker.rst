@@ -206,3 +206,17 @@ Prøv at justere miljøvariablen for timeout og forsøg igen. F.eks. med:
 ... code-block:: bash
 
   env COMPOSE_HTTP_TIMEOUT=300 docker-compose up -d --build
+
+
+Opstart fejler ved ``Building mo``
+----------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  ERROR [internal] load metadata for docker.io/tiangolo/uvicorn-gunicorn-fastapi:python3.8
+
+**Mulig løsning**
+Hvis din host maskine er macOS 11.0+, kan det skyldes at Docker er sat op til at benytte ``virtualization.framework``.
+Open instillinger for Docker Desktop og fjern afkrydsning ved "Use new virtualization framework" under "Experimental Features".
+Genstart Docker og forsøg igen.
