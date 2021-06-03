@@ -329,10 +329,10 @@ def facet_attr_strat(draw):
 
 @st.composite
 def invalid_facet_attr_strat(draw):
-    required = {
-        "properties": st.lists(valid_fp(), min_size=2, max_size=5)
-        | st.lists(valid_fp(), max_size=0)
-    }
+    prop_strat = st.lists(valid_fp(), max_size=0) | st.lists(
+        valid_fp(), min_size=2, max_size=5
+    )
+    required = {"properties": prop_strat}
     st_dict = draw(st.fixed_dictionaries(required))
     return st_dict
 
@@ -393,10 +393,8 @@ def facet_states_strat(draw):
 
 @st.composite
 def invalid_facet_states_strat(draw):
-    required = {
-        "published_state": st.lists(valid_pub(), min_size=2)
-        | st.lists(valid_pub(), max_size=0)
-    }
+    pub_st_strat = st.lists(valid_pub(), max_size=0) | st.lists(valid_pub(), min_size=2)
+    required = {"published_state": pub_st_strat}
     st_dict = draw(st.fixed_dictionaries(required))
     return st_dict
 
@@ -494,10 +492,12 @@ def facet_relations_strat(draw):
 
 @st.composite
 def invalid_facet_relations_strat(draw):
+    resp_strat = st.lists(valid_resp(), max_size=0) | st.lists(
+        valid_resp(), min_size=2, max_size=5
+    )
     required = {
         # Max size explicitly set for faster data generation
-        "responsible": st.lists(valid_resp(), min_size=2, max_size=5)
-        | st.lists(valid_resp(), max_size=0)
+        "responsible": resp_strat
     }
     st_dict = draw(st.fixed_dictionaries(required))
     return st_dict
@@ -570,22 +570,22 @@ class TestKlasseRelations:
         assert KlasseRelations(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        klasse_relations_strat(),
-        st.lists(valid_resp(), min_size=2, max_size=5)
-        | st.lists(valid_resp(), max_size=0),
+    invalid_resp = st.lists(valid_resp(), max_size=0) | st.lists(
+        valid_resp(), min_size=2, max_size=5
     )
+
+    @given(klasse_relations_strat(), invalid_resp)
     def test_validators_resp(self, model_dict, invalid_resp):
         model_dict["responsible"] = invalid_resp
         with single_item_error():
             KlasseRelations(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        klasse_relations_strat(),
-        st.lists(valid_fref(), min_size=2, max_size=5)
-        | st.lists(valid_resp(), max_size=0),
+    invalid_fref = st.lists(valid_fref(), max_size=0) | st.lists(
+        valid_fref(), min_size=2, max_size=5
     )
+
+    @given(klasse_relations_strat(), invalid_fref)
     def test_validators_fref(self, model_dict, invalid_fref):
         model_dict["facet"] = invalid_fref
         with single_item_error():
@@ -616,11 +616,11 @@ class TestKlasseAttributes:
         assert KlasseAttributes(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        klasse_attr_strat(),
-        st.lists(valid_klsprop(), min_size=2, max_size=5)
-        | st.lists(valid_klsprop(), max_size=0),
+    invalid_klsprop = st.lists(valid_klsprop(), max_size=0) | st.lists(
+        valid_klsprop(), min_size=2, max_size=5
     )
+
+    @given(klasse_attr_strat(), invalid_klsprop)
     def test_validators(self, model_dict, invalid_klsprop):
         model_dict["properties"] = invalid_klsprop
         with single_item_error():
@@ -651,13 +651,13 @@ class TestKlasseStates:
         assert KlasseStates(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        klasse_states_strat(),
-        st.lists(valid_pub(), min_size=2, max_size=5)
-        | st.lists(valid_pub(), max_size=0),
+    invalid_pub = st.lists(valid_pub(), max_size=0) | st.lists(
+        valid_pub(), min_size=2, max_size=5
     )
-    def test_validators(self, model_dict, invalid_pub_list):
-        model_dict["published_state"] = invalid_pub_list
+
+    @given(klasse_states_strat(), invalid_pub)
+    def test_validators(self, model_dict, invalid_pub):
+        model_dict["published_state"] = invalid_pub
         with single_item_error():
             KlasseStates(**model_dict)
 
@@ -710,11 +710,11 @@ class TestOrganisationAttributes:
         assert OrganisationAttributes(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        org_attr_strat(),
-        st.lists(valid_orgprop(), min_size=2, max_size=5)
-        | st.lists(valid_orgprop(), max_size=0),
+    invalid_orgprop = st.lists(valid_orgprop(), max_size=0) | st.lists(
+        valid_orgprop(), min_size=2, max_size=5
     )
+
+    @given(org_attr_strat(), invalid_orgprop)
     def test_validators(self, model_dict, invalid_orgprop):
         model_dict["properties"] = invalid_orgprop
         with single_item_error():
@@ -770,11 +770,11 @@ class TestOrganisationStates:
         assert OrganisationStates(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        org_states_strat(),
-        st.lists(valid_orgstate(), min_size=2, max_size=5)
-        | st.lists(valid_orgstate(), max_size=0),
+    invalid_orgstate = st.lists(valid_orgstate(), max_size=0) | st.lists(
+        valid_orgstate(), min_size=2, max_size=5
     )
+
+    @given(org_states_strat(), invalid_orgstate)
     def test_validators(self, model_dict, invalid_orgstate):
         model_dict["valid_state"] = invalid_orgstate
         with single_item_error():
@@ -805,11 +805,11 @@ class TestOrganisationRelations:
         assert OrganisationRelations(**model_dict)
 
     # Max size explicitly set for faster data generation
-    @given(
-        org_relations_strat(),
-        st.lists(valid_auth(), min_size=2, max_size=5)
-        | st.lists(valid_auth(), max_size=0),
+    invalid_auth = st.lists(valid_auth(), max_size=0) | st.lists(
+        valid_auth(), min_size=2, max_size=5
     )
+
+    @given(org_relations_strat(), invalid_auth)
     def test_validators(self, model_dict, invalid_auth):
         model_dict["authority"] = invalid_auth
         with single_item_error():
