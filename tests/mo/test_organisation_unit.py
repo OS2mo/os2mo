@@ -16,6 +16,7 @@ from ramodels.mo._shared import ParentRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.organisation_unit import OrganisationUnit
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
@@ -69,7 +70,7 @@ class TestOrganisationUnit:
         # Required
         assert OrganisationUnit(**model_dict)
 
-    @given(organisation_unit_strat(), st.text().filter(lambda s: s != "org_unit"))
+    @given(organisation_unit_strat(), not_from_regex(r"^org_unit$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type

@@ -18,6 +18,7 @@ from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.association import Association
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
@@ -66,7 +67,7 @@ class TestAssociation:
     def test_init(self, model_dict):
         assert Association(**model_dict)
 
-    @given(association_strat(), st.text().filter(lambda s: s != "association"))
+    @given(association_strat(), not_from_regex(r"^association$"))
     def test_invalid_type(self, model_dict, invalid_type):
         model_dict["type"] = invalid_type
         with unexpected_value_error():

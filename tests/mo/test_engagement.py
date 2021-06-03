@@ -20,6 +20,7 @@ from ramodels.mo._shared import Validity
 from ramodels.mo.engagement import Engagement
 from ramodels.mo.engagement import EngagementAssociation
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
@@ -90,7 +91,7 @@ class TestEngagement:
     def test_init(self, model_dict):
         assert Engagement(**model_dict)
 
-    @given(engagement_strat(), st.text().filter(lambda s: s != "engagement"))
+    @given(engagement_strat(), not_from_regex(r"^engagement$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type
@@ -134,10 +135,7 @@ class TestEngagementAssociation:
     def test_init(self, model_dict):
         assert EngagementAssociation(**model_dict)
 
-    @given(
-        engagement_assoc_strat(),
-        st.text().filter(lambda s: s != "engagement_association"),
-    )
+    @given(engagement_assoc_strat(), not_from_regex(r"^engagement_association$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type

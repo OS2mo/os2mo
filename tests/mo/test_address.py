@@ -18,6 +18,7 @@ from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
 from ramodels.mo.address import Address
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
@@ -74,7 +75,7 @@ class TestAddress:
     def test_init(self, model_dict):
         assert Address(**model_dict)
 
-    @given(address_strat(), st.text().filter(lambda s: s != "address"))
+    @given(address_strat(), not_from_regex(r"^address$"))
     def test_invalid_type(self, model_dict, invalid_type):
         model_dict["type"] = invalid_type
         with unexpected_value_error():

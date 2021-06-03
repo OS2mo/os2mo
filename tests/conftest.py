@@ -7,10 +7,13 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import os
+import re
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from functools import lru_cache
 from functools import partial
+from typing import Pattern
 
 import hypothesis as ht
 import pytest
@@ -90,3 +93,15 @@ def to_date_strat(draw):
     min_date = draw(dt_minmax()) + timedelta(days=1)
     dates = st.dates(min_value=min_date).map(lambda date: date.isoformat())
     return draw(dates)
+
+
+@lru_cache
+def cached_regex(str_pat: str) -> Pattern:
+    return re.compile(str_pat)
+
+
+@st.composite
+def not_from_regex(draw, str_pat: str):
+    regex = cached_regex(str_pat)
+    not_match = st.text().filter(lambda s: regex.match(s) is None)
+    return draw(not_match)

@@ -6,7 +6,6 @@
 # ---------------------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------------------
-import re
 from datetime import datetime
 
 import pytest
@@ -16,6 +15,7 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from ramodels.mo.employee import Employee
+from tests.conftest import not_from_regex
 from tests.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
@@ -52,10 +52,7 @@ class TestEmployee:
     def test_init(self, model_dict):
         assert Employee(**model_dict)
 
-    @given(
-        employee_strat(),
-        st.text().filter(lambda s: s != "employee"),
-    )
+    @given(employee_strat(), not_from_regex(r"^employee$"))
     def test_invalid_type(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type
@@ -63,7 +60,7 @@ class TestEmployee:
 
     @given(
         employee_strat(),
-        st.text().filter(lambda s: re.match(r"^\d{9}[1-9]$", s) is None),
+        not_from_regex(r"^\d{9}[1-9]$"),
         st.from_regex(r"^[3-9][2-9]\d{7}[1-9]$"),
     )
     def test_cpr_validation(self, model_dict, invalid_regex, invalid_date):
@@ -77,10 +74,7 @@ class TestEmployee:
             model_dict["cpr_no"] = invalid_date
             Employee(**model_dict)
 
-    @given(
-        employee_strat(),
-        st.dates() | st.dates().map(lambda date: date.isoformat()),
-    )
+    @given(employee_strat(), st.dates() | st.dates().map(lambda date: date.isoformat()))
     def test_validators(self, model_dict, sen_date):
         model_dict["seniority"] = sen_date
         empl = Employee(**model_dict)

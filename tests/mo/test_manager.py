@@ -17,6 +17,7 @@ from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import Validity
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
 
@@ -64,10 +65,7 @@ class TestManager:
     def test_init(self, model_dict):
         assert Manager(**model_dict)
 
-    @given(
-        manager_strat(),
-        st.text().filter(lambda s: s != "manager"),
-    )
+    @given(manager_strat(), not_from_regex(r"^manager$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type

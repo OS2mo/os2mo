@@ -39,6 +39,7 @@ from ramodels.lora._shared import OrganisationValidState
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Responsible
 from tests.conftest import date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import tz_dt_strat
 from tests.conftest import unexpected_value_error
 from tests.test_base import is_isodt_str
@@ -259,13 +260,13 @@ def valid_edt(draw):
 # Authority
 # --------------------------------------------------------------------------------------
 
-urn_regex = re.compile(r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$")
+urn_pat = r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
 
 
 @st.composite
 def authority_strat(draw):
     required = {
-        "urn": st.from_regex(urn_regex),
+        "urn": st.from_regex(urn_pat),
         "effective_time": valid_edt(),
     }
     st_dict = draw(st.fixed_dictionaries(required))
@@ -277,7 +278,7 @@ class TestAuthority:
     def test_init(self, model_dict):
         assert Authority(**model_dict)
 
-    @given(authority_strat(), st.text().filter(lambda s: urn_regex.match(s) is None))
+    @given(authority_strat(), not_from_regex(urn_pat))
     def test_validators(self, model_dict, invalid_urn):
         model_dict["urn"] = invalid_urn
         with pytest.raises(ValidationError, match="string does not match regex"):
@@ -435,7 +436,7 @@ class TestResponsible:
     def test_init(self, model_dict):
         assert Responsible(**model_dict)
 
-    @given(responsible_strat(), st.text().filter(lambda s: s != "organisation"))
+    @given(responsible_strat(), not_from_regex(r"^organisation$"))
     def test_validators(self, model_dict, invalid_object_type):
         model_dict["object_type"] = invalid_object_type
         with unexpected_value_error():
@@ -466,7 +467,7 @@ class TestFacetRef:
     def test_init(self, model_dict):
         assert FacetRef(**model_dict)
 
-    @given(facet_ref_strat(), st.text().filter(lambda s: s != "facet"))
+    @given(facet_ref_strat(), not_from_regex(r"^facet$"))
     def test_validators(self, model_dict, invalid_object_type):
         model_dict["object_type"] = invalid_object_type
         with unexpected_value_error():

@@ -9,7 +9,6 @@
 from datetime import datetime
 
 import pytest
-from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
@@ -37,6 +36,19 @@ class TestMOBase:
             pass
 
         assert MOSub.__fields__.get("uuid")
+
+    @given(st.uuids())
+    def test_validators(self, ht_uuid):
+        class MOSub(MOBase):
+            pass
+
+        # UUIDs should be auto-generated
+        mo_sub = MOSub()
+        assert mo_sub.uuid.version == 4
+
+        # But we should also be able to set them explicitly
+        mo_sub_with_uuid = MOSub(uuid=ht_uuid)
+        assert mo_sub_with_uuid.uuid == ht_uuid
 
 
 # --------------------------------------------------------------------------------------
@@ -75,7 +87,10 @@ class TestValidity:
     def test_init(self, model_dict):
         assert Validity(**model_dict)
 
-    @given(st.tuples(st.datetimes(), st.datetimes()), st.dates())
+    @given(
+        st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
+        st.dates(),
+    )
     def test_validators(self, dt_tup, from_date_no_tz):
         # tz unaware date becomes tz aware datetime
         validity = Validity(from_date=from_date_no_tz)
@@ -84,7 +99,6 @@ class TestValidity:
 
         # from_date > to_date should fail
         from_dt, to_dt = dt_tup
-        assume(from_dt > to_dt)
         with pytest.raises(
             ValidationError, match="from_date must be less than or equal to to_date"
         ):
