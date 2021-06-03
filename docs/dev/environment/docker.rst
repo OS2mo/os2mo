@@ -180,7 +180,7 @@ Troubleshooting
 ---------------
 
 
-Container ``os2mo_mo_1`` fejler 
+Container ``os2mo_mo_1`` fejler
 -------------------------------
 
 Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
@@ -190,7 +190,7 @@ Du har forsøgt at bygge og starte services med ``docker-compose up``, men proce
   os2mo_mo_1 exited with code 1
 
 **Mulig løsning**
-Prøv at fjerne gamle images med ``docker system prune``, genstart Docker, og forsøg igen.
+Prøv at fjerne gamle images med ``docker system prune`` og forsøg igen.
 
 
 Container ``os2mo_frontend_1`` fejler med timeout
@@ -204,5 +204,5 @@ Du har forsøgt at bygge og starte services med ``docker-compose up``, men proce
 **Mulig løsning**
 Prøv at justere miljøvariablen for timeout og forsøg igen. F.eks. med:
 ... code-block:: bash
-  
+
   env COMPOSE_HTTP_TIMEOUT=300 docker-compose up -d --build
