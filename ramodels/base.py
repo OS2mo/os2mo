@@ -16,7 +16,7 @@ from ramodels.exceptions import ISOParseError
 
 try:
     import zoneinfo
-except ImportError:
+except ImportError:  # pragma: no cover
     from backports import zoneinfo  # type: ignore
 
 
