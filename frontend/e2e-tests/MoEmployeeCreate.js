@@ -90,7 +90,7 @@ test('Workflow: create employee', async t => {
     .expect(dialog.find('.alert-danger').withText('Ugyldigt').exists).ok()
 
     .typeText(cprInput, '-0000')
-    .expect(dialog.find('.alert-danger').withText('ikke i registret').exists).ok()
+    .expect(Selector('.alert-danger').withText('ikke i registret').exists).ok()
 
     .selectText(cprInput)
     .pressKey('delete')
@@ -271,7 +271,7 @@ test('Workflow: create employee with association to unit lacking address', async
 
     .click(jobFunctionEngagementSelect)
     .click(jobFunctionEngagementOption.withText('Skolepsykolog'))
-
+    
     .click(engagementTypeSelect)
     .click(engagementTypeOption.withText('Ansat'))
 
