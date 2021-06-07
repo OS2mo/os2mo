@@ -95,13 +95,12 @@ def to_date_strat(draw):
     return draw(dates)
 
 
-@lru_cache
-def cached_regex(str_pat: str) -> Pattern:
-    return re.compile(str_pat)
-
-
 @st.composite
 def not_from_regex(draw, str_pat: str):
+    @lru_cache
+    def cached_regex(str_pat: str) -> Pattern:
+        return re.compile(str_pat)
+
     regex = cached_regex(str_pat)
     not_match = st.text().filter(lambda s: regex.match(s) is None)
     return draw(not_match)
