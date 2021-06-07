@@ -1,7 +1,7 @@
 {
   "id": "mo",
   "realm": "mo",
-  "displayName": "OS2MO",
+  "displayName": "OS2mo",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,

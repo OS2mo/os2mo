@@ -123,32 +123,32 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:13.0.0
-    depends_on:
-      - keycloak-db
-    command: [ "-Dkeycloak.migration.strategy=IGNORE_EXISTING" ]
+    # depends_on:
+    #   - keycloak-db
     ports:
       - "8081:8080"
     environment:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
       KEYCLOAK_IMPORT: /tmp/realm.json
-      DB_VENDOR: POSTGRES
-      DB_ADDR: "keycloak-db"
-      DB_USER: keycloak
-      DB_PASSWORD: keycloak
-      DB_SCHEMA: public
-      DB_DATABASE: keycloak
-      #PROXY_ADDRESS_FORWARDING: 'true'
-      #KEYCLOAK_FRONTEND_URL: https://proxy/auth
-      #KEYCLOAK_LOGLEVEL: DEBUG
+      # DB_VENDOR: POSTGRES
+      # DB_ADDR: "keycloak-db"
+      # DB_USER: keycloak
+      # DB_PASSWORD: keycloak
+      # DB_SCHEMA: public
+      # DB_DATABASE: keycloak
+      # PROXY_ADDRESS_FORWARDING: 'true'
+      # KEYCLOAK_FRONTEND_URL: https://proxy/auth
+      # KEYCLOAK_LOGLEVEL: DEBUG
     volumes:
       - type: bind
         source: ./dev-environment/keycloak-realm.json
         target: /tmp/realm.json
 
-  keycloak-db:
-    image: postgres:13.3
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
+# Not needed in the dev environment, but kept as an inspiration for production
+#  keycloak-db:
+#    image: postgres:13.3
+#    environment:
+#      POSTGRES_DB: keycloak
+#      POSTGRES_USER: keycloak
+#      POSTGRES_PASSWORD: keycloak

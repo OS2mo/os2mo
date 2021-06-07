@@ -19,7 +19,9 @@ class AuthError(Exception):
         Return True if the error is a client side error (e.g. an expired
         token) and False otherwise (e.g. if Keycloak is unreachable)
         """
-        return True if (isinstance(self.__exc, InvalidTokenError) or
-                        (isinstance(self.__exc, HTTPException) and
-                         self.__exc.status_code == HTTP_401_UNAUTHORIZED))\
-            else False
+        if isinstance(self.__exc, InvalidTokenError):
+            return True
+        if isinstance(self.__exc, HTTPException) and \
+                self.__exc.status_code == HTTP_401_UNAUTHORIZED:
+            return True
+        return False

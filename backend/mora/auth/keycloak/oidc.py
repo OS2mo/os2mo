@@ -25,7 +25,7 @@ JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
 logger = logging.getLogger(__name__)
 
 # For getting and parsing the Authorization header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='Not important')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='unused')
 
 # JWKS client for fetching and caching JWKS
 jwks_client = jwt.PyJWKClient(JWKS_URI)
@@ -33,14 +33,13 @@ jwks_client = jwt.PyJWKClient(JWKS_URI)
 
 async def auth(request: Request) -> dict:
     """
-    Ensure the caller has a valid OIDC token. While this function is not
-    async, it is effectively non-blocking since JWKS's are cached by the
-    PyJWK client.
+    Ensure the caller has a valid OIDC token, i.e. that the Authorization
+    header is set with a valid bearer token.
 
     :param request: Incoming request
     :return: parsed (JWT) token
 
-    **Example Response**
+    **Example return value**
 
     .. sourcecode:: json
 
@@ -87,17 +86,19 @@ async def auth(request: Request) -> dict:
 
 
 # Exception handler to be used by the FastAPI app object
-def auth_exception_handler(request: Request, err: AuthError):
+def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
     if err.is_client_side_error():
+        logger.debug('Client side authentication error: ' + str(err.exc))
         return JSONResponse(
             status_code=HTTP_401_UNAUTHORIZED,
             content={'msg': 'Unauthorized'}
         )
-    else:
-        logger.error(
-            'Problem communicating with the Keycloak server: ' + str(err.exc)
-        )
-        return JSONResponse(
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            content={'msg': 'A server side authentication error occurred'}
-        )
+
+    logger.error(
+        'Problem communicating with the Keycloak server: ' + str(err.exc)
+    )
+
+    return JSONResponse(
+        status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+        content={'msg': 'A server side authentication error occurred'}
+    )

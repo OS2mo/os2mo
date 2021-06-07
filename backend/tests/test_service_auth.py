@@ -43,6 +43,11 @@ class TestServiceAuth(unittest.TestCase):
         '/testing/testcafe-db-teardown'
     )
 
+    @staticmethod
+    def lookup_auth_dependency(route):
+        # Check if auth dependency exists
+        return any(d.dependency == auth for d in route.dependencies)
+
     def test_ensure_endpoints_depend_on_oidc_auth_function(self):
         # A little risky since we should avoid "logic" in the test code!
         # (so direct auth "requests" tests added in class below)
@@ -51,21 +56,28 @@ class TestServiceAuth(unittest.TestCase):
         # exclude list) and make sure they depend (via fastapi.Depends) on the
         # auth function in the mora.auth.keycloak.oidc sub-module.
 
-        for route in main.app.routes:
-            # Skip the starlette.routing.Route's (defined by the framework)
-            if isinstance(route, fastapi.routing.APIRoute):
-                # Only check endpoints not in the NO_AUTH_ENDPOINTS list
-                if route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS:
+        # Skip the starlette.routing.Route's (defined by the framework)
+        routes = filter(
+            lambda route: isinstance(route, fastapi.routing.APIRoute),
+            main.app.routes
+        )
+        # Only check endpoints not in the NO_AUTH_ENDPOINTS list
+        routes = filter(
+            lambda route: route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS,
+            routes
+        )
 
-                    auth_found_in_dependencies = False
+        has_auth = map(TestServiceAuth.lookup_auth_dependency, routes)
+        self.assertTrue(all(has_auth))
 
-                    # This loop is necessary since there could be other
-                    # dependencies that the one concerned with auth.
-                    for d in route.dependencies:
-                        if d.dependency is auth:
-                            auth_found_in_dependencies = True
+    def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(self):
+        no_auth_routes = filter(
+            lambda route: route.path in TestServiceAuth.NO_AUTH_ENDPOINTS,
+            main.app.routes
+        )
 
-                    self.assertTrue(auth_found_in_dependencies)
+        has_auth = map(TestServiceAuth.lookup_auth_dependency, no_auth_routes)
+        self.assertFalse(any(has_auth))
 
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
