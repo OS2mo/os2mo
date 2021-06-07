@@ -67,24 +67,19 @@ def tz_dt_strat(draw):
     return draw(dts)
 
 
-@st.composite
-def date_strat(draw):
-    dates = st.dates(min_value=date(1930, 1, 1))
-    return draw(dates)
+date_strat = partial(st.dates, min_value=date(1930, 1, 1))
 
 
 @st.composite
 def dt_minmax(draw):
-    dt_shared = st.shared(st.dates(min_value=date(1930, 1, 1)), key="dtminmax")
+    dt_shared = st.shared(date_strat(), key="dtminmax")
     return draw(dt_shared)
 
 
 @st.composite
 def from_date_strat(draw):
     max_date = draw(dt_minmax())
-    dates = st.dates(min_value=date(1930, 1, 1), max_value=max_date).map(
-        lambda date: date.isoformat()
-    )
+    dates = date_strat(max_value=max_date).map(lambda date: date.isoformat())
     return draw(dates)
 
 
