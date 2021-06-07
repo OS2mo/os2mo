@@ -81,6 +81,30 @@ forventeligt, og kan ignoreres. De normale services defineret i
 :file:`docker-compose.yml` er fra kaldet til ``docker-compose -f
 dev-environment/docker-compose-testcafe.yml`` set som `orphans`.)
 
+Kør e2e tests lokalt
+--------------------
+
+Ovenstående Docker-løsning er ikke særlig brugbar, hvis man skal skrive nye
+tests eller debugge eksisterende tests.
+
+I stedet kan man installere pakker til at køre e2e tests lokalt på sin 
+host maskine. (Forudsat man har NodeJS og Chrome installeret.)
+
+.. code-block:: bash
+
+   cd frontend/e2e-tests
+   npm install
+
+Derefter kan tests afvikles direkte i Chrome browser:
+
+.. code-block:: bash
+
+   npm run test
+
+
+Husk korrekt konfiguration
+--------------------------
+
 Vær desuden opmærksom på, at end-to-end testene køres med den MO-konfiguration,
 der er defineret i ``tests.util.load_sample_confdb``.
 I denne MO-konfiguration er alle "feature flags" slået til, således at
