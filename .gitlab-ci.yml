@@ -38,9 +38,16 @@ stages:
   needs: []
   stage: test
   script:
-    - poetry run pytest --junitxml=report.xml --cov=ramodels --cov-fail-under=100 -n auto
+    - poetry run pytest
+      --junitxml=report.xml
+      --cov=ramodels
+      --cov-report=html
+      --cov-fail-under=100
+      -n auto
   artifacts:
     when: always
+    paths:
+      - htmlcov/
     reports:
       junit: report.xml
   variables:
