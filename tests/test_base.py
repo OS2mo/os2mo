@@ -6,8 +6,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import datetime
+
 import pytest
-from dateutil.parser import isoparse as dt_isoparser
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import Field
@@ -57,7 +58,7 @@ class TestConfig:
 
 def is_isodt_str(s):
     try:
-        dt_isoparser(s)
+        datetime.fromisoformat(s)
     except Exception:
         return False
     return True

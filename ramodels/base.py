@@ -9,7 +9,6 @@
 from datetime import datetime
 from typing import Any
 
-from dateutil.parser import isoparse as dt_isoparser
 from pydantic import BaseModel
 from pydantic import Extra
 
@@ -69,7 +68,7 @@ def tz_isodate(dt: Any) -> datetime:
         Note that the default {DEFAULT_TZ} is used.
     """
     try:
-        iso_dt = dt_isoparser(str(dt))
+        iso_dt = datetime.fromisoformat(str(dt))
     except ValueError:
         raise ISOParseError(dt)
 
