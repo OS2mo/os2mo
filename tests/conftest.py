@@ -17,11 +17,8 @@ from typing import Pattern
 
 import hypothesis as ht
 import pytest
-from dateutil.tz import gettz
-from dateutil.tz import UTC
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
-from hypothesis.extra import dateutil as ht_dateutil
 from pydantic import ValidationError
 
 
@@ -59,9 +56,7 @@ unexpected_value_error = partial(
 def tz_dt_strat(draw):
     dts = st.datetimes(
         min_value=datetime(1930, 1, 1),
-        timezones=ht_dateutil.timezones().filter(
-            lambda tz: tz is UTC or tz is gettz("Europe/Copenhagen")
-        ),  # this is not great and I'm sorry
+        timezones=st.timezones(),
         allow_imaginary=False,
     )
     return draw(dts)

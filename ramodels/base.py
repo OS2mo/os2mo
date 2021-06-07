@@ -9,19 +9,24 @@
 from datetime import datetime
 from typing import Any
 
-from dateutil import tz as dt_tz
 from dateutil.parser import isoparse as dt_isoparser
 from pydantic import BaseModel
 from pydantic import Extra
 
 from ramodels.exceptions import ISOParseError
 
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo  # type: ignore
+
+
 # --------------------------------------------------------------------------------------
 # Globals
 # --------------------------------------------------------------------------------------
 
 # TODO: Perhaps it's worth reading from e.g. env vars here
-DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
+DEFAULT_TZ = zoneinfo.ZoneInfo("Europe/Copenhagen")
 
 POS_INF = "infinity"
 NEG_INF = "-infinity"
