@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import Vue from 'vue'
+import Router from 'vue-router'
 import App from './App'
 import router from './router'
 import i18n from './i18n.js'
@@ -26,10 +27,6 @@ sync(store, router)
 
 Vue.config.productionTip = false
 
-Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
-Vue.use(VueSplit)
-Vue.use(FlagIcon)
-
 let keycloak = Keycloak(window.location.origin + '/keycloak.json')
 
 keycloak.init({ onLoad: 'login-required' }).then((auth) => {
@@ -37,6 +34,11 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     window.location.reload();
   } else {
     console.log("Authenticated")
+
+    Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
+    Vue.use(VueSplit)
+    Vue.use(FlagIcon)
+    Vue.use(Router)
 
     new Vue({
       router,
