@@ -18,19 +18,20 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="form-row employee_info">
-    <mo-input-text
-    :label="$tc('shared.employee')"
-    v-if="hideEmployeePicker"
-    v-model="entry.person.name"
-    disabled
-    />
+      <mo-input-text
+        :label="$tc('shared.employee')"
+        v-if="hideEmployeePicker"
+        v-model="entry.person.name"
+        disabled
+      />
     </div>
 
     <div class="form-row">
-      <mo-facet-picker v-if="showPrimary"
-                       facet="primary_type"
-                       v-model="entry.primary"
-                       required
+      <mo-facet-picker
+        v-if="showPrimary"
+        facet="primary_type"
+        v-model="entry.primary"
+        required
       />
 
       <mo-organisation-unit-picker
@@ -60,18 +61,16 @@ SPDX-License-Identifier: MPL-2.0
           v-on:input="set_entry($event, dynamic)"
         />
     </div>
+
     <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) !== -1">
-        <hr>
-
-        <mo-employee-picker
-          class="search-employee mb-3"
-          :label="$tc('input_fields.employee_substitute')"
-          v-model="entry.substitute"
-          :validity="entry.validity"
-        />
+      <hr>
+      <mo-employee-picker
+        class="search-employee mb-3"
+        :label="$tc('input_fields.employee_substitute')"
+        v-model="entry.substitute"
+        :validity="entry.validity"
+      />
     </div>
-
-
   </div>
 </template>
 

@@ -3,13 +3,14 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="createEmployee">
     <mo-cpr v-if="enableCPR" v-model="employee"/>
+
     <div class="form-row name">
-    <label>{{ $t('shared.name') }}</label>
-    <mo-input-text
-      :placeholder="$t('input_fields.givenname')"
-      v-model="employee.name"
-      :disabled=disableManualName
-    />
+      <label>{{ $t('shared.name') }}</label>
+      <mo-input-text
+        :placeholder="$t('input_fields.givenname')"
+        v-model="employee.name"
+        :disabled=disableManualName
+      />
     </div>
 
     <div class="form-row nickname">
@@ -24,16 +25,19 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
-
     <mo-input-date
-        :label="$t('shared.seniority')"
-        v-model="employee.seniority"
-        v-bind:clear-button="true"
-        v-if="show_seniority"
-      />
+      :label="$t('shared.seniority')"
+      v-model="employee.seniority"
+      v-bind:clear-button="true"
+      v-if="show_seniority"
+    />
 
-    <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
-    <mo-engagement-entry v-model="engagement"/>
+    <mo-add-many
+      class="btn-engagement mt-3"
+      v-model="engagement"
+      :entry-component="entry.engagement"
+      :label="$tc('workflows.employee.labels.engagement', 2)"
+    />
 
     <mo-add-many
       class="btn-address mt-3"
@@ -110,8 +114,8 @@ export default {
     MoInputText,
     MoInputDate,
     MoAddMany,
-    MoEngagementEntry
   },
+
   props: {
     show: {
       type: Boolean,
@@ -133,6 +137,7 @@ export default {
        * MoItSystemEntry, MoManagerEntry component in `<mo-add-many/>`.
        */
       entry: {
+        engagement: MoEngagementEntry,
         address: MoEmployeeAddressEntry,
         association: MoAssociationEntry,
         role: MoRoleEntry,
@@ -162,6 +167,7 @@ export default {
       // disable when using cpr (as cpr implies a name)
       return this.employee && 'cpr_no' in this.employee
     },
+
     enableCPR() {
       // Keep enabled if name is disabled.
       // Otherwise, disable if we have a non-empty name.
@@ -169,17 +175,20 @@ export default {
         'name' in this.employee &&
         (this.employee.name === '' || this.employee.name == null)
       )
-  },
+    },
+
     show_seniority() {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.show_seniority
     }
   },
+
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)
     }
   },
+
   beforeDestroy () {
     this.$store.unregisterModule(STORE_KEY)
   },
@@ -200,6 +209,7 @@ export default {
     updateOrganisation () {
       this.organisation = this.$store.getters['organisation/GET_ORGANISATION']
     },
+
     createEmployee (evt) {
       this.updateOrganisation()
       evt.preventDefault()
