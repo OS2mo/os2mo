@@ -48,7 +48,7 @@ def manager_fsf_strat(draw):
         "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
         "person_uuid": st.uuids(),
-        "responsibility_uuid": st.uuids(),
+        "responsibility_uuids": st.lists(st.uuids()),
         "manager_level_uuid": st.uuids(),
         "manager_type_uuid": st.uuids(),
         "from_date": from_date_strat(),
