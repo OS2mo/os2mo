@@ -43,7 +43,7 @@ test('Workflow: move employee', async t => {
 
     .click(engagementSelect)
 
-    .expect(engagementOption.withText('Fakultet'))
+    .expect(engagementOption.withText('Fakultet').exists)
     .ok('employee lacks an engagement')
     .click(engagementOption.withText('Fakultet'))
 
@@ -51,6 +51,7 @@ test('Workflow: move employee', async t => {
     .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
+    
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
@@ -71,7 +72,7 @@ test('Workflow: move employee', async t => {
     )
 })
 
-test.skip("The input field doesn't swallow characters", async t => {
+test("The input field doesn't swallow characters", async t => {
   let today = moment()
 
   await t

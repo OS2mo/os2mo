@@ -40,7 +40,7 @@ test('Workflow: leave employee', async t => {
     .pressKey('down enter')
 
     .click(engagementSelect)
-    .expect(engagementOption.withText('Fakultet'))
+    .expect(engagementOption.withText('Fakultet').exists)
     .ok('employee lacks an engagement')
     .click(engagementOption.withText('Fakultet'))
 
@@ -56,11 +56,11 @@ test('Workflow: leave employee', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen (.+) har fået tildelt orlov \((.+)\)\./
     )
+
+    .expect(dialog.exists).notOk()
 })

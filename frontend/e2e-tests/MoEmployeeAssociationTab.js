@@ -7,7 +7,7 @@ import { baseURL, setup, teardown } from './support'
 
 let moment = require('moment')
 
-fixture.only('MoEmployeeAssociationTab')
+fixture('MoEmployeeAssociationTab')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/medarbejder/`)
