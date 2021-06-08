@@ -7,9 +7,9 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from datetime import datetime
-from functools import total_ordering
 from typing import Any
 from typing import Callable
+from typing import Dict
 from typing import Iterator
 from typing import List
 from typing import Literal
@@ -19,12 +19,20 @@ from uuid import UUID
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic import root_validator
 from pydantic import validator
 
-from ramodels.base import INF_SET
+from ramodels.base import NEG_INF
+from ramodels.base import POS_INF
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 
+try:
+    import zoneinfo
+except ImportError:  # pragma: no cover
+    from backports import zoneinfo  # type: ignore
+
+UTC = zoneinfo.ZoneInfo("UTC")
 
 # --------------------------------------------------------------------------------------
 # LoRaBase
@@ -34,7 +42,7 @@ from ramodels.base import tz_isodate
 class LoraBase(RABase):
     # TODO: This is duplicated to each class that cannot be instantiated.
     # We should probably find a better solution.
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is LoraBase:
             raise TypeError("LoraBase may not be instantiated")
         return super().__new__(cls)
@@ -55,7 +63,6 @@ class LoraBase(RABase):
 # --------------------------------------------------------------------------------------
 
 
-@total_ordering
 class InfiniteDatetime(str):
     # Inspired by
     # https://pydantic-docs.helpmanual.io/usage/types/#classes-with-__get_validators__
@@ -64,11 +71,6 @@ class InfiniteDatetime(str):
 
     Please note: This class is *not* meant to be instantiated directly.
     If a new object is desired, please use the from_value class method."""
-    # TODO: is there a better way to do this? Pydantic inits sometime during
-    # validation, so __new__ and __init__ methods cannot have calls to cls.validate
-    # because it results in recursion. :(
-    # Currently, this also means it's possible to init e.g. InfiniteDatetime(1) outside
-    # a pydantic context.
 
     @classmethod
     def from_value(cls, value: Union[str, datetime]) -> "InfiniteDatetime":
@@ -103,21 +105,18 @@ class InfiniteDatetime(str):
         if not isinstance(value, (str, datetime)):
             raise TypeError("string or datetime required")
 
-        if value in INF_SET:
+        if value in {POS_INF, NEG_INF}:
             return cls(value)
 
         dt = tz_isodate(value)
         return cls(dt.isoformat())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"InfiniteDatetime({super().__repr__()})"
 
     def __lt__(self, other: Any) -> bool:
         # other is not explictly typed because mypy complains about LSP violations.
         """Implements the less than magic method for InfiniteDatetime.
-
-        The total_ordering decorator from functools is used to supply
-        the remaining rich comparison ordering methods.
 
         Args:
             other (Any): value to compare against.
@@ -125,19 +124,42 @@ class InfiniteDatetime(str):
             TypeError: If other turns out to not be an instance of InfiniteDatetime.
 
         Returns:
-            bool: True if float(self) < float(other), otherwise False.
+            bool: True if dt(self) < dt(other), otherwise False.
         """
         if not isinstance(other, InfiniteDatetime):
             raise TypeError(
                 f"Comparison between {type(self)} and {type(other)} not defined"
             )
 
-        def _float(inf_dt: "InfiniteDatetime") -> float:
-            if inf_dt in INF_SET:
-                return float(inf_dt)
-            return datetime.fromisoformat(inf_dt).timestamp()
+        def _cast_dt(inf_dt: "InfiniteDatetime") -> datetime:
+            if inf_dt == POS_INF:
+                return datetime.max.replace(tzinfo=UTC)
+            if inf_dt == NEG_INF:
+                return datetime.min.replace(tzinfo=UTC)
+            return datetime.fromisoformat(inf_dt)
 
-        return _float(self) < _float(other)
+        return _cast_dt(self) < _cast_dt(other)
+
+    def __le__(self, other: Any) -> bool:
+        """Implements the less than or equal to magic method for InfiniteDatetime.
+
+        This method is defined using __lt__ and __eq__.
+        """
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(self, other: Any) -> bool:
+        """Implements the greater than magic method for InfiniteDatetime.
+
+        This method is defined by negating __le__.
+        """
+        return not self.__le__(other)
+
+    def __ge__(self, other: Any) -> bool:
+        """Implements the less than or equal to magic method for InfiniteDatetime.
+
+        This method is defined using __gt__ and __eq__.
+        """
+        return self.__gt__(other) or self.__eq__(other)
 
 
 # --------------------------------------------------------------------------------------
@@ -149,9 +171,20 @@ class EffectiveTime(RABase):
     from_date: InfiniteDatetime = Field(alias="from")
     to_date: InfiniteDatetime = Field(alias="to")
 
+    @root_validator
+    def check_from_lt_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        from_date, to_date = values.get("from_date"), values.get("to_date")
+        # Mypy complains here about unsupported use of operators due to Nones,
+        # but we catch those with if all...
+        if all([from_date, to_date]) and from_date >= to_date:  # type: ignore
+            raise ValueError("from_date must be strictly less than to_date")
+        return values
+
 
 class Authority(RABase):
-    urn: str
+    urn: str = Field(
+        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
+    )
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
@@ -167,6 +200,8 @@ class FacetAttributes(RABase):
 
 
 class Published(RABase):
+    # TODO: published are actually Enums in LoRa, but it's currently not possible
+    # to lift them from LoRa systematically. We should definitely fix this!
     published: str = Field("Publiceret", alias="publiceret")
     effective_time: EffectiveTime = Field(alias="virkning")
 
@@ -196,13 +231,13 @@ class FacetRelations(RABase):
 class KlasseProperties(RABase):
     user_key: str = Field(alias="brugervendtnoegle")
     title: str = Field(alias="titel")
-    scope: Optional[str] = Field(None, alias="omfang")
+    scope: Optional[str] = Field(alias="omfang")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class KlasseRelations(RABase):
-    responsible: List[Responsible] = Field(alias="ansvarlig")
-    facet: List[FacetRef]
+    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
+    facet: List[FacetRef] = Field(min_items=1, max_items=1)
 
 
 class KlasseAttributes(RABase):

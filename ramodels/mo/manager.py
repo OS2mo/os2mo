@@ -44,12 +44,12 @@ class Manager(MOBase):
         uuid: UUID,
         org_unit_uuid: UUID,
         person_uuid: UUID,
-        responsibility_uuid: UUID,
+        responsibility_uuid: UUID,  # TODO: this should accept a list of UUIDs: #43359
         manager_level_uuid: UUID,
         manager_type_uuid: UUID,
-        from_date: str = "1930-01-01",
+        from_date: str,
         to_date: Optional[str] = None,
-    ):
+    ) -> "Manager":
         person = PersonRef(uuid=person_uuid)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         responsibility = [Responsibility(uuid=responsibility_uuid)]

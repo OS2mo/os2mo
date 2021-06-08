@@ -9,21 +9,26 @@
 from datetime import datetime
 from typing import Any
 
-from dateutil import tz as dt_tz
-from dateutil.parser import isoparse as dt_isoparser
 from pydantic import BaseModel
 from pydantic import Extra
 
 from ramodels.exceptions import ISOParseError
+
+try:
+    import zoneinfo
+except ImportError:  # pragma: no cover
+    from backports import zoneinfo  # type: ignore
+
 
 # --------------------------------------------------------------------------------------
 # Globals
 # --------------------------------------------------------------------------------------
 
 # TODO: Perhaps it's worth reading from e.g. env vars here
-DEFAULT_TZ = dt_tz.gettz("Europe/Copenhagen")
+DEFAULT_TZ = zoneinfo.ZoneInfo("Europe/Copenhagen")
 
-INF_SET = {"-infinity", "infinity"}
+POS_INF = "infinity"
+NEG_INF = "-infinity"
 
 # --------------------------------------------------------------------------------------
 # Base models
@@ -35,7 +40,7 @@ class RABase(BaseModel):
 
     # TODO: This is duplicated to each class that cannot be instantiated.
     # We should probably find a better solution.
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is RABase:
             raise TypeError("RABase may not be instantiated")
         return super().__new__(cls)
@@ -63,7 +68,7 @@ def tz_isodate(dt: Any) -> datetime:
         Note that the default {DEFAULT_TZ} is used.
     """
     try:
-        iso_dt = dt_isoparser(str(dt))
+        iso_dt = datetime.fromisoformat(str(dt))
     except ValueError:
         raise ISOParseError(dt)
 

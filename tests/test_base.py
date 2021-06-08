@@ -6,11 +6,19 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import datetime
+
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from pydantic import Field
 from pydantic import ValidationError
 
 from ramodels.base import RABase
+from ramodels.base import tz_isodate
+from ramodels.exceptions import ISOParseError
+from tests.conftest import date_strat
+from tests.conftest import tz_dt_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -33,7 +41,7 @@ class TestConfig:
 
         # config_class should be immutable
         with pytest.raises(TypeError, match="immutable"):
-            config_class.test_field = "new test"
+            config_class.test_field = "new test"  # type: ignore
 
         # and have a __hash__() method
         assert hasattr(config_class, "__hash__")
@@ -45,4 +53,31 @@ class TestConfig:
     def test_extra_forbid(self):
         # This is verboten
         with pytest.raises(ValidationError, match="extra fields not permitted"):
-            self.ConfigClass(test_field="test", fail="oh no")
+            self.ConfigClass(test_field="test", fail="oh no")  # type: ignore
+
+
+def is_isodt_str(s):
+    try:
+        datetime.fromisoformat(s)
+    except Exception:
+        return False
+    return True
+
+
+class TestTZISODate:
+    @given(tz_dt_strat())
+    def test_init(self, dt):
+        iso_dt = tz_isodate(dt)
+        assert iso_dt
+        assert iso_dt.tzinfo
+
+    @given(date_strat().map(lambda date: date.isoformat()))  # type: ignore
+    def test_str_input(self, dt_str):
+        iso_dt = tz_isodate(dt_str)
+        assert iso_dt
+        assert iso_dt.tzinfo
+
+    @given(st.text().filter(lambda s: not is_isodt_str(s)))
+    def test_fail_input(self, fail_str):
+        with pytest.raises(ISOParseError):
+            tz_isodate(fail_str)

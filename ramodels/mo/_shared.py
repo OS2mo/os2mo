@@ -8,16 +8,24 @@
 # --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
+from typing import Dict
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
 from pydantic import Field
+from pydantic import root_validator
 from pydantic import validator
 
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 
+try:
+    import zoneinfo
+except ImportError:  # pragma: no cover
+    from backports import zoneinfo  # type: ignore
+
+UTC = zoneinfo.ZoneInfo("UTC")
 
 # --------------------------------------------------------------------------------------
 # MOBase
@@ -25,7 +33,7 @@ from ramodels.base import tz_isodate
 
 
 class MOBase(RABase):
-    def __new__(cls, *args, **kwargs) -> Any:
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is MOBase:
             raise TypeError("MOBase may not be instantiated")
         return super().__new__(cls)
@@ -43,76 +51,80 @@ class MOBase(RABase):
 # --------------------------------------------------------------------------------------
 
 
-class AddressType(RABase):
+class MORef(RABase):
     uuid: UUID
 
 
-class EngagementAssociationType(RABase):
-    uuid: UUID
+class AddressType(MORef):
+    pass
 
 
-class EngagementRef(RABase):
-    uuid: UUID
+class EngagementAssociationType(MORef):
+    pass
 
 
-class EngagementType(RABase):
-    uuid: UUID
+class EngagementRef(MORef):
+    pass
 
 
-class AssociationType(RABase):
-    uuid: UUID
+class EngagementType(MORef):
+    pass
 
 
-class JobFunction(RABase):
-    uuid: UUID
+class AssociationType(MORef):
+    pass
 
 
-class ManagerLevel(RABase):
-    uuid: UUID
+class JobFunction(MORef):
+    pass
 
 
-class ManagerType(RABase):
-    uuid: UUID
+class ManagerLevel(MORef):
+    pass
 
 
-class OrganisationRef(RABase):
-    uuid: UUID
+class ManagerType(MORef):
+    pass
 
 
-class OrgUnitHierarchy(RABase):
-    uuid: UUID
+class OrganisationRef(MORef):
+    pass
 
 
-class OrgUnitLevel(RABase):
-    uuid: UUID
+class OrgUnitHierarchy(MORef):
+    pass
 
 
-class OrgUnitRef(RABase):
-    uuid: UUID
+class OrgUnitLevel(MORef):
+    pass
 
 
-class OrgUnitType(RABase):
-    uuid: UUID
+class OrgUnitRef(MORef):
+    pass
 
 
-class ParentRef(RABase):
-    uuid: UUID
+class OrgUnitType(MORef):
+    pass
 
 
-class PersonRef(RABase):
-    uuid: UUID
+class ParentRef(MORef):
+    pass
 
 
-class Primary(RABase):
-    uuid: UUID
+class PersonRef(MORef):
+    pass
 
 
-class Responsibility(RABase):
-    uuid: UUID
+class Primary(MORef):
+    pass
+
+
+class Responsibility(MORef):
+    pass
 
 
 class Validity(RABase):
-    from_date: datetime = Field(tz_isodate("1930-01-01"), alias="from")
+    from_date: datetime = Field(alias="from")
     to_date: Optional[datetime] = Field(alias="to")
 
     @validator("from_date", pre=True, always=True)
@@ -123,6 +135,16 @@ class Validity(RABase):
     def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
         return tz_isodate(to_date) if to_date is not None else None
 
+    @root_validator
+    def check_from_leq_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        # Note: the values of from_date & to_date are not changed here
+        # just leq compared.
+        cmp_from_dt, _to_dt = values.get("from_date"), values.get("to_date")
+        cmp_to_dt = _to_dt if _to_dt else datetime.max.replace(tzinfo=UTC)
+        if all([cmp_from_dt, cmp_to_dt]) and not (cmp_from_dt <= cmp_to_dt):
+            raise ValueError("from_date must be less than or equal to to_date")
+        return values
 
-class Visibility(RABase):
-    uuid: UUID
+
+class Visibility(MORef):
+    pass

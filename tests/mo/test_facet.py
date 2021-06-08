@@ -6,23 +6,27 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import uuid4
+from hypothesis import given
+from hypothesis import strategies as st
 
 from ramodels.mo.facet import FacetClass
 
 
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
 # Tests
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def facet_class_strat(draw):
+    required = {"name": st.text(), "user_key": st.text(), "org_uuid": st.uuids()}
+    optional = {"scope": st.none() | st.text()}
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
 
 
 class TestFacetClass:
-    def test_required_fields(self):
-        """Fails if new required fields are added or existing is removed"""
-        assert FacetClass(name="Direktør", user_key="Direktør", org_uuid=uuid4())
-
-    def test_optional_fields(self):
-        """Fails if an optional field is removed"""
-        assert FacetClass(
-            name="Direktør", user_key="Direktør", scope="TEXT", org_uuid=uuid4()
-        )
+    @given(facet_class_strat())
+    def test_init(self, model_dict):
+        assert FacetClass(**model_dict)

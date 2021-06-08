@@ -1,2 +1,5 @@
 # Cache
 .cache
+
+# Env
+.env

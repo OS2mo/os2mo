@@ -39,9 +39,9 @@ class Organisation(LoraBase):
         name: str,
         user_key: str,  # often == name,
         municipality_code: Optional[int] = None,
-        from_date: str = "1930-01-01",
+        from_date: str = "-infinity",
         to_date: str = "infinity",
-    ):
+    ) -> "Organisation":
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = OrganisationProperties(

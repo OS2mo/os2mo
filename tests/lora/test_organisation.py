@@ -6,73 +6,56 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import datetime
+from hypothesis import given
+from hypothesis import strategies as st
 
+from .test__shared import valid_org_attrs
+from .test__shared import valid_org_relations
+from .test__shared import valid_org_states
 from ramodels.lora import Organisation
-from ramodels.lora._shared import Authority
-from ramodels.lora._shared import EffectiveTime
-from ramodels.lora._shared import InfiniteDatetime
-from ramodels.lora._shared import OrganisationAttributes
-from ramodels.lora._shared import OrganisationProperties
-from ramodels.lora._shared import OrganisationRelations
-from ramodels.lora._shared import OrganisationStates
-from ramodels.lora._shared import OrganisationValidState
-
+from tests.conftest import from_date_strat
+from tests.conftest import to_date_strat
 
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
 
 
+@st.composite
+def organisation_strat(draw):
+    required = {
+        "attributes": valid_org_attrs(),
+        "states": valid_org_states(),
+    }
+    optional = {"relations": st.none() | valid_org_relations()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
+@st.composite
+def organisation_fsf_strat(draw):
+    required = {
+        "uuid": st.uuids(),
+        "name": st.text(),
+        "user_key": st.text(),
+    }
+    optional = {
+        "municipality_code": st.none() | st.integers(),
+        "from_date": from_date_strat(),
+        "to_date": to_date_strat(),
+    }
+
+    # mypy has for some reason decided that required has an invalid type :(
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+
+    return st_dict
+
+
 class TestOrganisation:
-    def test_required_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
-        )
+    @given(organisation_strat())
+    def test_init(self, model_dict):
+        assert Organisation(**model_dict)
 
-        properties = OrganisationProperties(
-            user_key="userkey", name="Name", effective_time=effective_time
-        )
-
-        attributes = OrganisationAttributes(properties=[properties])
-
-        valid_state = OrganisationValidState(effective_time=effective_time)
-
-        states = OrganisationStates(valid_state=[valid_state])
-
-        organisation = Organisation(attributes=attributes, states=states)
-
-        assert effective_time
-        assert properties
-        assert attributes
-        assert valid_state
-        assert states
-        assert organisation
-
-    def test_optional_fields(self):
-        effective_time = EffectiveTime(
-            from_date=InfiniteDatetime(datetime.datetime.now()),
-            to_date=InfiniteDatetime("infinity"),
-        )
-
-        assert Organisation(
-            attributes=OrganisationAttributes(
-                properties=[
-                    OrganisationProperties(
-                        user_key="userkey", name="Name", effective_time=effective_time
-                    )
-                ]
-            ),
-            states=OrganisationStates(
-                valid_state=[OrganisationValidState(effective_time=effective_time)]
-            ),
-            relations=OrganisationRelations(
-                authority=[
-                    Authority(
-                        urn=f"urn:dk:kommune:{'municity code'}",
-                        effective_time=effective_time,
-                    )
-                ]
-            ),
-        )
+    @given(organisation_fsf_strat())
+    def test_from_simplified_fields(self, simp_fields_dict):
+        assert Organisation.from_simplified_fields(**simp_fields_dict)

@@ -38,12 +38,12 @@ class Klasse(LoraBase):
         facet_uuid: UUID,  # uuid
         uuid: UUID,
         user_key: str,  # rarely used
-        scope: Optional[str],
         organisation_uuid: UUID,
         title: str,
-        from_date: str = "1930-01-01",
+        scope: Optional[str] = None,
+        from_date: str = "-infinity",
         to_date: str = "infinity",
-    ):
+    ) -> "Klasse":
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = KlasseProperties(

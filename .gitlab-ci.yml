@@ -1,4 +1,4 @@
---- # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # Global
 variables:
@@ -37,14 +37,29 @@ stages:
   <<: *install-deps
   needs: []
   stage: test
-  script: poetry run pytest
+  script:
+    - poetry run pytest
+      --junitxml=report.xml
+      --cov=ramodels
+      --cov-report=html
+      --cov-fail-under=100
+      -n auto
+  artifacts:
+    when: always
+    paths:
+      - htmlcov/
+    reports:
+      junit: report.xml
+  variables:
+    HYPOTHESIS_PROFILE: ci
 
 .deploy-template: &deploy
   <<: *install-deps
   image: python:3.8
   stage: deploy
   rules:
-    # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+    # Matches <version core> from SemVer 2.0.0 BNF grammar.
+    # Ex. 2.3.4, but not 2.3.4-rc
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 
 # ---------------------------------------------------------------------------
