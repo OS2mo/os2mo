@@ -14,8 +14,8 @@ fixture('MoEmployeeAssociationTab')
 
 const dialog = Selector('.modal-content')
 
-const searchField = Selector('.navbar .v-autocomplete.search-bar')
-const searchItem = searchField.find('.v-autocomplete-list-item')
+const searchField = Selector('.navbar .autocomplete')
+const searchItem = searchField.find('.autocomplete-result-list > li')
 const searchInput = searchField.find('input')
 
 // Association
@@ -35,7 +35,6 @@ test('Workflow: employee association tab', async t => {
   let today = moment()
 
   await t
-
     .click(searchField)
     .typeText(searchInput, 'jens')
     .expect(searchInput.value)
