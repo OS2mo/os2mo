@@ -2,7 +2,6 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-
     <h5 :class="smallButtons ? 'h5-label' : ''">
       <button
         @click="add()"
@@ -15,9 +14,9 @@ SPDX-License-Identifier: MPL-2.0
       </button>
       {{label}}
     </h5>
-
     <div v-for="(v, index) in values" :key="index">
       <mo-removable-component
+        @add="add"
         :entry-component="entryComponent"
         :small-buttons="smallButtons"
         :validity-hidden="validityHidden"
