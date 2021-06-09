@@ -25,6 +25,8 @@ hypothesis = { extras = ["zoneinfo"], version = "^6.13.0" }
 pytest-dotenv = "^0.5.2"
 pytest-cov = "^2.12.0"
 pytest-xdist = "^2.2.1"
+mkdocs-material = "^7.1.7"
+mkdocstrings = "^0.15.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

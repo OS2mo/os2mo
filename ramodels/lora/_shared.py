@@ -40,6 +40,12 @@ UTC = zoneinfo.ZoneInfo("UTC")
 
 
 class LoraBase(RABase):
+    """Base model for LoRa data models.
+
+    Attributes:
+        uuid:
+    """
+
     # TODO: This is duplicated to each class that cannot be instantiated.
     # We should probably find a better solution.
     def __new__(cls, *args: Any, **kwargs: Any) -> Any:
@@ -168,6 +174,12 @@ class InfiniteDatetime(str):
 
 
 class EffectiveTime(RABase):
+    """
+    Attributes:
+        from_date:
+        to_date:
+    """
+
     from_date: InfiniteDatetime = Field(alias="from")
     to_date: InfiniteDatetime = Field(alias="to")
 
@@ -182,6 +194,12 @@ class EffectiveTime(RABase):
 
 
 class Authority(RABase):
+    """
+    Attributes:
+        urn:
+        effective_time:
+    """
+
     urn: str = Field(
         regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
     )
@@ -189,46 +207,96 @@ class Authority(RABase):
 
 
 class FacetProperties(RABase):
+    """
+    Attributes:
+        user_key:
+        effective_time:
+    """
+
     user_key: str = Field(alias="brugervendtnoegle")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class FacetAttributes(RABase):
+    """
+    Attributes:
+        properties:
+    """
+
     properties: List[FacetProperties] = Field(
         alias="facetegenskaber", min_items=1, max_items=1
     )
 
 
 class Published(RABase):
+    """
+    Attributes:
+        published:
+        effective_time:
+    """
+
     # TODO: published are actually Enums in LoRa, but it's currently not possible
     # to lift them from LoRa systematically. We should definitely fix this!
+
     published: str = Field("Publiceret", alias="publiceret")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class FacetStates(RABase):
+    """
+    Attributes:
+        published_state:
+    """
+
     published_state: List[Published] = Field(
         alias="facetpubliceret", min_items=1, max_items=1
     )
 
 
 class Responsible(RABase):
+    """
+    Attributes:
+        object_type:
+        uuid:
+        effective_time:
+    """
+
     object_type: Literal["organisation"] = Field("organisation", alias="objekttype")
     uuid: UUID
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class FacetRef(RABase):
+    """
+    Attributes:
+        object_type:
+        uuid:
+        effective_time:
+    """
+
     object_type: Literal["facet"] = Field("facet", alias="objekttype")
     uuid: UUID
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class FacetRelations(RABase):
+    """
+    Attributes:
+        responsible:
+    """
+
     responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
 
 
 class KlasseProperties(RABase):
+    """
+    Attributes:
+        user_key:
+        title:
+        scope:
+        effective_time:
+    """
+
     user_key: str = Field(alias="brugervendtnoegle")
     title: str = Field(alias="titel")
     scope: Optional[str] = Field(alias="omfang")
@@ -236,44 +304,88 @@ class KlasseProperties(RABase):
 
 
 class KlasseRelations(RABase):
+    """
+    Attributes:
+        responsible:
+        facet:
+    """
+
     responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
     facet: List[FacetRef] = Field(min_items=1, max_items=1)
 
 
 class KlasseAttributes(RABase):
+    """
+    Attributes:
+        properties:
+    """
+
     properties: List[KlasseProperties] = Field(
         alias="klasseegenskaber", min_items=1, max_items=1
     )
 
 
 class KlasseStates(RABase):
+    """
+    Attributes:
+        published_state:
+    """
+
     published_state: List[Published] = Field(
         alias="klassepubliceret", min_items=1, max_items=1
     )
 
 
 class OrganisationProperties(RABase):
+    """
+    Attributes:
+        user_key:
+        name:
+        effective_time:
+    """
+
     user_key: str = Field(alias="brugervendtnoegle")
     name: str = Field(alias="organisationsnavn")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class OrganisationAttributes(RABase):
+    """
+    Attributes:
+        properties:
+    """
+
     properties: List[OrganisationProperties] = Field(
         alias="organisationegenskaber", min_items=1, max_items=1
     )
 
 
 class OrganisationValidState(RABase):
+    """
+    Attributes:
+        state:
+        effective_time:
+    """
+
     state: str = Field("Aktiv", alias="gyldighed")
     effective_time: EffectiveTime = Field(alias="virkning")
 
 
 class OrganisationStates(RABase):
+    """
+    Attributes:
+        valid_state:
+    """
+
     valid_state: List[OrganisationValidState] = Field(
         alias="organisationgyldighed", min_items=1, max_items=1
     )
 
 
 class OrganisationRelations(RABase):
+    """
+    Attributes:
+        authority:
+    """
+
     authority: List[Authority] = Field(alias="myndighed", min_items=1, max_items=1)

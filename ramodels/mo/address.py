@@ -26,6 +26,20 @@ from ._shared import Visibility
 
 
 class Address(MOBase):
+    """
+    Attributes:
+        type:
+        value:
+        value2:
+        address_type:
+        org:
+        person:
+        org_unit:
+        engagement:
+        validity:
+        visibility:
+    """
+
     type: Literal["address"] = "address"
     value: str
     value2: Optional[str]

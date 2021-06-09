@@ -1,0 +1,49 @@
+site_name: RA Data Models
+site_url: ""
+use_directory_urls: False
+site_description: Data models used by OS2mo
+repo_name: ra-data-models
+# TODO: Use the GitHub repo when it's ready
+repo_url: https://git.magenta.dk/rammearkitektur/ra-data-models
+
+nav:
+  - index.md
+  - base.md
+  - LoRa:
+    - Primary: lora/lora.md
+    - Shared: lora/lora_shared.md
+  - MO:
+    - Primary: mo/mo.md
+    - Shared: mo/mo_shared.md
+#  - Tests:
+#    - tests/base.md
+#    - tests/lora.md
+#    - tests/mo.md
+
+theme:
+  name: "material"
+  palette:
+    - scheme:
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+
+# Adds Magenta's colour scheme
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            docstring_options:
+              replace_admonitions: no
+      watch:
+        - ramodels
+        - tests

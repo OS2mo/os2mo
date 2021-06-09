@@ -22,6 +22,15 @@ from ._shared import Validity
 
 
 class Association(MOBase):
+    """
+    Attributes:
+        type:
+        org_unit:
+        person:
+        association_type:
+        validity:
+    """
+
     type: Literal["association"] = "association"
     org_unit: OrgUnitRef
     person: PersonRef

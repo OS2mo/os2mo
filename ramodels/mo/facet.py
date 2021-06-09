@@ -17,6 +17,14 @@ from ramodels.mo._shared import MOBase
 
 
 class FacetClass(MOBase):
+    """
+    Attributes:
+        name:
+        user_key:
+        scope:
+        org_uuid:
+    """
+
     name: str
     user_key: str
     scope: Optional[str]
