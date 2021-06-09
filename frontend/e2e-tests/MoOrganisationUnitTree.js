@@ -5,8 +5,6 @@ import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
 import { baseURL, setup, teardown } from './support';
 
-const dialog = Selector('#orgUnitTerminate')
-
 const trees = new Map([
   ["", [
     "> Lønorganisation",
@@ -64,6 +62,7 @@ for (const [selection, contents] of trees.entries()) {
   test
     .page`${baseURL}/organisation/${selection}`
   (`Load of '${selection}'`, async t => {
+
     await t
       .expect(tree.exists)
       .ok()
@@ -72,16 +71,18 @@ for (const [selection, contents] of trees.entries()) {
       .expect(VueSelector('mo-tree-view').exists)
       .ok()
       .expect(selected.exists)
-      .eql(selection.length > 0, { timeout: 1500 })
+      .eql(selection.length > 0, { timeout: 3000 })
       .expect(VueSelector('mo-tree-view')
         .getVue(({ computed }) => JSON.stringify(computed.contents)))
       .eql(JSON.stringify(contents))
+
   })
 }
 
 test
   .page`${baseURL}/organisation/`
 ('Path changes', async t => {
+  
   await t
     .expect(treeNode.exists)
     .ok()

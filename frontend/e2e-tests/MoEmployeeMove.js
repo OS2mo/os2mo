@@ -27,6 +27,7 @@ const fromInput = dialog.find('.from-date input.form-control')
 const checkbox = Selector('input[data-vv-as="checkbox"]')
 
 test('Workflow: move employee', async t => {
+
   let today = moment()
 
   await t
@@ -63,16 +64,18 @@ test('Workflow: move employee', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
         /Medarbejderen (.+) er blevet flyttet til (.+)\./
     )
+
+    .expect(dialog.exists).notOk()
+
 })
 
 test("The input field doesn't swallow characters", async t => {
+
   let today = moment()
 
   await t
@@ -85,4 +88,5 @@ test("The input field doesn't swallow characters", async t => {
     .typeText(searchEmployeeInput.find('input'), 'kaflaflibob')
     .expect(searchEmployeeInput.find('input').value)
     .eql('kaflaflibob', 'it ate something')
+
 })

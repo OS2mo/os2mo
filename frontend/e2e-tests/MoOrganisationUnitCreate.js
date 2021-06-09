@@ -41,6 +41,7 @@ const addressTypeOption = addressTypeSelect.find('option')
 const addressEmailInput = dialog.find('input[data-vv-as="Email"]')
 
 test('Workflow: create unit', async t => {
+
   let today = moment()
 
   // Some notes:
@@ -122,13 +123,15 @@ test('Workflow: create unit', async t => {
     .typeText(addressEmailInput, 'magenta@gmail.dk')
 
     .click(dialog.find('.btn-primary'))
-
-    .expect(dialog.exists).notOk()
-
+    
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden (.+) er blevet oprettet under (.+)\./
     )
-  // TODO: verify that the unit was actually created, somehow?
+
+    .expect(dialog.exists).notOk()
+  
+    // TODO: verify that the unit was actually created, somehow?
+
 })

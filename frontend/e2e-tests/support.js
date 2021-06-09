@@ -7,9 +7,8 @@ import _ from 'lodash';
 export let baseURL = process.env.BASE_URL || 'http://localhost:5000';
 
 export async function setup(ctx) {
-  let request = axios.get(`${baseURL}/testing/testcafe-db-setup`);
-  await request;
-  request
+
+  await axios.get(`${baseURL}/testing/testcafe-db-setup`)
     .then(response => {
       if (_.isEqual(response.data, { 'testcafe-db-setup': true })) {
 
@@ -29,6 +28,7 @@ export async function setup(ctx) {
                     error.message);
       ctx.setup_error = true;
     });
+
 };
 
 export async function teardown(ctx) {
@@ -36,10 +36,7 @@ export async function teardown(ctx) {
   if (ctx.setup_error) {
     console.warn("Setup of the test database failed. Skipping teardown.");
   } else {
-    let request = axios.get(`${baseURL}/testing/testcafe-db-teardown`);
-    await request;
-
-    request
+    await axios.get(`${baseURL}/testing/testcafe-db-teardown`)
       .then(response => {
         console.log("Teardown database for testcafe.");
 
@@ -57,4 +54,5 @@ The database may be left in an undesired state. The API returned: %s`,
           error.message);
       });
   }
+
 }

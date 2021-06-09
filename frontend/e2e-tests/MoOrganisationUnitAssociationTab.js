@@ -7,7 +7,7 @@ import { baseURL, setup, teardown } from './support';
 
 let moment = require('moment')
 
-fixture('MoOrganisationManagerTab')
+fixture('MoOrganisationUnitAssociationTab')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
@@ -48,13 +48,13 @@ test('Workflow: organisation association tab empty association', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
       /Et "Tilknytning" felt er blevet oprettet\./
     )
+
+    .expect(dialog.exists).notOk()
 
     // Edit association
     .click(Selector('.edit-entry .btn-outline-primary'))
@@ -69,14 +69,14 @@ test('Workflow: organisation association tab empty association', async t => {
     .click(associationTypeOption.withText('Teammedarbejder'))
 
     .click(dialog.find('.btn-primary'))
-
-    .expect(dialog.exists).notOk()
-
+      .debug()
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
       /Et "Tilknytning" felt for (.+) er blevet redigeret\./
     )
+
+    .expect(dialog.exists).notOk()
 
     // Terminate association
     .click(Selector('.terminate-entry .btn-outline-danger'))

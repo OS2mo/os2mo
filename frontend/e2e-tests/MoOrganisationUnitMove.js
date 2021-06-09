@@ -70,13 +70,13 @@ test('Workflow: move unit', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Organisationsenheden (.+) er blevet flyttet til (.+)\./
     )
+
+    .expect(dialog.exists).notOk()
 
     .expect(tree.find('.selected').exists)
     .ok()
