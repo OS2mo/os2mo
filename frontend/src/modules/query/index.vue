@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
       </h4>
 
       <b-tabs content-class="mt-3">
-        <b-tab 
+        <b-tab
           v-for="(q, index) in query_data"
           :key="index"
           :title="q.title">
@@ -66,35 +66,12 @@ export default {
     },
 
     update: function() {
-      Service.get('../dummy-data/all_leader_functions.json')
+      Service.get(`/insight`)
       .then(response => {
         let data = response.data
-        data.title='Alle Lederfunktioner'
-        this.query_data.push(data)
-      })
-      Service.get('../dummy-data/all_engagements.json')
-      .then(response => {
-        let data = response.data
-        data.title = 'Alle Stillinger'
-        this.query_data.push(data)
-      })
-      Service.get('../dummy-data/orgs_and_engagements.json')
-      .then(response => {
-        let data = response.data
-        data.title = 'Organisationsstruktur og Stillinger'
-        this.query_data.push(data)
-      })
-      Service.get('../dummy-data/orgunits.json')
-      .then(response => {
-        let data = response.data
-        data.title = 'Organisationsenheder'
-        this.query_data.push(data)
-      })
-      Service.get('../dummy-data/sd_and_p_no.json')
-      .then(response => {
-        let data = response.data
-        data.title = 'SDLønorganisation og P-Nummer'
-        this.query_data.push(data)
+        for (let i = 0; i < data.length; i++) {
+          this.query_data.push(data[i])
+        }
       })
     }
   }
