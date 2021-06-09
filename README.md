@@ -14,38 +14,11 @@ This project uses [Semantic Versioning](https://semver.org/) with the following 
 - MINOR: Backwards compatible updates to existing data models OR new models added
 - PATCH: Backwards compatible bug fixes
 
-<!--
-## Getting Started
-
-TODO: README section missing!
-
-### Prerequisites
-
-
-TODO: README section missing!
-
-### Installing
-
-TODO: README section missing!
-
-## Running the tests
-
-TODO: README section missing!
-
-## Deployment
-
-TODO: README section missing!
-
-## Built With
-
-TODO: README section missing!
 
 ## Authors
 
 Magenta ApS <https://magenta.dk>
 
-TODO: README section missing!
--->
 ## License
 - This project: [MPL-2.0](MPL-2.0.txt)
 - Dependencies:
@@ -53,3 +26,44 @@ TODO: README section missing!
 
 This project uses [REUSE](https://reuse.software) for licensing. All licenses can be found in the [LICENSES folder](LICENSES/) of the project.
 
+## Development
+### Prerequisites
+
+- [Poetry](https://github.com/python-poetry/poetry) 
+- [Pre-commit](https://github.com/pre-commit/pre-commit)
+
+
+### Getting Started
+
+1. Clone the repository:  
+`git clone git@git.magenta.dk:rammearkitektur/ra-data-models.git`
+
+2. Install all dependencies:   
+`poetry install`
+
+3. Set up pre-commit:  
+`pre-commit install`
+
+
+### Running the tests
+
+You use `poetry` and `pytest` to run the tests:
+
+`poetry run pytest`  
+
+  
+You can also run specific files
+
+`poetry run pytest tests/<test_folder>/<test_file.py>`
+
+and even use filtering with `-k`
+
+`poetry run pytest -k "Manager"`
+
+  
+You can use the flags `-vx` where `v` prints the test & `x` makes the test stop if any tests fails (Verbose, X-fail)
+
+### Pre-commit usage 
+Pre-commit must either be used via your virtual environment or globally.
+If you want to pre-commit globally, the following extra dependencies are needed:  
+`pip install mypy pydantic`  

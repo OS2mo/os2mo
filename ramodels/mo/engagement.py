@@ -26,6 +26,28 @@ from ._shared import Validity
 
 
 class Engagement(MOBase):
+    """
+    Attributes:
+        type:
+        org_unit:
+        person:
+        job_function:
+        engagement_type:
+        validity:
+        primary:
+        user_key:
+        extension_1:
+        extension_2:
+        extension_3:
+        extension_4:
+        extension_5:
+        extension_6:
+        extension_7:
+        extension_8:
+        extension_9:
+        extension_10:
+    """
+
     type: Literal["engagement"] = "engagement"
     org_unit: OrgUnitRef
     person: PersonRef

@@ -28,6 +28,13 @@ from ._shared import Responsible
 
 
 class Klasse(LoraBase):
+    """
+    Attributes:
+        attributes:
+        states:
+        relations:
+    """
+
     attributes: KlasseAttributes = Field(alias="attributter")
     states: KlasseStates = Field(alias="tilstande")
     relations: KlasseRelations = Field(alias="relationer")

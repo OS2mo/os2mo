@@ -30,6 +30,17 @@ from ._shared import Validity
 
 
 class Manager(MOBase):
+    """
+    Attributes:
+        type:
+        org_unit:
+        person:
+        responsibility:
+        manager_level:
+        manager_type:
+        validity:
+    """
+
     type: Literal["manager"] = "manager"
     org_unit: OrgUnitRef
     person: PersonRef

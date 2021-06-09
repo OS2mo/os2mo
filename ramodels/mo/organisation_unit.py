@@ -23,6 +23,18 @@ from ._shared import Validity
 
 
 class OrganisationUnit(MOBase):
+    """
+    Attributes:
+        type:
+        user_key:
+        validity:
+        name:
+        parent:
+        org_unit_hierarchy:
+        org_unit_type:
+        org_unit_level:
+    """
+
     type: Literal["org_unit"] = "org_unit"
     user_key: str
     validity: Validity

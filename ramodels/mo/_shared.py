@@ -33,6 +33,12 @@ UTC = zoneinfo.ZoneInfo("UTC")
 
 
 class MOBase(RABase):
+    """Base model for MO data models.
+
+    Attributes:
+        uuid: If not specified then it is auto generated
+    """
+
     def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls is MOBase:
             raise TypeError("MOBase may not be instantiated")
@@ -52,6 +58,11 @@ class MOBase(RABase):
 
 
 class MORef(RABase):
+    """
+    Attributes:
+        uuid:
+    """
+
     uuid: UUID
 
 

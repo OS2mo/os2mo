@@ -55,7 +55,7 @@ class RABase(BaseModel):
 # Base utils
 # --------------------------------------------------------------------------------------
 def tz_isodate(dt: Any) -> datetime:
-    f"""Attempts to parse an incoming value as a timezone aware datetime.
+    """Attempts to parse an incoming value as a timezone aware datetime.
 
     Args:
         dt (Any): Value to parse into timezone aware datetime.
@@ -64,7 +64,8 @@ def tz_isodate(dt: Any) -> datetime:
         ISOParseError: If the incoming value cannot be parsed by dateutil's isoparser.
 
     Returns:
-        datetime: Timezone aware datetime object.
+        Timezone aware datetime object.
+
         Note that the default {DEFAULT_TZ} is used.
     """
     try:

@@ -24,6 +24,14 @@ from ramodels.base import tz_isodate
 
 
 class Employee(MOBase):
+    """
+    Attributes:
+        type:
+        name:
+        cpr_no:
+        seniority:
+    """
+
     type: Literal["employee"] = "employee"
     name: str
     cpr_no: Optional[str] = Field(regex=r"^\d{9}[1-9]$")
