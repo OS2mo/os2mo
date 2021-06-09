@@ -56,11 +56,11 @@ test('Workflow: moveMany employee', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen (.+) er blevet flyttet til (.+)\./
     )
+
+    .expect(dialog.exists).notOk()
 })

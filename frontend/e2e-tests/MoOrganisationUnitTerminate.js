@@ -10,7 +10,7 @@ let moment = require('moment')
 fixture('MoOrganisationUnitTerminate')
   .before(setup)
   .after(teardown)
-  .page(`${baseURL}/organisation`)
+  .page(`${baseURL}/organisation/`)
 
 const createDialog = Selector('#orgUnitCreate')
 
@@ -83,13 +83,13 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
 
     .click(createDialog.find('.btn-primary'))
 
-    .expect(createDialog.exists).notOk()
-
   const logPattern = /Organisationsenheden (.+) er blevet oprettet under (.+)./
 
   await t
     .expect(lastLogMessage.innerText)
     .match(logPattern)
+
+    .expect(createDialog.exists).notOk()
 
   const match = logPattern.exec(await lastLogMessage.innerText)
   const name = match[1]
@@ -124,10 +124,10 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(lastLogMessage.innerText)
     .eql(`Organisationsenheden ${name} er blevet afsluttet pr. ${twoMonths.format('YYYY-MM-DD')}.`)
+
+    .expect(dialog.exists).notOk()
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
@@ -146,10 +146,10 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
 
     .click(renameDialog.find('.btn-primary'))
 
-    .expect(renameDialog.exists).notOk()
-
     .expect(lastLogMessage.innerText)
     .eql(`Organisationsenheden ${name} er blevet omdøbt til Hjørring VM 2019.`)
+
+    .expect(renameDialog.exists).notOk()
 
     .expect(Selector('.orgunit .orgunit-name').innerText).eql(
       "Hjørring VM 2019"
@@ -228,13 +228,13 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .click(createDialog.find('.btn-primary'))
 
-    .expect(createDialog.exists).notOk()
-
   const logPattern = /Organisationsenheden (.+) er blevet oprettet under (.+)./
 
   await t
     .expect(lastLogMessage.innerText)
     .match(logPattern)
+
+    .expect(createDialog.exists).notOk()
 
   const match = logPattern.exec(await lastLogMessage.innerText)
   const name = match[1]
@@ -269,10 +269,10 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(lastLogMessage.innerText)
     .eql(`Organisationsenheden ${name} er blevet afsluttet pr. ${twoMonths.format('YYYY-MM-DD')}.`)
+
+    .expect(dialog.exists).notOk()
 
     .hover('#mo-workflow', { offsetX: 10, offsetY: 50 })
     .click('.btn-unit-rename')
@@ -284,7 +284,6 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .hover(renameDialog.find('.vdp-datepicker .day:not(.blank)'))
     .click(renameDialog.find('.vdp-datepicker .day:not(.blank)'))
     .expect(renameFromInput.value).eql(nextMonth.format('DD-MM-YYYY'))
-
 
     .typeText(renameDialog.find('input[data-vv-as="Nyt navn"]'),
       'Hjørring VM 2019')

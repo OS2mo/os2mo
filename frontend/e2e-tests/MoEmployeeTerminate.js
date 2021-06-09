@@ -18,8 +18,8 @@ const searchEmployeeField = dialog.find('.search-employee .v-autocomplete[data-v
 const searchEmployeeItem = searchEmployeeField.find('.v-autocomplete-list-item')
 const searchEmployeeInput = searchEmployeeField.find('input')
 
-const mainSearchField = VueSelector('mo-navbar v-autocomplete')
-const mainSearchItem = mainSearchField.find('.v-autocomplete-list-item')
+const mainSearchField = Selector('.navbar .autocomplete')
+const mainSearchItem = mainSearchField.find('.autocomplete-result-list > li')
 const mainSearchInput = mainSearchField.find('input')
 
 const presentDetails = Selector('.tabs .detail-present')
@@ -62,13 +62,13 @@ test('Workflow: terminate employee by search', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
       /Medarbejderen (.+) er blevet afsluttet\./
     )
+
+    .expect(dialog.exists).notOk()
 })
 
 test('Workflow: terminate employee from page', async t => {

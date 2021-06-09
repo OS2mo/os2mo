@@ -59,13 +59,13 @@ test('Workflow: organisation manager tab', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
       /Et "Leder" felt er blevet oprettet\./
     )
+
+    .expect(dialog.exists).notOk()
 
     // Edit manager
     .click(Selector('.edit-entry .btn-outline-primary'))
@@ -93,13 +93,13 @@ test('Workflow: organisation manager tab', async t => {
 
     .click(dialog.find('.btn-primary'))
 
-    .expect(dialog.exists).notOk()
-
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(
       /Et "Leder" felt for (.+) er blevet redigeret\./
     )
+
+    .expect(dialog.exists).notOk()
 
     // Terminate association
     .click(Selector('.terminate-entry .btn-outline-danger'))
