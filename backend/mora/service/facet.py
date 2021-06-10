@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 '''
 Facets
 ------
@@ -15,21 +14,25 @@ objects.
         A value of `<UUID>` means that this is a `DAR`_ address UUID.
 
 '''
-
 import enum
 import locale
-from asyncio import create_task, gather
-from typing import Any, Awaitable, Dict, List, Optional, Set
-from uuid import UUID, uuid4
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
+from uuid import UUID
+from uuid import uuid4
+
+from fastapi import APIRouter
+from fastapi import Request
 from more_itertools import one
 
-from fastapi import APIRouter, Request
-
-from mora.request_scoped.bulking import request_wide_bulk
-from mora.service.models import MOClass
 import mora.async_util
 from . import handlers
-from .tree_helper import prepare_ancestor_tree
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -37,6 +40,9 @@ from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
 from ..request_scoped.query_args import current_query
+from .tree_helper import prepare_ancestor_tree
+from mora.request_scoped.bulking import request_wide_bulk
+from mora.service.models import MOClass
 
 router = APIRouter()
 
@@ -768,7 +774,7 @@ class ClassRequestHandler(handlers.RequestHandler):
         return super().submit()
 
 
-@router.post('/f/{facet}/')
+@router.post('/f/{facet}/', status_code=201)
 def create_or_update_class(
     facet: str,
     class_model: MOClass,

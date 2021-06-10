@@ -5,7 +5,10 @@ import os
 from copy import deepcopy
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException as FastAPIHTTPException
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,20 +17,27 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
-from mora import __version__, health, log
+from . import exceptions
+from . import lora
+from . import service
+from . import triggers
+from .api.v1 import association
+from .api.v1 import reading_endpoints
+from .exceptions import ErrorCodes
+from .exceptions import http_exception_to_json_response
+from .exceptions import HTTPException
+from .settings import config
+from mora import __version__
+from mora import health
+from mora import log
 from mora.auth.exceptions import AuthError
+from mora.auth.keycloak.oidc import add_keycloak
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import auth_exception_handler
-from mora.auth.keycloak.oidc import add_keycloak
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
 from tests.util import setup_test_routing
-from . import exceptions, lora, service
-from . import triggers
-from .api.v1 import reading_endpoints
-from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -84,8 +94,8 @@ async def fallback_handler(*args, **kwargs):
     # look for exception
     if len(args) in [2, 3] and isinstance(args[-1], Exception):
         exc = args[-1]
-    elif 'exc' in kwargs and isinstance(kwargs['exc'], Exception):
-        exc = kwargs['exc']
+    elif "exc" in kwargs and isinstance(kwargs["exc"], Exception):
+        exc = kwargs["exc"]
     else:  # desperate fallback
         err = ErrorCodes.E_UNKNOWN.to_http_exception(
             message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
@@ -97,9 +107,7 @@ async def fallback_handler(*args, **kwargs):
     return http_exception_to_json_response(exc=err)
 
 
-async def request_validation_handler(
-    request: Request, exc: RequestValidationError
-):
+async def request_validation_handler(request: Request, exc: RequestValidationError):
     """
     Ensure a nicely formatted json response, with
 
@@ -177,19 +185,16 @@ def create_app():
 
     for router in service.routers:
         app.include_router(
-            router, prefix="/service", tags=["Service"],
-            dependencies=[Depends(auth)]
+            router, prefix="/service", tags=["Service"], dependencies=[Depends(auth)]
         )
-    app.include_router(
-        reading_endpoints.router,
-        dependencies=[Depends(auth)]
-    )
+    # app.include_router(reading_endpoints.router, dependencies=[Depends(auth)])
+    app.include_router(association.router)
     app.include_router(
         meta_router(),
         tags=["Meta"],
     )
 
-    if config['ENV'] in ['testing', 'development']:
+    if config["ENV"] in ["testing", "development"]:
         app = setup_test_routing(app)
 
     # We serve index.html and favicon.ico here. For the other static files,
@@ -200,6 +205,6 @@ def create_app():
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning(f'No dist directory to serve! (Missing: {distdir})')
+        logger.warning(f"No dist directory to serve! (Missing: {distdir})")
 
     return app
