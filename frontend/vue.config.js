@@ -58,6 +58,18 @@ module.exports = {
   },
   devServer: {
     proxy: {
+      '/token': {
+        target: process.env.BASE_URL || 'http://localhost:5000/',
+        changeOrigin: true
+      },
+      '/openapi.json': {
+        target: process.env.BASE_URL || 'http://localhost:5000/',
+        changeOrigin: true
+      },
+      '/docs': {
+        target: process.env.BASE_URL || 'http://localhost:5000/',
+        changeOrigin: true
+      },
       '/service': {
         target: process.env.BASE_URL || 'http://localhost:5000/',
         changeOrigin: true
