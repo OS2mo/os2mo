@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Vue from 'vue'
 import Router from 'vue-router'
 import employeeRouter from '@/views/employee/router'
 import organisationRouter from '@/views/organisation/router'
@@ -9,22 +8,14 @@ import engagementRouter from '@/views/engagement/router'
 import moduleRouters from '@/modules/router'
 
 const MoBase = () => import('@/MoBase')
-const LoginPage = () => import(/* webpackChunkName: "login" */ '@/views/login')
 const Landing = () => import(/* webpackChunkName: "landingPage" */ '@/views/frontpage')
 const PageNotFound = () => import('@/views/PageNotFound')
-
-Vue.use(Router)
 
 const GlobalRouter = [
   {
     path: '',
     name: 'Landing',
     component: Landing
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: LoginPage
   }
 ]
 

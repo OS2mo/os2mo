@@ -13,8 +13,9 @@ ENV = 'development'
 [lora]
 url = "http://mox:80/"
 
-[session.database]
-host = "mox-db"
+[auth]
+keycloak_schema = "http"
+keycloak_port = 8080
 
 [configuration.database]
 host = "mox-db"

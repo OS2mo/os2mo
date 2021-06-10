@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import axios from 'axios'
+import keycloak from '@/main'
 
 /**
  * Defines the base url and headers for validate http calls
@@ -16,6 +17,12 @@ const Validate = axios.create({
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
   }
 })
+
+Validate.interceptors.request.use(function (config){
+  config.headers["Authorization"] = "Bearer " + keycloak.token
+  return config
+})
+
 
 const createErrorPayload = err => {
   return {

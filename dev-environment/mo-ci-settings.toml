@@ -6,12 +6,12 @@
 dummy_mode = true
 ENV = 'testing'
 
+[auth]
+keycloak_schema = "http"
+keycloak_port = 8080
 
 [lora]
 url = "http://mox:80/"
-
-[session.database]
-host = "mox-db"
 
 [configuration.database]
 host = "mox-db"

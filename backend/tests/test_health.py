@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
+
 import requests_mock
 from aioresponses import aioresponses
 from mock import patch
@@ -34,30 +34,6 @@ class OIORestHealthTests(tests.cases.TestCase):
         mock.get(config["lora"]["url"] + "site-map", exc=RequestException)
 
         actual = health.oio_rest()
-
-        self.assertEqual(False, actual)
-
-
-class SessionDatabaseHealthTests(tests.cases.TestCase):
-    @util.override_config({"saml_sso": {"enable": False}})
-    def test_session_database_returns_none_on_sso_not_enabled(self):
-        actual = health.session_database()
-
-        self.assertEqual(None, actual)
-
-    @pytest.mark.xfail(reason="need auth")
-    @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.session_database_health', new=lambda x: True)
-    def test_session_database_returns_true_if_health_check_succeeds(self):
-        actual = health.session_database()
-
-        self.assertEqual(True, actual)
-
-    @pytest.mark.xfail(reason="need auth")
-    @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.session_database_health', new=lambda x: False)
-    def test_session_database_returns_false_if_health_check_fails(self):
-        actual = health.session_database()
 
         self.assertEqual(False, actual)
 
@@ -124,28 +100,3 @@ class DARHealthTests(tests.cases.TestCase):
         actual = health.dar()
 
         self.assertEqual(True, actual)
-
-
-@requests_mock.Mocker()
-class IdPHealthTests(tests.cases.TestCase):
-    @util.override_config({"saml_sso": {"enable": False}})
-    def test_idp_returns_none_if_saml_sso_not_enabled(self, rq_mock):
-        actual = health.idp()
-
-        self.assertEqual(None, actual)
-
-    @pytest.mark.xfail(reason="need auth")
-    @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.idp_health', new=lambda x: True)
-    def test_idp_returns_true_if_idp_reachable(self, rq_mock):
-        actual = health.idp()
-
-        self.assertEqual(True, actual)
-
-    @pytest.mark.xfail(reason="need auth")
-    @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.idp_health', new=lambda x: False)
-    def test_idp_returns_false_if_request_exception(self, rq_mock):
-        actual = health.idp()
-
-        self.assertEqual(False, actual)

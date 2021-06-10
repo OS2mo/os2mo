@@ -3,7 +3,6 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
-import auth from './modules/auth'
 import conf from './modules/conf'
 import employee from './modules/employee'
 import engagement from './modules/engagement'
@@ -17,7 +16,6 @@ import { Engagement } from './actions/engagement'
 import { OrganisationUnit } from './actions/organisationUnit'
 import { Facet } from './actions/facet'
 import { Organisation } from './actions/organisation'
-import { Auth } from './actions/auth'
 import { Conf } from './actions/conf'
 import { AtDate } from './actions/atDate'
 
@@ -28,7 +26,6 @@ export default new Vuex.Store({
   modules: {
     [AtDate.NAMESPACE]: atDate,
     [Conf.NAMESPACE]: conf,
-    [Auth.NAMESPACE]: auth,
     [Employee.NAMESPACE]: employee,
     [Engagement.NAMESPACE]: engagement,
     log: log,

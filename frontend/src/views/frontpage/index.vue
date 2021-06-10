@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
         <h4>{{$t('common.welcome_tagline')}}</h4>
       </div>
     </nav>
-    <div id="login-wrapper">
+    <div id="main-menu">
       <div v-for="(m, index) in menu" :key="index" class="col">
         <component :is="m.template"/>
       </div>
@@ -72,7 +72,7 @@ export default {
 </script>
 
 <style scoped>
-  #login-wrapper {
+  #main-menu {
     text-align: center;
     margin-top: 10em;
   }

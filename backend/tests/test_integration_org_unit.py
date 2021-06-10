@@ -795,7 +795,10 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        r = self.request('/service/ou/create', json=payload)
+        r = self.request(
+            '/service/ou/create',
+            json=payload
+        )
         unitid = r.json()
 
         expected = {
