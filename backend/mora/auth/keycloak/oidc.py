@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from structlog import get_logger
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
 from starlette.status import (
@@ -27,13 +27,18 @@ JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
 logger = get_logger()
 
 # For getting and parsing the Authorization header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='unused')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='service/token')
 
 # JWKS client for fetching and caching JWKS
 jwks_client = jwt.PyJWKClient(JWKS_URI)
 
 
-async def auth(request: Request) -> dict:
+async def noauth() -> dict:
+    """Noop auth provider."""
+    return {}
+
+
+async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> dict:
     """
     Ensure the caller has a valid OIDC token, i.e. that the Authorization
     header is set with a valid bearer token.
@@ -67,15 +72,7 @@ async def auth(request: Request) -> dict:
 
     """
 
-    # TODO: Remove this, once a proper auth solution is in place,
-    #  that works for local DIPEX development.
-    #  https://redmine.magenta-aps.dk/issues/44020
-    if not config.get_settings().os2mo_auth:
-        return {}
-
     try:
-        token = await oauth2_scheme(request)
-
         # Get the public signing key from Keycloak. The JWKS client uses an
         # lru_cache, so it will not make an HTTP request to Keycloak each time
         # get_signing_key_from_jwt() is called.
@@ -93,16 +90,24 @@ async def auth(request: Request) -> dict:
         raise AuthError(err)
 
 
+auth = keycloak_auth
+# TODO: Remove this, once a proper auth solution is in place,
+#  that works for local DIPEX development.
+#  https://redmine.magenta-aps.dk/issues/44020
+if not config.get_settings().os2mo_auth:
+    auth = noauth
+
+
 # Exception handler to be used by the FastAPI app object
 def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
     if err.is_client_side_error():
-        logger.debug('Client side authentication error', exception=err.exc)
+        logger.exception('Client side authentication error', exception=err.exc)
         return JSONResponse(
             status_code=HTTP_401_UNAUTHORIZED,
             content={'msg': 'Unauthorized'}
         )
 
-    logger.error(
+    logger.exception(
         'Problem communicating with the Keycloak server', exception=err.exc
     )
 

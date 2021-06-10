@@ -15,7 +15,6 @@ from jwt.exceptions import (
 )
 from cryptography.hazmat.primitives import serialization
 
-from starlette.datastructures import Headers
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_500_INTERNAL_SERVER_ERROR
@@ -64,20 +63,14 @@ class TestOIDC(unittest.TestCase):
         self.loop = asyncio.get_event_loop()
 
     @staticmethod
-    def generate_request_with_token(parsed_token: dict, key: bytes) -> Request:
+    def generate_token(parsed_token: dict, key: bytes) -> Request:
         """
         Generate a request containing an auth header with a OIDC Bearer token
         :param parsed_token: parsed token (see example above)
         :param key: The JWK to sign the token with
         """
         token = jwt.encode(parsed_token, key, algorithm="RS256")
-        headers = {'Authorization': 'Bearer ' + token}
-        return Request(
-            {
-                'type': 'http',
-                'headers': Headers(headers).raw
-            }
-        )
+        return token
 
     def test_load_config(self):
         # Assert that Keycloak settings are read properly
@@ -116,12 +109,12 @@ class TestOIDC(unittest.TestCase):
         mock_get_signing_key_from_jwt.side_effect = [self.signing]
 
         # Create auth request with token signed by correct key
-        request = TestOIDC.generate_request_with_token(
+        token = TestOIDC.generate_token(
             self.parsed_token,
             self.private_key
         )
 
-        parsed_token = self.loop.run_until_complete(oidc.auth(request))
+        parsed_token = self.loop.run_until_complete(oidc.auth(token))
         self.assertEqual(self.parsed_token, parsed_token)
 
     @unittest.mock.patch(
@@ -138,13 +131,13 @@ class TestOIDC(unittest.TestCase):
             hackers_key = fp.read()
 
         # Create auth request with token signed with hackers key
-        request = TestOIDC.generate_request_with_token(
+        token = TestOIDC.generate_token(
             self.parsed_token,
             hackers_key
         )
 
         with self.assertRaises(AuthError) as err:
-            self.loop.run_until_complete(oidc.auth(request))
+            self.loop.run_until_complete(oidc.auth(token))
             self.assertTrue(
                 isinstance(err.exception.exc, InvalidSignatureError))
 
@@ -161,13 +154,13 @@ class TestOIDC(unittest.TestCase):
         self.parsed_token['exp'] = int(datetime.now().timestamp()) - 1
 
         # Create auth request with token signed by correct key
-        request = TestOIDC.generate_request_with_token(
+        token = TestOIDC.generate_token(
             self.parsed_token,
             self.private_key
         )
 
         with self.assertRaises(AuthError) as err:
-            self.loop.run_until_complete(oidc.auth(request))
+            self.loop.run_until_complete(oidc.auth(token))
             self.assertTrue(
                 isinstance(err.exception.exc, ExpiredSignatureError))
 
@@ -179,12 +172,12 @@ class TestOIDC(unittest.TestCase):
     ):
         # Mock the public signing.key used in the auth function
         mock_get_signing_key_from_jwt.side_effect = [self.signing]
-        request = TestOIDC.generate_request_with_token(
+        token = TestOIDC.generate_token(
             self.parsed_token,
             self.private_key
         )
 
-        self.loop.run_until_complete(oidc.auth(request))
+        self.loop.run_until_complete(oidc.auth(token))
 
         token = jwt.encode(
             self.parsed_token,

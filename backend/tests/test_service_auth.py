@@ -39,6 +39,7 @@ class TestServiceAuth(unittest.TestCase):
         '/',
         '/favicon.ico',
         '/service/keycloak.json',
+        '/service/token',
         '/service/{rest_of_path:path}',
         '/testing/testcafe-db-setup',
         '/testing/testcafe-db-teardown'
@@ -67,18 +68,18 @@ class TestServiceAuth(unittest.TestCase):
             lambda route: route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS,
             routes
         )
-
-        has_auth = map(TestServiceAuth.lookup_auth_dependency, routes)
-        self.assertTrue(all(has_auth))
+        for route in routes:
+            has_auth = TestServiceAuth.lookup_auth_dependency(route)
+            assert has_auth, f"Route not protected: {route.path}"
 
     def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(self):
         no_auth_routes = filter(
             lambda route: route.path in TestServiceAuth.NO_AUTH_ENDPOINTS,
             main.app.routes
         )
-
-        has_auth = map(TestServiceAuth.lookup_auth_dependency, no_auth_routes)
-        self.assertFalse(any(has_auth))
+        for route in no_auth_routes:
+            has_auth = TestServiceAuth.lookup_auth_dependency(route)
+            assert not has_auth, f"Route protected: {route.path}"
 
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
@@ -109,7 +110,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
     def test_auth_service_details_writing(self):
         self.assertRequestResponse(
             '/service/details/create',
-            {'msg': 'Unauthorized'},
+            'Not authenticated',
             status_code=HTTP_401_UNAUTHORIZED,
             json=[{'not': 'important'}]
         )

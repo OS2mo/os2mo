@@ -3,7 +3,9 @@ In development
 
 New features
 ------------
-* #44717: Added confdb environment settings, adjusted confdb healthcheck, disabled set configuration endpoints.
+* #44744: Cleaned up tags in the OpenAPI docs endpoint (/docs)
+* #44744: Added keycloak support on the OpenAPI docs endpoint (/docs)
+* #44717: Added confdb environment settings, adjusted confdb healthcheck, disabled set configuration endpoints
 * #43364: Added sslmode to database connection options
 * #44187: Add structured logs. Improvements to debugging/troubleshooting
 * #42774: Add English translation. The user can now choose Danish or English screen texts by clicking the flags in the nav bar

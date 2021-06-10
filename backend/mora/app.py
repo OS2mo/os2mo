@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 from pathlib import Path
+from itertools import chain
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
@@ -15,12 +16,13 @@ from os2mo_fastapi_utils.tracing import setup_instrumentation, setup_logging
 from structlog import get_logger
 from structlog.processors import JSONRenderer
 from structlog.contextvars import merge_contextvars
+from more_itertools import only
 
 from mora import __version__, health, log, config
 from mora.auth.exceptions import AuthError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import auth_exception_handler
-from mora.auth.keycloak.config import keycloak_config_router
+from mora.auth.keycloak.router import keycloak_router
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -48,6 +50,17 @@ def meta_router():
             "lora_version": lora_version,
         }
 
+    @router.get("/service/{rest_of_path:path}")
+    def no_such_endpoint(rest_of_path):
+        """Throw an error on unknown `/service/` endpoints."""
+        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
+    return router
+
+
+def static_content_router():
+    router = APIRouter()
+
     @router.get("/")
     @router.get("/organisation/")
     @router.get("/organisation/{path:path}")
@@ -64,11 +77,6 @@ def meta_router():
         """Serve favicon.ico on `/favicon.ico`."""
         return FileResponse(distdir + "/favicon.ico")
 
-    @router.get("/service/{rest_of_path:path}")
-    def no_such_endpoint(rest_of_path):
-        """Throw an error on unknown `/service/` endpoints."""
-        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
-
     return router
 
 
@@ -83,19 +91,21 @@ async def fallback_handler(*args, **kwargs):
     https://github.com/tiangolo/fastapi/issues/2750#issuecomment-775526951
     :return:
     """
-    # look for exception
-    if len(args) in [2, 3] and isinstance(args[-1], Exception):
-        exc = args[-1]
-    elif 'exc' in kwargs and isinstance(kwargs['exc'], Exception):
-        exc = kwargs['exc']
-    else:  # desperate fallback
+    exc = only(filter(
+        lambda arg: isinstance(arg, Exception),
+        chain(args, kwargs.values())
+    ))
+    print(type(exc))
+    if exc and isinstance(exc, FastAPIHTTPException):
+        return http_exception_to_json_response(exc=exc)
+    if exc:
         err = ErrorCodes.E_UNKNOWN.to_http_exception(
-            message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
+            message=str(exc)
         )
         return http_exception_to_json_response(exc=err)
-
-    # properly, backwards compatible exception-handling
-    err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
+    err = ErrorCodes.E_UNKNOWN.to_http_exception(
+        message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
+    )
     return http_exception_to_json_response(exc=err)
 
 
@@ -125,7 +135,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app():
+def create_app(instrument: bool = True):
     """
     Create and return a FastApi app instance for MORA.
     """
@@ -136,8 +146,45 @@ def create_app():
             plugins=(QueryArgContextPlugin(),)
         )
     ]
+    tags_metadata = chain([
+        {
+            "name": "Reading",
+            "description": "Data reading endpoints for integrations.",
+        },
+        {
+            "name": "Service",
+            "description": "Mixed service data endpoints, supporting the UI.",
+        }
+    ], [
+        {
+            "name": "Service." + name,
+            "description": "",
+        } for name in service.routers.keys()
+    ], [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints.",
+        },
+        {
+            "name": "Meta",
+            "description": "Various unrelated endpoints.",
+        },
+        {
+            "name": "Testing",
+            "description": "Endpoints related to testing. Enabled by configuration.",
+        },
+        {
+            "name": "Health",
+            "description": "Healthcheck endpoints, called by the observability setup.",
+        },
+        {
+            "name": "Static",
+            "description": "Endpoints serving static frontend content.",
+        },
+    ])
     app = FastAPI(
         middleware=middleware,
+        openapi_tags=list(tags_metadata),
     )
     settings = config.get_settings()
     if settings.enable_cors:
@@ -161,17 +208,17 @@ def create_app():
         tags=["Health"],
     )
 
-    for router in service.routers:
+    for name, router in service.routers.items():
         app.include_router(
-            router, prefix="/service", tags=["Service"],
+            router, prefix="/service", tags=["Service." + name],
             dependencies=[Depends(auth)]
         )
     app.include_router(
-        reading_endpoints.router,
+        reading_endpoints.router, tags=["Reading"],
         dependencies=[Depends(auth)]
     )
     app.include_router(
-        keycloak_config_router(),
+        keycloak_router(),
         prefix="/service",
         tags=["Auth"],
     )
@@ -179,9 +226,16 @@ def create_app():
         meta_router(),
         tags=["Meta"],
     )
+    app.include_router(
+        static_content_router(),
+        tags=["Static"],
+    )
 
     if not config.is_production():
-        app = setup_test_routing(app)
+        app.include_router(
+            setup_test_routing(),
+            tags=["Testing"]
+        )
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
@@ -201,7 +255,8 @@ def create_app():
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthError, auth_exception_handler)
 
-    app = setup_instrumentation(app)
+    if instrument:
+        app = setup_instrumentation(app)
 
     # Adds pretty printed logs for development
     if get_settings().environment is Environment.DEVELOPMENT:
