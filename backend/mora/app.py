@@ -18,6 +18,7 @@ from mora import __version__, health, log
 from mora.auth.exceptions import AuthError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import auth_exception_handler
+from mora.auth.keycloak.oidc import add_keycloak
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args import current_query
@@ -137,6 +138,7 @@ def create_app():
     app = FastAPI(
         middleware=middleware,
     )
+    app = add_keycloak(app)
 
     if config["enable_cors"]:
         app.add_middleware(

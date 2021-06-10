@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import requests
 import logging
-from fastapi import Request
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Request, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette.responses import JSONResponse
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
@@ -25,13 +26,13 @@ JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
 logger = logging.getLogger(__name__)
 
 # For getting and parsing the Authorization header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='unused')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 # JWKS client for fetching and caching JWKS
 jwks_client = jwt.PyJWKClient(JWKS_URI)
 
 
-async def auth(request: Request) -> dict:
+async def auth(token: str = Depends(oauth2_scheme)) -> dict:
     """
     Ensure the caller has a valid OIDC token, i.e. that the Authorization
     header is set with a valid bearer token.
@@ -66,8 +67,6 @@ async def auth(request: Request) -> dict:
     """
 
     try:
-        token = await oauth2_scheme(request)
-
         # Get the public signing key from Keycloak. The JWKS client uses an
         # lru_cache, so it will not make an HTTP request to Keycloak each time
         # get_signing_key_from_jwt() is called.
@@ -102,3 +101,26 @@ def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
         status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         content={'msg': 'A server side authentication error occurred'}
     )
+
+
+def add_keycloak(app):
+    @app.post("/token")
+    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        REALM = 'mo'
+
+        token_url = f'{SCHEMA}://{HOST}:{PORT}' \
+           f'/auth/realms/{REALM}/protocol/openid-connect/token'
+
+        payload = {
+            'client_id': 'mo',
+            "username": form_data.username,
+            "password": form_data.password,
+            'grant_type': 'password'
+        }
+
+        login_request = requests.post(token_url, data=payload)
+        token = login_request.json()['access_token']
+
+        return {"access_token": token, "token_type": "bearer"}
+
+    return app

@@ -4,61 +4,63 @@
 #
 #    pip-compile requirements.in
 #
-aiofiles==0.6.0
+aiofiles==0.7.0
     # via -r requirements.in
-aiohttp==3.7.3
+aiohttp==3.7.4.post0
     # via -r requirements.in
-alembic==1.4.3
+alembic==1.6.5
     # via -r requirements.in
 anytree==2.8.0
     # via -r requirements.in
 async-timeout==3.0.1
     # via aiohttp
-attrs==20.3.0
+attrs==21.2.0
     # via aiohttp
-certifi==2020.6.20
+certifi==2021.5.30
     # via requests
 cffi==1.14.5
     # via cryptography
-chardet==3.0.4
+chardet==4.0.0
     # via
     #   aiohttp
     #   requests
 cryptography==3.4.7
     # via pyjwt
-decorator==4.4.2
+decorator==5.0.9
     # via validators
-fastapi==0.63.0
+fastapi==0.65.2
     # via -r requirements.in
-gunicorn==20.0.4
+greenlet==1.1.0
+    # via sqlalchemy
+gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via
     #   requests
     #   yarl
-jinja2==2.11.2
+jinja2==3.0.1
     # via
     #   -r requirements.in
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
     # via -r requirements.in
-lxml==4.5.2
+lxml==4.6.3
     # via -r requirements.in
-mako==1.1.3
+mako==1.1.4
     # via alembic
-markupsafe==1.1.1
+markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
-more-itertools==8.5.0
+more-itertools==8.8.0
     # via -r requirements.in
 multidict==5.1.0
     # via
     #   aiohttp
     #   yarl
-os2mo-http-trigger-protocol==0.0.3
+os2mo-http-trigger-protocol==0.0.4
     # via -r requirements.in
-pika==1.1.0
+pika==1.2.0
     # via -r requirements.in
 psycopg2-binary==2.8.6
     # via -r requirements.in
@@ -77,42 +79,45 @@ python-dateutil==2.8.1
     #   lora-utils
 python-editor==1.0.4
     # via alembic
-requests==2.24.0
+python-multipart==0.0.5
+    # via -r requirements.in
+requests==2.25.1
     # via
     #   -r requirements.in
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
     # via -r requirements.in
-six==1.15.0
+six==1.16.0
     # via
     #   anytree
     #   python-dateutil
+    #   python-multipart
     #   sqlalchemy-utils
     #   validators
-sqlalchemy-utils==0.36.8
+sqlalchemy-utils==0.37.6
     # via -r requirements.in
-sqlalchemy==1.3.22
+sqlalchemy==1.4.17
     # via
     #   -r requirements.in
     #   alembic
     #   sqlalchemy-utils
-starlette-context==0.3.1
+starlette-context==0.3.2
     # via -r requirements.in
-starlette==0.13.6
+starlette==0.14.2
     # via
     #   fastapi
     #   starlette-context
-toml==0.10.1
+toml==0.10.2
     # via -r requirements.in
-typing-extensions==3.7.4.3
+typing-extensions==3.10.0.0
     # via
     #   aiohttp
     #   pydantic
-urllib3==1.25.10
+urllib3==1.26.5
     # via requests
-validators==0.18.0
+validators==0.18.2
     # via -r requirements.in
-werkzeug==1.0.1
+werkzeug==2.0.1
     # via -r requirements.in
 xmltodict==0.12.0
     # via service-person-stamdata-udvidet
