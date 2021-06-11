@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
 from pathlib import Path
 
-import requests
 import click
-from datamodel_code_generator import InputFileType, generate
+import requests
+from datamodel_code_generator import generate
+from datamodel_code_generator import InputFileType
 
 
 @click.command()
