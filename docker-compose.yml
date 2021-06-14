@@ -47,11 +47,13 @@ services:
     # reloads on file changes. This is very useful when developing the backend.
     # We also change the Flask app to one where a testing API for testcafe
     # e2e-tests is enabled.
+    env_file:
+      - dev-environment/mo-dev.env
+      - dev-environment/conf_db.env
     volumes:
       # Uncomment this with the path you would like to use for queries
       # - /tmp:/queries
       - ./backend:/app/backend
-      - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
     environment:
@@ -70,7 +72,7 @@ services:
       start_period: 40s
 
   mox:
-    image: magentaaps/lora:dev
+    image: magentaaps/lora:1.12.0
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
