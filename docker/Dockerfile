@@ -22,7 +22,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
+FROM bynect/hypercorn-fastapi:python3.8 AS dist
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
