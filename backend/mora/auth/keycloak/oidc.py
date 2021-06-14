@@ -65,6 +65,9 @@ async def auth(request: Request) -> dict:
 
     """
 
+    if config["ENV"] in ["development", "testing"]:
+        return {}
+
     try:
         token = await oauth2_scheme(request)
 
