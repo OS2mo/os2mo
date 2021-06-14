@@ -3,6 +3,7 @@
 import json
 import logging
 import pprint
+from mora.config import Settings
 from time import sleep
 from unittest.case import TestCase
 
@@ -10,7 +11,7 @@ import requests
 from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 
-from mora import app, conf_db, service, settings
+from mora import app, conf_db, service, config
 from mora.async_util import _local_cache, async_to_sync
 from mora.auth.keycloak.oidc import auth
 from mora.request_scoped.bulking import request_wide_bulk
@@ -66,7 +67,7 @@ class _BaseTestCase(TestCase):
 
     @property
     def lora_url(self):
-        return settings.LORA_URL
+        return config.get_settings().lora_url
 
     def get_token(self):
         """
@@ -324,7 +325,7 @@ class ConfigTestCase(LoRATestCase):
 
     @classmethod
     def setUpClass(cls):
-        conf_db.config["configuration"]["database"]["name"] = "test_confdb"
+        conf_db.config.get_settings = lambda: Settings(conf_db_name="test_confdb")
         super().setUpClass()
 
     @classmethod

@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from mora.config import Settings
 from uuid import UUID
 
 import freezegun
@@ -176,16 +177,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         )
         self.assertIn("NOT_FOUND", r.get("error_key"))
 
-    @util.override_config(
-        {
-            "triggers": {
-                "http_trigger": {
-                    "enabled": True,
-                    "http_endpoints": ["http://whatever"],
-                }
-            }
-        }
-    )
+    @util.override_config(Settings(http_endpoints=["http://whatever"]))
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch("mora.triggers.internal.http_trigger.http_sender")
     @patch("mora.service.orgunit.get_one_orgunit")
@@ -233,16 +225,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
             timeout=5,
         )
 
-    @util.override_config(
-        {
-            "triggers": {
-                "http_trigger": {
-                    "enabled": True,
-                    "http_endpoints": ["http://whatever"],
-                }
-            }
-        }
-    )
+    @util.override_config(Settings(http_endpoints=["http://whatever"]))
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch(
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock

@@ -14,6 +14,9 @@ from jwt.exceptions import (
     PyJWTError
 )
 from cryptography.hazmat.primitives import serialization
+from tests import util
+
+from mora.config import Settings
 from starlette.datastructures import Headers
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
@@ -24,6 +27,7 @@ import mora.auth.keycloak.oidc as oidc
 from mora.auth.exceptions import AuthError
 
 
+@util.override_config(Settings(environment="testing"))
 class TestOIDC(unittest.TestCase):
 
     def setUp(self) -> None:

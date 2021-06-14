@@ -9,8 +9,7 @@ import yarl
 
 import mora.async_util
 import tests.cases
-from mora import lora
-from mora import settings
+from mora import lora, config
 from mora import util as mora_util
 from mora.service.validation import validator
 from . import util
@@ -28,8 +27,9 @@ class TestIsDateRangeValid(tests.cases.TestCase):
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     def test_validity_ranges(self):
+        settings = config.get_settings()
         URL = (
-            settings.LORA_URL + 'organisation/organisationenhed?'
+            settings.lora_url + 'organisation/organisationenhed?'
                                 'uuid=00000000-0000-0000-0000-000000000000'
                                 '&virkningfra=2000-01-01T00:00:00%2B01:00'
                                 '&virkningtil=3000-01-01T00:00:00%2B01:00'

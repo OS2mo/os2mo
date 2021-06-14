@@ -7,9 +7,8 @@ from aioresponses import aioresponses
 
 import mora.async_util
 import tests.cases
-from mora import exceptions
+from mora import exceptions, config
 from mora import lora
-from mora import settings
 from mora import util as mora_util
 from . import util
 
@@ -19,11 +18,12 @@ class Tests(tests.cases.TestCase):
 
     @util.MockAioresponses()
     def test_get_effects(self, m):
+        lora_url = config.get_settings().lora_url
         URL = (
-            settings.LORA_URL + 'organisation/organisationenhed?'
-                                'uuid=00000000-0000-0000-0000-000000000000'
-                                '&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00'
-                                '&virkningtil=infinity&konsolider=True'
+            lora_url + 'organisation/organisationenhed?'
+                       'uuid=00000000-0000-0000-0000-000000000000'
+                       '&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00'
+                       '&virkningtil=infinity&konsolider=True'
         )
         m.get(
             URL,
@@ -252,29 +252,29 @@ class Tests(tests.cases.TestCase):
 
     @util.MockAioresponses()
     def test_error_debug(self, m):
-        with util.override_lora_url():
-            m.get(
-                re.compile(r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
-                payload={
-                    "message": "go away",
-                    "something": "other",
-                },
-                status=500,
-            )
+        # with util.override_lora_url():
+        m.get(
+            re.compile(r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
+            payload={
+                "message": "go away",
+                "something": "other",
+            },
+            status=500,
+        )
 
-            with self.assertRaises(exceptions.HTTPException) as ctxt:
-                mora.async_util.async_to_sync(lora.Connector().organisationenhed.get)(
-                    '42')
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            mora.async_util.async_to_sync(lora.Connector().organisationenhed.get)(
+                '42')
 
-            self.assertEqual(
-                {
-                    'error': True,
-                    'status': 500,
-                    'error_key': 'E_UNKNOWN',
-                    'description': 'go away',
-                },
-                ctxt.exception.detail,
-            )
+        self.assertEqual(
+            {
+                'error': True,
+                'status': 500,
+                'error_key': 'E_UNKNOWN',
+                'description': 'go away',
+            },
+            ctxt.exception.detail,
+        )
 
     @util.MockAioresponses()
     def test_finding_nothing(self, m):
@@ -293,11 +293,12 @@ class Tests(tests.cases.TestCase):
     @freezegun.freeze_time('2001-01-01', tz_offset=1)
     @aioresponses()
     def test_get_effects_2(self, m):
+        lora_url = config.get_settings().lora_url
         URL = (
-            settings.LORA_URL + 'organisation/organisationenhed?'
-                                'uuid=00000000-0000-0000-0000-000000000000'
-                                '&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00'
-                                '&virkningtil=infinity&konsolider=True'
+            lora_url + 'organisation/organisationenhed?'
+                       'uuid=00000000-0000-0000-0000-000000000000'
+                       '&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00'
+                       '&virkningtil=infinity&konsolider=True'
         )
         m.get(
             URL,

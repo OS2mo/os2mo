@@ -3,10 +3,12 @@
 import unittest
 
 import fastapi.routing
+from mora.config import Settings
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_200_OK
 )
+from tests import util
 
 from mora import main
 from mora.auth.keycloak.oidc import auth
@@ -80,6 +82,7 @@ class TestServiceAuth(unittest.TestCase):
         self.assertFalse(any(has_auth))
 
 
+@util.override_config(Settings(environment="testing"))
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
     def setUp(self):
@@ -187,6 +190,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         )
 
 
+@util.override_config(Settings(environment="testing"))
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints

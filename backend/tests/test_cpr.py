@@ -4,6 +4,7 @@
 import tempfile
 
 import freezegun
+from mora.config import Settings
 
 import tests.cases
 from mora import util as mora_util
@@ -128,72 +129,44 @@ class TestConfig(tests.cases.TestCase):
         UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
         return {
-            "service_platformen": {
-                "uuid": UUID_OK,
-                "agreement_uuid": UUID_OK,
-                "municipality_uuid": UUID_OK,
-                "system_uuid": UUID_OK,
-                **overrides,
-            }
+            "sp_service_uuid": UUID_OK,
+            "sp_agreement_uuid": UUID_OK,
+            "sp_municipality_uuid": UUID_OK,
+            "sp_system_uuid": UUID_OK,
+            **overrides,
         }
 
     def test_serviceplatformen_dummy_true(self):
         "test bad/missing values in config for Serviceplatformen "
         "are not considered in dummy mode"
-        with util.override_app_config(ENV='production'):
-            with util.override_config({"dummy_mode": True}):
-                self.assertTrue(serviceplatformen.check_config())
+        with util.override_config(Settings(environment="production", dummy_mode=True)):
+            self.assertTrue(serviceplatformen.check_config())
 
     def test_serviceplatformen_missing_path(self):
-        with util.override_app_config(ENV='production'):
-            with util.override_config({
-                "dummy_mode": False, **self._sp_config()}
+        with util.override_config(
+            Settings(
+                environment="production",
+                dummy_mode=False,
+                **self._sp_config()
+            )
+        ):
+            with self.assertRaisesRegex(
+                ValueError,
+                "Serviceplatformen certificate path must be configured"
             ):
-                with self.assertRaisesRegex(
-                    ValueError,
-                    "Serviceplatformen certificate path must be configured"
-                ):
-                    serviceplatformen.check_config()
+                serviceplatformen.check_config()
 
     def test_serviceplatformen_empty_file(self):
         with tempfile.NamedTemporaryFile() as tf:
-            with util.override_app_config(ENV='production'):
-                with util.override_config({
-                    "dummy_mode": False,
-                    **self._sp_config(certificate_path=tf.name)
-                }):
-                    with self.assertRaisesRegex(
-                        ValueError,
-                        "Serviceplatformen certificate can not be empty"
-                    ):
-                        serviceplatformen.check_config()
-
-    def test_serviceplatformen_invalid_values(self):
-        with tempfile.NamedTemporaryFile() as tf:
-            with util.override_app_config(ENV='production'):
-                with util.override_config({
-                    "dummy_mode": False,
-                    **self._sp_config(
-                        system_uuid="some-other-string-with-4dashes",
-                        uuid='asd'
-                    )
-                }):
-                    with self.assertRaisesRegex(
-                        ValueError,
-                        "Serviceplatformen uuids must be valid: "
-                        "uuid, system_uuid"
-                    ):
-                        serviceplatformen.check_config()
-
-        # the temporary file has now been deleted by tempfile cm
-        # but name still exists
-        with util.override_app_config(ENV='production'):
-            with util.override_config({
-                "dummy_mode": False,
-                **self._sp_config(certificate_path=tf.name)
-            }):
+            with util.override_config(
+                Settings(
+                    environment="production",
+                    dummy_mode=False,
+                    **self._sp_config(sp_certificate_path=tf.name)
+                )
+            ):
                 with self.assertRaisesRegex(
-                    FileNotFoundError,
-                    "Serviceplatformen certificate not found"
+                    ValueError,
+                    "Serviceplatformen certificate can not be empty"
                 ):
                     serviceplatformen.check_config()
