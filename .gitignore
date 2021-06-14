@@ -120,3 +120,6 @@ frontend/coverage/
 
 # Local overrides
 docker-compose.override.yml
+
+# Keycloak
+frontend/public/keycloak.json
