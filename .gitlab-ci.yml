@@ -62,7 +62,7 @@ Lint Python:
   script:
     - cd backend
     - flake8 --version
-    - flake8
+    - flake8 --extend-ignore B008
 
 Lint Dockerfiles:
   <<: *lint-default
@@ -99,7 +99,7 @@ Build OS2MO:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:debug-v0.16.0
+    name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
   tags:
     - docker
@@ -116,7 +116,7 @@ Build frontend:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:debug-v0.16.0
+    name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
   tags:
     - docker
@@ -177,10 +177,10 @@ Build docs:
     MOX_USER_CONFIG_PATH: /app/dev-environment/settings-for-mo-test.toml
     MAX_WORKERS: "1"
     # for mo
-    OS2MO_USER_CONFIG_PATH: /code/dev-environment/mo-ci-settings.toml
+    OS2MO_USER_CONFIG_PATH: /app/dev-environment/mo-ci-settings.toml
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     # for testcafe
-    BASE_URL: http://mo:5000
+    BASE_URL: http://mo:80
 
 Alembic-test:
   <<: *test-default
@@ -190,7 +190,8 @@ Alembic-test:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
   script:
-    - cd backend/mora/conf_db
+    - /app/prestart.sh
+    - cd /app/backend/mora/conf_db
     - ./alembic_test.sh
   artifacts:
     when: always
@@ -221,6 +222,8 @@ Unit-test:
       - $CI_PROJECT_DIR/coverage-html
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
+  tags:
+    - high-mem
 
 Vue-unit-test:
   <<: *test-default
@@ -230,7 +233,7 @@ Vue-unit-test:
     GIT_STRATEGY: none # We do not need the source code
   needs: ["Build frontend"]
   script:
-    - cd /code/frontend
+    - cd /app/frontend
     - yarn install --dev
     - yarn test:unit
       --coverage
@@ -258,7 +261,6 @@ e2e-test:
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo
-      command: ["gunicorn", "--reload", "-b", "0.0.0.0:5000", "tests.util:create_app()"]
   script:
     - cd /
     - /opt/testcafe/docker/testcafe-docker.sh

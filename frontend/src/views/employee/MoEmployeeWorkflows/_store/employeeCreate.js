@@ -37,6 +37,7 @@ const actions = {
       name: state.employee.name,
       nickname_givenname: state.employee.nickname_givenname,
       nickname_surname: state.employee.nickname_surname,
+      seniority: state.employee.seniority,
       cpr_no: state.employee.cpr_no,
       org: state.organisation,
       details: create

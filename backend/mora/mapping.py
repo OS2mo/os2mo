@@ -22,6 +22,7 @@ NICKNAME_GIVENNAME = 'nickname_givenname'
 NICKNAME_SURNAME = 'nickname_surname'
 USER_KEY = 'user_key'
 VALUE = 'value'
+VALUE2 = 'value2'
 HREF = 'href'
 UUID = 'uuid'
 URN = 'urn'
@@ -40,6 +41,7 @@ USER_SETTINGS = 'user_settings'
 INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
 IS_PRIMARY = 'is_primary'
+SENIORITY = 'seniority'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -74,6 +76,7 @@ EXTENSION_ATTRIBUTE_MAPPING = [
 ]
 
 # Association
+ASSOCIATION = 'association'
 ASSOCIATION_KEY = 'Tilknytning'
 ASSOCIATION_TYPE = 'association_type'
 SUBSTITUTE = 'substitute'
@@ -98,6 +101,10 @@ MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
 MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
+# Engagement association
+ENGAGEMENT_ASSOCIATION_KEY = 'engagement_association'
+ENGAGEMENT_ASSOCIATION_TYPE = 'engagement_association_type'
+
 # Org unit
 ORG_UNIT_TYPE = 'org_unit_type'
 TIME_PLANNING = 'time_planning'
@@ -110,15 +117,39 @@ ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
 ORG_UNIT_HIERARCHY_KEY = 'opmærkning'
 ORG_UNIT_NAME_KEY = 'enhedsnavn'
 
+IT = 'it'
+KLE = 'kle'
+ROLE = 'role'
+LEAVE = 'leave'
+RELATED_UNIT = 'related_unit'
+
+
+class MoOrgFunk(enum.Enum):
+    """
+    Implemented MO-organisation functions. With non-trivial mapping to LoRa objs.
+    """
+    ENGAGEMENT = ENGAGEMENT
+    ASSOCIATION = ASSOCIATION
+    IT = IT
+    KLE = KLE
+    ROLE = ROLE
+    ADDRESS = ADDRESS
+    MANAGER = MANAGER
+    LEAVE = LEAVE
+    RELATED_UNIT = RELATED_UNIT
+    ENGAGEMENT_ASSOCIATION = ENGAGEMENT_ASSOCIATION_KEY
+
+
 RELATION_TRANSLATIONS = {
-    'engagement': ENGAGEMENT_KEY.lower(),
-    'association': ASSOCIATION_KEY.lower(),
-    'it': ITSYSTEM_KEY.lower(),
-    'kle': KLE_KEY.lower(),
-    'role': ROLE_KEY.lower(),
-    'address': ADDRESS_KEY.lower(),
-    'manager': MANAGER_KEY.lower(),
-    'leave': LEAVE_KEY.lower(),
+    ENGAGEMENT: ENGAGEMENT_KEY.lower(),
+    ASSOCIATION: ASSOCIATION_KEY.lower(),
+    IT: ITSYSTEM_KEY.lower(),
+    KLE: KLE_KEY.lower(),
+    ROLE: ROLE_KEY.lower(),
+    ADDRESS: ADDRESS_KEY.lower(),
+    MANAGER: MANAGER_KEY.lower(),
+    LEAVE: LEAVE_KEY.lower(),
+    RELATED_UNIT: RELATED_UNIT_KEY.lower(),
 }
 
 OBJECTTYPE = 'objekttype'
@@ -421,6 +452,14 @@ ASSOCIATION_FIELDS = {
     USER_FIELD,
     SINGLE_ADDRESS_FIELD,
     PRIMARY_FIELD,
+}
+
+ENGAGEMENT_ASSOCIATION_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
 }
 
 ROLE_FIELDS = {

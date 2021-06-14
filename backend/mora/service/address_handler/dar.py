@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import flask
 import requests
 import uuid
+import logging
 
 from . import base
 from ..validation.validator import forceable
@@ -15,6 +15,8 @@ session.headers = {
 }
 
 NOT_FOUND = "Ukendt"
+
+logger = logging.getLogger(__name__)
 
 
 class DARAddressHandler(base.AddressHandler):
@@ -43,9 +45,8 @@ class DARAddressHandler(base.AddressHandler):
                 else None
             )
         except LookupError:
-            flask.current_app.logger.warning(
-                'ADDRESS LOOKUP FAILED in {!r}: {}'.format(
-                    flask.request.url,
+            logger.warning(
+                'ADDRESS LOOKUP FAILED: {}'.format(
                     handler.value,
                 ),
             )

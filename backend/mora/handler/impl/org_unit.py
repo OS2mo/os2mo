@@ -3,13 +3,12 @@
 
 import logging
 
-import flask
-
 from .. import reading
 from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
+from ...request_scoped.query_args import current_query
 from ...service import orgunit
 
 ROLE_TYPE = "org_unit"
@@ -29,7 +28,6 @@ class OrgUnitReader(reading.ReadingHandler):
     async def get_from_type(cls, c, type, objid):
         if type != "ou":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
-
         object_tuples = await c.organisationenhed.get_all_by_uuid(uuids=[objid])
         return await cls._get_obj_effects(c, object_tuples)
 
@@ -49,7 +47,7 @@ class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         return await orgunit.get_one_orgunit(
             c,

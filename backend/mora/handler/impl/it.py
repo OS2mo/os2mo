@@ -4,10 +4,9 @@
 import logging
 from asyncio import create_task
 
-import flask
-
 from .. import reading
 from ... import mapping
+from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import itsystem
 from ...service import orgunit
@@ -30,7 +29,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
 
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
         it_system_task = create_task(itsystem.request_bulked_get_one_itsystem(
             it_system, only_primary_uuid=only_primary_uuid))
 

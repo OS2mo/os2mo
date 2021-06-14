@@ -5,12 +5,12 @@ import freezegun
 import notsouid
 
 import mora.async_util
+import tests.cases
 from mora import lora
-from tests import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_engagement(self):

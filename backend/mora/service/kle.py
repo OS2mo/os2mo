@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import flask
+from fastapi import APIRouter
 import uuid
 
 import mora.async_util
@@ -15,12 +15,11 @@ from .. import mapping
 from .. import util
 from ..triggers import Trigger
 
-blueprint = flask.Blueprint('kle', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 class KLERequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'kle'
+    role_type = mapping.KLE
     function_key = mapping.KLE_KEY
 
     def prepare_create(self, req):

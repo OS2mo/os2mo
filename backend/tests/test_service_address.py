@@ -5,13 +5,13 @@ import freezegun
 from yarl import URL
 
 import mora.async_util
+import tests.cases
 from mora import exceptions
 from mora.service import address
-
 from tests import util
 
 
-class TestAddressLookup(util.TestCase):
+class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time('2016-06-06')
     @util.MockAioresponses(passthrough=['http://localhost'])
     def test_autocomplete_no_municipality(self, mock):
@@ -253,35 +253,41 @@ class TestAddressLookup(util.TestCase):
                 'href': None,
                 'name': 'Ukendt',
                 'value': '00000000-0000-0000-0000-000000000000',
+                'value2': None
             },
             '0a3f507b-6b35-32b8-e044-0003ba298018': {
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                 'name': 'Hold-An Vej 7, 2750 Ballerup',
                 'value': '0a3f507b-6b35-32b8-e044-0003ba298018',
+                'value2': None
             },
             '0a3f5081-75bf-32b8-e044-0003ba298018': {
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=11.91321841&mlat=55.62985492&zoom=16',
                 'name': 'Brobjergvej 9, Abbetved, 4060 Kirke S\u00e5by',
                 'value': '0a3f5081-75bf-32b8-e044-0003ba298018',
+                'value2': None
             },
             '0ead9b4d-c615-442d-8447-b328a73b5b39': {
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.57924839&mlat=55.68113676&zoom=16',
                 'name': 'Pilestr\u00e6de 43, 3. th, 1112 K\u00f8benhavn K',
                 'value': '0ead9b4d-c615-442d-8447-b328a73b5b39',
+                'value2': None
             },
             '2ef51a73-ad7d-4ee7-e044-0003ba298018': {
                 'href': 'https://www.openstreetmap.org/'
                         '?mlon=12.3647784&mlat=55.73404048&zoom=16',
                 'name': 'Hold-An Vej 7, 1., 2750 Ballerup',
                 'value': '2ef51a73-ad7d-4ee7-e044-0003ba298018',
+                'value2': None
             },
             'bd7e5317-4a9e-437b-8923-11156406b117': {
                 'href': None,
                 'name': 'Hold-An Vej 7, 2750 Ballerup',
                 'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                'value2': None
             },
         }
 

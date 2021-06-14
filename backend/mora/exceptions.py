@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import traceback
 import typing
 from enum import Enum
 
-import flask
-import werkzeug.exceptions
+from fastapi import HTTPException as fastapiHTTPException
+from starlette.responses import JSONResponse
+
+from mora import settings
+
+TRACEBACK_HEADER_KEY = 'os2mo_tb'
 
 
 class ErrorCodes(Enum):
@@ -36,7 +39,10 @@ class ErrorCodes(Enum):
 
     def __call__(self, *args, **kwargs):
         '''Raise an :py:class:`HTTPException` for this error code'''
-        raise HTTPException(self, *args, **kwargs)
+        raise self.to_http_exception(*args, **kwargs)
+
+    def to_http_exception(self, *args, **kwargs) -> 'HTTPException':
+        return HTTPException(self, *args, **kwargs)
 
     # Validation errors
     V_MISSING_REQUIRED_VALUE = 400, "Missing required value."
@@ -117,7 +123,7 @@ class ErrorCodes(Enum):
     E_INTEGRATION_ERROR = 400, "Integration Error"
 
 
-class HTTPException(werkzeug.exceptions.HTTPException):
+class HTTPException(fastapiHTTPException):
     key = ErrorCodes.E_UNKNOWN
 
     @property
@@ -134,6 +140,9 @@ class HTTPException(werkzeug.exceptions.HTTPException):
         if error_key is not None:
             self.key = error_key
 
+        self.traceback: typing.Optional[str] = None
+        self.stack: typing.Optional[typing.List[str]] = None
+
         body = {
             'error': True,
             'description': message or self.key.description,
@@ -142,30 +151,29 @@ class HTTPException(werkzeug.exceptions.HTTPException):
             **extras,
         }
 
-        # this aids debugging
-        if flask.current_app.debug:
+        # used to have this kind of debug option, easy to get it back
+        if settings.config['ENV'] in ['testing', 'development']:
             if cause is None:
                 cause = self.__cause__ or self
 
+            # just for debugging, remove if change as needed:
             if isinstance(cause, Exception):
-                body.update(
-                    exception=str(cause),
-                    context=traceback.format_exc().splitlines(),
-                )
-            elif cause:
-                body['context'] = cause
+                self.stack = traceback.format_stack()
+                self.traceback = traceback.format_exc()
 
-        super().__init__(body['description'])
-
-        try:
-            self.body = body
-            self.response = flask.jsonify(body)
-            if self.response:
-                self.response.status_code = self.key.code
-        except RuntimeError:
-            pass
+        super().__init__(status_code=self.key.code, detail=body)
 
 
 class ImproperlyConfigured(Exception):
     """MO is somehow improperly configured."""
     pass
+
+
+def http_exception_to_json_response(exc: fastapiHTTPException) -> JSONResponse:
+    """
+    introduced to maintain backwards compatibility
+    :param exc:
+    :param new_status_code:
+    :return:
+    """
+    return JSONResponse(status_code=exc.status_code, content=exc.detail)

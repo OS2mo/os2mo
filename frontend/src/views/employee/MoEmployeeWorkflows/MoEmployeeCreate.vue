@@ -2,7 +2,15 @@ SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="createEmployee">
-    <mo-cpr v-model="employee"/>
+    <mo-cpr v-if="enableCPR" v-model="employee"/>
+    <div class="form-row name">
+    <label>{{ $t('shared.name') }}</label>
+    <mo-input-text
+      :placeholder="$t('input_fields.givenname')"
+      v-model="employee.name"
+      :disabled=disableManualName
+    />
+    </div>
 
     <div class="form-row nickname">
       <label>{{ $t('shared.nickname') }}</label>
@@ -16,6 +24,13 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
+
+    <mo-input-date
+        :label="$t('shared.seniority')"
+        v-model="employee.seniority"
+        v-bind:clear-button="true"
+        v-if="show_seniority"
+      />
 
     <h5 class="mt-3">{{$t('workflows.employee.labels.engagement')}}</h5>
     <mo-engagement-entry v-model="engagement"/>
@@ -78,7 +93,7 @@ SPDX-License-Identifier: MPL-2.0
 import { mapFields } from 'vuex-map-fields'
 import ButtonSubmit from '@/components/ButtonSubmit'
 import MoCpr from '@/components/MoCpr'
-import { MoInputText } from '@/components/MoInput'
+import { MoInputText, MoInputDate } from '@/components/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
 import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
@@ -93,6 +108,7 @@ export default {
     ButtonSubmit,
     MoCpr,
     MoInputText,
+    MoInputDate,
     MoAddMany,
     MoEngagementEntry
   },
@@ -140,7 +156,24 @@ export default {
       'manager',
       'organisation',
       'backendValidationError'
-    ])
+    ]),
+
+    disableManualName() {
+      // disable when using cpr (as cpr implies a name)
+      return this.employee && 'cpr_no' in this.employee
+    },
+    enableCPR() {
+      // Keep enabled if name is disabled.
+      // Otherwise, disable if we have a non-empty name.
+      return this.disableManualName || !('name' in this.employee) || (
+        'name' in this.employee &&
+        (this.employee.name === '' || this.employee.name == null)
+      )
+  },
+    show_seniority() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_seniority
+    }
   },
   beforeCreate () {
     if (!(STORE_KEY in this.$store._modules.root._children)) {

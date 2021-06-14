@@ -18,13 +18,13 @@ services:
     environment:
       # `vue-cli-service serve` will proxy request to `/service` and `/saml`to
       # this endpoint. Defined in `frontend/vue.config.js`.
-      - BASE_URL=http://mo:5000
+      - BASE_URL=http://mo:80
     # To reload on file changes, we mount the current folder into `/code`.
     # However we do not want node_modules on the host machine, so we create an
     # additional volume for it.
     volumes:
-      - .:/code/
-      - /code/frontend/node_modules
+      - .:/app/
+      - /app/frontend/node_modules
     depends_on:
       - mo
     ports:
@@ -47,17 +47,14 @@ services:
     # We also change the Flask app to one where a testing API for testcafe
     # e2e-tests is enabled.
     volumes:
-      - ./backend:/code/backend
+      # Uncomment this with the path you would like to use for queries
+      # - /tmp:/queries
+      - ./backend:/app/backend
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
-      - ./.pytest_cache:/code/.pytest_cache
-    command: [
-        "gunicorn",
-        "--reload",
-        "--config", "docker/gunicorn-settings.py",
-        "tests.util:create_app()"
-    ]
+      - ./.pytest_cache:/app/.pytest_cache
+    command: ["/start-reload.sh"]
     ports:
-      - "5000:5000"
+      - "5000:80"
     depends_on:
       - mox
       - msg_broker

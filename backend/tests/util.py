@@ -1,29 +1,26 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import contextlib
 import copy
 import json
 import os
-import pprint
 import re
-from typing import Union
-from unittest.mock import patch, MagicMock
-from urllib.parse import parse_qsl
 from copy import deepcopy
+from typing import Union
+from unittest.mock import MagicMock
+from unittest.mock import patch
+from urllib.parse import parse_qsl
 
 import aioresponses
-import flask
-import flask_testing
 import jinja2
 import requests
 import requests_mock
-from mora import app, conf_db, lora, service, settings
-from mora.async_util import async_to_sync
-from mora.exceptions import ImproperlyConfigured
-from mora.request_wide_bulking import request_wide_bulk
-from mora.util import restrictargs
+from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
 from yarl import URL
+
+from mora import conf_db, lora, settings
+from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -109,6 +106,7 @@ async def load_sample_structures(minimal=False):
         'association_type': 'ef71fe9c-7901-48e2-86d8-84116e210202',
         'employee_address_type': 'baddc4eb-406e-4c6b-8229-17e4a21d3550',
         'engagement_job_function': '1a6045a2-7a8e-4916-ab27-b2402e64f2be',
+        'engagement_association_type': 'c8a8935e-6f0e-4ca3-b1ea-79556f9b6317',
         'engagement_type': '3e702dd1-4103-4116-bb2d-b150aebe807d',
         'kle_number': '27935dbb-c173-4116-a4b5-75022315749d',
         'kle_aspect': '8a29b2cf-ef98-46f4-9794-0e39354d6ddf',
@@ -228,6 +226,9 @@ async def load_sample_structures(minimal=False):
             'kle_udfoerende': 'f9748c65-3354-4682-a035-042c534c6b4e',
             # kle_number
             'kle_number': 'd7c12965-6207-4c82-88b8-68dbf6667492',
+            # engagement_association_type
+            'ea_k1': '5695e331-d837-473f-9b00-6f528fbd23f6',
+            'ea_k2': '51cc63b8-d8d1-4b74-95df-7c105c9c88dd',
         })
 
         functions.update({
@@ -286,32 +287,29 @@ async def load_sample_structures(minimal=False):
         await load_fixture(path, fixture_name, uuid)
 
 
-def create_app():
+def setup_test_routing(app):
     """
-    Returns a flask app with testing API for e2e-test enabled. It is a superset
+    Returns an app with testing API for e2e-test enabled. It is a superset
     to `mora.app.create_app()`.
 
     """
-    app_object = app.create_app()
+    testing_router = APIRouter()
 
-    @app_object.route("/testing/testcafe-db-setup")
-    @restrictargs()
-    @async_to_sync
+    @testing_router.get("/testing/testcafe-db-setup")
     async def _testcafe_db_setup():
         _mox_testing_api("db-setup")
-
         await load_sample_structures()
+        load_sample_confdb()
+        return jsonable_encoder({"testcafe-db-setup": True})
 
-        return flask.jsonify({"testcafe-db-setup": True})
-
-    @app_object.route("/testing/testcafe-db-teardown")
-    @restrictargs()
+    @testing_router.get("/testing/testcafe-db-teardown")
     def _testcafe_db_teardown():
         _mox_testing_api("db-teardown")
+        return jsonable_encoder({"testcafe-db-teardown": True})
 
-        return flask.jsonify({"testcafe-db-teardown": True})
+    app.include_router(testing_router)
 
-    return app_object
+    return app
 
 
 def override_lora_url(lora_url='http://mox/'):
@@ -334,12 +332,12 @@ def override_app_config(**overrides):
     originals = {}
 
     for k, v in overrides.items():
-        originals[k] = flask.current_app.config[k]
-        flask.current_app.config[k] = v
+        originals[k] = settings.config[k]
+        settings.config[k] = v
 
     yield
 
-    flask.current_app.config.update(overrides)
+    settings.config.update(overrides)
 
 
 class mock(requests_mock.Mocker):
@@ -394,253 +392,6 @@ class mock(requests_mock.Mocker):
 
         if self.__overrider:
             self.__overrider.__exit__(None, None, None)
-
-
-class _BaseTestCase(flask_testing.TestCase):
-    '''Base class for MO testcases w/o LoRA access.
-    '''
-
-    maxDiff = None
-
-    def setUp(self):
-        super().setUp()
-
-    def create_app(self, overrides=None):
-        # make sure the configured organisation is always reset
-        # every before test
-        service.org.ConfiguredOrganisation.valid = False
-
-        return app.create_app({
-            'ENV': 'testing',
-            'DUMMY_MODE': True,
-            'DEBUG': False,
-            'TESTING': True,
-            'LIVESERVER_PORT': 0,
-            'PRESERVE_CONTEXT_ON_EXCEPTION': False,
-            'SECRET_KEY': 'secret',
-            **(overrides or {})
-        })
-
-    @property
-    def lora_url(self):
-        return settings.LORA_URL
-
-    def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), amqp_topics=(), **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
-        redirect) and yields the expected output.
-
-        ``**kwargs`` is passed directly to the test client -- see the
-        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
-        details.
-
-        One addition is that we support a ``json`` argument that
-        automatically posts the given JSON data.
-
-        :return: The result of the request, as a string or object, if
-                 JSON.
-
-        '''
-        r = self.request(path, **kwargs)
-
-        actual = (
-            json.loads(r.get_data(True))
-            if r.mimetype == 'application/json'
-            else r.get_data(True)
-        )
-
-        if status_code is None:
-            if message is None:
-                message = 'status of {!r} was {}, not 2xx'.format(
-                    path,
-                    r.status_code,
-                )
-
-            if not 200 <= r.status_code < 300:
-                pprint.pprint(actual)
-
-                self.fail(message)
-
-        else:
-            if message is None:
-                message = 'status of {!r} was {}, not {}'.format(
-                    path,
-                    r.status_code,
-                    status_code,
-                )
-
-            if r.status_code != status_code:
-                pprint.pprint(actual)
-
-                self.fail(message)
-
-        for k in drop_keys:
-            try:
-                actual.pop(k)
-            except (IndexError, KeyError, TypeError):
-                pass
-
-        return actual
-
-    def assertRequestResponse(self, path, expected, message=None,
-                              amqp_topics=(), **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
-        redirect) and yields the expected output.
-
-        ``**kwargs`` is passed directly to the test client -- see the
-        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
-        details.
-
-        One addition is that we support a ``json`` argument that
-        automatically posts the given JSON data.
-
-        '''
-
-        actual = self.assertRequest(path, message=message,
-                                    amqp_topics=amqp_topics, **kwargs)
-
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
-
-        self.assertEqual(expected, actual, message)
-
-    def assertRequestFails(self, path, code, message=None, **kwargs):
-        '''Issue a request and assert that it fails with the given status.
-
-        ``**kwargs`` is passed directly to the test client -- see the
-        documentation for :py:class:`werkzeug.test.EnvironBuilder` for
-        details.
-
-        One addition is that we support a ``json`` argument that
-        automatically posts the given JSON data.
-
-        '''
-
-        self.assertRequest(path, message=message, status_code=code,
-                           **kwargs)
-
-    def request(self, path, **kwargs):
-        if 'json' in kwargs:
-            # "In the face of ambiguity, refuse the temptation to guess."
-            # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
-
-            kwargs['method'] = 'POST'
-            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs['headers'] = {'Content-Type': 'application/json'}
-
-        return self.client.open(path, **kwargs)
-
-    @staticmethod
-    def __sort_inner_lists(obj):
-        """Sort all inner lists and tuples by their JSON string value,
-        recursively. This is quite stupid and slow, but works!
-
-        This is purely to help comparison tests, as we don't care
-        about the list ordering
-
-        """
-        if isinstance(obj, dict):
-            return {
-                k: TestCase.__sort_inner_lists(v)
-                for k, v in obj.items()
-            }
-        elif isinstance(obj, (list, tuple)):
-            return sorted(
-                map(TestCase.__sort_inner_lists, obj),
-                key=(lambda p: json.dumps(p, sort_keys=True)),
-            )
-        else:
-            return obj
-
-    def assertRegistrationsEqual(self, expected, actual, message=None):
-
-        # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        if actual != expected:
-            pprint.pprint(actual)
-
-        # Sort all inner lists and compare
-        return self.assertEqual(expected, actual, message)
-
-    def assertRegistrationsNotEqual(self, expected, actual, message=None):
-        # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertNotEqual(expected, actual, message)
-
-    def assertSortedEqual(self, expected, actual, message=None):
-        """Sort all inner-lists before comparison"""
-
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
-
-        return self.assertEqual(expected, actual, message)
-
-
-class TestCase(_BaseTestCase):
-    pass
-
-
-class LoRATestCase(_BaseTestCase):
-    '''Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    '''
-
-    @async_to_sync
-    async def load_sample_structures(self, minimal=False):
-        await load_sample_structures(minimal)
-
-    @classmethod
-    def setUpClass(cls):
-        _mox_testing_api("db-setup")
-        request_wide_bulk._disable_caching()
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        _mox_testing_api("db-teardown")
-        super().tearDownClass()
-
-    def setUp(self):
-        _mox_testing_api("db-reset")
-        super().setUp()
-
-
-class ConfigTestCase(LoRATestCase):
-    """Testcase with configuration database support."""
-
-    def set_global_conf(self, conf):
-        conf_db.set_configuration({'org_units': dict(conf)})
-
-    @classmethod
-    def setUpClass(cls):
-        conf_db.config["configuration"]["database"]["name"] = "test_confdb"
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    def setUp(self):
-        conf_db._createdb(force=False)
-        super().setUp()
-
-    def tearDown(self):
-        conf_db.drop_db()
-        super().tearDown()
 
 
 class MockAioresponses(aioresponses.aioresponses):
@@ -717,3 +468,46 @@ class CopyingMock(MagicMock):
         args = deepcopy(args)
         kwargs = deepcopy(kwargs)
         return super().__call__(*args, **kwargs)
+
+
+def load_sample_confdb():
+    """Ensure MO configuration has all feature flags turned on during
+    end-to-end tests.
+
+    Used during TestCafe test runs.
+    """
+
+    # Base sample configuration
+    configuration = {
+        # comma-separated list of UUIDs
+        "substitute_roles": "",
+        # comma-separated list of UUIDs
+        "association_dynamic_facets": "",
+        # comma-separated list of labels
+        "extension_field_ui_labels": "",
+    }
+
+    # Names of all feature flags which should be turned on during test
+    feature_flags = {
+        "inherit_manager",
+        "show_cpr_no",
+        "show_engagement_hyperlink",
+        "show_kle",
+        "show_level",
+        "show_location",
+        "show_org_unit_button",
+        "show_primary_association",
+        "show_primary_engagement",
+        "show_roles",
+        "show_time_planning",
+        "show_user_key",
+        "show_user_key_in_search",
+    }
+
+    # Update configuration, setting all feature flags to "True"
+    configuration.update(dict.fromkeys(feature_flags, "True"))
+
+    # Update `orgunit_settings` table in `mora` database
+    conf_db.set_configuration({"org_units": configuration})
+
+    return configuration

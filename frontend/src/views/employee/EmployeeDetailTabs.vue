@@ -116,7 +116,7 @@ import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { Facet } from '@/store/actions/facet'
 import { AtDate } from '@/store/actions/atDate'
-import { columns } from "../shared/engagement_tab";
+import {columns, generate_extension_columns} from "../shared/engagement_tab";
 
 export default {
   components: {
@@ -172,10 +172,6 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
-      employee: [
-        { label: 'name', data: 'name', field: null },
-        { label: 'nickname', data: 'nickname', field: null },
-      ],
 
       /**
        * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
@@ -196,6 +192,20 @@ export default {
   },
 
   computed: {
+    employee() {
+        let cols =[
+        { label: 'name', data: 'name', field: null },
+        { label: 'nickname', data: 'nickname', field: null },
+      ]
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      if (conf.show_seniority) {
+        cols.push(
+          { label: 'seniority', data: 'seniority', field: null }
+        )
+      }
+      return cols
+    },
+
     engagement () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
 
@@ -210,11 +220,7 @@ export default {
       }
 
       let extension_labels = conf.extension_field_ui_labels.split(',')
-      if (extension_labels.length > 0 && extension_labels[0] !== "") {
-        dyn_columns = dyn_columns.concat(extension_labels.map((label, index) =>
-          ({ label: label, data: 'extension_' + String(index+1) }) ))
-      }
-
+      dyn_columns = dyn_columns.concat(generate_extension_columns(extension_labels))
       return dyn_columns
     },
 

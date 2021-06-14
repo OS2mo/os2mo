@@ -171,14 +171,18 @@ export default {
 </script>
 
 <style scoped>
+  /**
+   * Style search input. Note: these styles are used both in the top nav bar
+   * and also in the search input on the employee index view.
+   */
   .search {
     display: flex;
-    padding: 0 2.5vw;
+    padding: 0;
   }
   .search .input-group {
     align-items: center; /* vertically center items inside input group */
+    flex-wrap: nowrap;
     width: auto;
-    height: 5vh;
   }
   .search .input-group input {
     width: 1%;
@@ -191,9 +195,15 @@ export default {
   }
   .search .input-group.date-input {
     max-width: 10vw;
-    margin-left: 0.5vw;
   }
   .search .input-group.date-input .form-group {
     margin: 0;
+  }
+
+  /**
+   * Style date picker for 'atDate'.
+   */
+  .input-group.date-input {
+    margin: 0 0 0 0.5vw;
   }
 </style>

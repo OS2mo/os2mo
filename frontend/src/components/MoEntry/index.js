@@ -6,6 +6,7 @@ import MoAssociationEntry from './MoAssociationEntry.vue'
 import MoEmployeeEntry from './MoEmployeeEntry.vue'
 import MoEmployeeAddressEntry from './MoEmployeeAddressEntry.vue'
 import MoEngagementEntry from './MoEngagementEntry.vue'
+import MoEngagementAssociationEntry from './MoEngagementAssociationEntry.vue'
 import MoItSystemEntry from './MoItSystemEntry.vue'
 import MoKLEEntry from './MoKLEEntry.vue'
 import MoLeaveEntry from './MoLeaveEntry.vue'
@@ -14,4 +15,4 @@ import MoOrganisationUnitEntry from './MoOrganisationUnitEntry.vue'
 import MoOrgUnitAddressEntry from './MoOrgUnitAddressEntry.vue'
 import MoRoleEntry from './MoRoleEntry.vue'
 
-export { MoAddressEntry, MoAssociationEntry, MoEmployeeEntry, MoEmployeeAddressEntry, MoEngagementEntry, MoItSystemEntry, MoKLEEntry, MoLeaveEntry, MoManagerEntry, MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoRoleEntry }
+export { MoAddressEntry, MoAssociationEntry, MoEmployeeEntry, MoEmployeeAddressEntry, MoEngagementEntry, MoItSystemEntry, MoKLEEntry, MoLeaveEntry, MoManagerEntry, MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoRoleEntry, MoEngagementAssociationEntry}

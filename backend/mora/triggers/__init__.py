@@ -8,6 +8,7 @@ from itertools import chain
 from .. import util
 from ..exceptions import ErrorCodes
 from ..mapping import EventType, RequestType
+from ..settings import app_config
 
 logger = logging.getLogger("triggers")
 
@@ -25,7 +26,7 @@ def register(app):
 
     trigger_modules = chain(
         [amqp_trigger, http_trigger],
-        map(dynamically_load_module, app.config.get("TRIGGER_MODULES", [])),
+        map(dynamically_load_module, app_config.get("TRIGGER_MODULES", [])),
     )
 
     for trigger_module in trigger_modules:

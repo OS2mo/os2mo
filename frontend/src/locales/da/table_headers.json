@@ -7,6 +7,7 @@
   "association_type": "@:shared.association_type",
   "end_date": "Slutdato",
   "engagement": "Engagement",
+  "engagement_association_type": "@:shared.engagement_association_type",
   "engagement_type": "@:shared.engagement_type",
   "engagement_id": "@:shared.engagement_id",
   "it_system": "IT system",
@@ -33,5 +34,6 @@
   "substitute": "@:shared.substitute",
   "first_party_association_type": "Rolle",
   "third_party_associated": "Tilknyttet",
-  "third_party_association_type": "Tilknyttedes rolle"
+  "third_party_association_type": "Tilknyttedes rolle",
+  "seniority": "@:shared.seniority"
 }

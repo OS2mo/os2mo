@@ -60,6 +60,7 @@ import ModalBase from '@/mixins/ModalBase'
 import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import {MoInputDateRange} from "@/components/MoInput"
+import Engagement from '@/api/Engagement'
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -91,8 +92,8 @@ export default {
       type: String,
       required: true,
       validator(value) {
-        if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
-        console.warn('Action must be either EMPLOYEE or ORG_UNIT')
+        if (value === 'EMPLOYEE' || value === 'ORG_UNIT' || value === 'ENGAGEMENT') return true
+        console.warn('Action must be either EMPLOYEE or ORG_UNIT or ENGAGEMENT')
         return false
       }
     }
@@ -220,6 +221,12 @@ export default {
           })
           this.createOrganisationUnitEntries(this.entries)
           break
+        case 'ENGAGEMENT':
+          this.entries.forEach((entry) => {
+            entry.engagement = {uuid: this.uuid}
+          })
+          this.createEngagementEntries(this.entries)
+          break
       }
     },
 
@@ -257,6 +264,33 @@ export default {
     createOrganisationUnitEntries(data) {
       let vm = this
       return OrganisationUnit.createEntry(data)
+        .then(response => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response
+          } else {
+            vm.$refs[this.nameId].hide()
+            this.$emit('submit')
+            for (const dat of data) {
+              this.$store.commit('log/newWorkLog',
+                {
+                  type: 'FUNCTION_CREATE',
+                  contentType: this.contentType,
+                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
+                },
+                {root: true})
+            }
+          }
+        })
+    },
+
+    /**
+     * Create list of entries for an organisational function
+     * Then throw a error if not.
+     */
+    createEngagementEntries(data) {
+      let vm = this
+      return Engagement.createEntry(data)
         .then(response => {
           vm.isLoading = false
           if (response.error) {

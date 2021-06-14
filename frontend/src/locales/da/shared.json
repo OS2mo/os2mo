@@ -10,6 +10,8 @@
     "start_date": "Startdato",
     "end_date": "Slutdato"
   },
+  "engagement_association": "Engagements Tilknytninger",
+  "engagement_association_type": "@:shared.association_type",
   "engagement_type": "Engagementstype",
   "employee": "Medarbejder | Medarbejdere",
   "organisation": "Organisation | Organisationer",
@@ -50,5 +52,6 @@
   "main_organisation": "hovedorganisationen",
   "engagement_id": "ID",
   "entire_organisation": "Bruttoorganisation",
-  "belongs_to": "Tilhører"
+  "belongs_to": "Tilhører",
+  "seniority": "Anciennitet"
 }

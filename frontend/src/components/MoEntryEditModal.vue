@@ -45,6 +45,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import Employee from '@/api/Employee'
+import Engagement from '@/api/Engagement'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import ButtonSubmit from './ButtonSubmit'
 import ValidateForm from '@/mixins/ValidateForm'
@@ -94,7 +95,7 @@ export default {
       type: String,
       required: true,
       validator (value) {
-        if (value === 'EMPLOYEE' || value === 'ORG_UNIT') return true
+        if (value === 'EMPLOYEE' || value === 'ORG_UNIT' || value === 'ENGAGEMENT') return true
         console.warn('Action must be either EMPLOYEE or ORG_UNIT')
         return false
       }
@@ -240,6 +241,10 @@ export default {
           data.org_unit = { uuid: this.uuid }
           this.editOrganisationUnit(data)
           break
+        case 'ENGAGEMENT':
+          data.engagement = { uuid: this.uuid }
+          this.editEngagement(data)
+          break
       }
     },
 
@@ -257,6 +262,14 @@ export default {
      */
     editOrganisationUnit (data) {
       return OrganisationUnit.edit(data).then(this.handle.bind(this))
+    },
+
+    /**
+     * Edit a engagement and check if the data fields are valid.
+     * Then throw a error if not.
+     */
+    editEngagement (data) {
+      return Engagement.edit(data).then(this.handle.bind(this))
     },
 
     handle (response) {
@@ -321,6 +334,17 @@ export default {
               },
               {root: true})
           }
+        } else if (this.type === 'ENGAGEMENT') {
+          this.$store.commit('log/newWorkLog',
+            {
+              type: 'FUNCTION_EDIT',
+              contentType: this.contentType,
+              value: {
+                type: this.$tc(`shared.${this.entry.type}`, 1),
+                name: this.$t(``)
+              }
+            },
+            {root: true})
         }
       }
     }

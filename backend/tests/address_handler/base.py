@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import tests.cases
 
-from .. import util
 
-
-class AddressHandlerTestCase(util.TestCase):
+class AddressHandlerTestCase(tests.cases.TestCase):
     handler = None
     value = None
     visibility = None

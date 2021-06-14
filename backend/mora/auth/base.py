@@ -10,43 +10,31 @@ progress.
 
 '''
 import os
+from fastapi import APIRouter
+from starlette.requests import Request
 
-import flask
-
-import flask_saml_sso
-
-from .. import util
+from mora.auth.saml_sso import get_session_name_id
 
 __all__ = (
     'get_user',
 )
 
+from mora.settings import app_config
+
 basedir = os.path.dirname(__file__)
 
-blueprint = flask.Blueprint('authentication', __name__,
-                            url_prefix='/service', root_path=basedir)
+router = APIRouter()
 
 
-@blueprint.route('/user', methods=['GET'])
-@util.restrictargs()
-def get_user():
+@router.get('/user')
+def get_user(request: Request):
     '''Get the currently logged in user
 
     .. :quickref: Authentication; Get user
 
     :return: The username of the user who is currently logged in.
     '''
-
-    if not flask.current_app.config['SAML_USERNAME_FROM_NAMEID']:
-        username_attr = flask.current_app.config['SAML_USERNAME_ATTR']
-        try:
-            username = flask_saml_sso.get_session_attributes()[
-                username_attr][0]
-        except (AttributeError, LookupError, TypeError):
-            flask.current_app.logger.exception(
-                'Unable to get username from session attribute')
-            username = None
+    if app_config["SAML_AUTH_ENABLE"]:
+        return get_session_name_id(request)
     else:
-        username = flask_saml_sso.get_session_name_id()
-
-    return flask.jsonify(username)
+        return "N/A"

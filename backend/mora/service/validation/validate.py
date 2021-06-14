@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from typing import Optional
 
-import flask
-import mora.async_util
+from fastapi import APIRouter, Body
 
 from . import validator
 from .. import facet
@@ -12,14 +12,11 @@ from ... import lora
 from ... import mapping
 from ... import util
 
-blueprint = flask.Blueprint('validate', __name__, static_url_path='',
-                            url_prefix='/service/validate')
+_router = APIRouter()
 
 
-@blueprint.route('/org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def org_unit_validity():
+@_router.post('/org-unit/')
+async def org_unit_validity(req: dict = Body(...)):
     """
     Verify that an org unit is valid within a given set of start/end dates
 
@@ -53,21 +50,17 @@ async def org_unit_validity():
     * ``V_INVALID_ADDRESS_WWW``
 
     """
-    req = flask.request.get_json()
-
     org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     await validator.is_date_range_in_org_unit_range(
         org_unit, valid_from, valid_to)
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/employee/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def employee_validity():
+@_router.post('/employee/')
+async def employee_validity(req: dict = Body(...)):
     """
     Verify that an employee is valid within a given set of start/end dates
 
@@ -96,20 +89,16 @@ async def employee_validity():
     * ``V_DATE_OUTSIDE_EMPL_RANGE``
 
     """
-    req = flask.request.get_json()
-
     employee = util.checked_get(req, mapping.PERSON, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/cpr/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def check_cpr():
+@_router.post('/cpr/')
+async def check_cpr(req: dict = Body(...)):
     """
     Verify that an employee with the given CPR no. does not already exist
 
@@ -134,21 +123,18 @@ async def check_cpr():
 
     * ``V_EXISTING_CPR``
     """
-    req = flask.request.get_json()
-
     cpr = util.checked_get(req, mapping.CPR_NO, "", required=True)
     org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
     await validator.does_employee_with_cpr_already_exist(
-        cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid)
+        cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid
+    )
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/active-engagements/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def employee_engagements():
+@_router.post('/active-engagements/')
+async def employee_engagements(req: dict = Body(...)):
     """
     Verify that an employee has active engagements
 
@@ -176,21 +162,18 @@ async def employee_engagements():
 
     * ``V_NO_ACTIVE_ENGAGEMENT``
     """
-    req = flask.request.get_json()
-
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
     valid_from, valid_to = util.get_validities(req)
 
     await validator.does_employee_have_active_engagement(
-        employee_uuid, valid_from, valid_to)
+        employee_uuid, valid_from, valid_to
+    )
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/existing-associations/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def employee_existing_associations():
+@_router.post('/existing-associations/')
+async def employee_existing_associations(req: dict = Body(...)):
     """
     Verify that an employee does not have existing associations for a given
     org unit
@@ -226,36 +209,29 @@ async def employee_existing_associations():
 
     * ``V_MORE_THAN_ONE_ASSOCIATION``
     """
-    req = flask.request.get_json()
-
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
     association_uuid = util.get_uuid(req, required=False)
     valid_from = util.get_valid_from(req)
 
     await validator.does_employee_have_existing_association(
-        employee_uuid, org_unit_uuid, valid_from, association_uuid)
+        employee_uuid, org_unit_uuid, valid_from, association_uuid
+    )
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/movable-org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def movable_org_unit():
-    req = flask.request.get_json()
-
+@_router.post('/movable-org-unit/')
+async def movable_org_unit(req: dict = Body(...)):
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
 
     await validator.is_movable_org_unit(org_unit_uuid)
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/candidate-parent-org-unit/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def candidate_parent_org_unit():
+@_router.post('/candidate-parent-org-unit/')
+async def candidate_parent_org_unit(req: dict = Body(...)):
     """
     Verify that a given parent is a suitable candidate for an org unit move,
     i.e. that the candidate parent is not in the sub tree of the org unit being
@@ -291,22 +267,22 @@ async def candidate_parent_org_unit():
     * ``V_DATE_OUTSIDE_ORG_UNIT_RANGE``
     * ``V_UNIT_OUTSIDE_ORG``
     """
-    req = flask.request.get_json()
-
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
     parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
     valid_from = util.get_valid_from(req)
 
     await validator.is_candidate_parent_valid(
-        org_unit_uuid, parent_uuid, valid_from)
+        org_unit_uuid, parent_uuid, valid_from
+    )
 
-    return flask.jsonify(success=True)
+    return {"success": True}
 
 
-@blueprint.route('/address/', methods=['POST'])
-@util.restrictargs()
-@mora.async_util.async_to_sync
-async def address_value():
+@_router.post('/address/')
+async def address_value(
+    req: dict = Body(...),
+    only_primary_uuid: Optional[bool] = None
+):
     """
     Verify that a given address value conforms to the format for the given
     address type. E.g. that a phone number consists of 8 digits.
@@ -333,16 +309,15 @@ async def address_value():
     * ``V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL``
     """
 
-    req = flask.request.get_json()
     address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
                                               required=True)
     value = util.checked_get(req, mapping.VALUE, default="", required=True)
 
     c = lora.Connector()
-    only_primary_uuid = flask.request.args.get('only_primary_uuid')
 
-    type_obj = await facet.get_one_class(c, address_type_uuid,
-                                         only_primary_uuid=only_primary_uuid)
+    type_obj = await facet.get_one_class(
+        c, address_type_uuid, only_primary_uuid=only_primary_uuid
+    )
 
     scope = util.checked_get(type_obj, 'scope', '', required=True)
 
@@ -350,4 +325,9 @@ async def address_value():
 
     handler.validate_value(value)
 
-    return flask.jsonify(success=True)
+    return {"success": True}
+
+
+# important to include AFTER path_operations are in place
+router = APIRouter()
+router.include_router(_router, prefix='/validate')

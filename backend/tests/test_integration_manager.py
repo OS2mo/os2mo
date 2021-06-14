@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
+from unittest.mock import patch
 
 import freezegun
 import notsouid
-from unittest.mock import patch
 
 import mora.async_util
+import tests.cases
 from mora import lora
 from mora import util as mora_util
-from tests import util
 
 mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 
@@ -19,7 +19,7 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 @patch('uuid.uuid4', new=lambda: mock_uuid)
 @patch('mora.conf_db.get_configuration',
        new=lambda *x: {})
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_manager_missing_unit(self):

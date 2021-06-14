@@ -12,7 +12,6 @@ import uuid
 from typing import Any, Dict
 
 import mora.async_util
-
 from . import handlers
 from . import org
 from .validation import validator
@@ -23,7 +22,7 @@ from .. import util
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'association'
+    role_type = mapping.ASSOCIATION
     function_key = mapping.ASSOCIATION_KEY
 
     @staticmethod

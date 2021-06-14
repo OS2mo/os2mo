@@ -3,12 +3,11 @@
 import logging
 from asyncio import create_task
 
-import flask
 from mora import lora
-
-from .engagement import EngagementReader
+from .engagement import get_engagement
 from .. import reading
 from ... import mapping
+from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 
@@ -29,7 +28,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -40,7 +39,6 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             leave_type,
             only_primary_uuid=only_primary_uuid))
 
-        only_primary_uuid = flask.request.args.get("only_primary_uuid")
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
         else:
@@ -48,19 +46,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             # to account for edge cases where the engagement might have changed or is
             # no longer active during the time period
             present_connector = lora.Connector(validity="present")
-            engagements_task = create_task(EngagementReader.get(
-                present_connector, {"uuid": [engagement_uuid]}
-            ))
-            engagements = await engagements_task
-            if len(engagements) == 0:
-                logger.warning(f"Engagement {engagement_uuid} returned no results")
-                engagement = None
-            else:
-                if len(engagements) > 1:
-                    logger.warning(
-                        f"Engagement {engagement_uuid} returned more than one result"
-                    )
-                engagement = engagements[0]
+            engagement = await get_engagement(present_connector, uuid=engagement_uuid)
 
         r = {
             **await base_obj,

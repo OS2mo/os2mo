@@ -4,6 +4,8 @@
 #
 #    pip-compile requirements.in
 #
+aiofiles==0.6.0
+    # via -r requirements.in
 aiohttp==3.7.3
     # via -r requirements.in
 alembic==1.4.3
@@ -28,23 +30,14 @@ decorator==4.4.2
     # via validators
 defusedxml==0.6.0
     # via python3-saml
-flask-cors==3.0.8
+fastapi-sqlalchemy==0.2.1
+    # via -r requirements.in
+fastapi==0.63.0
     # via -r requirements.in
 flask-session==0.3.2
-    # via
-    #   -r requirements.in
-    #   flask-saml-sso
-flask-sqlalchemy==2.4.4
-    # via flask-saml-sso
-flask==1.1.2
-    # via
-    #   -r requirements.in
-    #   flask-cors
-    #   flask-saml-sso
-    #   flask-session
-    #   flask-sqlalchemy
-git+git://github.com/magenta-aps/flask_saml_sso.git@0.9.1#egg=flask_saml_sso
     # via -r requirements.in
+flask==1.1.2
+    # via flask-session
 gunicorn==20.0.4
     # via -r requirements.in
 idna==2.10
@@ -55,10 +48,11 @@ isodate==0.6.0
     # via python3-saml
 itsdangerous==1.1.0
     # via
+    #   -r requirements.in
     #   flask
-    #   flask-saml-sso
 jinja2==2.11.2
     # via
+    #   -r requirements.in
     #   flask
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
@@ -66,6 +60,7 @@ git+git://github.com/magenta-aps/lora-utils.git@master#egg=lora_utils
 lxml==4.5.2
     # via
     #   -r requirements.in
+    #   python3-saml
     #   xmlsec
 mako==1.1.3
     # via alembic
@@ -85,8 +80,10 @@ pika==1.1.0
     # via -r requirements.in
 psycopg2-binary==2.8.6
     # via -r requirements.in
-pydantic==1.7.3
-    # via os2mo-http-trigger-protocol
+pydantic==1.8.2
+    # via
+    #   fastapi
+    #   os2mo-http-trigger-protocol
 python-dateutil==2.8.1
     # via
     #   -r requirements.in
@@ -94,21 +91,22 @@ python-dateutil==2.8.1
     #   lora-utils
 python-editor==1.0.4
     # via alembic
-python3-saml==1.9.0
-    # via flask-saml-sso
+python-multipart==0.0.5
+    # via -r requirements.in
+python3-saml==1.10.1
+    # via -r requirements.in
 requests==2.24.0
     # via
     #   -r requirements.in
-    #   flask-saml-sso
     #   service-person-stamdata-udvidet
 git+git://github.com/magenta-aps/service_person_stamdata_udvidet@0.2.0
     # via -r requirements.in
 six==1.15.0
     # via
     #   anytree
-    #   flask-cors
     #   isodate
     #   python-dateutil
+    #   python-multipart
     #   sqlalchemy-utils
     #   validators
 sqlalchemy-utils==0.36.8
@@ -117,19 +115,30 @@ sqlalchemy==1.3.22
     # via
     #   -r requirements.in
     #   alembic
-    #   flask-sqlalchemy
+    #   fastapi-sqlalchemy
     #   sqlalchemy-utils
+starlette-context==0.3.1
+    # via -r requirements.in
+starlette==0.13.6
+    # via
+    #   fastapi
+    #   fastapi-sqlalchemy
+    #   starlette-context
 toml==0.10.1
     # via -r requirements.in
 typing-extensions==3.7.4.3
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   pydantic
 urllib3==1.25.10
     # via requests
 validators==0.18.0
     # via -r requirements.in
 werkzeug==1.0.1
-    # via flask
-xmlsec==1.3.8
+    # via
+    #   -r requirements.in
+    #   flask
+xmlsec==1.3.9
     # via python3-saml
 xmltodict==0.12.0
     # via service-person-stamdata-udvidet

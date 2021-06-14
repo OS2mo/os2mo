@@ -4,12 +4,12 @@
 import freezegun
 
 import mora.async_util
+import tests.cases
 from mora import lora
-from . import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Tests(util.LoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_role(self):

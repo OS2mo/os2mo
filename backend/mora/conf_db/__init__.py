@@ -5,17 +5,17 @@ import logging
 from contextlib import contextmanager
 from functools import lru_cache
 from itertools import starmap
+from pathlib import Path
 
-from mora import exceptions
-from mora.settings import config
+from alembic.config import Config as AlembicConfig
 from sqlalchemy import Column, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select
-from sqlalchemy_utils import UUIDType, database_exists, create_database, drop_database
-from alembic.config import Config as AlembicConfig
-from alembic import command
-from pathlib import Path
+from sqlalchemy_utils import UUIDType, create_database, database_exists, drop_database
+
+from mora import exceptions
+from mora.settings import config
 
 logger = logging.getLogger("mo_configuration")
 
@@ -90,7 +90,8 @@ def drop_db():
 
 
 def create_db_table():
-    """Initialize the config database.
+    """
+    Initialize the config database.
     """
     logger.info("Initializing configuration database.")
 
@@ -109,7 +110,7 @@ def create_db_table():
 
     # Tell Alembic that our DB schema is now up-to-date, so Alembic does not
     # try to upgrade the schema.
-    command.stamp(alembic_cfg, "head")
+    # command.stamp(alembic_cfg, "head")
 
     logger.info("Configuration database initialised.")
 

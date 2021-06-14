@@ -16,9 +16,9 @@ from functools import partial
 from itertools import starmap
 
 import lora_utils
-import mora.async_util
 from more_itertools import chunked
 
+import mora.async_util
 from . import exceptions
 from . import settings
 from . import util
@@ -88,33 +88,47 @@ async def _check_response(r):
     return r
 
 
-def bool_to_str(value):
+def uuid_to_str(value):
+    """Used to convert UUIDs to str in nested structures"""
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    elif isinstance(value, dict):
+        return {k: uuid_to_str(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return list(map(uuid_to_str, value))
+    elif isinstance(value, set):
+        return set(map(uuid_to_str, value))
+    else:
+        return value
+
+
+def exotics_to_str(value):
     """
-    just to converting bools to str, even if nested in an other structure
+    just to converting "exotic"-types to str, even if nested in an other structure
     @param value:
     @return:
     """
-    if isinstance(value, bool):
+    if isinstance(value, bool) or isinstance(value, uuid.UUID):
         return str(value)
     elif isinstance(value, list) or isinstance(value, set):
-        return list(map(bool_to_str, value))
+        return list(map(exotics_to_str, value))
     elif isinstance(value, int) or isinstance(value, str):
         return value
     else:
         raise TypeError("Unknown type in bool_to_str", type(value))
 
 
-def param_bools_to_strings(params: typing.Dict[
-    typing.Any, typing.Union[bool, typing.List, typing.Set, str, int]]) -> \
+def param_exotics_to_strings(params: typing.Dict[
+    typing.Any, typing.Union[bool, typing.List, typing.Set, str, int, uuid.UUID]]) -> \
     typing.Dict[typing.Any,
                 typing.Union[str, int, typing.List]]:
     """
-    converts requests-compatible params to aiohttp-compatible params
+    converts requests-compatible (and more) params to aiohttp-compatible params
 
     @param params: dict of parameters
     @return:
     """
-    ret = {key: bool_to_str(value) for key, value in params.items()
+    ret = {key: exotics_to_str(value) for key, value in params.items()
            if value is not None}
     return ret
 
@@ -228,9 +242,8 @@ class Scope:
     async def fetch(self, **params):
         async with mora.async_util.async_session(
         ).get(self.base_path,
-              params=param_bools_to_strings(
+              params=param_exotics_to_strings(
                   {**self.connector.defaults, **params})) as response:
-
             await _check_response(response)
 
             try:
@@ -379,6 +392,8 @@ class Scope:
             return registrations[0]
 
     async def create(self, obj, uuid=None):
+        obj = uuid_to_str(obj)
+
         if uuid:
             async with mora.async_util.async_session(
             ).put('{}/{}'.format(self.base_path, uuid),

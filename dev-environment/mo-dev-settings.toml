@@ -8,6 +8,7 @@
 
 dummy_mode = true
 enable_cors = true
+ENV = 'development'
 
 [lora]
 url = "http://mox:80/"
@@ -24,3 +25,6 @@ host = "msg_broker"
 
 [log]
 log_level = "INFO"
+
+[query_export]
+directory = "/queries"

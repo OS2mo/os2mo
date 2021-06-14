@@ -21,7 +21,7 @@ from ..triggers import Trigger
 
 
 class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
-    role_type = 'manager'
+    role_type = mapping.MANAGER
     function_key = mapping.MANAGER_KEY
 
     def prepare_create(self, req):

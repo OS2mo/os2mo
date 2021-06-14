@@ -43,6 +43,17 @@ SPDX-License-Identifier: MPL-2.0
             v-validate="{required: true, address: this.entry.address_type}"
           >
           </textarea>
+          <textarea
+            :name="identifier"
+            :id="identifier"
+            v-if="!isDarAddress && isMultiFieldText"
+            :data-vv-as="entry.address_type.name"
+            v-model.trim="contactInfo2"
+            type="text"
+            class="form-control"
+            v-validate="{required: false, address: this.entry.address_type}"
+          >
+          </textarea>
           <input
             :name="identifier"
             :id="identifier"
@@ -122,6 +133,7 @@ export default {
        * Used to detect changes and restore the value.
        */
       contactInfo: '',
+      contactInfo2: '',
       entry: {},
       address: null,
       addressScope: null
@@ -152,8 +164,20 @@ export default {
      * @type {Boolean}
      */
     isMultiLineText () {
-      if (this.entry.address_type != null) return this.entry.address_type.scope === 'TEXT'
-      return false
+      return (this.entry.address_type != null) && (
+          (this.entry.address_type.scope === 'TEXT') ||
+          (this.entry.address_type.scope === 'MULTIFIELD_TEXT')
+      )
+    },
+
+
+    /**
+     * If the address requires multi-field input (textarea)
+     * @type {Boolean}
+     */
+    isMultiFieldText () {
+      return (this.entry.address_type != null) &&
+        (this.entry.address_type.scope === 'MULTIFIELD_TEXT')
     },
 
     /**
@@ -175,7 +199,14 @@ export default {
       handler (newValue) {
         this.entry.type = 'address'
         this.entry.value = newValue
-        this.entry.address = { value: newValue }
+        this.$emit('input', this.entry)
+      }
+    },
+
+    contactInfo2: {
+      handler (newValue) {
+        this.entry.type = 'address'
+        this.entry.value2 = newValue
         this.$emit('input', this.entry)
       }
     },
@@ -219,6 +250,7 @@ export default {
         }
       }
       this.contactInfo = this.value.value
+      this.contactInfo2 = this.value.value2
     }
     this.entry = this.value
   }

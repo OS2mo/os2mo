@@ -3,15 +3,16 @@
 
 import abc
 import json
+import logging
 from asyncio import create_task, gather
 from inspect import isawaitable
 from typing import Any, Dict, Iterable, List, Tuple
 
-import flask
-
 from .. import exceptions, util
 from .. import mapping
 from ..lora import Connector
+
+logger = logging.getLogger(__name__)
 
 READING_HANDLERS = {}
 
@@ -212,10 +213,15 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def _get_lora_object(cls, c, search_fields):
-        object_tuples = await c.organisationfunktion.get_all(
-            funktionsnavn=cls.function_key,
-            **search_fields,
-        )
+        if mapping.UUID in search_fields:
+            object_tuples = await c.organisationfunktion.get_all_by_uuid(
+                uuids=search_fields[mapping.UUID]
+            )
+        else:
+            object_tuples = await c.organisationfunktion.get_all(
+                funktionsnavn=cls.function_key,
+                **search_fields,
+            )
 
         return object_tuples
 
@@ -274,7 +280,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                     properties['integrationsdata'],
                 )
             except json.JSONDecodeError:
-                flask.current_app.logger.warning(
+                logger.warning(
                     'invalid integration data for function %s!',
                     funcid,
                 )

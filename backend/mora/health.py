@@ -3,35 +3,32 @@
 
 import logging
 
-import flask
 import requests
-from functools import wraps
+from fastapi import APIRouter
 from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
 
-from flask_saml_sso.health import (
-    session_database as session_database_health,
-    idp as idp_health,
-)
-
 import mora.async_util
-from mora import lora, util, conf_db
+from mora import conf_db, lora
+from mora.auth.saml_sso.health import session_database_health, idp_health
 from mora.exceptions import HTTPException
 from mora.settings import config
 from mora.triggers.internal import amqp_trigger
 
-blueprint = flask.Blueprint(
-    "health", __name__, static_url_path="", url_prefix="/health"
-)
+router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
 HEALTH_ENDPOINTS = []
 
 
-def register_health_endpoint(fn):
-    HEALTH_ENDPOINTS.append(fn)
-    return fn
+def register_health_endpoint(func):
+    HEALTH_ENDPOINTS.append(func)
+
+    url = "/" + func.__name__
+    restricted_args_func = func  # util.restrictargs()(func)
+    endpoint_func = router.get(url)(restricted_args_func)
+    return endpoint_func
 
 
 @register_health_endpoint
@@ -91,7 +88,7 @@ def session_database():
     if not config["saml_sso"]["enable"]:
         return None
 
-    return session_database_health(flask.current_app)
+    return session_database_health()
 
 
 @register_health_endpoint
@@ -160,28 +157,17 @@ def idp():
     if not config["saml_sso"]["enable"] or config["saml_sso"]["idp_metadata_file"]:
         return None
 
-    return idp_health(flask.current_app)
+    return idp_health()
 
 
-@blueprint.route("/")
-@util.restrictargs()
+@router.get("/")
+# @util.restrictargs()
 def root():
     health = {func.__name__: func() for func in HEALTH_ENDPOINTS}
-    return flask.jsonify(health)
+    return health
 
 
 def register_routes():
-    def wrap_output(function):
-        @wraps(function)
-        def wrapper():
-            return flask.jsonify(function())
-
-        return wrapper
-
     for func in HEALTH_ENDPOINTS:
-        url = "/" + func.__name__
-        restricted_args_fn = util.restrictargs()(func)
-        blueprint.add_url_rule(url, func.__name__, wrap_output(restricted_args_fn))
-
-
-register_routes()
+        url = f"/{func.__name__}"
+        router.add_api_route(url, func)

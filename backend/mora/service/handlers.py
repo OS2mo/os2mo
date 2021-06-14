@@ -8,7 +8,7 @@ handlers for the various detail types.
 
 import abc
 import inspect
-
+import logging
 import typing
 
 import mora.async_util
@@ -17,7 +17,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..mapping import RequestType, EventType
+from ..mapping import EventType, RequestType
 from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active
@@ -25,6 +25,8 @@ from ..triggers import Trigger
 HANDLERS_BY_ROLE_TYPE = {}
 HANDLERS_BY_FUNCTION_KEY = {}
 FUNCTION_KEYS = {}
+
+logger = logging.getLogger(__name__)
 
 
 class _RequestHandlerMeta(abc.ABCMeta):
@@ -107,7 +109,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    @abc.abstractmethod
     def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
@@ -115,6 +116,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
+        raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
 
     def prepare_terminate(self, request: dict):
         """

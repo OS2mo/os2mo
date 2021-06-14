@@ -4,9 +4,8 @@
 from unittest.mock import patch
 
 import mora.async_util
+import tests.cases
 from mora.service.address_handler import text
-
-from .. import util
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
@@ -14,7 +13,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class TextAddressHandlerTests(util.TestCase):
+class TextAddressHandlerTests(tests.cases.TestCase):
     handler = text.TextAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'Test text whatever'
@@ -64,6 +63,7 @@ class TextAddressHandlerTests(util.TestCase):
             'href': None,
             'name': 'Test text whatever',
             'value': 'Test text whatever',
+            'value2': None,
             'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
         }
 

@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 from asyncio import create_task, gather
-from typing import List, Tuple, Union
-
-import flask
+from typing import Any, Dict, List, Optional, Tuple, Union
+from uuid import UUID
 
 from .. import reading
 from ... import lora
 from ... import mapping
 from ... import util
 from ...exceptions import ErrorCodes
-from ...request_wide_bulking import request_wide_bulk
+from mora.request_scoped.bulking import request_wide_bulk
+from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -40,7 +40,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = flask.request.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get('only_primary_uuid')
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -184,3 +184,26 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True, )
 
         return sorted_classes
+
+
+async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, Any]]:
+    """
+    convenience, for an often used pattern: Eagerly getting an engagement.
+    :param c:
+    :param uuid: uuid of engagement
+    :return: First, engagement found (or None)
+    """
+    engagements_task = create_task(EngagementReader.get(
+        c, {"uuid": [uuid]}
+    ))
+    engagements = await engagements_task
+    if len(engagements) == 0:
+        logger.warning(f"Engagement {uuid} returned no results")
+        return None
+
+    if len(engagements) > 1:
+        logger.warning(
+            f"Engagement {uuid} returned more than one result"
+        )
+
+    return engagements[0]

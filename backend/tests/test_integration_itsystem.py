@@ -4,12 +4,12 @@
 import freezegun
 
 import mora.async_util
+import tests.cases
 from mora import lora
-from tests import util
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Writing(util.LoRATestCase):
+class Writing(tests.cases.LoRATestCase):
     maxDiff = None
 
     @classmethod
@@ -580,7 +580,7 @@ class Writing(util.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-class Reading(util.LoRATestCase):
+class Reading(tests.cases.LoRATestCase):
     def test_reading_organisation(self):
         self.load_sample_structures()
 

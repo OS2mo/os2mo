@@ -1,26 +1,25 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''
+"""
 Organisation
 ------------
 
 This section describes how to interact with organisations.
+"""
 
-'''
 from asyncio import create_task, gather
+from uuid import UUID
 
-import flask
-import werkzeug
+from fastapi import APIRouter
 
-import mora.async_util
 from .. import common
+from .. import exceptions
 from .. import mapping
 from .. import util
-from .. import exceptions
+from ..exceptions import ErrorCodes
 
-blueprint = flask.Blueprint('organisation', __name__, static_url_path='',
-                            url_prefix='/service')
+router = APIRouter()
 
 
 class ConfiguredOrganisation:
@@ -30,7 +29,7 @@ class ConfiguredOrganisation:
     valid = False
 
     @classmethod
-    async def validate(cls, app):
+    async def validate(cls):
         orglist = await get_valid_organisations()
 
         if len(orglist) > 1:
@@ -45,9 +44,8 @@ class ConfiguredOrganisation:
 
 
 async def get_configured_organisation(uuid=None):
-    app = flask.current_app
     if not ConfiguredOrganisation.valid:
-        await ConfiguredOrganisation.validate(app)
+        await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
     if uuid and uuid != org["uuid"]:
@@ -83,9 +81,8 @@ async def get_valid_organisations():
     return orglist
 
 
-@blueprint.route('/o/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
+@router.get('/o/')
+# @util.restrictargs('at')
 async def list_organisations():
     '''List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
@@ -117,14 +114,14 @@ async def list_organisations():
      ]
 
     '''
-    return flask.jsonify([await get_configured_organisation()])
+    return [await get_configured_organisation()]
 
 
-@blueprint.route('/o/<uuid:orgid>/')
-@util.restrictargs('at')
-@mora.async_util.async_to_sync
-async def get_organisation(orgid):
-    '''Obtain the initial level of an organisation.
+@router.get('/o/{orgid}/')
+# @util.restrictargs('at')
+async def get_organisation(orgid: UUID):
+    """
+    Obtain the initial level of an organisation.
 
     .. :quickref: Organisation; Getter
 
@@ -165,16 +162,15 @@ async def get_organisation(orgid):
        "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
      }
 
-    '''
-
+    """
+    orgid = str(orgid)
     c = common.get_connector()
-
     org = await c.organisation.get(orgid)
 
     try:
         attrs = org['attributter']['organisationegenskaber'][0]
     except (KeyError, TypeError):
-        raise werkzeug.exceptions.NotFound
+        ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     units = await c.organisationenhed.fetch(tilhoerer=orgid, gyldighed='Aktiv')
     children = await c.organisationenhed.fetch(overordnet=orgid, gyldighed='Aktiv')
@@ -198,7 +194,7 @@ async def get_organisation(orgid):
     managers = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
                                                   funktionsnavn=mapping.MANAGER_KEY)
 
-    return flask.jsonify({
+    ret = {
         'name': attrs['organisationsnavn'],
         'user_key': attrs['brugervendtnoegle'],
         'uuid': orgid,
@@ -210,4 +206,5 @@ async def get_organisation(orgid):
         'leave_count': len(leaves),
         'role_count': len(roles),
         'manager_count': len(managers),
-    })
+    }
+    return ret

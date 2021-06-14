@@ -1,10 +1,9 @@
-# SPDX-FileCopyrightText: 2021 Magenta ApS
+# SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Lock
+from contextlib import asynccontextmanager
 from typing import Any, Dict, Iterable, Optional, Set, Tuple
 
-from flask import g
-# for readability
 from mora.common import get_connector
 from mora.lora import Connector, LoraObjectType
 
@@ -14,22 +13,41 @@ UUID = str
 
 class __BulkBookkeeper:
     """
-    Singleton. Thread-safe ONLY due to flask-features. Asyncio-concurrency safe via lock
+    Singleton. Probably broken now without flask-features.
+    Asyncio-concurrency safe via locks
     """
 
     def __init__(self):
-        self.__locks: Optional[Dict[LoraObjectType, Lock]] = {}
+        self.__global_lock = Lock()
+        self.__locks: Dict[LoraObjectType, Lock] = {}
+        self.__raw_cache = {}
 
-    def __get_lock(self, type_: LoraObjectType) -> Lock:
+    async def clear(self):
+        """
+        acquire all locks and clear cache
+
+        :return:
+        """
+        try:
+            for lock in self.__locks.values():
+                await lock.acquire()
+
+            self.__raw_cache.clear()
+        finally:
+            for lock in self.__locks.values():
+                lock.release()
+
+    async def __get_lock(self, type_: LoraObjectType) -> Lock:
         """
         get a lock (and creates one if missing)
         :param type_:
         :return: Asyncio(!) lock, not process/thread-safe locks
         """
-        # manually checking avoids creating unneeded Locks
-        if type_ in self.__locks:
-            return self.__locks[type_]
-        return self.__locks.setdefault(type_, Lock())
+        async with self.__global_lock:
+            # manually checking avoids creating unneeded Locks
+            if type_ in self.__locks:
+                return self.__locks[type_]
+            return self.__locks.setdefault(type_, Lock())
 
     def _disable_caching(self):
         """
@@ -53,11 +71,11 @@ class __BulkBookkeeper:
 
     @property
     def __unprocessed_cache(self) -> Dict[LoraObjectType, Set[UUID]]:
-        return g.setdefault(self.__class__.__name__, {})
+        return self.__raw_cache.setdefault(self.__class__.__name__, {})
 
     @property
     def __processed_cache(self) -> Dict[LoraObjectType, Dict[UUID, Optional[LORA_OBJ]]]:
-        return g.setdefault(self.__class__.__name__ + '_processed', {})
+        return self.__raw_cache.setdefault(self.__class__.__name__ + '_processed', {})
 
     async def __raw_get_all(self, type_: LoraObjectType,
                             uuids: Set[str]) -> Iterable[Tuple[UUID, LORA_OBJ]]:
@@ -113,11 +131,12 @@ class __BulkBookkeeper:
         :return:
         """
         key = self.__class__.__name__ + '_connector'
-        if key in g:  # manually checking avoids creating unneeded connectors
-            return g.get(key)
+        # manually checking avoids creating unneeded connectors
+        if key in self.__raw_cache:
+            return self.__raw_cache.get(key)
 
         # set and return
-        return g.setdefault(key, get_connector())
+        return self.__raw_cache.setdefault(key, get_connector())
 
     async def add(self, type_: LoraObjectType, uuid: str):
         """
@@ -127,7 +146,7 @@ class __BulkBookkeeper:
         :param uuid:
         :return:
         """
-        async with self.__get_lock(type_):
+        async with await self.__get_lock(type_):
             self.__add(type_=type_, uuid=uuid)
 
     async def get_lora_object(self, type_: LoraObjectType, uuid: str) -> LORA_OBJ:
@@ -138,7 +157,7 @@ class __BulkBookkeeper:
         :return: The (possibly cached) object from LoRa
         """
 
-        async with self.__get_lock(type_):
+        async with await self.__get_lock(type_):
             # if uuid processed, return obj
             try:
                 return self.__processed_cache[type_][uuid]
@@ -154,6 +173,13 @@ class __BulkBookkeeper:
 
             # HAVE to exist now, otherwise legit error
             return self.__processed_cache[type_][uuid]
+
+    @asynccontextmanager
+    async def cache_context(self):
+        try:
+            yield None
+        finally:
+            await self.clear()
 
 
 # I'm a singleton
