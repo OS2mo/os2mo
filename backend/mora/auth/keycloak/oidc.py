@@ -10,13 +10,13 @@ from starlette.status import (
 )
 import jwt.exceptions
 from mora.auth.exceptions import AuthError
-from mora.settings import config
+from mora import config
 
-SCHEMA = config['auth']['keycloak_schema']
-HOST = config['auth']['keycloak_host']
-PORT = config['auth']['keycloak_port']
-REALM = config['auth']['keycloak_realm']
-ALG = config['auth']['keycloak_signing_alg']
+SCHEMA = config.get_settings().keycloak_schema
+HOST = config.get_settings().keycloak_host
+PORT = config.get_settings().keycloak_port
+REALM = config.get_settings().keycloak_realm
+ALG = config.get_settings().keycloak_signing_alg
 
 # URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
 JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
@@ -68,7 +68,7 @@ async def auth(request: Request) -> dict:
     # TODO: Remove this, once a proper auth solution is in place,
     #  that works for local DIPEX development.
     #  https://redmine.magenta-aps.dk/issues/44020
-    if config["ENV"] in ["development", "testing"]:
+    if config.get_settings().environment in ["development"]:
         return {}
 
     try:

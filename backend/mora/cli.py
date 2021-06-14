@@ -18,7 +18,7 @@ import sqlalchemy
 
 from mora.conf_db import create_db_table
 
-from . import conf_db, settings
+from . import conf_db, config
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,8 @@ def check_configuration_db_status():
 @click.option("--seconds", default=_SLEEPING_TIME, type=int,
               help="Wait up to n seconds for rabbitmq.")
 def wait_for_rabbitmq(seconds):
-    if not settings.config["amqp"]["enable"]:
+    settings = config.get_settings()
+    if not settings.amqp_enable:
         logger.info("AMQP is disabled. MO will not send messages.")
         return 0
 
@@ -96,8 +97,8 @@ def wait_for_rabbitmq(seconds):
     def connector():
         pika.BlockingConnection(
             pika.ConnectionParameters(
-                host=settings.config["amqp"]["host"],
-                port=settings.config["amqp"]["port"],
+                host=settings.amqp_host,
+                port=settings.amqp_port,
                 heartbeat=0,
             )
         )

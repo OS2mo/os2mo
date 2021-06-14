@@ -14,8 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select
 from sqlalchemy_utils import UUIDType, create_database, database_exists, drop_database
 
-from mora import exceptions
-from mora.settings import config
+from mora import exceptions, config
 
 logger = logging.getLogger("mo_configuration")
 
@@ -34,17 +33,16 @@ class Config(Base):
 
 
 def _get_connection_url():
-    connection_url = config["configuration"]["database"].get("connection_url")
-    if connection_url is None:
-        dbname = config["configuration"]["database"]["name"]
-        user = config["configuration"]["database"]["user"]
-        password = config["configuration"]["database"]["password"]
-        host = config["configuration"]["database"]["host"]
-        port = config["configuration"]["database"]["port"]
-        connection_url = "postgresql+psycopg2://"
-        connection_url += str(user) + ":" + str(password)
-        connection_url += "@" + str(host) + ":" + str(port)
-        connection_url += "/" + str(dbname)
+    settings = config.get_settings()
+    dbname = settings.conf_db_name
+    user = settings.conf_db_user
+    password = settings.conf_db_password
+    host = settings.conf_db_host
+    port = settings.conf_db_port
+    connection_url = "postgresql+psycopg2://"
+    connection_url += str(user) + ":" + str(password)
+    connection_url += "@" + str(host) + ":" + str(port)
+    connection_url += "/" + str(dbname)
     return connection_url
 
 

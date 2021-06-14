@@ -1,5 +1,8 @@
+# SPDX-FileCopyrightText: 2021- Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
 from functools import lru_cache
-from pydantic import BaseSettings, PostgresDsn, AnyHttpUrl
+from pydantic import BaseSettings, AnyHttpUrl
 from pydantic.types import UUID
 from typing import List, Optional
 

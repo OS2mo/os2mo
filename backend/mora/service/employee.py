@@ -34,7 +34,6 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from ..settings import app_config
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -320,8 +319,6 @@ async def get_one_employee(c: lora.Connector, userid,
                            user: Optional[Dict[str, Any]] = None,
                            details=EmployeeDetails.MINIMAL,
                            only_primary_uuid: bool = False):
-    config = app_config
-
     if only_primary_uuid:
         return {
             mapping.UUID: userid
@@ -357,10 +354,7 @@ async def get_one_employee(c: lora.Connector, userid,
         rels = user['relationer']
 
         if rels.get('tilknyttedepersoner'):
-            if config.get('HIDE_CPR_NUMBERS'):
-                cpr = 'XXXXXXXXXX'
-            else:
-                cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+            cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
             r[mapping.CPR_NO] = cpr
 
         r[mapping.ORG] = await org.get_configured_organisation()
@@ -444,7 +438,6 @@ async def list_employees(
     # TODO: share code with list_orgunits?
 
     c = common.get_connector()
-    config = app_config
 
     kwargs = dict(
         limit=limit,
@@ -453,7 +446,7 @@ async def list_employees(
     )
 
     if query:
-        if util.is_cpr_number(query) and not config.get('HIDE_CPR_NUMBERS'):
+        if util.is_cpr_number(query):
             kwargs.update(
                 tilknyttedepersoner='urn:dk:cpr:person:' + query,
             )
