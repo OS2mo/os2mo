@@ -65,6 +65,9 @@ async def auth(request: Request) -> dict:
 
     """
 
+    # TODO: Remove this, once a proper auth solution is in place,
+    #  that works for local DIPEX development.
+    #  https://redmine.magenta-aps.dk/issues/44020
     if config["ENV"] in ["development", "testing"]:
         return {}
 
