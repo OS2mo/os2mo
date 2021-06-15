@@ -3,30 +3,31 @@
 
 import json
 import os
-from typing import List, Union, Optional, Dict
-from pydantic import BaseModel
-
+from typing import List, Union, Optional
+from pydantic import BaseModel, Extra
 from fastapi import APIRouter, Query
 
 router = APIRouter()
 
 
-# TODO: Schema and Fields shadows BaseModel attributes - Find better names
-class Skema(BaseModel):
-    felter: List[Dict[str, str]]
-    primary_key: List[str]
-    pandas_version = str
-
-
 class Insight(BaseModel):
+    """
+    Attributes:
+        title:
+        data:
+    """
+
     title: str
-    # TODO: Might be able to do something smart with Panda's schema
-    skema: Skema
     data: List[Union[int, str]]
+
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
 
 
 @router.get('/insight')
-async def get_insight_data(q: Optional[str] = Query('all')
+async def get_insight_data(q: Optional[List[str]] = Query(['all'])
                            ) -> List[Insight]:
     """Loads data from a directory of JSONs and returns it as a list
 
@@ -34,7 +35,7 @@ async def get_insight_data(q: Optional[str] = Query('all')
     """
     directory = 'backend/mora/service/dummy-data'
 
-    if q == 'all':
+    if q == ['all']:
         return [
             json.load(
                 open(os.path.join(directory, filename))
@@ -42,10 +43,14 @@ async def get_insight_data(q: Optional[str] = Query('all')
             for filename in os.listdir(directory)
             if os.path.isfile(os.path.join(directory, filename))
         ]
-    elif os.path.isfile(os.path.join(directory, q)):
-        return json.load(
-            open(os.path.join(directory, q))
-        )
+    else:
+        return [
+            json.load(
+                open(os.path.join(directory, filename))
+            )
+            for filename in q
+            if os.path.isfile(os.path.join(directory, filename))
+        ]
 
 
 @router.get('/insight/files')

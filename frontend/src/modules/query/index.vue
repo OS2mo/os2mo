@@ -5,8 +5,16 @@ SPDX-License-Identifier: MPL-2.0
     <div class="card-body d-flex flex-column">
       <h4 class="card-title" style="margin-bottom: 2rem;">
         <icon name="exchange-alt"/>
-        {{$tc('shared.query', 2)}}
+        {{$tc('shared.insight', 2)}}
       </h4>
+      <div v-for="(q, index) in query_files"
+           :key="index">
+        <input type="checkbox"
+               :id="q"
+               :value="q"
+               v-model="chosen_files">
+        <label :for="q">{{q}}</label>
+      </div>
 
       <b-tabs content-class="mt-3">
         <b-tab
@@ -41,13 +49,20 @@ export default {
   },
   data: function() {
     return {
-      query_data: []
+      query_data: [],
+      query_files: [],
+      chosen_files: []
     }
   },
   computed: {
     ...mapGetters(STORE_KEY, {
       queries: 'getQueries'
     })
+  },
+  watch: {
+    chosen_files: function () {
+      this.update()
+    }
   },
   created () {
     // This might be unnecessary in the future
@@ -64,13 +79,34 @@ export default {
     downloadLink(file) {
       return "/service/exports/" + file
     },
-
     update: function() {
-      Service.get(`/insight`)
+      let file_query_string = ''
+
+      if (this.chosen_files.length === 0) {
+        file_query_string = '?q=all'
+      } else {
+        for (let i = 0; i < this.chosen_files.length; i++) {
+          if (i === 0) {
+            file_query_string += `?q=${this.chosen_files[0]}`
+          } else {
+            file_query_string += `&q=${this.chosen_files[i]}`
+          }
+        }
+      }
+      Service.get(`/insight${file_query_string}`)
       .then(response => {
+        this.query_data = []
         let data = response.data
         for (let i = 0; i < data.length; i++) {
           this.query_data.push(data[i])
+        }
+      })
+      Service.get(`/insight/files`)
+      .then(response => {
+        this.query_files = []
+        let data = response.data
+        for (let i = 0; i < data.length; i++) {
+          this.query_files.push(data[i])
         }
       })
     }
