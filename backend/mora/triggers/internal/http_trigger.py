@@ -12,6 +12,8 @@ from mora.async_util import async_session, async_to_sync, in_separate_thread
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload, MOTriggerRegister
 from pydantic import parse_obj_as
+from fastapi.encoders import jsonable_encoder
+
 
 logger = logging.getLogger("http_trigger")
 
@@ -45,8 +47,8 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
     timeout = aiohttp.ClientTimeout(total=timeout)
     async with async_session() as session:
         # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
-        payload = MOTriggerPayload(**trigger_dict).json()
-        async with session.post(trigger_url, timeout=timeout, data=payload) as response:
+        payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
+        async with session.post(trigger_url, timeout=timeout, json=payload) as response:
             payload = await response.json()
             logger.debug(f"http_sender received {payload} from {trigger_url}")
             if response.status != 200:
