@@ -21,6 +21,7 @@ class HTTPTriggerException(Exception):
     pass
 
 
+@in_separate_thread
 @async_to_sync
 async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
     """Triggers the provided event over HTTP(s).
