@@ -8,7 +8,7 @@ from typing import Dict, List
 
 import aiohttp
 from mora import settings
-from mora.async_util import async_session, async_to_sync
+from mora.async_util import async_session, async_to_sync, in_separate_thread
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload, MOTriggerRegister
 from pydantic import parse_obj_as
@@ -21,6 +21,7 @@ class HTTPTriggerException(Exception):
     pass
 
 
+@in_separate_thread
 @async_to_sync
 async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
     """Triggers the provided event over HTTP(s).
@@ -101,6 +102,7 @@ async def fetch_endpoint_trigger(
         logger.error(f"Timeout while connecting to {full_url}")
 
 
+@in_separate_thread
 @async_to_sync
 async def fetch_endpoint_triggers(
     endpoints: List[str], timeout: int = 10
@@ -153,9 +155,7 @@ def register(app) -> bool:
     run_trigger_timeout = module_settings.get("run_trigger_timeout", 5)
 
     # Fetch configured triggers for all endpoints
-    endpoint_trigger_dict = fetch_endpoint_triggers(
-        endpoints, fetch_trigger_timeout
-    )
+    endpoint_trigger_dict = fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)
     logger.debug(f"Got endpoint_trigger_dict {endpoint_trigger_dict}")
 
     # Register http_sender for all the events found.
