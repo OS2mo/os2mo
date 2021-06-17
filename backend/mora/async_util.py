@@ -103,7 +103,7 @@ def in_separate_thread(f: typing.Callable):
     @wraps(f)
     def wrapper(*args, **kwargs):
         with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(f, *args, *kwargs)
+            future = executor.submit(f, *args, **kwargs)
             return future.result()
 
     return wrapper
