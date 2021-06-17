@@ -282,13 +282,13 @@ e2e-test:
 .release-default: &release-default
   stage: release
   needs: ["Unit-test", "e2e-test"]
-  image: alpine
+  image: alpine:3.13
   variables:
     GIT_STRATEGY: none # We do not need the source code
   tags:
     - docker
   before_script:
-    - apk add skopeo
+    - apk add skopeo=1.2.1-r0
 
 Release feature branch:
   <<: *release-default
