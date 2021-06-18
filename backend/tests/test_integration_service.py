@@ -1738,7 +1738,7 @@ class Tests(tests.cases.LoRATestCase):
                     'leave': False,
                     'manager': True,
                     'org_unit': True,
-                    'owner': False,
+                    'owner': True,
                     'related_unit': True,
                     'role': True,
                 },

@@ -330,10 +330,12 @@ async def get_org_unit_by_uuid(
 async def search_owner_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
+    changed_since: Optional[Union[datetime, date]] = None,
 ):
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.OWNER,
         query_args={"at": at, "validity": validity},
+        changed_since=changed_since
     )
 
 
