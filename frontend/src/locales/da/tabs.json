@@ -8,7 +8,7 @@
     "association": "@:shared.association",
     "leave": "Orlov",
     "manager": "Leder",
-    "owner": "Owner"
+    "owner": "Ejer"
   },
   "organisation": {
     "unit": "Enhed",
@@ -20,7 +20,7 @@
     "roles": "Roller",
     "related": "Relateret",
     "managers": "Ledere",
-    "owner": "Owners",
+    "owner": "Ejere",
     "kle": "KLE-opmærkninger"
   },
   "engagement": {
