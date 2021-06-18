@@ -3,6 +3,7 @@
 
 import logging
 from asyncio import create_task
+from datetime import datetime
 from functools import partial
 from math import inf
 from typing import Any, Awaitable, Dict, List, Optional, Tuple
@@ -33,12 +34,14 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.OWNER
 
     @classmethod
-    async def get_from_type(cls, c, type, object_id):
+    async def get_from_type(cls, c, type, object_id,
+                            changed_since=Optional[datetime]):
 
         if util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
-        return await super().get_from_type(c, type, object_id)
+        return await super().get_from_type(c, type, object_id,
+                                           changed_since=changed_since)
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):
