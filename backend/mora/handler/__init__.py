@@ -10,6 +10,7 @@ from .impl import it  # noqa
 from .impl import kle  # noqa
 from .impl import leave  # noqa
 from .impl import manager  # noqa
+from .impl import owner  # noqa
 from .impl import org_unit  # noqa
 from .impl import related_unit  # noqa
 from .impl import role  # noqa

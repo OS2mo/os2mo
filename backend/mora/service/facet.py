@@ -19,9 +19,9 @@ objects.
 import enum
 import locale
 from asyncio import create_task, gather
-from typing import Any, Awaitable, Dict, List, Optional, Set
 from uuid import UUID, uuid4
 from more_itertools import one
+from typing import Any, Awaitable, Dict, List, Optional, Set, Tuple
 
 from fastapi import APIRouter, Request
 
@@ -35,6 +35,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from ..request_scoped.query_args import current_query
 
@@ -554,6 +555,35 @@ async def get_classes_under_facet(orgid: UUID, facet: str,
             start=start, limit=limit
         )
     )
+
+
+async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, int]]:
+    """
+    Return a list of primary classes, sorted by priority in the "scope" field
+
+    :param c: A LoRa connector
+    :return: A sorted list of tuples of (uuid, scope) for all available primary classes
+    """
+    facet_id = (await c.facet.fetch(bvn='primary_type'))[0]
+
+    classes = await gather(*[
+        create_task(get_one_class_full(c, class_id, class_obj,
+                                       only_primary_uuid=False))
+        for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
+    ])
+
+    # We always expect the scope value to be an int, for sorting
+    try:
+        parsed_classes = [(clazz['uuid'], int(clazz['scope'])) for clazz in classes]
+    except ValueError:
+        raise ErrorCodes.E_INTERNAL_ERROR(
+            message="Unable to parse scope value as integer"
+        )
+
+    # Sort based on scope values, higher is better
+    sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True)
+
+    return sorted_classes
 
 
 @router.get('/o/{orgid}/f/{facet}/')

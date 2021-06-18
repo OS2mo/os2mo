@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
+import logging
 import pprint
 from time import sleep
 from unittest.case import TestCase
 
 import requests
+from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 
 from mora import app, conf_db, service, settings
@@ -13,6 +15,8 @@ from mora.async_util import _local_cache, async_to_sync
 from mora.auth.keycloak.oidc import auth
 from mora.request_scoped.bulking import request_wide_bulk
 from tests.util import _mox_testing_api, load_sample_structures
+
+logger = logging.getLogger(__name__)
 
 
 async def fake_auth():
@@ -276,10 +280,15 @@ class LoRATestCase(_BaseTestCase):
     instance, and deletes all objects between runs.
     '''
 
-    @async_to_sync
-    async def load_sample_structures(self, minimal=False):
-        sleep(1)
-        await load_sample_structures(minimal)
+    def load_sample_structures(self, minimal=False):
+        func = async_to_sync(load_sample_structures)
+        for _ in range(5):
+            try:
+                return func(minimal)
+            except ClientOSError:
+                sleep(0.2)
+                logging.exception("retrying")
+        raise Exception("unable to complete")
 
     @classmethod
     def setUpClass(cls):

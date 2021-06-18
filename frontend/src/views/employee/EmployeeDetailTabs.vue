@@ -100,6 +100,18 @@ SPDX-License-Identifier: MPL-2.0
           :entry-component="!hideActions ? components.manager : undefined"
         />
       </b-tab>
+
+      <b-tab @click="navigateToTab('#owner')" href="#owner" :title="$t('tabs.employee.owner')" v-if="show_owner">
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['owner']"
+          content-type="owner"
+          :columns="owner"
+          @show="loadContent('owner', $event)"
+          :entry-component="!hideActions ? components.owner : undefined"
+        />
+      </b-tab>
     </b-tabs>
   </div>
 </template>
@@ -110,7 +122,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { mapGetters } from 'vuex'
-import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry } from '@/components/MoEntry'
+import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry, MoOwnerEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
@@ -142,7 +154,7 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder'],
+      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder', '#owner'],
       currentDetail: 'employee',
       _atDate: undefined,
       /**
@@ -167,6 +179,10 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' }
       ],
+      owner: [
+        { label: 'owner', data: 'owner' },
+        { label: 'owner_inference_priority', data: 'owner_inference_priority', field: null},
+      ],
       address: [
         { label: 'address_type', data: 'address_type' },
         { label: 'visibility', data: 'visibility' },
@@ -186,7 +202,8 @@ export default {
         it: MoItSystemEntry,
         association: MoAssociationEntry,
         leave: MoLeaveEntry,
-        manager: MoManagerEntry
+        manager: MoManagerEntry,
+        owner: MoOwnerEntry
       }
     }
   },
@@ -257,6 +274,11 @@ export default {
       }
 
       return columns
+    },
+
+    show_owner() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_owner
     },
 
     ...mapGetters({

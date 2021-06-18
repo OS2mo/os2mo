@@ -120,10 +120,9 @@ async def request_validation_handler(
 async def http_exception_handler(request: Request, exc: HTTPException):
     if config["ENV"] in ["development", "testing"]:
         if exc.stack is not None:
-            for frame in exc.stack:
-                logger.info(frame)
+            logger.info('\n'.join(exc.stack))
         if exc.traceback is not None:
-            logger.info(f"os2mo traceback\n{exc.traceback}")
+            logger.info(f"{exc.traceback}")
 
     return http_exception_to_json_response(exc=exc)
 

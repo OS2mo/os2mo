@@ -9,7 +9,6 @@ import typing
 from os2mo_http_trigger_protocol import EventType, RequestType  # noqa: F401
 
 # Common
-
 VALID_FROM = 'valid_from'
 VALID_TO = 'valid_to'
 TO = 'to'
@@ -62,8 +61,11 @@ ENGAGEMENT_TYPE = 'engagement_type'
 FRACTION = 'fraction'
 ENGAGEMENT = 'engagement'
 
+# Extensions
+EXTENSION_1 = 'udvidelse_1'
+
 EXTENSION_ATTRIBUTE_MAPPING = [
-    ('extension_1', 'udvidelse_1'),
+    ('extension_1', EXTENSION_1),
     ('extension_2', 'udvidelse_2'),
     ('extension_3', 'udvidelse_3'),
     ('extension_4', 'udvidelse_4'),
@@ -99,7 +101,6 @@ MANAGER = 'manager'
 MANAGER_TYPE = 'manager_type'
 MANAGER_LEVEL = 'manager_level'
 RESPONSIBILITY = 'responsibility'
-MANAGER_ADDRESS_TYPE = 'manager_address_type'
 
 # Engagement association
 ENGAGEMENT_ASSOCIATION_KEY = 'engagement_association'
@@ -112,6 +113,16 @@ PARENT = 'parent'
 ADDRESSES = 'addresses'
 ORG_UNIT_LEVEL = 'org_unit_level'
 ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
+
+# Owner
+OWNER = 'owner'
+OWNER_INFERENCE_PRIORITY = 'owner_inference_priority'
+
+
+class OwnerInferencePriority(enum.Enum):
+    engagement = "engagement_priority"
+    association = "association_priority"
+
 
 # LoRa names for org unit keys
 ORG_UNIT_HIERARCHY_KEY = 'opmærkning'
@@ -135,6 +146,7 @@ class MoOrgFunk(enum.Enum):
     ROLE = ROLE
     ADDRESS = ADDRESS
     MANAGER = MANAGER
+    OWNER = OWNER
     LEAVE = LEAVE
     RELATED_UNIT = RELATED_UNIT
     ENGAGEMENT_ASSOCIATION = ENGAGEMENT_ASSOCIATION_KEY
@@ -148,6 +160,7 @@ RELATION_TRANSLATIONS = {
     ROLE: ROLE_KEY.lower(),
     ADDRESS: ADDRESS_KEY.lower(),
     MANAGER: MANAGER_KEY.lower(),
+    OWNER: OWNER.lower(),
     LEAVE: LEAVE_KEY.lower(),
     RELATED_UNIT: RELATED_UNIT_KEY.lower(),
 }
@@ -161,12 +174,12 @@ OBJECTTYPE = 'objekttype'
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
-    '''The different kinds of fields we support.
+    """The different kinds of fields we support.
 
     NOTE: ADAPTED_ZERO_TO_MANY is used whenever a ZERO_TO_MANY field is used as
-          as ZERO_TO_ONE field, and implements the neccessary trickery to make
+          as ZERO_TO_ONE field, and implements the necessary trickery to make
           it all appear correctly.
-    '''
+    """
     ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
 
 
@@ -489,7 +502,17 @@ MANAGER_FIELDS = {
     USER_FIELD,
     RESPONSIBILITY_FIELD,
     MANAGER_LEVEL_FIELD,
-    ASSOCIATED_MANAGER_ADDRESSES_FIELD,
+}
+
+OWNER_FIELDS = {
+    ORG_FUNK_EGENSKABER_FIELD,
+    ORG_FUNK_GYLDIGHED_FIELD,
+    ORG_FUNK_TYPE_FIELD,
+    ASSOCIATED_ORG_UNIT_FIELD,
+    ASSOCIATED_ORG_FIELD,
+    USER_FIELD,
+    # RESPONSIBILITY_FIELD,
+    # MANAGER_LEVEL_FIELD,
 }
 
 ORG_UNIT_FIELDS = {

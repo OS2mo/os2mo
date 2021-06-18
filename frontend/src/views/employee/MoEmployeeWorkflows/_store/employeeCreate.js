@@ -16,6 +16,7 @@ const defaultState = () => {
     role: [],
     itSystem: [],
     manager: [],
+    owner: [],
     organisation: {},
     backendValidationError: null
   }
@@ -25,7 +26,7 @@ const state = defaultState
 
 const actions = {
   CREATE_EMPLOYEE ({ commit, state }) {
-    let create = [].concat(state.engagement, state.address, state.association, state.role, state.itSystem, state.manager)
+    let create = [].concat(state.engagement, state.address, state.association, state.role, state.itSystem, state.manager, state.owner)
 
     create.forEach(e => {
       if (!e.validity) {

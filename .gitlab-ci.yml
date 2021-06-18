@@ -65,7 +65,7 @@ Lint Python:
     - flake8 --version
     # black-compatible settings
     # https://github.com/psf/black/pull/36
-    - flake8 --extend-ignore B008,W503
+    - flake8 --extend-ignore=B008,W503
 
 Lint Dockerfiles:
   <<: *lint-default

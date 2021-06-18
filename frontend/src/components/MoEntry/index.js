@@ -11,8 +11,9 @@ import MoItSystemEntry from './MoItSystemEntry.vue'
 import MoKLEEntry from './MoKLEEntry.vue'
 import MoLeaveEntry from './MoLeaveEntry.vue'
 import MoManagerEntry from './MoManagerEntry.vue'
+import MoOwnerEntry from './MoOwnerEntry.vue'
 import MoOrganisationUnitEntry from './MoOrganisationUnitEntry.vue'
 import MoOrgUnitAddressEntry from './MoOrgUnitAddressEntry.vue'
 import MoRoleEntry from './MoRoleEntry.vue'
 
-export { MoAddressEntry, MoAssociationEntry, MoEmployeeEntry, MoEmployeeAddressEntry, MoEngagementEntry, MoItSystemEntry, MoKLEEntry, MoLeaveEntry, MoManagerEntry, MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoRoleEntry, MoEngagementAssociationEntry}
+export { MoAddressEntry, MoAssociationEntry, MoEmployeeEntry, MoEmployeeAddressEntry, MoEngagementEntry, MoItSystemEntry, MoKLEEntry, MoLeaveEntry, MoManagerEntry, MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoRoleEntry, MoEngagementAssociationEntry, MoOwnerEntry}

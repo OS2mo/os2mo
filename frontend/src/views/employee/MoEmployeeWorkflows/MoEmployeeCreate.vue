@@ -75,6 +75,15 @@ SPDX-License-Identifier: MPL-2.0
       validity-hidden
     />
 
+    <mo-add-many
+      v-if="show_owner"
+      class="btn-manager mt-3"
+      v-model="owner"
+      :entry-component="entry.owner"
+      :label="$tc('workflows.employee.labels.owner')"
+      validity-hidden
+    />
+
     <div class="alert alert-danger" v-if="backendValidationError">
       {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
     </div>
@@ -96,7 +105,7 @@ import MoCpr from '@/components/MoCpr'
 import { MoInputText, MoInputDate } from '@/components/MoInput'
 import MoAddMany from '@/components/MoAddMany/MoAddMany'
 import ValidateForm from '@/mixins/ValidateForm'
-import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry } from '@/components/MoEntry'
+import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry, MoOwnerEntry } from '@/components/MoEntry'
 import store from './_store/employeeCreate.js'
 
 const STORE_KEY = '$_employeeCreate'
@@ -137,7 +146,8 @@ export default {
         association: MoAssociationEntry,
         role: MoRoleEntry,
         it: MoItSystemEntry,
-        manager: MoManagerEntry
+        manager: MoManagerEntry,
+        owner: MoOwnerEntry
       }
     }
   },
@@ -154,6 +164,7 @@ export default {
       'role',
       'itSystem',
       'manager',
+      'owner',
       'organisation',
       'backendValidationError'
     ]),
@@ -173,6 +184,10 @@ export default {
     show_seniority() {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.show_seniority
+    },
+    show_owner() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_owner
     }
   },
   beforeCreate () {

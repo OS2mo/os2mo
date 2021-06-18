@@ -37,9 +37,9 @@ import dateutil.tz
 from mora import conf_db
 from . import exceptions
 from . import mapping
-# use this string rather than nothing or N/A in UI -- it's the em dash
 from .request_scoped.query_args import current_query
 
+# use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
 
 _sentinel = object()

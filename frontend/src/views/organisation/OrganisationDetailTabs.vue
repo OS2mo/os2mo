@@ -112,7 +112,18 @@ SPDX-License-Identifier: MPL-2.0
           @show="loadContent('related_unit', $event)"
         />
       </b-tab>
-        <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association"
+      <b-tab @click="navigateToTab('#owner')" href="#owner" :title="$t('tabs.organisation.owner')" v-if="show_owner">
+        <mo-table-detail
+          type="ORG_UNIT"
+          :uuid="uuid"
+          :content="content['owner']"
+          content-type="owner"
+          :columns="owner"
+          @show="loadContent('owner', $event)"
+          :entry-component="timemachineFriendly ? undefined : components.owner"
+        />
+      </b-tab>
+      <b-tab @click="navigateToTab('#engagement_association')" href="#engagement_association"
          :title="$t('tabs.organisation.engagement_association')"
          v-if="orgUnitInfo.user_settings.orgunit.show_engagement_hyperlink">
         <mo-table-detail
@@ -135,7 +146,7 @@ SPDX-License-Identifier: MPL-2.0
 
 import { mapGetters } from 'vuex'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
-import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry, MoEngagementAssociationEntry } from '@/components/MoEntry'
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry, MoItSystemEntry, MoManagerEntry, MoKLEEntry, MoAssociationEntry, MoEngagementAssociationEntry, MoOwnerEntry } from '@/components/MoEntry'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { AtDate } from '@/store/actions/atDate'
@@ -193,6 +204,9 @@ export default {
         { label: 'manager_type', data: 'manager_type' },
         { label: 'manager_level', data: 'manager_level' }
       ],
+      owner: [
+        { label: 'owner', data: 'owner' },
+      ],
       kle: [
         { label: 'kle_aspect', data: 'kle_aspect' },
         { label: 'kle_number', data: 'kle_number' }
@@ -222,7 +236,8 @@ export default {
         manager: MoManagerEntry,
         association: MoAssociationEntry,
         kle: MoKLEEntry,
-        engagement_association: MoEngagementAssociationEntry
+        engagement_association: MoEngagementAssociationEntry,
+        owner: MoOwnerEntry
       }
     }
   },
@@ -280,6 +295,10 @@ export default {
       }
 
       return columns
+    },
+
+    show_owner () {
+      return this.orgUnitInfo.user_settings.orgunit.show_owner
     },
 
     ...mapGetters({

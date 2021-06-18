@@ -23,6 +23,7 @@ _OBJECT_TYPES = (
     "kle",
     "leave",
     "manager",
+    "owner",
     "org_unit",
     "related_unit",
     "role",

@@ -134,6 +134,7 @@ async def load_sample_structures(minimal=False):
         'rolle': '1b20d0b9-96a0-42a6-b196-293bb86e62e8',
         'orlov_andersand': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
         'leder': '05609702-977f-4869-9fb4-50ad74c6999a',
+        'ejer': 'c16ff527-3501-42f7-a942-e606c6c1a0a7',
         'itsystem_user': 'aaa8c495-d7d4-4af1-b33a-f4cb27b82c66',
         'itsystem_unit': 'cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276',
         'tilknyttetenhed_hist': 'daa77a4d-6500-483d-b099-2c2eb7fa7a76',

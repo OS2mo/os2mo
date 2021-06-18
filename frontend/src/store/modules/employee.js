@@ -18,6 +18,24 @@ const defaultState = () => {
 }
 const state = defaultState
 
+const ShowIfInherited = (content) => {
+  if (content.key === 'owner') {
+    /* show if inherited */
+    if (content.value) {
+      content.value.forEach(
+        (element) => {
+          if (element.owner_inference_priority) {
+            if (element.owner) {
+              element.owner.name += ' (*)'
+            }
+          }
+        }
+      )
+    }
+  }
+  return content
+}
+
 const actions = {
   [_employee.actions.SET_EMPLOYEE] ({ commit }, payload) {
     return Service.get(`/e/${payload}/`)
@@ -47,11 +65,12 @@ const actions = {
 
     return Service.get(`/e/${uuid}/details/${payload.detail}?${params}`)
       .then(response => {
-        let content = {
+        let content = ShowIfInherited({
           key: payload.detail,
           validity: payload.validity,
           value: response.data
-        }
+        })
+
         commit(_employee.mutations.SET_DETAIL, content)
       })
       .catch(error => {
