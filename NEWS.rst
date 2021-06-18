@@ -11,6 +11,14 @@ Bug fixes
 ---------
 * #42821: The search input field sometimes "swallowed" the first few characters typed. Fixed.
 
+Version 1.17.1, 2021-06-18
+==========================
+
+Bug fixes
+---------
+
+* #44071: Fix HTTP trigger integration
+
 Version 1.17.0, 2021-05-12
 ==========================
 
