@@ -5,6 +5,7 @@ import asyncio
 import threading
 import typing
 from asyncio import set_event_loop
+from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 
 from aiohttp import ClientSession
@@ -14,7 +15,7 @@ from aiohttp import ClientSession
 
 # const
 headers = {
-    'User-Agent': 'MORA/0.1',
+    "User-Agent": "MORA/0.1",
 }
 
 """
@@ -31,7 +32,8 @@ def async_session() -> ClientSession:
     """
     global _local_cache
     # Start a session if needed.
-    if not hasattr(_local_cache, 'async_session') or _local_cache.async_session is None:
+    if (not hasattr(_local_cache,
+                    "async_session") or _local_cache.async_session is None):
         _local_cache.async_session = ClientSession(headers=headers)
     return _local_cache.async_session
 
@@ -53,16 +55,14 @@ async def __session_context_helper(awaitable) -> typing.Any:
         # clean-up of global, shared session
         global _local_cache
         # if session was started by the awaitable
-        if (
-            hasattr(_local_cache,
-                    "async_session") and _local_cache.async_session is not None
-        ):
+        if (hasattr(_local_cache,
+                    "async_session") and _local_cache.async_session is not None):
             await _local_cache.async_session.close()
             _local_cache.async_session = None
     return ret
 
 
-def async_to_sync(f):
+def async_to_sync(f: typing.Callable):
     """
     Decorator-designed, for 'converting' an async function to a sync function.
     Cannot be used from within an event loop (nested loops are not allowed by asyncio)
@@ -79,7 +79,7 @@ def async_to_sync(f):
         if loop is not None:  # debug
             if loop.is_running():  # Explicit error handling to ease debugging
                 raise Exception(
-                    'asyncio does not allow nested (or reentrant) event loops'
+                    "asyncio does not allow nested (or reentrant) event loops"
                 )
 
         if loop is None:
@@ -87,5 +87,23 @@ def async_to_sync(f):
             set_event_loop(loop)
 
         return loop.run_until_complete(__session_context_helper(f(*args, **kwargs)))
+
+    return wrapper
+
+
+def in_separate_thread(f: typing.Callable):
+    """
+    Spawn an entirely separate thread to run this function in. Decorator designed.
+
+    Ugly solution to the fact that the trigger system is not yet ported to async.
+    :param f: A callable
+    :return: return value of f
+    """
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(f, *args, **kwargs)
+            return future.result()
 
     return wrapper
