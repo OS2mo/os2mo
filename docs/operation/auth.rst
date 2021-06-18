@@ -1,200 +1,243 @@
 Authentication
-==============
+**************
 
-Authentication in OS2mo is based on SAML 2.0 single sign-on.
-Support for this is implemented through the module
-`Flask SAML SSO <https://github.com/magenta-aps/flask_saml_sso>`_.
+OS2mo uses the `OpenID Connect <https://openid.net/connect/>`_ protocol
+(OIDC) for authentication. This mechanism is facilitated by `Keycloak <https://www.keycloak.org/>`_
+which is a powerful authentication and authorization component that enables
+delegation of all auth mechanisms to a separate component in the tech stack.
 
-Once a user has been authenticated, a session is created containing the
-attributes given to us from the IdP, e.g. the Active Directory groups the
-user belongs to
+Authentication Flow
+===================
 
-The module can also optionally be enabled for LoRa in case its REST API needs
-to be available externally. The auth module then allows for a shared session
-between LoRa and OS2mo.
+The key parts of the OS2mo infrastructure relevant for the authentication flow
+is shown in the figure below:
 
-SAML based single sign-on (SSO)
--------------------------------
+.. image:: ../graphics/keycloak.svg
+   :width: 80%
 
-This guide assumes basic knowledge and understanding of the
-`SAML 2.0 Web Browser SSO Profile <https://en.wikipedia.org/wiki/SAML_2.0#Web_browser_SSO_profile>`_.
-We support SAML 2.0 Web-based SSO for login and logout. It is based on the
-`OneLogin implementation <https://github.com/onelogin/python3-saml>`_.
-Currently, as a result, we support the HTTP-POST binding for login,
-and HTTP-Redirect for logout.
+The autentication flow is as follows:
 
-SAML SSO delegates the login process to the IdP, and as such, requires an
-IdP supporting SAML single sign-on.
+#. An unauthenticated user navigates to the OS2mo frontend in the browser.
+#. The frontend redirects the user to Keycloak.
+#. The user is prompted for their username and password (or redirected to an IdP
+   if configured).
+#. The user is after successful authentication redirected back to the frontend with
+   an OpenID Connect token issued by Keycloak.
+#. The frontend sets the ``Authorization`` header with the bearer token obtained from
+   Keycloak on all backend requests, i.e.
 
-Instructions (in Danish) for configuring ADFS for SAML SSO
-can be found in :ref:`cookbook`.
+   .. code-block:: text
 
-OS2mo has to be registered as a Service Provider (SP) in the IdP - To
-facilitate this, we expose an endpoint containing all the necessary metadata::
+     Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSld...
 
-  http://<OS2MO URL>/saml/metadata/
+#. The backend validates the token (using a public key from Keycloak)
+   and sends back the requested JSON to the frontend.
+#. The user is presented with the requested data from the frontend.
 
-Most IdPs support consuming this metadata directly, automatically registering
-the SP with correct configuration.
+The tokens are signed with a private JSON Web Key (JWK) by Keycloak, and in order
+to validate the token, the backend needs the
+public (JWK) key from Keycloak. This key can be retreived by a one-time operation,
+i.e. the backend does *not* need to call Keycloak for each request entering
+the backend. The Keycloak public key is only changed very rarely, so a request
+to Keycloak is only necessary when the public key changes.
 
 Configuration
-^^^^^^^^^^^^^
+=============
 
-To enable SAML SSO, we need to specify a number of settings.
+This section describes the Keycloak configurations required by the backand and
+the frontend.
 
-We need to enable `saml_sso` and specify the location of the IdP metadata
-The metadata can be specified either as a URL, or a file path to an xml-file
-containing this information.
+Backend
+-------
 
-.. code-block:: toml
-
-  [saml_sso]
-  enable = true
-  idp_metadata_url = "http://url-to-adfs.com/fs/metadata.xml"
-
-It is recommended instead that you configure the domain and URL schema for the
-OS2mo deployment. This allows the metadata to be generated with the correct
-values, no matter if the endpoint is called from ``localhost``.
-Without this information, the auth module will attempt to infer this from the request.
-
-The following options will result in paths being generated for
-``https://domain.com/saml/*``
-
-.. code-block:: toml
-
-  [saml_sso]
-  force_https = true
-  sp_domain = "domain.com"
-
-On Logout-responses ADFS URL-encodes the SAML data as lowercase, whereas
-``urllib`` in Python URL-encodes as uppercase, which can cause a signature
-verification mismatch. To account for this a setting exists to override
-Python's default handling. This override is **active** by default, as the most
-common IdP we encounter is ADFS. In case we're working with a non-ADFS IdP,
-causing signature verification mismatch errors on logout, the override can be
-disabled with the following:
-
-.. code-block:: toml
-
-  [saml_sso]
-  lowercase_urlencoding = false
-
-OS2mo currently does not depend on any attributes from the IdP, apart from the
-NameID which is used as the identifier for the logged in user in the upper
-right corner of the UI. So if the IdP configures the NameID as the user's
-email, then the email will appear as the user's name in OS2mo.
-
-If for whatever reason we want to base the logged in user's name on a specific
-attribute instead of NameID, it can be done with the following options. Note
-that these options are *specific* to OS2mo, and do not exist in the auth
-module:
-
-.. code-block:: toml
-
-  [saml_sso]
-  # Whether or not the username should be read from the NameID returned from
-  # the IdP. This is the default.
-  username_from_nameid = true
-  # If username is not read from NameID, the username will be read from an
-  # attribute with this name.
-  username_attr = ""
-
-Finally, the credentials for the session database need to be specified:
-
-.. code-block:: toml
-
-  [session.database]
-  host = "localhost"
-  name = "sessions"
-  password = "sessions"
-
-The settings above comprise a *minimal* setup. Different IdP setups have
-different requirements, so a number of additional configuration options
-are available to handle these cases.
-
-Detailed descriptions of these configuration options can be found in the
-`Flask SAML SSO configuration <https://flask-saml-sso.readthedocs.io/en/latest/README.html#configuration>`_
-documentation.
-The auth module expects configuration settings as a part of Flask app
-configuration object, so OS2mo performs a mapping between its own configuration
-format and the configuration keys in Flask. For the exact mapping
-between ``flask_saml_sso`` configuration options and OS2mo
-configuration options, please refer to the ``app_config`` object in
-:file:`backend/mora/settings.py`.
-
-Troubleshooting
-^^^^^^^^^^^^^^^
-
-For troubleshooting, it is beneficial to set the log level to ``DEBUG``.
-This makes the auth module log information about the entire login flow,
-and the contents of various variables. During SSO/SLO the control flow bounces
-from us as SP, to the IdP, and back to us, so it is important to know in
-*which* part of the flow the problem occurs.
-
-When auth fails, in general, two situations can occur.
-
-- A request is sent to the IdP, from which we never receive a response.
-
-  - Usually this is accompanied by an error message on the IdP login page.
-  - This can be caused by incorrect configuration of the IdP, incorrect
-    configuration of our SP in the IdP, but also an incompatible/incorrect
-    request being sent from us.
-  - Further troubleshooting requires **looking at the IdP error message**
-
-- The auth module fails either before redirecting to the IdP, or upon receiving
-  a response.
-
-  - This can be caused by configuration issues on our end, or the IdP sending
-    an incompatible response.
-  - Further troubleshooting requires **looking at our own error log**.
-
-
-Auth issues are manifold and incredibly varied. So it is difficult to create
-an exhaustive guide for dealing with every issue that may occur.
-
-The various configuration options for the auth module are meant to handle
-problems *on our end*, where the IdPs have specific requirements and behavior.
-
-Refer to the Flask SAML SSO configuration for descriptions of these additional
-values.
-
-.. _auth-integration:
-
-Integrating with OS2mo
-^^^^^^^^^^^^^^^^^^^^^^
-
-When OS2mo is running with authentication enabled, using the REST API requires
-an API-token.
-
-The API-tokens have an expiry of 30 days. The expiry is refreshed with every
-use, which means a token only becomes invalid, after 30 days of inactivity.
-
-An API-token can be generated using the following API. The API makes use of
-the existing web-based SAML SSO and as such needs to be accessed
-using the *browser*:
+The MO backend needs a few configurations to be able to communicate with Keycloak
+(which is actually only needed when the backend have to fetch the public signing
+key - the public JWK - from Keycloak). These setting can be found in the settings
+TOML files, e.g. the ``backend/mora/default-settings.toml``:
 
 .. code-block:: text
 
-    <OS2MO_URL>/saml/api-token
+  [auth]
+  keycloak_schema = "https"
+  keycloak_host = "keycloak"
+  keycloak_port = 443
+  keycloak_realm = "mo"
+  keycloak_signing_alg = "RS256"
 
-This gives you a token as a UUID:
+See the corresponding TOML files for overwrites in (e.g.) the development
+environment.
 
-.. code-block:: text
+Frontend
+--------
 
-    4e7b9f89-5d9c-474a-9269-2751048d482b
+The frontend has to know where to reach Keycloak in order to be able to redirect
+unauthenticated users to Keycloak, when they hit the frontend landing page in
+the browser. This
+is configured in a ``keycloak.json`` file served by the frontend itself on the URL
+(e.g. for the development environment) ``http://localhost:5001/keycloak.json``.
+The content of this file is similar to this:
 
-To use this token, against the API, attach the token as a header named
-"session". An example below, using cURL:
+.. code-block:: json
 
-.. code-block:: text
+  {
+    "realm": "mo",
+    "auth-server-url": "http://localhost:8081/auth/",
+    "ssl-required": "external",
+    "resource": "mo",
+    "public-client": true,
+    "confidential-port": 0
+  }
 
-    curl <OS2MO_URL>/service/o/ -H "session: 4e7b9f89-5d9c-474a-9269-2751048d482b"
+The ``keycloak.json`` file is bind mounted into the path
+``/app/frontend/public/keycloak.json`` in the frontend Docker container
+(see the ``docker-compose.yml`` as an example).
 
-Refer to the
-`API token <https://flask-saml-sso.readthedocs.io/en/latest/README.html#api-tokens>`_
-documentation for more information of how to work with API tokens.
+In the above section describing then authentication flow, it is mentioned
+that a token is sent back from Keycloak to the frontend af the user has
+authenticated successfully. In practice, a few more requests
+go back and forth between the frontend and Keycloak, but this is handled
+automatically by the
+`Keycloak JS Adapter <https://www.keycloak.org/docs/latest/securing_apps/index.html#_javascript_adapter>`_
+used by the frontend code and this extra traffic is hence abstracted away from the developer.
+
+Getting a token
+===============
+
+Depending on the context, there are two main ways we can use to retreive
+tokens manually from Keycloak:
+
+#. Requesting a token by using *username/password credentials* for a user in the
+   MO realm in Keycloak.
+#. Requesting a token using a *client credential* for a client in the MO realm
+   in Keycloak. This mechanism is used for backend-to-backend communication,
+   e.g. a DIPEX client can use this method to get a token from Keycloak and
+   pass it in on following requests to the MO backend.
+
+By username/password
+--------------------
+
+A Python example of how to get a token from Keycloak and use this in a backend
+request can be is show here
+request is shown here
+
+`https://github.com/OS2mo/os2mo/blob/development/backend/tests/manual/keycloak-username-password.py 
+<https://github.com/OS2mo/os2mo/blob/development/backend/tests/manual/keycloak-username-password.py>`_
+
+and the corresponding curl request is shown below. The user used in the
+example is Bruce Lee having the credentials ``username/password = bruce/bruce``.
+
+.. code-block:: bash
+
+  $ curl -s -X POST -d 'grant_type=password&client_id=mo&username=bruce&password=bruce' \
+    "http://localhost:8081/auth/realms/mo/protocol/openid-connect/token"
+  {
+    "access_token":"eyJhbGciOi...",
+    "expires_in": 300,
+    "refresh_expires_in": 1800,
+    "refresh_token": "eyJhbGciOiJIUzI1NiI...",
+    "token_type": "Bearer",
+    "not-before-policy": 0,
+    "session_state": "628f4269-63f7-48ec-816d-cb9ab4ec6abd",
+    "scope": "email profile"
+  }
+
+As can be seen, the payload returned from Keycloak contains the ``access_token``,
+a ``refresh_token`` and some data about the token expiration time etc.
+
+By Client Credentials
+---------------------
+
+A Python example of how to get a token from Keycloak and use this in a backend
+request is shown here
+
+`https://github.com/OS2mo/os2mo/blob/development/backend/tests/manual/keycloak-client-secret.py 
+<https://github.com/OS2mo/os2mo/blob/development/backend/tests/manual/keycloak-client-secret.py>`_
+
+and the corresponding curl request is shown below. The client used in this example is called
+``dipex``, and the client credential for this client is ``603f1c82-d012-4d04-9382-dbe659c533fb``.
+
+.. code-block:: bash
+
+  $ curl -s -X POST \
+    -d 'grant_type=client_credentials&client_id=dipex&client_secret=603f1c82-d012-4d04-9382-dbe659c533fb' \
+    "http://localhost:8081/auth/realms/mo/protocol/openid-connect/token"
+  {
+    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiA...",
+    "expires_in": 300,
+    "refresh_expires_in": 0,
+    "token_type": "Bearer",
+    "not-before-policy": 0,
+    "scope": "email profile"
+  }
+
+Note that in this case, a refresh token is not returned to the caller
+(as Keycloak writes *"... The OAuth 2.0 RFC6749 Section 4.4.3 states that a
+refresh_token should not be generated when client_credentials grant is used."*).
+If the client credentials method is needed, this has to be specifically
+enabled for the relevant Keycloak client in the MO realm.
+
+Calling the backend
+===================
+
+Once a token has been fetched from Keycloak, it can be passed along in the
+requests to the backend. The Python files referenced in the section above
+demonstrate how to do this in Python, and a example with curl is
+provided here:
+
+.. code-block:: bash
+
+  $ curl -i -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiA..." \
+  "http://localhost:5000/service/o/"
+
+Token content
+=============
+
+The parsed OIDC token contains among relevant information (name, username, email address,
+The parsed OIDC token contains relevant information about the user (name, username, email address, roles, group memberships,...). The token is parsed automatically
+by the libraries in the frontend and the backend, respectively, and the token info can
+be extracted by the
+application and used in whatever logic that needs to be implemented. An example
+token (no roles and group info) is shown here:
+
+.. code-block:: json
+
+  {
+    "acr": "1",
+    "allowed-origins": ["http://localhost:5001"],
+    "azp": "mo",
+    "email": "bruce@kung.fu",
+    "email_verified": false,
+    "exp": 1621779689,
+    "family_name": "Lee",
+    "given_name": "Bruce",
+    "iat": 1621779389,
+    "iss": "http://localhost:8081/auth/realms/mo",
+    "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+    "name": "Bruce Lee",
+    "preferred_username": "bruce",
+    "scope": "email profile",
+    "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+    "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+    "typ": "Bearer"
+  }
+
+Keycloak Admin Interface
+========================
+
+The Keycloak admin interface can be accessed on the URL path ``/auth``, e.g.
+for the development environment it can be accessed at ``http://localhost:8081/auth``.
+In the development environment, the credentials ``username/password = admin/admin``
+can be used.
+
+Keycloak Endpoints
+==================
+
+Keycloak exposes a number of relevant OIDC endpoints. A list of these
+can found on the URL path ``/auth/realms/mo/.well-known/openid-configuration``,
+e.g. for the development environment it can be accessed at
+``http://localhost:8081/auth/realms/mo/.well-known/openid-configuration``.
 
 Authorization
--------------
+=============
 
-Role-based authorization is currently not implemented for OS2mo
+Role-based authorization (RBAC) will soon be implemented for OS2mo.
