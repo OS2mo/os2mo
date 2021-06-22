@@ -7,6 +7,7 @@ New features
 * #42869: Added delta-api parameter "changed_since" to /api/v1/ endpoints
 * #43544: Keycloak authentication. Keycloak container, DB and config added
 * #41560: New org-funk: Owners
+* #44181: Add Opentelemetry instrumentation
 
 Bug fixes
 ---------
