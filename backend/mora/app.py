@@ -120,7 +120,7 @@ async def request_validation_handler(
 async def http_exception_handler(request: Request, exc: HTTPException):
     if config["ENV"] in ["development", "testing"]:
         if exc.stack is not None:
-            logger.info('\n'.join(exc.stack))
+            logger.info(exc.stack)
         if exc.traceback is not None:
             logger.info(f"{exc.traceback}")
 
@@ -200,10 +200,6 @@ def create_app():
         logger.warning(f'No dist directory to serve! (Missing: {distdir})')
 
     # TODO: Deal with uncaught "Exception", #43826
-    app.add_exception_handler(Exception, fallback_handler)
-    app.add_exception_handler(FastAPIHTTPException, fallback_handler)
-    app.add_exception_handler(RequestValidationError,
-                              request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthError, auth_exception_handler)
 
