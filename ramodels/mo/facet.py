@@ -17,12 +17,13 @@ from ramodels.mo._shared import MOBase
 
 
 class FacetClass(MOBase):
-    """
+    """Payload model for Klasses to be created under the given Facet.
+
     Attributes:
-        name:
-        user_key:
-        scope:
-        org_uuid:
+        name (str): Human-readable name
+        user_key (str): Short, unique key
+        scope (Optional[str]): Representation of Klasse type
+        org_uuid (UUID): Organisation UUID
     """
 
     name: str

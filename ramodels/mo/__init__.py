@@ -12,6 +12,7 @@ from .association import Association
 from .employee import Employee
 from .engagement import Engagement
 from .engagement import EngagementAssociation
+from .facet import FacetClass
 from .manager import Manager
 from .organisation_unit import OrganisationUnit
 
@@ -26,6 +27,7 @@ __all__ = [
     "Employee",
     "Engagement",
     "EngagementAssociation",
+    "FacetClass",
     "Manager",
     "OrganisationUnit",
 ]
