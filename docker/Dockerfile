@@ -67,10 +67,6 @@ RUN pip3 install --no-cache-dir \
   -r backend/requirements-lint.txt
 
 
-# CI settings
-COPY dev-environment/mo-ci-settings.toml ./dev-environment/mo-ci-settings.toml
-
-
 # Copy and install backend code.
 COPY docker ./docker
 COPY backend ./backend
