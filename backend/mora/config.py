@@ -18,21 +18,21 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
-    lora_url: AnyHttpUrl
+    lora_url: AnyHttpUrl = "http://mox/"
 
     # Config database settings
-    conf_db_name: str
-    conf_db_user: str
+    conf_db_name: str = "mora"
+    conf_db_user: str = "mora"
     conf_db_password: str
-    conf_db_host: str
-    conf_db_port: str
+    conf_db_host: str = "mox-db"
+    conf_db_port: str = "5432"
 
     # Misc OS2mo settings
     environment: str = "production"
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
     dummy_mode: bool = False
-    query_export_dir: Optional[str]
+    query_export_dir: Optional[str] = "/queries"
     navlinks: List[NavLink] = []
 
     # HTTP Trigger settings
