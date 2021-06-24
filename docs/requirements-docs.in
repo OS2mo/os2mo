@@ -7,7 +7,6 @@ python-dateutil
 sphinx~=1.8.5
 sphinx_rtd_theme
 sphinxcontrib-httpdomain
-sphinxcontrib-apidoc
 sphinx-click
 recommonmark
 os2mo-http-trigger-protocol
