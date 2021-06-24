@@ -149,7 +149,7 @@ class HTTPException(fastapiHTTPException):
             **extras,
         }
 
-        if config.get_settings().environment in ['testing', 'development']:
+        if not config.is_production():
             if cause is None:
                 cause = self.__cause__ or self
             # just for debugging, remove or change as needed:

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from enum import Enum
 from functools import lru_cache
 from pydantic import BaseSettings, AnyHttpUrl
 from pydantic.types import UUID
@@ -10,6 +10,12 @@ from typing import List, Optional
 class NavLink(BaseSettings):
     href: AnyHttpUrl
     text: str
+
+
+class Environment(str, Enum):
+    DEVELOPMENT = 'development'
+    TESTING = 'testing'
+    PRODUCTION = 'production'
 
 
 class Settings(BaseSettings):
@@ -28,7 +34,7 @@ class Settings(BaseSettings):
     conf_db_port: str = "5432"
 
     # Misc OS2mo settings
-    environment: str = "production"
+    environment: Environment = Environment.PRODUCTION
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
     dummy_mode: bool = False
@@ -65,3 +71,8 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
+
+
+def is_production() -> bool:
+    """Return whether we are running in a production environment"""
+    return get_settings().environment is Environment.PRODUCTION

@@ -106,8 +106,7 @@ async def request_validation_handler(
     :param exc:
     :return:
     """
-    settings = config.get_settings()
-    if settings.environment in ["development", "testing"]:
+    if not config.is_production():
         logger.info(
             f"os2mo err details\n{exc}\n"
             f"request url:\n{request.url}\n"
@@ -119,8 +118,7 @@ async def request_validation_handler(
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
-    settings = config.get_settings()
-    if settings.environment in ["development", "testing"]:
+    if not config.is_production():
         if exc.stack is not None:
             logger.info('\n'.join(exc.stack))
         if exc.traceback is not None:
@@ -188,7 +186,7 @@ def create_app():
         tags=["Meta"],
     )
 
-    if settings.environment in ['testing', 'development']:
+    if not config.is_production():
         app = setup_test_routing(app)
 
     # We serve index.html and favicon.ico here. For the other static files,
