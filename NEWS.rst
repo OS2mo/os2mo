@@ -8,6 +8,7 @@ New features
 * #43544: Keycloak authentication. Keycloak container, DB and config added
 * #41560: New org-funk: Owners
 * #44181: Add Opentelemetry instrumentation
+* #43364: Reimplement settings using Pydantic and environment variables
 
 Bug fixes
 ---------
