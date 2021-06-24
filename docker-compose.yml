@@ -54,6 +54,9 @@ services:
       - ./dev-environment/mo-dev-settings.toml:/user-settings.toml
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
+    environment:
+      JAEGER_HOSTNAME: jaeger
+      JAEGER_SERVICE: OS2mo
     ports:
       - "5000:80"
     depends_on:
@@ -69,7 +72,7 @@ services:
   mox:
     image: magentaaps/lora:dev
     # build:
-    #   context: ../mox
+    #   context: ../lora
     #   dockerfile: docker/Dockerfile
     volumes:
     #  - ../mox:/app
@@ -77,6 +80,9 @@ services:
     # command: '/start-reload.sh'
     environment:
       MAX_WORKERS: "1"
+      JAEGER_HOSTNAME: jaeger
+      JAEGER_SERVICE: LoRa
+
     ports:
       - "8080:80"
     depends_on:
@@ -152,3 +158,8 @@ services:
 #      POSTGRES_DB: keycloak
 #      POSTGRES_USER: keycloak
 #      POSTGRES_PASSWORD: keycloak
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "16686:16686"

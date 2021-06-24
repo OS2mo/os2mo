@@ -13,6 +13,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
+from os2mo_fastapi_utils.tracing import setup_instrumentation
 
 from mora import __version__, health, log
 from mora.auth.exceptions import AuthError
@@ -206,5 +207,7 @@ def create_app():
                               request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthError, auth_exception_handler)
+
+    app = setup_instrumentation(app)
 
     return app
