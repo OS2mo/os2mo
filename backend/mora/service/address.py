@@ -20,7 +20,6 @@ from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
-from .. import settings
 from .. import util
 from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
@@ -132,7 +131,7 @@ async def address_autocomplete(
             'https://dawa.aws.dk/adgangsadresser/autocomplete',
             # use a list to work around unordered dicts in Python < 3.6
             params=[
-                ('per_side', settings.AUTOCOMPLETE_ACCESS_ADDRESS_COUNT),
+                ('per_side', 5),
                 ('noformat', '1'),
                 ('kommunekode', code),
                 ('q', q),
@@ -144,7 +143,7 @@ async def address_autocomplete(
         'https://dawa.aws.dk/adresser/autocomplete',
         # use a list to work around unordered dicts in Python < 3.6
         params=[
-            ('per_side', settings.AUTOCOMPLETE_ADDRESS_COUNT),
+            ('per_side', 10),
             ('noformat', '1'),
             ('kommunekode', code),
             ('q', q),

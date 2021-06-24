@@ -4,10 +4,9 @@
 import logging
 import json
 import pika
-from mora import exceptions
+from mora import exceptions, config
 from mora import util
 from mora import mapping
-from mora import settings
 from mora import triggers
 
 logger = logging.getLogger("amqp")
@@ -42,7 +41,7 @@ def publish_message(service, object_type, action, service_uuid, date):
     successful, but amqp is down. Therefore, the try/except block.
     """
 
-    if not settings.config['amqp']['enable']:
+    if not config.get_settings().amqp_enable:
         return
 
     # we are strict about the topic format to avoid programmer errors.
@@ -67,7 +66,7 @@ def publish_message(service, object_type, action, service_uuid, date):
 
     try:
         connection["channel"].basic_publish(
-            exchange=settings.AMQP_OS2MO_EXCHANGE,
+            exchange=config.get_settings().amqp_os2mo_exchange,
             routing_key=topic,
             body=json.dumps(message),
         )
@@ -131,14 +130,14 @@ def get_connection():
     if not _amqp_connection:
         conn = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host=settings.config["amqp"]["host"],
-                port=settings.config["amqp"]["port"],
+                host=config.get_settings().amqp_host,
+                port=config.get_settings().amqp_port,
                 heartbeat=0,
             )
         )
         channel = conn.channel()
         channel.exchange_declare(
-            exchange=settings.config["amqp"]["os2mo_exchange"],
+            exchange=config.get_settings().amqp_os2mo_exchange,
             exchange_type="topic",
         )
 

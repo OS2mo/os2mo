@@ -7,15 +7,14 @@ from mock import patch
 from requests.exceptions import RequestException
 
 import tests.cases
-from mora import health
-from mora.settings import config
+from mora import health, config
 from tests import util
 
 
 class OIORestHealthTests(tests.cases.TestCase):
     @util.mock()
     def test_oio_rest_returns_true_if_reachable(self, mock):
-        mock.get(config["lora"]["url"] + "site-map")
+        mock.get(config.get_settings().lora_url + "site-map")
 
         actual = health.oio_rest()
 
@@ -23,7 +22,7 @@ class OIORestHealthTests(tests.cases.TestCase):
 
     @util.mock()
     def test_oio_rest_returns_false_if_unreachable(self, mock):
-        mock.get(config["lora"]["url"] + "site-map", status_code=404)
+        mock.get(config.get_settings().lora_url + "site-map", status_code=404)
 
         actual = health.oio_rest()
 
@@ -31,7 +30,7 @@ class OIORestHealthTests(tests.cases.TestCase):
 
     @util.mock()
     def test_oio_rest_returns_false_if_request_error(self, mock):
-        mock.get(config["lora"]["url"] + "site-map", exc=RequestException)
+        mock.get(config.get_settings().lora_url + "site-map", exc=RequestException)
 
         actual = health.oio_rest()
 
@@ -55,7 +54,7 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(config["lora"]["url"] +
+        mock.get(config.get_settings().lora_url +
                  "organisation/organisation?"
                  "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
                  payload={"results": [[]]},
@@ -66,7 +65,7 @@ class DatasetHealthTests(tests.cases.TestCase):
 
     @aioresponses()
     def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get((config["lora"]["url"] +
+        mock.get((config.get_settings().lora_url +
                   "organisation/organisation"
                   "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
                   ),

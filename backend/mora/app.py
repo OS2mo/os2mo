@@ -15,7 +15,7 @@ from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 from os2mo_fastapi_utils.tracing import setup_instrumentation
 
-from mora import __version__, health, log
+from mora import __version__, health, log, config
 from mora.auth.exceptions import AuthError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import auth_exception_handler
@@ -27,7 +27,6 @@ from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import reading_endpoints
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -107,7 +106,7 @@ async def request_validation_handler(
     :param exc:
     :return:
     """
-    if config["ENV"] in ["development", "testing"]:
+    if not config.is_production():
         logger.info(
             f"os2mo err details\n{exc}\n"
             f"request url:\n{request.url}\n"
@@ -119,7 +118,7 @@ async def request_validation_handler(
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
-    if config["ENV"] in ["development", "testing"]:
+    if not config.is_production():
         if exc.stack is not None:
             logger.info('\n'.join(exc.stack))
         if exc.traceback is not None:
@@ -137,8 +136,8 @@ def create_app():
     app = FastAPI(
         middleware=middleware,
     )
-
-    if config["enable_cors"]:
+    settings = config.get_settings()
+    if settings.enable_cors:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
@@ -187,7 +186,7 @@ def create_app():
         tags=["Meta"],
     )
 
-    if config['ENV'] in ['testing', 'development']:
+    if not config.is_production():
         app = setup_test_routing(app)
 
     # We serve index.html and favicon.ico here. For the other static files,

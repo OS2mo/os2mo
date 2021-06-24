@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from mora.config import Settings
 
-from unittest.mock import patch
+from tests import util
 
 import freezegun
 from aioresponses import aioresponses
@@ -36,9 +37,7 @@ class MockHandler(RequestHandler):
 
 class RegisterTest(tests.cases.TestCase):
     @aioresponses()
-    @patch('mora.settings.config', {
-        "triggers": {
-            "http_trigger": {"enabled": True, "http_endpoints": ["http://mock_url"]}}})
+    @util.override_config(Settings(http_endpoints=["http://mock_url"]))
     def test_runs_in_async_context(self, aio_mock):
         """
         test that it is possible to register in an async context

@@ -6,7 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body
 
-from .. import conf_db, settings
+from .. import conf_db, config
 
 logger = logging.getLogger("mo_configuration")
 
@@ -106,5 +106,7 @@ def get_navlinks():
     :returns: A list of nav links
     """
 
-    navlinks = settings.config.get("navlinks", [{}])
+    navlinks = config.get_settings().navlinks
+    if not navlinks:
+        navlinks = [{}]
     return navlinks

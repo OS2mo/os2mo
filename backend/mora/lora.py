@@ -19,7 +19,7 @@ import lora_utils
 from more_itertools import chunked
 
 import mora.async_util
-from . import exceptions, settings, util
+from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
 
 logger = logging.getLogger(__name__)
@@ -280,7 +280,7 @@ class Scope:
 
     @property
     def base_path(self):
-        return settings.LORA_URL + self.path
+        return config.get_settings().lora_url + self.path
 
     async def fetch(self, **params):
         async with mora.async_util.async_session(
@@ -475,7 +475,7 @@ class Scope:
 
 async def get_version():
     async with mora.async_util.async_session(
-    ).get(settings.LORA_URL + "version") as response:
+    ).get(config.get_settings().lora_url + "version") as response:
         try:
             return (await response.json())["lora_version"]
         except ValueError:

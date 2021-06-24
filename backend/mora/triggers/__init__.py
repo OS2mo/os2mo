@@ -1,33 +1,19 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import importlib
 import logging
-from itertools import chain
 
 from .. import util
 from ..exceptions import ErrorCodes
 from ..mapping import EventType, RequestType
-from ..settings import app_config
 
 logger = logging.getLogger("triggers")
 
 
 def register(app):
-    def dynamically_load_module(module):
-        logger.info("Dynamically loading %s", trigger_module)
-        try:
-            return importlib.import_module(module)
-        except Exception:
-            logger.exception("Exception during dynamic loading of %s", module)
-            raise
-
     from mora.triggers.internal import amqp_trigger, http_trigger
 
-    trigger_modules = chain(
-        [amqp_trigger, http_trigger],
-        map(dynamically_load_module, app_config.get("TRIGGER_MODULES", [])),
-    )
+    trigger_modules = [amqp_trigger, http_trigger]
 
     for trigger_module in trigger_modules:
         logger.debug("Registering trigger %s", trigger_module)

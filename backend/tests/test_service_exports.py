@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import mock
+from tests import util
+
+from mora.config import Settings
 
 import tests.cases
 
@@ -23,6 +26,7 @@ class Tests(tests.cases.TestCase):
             status_code=500
         )
 
+    @util.override_config(Settings(query_export_dir=""))
     @mock.patch('mora.service.exports.os.path.isdir', lambda x: True)
     @mock.patch('mora.service.exports.os.path.isfile')
     @mock.patch('mora.service.exports.os.listdir')

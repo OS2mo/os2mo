@@ -7,7 +7,7 @@ from functools import partial
 from typing import Dict, List
 
 import aiohttp
-from mora import settings
+from mora import config
 from mora.async_util import async_session, async_to_sync, in_separate_thread
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload, MOTriggerRegister
@@ -139,22 +139,17 @@ def register(app) -> bool:
     * Fetches /triggers on all configured http trigger handlers.
     * Registers the http_sender trigger for all the requested events.
     """
-    module_settings = settings.config.get("triggers", {}).get("http_trigger", {})
-    enabled = module_settings.get("enabled", False)
-    if not enabled:
-        logger.warning("Module loaded, but not enabled!")
-        return False
-
-    endpoints = module_settings.get("http_endpoints", [])
+    settings = config.get_settings()
+    endpoints = settings.http_endpoints
     if not endpoints:
         logger.warning("Module enabled without endpoints!")
         return False
 
     # Timeout for fetching endpoint trigger configurations (per endpoint)
-    fetch_trigger_timeout = module_settings.get("fetch_trigger_timeout", 5)
+    fetch_trigger_timeout = settings.fetch_trigger_timeout
     # Timeout for handling events (per trigger call)
     # Note: This value is a default, and can be overridden by the external service.
-    run_trigger_timeout = module_settings.get("run_trigger_timeout", 5)
+    run_trigger_timeout = settings.run_trigger_timeout
 
     # Fetch configured triggers for all endpoints
     endpoint_trigger_dict = fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)

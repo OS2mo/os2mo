@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import contextlib
-import copy
 import json
 import os
 import re
 from copy import deepcopy
+
+from mora.config import Settings
 from typing import Union
 from unittest.mock import MagicMock
-from unittest.mock import patch
 from urllib.parse import parse_qsl
 
 import aioresponses
@@ -19,7 +19,7 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from yarl import URL
 
-from mora import conf_db, lora, settings
+from mora import conf_db, lora, config
 from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -36,7 +36,7 @@ jinja_env = jinja2.Environment(
 
 def _mox_testing_api(method):
     """Calls MOX `testing/<method>` REST API."""
-    r = requests.get(settings.LORA_URL + "testing/" + method)
+    r = requests.get(config.get_settings().lora_url + "testing/" + method)
     if r.status_code == 404:
         raise ImproperlyConfigured(
             "LORAs testing API returned 404. Is it enabled?"
@@ -314,32 +314,15 @@ def setup_test_routing(app):
     return app
 
 
-def override_lora_url(lora_url='http://mox/'):
-    return patch('mora.settings.LORA_URL', lora_url)
-
-
 @contextlib.contextmanager
-def override_config(overrides: dict):
-    original = copy.deepcopy(settings.config)
+def override_config(config_obj: Settings):
 
-    settings.update_dict(settings.config, overrides)
+    original = config.get_settings
+    config.get_settings = lambda: config_obj
     try:
         yield
     finally:
-        settings.update_dict(settings.config, original)
-
-
-@contextlib.contextmanager
-def override_app_config(**overrides):
-    originals = {}
-
-    for k, v in overrides.items():
-        originals[k] = settings.config[k]
-        settings.config[k] = v
-
-    yield
-
-    settings.config.update(overrides)
+        config.get_settings = original
 
 
 class mock(requests_mock.Mocker):
@@ -368,15 +351,12 @@ class mock(requests_mock.Mocker):
                 for url, value in get_mock_data(name).items():
                     self.get(url, json=value, complete_qs=True)
 
-        if not allow_mox:
-            self.__overrider = override_lora_url()
-        else:
-            self.__overrider = None
-            self.register_uri(
-                requests_mock.ANY,
-                re.compile('^{}/.*'.format(settings.LORA_URL.rstrip('/'))),
-                real_http=True,
-            )
+        self.__overrider = None
+        self.register_uri(
+            requests_mock.ANY,
+            re.compile('^{}/.*'.format(config.get_settings().lora_url)),
+            real_http=True,
+        )
 
     def copy(self):
         """Returns an exact copy of current mock
@@ -399,7 +379,6 @@ class mock(requests_mock.Mocker):
 class MockAioresponses(aioresponses.aioresponses):
 
     def __init__(self, names=None, override_lora=True, **kwargs):
-        self.__overrider = override_lora_url()
         self.__names = names
         self.__kwargs = kwargs
         self.__override_lora = override_lora
@@ -407,8 +386,8 @@ class MockAioresponses(aioresponses.aioresponses):
         super().__init__(**kwargs)
 
     def __enter__(self):
-        if self.__override_lora:
-            self.__overrider.__enter__()
+        # if self.__override_lora:
+        #     self.__overrider.__enter__()
 
         ret = super().__enter__()
         if self.__names_need_init:  # lazy init, need to wait for __enter__
@@ -426,8 +405,8 @@ class MockAioresponses(aioresponses.aioresponses):
         return ret
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.__override_lora:
-            self.__overrider.__exit__(None, None, None)
+        # if self.__override_lora:
+        #     self.__overrider.__exit__(None, None, None)
         return super().__exit__(exc_type, exc_val, exc_tb)
 
 

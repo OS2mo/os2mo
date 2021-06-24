@@ -7,7 +7,7 @@ from enum import Enum
 from fastapi import HTTPException as fastapiHTTPException
 from starlette.responses import JSONResponse
 
-from mora import settings
+from mora import config
 
 
 class ErrorCodes(Enum):
@@ -149,7 +149,7 @@ class HTTPException(fastapiHTTPException):
             **extras,
         }
 
-        if settings.config['ENV'] in ['testing', 'development']:
+        if not config.is_production():
             if cause is None:
                 cause = self.__cause__ or self
             # just for debugging, remove or change as needed:

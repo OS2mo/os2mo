@@ -6,8 +6,7 @@ import os
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
-from .. import exceptions
-from ..settings import app_config
+from .. import exceptions, config
 
 router = APIRouter()
 
@@ -31,7 +30,8 @@ def list_export_files():
         "export2.xlsx"
       ]
     """
-    export_dir = app_config['QUERY_EXPORT_DIR']
+    settings = config.get_settings()
+    export_dir = settings.query_export_dir
     if not os.path.isdir(export_dir):
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
     dir_contents = os.listdir(export_dir)
@@ -54,7 +54,8 @@ def get_export_file(file_name: str):
 
     :return: The file corresponding to the given export file name
     """
-    export_dir = app_config['QUERY_EXPORT_DIR']
+    settings = config.get_settings()
+    export_dir = settings.query_export_dir
     if not os.path.isdir(export_dir):
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
 

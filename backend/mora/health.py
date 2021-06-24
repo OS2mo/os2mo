@@ -9,9 +9,8 @@ from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
 
 import mora.async_util
-from mora import conf_db, lora
+from mora import conf_db, lora, config
 from mora.exceptions import HTTPException
-from mora.settings import config
 from mora.triggers.internal import amqp_trigger
 
 router = APIRouter()
@@ -37,7 +36,7 @@ def amqp():
     Return `True` if open. `False` if not open or an error occurs.
     `None` if AMQP support is disabled.
     """
-    if not config["amqp"]["enable"]:
+    if not config.get_settings().amqp_enable:
         return None
     connection = amqp_trigger.get_connection()
 
@@ -64,7 +63,7 @@ def oio_rest():
     Check if the configured oio_rest can be reached
     :return: True if reachable. False if not
     """
-    url = config["lora"]["url"] + "site-map"
+    url = config.get_settings().lora_url + "site-map"
     try:
         r = requests.get(url)
 

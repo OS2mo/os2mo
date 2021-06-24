@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from functools import lru_cache
+
 import logging
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
@@ -10,25 +12,28 @@ from starlette.status import (
 )
 import jwt.exceptions
 from mora.auth.exceptions import AuthError
-from mora.settings import config
-
-SCHEMA = config['auth']['keycloak_schema']
-HOST = config['auth']['keycloak_host']
-PORT = config['auth']['keycloak_port']
-REALM = config['auth']['keycloak_realm']
-ALG = config['auth']['keycloak_signing_alg']
-
-# URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
-JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
-           f'/auth/realms/{REALM}/protocol/openid-connect/certs'
+from mora import config
 
 logger = logging.getLogger(__name__)
 
 # For getting and parsing the Authorization header
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='unused')
 
-# JWKS client for fetching and caching JWKS
-jwks_client = jwt.PyJWKClient(JWKS_URI)
+
+@lru_cache()
+def get_jwks_client():
+    settings = config.get_settings()
+
+    SCHEMA = settings.keycloak_schema
+    HOST = settings.keycloak_host
+    PORT = settings.keycloak_port
+    REALM = settings.keycloak_realm
+
+    # URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
+    JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
+               f'/auth/realms/{REALM}/protocol/openid-connect/certs'
+    # JWKS client for fetching and caching JWKS
+    return jwt.PyJWKClient(JWKS_URI)
 
 
 async def auth(request: Request) -> dict:
@@ -64,11 +69,12 @@ async def auth(request: Request) -> dict:
         }
 
     """
+    settings = config.get_settings()
 
     # TODO: Remove this, once a proper auth solution is in place,
     #  that works for local DIPEX development.
     #  https://redmine.magenta-aps.dk/issues/44020
-    if config["ENV"] in ["development", "testing"]:
+    if config.get_settings().environment is config.Environment.DEVELOPMENT:
         return {}
 
     try:
@@ -78,13 +84,14 @@ async def auth(request: Request) -> dict:
         # lru_cache, so it will not make an HTTP request to Keycloak each time
         # get_signing_key_from_jwt() is called.
 
-        signing = jwks_client.get_signing_key_from_jwt(token)
+        signing = get_jwks_client().get_signing_key_from_jwt(token)
 
         # The jwt.decode() method raises an exception (e.g.
         # InvalidSignatureError, ExpiredSignatureError,...) in case the OIDC
         # token is invalid. These exceptions will be caught by the
         # auth_exception_handler below which is used by the FastAPI app.
 
+        ALG = settings.keycloak_signing_alg
         return jwt.decode(token, signing.key, algorithms=[ALG])
 
     except Exception as err:

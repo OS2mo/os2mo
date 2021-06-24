@@ -35,8 +35,6 @@ LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1
-ENV OS2MO_SYSTEM_CONFIG_PATH=/app/docker/docker-settings.toml
-ENV OS2MO_USER_CONFIG_PATH=/user-settings.toml
 
 
 WORKDIR /app/
@@ -69,12 +67,7 @@ RUN pip3 install --no-cache-dir \
   -r backend/requirements-lint.txt
 
 
-# CI settings
-COPY dev-environment/mo-ci-settings.toml ./dev-environment/mo-ci-settings.toml
-
-
 # Copy and install backend code.
-COPY dev-environment/mo-dev-settings.toml ./dev-environment/mo-dev-settings.toml
 COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .

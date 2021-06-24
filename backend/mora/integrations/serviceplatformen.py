@@ -6,15 +6,15 @@ import random
 import service_person_stamdata_udvidet
 import pathlib
 import requests
-from .. import util
+from .. import util, config
 from .. import exceptions
-from .. import settings
 
 logger = logging.getLogger(__name__)
 
 
 def is_dummy_mode():
-    if settings.config['ENV'] != 'production':
+    settings = config.get_settings()
+    if not config.is_production():
         # force dummy during tests and development, and make it
         # configurable in production
         #
@@ -22,34 +22,16 @@ def is_dummy_mode():
         # source code, wheras that's a big no-no in production
         return True
 
-    return settings.config['dummy_mode']
+    return settings.dummy_mode
 
 
 def check_config():
     if is_dummy_mode():
         return True
 
-    config = settings.config
+    settings = config.get_settings()
 
-    missing = [
-        k
-        for k in (
-            "uuid",  # "SP_SERVICE_UUID",
-            "agreement_uuid",  # "SP_SERVICE_AGREEMENT_UUID",
-            "municipality_uuid",  # "SP_MUNICIPALITY_UUID",
-            "system_uuid",  # "SP_SYSTEM_UUID",
-        )
-        if not util.is_uuid(config["service_platformen"][k])
-    ]
-
-    if missing:
-        raise ValueError(
-            "Serviceplatformen uuids must be valid: {}".format(
-                ", ".join(missing)
-            )
-        )
-
-    SP_CERTIFICATE_PATH = config["service_platformen"]["certificate_path"]
+    SP_CERTIFICATE_PATH = settings.sp_certificate_path
     if not SP_CERTIFICATE_PATH:
         raise ValueError(
             "Serviceplatformen certificate path must be configured"
@@ -65,7 +47,7 @@ def check_config():
 
 
 def get_citizen(cpr):
-    config = settings.config
+    settings = config.get_settings()
     if not util.is_cpr_number(cpr):
         raise ValueError('invalid CPR number!')
 
@@ -73,13 +55,13 @@ def get_citizen(cpr):
         return _get_citizen_stub(cpr)
     else:
         sp_uuids = {
-            'service_agreement': config["service_platformen"]["agreement_uuid"],
-            'user_system': config["service_platformen"]["system_uuid"],
-            'user': config["service_platformen"]["municipality_uuid"],
-            'service': config["service_platformen"]["uuid"]
+            'service_agreement': str(settings.sp_agreement_uuid),
+            'user_system': str(settings.sp_user_system_uuid),
+            'user': str(settings.sp_municipality_uuid),
+            'service': str(settings.sp_service_uuid)
         }
-        certificate = config["service_platformen"]["certificate_path"]
-        sp_production = config["service_platformen"]["sp_production"]
+        certificate = settings.sp_certificate_path
+        sp_production = settings.sp_production
         try:
             return service_person_stamdata_udvidet.get_citizen(
                 sp_uuids, certificate, cpr, production=sp_production)

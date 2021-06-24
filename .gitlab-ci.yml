@@ -197,7 +197,15 @@ Build docs:
     MOX_USER_CONFIG_PATH: /app/dev-environment/settings-for-mo-test.toml
     MAX_WORKERS: "1"
     # for mo
-    OS2MO_USER_CONFIG_PATH: /app/dev-environment/mo-ci-settings.toml
+    DUMMY_MODE: "true"
+    ENVIRONMENT: "testing"
+    LORA_URL: "http://mox/"
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     # for testcafe
     BASE_URL: http://mo:80
@@ -224,7 +232,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:1.12.0
       alias: mox
     - name: ${KEYCLOAK_IMAGE_SHA}
       alias: keycloak

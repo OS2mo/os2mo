@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from mora.config import Settings, NavLink
+
+from tests import util
+
 from tests.cases import ConfigTestCase
 
-from mora import settings
 from mora.conf_db import set_configuration
 
 
@@ -98,10 +101,9 @@ class TestNavLink(ConfigTestCase):
     def test_populated_list(self):
         href = "http://google.com"
         text = "Google"
-        settings.update_dict(
-            settings.config, {"navlinks": [{"href": href, "text": text}]}
-        )
-        populated_list = self.assertRequest(self.url)
+
+        with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
+            populated_list = self.assertRequest(self.url)
         self.assertEqual(len(populated_list), 1)
         self.assertEqual(populated_list[0]["href"], href)
         self.assertEqual(populated_list[0]["text"], text)
