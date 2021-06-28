@@ -139,12 +139,12 @@ services:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
       KEYCLOAK_IMPORT: /tmp/realm.json
-      # DB_VENDOR: POSTGRES
-      # DB_ADDR: "keycloak-db"
-      # DB_USER: keycloak
-      # DB_PASSWORD: keycloak
-      # DB_SCHEMA: public
-      # DB_DATABASE: keycloak
+      DB_VENDOR: POSTGRES
+      DB_ADDR: "keycloak-db"
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak
       # PROXY_ADDRESS_FORWARDING: 'true'
       # KEYCLOAK_FRONTEND_URL: https://proxy/auth
       # KEYCLOAK_LOGLEVEL: DEBUG
@@ -153,13 +153,12 @@ services:
         source: ./dev-environment/keycloak-realm.json
         target: /tmp/realm.json
 
-# Not needed in the dev environment, but kept as an inspiration for production
-#  keycloak-db:
-#    image: postgres:13.3
-#    environment:
-#      POSTGRES_DB: keycloak
-#      POSTGRES_USER: keycloak
-#      POSTGRES_PASSWORD: keycloak
+  keycloak-db:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
 
   jaeger:
     image: jaegertracing/all-in-one
