@@ -67,7 +67,7 @@ export default {
 
     showCPR () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.show_cpr_no
+      return conf.show_cpr_no && this.employee.cpr_no
     },
   },
 
