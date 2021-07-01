@@ -114,8 +114,6 @@ class TestEmployee:
             model_dict["cpr_no"] = invalid_regex
             Employee(**model_dict)
 
-        with pytest.raises(
-            ValidationError, match=f"CPR number {invalid_date} is not valid"
-        ):
+        with pytest.raises(ValidationError, match="CPR number is invalid"):
             model_dict["cpr_no"] = invalid_date
             Employee(**model_dict)
