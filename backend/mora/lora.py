@@ -20,7 +20,6 @@ from itertools import starmap
 import lora_utils
 from more_itertools import chunked
 
-import mora.async_util
 from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
 
