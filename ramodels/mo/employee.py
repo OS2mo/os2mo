@@ -6,40 +6,104 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import warnings
 from datetime import date
 from datetime import datetime
 from typing import Any
+from typing import Dict
+from typing import List
 from typing import Literal
 from typing import Optional
+from typing import Tuple
 
 from pydantic import Field
+from pydantic import root_validator
 from pydantic import validator
 
 from ._shared import MOBase
+from ._shared import OrganisationRef
+from .details import Details
 from ramodels.base import tz_isodate
 
 # --------------------------------------------------------------------------------------
 # Employee model
 # --------------------------------------------------------------------------------------
 
+# Type aliases
+DictStrAny = Dict[str, Any]
+
+
+# Helper functions
+def deprecation(message: str) -> None:
+    warnings.warn(message, DeprecationWarning, stacklevel=2)
+
+
+def split_name(name: str) -> Tuple[str, str]:
+    givenname = name.rsplit(" ", maxsplit=1)[0]
+    surname = name[len(givenname) :].strip()
+    return givenname, surname
+
+
+def validate_names(
+    values: DictStrAny, name_key: str, givenname_key: str, surname_key: str
+) -> Dict:
+    # Both name and given/surname are given erroneously
+    if name_key in values and any([givenname_key in values, surname_key in values]):
+        raise ValueError(
+            f"{name_key} and {givenname_key}/{surname_key} are mutually exclusive"
+        )
+
+    # If only name is given, raise a deprecation warning and generate given/surname
+    if name_key in values and not any([givenname_key in values, surname_key in values]):
+        deprecation(
+            f"{name_key} will be deprecated in a future version. "
+            f"Prefer {givenname_key}/{surname_key} where possible"
+        )
+        values[givenname_key], values[surname_key] = split_name(values[name_key])
+    return values
+
 
 class Employee(MOBase):
-    """
+    """MO Employee data model.
+
     Attributes:
-        type:
-        name:
-        cpr_no:
-        seniority:
+        type_: Object type.
+        givenname: Given name of the employee
+        surname: Surname of the employee
+        name: Full name of the employee - will be deprecated, use given name/surname
+        cpr_no: CPR number of the employee
+        seniority: Seniority of the employee
+        user_key: Short, unique key identifying the employee
+        org: The organisation with which the employee is associated
+        nickname_givenname: Given name part of the employee's nickname
+        nickname_surname: Surname part of the employee's nickname
+        nickname: Full nickname of the employee - will be deprecated,
+            use given name/surname
+        details:  A list of details to be created for the employee.
     """
 
-    type: Literal["employee"] = "employee"
-    name: str
+    type_: Literal["employee"] = Field("employee", alias="type")
+    givenname: str = Field(None)
+    surname: str = Field(None)
+    name: Optional[str]
     cpr_no: Optional[str] = Field(regex=r"^\d{9}[1-9]$")
     seniority: Optional[datetime]
+    user_key: Optional[str]
+    org: Optional[OrganisationRef]
+    nickname_givenname: Optional[str]
+    nickname_surname: Optional[str]
+    nickname: Optional[str]
+    details: Optional[List[Details]]
 
-    @validator("seniority", pre=True, always=True)
-    def parse_seniority(cls, seniority: Optional[Any]) -> Optional[datetime]:
-        return tz_isodate(seniority) if seniority is not None else None
+    @root_validator(pre=True)
+    def validate_name(cls, values: DictStrAny) -> DictStrAny:
+        return validate_names(values, "name", "givenname", "surname")
+
+    @root_validator(pre=True)
+    def validate_nickname(cls, values: DictStrAny) -> DictStrAny:
+        return validate_names(
+            values, "nickname", "nickname_givenname", "nickname_surname"
+        )
 
     @validator("cpr_no")
     def validate_cpr(cls, cpr_no: Optional[str]) -> Optional[str]:
@@ -69,13 +133,13 @@ class Employee(MOBase):
             else:
                 century = 1800
 
-        err_msg = f"CPR number {cpr_no} is not valid."
-        # Removed because that never happens.
-        # if century not in {1800, 1900, 2000}:
-        #     raise ValueError(err_msg)
         try:
             date.fromisoformat(f"{century+year}-{month}-{day}")
         except Exception:
-            raise ValueError(err_msg)
+            raise ValueError(f"CPR number {cpr_no} is not valid.")
 
         return cpr_no
+
+    @validator("seniority", pre=True, always=True)
+    def parse_seniority(cls, seniority: Optional[Any]) -> Optional[datetime]:
+        return tz_isodate(seniority) if seniority is not None else None

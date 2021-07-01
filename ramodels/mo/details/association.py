@@ -10,11 +10,11 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
-from ._shared import AssociationType
-from ._shared import MOBase
-from ._shared import OrgUnitRef
-from ._shared import PersonRef
-from ._shared import Validity
+from .._shared import AssociationType
+from .._shared import MOBase
+from .._shared import OrgUnitRef
+from .._shared import PersonRef
+from .._shared import Validity
 
 # --------------------------------------------------------------------------------------
 # Engagement models
