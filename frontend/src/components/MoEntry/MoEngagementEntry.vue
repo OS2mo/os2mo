@@ -35,17 +35,18 @@ SPDX-License-Identifier: MPL-2.0
         required
       />
 
-      <mo-facet-picker v-if="showPrimary"
-                       facet="primary_type"
-                       v-model="entry.primary"
-                       required
+      <mo-facet-picker
+        v-if="showPrimary"
+        facet="primary_type"
+        v-model="entry.primary"
+        required
       />
     </div>
 
     <div class="form-row" v-for="(v, row_index) in numberOfExtensionRows" :key="row_index">
       <mo-input-text v-for="n in 2"
         v-if="extensionFields.length >= (2 * row_index + n)"
-        class="'extension_field"
+        class="extension_field"
         v-model="entry['extension_' + (2 * row_index + n)]"
         :label="extensionFields[(2 * row_index + n - 1)]"
       />
