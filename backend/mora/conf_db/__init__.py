@@ -39,10 +39,13 @@ def _get_connection_url():
     password = settings.conf_db_password
     host = settings.conf_db_host
     port = settings.conf_db_port
+    sslmode = settings.conf_db_sslmode
     connection_url = "postgresql+psycopg2://"
     connection_url += str(user) + ":" + str(password)
     connection_url += "@" + str(host) + ":" + str(port)
     connection_url += "/" + str(dbname)
+    if sslmode:
+        connection_url += "?sslmode=" + str(sslmode)
     return connection_url
 
 

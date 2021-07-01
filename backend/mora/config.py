@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     conf_db_password: str
     conf_db_host: str = "mox-db"
     conf_db_port: str = "5432"
+    conf_db_sslmode: Optional[str]
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
