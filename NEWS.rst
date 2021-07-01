@@ -15,6 +15,14 @@ Bug fixes
 ---------
 * #42821: The search input field sometimes "swallowed" the first few characters typed. Fixed.
 
+Version 1.17.2, 2021-07-01
+==========================
+
+Bug fixes
+---------
+
+* #44281: Fix LoRa HTTP connector
+
 Version 1.17.1, 2021-06-18
 ==========================
 

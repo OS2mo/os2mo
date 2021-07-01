@@ -12,6 +12,8 @@ import uuid
 from asyncio import create_task, gather
 from datetime import datetime
 from enum import Enum, unique
+
+from aiohttp import ClientSession
 from functools import partial
 from itertools import starmap
 
@@ -283,10 +285,10 @@ class Scope:
         return config.get_settings().lora_url + self.path
 
     async def fetch(self, **params):
-        async with mora.async_util.async_session(
-        ).get(self.base_path,
-              params=param_exotics_to_strings(
-                  {**self.connector.defaults, **params})) as response:
+        async with ClientSession() as session:
+            response = await session.get(
+                self.base_path,
+                params=param_exotics_to_strings({**self.connector.defaults, **params}))
             await _check_response(response)
 
             try:
@@ -430,28 +432,28 @@ class Scope:
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with mora.async_util.async_session(
-            ).put('{}/{}'.format(self.base_path, uuid),
-                  json=obj) as r:
+            async with ClientSession() as session:
+                r = await session.put(
+                    '{}/{}'.format(self.base_path, uuid), json=obj)
 
                 async with r:
                     await _check_response(r)
                     return (await r.json())['uuid']
         else:
-            async with mora.async_util.async_session(
-            ).post(self.base_path,
-                   json=obj) as r:
+            async with ClientSession() as session:
+                r = await session.post(self.base_path, json=obj)
                 await _check_response(r)
                 return (await r.json())['uuid']
 
     async def delete(self, uuid):
-        async with mora.async_util.async_session(
-        ).delete('{}/{}'.format(self.base_path, uuid)) as response:
+        async with ClientSession() as session:
+            response = await session.delete('{}/{}'.format(self.base_path, uuid))
             await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with mora.async_util.async_session(
-        ).patch('{}/{}'.format(self.base_path, uuid), json=obj) as response:
+        async with ClientSession() as session:
+            response = await session.patch(
+                '{}/{}'.format(self.base_path, uuid), json=obj)
             await _check_response(response)
             return (await response.json()).get('uuid', uuid)
 
@@ -474,8 +476,8 @@ class Scope:
 
 
 async def get_version():
-    async with mora.async_util.async_session(
-    ).get(config.get_settings().lora_url + "version") as response:
+    async with ClientSession() as session:
+        response = await session.get(config.get_settings().lora_url + "version")
         try:
             return (await response.json())["lora_version"]
         except ValueError:
