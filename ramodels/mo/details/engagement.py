@@ -10,15 +10,15 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
-from ._shared import EngagementAssociationType
-from ._shared import EngagementRef
-from ._shared import EngagementType
-from ._shared import JobFunction
-from ._shared import MOBase
-from ._shared import OrgUnitRef
-from ._shared import PersonRef
-from ._shared import Primary
-from ._shared import Validity
+from .._shared import EngagementAssociationType
+from .._shared import EngagementRef
+from .._shared import EngagementType
+from .._shared import JobFunction
+from .._shared import MOBase
+from .._shared import OrgUnitRef
+from .._shared import PersonRef
+from .._shared import Primary
+from .._shared import Validity
 
 # --------------------------------------------------------------------------------------
 # Engagement models

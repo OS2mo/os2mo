@@ -6,18 +6,24 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from ._shared import MOBase
-from .employee import Employee
-from .facet import FacetClass
-from .organisation_unit import OrganisationUnit
+from typing import Union
+
+from .address import Address
+from .association import Association
+from .engagement import Engagement
+from .engagement import EngagementAssociation
+from .manager import Manager
 
 # --------------------------------------------------------------------------------------
 # All
 # --------------------------------------------------------------------------------------
+Details = Union[Address, Association, Engagement, EngagementAssociation, Manager]
 
 __all__ = [
-    "MOBase",
-    "Employee",
-    "FacetClass",
-    "OrganisationUnit",
+    "Details",
+    "Address",
+    "Association",
+    "Engagement",
+    "EngagementAssociation",
+    "Manager",
 ]

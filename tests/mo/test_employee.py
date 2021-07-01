@@ -6,17 +6,21 @@
 # ---------------------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------------------
-from datetime import datetime
-
 import pytest
 from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
 
+from ramodels.mo._shared import OrganisationRef
 from ramodels.mo.employee import Employee
 from tests.conftest import not_from_regex
 from tests.conftest import unexpected_value_error
+from tests.mo.details.test_address import address_strat
+from tests.mo.details.test_association import association_strat
+from tests.mo.details.test_engagement import engagement_assoc_strat
+from tests.mo.details.test_engagement import engagement_strat
+from tests.mo.details.test_manager import manager_strat
 
 # ---------------------------------------------------------------------------------------
 # Tests
@@ -31,26 +35,68 @@ def valid_cprs(draw):
 
 
 @st.composite
+def valid_details(draw):
+    details_strat = (
+        address_strat()
+        | association_strat()
+        | engagement_assoc_strat()
+        | engagement_strat()
+        | manager_strat()
+    )
+    return draw(details_strat)
+
+
+@st.composite
 def employee_strat(draw):
-    required = {"name": st.text()}
+    required = {"givenname": st.text(), "surname": st.text()}
     optional = {
         "type": st.just("employee"),
         "cpr_no": st.none() | valid_cprs(),
+        "user_key": st.none() | st.text(),
+        "org": st.none() | st.builds(OrganisationRef),
+        "details": st.none() | st.lists(valid_details()),
         "seniority": st.none() | st.datetimes(),
     }
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
-    return st_dict
+    st_dict = st.fixed_dictionaries(required, optional=optional)  # type: ignore
+    return draw(st_dict)
+
+
+@st.composite
+def invalid_name_combo(draw):
+    name_strats = st.just("givenname"), st.just("surname")
+    name_dict = draw(
+        st.dictionaries(keys=st.one_of(*name_strats), values=st.text(), min_size=1)
+    )
+    name_dict["name"] = draw(st.text())
+    return name_dict
 
 
 class TestEmployee:
     @given(employee_strat())
-    @example({"name": "test", "cpr_no": "0101012101"})
-    @example({"name": "test", "cpr_no": "0101014101"})
-    @example({"name": "test", "cpr_no": "0101559101"})
-    @example({"name": "test", "cpr_no": "0101016101"})
-    @example({"name": "test", "cpr_no": "0101767101"})
+    @example({"givenname": "test", "surname": "testesen", "cpr_no": "0101012101"})
+    @example({"givenname": "test", "surname": "testesen", "cpr_no": "0101014101"})
+    @example({"givenname": "test", "surname": "testesen", "cpr_no": "0101559101"})
+    @example({"givenname": "test", "surname": "testesen", "cpr_no": "0101016101"})
+    @example({"givenname": "test", "surname": "testesen", "cpr_no": "0101767101"})
     def test_init(self, model_dict):
         assert Employee(**model_dict)
+
+    @given(st.text(), employee_strat())
+    def test_deprecation_warning(self, name, model_dict):
+        # It should be possible to initialise an Employee with just a name
+        # but we should get a deprecation warning
+        with pytest.deprecated_call():
+            assert Employee(name=name)
+        # Similarly, we should be able to declare a nickname, but get a
+        # deprecation warning when we do so
+        model_dict["nickname"] = name
+        with pytest.deprecated_call():
+            assert Employee(**model_dict)
+
+    @given(invalid_name_combo())
+    def test_name_validations(self, invalid_dict):
+        with pytest.raises(ValidationError, match="mutually exclusive"):
+            Employee(**invalid_dict)
 
     @given(employee_strat(), not_from_regex(r"^employee$"))
     def test_invalid_type(self, model_dict, invalid_type):
@@ -73,10 +119,3 @@ class TestEmployee:
         ):
             model_dict["cpr_no"] = invalid_date
             Employee(**model_dict)
-
-    @given(employee_strat(), st.dates() | st.dates().map(lambda date: date.isoformat()))
-    def test_validators(self, model_dict, sen_date):
-        model_dict["seniority"] = sen_date
-        empl = Employee(**model_dict)
-        assert isinstance(empl.seniority, datetime)
-        assert empl.seniority.tzinfo
