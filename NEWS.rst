@@ -9,6 +9,12 @@ New features
 * #41560: New org-funk: Owners
 * #44181: Add Opentelemetry instrumentation
 * #43364: Reimplement settings using Pydantic and environment variables
+
+Version 1.18.0, 2021-07-01
+==========================
+
+New features
+------------
 * #40933: "Create employee" dialog now allows creating an employee without any engagements
 
 Bug fixes
