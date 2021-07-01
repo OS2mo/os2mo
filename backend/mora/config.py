@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     dummy_mode: bool = False
     query_export_dir: Optional[str] = "/queries"
     navlinks: List[NavLink] = []
+    os2mo_auth: bool = True
 
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
