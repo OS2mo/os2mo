@@ -39,27 +39,30 @@ def deprecation(message: str) -> None:
 
 
 def split_name(name: str) -> Tuple[str, str]:
-    givenname = name.rsplit(" ", maxsplit=1)[0]
-    surname = name[len(givenname) :].strip()
+    split = name.split(" ", maxsplit=1)
+    if len(split) == 1:
+        split.append("")
+    givenname, surname = split
     return givenname, surname
 
 
 def validate_names(
     values: DictStrAny, name_key: str, givenname_key: str, surname_key: str
 ) -> Dict:
-    # Both name and given/surname are given erroneously
-    if name_key in values and any([givenname_key in values, surname_key in values]):
-        raise ValueError(
-            f"{name_key} and {givenname_key}/{surname_key} are mutually exclusive"
-        )
+    if name_key in values:
+        # Both name and given/surname are given erroneously
+        if any([givenname_key in values, surname_key in values]):
+            raise ValueError(
+                f"{name_key} and {givenname_key}/{surname_key} are mutually exclusive"
+            )
+        # If only name is given, raise a deprecation warning and generate given/surname
+        else:
+            deprecation(
+                f"{name_key} will be deprecated in a future version. "
+                f"Prefer {givenname_key}/{surname_key} where possible"
+            )
+            values[givenname_key], values[surname_key] = split_name(values[name_key])
 
-    # If only name is given, raise a deprecation warning and generate given/surname
-    if name_key in values and not any([givenname_key in values, surname_key in values]):
-        deprecation(
-            f"{name_key} will be deprecated in a future version. "
-            f"Prefer {givenname_key}/{surname_key} where possible"
-        )
-        values[givenname_key], values[surname_key] = split_name(values[name_key])
     return values
 
 
@@ -136,8 +139,7 @@ class Employee(MOBase):
         try:
             date.fromisoformat(f"{century+year}-{month}-{day}")
         except Exception:
-            raise ValueError(f"CPR number {cpr_no} is not valid.")
-
+            raise ValueError("CPR number is invalid.")
         return cpr_no
 
     @validator("seniority", pre=True, always=True)
