@@ -1,6 +1,6 @@
 {
   "name": "mora",
-  "version": "1.17.2",
+  "version": "1.18.0",
   "description": "OS2 Mennesker + Organisation 2.0",
   "author": "Magenta ApS <info@magenta.dk>",
   "private": true,
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.8.0",
+    "@trevoreyre/autocomplete-vue": "^2.2.0",
     "@ungap/url-search-params": "^0.1.2",
     "bootstrap-vue": "^2.0.0-rc.11",
     "core-js": "2",

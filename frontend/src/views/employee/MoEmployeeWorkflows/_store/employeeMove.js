@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import { getField, updateField } from 'vuex-map-fields'
+import moment from 'moment'
 import Service from '@/api/HttpCommon'
 import { EventBus, Events } from '@/EventBus'
-import moment from 'moment'
 
 const defaultState = () => {
   return {

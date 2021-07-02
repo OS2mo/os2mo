@@ -1,16 +1,14 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-// SPDX-FileCopyrightText: 2020 Magenta ApS
-// SPDX-License-Identifier: MPL-2.0
-
 import { getField, updateField } from 'vuex-map-fields'
+import moment from 'moment'
 import Service from '@/api/HttpCommon'
 
 const defaultState = () => {
   return {
     employee: {},
-    engagement: {},
+    engagement: [],
     address: [],
     association: [],
     role: [],
@@ -25,11 +23,22 @@ const state = defaultState
 
 const actions = {
   CREATE_EMPLOYEE ({ commit, state }) {
-    let create = [].concat(state.engagement, state.address, state.association, state.role, state.itSystem, state.manager)
+    let create = [].concat(
+      state.engagement,
+      state.address,
+      state.association,
+      state.role,
+      state.itSystem,
+      state.manager,
+    )
+
+    let defaultValidity = {
+      from: moment(new Date()).format('YYYY-MM-DD')
+    }
 
     create.forEach(e => {
       if (!e.validity) {
-        e.validity = state.engagement.validity
+        e.validity = defaultValidity
       }
     })
 
@@ -52,13 +61,28 @@ const actions = {
         if (Array.isArray(response.data)) {
           employeeUuid = response.data[0]
         }
-
-        commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value:
-                {name: newEmployee.name, org_name: newEmployee.org.name} }, { root: true })
+        commit(
+          'log/newWorkLog',
+          {
+            type: 'EMPLOYEE_CREATE',
+            value: {
+              name: newEmployee.name,
+              org_name: newEmployee.org.name
+            }
+          },
+          { root: true }
+        )
         return employeeUuid
       })
       .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
+        commit(
+          'log/newError',
+          {
+            type: 'ERROR',
+            value: error.response.data
+          },
+          { root: true }
+        )
         return error.response.data
       })
   },

@@ -40,6 +40,8 @@ export default {
   mixins: [MoInputBase],
   name: 'MoInputAutocomplete',
   components: {
+    /* TODO: Use `MoAutocomplete` instead which relies on a better third party
+     * autocomplete widget. */
     VAutocomplete
   },
   methods: {

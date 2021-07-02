@@ -12,10 +12,22 @@ SPDX-License-Identifier: MPL-2.0
           :validity-hidden="validityHidden"
         />
       </div>
-
       <div class="col-1 v-center">
-        <button @click="remove()" type="button" class="btn btn-outline-danger" :class="smallButtons ? 'btn-sm' : ''">
-          <icon name="minus"/>
+        <button
+          @click="remove()"
+          type="button"
+          class="btn btn-sm btn-outline-danger"
+          :title="$t('common.remove')"
+        >
+          <icon name="minus" />
+        </button>
+        <button
+          @click="add()"
+          type="button"
+          class="btn btn-sm btn-outline-success"
+          :title="$t('common.create')"
+        >
+          <icon name="plus" />
         </button>
       </div>
     </div>
@@ -97,14 +109,30 @@ export default {
     remove () {
       this.entryValue = {}
       this.removed = true
+    },
+
+    add () {
+      this.$emit('add')
     }
   }
 }
 </script>
 
 <style scoped>
-  .v-center {
-    margin-bottom: auto;
-    margin-top: auto;
-  }
+.row {
+  display: flex;
+}
+.row .col {
+  flex-grow: 9;
+}
+.row .v-center {
+  display: flex;
+  flex-grow: 3;
+  flex-direction: column;
+  margin-bottom: auto;
+  margin-top: auto;
+}
+.row .v-center button {
+  margin-bottom: 0.5rem;
+}
 </style>

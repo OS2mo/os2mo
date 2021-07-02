@@ -1,3 +1,14 @@
+Version 1.18.0, 2021-07-01
+==========================
+
+New features
+------------
+* #40933: "Create employee" dialog now allows creating an employee without any engagements
+
+Bug fixes
+---------
+* #42821: The search input field sometimes "swallowed" the first few characters typed. Fixed.
+
 Version 1.17.2, 2021-07-01
 ==========================
 

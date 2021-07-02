@@ -39,6 +39,8 @@ export default {
   name: 'MoEmployeePicker',
 
   components: {
+    /* TODO: Use `MoAutocomplete` instead which relies on a better third party
+     * autocomplete widget. */
     VAutocomplete
   },
 
