@@ -19,12 +19,27 @@ SPDX-License-Identifier: MPL-2.0
   >
     <form @submit.stop.prevent="terminate">
       <mo-input-date
+        v-if="showToDate"
         class="from-date"
         :label="$t('input_fields.end_date')"
         :valid-dates="validDates"
         v-model="validity.to"
         required
       />
+
+      <div v-if="!showToDate">
+        <p>
+          {{ $t('workflows.organisation.messages.registration_will_be_terminated') }}
+        </p>
+        <dl>
+          <dt>{{ $t('shared.date.start_date') }}:</dt>
+          <dd>{{ content.validity.from || $t('shared.none') }}</dd>
+        </dl>
+        <dl>
+          <dt>{{ $t('shared.date.end_date') }}:</dt>
+          <dd>{{ content.validity.to || $t('shared.none') }}</dd>
+        </dl>
+      </div>
 
       <div class="alert alert-danger" v-if="backendValidationError">
         {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
@@ -43,6 +58,7 @@ SPDX-License-Identifier: MPL-2.0
  * Terminate an entry, e.g. an association or engagement.
  */
 
+import { EventBus, Events } from '@/EventBus'
 import Service from '@/api/HttpCommon'
 import { MoInputDate } from '@/components/MoInput'
 import ButtonSubmit from '@/components/ButtonSubmit'
@@ -77,14 +93,14 @@ export default {
     return {
       validity: {},
       backendValidationError: null,
-      isLoading: false
+      isLoading: false,
     }
   },
 
   computed: {
     title () {
       let terminate = this.$t('common.terminate')
-      let type = this.$tc('shared.' + this.type, 1)
+      let type = this.$tc('shared.' + this.type, 1).toLowerCase()
 
       return `${terminate} ${type}`
     },
@@ -97,7 +113,7 @@ export default {
       return {
         type: this.type,
         uuid: this.content.uuid,
-        validity: this.validity
+        validity: this.type == 'org_unit' ? this.content.validity : this.validity,
       }
     },
 
@@ -109,6 +125,10 @@ export default {
         from: this.content.validity.from,
         to: this.content.validity.to
       }
+    },
+
+    showToDate () {
+      return this.type != 'org_unit'
     }
   },
 
@@ -131,15 +151,36 @@ export default {
             this.isLoading = false
             this.$refs.functionTerminate.hide()
             this.$emit('submit')
-            this.$store.commit('log/newWorkLog',
-              { type: 'FUNCTION_TERMINATE',
+
+            // Add entry to work log
+            this.$store.commit(
+              'log/newWorkLog',
+              {
+                type: 'FUNCTION_TERMINATE',
                 value: {
                   type: this.$tc(`shared.${this.type}`, 1),
-                  name: this.content.person.name,
-                  date: this.payload.validity.to
+                  name: this.getEntryName(),
+                  from: this.payload.validity.from,
+                  to: this.payload.validity.to,
                 }
               },
-              { root: true })
+              { root: true }
+            )
+
+            if (this.type === 'org_unit') {
+              // Navigate to parent of OU that was just terminated
+              this.$router.push(
+                {
+                  name: 'OrganisationDetail',
+                  params: { uuid: this.content.parent.uuid },
+                }
+              )
+
+              // Refresh org unit tree view
+              this.$nextTick(
+                () => { EventBus.$emit(Events.UPDATE_TREE_VIEW) },
+              )
+            }
           })
           .catch(err => {
             this.backendValidationError = err.response.data
@@ -148,7 +189,27 @@ export default {
       } else {
         this.$validator.validateAll()
       }
+    },
+
+    getEntryName () {
+      if (this.type === 'org_unit') {
+        return this.content.name
+      } else {
+        return this.content.person.name
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+dl, p {
+  margin: 0;
+}
+
+dl dt, dl dd {
+  display: inline-block;
+  margin: 0;
+  font-weight: normal;
+}
+</style>

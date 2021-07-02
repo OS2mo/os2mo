@@ -4,120 +4,39 @@
 #
 #    pip-compile requirements-test.in
 #
-aiohttp==3.7.3
-    # via
-    #   -c requirements.txt
-    #   -r requirements-test.in
-    #   aioresponses
-aioresponses==0.7.1
-    # via -r requirements-test.in
-async-timeout==3.0.1
-    # via
-    #   -c requirements.txt
-    #   aiohttp
-attrs==20.3.0
-    # via
-    #   -c requirements.txt
-    #   aiohttp
-    #   pytest
-certifi==2020.6.20
-    # via
-    #   -c requirements.txt
-    #   requests
-chardet==3.0.4
-    # via
-    #   -c requirements.txt
-    #   aiohttp
-    #   requests
-coverage==5.3.1
-    # via
-    #   -r requirements-test.in
-    #   pytest-cov
-freezegun==0.3.15
-    # via -r requirements-test.in
-idna==2.10
-    # via
-    #   -c requirements.txt
-    #   requests
-    #   yarl
-iniconfig==1.0.1
-    # via pytest
-mock==4.0.2
-    # via notsouid
-more-itertools==8.5.0
-    # via
-    #   -c requirements.txt
-    #   pytest
-multidict==5.1.0
-    # via
-    #   -c requirements.txt
-    #   aiohttp
-    #   yarl
-notsouid==0.0.3
-    # via -r requirements-test.in
-os2mo-http-trigger-protocol==0.0.3
-    # via
-    #   -c requirements.txt
-    #   -r requirements-test.in
-packaging==20.4
-    # via pytest
-pathtools==0.1.2
-    # via watchdog
-pluggy==0.13.1
-    # via pytest
-py==1.9.0
-    # via pytest
-pydantic==1.8.2
-    # via
-    #   -c requirements.txt
-    #   os2mo-http-trigger-protocol
-pyparsing==2.4.7
-    # via packaging
-pytest-cov==2.10.1
-    # via -r requirements-test.in
-pytest==6.0.1
-    # via
-    #   -r requirements-test.in
-    #   pytest-cov
-python-dateutil==2.8.1
-    # via
-    #   -c requirements.txt
-    #   freezegun
-python-dotenv==0.14.0
-    # via -r requirements-test.in
-requests-mock==1.8.0
-    # via -r requirements-test.in
-requests==2.24.0
-    # via
-    #   -c requirements.txt
-    #   requests-mock
-six==1.15.0
-    # via
-    #   -c requirements.txt
-    #   freezegun
-    #   packaging
-    #   python-dateutil
-    #   requests-mock
-termcolor==1.1.0
-    # via -r requirements-test.in
-toml==0.10.1
-    # via
-    #   -c requirements.txt
-    #   pytest
-typing-extensions==3.7.4.3
-    # via
-    #   -c requirements.txt
-    #   aiohttp
-    #   pydantic
-unittest-xml-reporting==3.0.4
-    # via -r requirements-test.in
-urllib3==1.25.10
-    # via
-    #   -c requirements.txt
-    #   requests
-watchdog==0.10.3
-    # via -r requirements-test.in
-yarl==1.6.3
-    # via
-    #   -c requirements.txt
-    #   aiohttp
+aiohttp==3.7.3            # via -c requirements.txt, -r requirements-test.in, aioresponses
+aioresponses==0.7.1       # via -r requirements-test.in
+async-timeout==3.0.1      # via -c requirements.txt, aiohttp
+attrs==20.3.0             # via -c requirements.txt, aiohttp, pytest
+certifi==2020.6.20        # via -c requirements.txt, requests
+chardet==3.0.4            # via -c requirements.txt, aiohttp, requests
+coverage==5.3.1           # via -r requirements-test.in, pytest-cov
+freezegun==0.3.15         # via -r requirements-test.in
+idna==2.10                # via -c requirements.txt, requests, yarl
+iniconfig==1.0.1          # via pytest
+mock==4.0.2               # via notsouid
+more-itertools==8.5.0     # via -c requirements.txt, pytest
+multidict==5.1.0          # via -c requirements.txt, aiohttp, yarl
+notsouid==0.0.3           # via -r requirements-test.in
+os2mo-http-trigger-protocol==0.0.3  # via -c requirements.txt, -r requirements-test.in
+packaging==20.4           # via pytest
+parameterized==0.8.1      # via -r requirements-test.in
+pathtools==0.1.2          # via watchdog
+pluggy==0.13.1            # via pytest
+py==1.9.0                 # via pytest
+pydantic==1.8.2           # via -c requirements.txt, os2mo-http-trigger-protocol
+pyparsing==2.4.7          # via packaging
+pytest-cov==2.10.1        # via -r requirements-test.in
+pytest==6.0.1             # via -r requirements-test.in, pytest-cov
+python-dateutil==2.8.1    # via -c requirements.txt, freezegun
+python-dotenv==0.14.0     # via -r requirements-test.in
+requests-mock==1.8.0      # via -r requirements-test.in
+requests==2.24.0          # via -c requirements.txt, requests-mock
+six==1.15.0               # via -c requirements.txt, freezegun, packaging, python-dateutil, requests-mock
+termcolor==1.1.0          # via -r requirements-test.in
+toml==0.10.1              # via -c requirements.txt, pytest
+typing-extensions==3.7.4.3  # via -c requirements.txt, aiohttp, pydantic
+unittest-xml-reporting==3.0.4  # via -r requirements-test.in
+urllib3==1.25.10          # via -c requirements.txt, requests
+watchdog==0.10.3          # via -r requirements-test.in
+yarl==1.6.3               # via -c requirements.txt, aiohttp

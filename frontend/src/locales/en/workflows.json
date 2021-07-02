@@ -26,7 +26,8 @@
       "address": "@:shared.address"
     },
     "messages": {
-      "following_will_be_terminated": "The following will be terminated for the unit:"
+      "following_will_be_terminated": "The following will be terminated for the unit:",
+      "registration_will_be_terminated": "This will terminate the registration for the period:"
     }
   }
 }
