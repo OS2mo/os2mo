@@ -56,9 +56,6 @@ services:
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
-    environment:
-      JAEGER_HOSTNAME: jaeger
-      JAEGER_SERVICE: OS2mo
     ports:
       - "5000:80"
     depends_on:
