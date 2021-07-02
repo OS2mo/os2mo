@@ -1,3 +1,11 @@
+Version 1.18.1, 2021-07-07
+==========================
+
+Bug fixes
+---------
+
+* #44470: Fix request flags bleeding through to other requests
+
 Version 1.18.0, 2021-07-01
 ==========================
 
