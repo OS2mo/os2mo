@@ -212,8 +212,10 @@ Build docs:
     SESSIONS_DB_USER: sessions
     SESSIONS_DB_PASSWORD: sessions
     # for mox service
-    MOX_USER_CONFIG_PATH: /app/dev-environment/settings-for-mo-test.toml
     MAX_WORKERS: "1"
+    TESTING_API: "true"
+    DB_HOST: mox-db
+    DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
     # for mo
     DUMMY_MODE: "true"
     ENVIRONMENT: "testing"
@@ -250,7 +252,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:1.12.1
+    - name: magentaaps/lora:1.13.1
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
