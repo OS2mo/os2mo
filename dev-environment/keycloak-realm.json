@@ -503,9 +503,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "http://os2forms8-dev.docksal/*"
+        "*"
       ],
       "webOrigins": [
+        "http://os2forms8-dev.docksal",
         "http://os2forms8-dev.docksal"
       ],
       "notBefore": 0,
@@ -515,7 +516,7 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
-      "publicClient": true,
+      "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
       "attributes": {
