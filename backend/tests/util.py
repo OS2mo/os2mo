@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from mora.config import Settings
 from typing import Union
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qsl
 
 import aioresponses
@@ -323,6 +323,14 @@ def override_config(config_obj: Settings):
         yield
     finally:
         config.get_settings = original
+
+
+@contextlib.contextmanager
+def patch_query_args(query_args=None):
+    if not query_args:
+        query_args = dict()
+    with patch('mora.util.context', new={'query_args': query_args}):
+        yield
 
 
 class mock(requests_mock.Mocker):

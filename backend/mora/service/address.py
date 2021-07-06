@@ -21,7 +21,6 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 from ..util import ensure_list
 
@@ -38,7 +37,7 @@ router = APIRouter()
 async def get_address_type(effect):
     c = lora.Connector()
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get('uuid')
-    only_primary_uuid = current_query.args.get('only_primary_uuid')
+    only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
     return await facet.get_one_class(
         c, address_type_uuid, only_primary_uuid=only_primary_uuid
@@ -199,7 +198,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                                   required=True)
 
         c = lora.Connector()
-        only_primary_uuid = current_query.args.get('only_primary_uuid')
+        only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
         type_obj = mora.async_util.async_to_sync(facet.get_one_class
                                                  )(c,
@@ -365,7 +364,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True)
-            only_primary_uuid = current_query.args.get('only_primary_uuid')
+            only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
             type_obj = mora.async_util.async_to_sync(
                 facet.get_one_class)(c,

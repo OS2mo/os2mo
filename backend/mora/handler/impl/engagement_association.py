@@ -3,8 +3,7 @@
 from structlog import get_logger
 from asyncio import create_task
 from typing import Any, Dict
-
-from mora.request_scoped.query_args import current_query
+from mora import util
 
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
@@ -29,7 +28,7 @@ class EngagementAssociationReader(reading.OrgFunkReadingHandler):
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        only_primary_uuid = current_query.args.get("only_primary_uuid")
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)

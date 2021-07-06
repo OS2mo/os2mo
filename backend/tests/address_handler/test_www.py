@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from tests import util
 from unittest.mock import patch
 
 import mora.async_util
 import tests.cases
 from mora import exceptions
-from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import www
 
 
@@ -15,7 +14,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class WWWAddressHandlerTests(tests.cases.TestCase):
+class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
     handler = www.WWWAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'http://www.test.org/'
@@ -117,5 +116,5 @@ class WWWAddressHandlerTests(tests.cases.TestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid URL
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with util.patch_query_args({'force': '1'}):
             self.handler.validate_value(value)

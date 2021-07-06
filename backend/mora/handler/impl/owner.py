@@ -9,8 +9,6 @@ from math import inf
 from typing import Any, Awaitable, Dict, List, Optional, Tuple
 from uuid import UUID
 
-from starlette.datastructures import MultiDict
-
 from .association import AssociationReader
 from .engagement import EngagementReader
 from .. import reading
@@ -19,7 +17,6 @@ from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
 from ...mapping import EXTENSION_1, OwnerInferencePriority, PRIMARY
 from ...request_scoped.bulking import request_wide_bulk
-from ...request_scoped.query_args import current_query
 from ...service import employee, orgunit
 from ...service.facet import get_sorted_primary_class_list
 from ...util import get_uuid, get_valid_from
@@ -35,9 +32,10 @@ class OwnerReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def get_from_type(cls, c, type, object_id,
-                            changed_since=Optional[datetime]):
+                            changed_since=Optional[datetime],
+                            inherit_owner: bool = False):
 
-        if util.get_args_flag("inherit_owner"):
+        if inherit_owner or util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
         return await super().get_from_type(c, type, object_id,
@@ -53,7 +51,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if owner:
             return owner
 
-        only_primary_uuid = current_query.args.get("only_primary_uuid")
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
         ou = await orgunit.get_one_orgunit(
             c,
             object_id,
@@ -136,18 +134,14 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             best_candidate = candidates[0]
 
         # we have a candidate, so look at owner of candidate's org_unit
-        args = MultiDict(current_query.args)
-        # ensure we inherit
-        if "inherit_owner" not in args.keys():
-            args.append("inherit_owner", "1")
-        with current_query.context_args(args):
-            org_unit_owners = await OwnerReader.get_from_type(
-                c=request_wide_bulk.connector,
-                type="ou",
-                object_id=util.get_mapping_uuid(
-                    best_candidate, mapping.ORG_UNIT, required=True
-                ),
-            )
+        org_unit_owners = await OwnerReader.get_from_type(
+            c=request_wide_bulk.connector,
+            type="ou",
+            object_id=util.get_mapping_uuid(
+                best_candidate, mapping.ORG_UNIT, required=True
+            ),
+            inherit_owner=True
+        )
         # even when inheriting, no owners can be found
         if not org_unit_owners:
             return None
@@ -170,7 +164,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
-        only_primary_uuid = current_query.args.get("only_primary_uuid")
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         owner_task = None
         if owner_uuid:
