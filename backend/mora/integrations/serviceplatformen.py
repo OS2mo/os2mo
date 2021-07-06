@@ -1,15 +1,16 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
 import random
-
 import service_person_stamdata_udvidet
 import pathlib
 import requests
+
+from structlog import get_logger
+
 from .. import util, config
 from .. import exceptions
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 def is_dummy_mode():
@@ -69,10 +70,10 @@ def get_citizen(cpr):
             if "PNRNotFound" in e.response.text:
                 raise KeyError("CPR not found")
             else:
-                logger.exception(e)
+                logger.exception(exception=e)
                 raise e
         except requests.exceptions.SSLError as e:
-            logger.exception(e)
+            logger.exception(exception=e)
             exceptions.ErrorCodes.E_SP_SSL_ERROR()
 
 

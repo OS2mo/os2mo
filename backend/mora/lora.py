@@ -4,11 +4,11 @@
 from __future__ import generator_stop
 
 import asyncio
-import logging
 import math
 import re
 import typing
 import uuid
+from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
 from enum import Enum, unique
@@ -23,7 +23,7 @@ from more_itertools import chunked
 from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 def registration_changed_since(
@@ -107,7 +107,8 @@ def raise_on_status(
         # the update.)
         if noop_pattern.search(msg):
             logger.info(
-                "detected empty change, not raising E_INVALID_INPUT\n" "msg=%r", msg
+                "detected empty change, not raising E_INVALID_INPUT",
+                message=msg
             )
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)

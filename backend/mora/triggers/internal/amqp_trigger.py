@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
 import json
 import pika
+
+from structlog import get_logger
+
 from mora import exceptions, config
 from mora import util
 from mora import mapping
 from mora import triggers
 
-logger = logging.getLogger("amqp")
+logger = get_logger()
 _amqp_connection = {}
 
 _SERVICES = ("employee", "org_unit")
@@ -72,9 +74,9 @@ def publish_message(service, object_type, action, service_uuid, date):
         )
     except pika.exceptions.AMQPError:
         logger.error(
-            "Failed to publish message. Topic: %r, body: %r",
-            topic,
-            message,
+            "Failed to publish AMQP message",
+            topic=topic,
+            message=message,
             exc_info=True,
         )
 

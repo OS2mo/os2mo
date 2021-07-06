@@ -115,6 +115,9 @@ MOCK_MODULES = [
     'onelogin.saml2.idp_metadata_parser',
     'yarl',
     'os2mo_fastapi_utils.tracing',
+    'structlog',
+    'structlog.processors',
+    'structlog.contextvars',
 ]
 sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 

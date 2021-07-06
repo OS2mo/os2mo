@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
+from structlog import get_logger
 
 from .. import util
 from ..exceptions import ErrorCodes
 from ..mapping import EventType, RequestType
 
-logger = logging.getLogger("triggers")
+logger = get_logger()
 
 
 def register(app):
@@ -16,11 +16,12 @@ def register(app):
     trigger_modules = [amqp_trigger, http_trigger]
 
     for trigger_module in trigger_modules:
-        logger.debug("Registering trigger %s", trigger_module)
+        logger.debug("Registering trigger", trigger_module=trigger_module)
         try:
             trigger_module.register(app)
         except Exception:
-            logger.exception("Exception during register call for %s", trigger_module)
+            logger.exception("Exception during register call",
+                             trigger_module=trigger_module)
             raise
 
 

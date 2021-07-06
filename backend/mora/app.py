@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
 import os
 from copy import deepcopy
 from pathlib import Path
@@ -13,7 +12,10 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
-from os2mo_fastapi_utils.tracing import setup_instrumentation
+from os2mo_fastapi_utils.tracing import setup_instrumentation, setup_logging
+from structlog import get_logger
+from structlog.processors import JSONRenderer
+from structlog.contextvars import merge_contextvars
 
 from mora import __version__, health, log, config
 from mora.auth.exceptions import AuthError
@@ -31,7 +33,7 @@ from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_respon
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 def meta_router():
@@ -108,9 +110,7 @@ async def request_validation_handler(
     """
     if not config.is_production():
         logger.info(
-            f"os2mo err details\n{exc}\n"
-            f"request url:\n{request.url}\n"
-            f"request params:\n{request.query_params}"
+            "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
         )
 
     err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
@@ -119,10 +119,7 @@ async def request_validation_handler(
 
 async def http_exception_handler(request: Request, exc: HTTPException):
     if not config.is_production():
-        if exc.stack is not None:
-            logger.info('\n'.join(exc.stack))
-        if exc.traceback is not None:
-            logger.info(f"{exc.traceback}")
+        logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
 
     return http_exception_to_json_response(exc=exc)
 
@@ -197,7 +194,7 @@ def create_app():
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning(f'No dist directory to serve! (Missing: {distdir})')
+        logger.warning('No dist directory to serve!', distdir=distdir)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
@@ -208,5 +205,7 @@ def create_app():
     app.add_exception_handler(AuthError, auth_exception_handler)
 
     app = setup_instrumentation(app)
+
+    setup_logging(processors=[merge_contextvars, JSONRenderer()])
 
     return app

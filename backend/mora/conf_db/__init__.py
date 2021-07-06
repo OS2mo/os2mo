@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
+from structlog import get_logger
 from contextlib import contextmanager
 from functools import lru_cache
 from itertools import starmap
@@ -16,7 +16,7 @@ from sqlalchemy_utils import UUIDType, create_database, database_exists, drop_da
 
 from mora import exceptions, config
 
-logger = logging.getLogger("mo_configuration")
+logger = get_logger()
 
 SUBSTITUTE_ROLES = 'substitute_roles'
 
@@ -145,14 +145,14 @@ def get_configuration(unitid=None):
         result = starmap(convert_bool, result)
         configuration = dict(result)
         logger.debug(
-            "Read: Unit: {}, configuration: {}".format(unitid, configuration)
+            "Read: ", unitid=unitid, configuration=configuration
         )
         return configuration
 
 
 def set_configuration(configuration, unitid=None):
     logger.debug(
-        "Write: Unit: {}, configuration: {}".format(unitid, configuration)
+        "Write: ", unitid=unitid, configuration=configuration
     )
     configuration = configuration["org_units"]
 

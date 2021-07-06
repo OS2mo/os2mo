@@ -3,7 +3,8 @@
 
 import requests
 import uuid
-import logging
+
+from structlog import get_logger
 
 from . import base
 from ..validation.validator import forceable
@@ -16,7 +17,7 @@ session.headers = {
 
 NOT_FOUND = "Ukendt"
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class DARAddressHandler(base.AddressHandler):
@@ -46,9 +47,7 @@ class DARAddressHandler(base.AddressHandler):
             )
         except LookupError:
             logger.warning(
-                'ADDRESS LOOKUP FAILED: {}'.format(
-                    handler.value,
-                ),
+                'ADDRESS LOOKUP FAILED:', handler_value=handler.value
             )
 
             handler._name = NOT_FOUND

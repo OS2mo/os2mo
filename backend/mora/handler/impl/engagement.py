@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
+from structlog import get_logger
 from asyncio import create_task, gather
 from typing import Any, Dict, Optional
 from typing import Union
@@ -19,7 +19,7 @@ from ...service.facet import get_sorted_primary_class_list
 
 ROLE_TYPE = "engagement"
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)
@@ -161,12 +161,12 @@ async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, An
     ))
     engagements = await engagements_task
     if len(engagements) == 0:
-        logger.warning(f"Engagement {uuid} returned no results")
+        logger.warning("Engagement returned no results for:", uuid=uuid)
         return None
 
     if len(engagements) > 1:
         logger.warning(
-            f"Engagement {uuid} returned more than one result"
+            "Engagement returned more than one result", uuid=uuid
         )
 
     return engagements[0]

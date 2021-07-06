@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
+from structlog import get_logger
 from asyncio import create_task
 from typing import Any, Dict
 
@@ -14,7 +14,7 @@ from .engagement import get_engagement
 
 ROLE_TYPE = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 MO_OBJ_TYPE = Dict[str, Any]
 

@@ -17,7 +17,6 @@ import functools
 import io
 import itertools
 import json
-import logging
 import marshal
 import operator
 import os
@@ -26,6 +25,7 @@ import tempfile
 import typing
 import urllib.parse
 import uuid
+from structlog import get_logger
 from asyncio import iscoroutinefunction
 from datetime import date
 from functools import wraps
@@ -60,7 +60,7 @@ _tzinfos = {
     2 * 60 ** 2: DEFAULT_TIMEZONE,
 }
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:

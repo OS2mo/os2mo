@@ -1,14 +1,13 @@
 #!/bin/bash
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+set -e
 
-if initial=$(alembic heads); then
-  if alembic revision --autogenerate; then
-    if final=$(alembic heads); then
-      if [ "$initial" == "$final" ]; then
-        exit 0
-      fi
-    fi
-  fi
-fi
-exit 1
+GENERATE_OUTPUT=$(alembic revision --autogenerate 2>&1)
+echo "${GENERATE_OUTPUT}"
+
+echo "# Check that database is up-to-date"
+echo "${GENERATE_OUTPUT}" | grep -v "Target database is not up to date."
+
+echo "# Check that we did not generate anything"
+echo "${GENERATE_OUTPUT}" | grep -v "Generating"

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
+from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional
@@ -18,7 +18,7 @@ ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {'name': 'i18n:substitute_association'}
 FIRST_PARTY_PERSPECTIVE = 'first_party_perspective'
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 MO_OBJ_TYPE = Dict[str, Any]
 
