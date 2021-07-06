@@ -92,7 +92,7 @@ Lint shell scripts:
     - apk update
     - apk add git
   script:
-    - git ls-files --exclude='*.sh' --ignored | xargs shellcheck
+    - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
 
 # Build stage
