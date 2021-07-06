@@ -340,6 +340,14 @@ def override_app_config(**overrides):
     settings.config.update(overrides)
 
 
+@contextlib.contextmanager
+def patch_query_args(query_args=None):
+    if not query_args:
+        query_args = dict()
+    with patch('mora.util.context', new={'query_args': query_args}):
+        yield
+
+
 class mock(requests_mock.Mocker):
     '''Decorator for running a function under requests_mock, with the
     given mocking fixture loaded, and optionally overriding the LORA

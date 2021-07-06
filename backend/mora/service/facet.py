@@ -36,7 +36,6 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from ..request_scoped.query_args import current_query
 
 router = APIRouter()
 
@@ -178,7 +177,7 @@ async def get_class(
     classid = str(classid)
 
     c = common.get_connector()
-    class_details = map_query_args_to_class_details(current_query.args)
+    class_details = map_query_args_to_class_details(util.get_query_args())
 
     return await get_one_class(
         c, classid, details=class_details, only_primary_uuid=only_primary_uuid
@@ -629,7 +628,7 @@ async def get_classes(
       }
     '''
     orgid = str(orgid)
-    class_details = map_query_args_to_class_details(current_query.args)
+    class_details = map_query_args_to_class_details(util.get_query_args())
 
     return await get_classes_under_facet(
         orgid, facet, details=class_details,

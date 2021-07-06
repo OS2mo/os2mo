@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import mora.async_util
 from mora import exceptions
-from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import dar
 from . import base
 from .. import util
@@ -128,7 +127,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid DAR UUID
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with util.patch_query_args({'force': '1'}):
             self.handler.validate_value(value)
 
     def test_failed_lookup_from_request(self, mock):
@@ -168,7 +167,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
 
         # Act & Assert
 
-        with current_query.context_args({'force': '1'}):
+        with util.patch_query_args({'force': '1'}):
             request = {
                 'value': value
             }

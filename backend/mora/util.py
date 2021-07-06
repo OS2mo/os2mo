@@ -771,7 +771,7 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
 
 
 def get_query_args():
-    return context.get('query_args')
+    return copy.deepcopy(context.get('query_args'))
 
 
 def get_args_flag(name: str):

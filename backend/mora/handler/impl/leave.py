@@ -3,11 +3,10 @@
 import logging
 from asyncio import create_task
 
-from mora import lora
+from mora import lora, util
 from .engagement import get_engagement
 from .. import reading
 from ... import mapping
-from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 
@@ -28,7 +27,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
 
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = current_query.args.get('only_primary_uuid')
+        only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
