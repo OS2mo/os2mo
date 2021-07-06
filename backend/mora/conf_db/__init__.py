@@ -145,14 +145,14 @@ def get_configuration(unitid=None):
         result = starmap(convert_bool, result)
         configuration = dict(result)
         logger.debug(
-            "Read: ", unitid=unitid, configuration=configuration
+            "get_configuration", unitid=unitid, configuration=configuration
         )
         return configuration
 
 
 def set_configuration(configuration, unitid=None):
     logger.debug(
-        "Write: ", unitid=unitid, configuration=configuration
+        "set_configuration", unitid=unitid, configuration=configuration
     )
     configuration = configuration["org_units"]
 

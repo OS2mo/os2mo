@@ -47,7 +47,7 @@ class DARAddressHandler(base.AddressHandler):
             )
         except LookupError:
             logger.warning(
-                'ADDRESS LOOKUP FAILED:', handler_value=handler.value
+                'address lookup failed', handler_value=handler.value
             )
 
             handler._name = NOT_FOUND

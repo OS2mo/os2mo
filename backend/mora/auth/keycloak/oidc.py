@@ -96,14 +96,14 @@ async def auth(request: Request) -> dict:
 # Exception handler to be used by the FastAPI app object
 def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
     if err.is_client_side_error():
-        logger.debug('Client side authentication error: ', exception=err.exc)
+        logger.debug('Client side authentication error', exception=err.exc)
         return JSONResponse(
             status_code=HTTP_401_UNAUTHORIZED,
             content={'msg': 'Unauthorized'}
         )
 
     logger.error(
-        'Problem communicating with the Keycloak server: ', exception=err.exc
+        'Problem communicating with the Keycloak server', exception=err.exc
     )
 
     return JSONResponse(

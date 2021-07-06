@@ -294,7 +294,7 @@ class OrgFunkReadingHandler(ReadingHandler):
                 )
             except json.JSONDecodeError:
                 logger.warning(
-                    'invalid integration data for function %s!',
+                    'invalid integration data for function',
                     funcid=funcid
                 )
                 r[mapping.INTEGRATION_DATA] = None
