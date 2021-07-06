@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import asyncio
-import logging
+from structlog import get_logger
 from functools import partial
 from typing import Dict, List
 
@@ -15,7 +15,7 @@ from pydantic import parse_obj_as
 from fastapi.encoders import jsonable_encoder
 
 
-logger = logging.getLogger("http_trigger")
+logger = get_logger()
 
 
 # Consideration: Should this subclass Trigger.Error instead?
@@ -43,14 +43,16 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
 
             None is returned if no exceptions occur.
     """
-    logger.debug(f"http_sender called with {trigger_url} {trigger_dict} {timeout}")
+    logger.debug("http_sender called with", trigger_url=trigger_url,
+                 trigger_dict=trigger_dict, timeout=timeout)
     timeout = aiohttp.ClientTimeout(total=timeout)
     async with async_session() as session:
         # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
         payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
         async with session.post(trigger_url, timeout=timeout, json=payload) as response:
             payload = await response.json()
-            logger.debug(f"http_sender received {payload} from {trigger_url}")
+            logger.debug("http_sender received:",
+                         payload=payload, trigger_url=trigger_url)
             if response.status != 200:
                 raise HTTPTriggerException(payload["detail"])
             return payload
@@ -88,7 +90,7 @@ async def fetch_endpoint_trigger(
     """
     full_url = endpoint + "/triggers"
 
-    logger.debug(f"Sending request to {full_url}")
+    logger.debug("Sending request to", full_url=full_url)
     timeout = aiohttp.ClientTimeout(total=timeout)
     try:
         async with session.get(full_url, timeout=timeout) as response:
@@ -98,10 +100,11 @@ async def fetch_endpoint_trigger(
                 )
                 return trigger_configuration
             except aiohttp.client_exceptions.ContentTypeError:
-                logger.error(f"Unable to parse response from {full_url} (not JSON?)")
-                logger.error(await response.text())
+                logger.error("Unable to parse response from (not JSON?)",
+                             full_url=full_url)
+                logger.error(reponse_text=await response.text())
     except asyncio.exceptions.TimeoutError:
-        logger.error(f"Timeout while connecting to {full_url}")
+        logger.error("Timeout while connecting to", full_url=full_url)
 
 
 @in_separate_thread
@@ -153,12 +156,13 @@ def register(app) -> bool:
 
     # Fetch configured triggers for all endpoints
     endpoint_trigger_dict = fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)
-    logger.debug(f"Got endpoint_trigger_dict {endpoint_trigger_dict}")
+    logger.debug("Got endpoint_trigger_dict",
+                 endpoint_trigger_dict=endpoint_trigger_dict)
 
     # Register http_sender for all the events found.
     for endpoint, trigger_configuration in endpoint_trigger_dict.items():
         for trigger in trigger_configuration:
-            logger.debug(f"Registering trigger for {endpoint}: {trigger}")
+            logger.debug("Registering trigger for", endpoint=endpoint, trigger=trigger)
 
             trigger_url = endpoint + trigger.url
             timeout = trigger.timeout or run_trigger_timeout

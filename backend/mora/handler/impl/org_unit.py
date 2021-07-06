@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
+from structlog import get_logger
 from datetime import datetime
 from typing import Optional
 
@@ -15,7 +15,7 @@ from ...service import orgunit
 
 ROLE_TYPE = "org_unit"
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)

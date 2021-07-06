@@ -3,7 +3,7 @@
 
 import abc
 import json
-import logging
+from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
 from inspect import isawaitable
@@ -13,7 +13,7 @@ from .. import exceptions, util
 from .. import mapping
 from ..lora import Connector
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 READING_HANDLERS = {}
 
@@ -295,7 +295,7 @@ class OrgFunkReadingHandler(ReadingHandler):
             except json.JSONDecodeError:
                 logger.warning(
                     'invalid integration data for function %s!',
-                    funcid,
+                    funcid=funcid
                 )
                 r[mapping.INTEGRATION_DATA] = None
 

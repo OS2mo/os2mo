@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
-import logging
 import pprint
 from mora.config import Settings
 from time import sleep
@@ -10,6 +9,7 @@ from unittest.case import TestCase
 import requests
 from aiohttp import ClientOSError
 from starlette.testclient import TestClient
+from structlog import get_logger
 
 from mora import app, conf_db, service, config
 from mora.async_util import _local_cache, async_to_sync
@@ -17,7 +17,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.request_scoped.bulking import request_wide_bulk
 from tests.util import _mox_testing_api, load_sample_structures
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 async def fake_auth():
@@ -288,7 +288,7 @@ class LoRATestCase(_BaseTestCase):
                 return func(minimal)
             except ClientOSError:
                 sleep(0.2)
-                logging.exception("retrying")
+                logger.exception("retrying")
         raise Exception("unable to complete")
 
     @classmethod

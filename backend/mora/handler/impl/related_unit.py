@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
+from structlog import get_logger
 from asyncio import gather
 from typing import Any, Awaitable, Dict, Iterable, TypeVar, Union
 
@@ -12,7 +12,7 @@ from ...service import orgunit
 
 ROLE_TYPE = "related_unit"
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 T = TypeVar('T')
 

@@ -8,8 +8,9 @@ handlers for the various detail types.
 
 import abc
 import inspect
-import logging
 import typing
+
+from structlog import get_logger
 
 import mora.async_util
 from .. import common
@@ -26,7 +27,7 @@ HANDLERS_BY_ROLE_TYPE = {}
 HANDLERS_BY_FUNCTION_KEY = {}
 FUNCTION_KEYS = {}
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class _RequestHandlerMeta(abc.ABCMeta):

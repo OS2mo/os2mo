@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
 
 import requests
 from fastapi import APIRouter
 from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
+from structlog import get_logger
 
 import mora.async_util
 from mora import conf_db, lora, config
@@ -15,7 +15,7 @@ from mora.triggers.internal import amqp_trigger
 
 router = APIRouter()
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 HEALTH_ENDPOINTS = []
 
@@ -43,7 +43,7 @@ def amqp():
     try:
         conn = connection.get("conn")
     except AMQPError as e:
-        logger.exception(f"AMQP health check error {e}")
+        logger.exception("AMQP health check error", e=e)
         return False
 
     if not conn:
@@ -70,10 +70,11 @@ def oio_rest():
         if r.status_code == 200:
             return True
         else:
-            logger.critical("oio_rest returned status code {}".format(r.status_code))
+            logger.critical("oio_rest returned status code",
+                            request_status_code=r.status_code)
             return False
     except RequestException as e:
-        logger.exception("oio_rest returned: {}".format(e))
+        logger.exception("oio_rest returned", exception=e)
         return False
 
 
@@ -85,7 +86,7 @@ def configuration_database():
     """
     healthy, msg = conf_db.health_check()
     if not healthy:
-        logger.critical(msg)
+        logger.critical("health critical", msg=msg)
     return healthy
 
 
@@ -105,11 +106,11 @@ async def dataset():
             return False
     except HTTPException as e:
         logger.exception(
-            "Fetching data from oio_rest responded with status code {}".format(e.code)
+            "Fetching data from oio_rest responded with status code", status_code=e.code
         )
         return False
     except RequestException as e:
-        logger.exception("Fetching data from oio_rest responded with {}".format(e))
+        logger.exception("Fetching data from oio_rest responded with", exception=e)
         return False
     return True
 

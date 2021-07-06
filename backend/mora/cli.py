@@ -8,7 +8,6 @@ which describes its arguments and options.
 
 '''
 
-import logging
 import os
 import sys
 import time
@@ -16,11 +15,13 @@ import time
 import click
 import sqlalchemy
 
+from structlog import get_logger
+
 from mora.conf_db import create_db_table
 
 from . import conf_db, config
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @click.group()
@@ -79,7 +80,7 @@ def check_configuration_db_status():
     if success:
         logger.info("Configuration database passed health check")
     else:
-        logger.critical(error_msg)
+        logger.critical(error_msg=error_msg)
         sys.exit(3)
 
 

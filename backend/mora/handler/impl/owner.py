@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-import logging
+from structlog import get_logger
 from asyncio import create_task
 from datetime import datetime
 from functools import partial
@@ -26,7 +26,7 @@ from ...util import get_uuid, get_valid_from
 
 ROLE_TYPE = mapping.OWNER
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)

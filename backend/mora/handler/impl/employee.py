@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import logging
+from structlog import get_logger
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -12,7 +12,7 @@ from ...service import employee
 
 ROLE_TYPE = "employee"
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)
