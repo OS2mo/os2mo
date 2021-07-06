@@ -4,7 +4,7 @@
 # This Dockerfile is only used for running the test suite,
 # i.e. the unsecure passwords are not important
 
-FROM quay.io/keycloak/keycloak:13.0.0
+FROM quay.io/keycloak/keycloak:14.0.0
 
 ENV KEYCLOAK_USER=admin
 ENV KEYCLOAK_PASSWORD=admin
@@ -16,4 +16,4 @@ ENV DB_PASSWORD: keycloak
 ENV DB_SCHEMA: public
 ENV DB_DATABASE: keycloak
 
-COPY ./dev-environment/keycloak-realm.json /tmp/realm.json
+COPY ./keycloak-realm.json /tmp/realm.json

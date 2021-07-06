@@ -33,6 +33,14 @@ _SLEEPING_TIME = 0.25
 
 
 @group.command()
+def use_conf_db():
+    settings = config.get_settings()
+    if settings.conf_db_use:
+        sys.exit(0)
+    sys.exit(1)
+
+
+@group.command()
 @click.option("--wait", default=_SLEEPING_TIME, type=int,
               help="Wait up to n seconds for the database connection before"
                    " exiting.")

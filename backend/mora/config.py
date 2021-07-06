@@ -3,9 +3,14 @@
 import os
 from enum import Enum
 from functools import lru_cache
-from pydantic import BaseSettings, AnyHttpUrl
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
+from pydantic import root_validator
 from pydantic.types import UUID
-from typing import List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 
 class NavLink(BaseSettings):
@@ -26,14 +31,6 @@ class Settings(BaseSettings):
     E.g. LORA_URL == lora_url
     """
     lora_url: AnyHttpUrl = "http://mox/"
-
-    # Config database settings
-    conf_db_name: str = "mora"
-    conf_db_user: str = "mora"
-    conf_db_password: str
-    conf_db_host: str = "mox-db"
-    conf_db_port: str = "5432"
-    conf_db_sslmode: Optional[str]
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
@@ -71,6 +68,26 @@ class Settings(BaseSettings):
     keycloak_signing_alg: str = "RS256"
     keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
     keycloak_ssl_required: str = "external"
+
+    # ConfDB database settings
+    # Use configuration DB for get_configuration endpoint
+    conf_db_use: bool = True
+    conf_db_name: str = "mora"
+    conf_db_user: str = "mora"
+    conf_db_password: Optional[str]
+    conf_db_host: str = "mox-db"
+    conf_db_port: str = "5432"
+    conf_db_sslmode: Optional[str]
+
+    @root_validator
+    def conf_db_password_maybe_required(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        # If conf_db_password only required if conf_db is used
+        if values["conf_db_use"]:
+            if "conf_db_password" not in values:
+                raise ValueError("conf_db_password not set")
+            if values["conf_db_password"] is None:
+                raise ValueError("conf_db_password is None")
+        return values
 
     # ConfDB settings
     confdb_show_roles: bool = True

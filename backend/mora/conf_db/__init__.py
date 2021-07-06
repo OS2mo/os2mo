@@ -131,29 +131,7 @@ def _get_session():
         session.close()
 
 
-def get_configuration(unitid=None):
-    def convert_bool(setting, value):
-        lower_value = str(value).lower()
-        if lower_value == "true":
-            value = True
-        elif lower_value == "false":
-            value = False
-        return setting, value
-
-    with _get_session() as session:
-        query = select([Config.setting, Config.value]).where(
-            Config.object == unitid
-        )
-        result = session.execute(query)
-        result = starmap(convert_bool, result)
-        configuration = dict(result)
-        logger.debug(
-            "get_configuration", unitid=unitid, configuration=configuration
-        )
-        return configuration
-
-
-def set_configuration(configuration, unitid=None):
+def set_db_configuration(configuration, unitid=None):
     logger.debug(
         "set_configuration", unitid=unitid, configuration=configuration
     )
@@ -178,6 +156,35 @@ def set_configuration(configuration, unitid=None):
         return True
 
 
+def set_configuration(configuration, unitid=None):
+    settings = config.get_settings()
+    if not settings.conf_db_use:
+        raise ValueError("Cannot use set_configuration with conf_db_use=False")
+    return set_db_configuration(configuration, unitid)
+
+
+def get_db_configuration(unitid=None):
+    def convert_bool(setting, value):
+        lower_value = str(value).lower()
+        if lower_value == "true":
+            value = True
+        elif lower_value == "false":
+            value = False
+        return setting, value
+
+    with _get_session() as session:
+        query = select([Config.setting, Config.value]).where(
+            Config.object == unitid
+        )
+        result = session.execute(query)
+        result = starmap(convert_bool, result)
+        configuration = dict(result)
+        logger.debug(
+            "get_configuration", unitid=unitid, configuration=configuration
+        )
+        return configuration
+
+
 def get_settings_configuration():
     settings = config.get_settings()
     settings_configuration = {
@@ -185,6 +192,13 @@ def get_settings_configuration():
         if key.startswith("confdb_")
     }
     return settings_configuration
+
+
+def get_configuration(unitid=None):
+    settings = config.get_settings()
+    if not settings.conf_db_use:
+        return get_settings_configuration()
+    return get_db_configuration(unitid)
 
 
 def health_check():
@@ -198,9 +212,13 @@ def health_check():
 
     This is intended to be used whenever an app object is created.
     """
+    settings = config.get_settings()
+    if not settings.conf_db_use:
+        return True, "Success"
+
     try:
         # Check that a connection can be made
-        db_configuration = get_configuration()
+        db_configuration = get_db_configuration()
     except Exception as e:
         error_msg = "Configuration database connection error: %s"
         return False, error_msg.format(str(e))
