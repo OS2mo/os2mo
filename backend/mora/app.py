@@ -194,7 +194,7 @@ def create_app():
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning('No dist directory to serve!', distdir=distdir)
+        logger.warning('No dist directory to serve', distdir=distdir)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

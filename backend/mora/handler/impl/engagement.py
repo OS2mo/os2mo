@@ -161,7 +161,7 @@ async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, An
     ))
     engagements = await engagements_task
     if len(engagements) == 0:
-        logger.warning("Engagement returned no results for:", uuid=uuid)
+        logger.warning("Engagement returned no results", uuid=uuid)
         return None
 
     if len(engagements) > 1:

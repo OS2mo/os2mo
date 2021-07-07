@@ -43,7 +43,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
 
             None is returned if no exceptions occur.
     """
-    logger.debug("http_sender called with", trigger_url=trigger_url,
+    logger.debug("http_sender called", trigger_url=trigger_url,
                  trigger_dict=trigger_dict, timeout=timeout)
     timeout = aiohttp.ClientTimeout(total=timeout)
     async with async_session() as session:
@@ -51,7 +51,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
         payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
         async with session.post(trigger_url, timeout=timeout, json=payload) as response:
             payload = await response.json()
-            logger.debug("http_sender received:",
+            logger.debug("http_sender received",
                          payload=payload, trigger_url=trigger_url)
             if response.status != 200:
                 raise HTTPTriggerException(payload["detail"])
