@@ -204,7 +204,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:1.12.1
       alias: mox
   script:
     - pytest
