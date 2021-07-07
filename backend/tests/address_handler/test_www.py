@@ -14,7 +14,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class WWWAddressHandlerTests(tests.cases.TestCase):
+class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
     handler = www.WWWAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'http://www.test.org/'

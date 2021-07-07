@@ -213,6 +213,10 @@ class _BaseTestCase(TestCase):
 
 
 class TestCase(_BaseTestCase):
+    pass
+
+
+class MockRequestContextTestCase(TestCase):
     def setUp(self):
         # Patch usages of request context in test cases that do not
         # take place in a request
