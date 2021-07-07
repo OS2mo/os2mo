@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
+from unittest.mock import patch
+
 from time import sleep
 from unittest.case import TestCase
 
@@ -212,6 +214,18 @@ class _BaseTestCase(TestCase):
 
 class TestCase(_BaseTestCase):
     pass
+
+
+class MockRequestContextTestCase(TestCase):
+    def setUp(self):
+        # Patch usages of request context in test cases that do not
+        # take place in a request
+        # It looks iffy, and it is, but the _real_ solution would be to rewrite the
+        # relevant code to not depend on a global request context
+        patcher = patch('mora.util.context', new={'query_args': {}})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        super().setUp()
 
 
 class LoRATestCase(_BaseTestCase):

@@ -25,11 +25,10 @@ from . import exceptions
 from . import lora
 from . import mapping
 from . import util
-from .request_scoped.query_args import current_query
 
 
 def get_connector(**loraparams) -> lora.Connector:
-    args = current_query.args
+    args = util.get_query_args()
 
     if args.get('at'):
         loraparams['effective_date'] = util.from_iso_time(args['at'])

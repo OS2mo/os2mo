@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 import os
-from copy import deepcopy
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
@@ -18,7 +17,7 @@ from mora import __version__, health, log
 from mora.auth import base, saml_sso
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
-from mora.request_scoped.query_args import current_query
+from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
@@ -120,7 +119,12 @@ def create_app():
     Create and return a FastApi app instance for MORA.
     """
     log.init()
-    middleware = [Middleware(RawContextMiddleware)]
+    middleware = [
+        Middleware(
+            RawContextMiddleware,
+            plugins=(QueryArgContextPlugin(),)
+        )
+    ]
     app = FastAPI(
         middleware=middleware,
     )
@@ -136,22 +140,8 @@ def create_app():
 
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
-        with current_query.context_args(deepcopy(request.query_params)):
-            async with request_wide_bulk.cache_context():
-                # #HACK: needed to access the body of the request in the middleware
-                # #https://github.com/encode/starlette/issues/495#issuecomment-513138055
-
-                # async def set_body(request: Request, body: bytes):
-                #     async def receive() -> Message:
-                #         return {"type": "http.request", "body": body}
-                #
-                #     request._receive = receive
-                #
-                # async def get_body(request: Request) -> bytes:
-                #     body = await request.body()
-                #     await set_body(request, body)
-                #     return body
-                response = await call_next(request)
+        async with request_wide_bulk.cache_context():
+            response = await call_next(request)
         return response
 
     # router include order matters

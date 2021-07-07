@@ -42,20 +42,13 @@ sys.path.insert(0, BACKEND_DIR)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinxcontrib.httpdomain',
-    'sphinxcontrib.apidoc',
     'sphinx_click.ext',
-]
-
-autodoc_default_flags = [
-    # 'members',
-    # 'undoc-members',
 ]
 
 MOCK_MODULES = [
@@ -123,9 +116,6 @@ sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 asyncio_mock = MagicMock()
 asyncio_mock.get_event_loop.return_value.is_running.return_value = False
 sys.modules.update({"asyncio": asyncio_mock})
-
-apidoc_module_dir = '../backend/mora'
-apidoc_output_dir = 'backend'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates', 'mora/templates']

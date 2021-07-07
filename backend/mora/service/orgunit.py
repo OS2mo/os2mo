@@ -42,7 +42,6 @@ from .. import mapping
 from .. import util
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
-from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -359,7 +358,7 @@ def _get_count_related():
     Given a URL query '?count=association&count=invalid`, raise a HTTP error.
     """
     allowed = {'association', 'engagement'}
-    given = set(current_query.args.getlist('count'))
+    given = set(util.get_query_args().getlist('count'))
     invalid = given - allowed
     if invalid:
         exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -694,8 +693,6 @@ async def get_children(type, parentid: UUID, at: Optional[date] = Query(None),
     if not obj or not obj.get('attributter'):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
-    org_unit_hierarchy = current_query.args.get('org_unit_hierarchy')
-
     return await _get_immediate_children(c, parentid, org_unit_hierarchy)
 
 
@@ -722,7 +719,7 @@ async def _get_immediate_children(
 
 
 async def _collect_child_objects(connector, children: Iterable[Dict]):
-    only_primary_uuid = current_query.args.get('only_primary_uuid')
+    only_primary_uuid = util.get_args_flag('only_primary_uuid')
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
     return await gather(
         *[
@@ -1166,7 +1163,7 @@ async def list_orgunits(
 
         uuid_filters.append(entry_under_root)
 
-    details = get_details_from_query_args(current_query.args)
+    details = get_details_from_query_args(util.get_query_args())
 
     async def get_minimal_orgunit(*args, **kwargs):
         return await get_one_orgunit(

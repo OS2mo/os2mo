@@ -88,7 +88,7 @@ Lint shell scripts:
     - apk update
     - apk add git
   script:
-    - git ls-files --exclude='*.sh' --ignored | xargs shellcheck
+    - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
 
 # Build stage
@@ -204,7 +204,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:1.12.1
       alias: mox
   script:
     - pytest

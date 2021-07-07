@@ -53,7 +53,7 @@ class RegisterTest(tests.cases.TestCase):
         run_test()
 
 
-class Tests(tests.cases.TestCase):
+class Tests(tests.cases.MockRequestContextTestCase):
     maxDiff = None
 
     def tearDown(self):

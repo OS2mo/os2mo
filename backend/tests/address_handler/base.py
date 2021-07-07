@@ -3,7 +3,7 @@
 import tests.cases
 
 
-class AddressHandlerTestCase(tests.cases.TestCase):
+class AddressHandlerTestCase(tests.cases.MockRequestContextTestCase):
     handler = None
     value = None
     visibility = None
