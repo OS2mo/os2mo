@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from mora import util
 from structlog import get_logger
 from asyncio import create_task
 
@@ -8,7 +8,6 @@ from .engagement import get_engagement
 from .. import reading
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
-from ...request_scoped.query_args import current_query
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -35,7 +34,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
 
         base_obj_task = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = current_query.args.get('only_primary_uuid')
+        only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
         facet_task = create_task(facet.request_bulked_get_one_class_full(
             address_type,

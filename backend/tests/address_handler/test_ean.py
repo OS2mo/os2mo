@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from tests import util
 from unittest.mock import patch
 
 import mora.async_util
 from mora import exceptions
-from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import ean
 from . import base
 
@@ -123,5 +122,5 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid EAN
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with util.patch_query_args({'force': '1'}):
             self.handler.validate_value(value)

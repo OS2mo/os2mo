@@ -4,6 +4,7 @@
 import datetime
 
 from mock import patch
+from tests import util
 
 import mora.async_util
 import tests.cases
@@ -41,6 +42,7 @@ class TestHelper(tests.cases.LoRATestCase):
 
 
 class TestValidator(TestHelper):
+    @util.patch_query_args()
     def test_should_return_true_when_interval_contained(self):
         """
         [------ super ------)
@@ -59,6 +61,7 @@ class TestValidator(TestHelper):
             mora_util.parsedatetime(enddate)
         )
 
+    @util.patch_query_args()
     def test_should_return_true_when_interval_contained2(self):
         """
         [------ super ------)
@@ -77,6 +80,7 @@ class TestValidator(TestHelper):
             mora_util.parsedatetime(enddate)
         )
 
+    @util.patch_query_args()
     def test_should_return_true_when_interval_contained3(self):
         """
         [------ super ------)
@@ -95,6 +99,7 @@ class TestValidator(TestHelper):
             mora_util.parsedatetime(enddate)
         )
 
+    @util.patch_query_args()
     def test_should_false_true_when_interval_not_contained1(self):
         """
           [---- super ------)
@@ -114,6 +119,7 @@ class TestValidator(TestHelper):
                 mora_util.parsedatetime(enddate)
             )
 
+    @util.patch_query_args()
     def test_should_return_false_when_interval_not_contained2(self):
         """
         [------ super ------)
@@ -133,6 +139,7 @@ class TestValidator(TestHelper):
                 mora_util.parsedatetime(enddate)
             )
 
+    @util.patch_query_args()
     def test_should_return_false_when_interval_not_contained3(self):
         """
                                    [------ super ------)
@@ -152,6 +159,7 @@ class TestValidator(TestHelper):
                 mora_util.parsedatetime(enddate)
             )
 
+    @util.patch_query_args()
     def test_is_date_range_in_employee_valid_raises_outside_range(self):
         """Assert that a validation error is raised when the range exceeds
         employee range """
@@ -170,6 +178,7 @@ class TestValidator(TestHelper):
             mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
                 employee, valid_from, valid_to)
 
+    @util.patch_query_args()
     def test_is_date_range_in_employee_valid_inside_range(self):
         """Assert that a validation error is not raised when the range is
         inside employee range"""
@@ -189,6 +198,7 @@ class TestValidator(TestHelper):
             employee,
             valid_from, valid_to)
 
+    @util.patch_query_args()
     def test_is_distinct_responsibility_with_duplicate(self):
         with self.assertRaises(exceptions.HTTPException) as ctxt:
             validator.is_distinct_responsibility([
@@ -229,6 +239,7 @@ class TestValidator(TestHelper):
             },
         )
 
+    @util.patch_query_args()
     def test_is_distinct_responsibility_no_duplicate(self):
         validator.is_distinct_responsibility([
             (
@@ -258,6 +269,7 @@ class TestValidator(TestHelper):
         "mora.conf_db.get_configuration",
         return_value={"substitute_roles": 'bcd05828-cc10-48b1-bc48-2f0d204859b2'}
     )
+    @util.patch_query_args()
     def test_is_substitute_allowed(self, mock):
         # This should pass
         validator.is_substitute_allowed("bcd05828-cc10-48b1-bc48-2f0d204859b2")
@@ -266,6 +278,7 @@ class TestValidator(TestHelper):
         with self.assertRaises(exceptions.HTTPException):
             validator.is_substitute_allowed("8b073375-4196-4d90-9af9-0eb6ef8b6d0d")
 
+    @util.patch_query_args()
     def test_is_substitute_self(self):
         # This should pass
         validator.is_substitute_self(
@@ -287,6 +300,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
     def setUp(self):
         super().setUp()
 
+    @util.patch_query_args()
     def test_cannot_move_unit_to_own_subtree(self):
         candidate_parent = '04c78fc2-72d2-4d02-b55f-807af19eac48'  # Frem
 
@@ -298,6 +312,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
 
+    @util.patch_query_args()
     def test_should_allow_move_unit_to_valid_orgtree_location(self):
         candidate_parent = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # Samf
 
@@ -309,6 +324,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
             self.UNIT_TO_MOVE, new_org_uuid, move_date
         )
 
+    @util.patch_query_args()
     def test_should_not_move_root_org_unit(self):
         root_org_unit = '2874e1dc-85e6-4269-823a-e1125484dfd3'
         candidate_parent = 'b688513d-11f7-4efc-b679-ab082a2055d0'  # Samf
@@ -321,6 +337,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
                 root_org_unit, new_org_uuid, move_date
             )
 
+    @util.patch_query_args()
     def test_should_not_move_org_unit_to_child(self):
         candidate_parent = '85715fc7-925d-401b-822d-467eb4b163b6'  # Fil
 
@@ -332,6 +349,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
 
+    @util.patch_query_args()
     def test_should_not_move_org_unit_to_itself(self):
         move_date = '01-02-2017'
 
@@ -340,6 +358,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
                 self.UNIT_TO_MOVE, self.UNIT_TO_MOVE, move_date
             )
 
+    @util.patch_query_args()
     def test_should_return_false_when_candidate_parent_is_inactive(self):
         move_date = '01-01-2019'
         new_org_uuid = self.PARENT
@@ -354,6 +373,7 @@ class TestIntegrationMoveOrgUnitValidator(TestHelper):
 
 class TestIsContainedInRange(TestHelper):
 
+    @util.patch_query_args()
     def test_raises_when_outside_range_upper(self):
         empl_from = datetime.date(2010, 1, 1)
         empl_to = datetime.date(2018, 1, 1)
@@ -367,6 +387,7 @@ class TestIsContainedInRange(TestHelper):
                 valid_from, valid_to,
                 exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
 
+    @util.patch_query_args()
     def test_raises_when_outside_range_lower(self):
         empl_from = datetime.date(2010, 1, 1)
         empl_to = datetime.date(2018, 1, 1)
@@ -380,6 +401,7 @@ class TestIsContainedInRange(TestHelper):
                 valid_from, valid_to,
                 exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE)
 
+    @util.patch_query_args()
     def test_passes_when_inside_range(self):
         empl_from = datetime.date(2010, 1, 1)
         empl_to = datetime.date(2018, 1, 1)

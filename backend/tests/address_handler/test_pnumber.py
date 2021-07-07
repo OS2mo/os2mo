@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+from tests import util
 from unittest.mock import patch
 
 import mora.async_util
 import tests.cases
 from mora import exceptions
-from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import pnumber
 
 
@@ -15,7 +14,7 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
-class PNumberAddressHandlerTests(tests.cases.TestCase):
+class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
     handler = pnumber.PNumberAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = '1234567890'
@@ -119,5 +118,5 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
         value = 'GARBAGEGARBAGE'  # Not a valid P-number
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with util.patch_query_args({'force': '1'}):
             self.handler.validate_value(value)

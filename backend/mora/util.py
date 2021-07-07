@@ -25,6 +25,7 @@ import tempfile
 import typing
 import urllib.parse
 import uuid
+from starlette_context import context
 from structlog import get_logger
 from asyncio import iscoroutinefunction
 from datetime import date
@@ -37,7 +38,6 @@ import dateutil.tz
 from mora import conf_db
 from . import exceptions
 from . import mapping
-from .request_scoped.query_args import current_query
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
@@ -774,6 +774,10 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
         return False
 
 
+def get_query_args():
+    return copy.deepcopy(context.get('query_args'))
+
+
 def get_args_flag(name: str):
     """
     Get an argument from the Flask request as a boolean flag.
@@ -782,8 +786,8 @@ def get_args_flag(name: str):
     values '0', 'false', 'no' or 'n'. Anything else is true.
 
     """
-
-    v = current_query.args.get(name, '')
+    query_args = context.get("query_args")
+    v = query_args.get(name, '')
 
     if v.lower() in ('', '0', 'no', 'n', 'false'):
         return False

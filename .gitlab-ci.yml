@@ -250,7 +250,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:1.12.0
+    - name: magentaaps/lora:1.12.1
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
