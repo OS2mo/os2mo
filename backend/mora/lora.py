@@ -275,7 +275,7 @@ class Connector:
         return self.scope(LoraObjectType.classification)
 
 
-class Scope:
+class BaseScope:
     def __init__(self, connector, path):
         self.connector = connector
         self.path = path
@@ -284,6 +284,8 @@ class Scope:
     def base_path(self):
         return config.get_settings().lora_url + self.path
 
+
+class Scope(BaseScope):
     async def fetch(self, **params):
         async with ClientSession() as session:
             response = await session.get(
@@ -482,3 +484,18 @@ async def get_version():
             return (await response.json())["lora_version"]
         except ValueError:
             return "Could not find lora version: %s" % await response.text()
+
+
+class AutocompleteScope(BaseScope):
+    def __init__(self, connector, path):
+        self.connector = connector
+        self.path = f"autocomplete/{path}"
+
+    async def fetch(self, phrase, class_uuids=None):
+        params = {"phrase": phrase}
+        if class_uuids:
+            params["class_uuids"] = [str(uuid) for uuid in class_uuids]
+        async with ClientSession() as session:
+            response = await session.get(self.base_path, params=params)
+            await _check_response(response)
+            return {"items": (await response.json())["results"]}

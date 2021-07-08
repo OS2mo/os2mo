@@ -121,6 +121,16 @@ class Settings(BaseSettings):
     confdb_show_seniority: bool = False
     confdb_show_owner: bool = False
 
+    # Autocomplete: use new API? Requires LoRa 1.13 or later.
+    # See #38239.
+    confdb_autocomplete_use_new_api: bool = False
+    # List of class UUIDs whose title and value will be displayed for each
+    # matching employee.
+    confdb_autocomplete_attrs_employee: Optional[List[UUID]]
+    # List of class UUIDs whose title and value will be displayed for each
+    # matching organisation unit.
+    confdb_autocomplete_attrs_orgunit: Optional[List[UUID]]
+
 
 @lru_cache()
 def get_settings() -> Settings:

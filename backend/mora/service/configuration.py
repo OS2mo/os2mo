@@ -86,7 +86,14 @@ def get_global_configuration():
     :returns: Global configuration settings
     """
 
+    settings = config.get_settings()
+
+    # TODO: Remove once #44717 is merged (ConfDB removal).
+    # Then, return `settings` instead.
     configuration = conf_db.get_configuration()
+    configuration.update(
+        confdb_autocomplete_use_new_api=settings.confdb_autocomplete_use_new_api,
+    )
     return configuration
 
 

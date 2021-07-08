@@ -13,28 +13,14 @@ export default {
    */
   employees (orgUuid, query) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/e/?query=${query}`)
+    let serviceUrl = `/o/${orgUuid}/e/?query=${query}`
+
+    return Service.get(serviceUrl)
       .then(response => {
         return response.data.items
       })
       .catch(error => {
         console.log(error.response)
-      })
-  },
-
-  /**
- * Look up a CPR number in the service platform
- * @param {String} query - search query. Can ONLY be a FULL CPR number
- * @returns {Object} the data matching the query
- */
-  cprLookup (query) {
-    return Service.get(`/e/cpr_lookup/?q=${query}`)
-      .then(response => {
-        return response.data
-      })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
-        return error.response.data
       })
   },
 
@@ -48,12 +34,30 @@ export default {
    */
   organisations (orgUuid, query, date, details) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}&details=${details}`)
+    let serviceUrl = `/o/${orgUuid}/ou/?query=${query}&at=${date}&details=${details}`
+
+    return Service.get(serviceUrl)
       .then(response => {
         return response.data.items
       })
       .catch(error => {
         console.log(error.response)
+      })
+  },
+
+  /**
+   * Look up a CPR number in the service platform
+   * @param {String} query - search query. Can ONLY be a FULL CPR number
+   * @returns {Object} the data matching the query
+   */
+  cprLookup (query) {
+    return Service.get(`/e/cpr_lookup/?q=${query}`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
+        return error.response.data
       })
   },
 

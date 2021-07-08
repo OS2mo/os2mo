@@ -11,7 +11,7 @@ export default {
     let validity = args[2]
 
     // A plethora of null and false checks to stop everything from breaking
-    if (!validity || !validity.from) {
+    if (!orgUnit.uuid || !parent.uuid || !validity || !validity.from) {
       return true
     }
 

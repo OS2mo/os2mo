@@ -8,11 +8,14 @@ SPDX-License-Identifier: MPL-2.0
 
 import { mapGetters } from 'vuex'
 import MoTreePicker from '@/components/MoPicker/MoTreePicker'
+import Autocomplete from '@/api/Autocomplete'
 import Organisation from '@/api/Organisation'
 import OrganisationUnit from '@/api/OrganisationUnit'
 import Search from '@/api/Search'
+import store from '@/store'
 import { Organisation as OrgStore } from '@/store/actions/organisation'
 import { AtDate } from '@/store/actions/atDate'
+import { Conf } from '@/store/actions/conf'
 
 export default {
   name: 'MoOrganisationUnitPicker',
@@ -71,13 +74,13 @@ export default {
           return
         }
 
-        if (newVal && newVal.length > 1) {
+        if (newVal && newVal.length > 2) {
           if (this.fetchSearchResultsTimeout) {
             clearTimeout(this.fetchSearchResultsTimeout)
           }
           this.fetchSearchResultsTimeout = setTimeout(
             () => { this.fetchSearchResults(newVal) },
-            500,
+            1000,
           )
         } else {
           this.updateSearchResults(newVal, [])
@@ -126,17 +129,68 @@ export default {
     fetchSearchResults(query) {
       this.searchResultLoading = true
 
-      let org = this.$store.state.organisation
-      let date = this._atDate
-      let details = "path"
+      var req
+      let conf = store.getters[Conf.getters.GET_CONF_DB]
 
-      Search.organisations(org.uuid, query, date, details).then(
-        response => {this.updateSearchResults(query, response)}
+      if (conf.confdb_autocomplete_use_new_api) {
+        req = Autocomplete.organisations(query)
+      } else {
+        let org = this.$store.state.organisation
+        let date = this._atDate
+        let details = "path"
+        req = Search.organisations(org.uuid, query, date, details)
+      }
+
+      req
+      .then(
+        response => { this.updateSearchResults(query, response) }
+      )
+      .catch(
+        error => { this.clearSearch() }
       )
     },
 
     updateSearchResults(query, response) {
       if (response && response.length) {
+        // Update search results on screen
+        this.showTree = false
+        this.searchResultLoading = false
+        this.searchResults = this.processSearchResultsResponse(query, response)
+      }
+
+      if ((response === null) || (response.length === 0)) {
+        this.showTree = false
+        this.searchResultLoading = false
+        this.searchResults = []
+      }
+    },
+
+    clearSearch() {
+      this.showTree = false
+      this.searchResultLoading = false
+      this.searchResults = []
+      this.searchResultSelected = true
+    },
+
+    selectSearchResult(result) {
+      this.clearSearch()
+      this.selectedSuperUnitUuid = result['uuid']
+    },
+
+    selectEmpty() {
+      this.clearSearch()
+      // clear selection on empty input
+      this.value = undefined
+      this.$emit('input', null)
+    },
+
+    processSearchResultsResponse(query, response) {
+      let conf = store.getters[Conf.getters.GET_CONF_DB]
+
+      if (conf.confdb_autocomplete_use_new_api) {
+        // Use response as-is
+        return response
+      } else {
         // Add 'path' property to each item in response
         // Each path is an array where each element is part of the org unit
         // path.
@@ -161,37 +215,10 @@ export default {
           return numOccurrences(a) - numOccurrences(b)
         })
 
-        // Update search results on screen
-        this.showTree = false
-        this.searchResultLoading = false
-        this.searchResults = sortedResults
-      }
-
-      if ((response === null) || (response.length === 0)) {
-        this.showTree = false
-        this.searchResultLoading = false
-        this.searchResults = []
+        return sortedResults
       }
     },
 
-    clearSearch() {
-      this.showTree = false
-      this.searchResultLoading = false
-      this.searchResults = []
-      this.searchResultSelected = true
-    },
-
-    selectSearchResult(result) {
-      this.clearSearch()
-      this.selectedSuperUnitUuid = result['uuid']
-    },
-    selectEmpty() {
-      this.clearSearch()
-      // clear selection on empty input
-      this.value = undefined
-      this.$emit('input', null)
-
-    },
   }
 }
 </script>

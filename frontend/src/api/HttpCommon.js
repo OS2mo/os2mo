@@ -16,7 +16,8 @@ const Service = axios.create({
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
-  }
+  },
+  timeout: 60 * 1000,
 })
 
 const ApiV1 = axios.create({

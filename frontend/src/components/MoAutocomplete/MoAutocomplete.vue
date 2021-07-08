@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
     :search="search"
     :getResultValue="getResultValue"
     :autoSelect="true"
-    :debounceTime="1"
+    :debounceTime="1000"
     @submit="onSubmit">
     <template
       slot="default"
@@ -46,7 +46,16 @@ SPDX-License-Identifier: MPL-2.0
             :key="resultProps[index].id"
             v-bind="resultProps[index]"
           >
+            <div v-if="canDisplayParentOrgUnitName(result)">
+              <small>{{ getParentOrgUnitName(result) }}</small>
+            </div>
             {{ result.name }}
+            <div v-for="item in result.attrs" :key="item.uuid">
+              <small>
+                <b>{{ item.title }}</b>
+                <span>{{ item.value }}</span>
+              </small>
+            </div>
           </li>
         </ul>
       </div>
@@ -82,7 +91,7 @@ export default {
   computed: {
     noResults () {
       return this.value && this.results.length === 0
-    }
+    },
   },
 
   methods: {
@@ -93,6 +102,14 @@ export default {
     handleBlur () {
       this.focused = false
     },
+
+    canDisplayParentOrgUnitName (result) {
+      return 'path' in result
+    },
+
+    getParentOrgUnitName (result) {
+      return result.path[result.path.length - 2]
+    }
   },
 }
 </script>
