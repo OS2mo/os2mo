@@ -35,6 +35,7 @@ from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
 from ..settings import app_config
+from ..lora import AutocompleteScope
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -371,6 +372,15 @@ async def get_one_employee(c: lora.Connector, userid,
         r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
 
     return r
+
+
+@router.get('/e/autocomplete/')
+async def autocomplete_employees(query: str):
+    connector = common.get_connector()
+    if query:
+        scope = AutocompleteScope(connector, "bruger")
+        return (await scope.fetch(phrase=util.query_to_search_phrase(query)))
+    return {"items": []}
 
 
 @router.get('/o/{orgid}/e/')
