@@ -92,9 +92,9 @@ def get_global_configuration():
     """
 
     configuration = conf_db.get_configuration()
-    settings = config.get_settings()
+    autocomplete = settings.config.get("autocomplete", {})
     configuration.update(
-        autocomplete_use_new_api=settings.autocomplete_use_new_api,
+        autocomplete_use_new_api=autocomplete.get("autocomplete_use_new_api", False)
     )
     return configuration
 
