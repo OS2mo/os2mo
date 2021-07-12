@@ -6,6 +6,7 @@
   "address_type": "@:shared.address_type",
   "association_type": "@:shared.association_type",
   "end_date": "@:shared.date.end_date",
+  "engagement_association_type": "@:shared.engagement_association_type",
   "engagement": "Employment",
   "engagement_type": "@:shared.engagement_type",
   "engagement_id": "@:shared.engagement_id",
