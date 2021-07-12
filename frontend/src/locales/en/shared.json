@@ -10,6 +10,8 @@
     "start_date": "Start date",
     "end_date": "End date"
   },
+  "engagement_association": "Engagement Associations",
+  "engagement_association_type": "@:shared.association_type",
   "engagement_type": "Employment type",
   "employee": "Employee | Employees",
   "organisation": "Organisation | Organisations",
