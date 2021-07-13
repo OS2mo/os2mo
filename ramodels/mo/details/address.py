@@ -57,7 +57,6 @@ class Address(MOBase):
         uuid: UUID,
         value: str,
         address_type_uuid: UUID,
-        org_uuid: UUID,
         from_date: str,
         to_date: Optional[str] = None,
         value2: Optional[str] = None,
@@ -65,9 +64,10 @@ class Address(MOBase):
         org_unit_uuid: Optional[UUID] = None,
         engagement_uuid: Optional[UUID] = None,
         visibility_uuid: Optional[UUID] = None,
+        org_uuid: Optional[UUID] = None,
     ) -> "Address":
         address_type = AddressType(uuid=address_type_uuid)
-        org = OrganisationRef(uuid=org_uuid)
+        org = OrganisationRef(uuid=org_uuid) if org_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
         person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
