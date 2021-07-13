@@ -44,7 +44,7 @@ class Address(MOBase):
     value: str
     value2: Optional[str]
     address_type: AddressType
-    org: OrganisationRef
+    org: Optional[OrganisationRef]
     person: Optional[PersonRef]
     org_unit: Optional[OrgUnitRef]
     engagement: Optional[EngagementRef]
