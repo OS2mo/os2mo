@@ -114,4 +114,7 @@ export default {
   .cpr {
     color: #aaa
   }
+  .card-body {
+    padding-right: 3.5rem
+  }
 </style>
