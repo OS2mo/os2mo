@@ -54,7 +54,6 @@ def address_fsf_strat(draw):
         "uuid": st.uuids(),
         "value": st.text(),
         "address_type_uuid": st.uuids(),
-        "org_uuid": st.uuids(),
         "from_date": from_date_strat(),
     }
     optional = {
@@ -64,6 +63,7 @@ def address_fsf_strat(draw):
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
         "visibility_uuid": st.none() | st.uuids(),
+        "org_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
