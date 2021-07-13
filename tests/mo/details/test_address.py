@@ -32,7 +32,6 @@ def address_strat(draw):
     required = {
         "value": st.text(),
         "address_type": st.builds(AddressType),
-        "org": st.builds(OrganisationRef),
         "validity": st.builds(Validity),
     }
 
@@ -43,6 +42,7 @@ def address_strat(draw):
         "org_unit": st.none() | st.builds(OrgUnitRef),
         "engagement": st.none() | st.builds(EngagementRef),
         "visibility": st.none() | st.builds(Visibility),
+        "org": st.none() | st.builds(OrganisationRef),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
