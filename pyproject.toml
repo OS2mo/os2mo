@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ramodels"
-version = "2.0.1"
+version = "2.1.0"
 description = "Pydantic data models for OS2mo"
 authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
