@@ -56,9 +56,6 @@ services:
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
-    environment:
-      JAEGER_HOSTNAME: jaeger
-      JAEGER_SERVICE: OS2mo
     ports:
       - "5000:80"
     depends_on:
@@ -72,19 +69,14 @@ services:
       start_period: 40s
 
   mox:
-    image: magentaaps/lora:1.12.0
+    image: magentaaps/lora:1.13.0
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
-    volumes:
-    #  - ../mox:/app
-      - ./dev-environment/mox-dev-settings.toml:/user-settings.toml
     # command: '/start-reload.sh'
-    environment:
-      MAX_WORKERS: "1"
-      JAEGER_HOSTNAME: jaeger
-      JAEGER_SERVICE: LoRa
-
+    env_file:
+      - dev-environment/mox-dev.env
+      - dev-environment/db.env
     ports:
       - "8080:80"
     depends_on:
