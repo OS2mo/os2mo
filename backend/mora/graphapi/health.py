@@ -17,7 +17,6 @@ from pydantic import AnyUrl
 from pydantic import parse_obj_as
 from structlog import get_logger
 
-from mora import conf_db
 from mora import config
 from mora.exceptions import HTTPException
 from mora.http import clients
@@ -84,19 +83,6 @@ async def oio_rest() -> bool:
     url = config.get_settings().lora_url + "site-map"
     parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
     return await _is_endpoint_reachable(parsed_url)
-
-
-@register_health_endpoint
-async def configuration_database() -> bool:
-    """Check if configuration database is reachable and initialized with default data.
-
-    Returns:
-        bool: True if reachable and initialized. False if not.
-    """
-    healthy, msg = conf_db.health_check()
-    if not healthy:
-        logger.critical("health critical", msg=msg)
-    return healthy
 
 
 @register_health_endpoint

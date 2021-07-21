@@ -30,15 +30,34 @@ import mora.graphapi.dataloaders as dataloaders
 @pytest.fixture(autouse=True)
 def get_context_from_ext(monkeypatch):
     """Patch strawberry extensions to return the Starlette context in responses."""
+
+    # We must capture is_grapqhl during execution, as it is cleared after processing
+    extension_context = {}
+
+    def seed_extension_context(self):
+        extension_context.update(
+            {
+                "is_graphql": jsonable_encoder(context.data["is_graphql"]),
+                "lora_args": jsonable_encoder(
+                    context.data["lora_connector"]().defaults
+                ),
+            }
+        )
+
+    monkeypatch.setattr(
+        strawberry.extensions.Extension,
+        "on_executing_start",
+        seed_extension_context,
+    )
+
     monkeypatch.setattr(
         strawberry.extensions.Extension,
         "get_results",
         lambda *args: {
-            "is_graphql": jsonable_encoder(context.data["is_graphql"]),
+            **extension_context,
             "graphql_dates": jsonable_encoder(
                 context.data["graphql_dates"], by_alias=False
             ),
-            "lora_args": jsonable_encoder(context.data["lora_connector"]().defaults),
         },
     )
     yield
@@ -71,7 +90,6 @@ class TestMiddleware:
         assert errors is None
         assert "from_date", "to_date" in graphql_dates
         now = datetime.now(tz=tzutc())
-        print(graphql_dates)
         assert graphql_dates["from_date"] == now.isoformat()
         assert graphql_dates["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
 
@@ -159,5 +177,6 @@ class TestMiddleware:
             "/graphql", json={"query": "{ employees (to_date: null) { uuid } }"}
         )
         lora_args = response.json()["extensions"]["lora_args"]
-        assert lora_args["virkningfra"] == datetime.now(tz=tzutc()).isoformat()
-        assert lora_args["virkningtil"] == "infinity"
+        now = datetime.now(tz=tzutc())
+        assert lora_args["virkningfra"] == now.isoformat()
+        assert lora_args["virkningtil"] == (now + timedelta(milliseconds=1)).isoformat()

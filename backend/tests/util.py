@@ -8,6 +8,9 @@ from asyncio import gather
 from copy import deepcopy
 from itertools import starmap
 from json import dumps
+from typing import Any
+from typing import Iterator
+from typing import Optional
 from typing import Union
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -26,6 +29,7 @@ from yarl import URL
 
 from mora import config
 from mora import lora
+from mora.config import get_settings
 from mora.config import Settings
 from mora.exceptions import ImproperlyConfigured
 from mora.service.address_handler.dar import load_addresses
@@ -563,3 +567,38 @@ def get_testcafe_config() -> Settings:
     settings.update({key: True for key in feature_flags})
 
     return Settings(**settings)
+
+
+@contextlib.contextmanager
+def set_settings_contextmanager(**kwargs: Any) -> Iterator[None]:
+    """Contextmanager which clear settings cache and to modify environment.
+
+    Args:
+        kwargs: Environment variables to override.
+
+    Yields:
+        None
+    """
+    with patch.dict(os.environ, kwargs):
+        get_settings.cache_clear()
+        yield
+    get_settings.cache_clear()
+
+
+@contextlib.contextmanager
+def set_get_configuration(
+    get_configuration_path: str, configuration: Optional[dict[str, Any]] = None
+) -> Iterator[None]:
+    """Contextmanager which makes get_configuration return the provided dict.
+
+    Args:
+        configuration: The configuration dict to return.
+
+    Yields:
+        None
+    """
+    configuration = configuration or {}
+
+    with patch(get_configuration_path) as mock:
+        mock.return_value = configuration
+        yield

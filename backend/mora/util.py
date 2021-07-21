@@ -37,7 +37,6 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import mapping
-from mora import conf_db
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"
@@ -796,7 +795,8 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
     """
     checks whether the chosen association needs a substitute
     """
-    substitute_roles: str = conf_db.get_configuration()["substitute_roles"]
+    settings = config.get_settings()
+    substitute_roles: str = settings.confdb_substitute_roles
     if association_type_uuid in substitute_roles.split(","):
         # chosen role does need substitute
         return True

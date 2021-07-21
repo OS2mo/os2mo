@@ -15,8 +15,8 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from mora.mapping import OwnerInferencePriority
-from tests.cases import AsyncConfigTestCase
-from tests.cases import ConfigTestCase
+from tests.cases import AsyncLoRATestCase
+from tests.cases import LoRATestCase
 from tests.util import load_fixture
 
 
@@ -129,7 +129,7 @@ def simplified_owner(
 
 
 @pytest.mark.usefixtures("sample_structures")
-class OwnerOrgUnitTestCase(ConfigTestCase):
+class OwnerOrgUnitTestCase(LoRATestCase):
     def create_helper(
         self,
         jsonified_owner: Dict[str, Any],
@@ -352,7 +352,7 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
+class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
     async def create_helper(
         self,
         jsonified_owner: Dict[str, Any],
@@ -384,7 +384,7 @@ class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class OwnerPersonTestCase(ConfigTestCase):
+class OwnerPersonTestCase(LoRATestCase):
     def create_helper(
         self,
         jsonified_owner: Dict[str, Any],

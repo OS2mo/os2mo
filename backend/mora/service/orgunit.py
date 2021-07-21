@@ -36,7 +36,6 @@ from . import facet
 from . import handlers
 from . import org
 from .. import common
-from .. import conf_db
 from .. import config
 from .. import exceptions
 from .. import lora
@@ -50,6 +49,7 @@ from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
+from mora.service.util import get_configuration
 
 router = APIRouter()
 
@@ -515,7 +515,7 @@ async def get_one_orgunit(
 
             if details is UnitDetails.FULL:
                 settings = {}
-                local_settings = conf_db.get_configuration(unitid)
+                local_settings = {}
 
                 settings.update(local_settings)
                 if parent:
@@ -523,7 +523,7 @@ async def get_one_orgunit(
                     for setting, value in parent_settings.items():
                         settings.setdefault(setting, value)
 
-                global_settings = conf_db.get_configuration()
+                global_settings = await get_configuration()
                 for setting, value in global_settings.items():
                     settings.setdefault(setting, value)
 

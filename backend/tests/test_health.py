@@ -45,22 +45,6 @@ class TestOIORestHealth:
         assert not await health.oio_rest()
 
 
-class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
-    @pytest.mark.asyncio
-    @patch("mora.conf_db.health_check", new=lambda: (False, ""))
-    async def test_configuration_database_returns_false_if_health_check_fails(self):
-        actual = await health.configuration_database()
-
-        self.assertEqual(False, actual)
-
-    @pytest.mark.asyncio
-    @patch("mora.conf_db.health_check", new=lambda: (True, ""))
-    async def test_configuration_database_returns_false_if_health_check_succeeds(self):
-        actual = await health.configuration_database()
-
-        self.assertEqual(True, actual)
-
-
 class DatasetHealthTests(tests.cases.TestCase):
     @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
     @aioresponses()
@@ -150,12 +134,6 @@ class TestKubernetesProbes(tests.cases.TestCase):
     def test_readiness_everything_ready(self, mock_is_endpoint_reachable):
         mock_is_endpoint_reachable.side_effect = [True, True]
         self.assertRequest("/health/ready", HTTP_204_NO_CONTENT)
-
-    @patch("mora.graphapi.health._is_endpoint_reachable")
-    @patch("mora.conf_db.health_check", new=lambda: (False, ""))
-    def test_readiness_conf_db_not_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [True, True]
-        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
 
     @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_lora_not_ready(self, mock_is_endpoint_reachable):

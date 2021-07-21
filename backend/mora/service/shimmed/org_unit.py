@@ -21,7 +21,6 @@ from more_itertools import one
 
 from .errors import handle_gql_error
 from .util import filter_data
-from mora import conf_db
 from mora import exceptions
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
@@ -30,6 +29,7 @@ from mora.graphapi.shim import MOOrgUnit
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
 from mora.service.orgunit import router as org_unit_router
+from mora.service.util import get_configuration
 
 
 # --------------------------------------------------------------------------------------
@@ -171,8 +171,7 @@ async def get_orgunit(
     org_unit["org"] = org
     org_unit["location"] = ""
     org_unit["org_unit_type"] = org_unit.pop("unit_type", None)
-    # TODO: https://redmine.magenta-aps.dk/issues/50248
-    settings = conf_db.get_configuration(unitid)
+    settings = {}
     parent_uuid = org_unit.pop("parent_uuid", None)
 
     # Recurse to get parents
@@ -195,8 +194,7 @@ async def get_orgunit(
         org_unit["parent"] = parent
 
     org_unit.setdefault("parent", None)
-    # TODO: https://redmine.magenta-aps.dk/issues/50248
-    global_settings = conf_db.get_configuration()
+    global_settings = await get_configuration()
     for setting, value in global_settings.items():
         settings.setdefault(setting, value)
 

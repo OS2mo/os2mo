@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import copy
-from unittest.mock import patch
+from functools import partial
 from urllib.parse import urlencode
 from uuid import uuid4
 
@@ -12,6 +12,7 @@ from parameterized import parameterized
 import tests.cases
 from mora import lora
 from mora import mapping
+from tests.util import set_settings_contextmanager
 
 
 _substitute_association = {"name": "i18n:substitute_association"}  # const
@@ -156,9 +157,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 args.update(**kwargs)
             return f"{base}?{urlencode(args)}"
 
-        patch_substitute_roles = patch(
-            "mora.conf_db.get_configuration",
-            return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        seed_substitute_roles = partial(
+            set_settings_contextmanager,
+            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9",
         )
 
         # Create an "IT User" (aka. "IT system binding")
@@ -184,7 +185,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         payload[0].update(mo_data)
 
-        with patch_substitute_roles:
+        with seed_substitute_roles():
             await self.assertRequestResponse(
                 "/service/details/create",
                 [association_uuid],
@@ -217,7 +218,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "validity": {"from": "2017-12-01", "to": "2017-12-01"},
         }
         expected.update(mo_expected)
-        with patch_substitute_roles:
+        with seed_substitute_roles():
             await self.assertRequestResponse(
                 url(_userid),
                 [expected],
@@ -244,7 +245,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "third_party_association_type": _substitute_association,
         }
         expected.update(mo_expected)
-        with patch_substitute_roles:
+        with seed_substitute_roles():
             await self.assertRequestResponse(
                 url(_userid, first_party_perspective="1"),
                 [expected] if "it" not in mo_data else [],
@@ -281,7 +282,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             },
         }
         expected.update(mo_expected)
-        with patch_substitute_roles:
+        with seed_substitute_roles():
             await self.assertRequestResponse(
                 url(_substitute_uuid, first_party_perspective="1"),
                 [expected] if "it" not in mo_data else [],
@@ -291,11 +292,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 },
             )
 
-    @patch(
-        "mora.conf_db.get_configuration",
-        return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
-    )
-    async def test_create_vacant_association(self, mock):
+    async def test_create_vacant_association(self):
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -332,22 +329,25 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 main["person"] = None
             return [main]
 
-        await self.assertRequestResponse(
-            "/service/details/create",
-            [association_uuid],
-            json=payload(association_uuid),
-            amqp_topics={
-                "org_unit.association.create": 1,
-            },
-        )
-        await self.assertRequestResponse(
-            "/service/details/create",
-            [association_uuid2],
-            json=payload(association_uuid2, include_person=False),
-            amqp_topics={
-                "org_unit.association.create": 2,
-            },
-        )
+        with set_settings_contextmanager(
+            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
+        ):
+            await self.assertRequestResponse(
+                "/service/details/create",
+                [association_uuid],
+                json=payload(association_uuid),
+                amqp_topics={
+                    "org_unit.association.create": 1,
+                },
+            )
+            await self.assertRequestResponse(
+                "/service/details/create",
+                [association_uuid2],
+                json=payload(association_uuid2, include_person=False),
+                amqp_topics={
+                    "org_unit.association.create": 2,
+                },
+            )
 
         expected = {
             "livscykluskode": "Importeret",
@@ -480,14 +480,17 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             assoc_content_only_primary_uuid(association_uuid2),
         ]
 
-        await self.assertRequestResponse(  # contains sorting (ie. unordered comparison)
-            "/service/ou/{}/details/association"
-            "?validity=future&only_primary_uuid=1".format(unitid),
-            expected,
-            amqp_topics={
-                "org_unit.association.create": 2,
-            },
-        )
+        with set_settings_contextmanager(
+            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
+        ):
+            await self.assertRequestResponse(  # contains sorting (ie. unordered comparison)
+                "/service/ou/{}/details/association"
+                "?validity=future&only_primary_uuid=1".format(unitid),
+                expected,
+                amqp_topics={
+                    "org_unit.association.create": 2,
+                },
+            )
 
     async def test_create_association_with_dynamic_classes(self):
         # Check the POST request
@@ -1236,11 +1239,10 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    @patch(
-        "mora.conf_db.get_configuration",
-        return_value={"substitute_roles": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+    @set_settings_contextmanager(
+        confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
     )
-    def test_edit_association(self, mock):
+    def test_edit_association(self):
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -1353,11 +1355,10 @@ class Tests(tests.cases.LoRATestCase):
                 },
             )
 
-    @patch(
-        "mora.conf_db.get_configuration",
-        return_value={"substitute_roles": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+    @set_settings_contextmanager(
+        confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
     )
-    def test_edit_association_substitute(self, mock):
+    def test_edit_association_substitute(self):
         """Test that substitute field is removed when writing an association
         type that is not meant to have substitutes"""
         # Check the POST request

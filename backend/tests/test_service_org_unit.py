@@ -359,7 +359,7 @@ class TestGetCountRelated(tests.cases.TestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestGetUnitAncestorTree(tests.cases.AsyncConfigTestCase):
+class TestGetUnitAncestorTree(tests.cases.AsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self._connector = lora.Connector(

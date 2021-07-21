@@ -14,11 +14,9 @@ from starlette.testclient import TestClient
 from structlog import get_logger
 
 from mora import app
-from mora import conf_db
 from mora import config
 from mora import service
 from mora.auth.keycloak.oidc import auth
-from mora.config import Settings
 
 logger = get_logger()
 
@@ -659,55 +657,3 @@ class LoRATestCase(_BaseTestCase):
 
     def setUp(self):
         super().setUp()
-
-
-class AsyncConfigTestCase(AsyncLoRATestCase):
-    """Testcase with configuration database support."""
-
-    def set_global_conf(self, conf):
-        conf_db.set_configuration({"org_units": dict(conf)})
-
-    @classmethod
-    def setUpClass(cls):
-        conf_db.config.get_settings = lambda *args, **kwargs: Settings(
-            conf_db_name="test_confdb", *args, **kwargs
-        )
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    async def asyncSetUp(self):
-        conf_db._createdb(force=False)
-        await super().asyncSetUp()
-
-    def tearDown(self):
-        conf_db.drop_db()
-        super().tearDown()
-
-
-class ConfigTestCase(LoRATestCase):
-    """Testcase with configuration database support."""
-
-    def set_global_conf(self, conf):
-        conf_db.set_configuration({"org_units": dict(conf)})
-
-    @classmethod
-    def setUpClass(cls):
-        conf_db.config.get_settings = lambda *args, **kwargs: Settings(
-            conf_db_name="test_confdb", *args, **kwargs
-        )
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    def setUp(self):
-        conf_db._createdb(force=False)
-        super().setUp()
-
-    def tearDown(self):
-        conf_db.drop_db()
-        super().tearDown()

@@ -11,6 +11,7 @@ from .errors import handle_gql_error
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
 from mora.service.configuration import router as config_router
+from mora.service.util import get_configuration
 
 
 @config_router.post("/ou/{unitid}/configuration", status_code=410)
@@ -54,3 +55,26 @@ async def get_navlinks() -> list[dict[str, Any]]:
     if not navlinks:
         navlinks = [{}]
     return navlinks
+
+
+@config_router.get("/ou/{unitid}/configuration")
+async def get_org_unit_configuration(unitid: UUID) -> dict[str, str]:
+    """Read configuration settings for an ou.
+
+    Args:
+        unitid: Unused UUID.
+
+    Returns:
+        A dictionary of settings.
+    """
+    return await get_configuration()
+
+
+@config_router.get("/configuration")
+async def get_global_configuration() -> dict[str, Any]:
+    """Read global configuration settings.
+
+    Returns:
+        A dictionary of settings.
+    """
+    return await get_configuration()

@@ -11,15 +11,11 @@ import sys
 import time
 
 import click
-import sqlalchemy
 from ra_utils.async_to_sync import async_to_sync
 from structlog import get_logger
 
-from . import conf_db
 from . import config
 from . import log
-from mora.conf_db import create_db_table
-
 
 logger = get_logger()
 
@@ -30,47 +26,6 @@ def group():
 
 
 _SLEEPING_TIME = 0.25
-
-
-@group.command()
-def use_conf_db():
-    settings = config.get_settings()
-    if settings.conf_db_use:
-        sys.exit(0)
-    sys.exit(1)
-
-
-@group.command()
-@click.option(
-    "--wait",
-    default=_SLEEPING_TIME,
-    type=int,
-    help="Wait up to n seconds for the database connection before" " exiting.",
-)
-def initdb(wait):
-    """Initialize database.
-
-    This is supposed to be idempotent, so you can run it without fear
-    on an already initialized database.
-    """
-    create_db_table()
-
-
-@group.command()
-@click.option(
-    "--wait",
-    default=_SLEEPING_TIME,
-    type=int,
-    help="Wait up to n seconds for the database connection before" " exiting.",
-)
-def checkdb(wait):
-    """Check that database is online."""
-
-    def check_db():
-        with conf_db._get_session() as session:
-            session.execute("SELECT 1")
-
-    _wait_for_service("Database is up", check_db, sqlalchemy.exc.OperationalError, wait)
 
 
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):
@@ -84,16 +39,6 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
             if i >= attempts:
                 sys.exit(1)
             time.sleep(_SLEEPING_TIME)
-
-
-@group.command()
-def check_configuration_db_status():
-    success, error_msg = conf_db.health_check()
-    if success:
-        logger.info("Configuration database passed health check")
-    else:
-        logger.critical("Config database failed health check", error_msg=error_msg)
-        sys.exit(3)
 
 
 @group.command()

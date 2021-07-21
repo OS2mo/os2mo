@@ -9,9 +9,12 @@
 import os
 from dataclasses import dataclass
 from typing import Any
+from typing import Callable
+from typing import Generator
 from typing import Optional
 
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from aioresponses import aioresponses as aioresponses_
 from fastapi.testclient import TestClient
 from hypothesis import settings as h_settings
@@ -24,6 +27,7 @@ from starlette_context.ctx import _Context
 from mora.api.v1.models import Validity
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
+from mora.config import get_settings
 from mora.http import clients
 from tests.cases import fake_auth
 from tests.hypothesis_utils import validity_model_strat
@@ -52,6 +56,21 @@ def pytest_configure(config):
 
 
 st.register_type_strategy(Validity, validity_model_strat())
+
+
+@pytest.fixture()
+def set_settings(
+    monkeypatch: MonkeyPatch,
+) -> Generator[Callable[..., None], None, None]:
+    """Set settings via kwargs callback."""
+
+    def _inner(**kwargs: Any) -> None:
+        for key, value in kwargs.items():
+            monkeypatch.setenv(key, value)
+        get_settings.cache_clear()
+
+    yield _inner
+    get_settings.cache_clear()
 
 
 @pytest.fixture(autouse=True)
