@@ -39,12 +39,12 @@ class Tests(ConfigTestCase):
         url = '/service/configuration'
 
         payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest(url, json=payload, status_code=510)
+        self.assertRequest(url, json=payload, status_code=410)
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] is True)
 
         payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest(url, json=payload, status_code=510)
+        self.assertRequest(url, json=payload, status_code=410)
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] is True)
 
@@ -58,7 +58,7 @@ class Tests(ConfigTestCase):
 
         payload = {"org_units": {"show_user_key": "True"}}
         url = '/service/ou/{}/configuration'.format(uuid)
-        self.assertRequest(url, json=payload, status_code=510)
+        self.assertRequest(url, json=payload, status_code=410)
 
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_user_key'] is True)
@@ -75,9 +75,9 @@ class Tests(ConfigTestCase):
 
         url = '/service/ou/{}/configuration'.format(uuid)
         payload = {"org_units": {"show_user_key": "True"}}
-        self.assertRequest(url, json=payload, status_code=510)
+        self.assertRequest(url, json=payload, status_code=410)
         payload = {"org_units": {"show_location": "False"}}
-        self.assertRequest(url, json=payload, status_code=510)
+        self.assertRequest(url, json=payload, status_code=410)
 
         service_url = '/service/ou/{}/'.format(uuid)
         response = self.assertRequest(service_url)
