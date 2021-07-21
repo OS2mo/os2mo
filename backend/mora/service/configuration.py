@@ -13,17 +13,15 @@ logger = get_logger()
 router = APIRouter()
 
 
-@router.post('/ou/{unitid}/configuration')
-def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
-    """Set a configuration setting for an ou.
+@router.post('/ou/{unitid}/configuration', status_code=410)
+def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
+    """Removed configuration setting endpoint.
 
-    .. :quickref: Unit; Create configuration setting.
+    :statuscode 410: Endpoint removed.
 
-    :statuscode 201: Setting created.
+    :param unitid: Unused UUID.
 
-    :param unitid: The UUID of the organisational unit to be configured.
-
-    :<json object conf: Configuration option
+    :<json object conf: Unused json body
 
     .. sourcecode:: json
 
@@ -33,10 +31,9 @@ def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
         }
       }
 
-    :returns: True
+    :returns: False
     """
-    unitid = str(unitid)
-    return conf_db.set_configuration(configuration, unitid)
+    return False
 
 
 @router.get('/ou/{unitid}/configuration')
@@ -56,15 +53,13 @@ def get_org_unit_configuration(unitid: UUID):
     return configuration
 
 
-@router.post('/configuration')
-def set_global_configuration(configuration: dict = Body(...)):
-    """Set or modify a gloal configuration setting.
+@router.post('/configuration', status_code=410)
+def set_global_configuration(configuration: dict = Body(...)) -> bool:
+    """Removed global configuration setting endpoint.
 
-    .. :quickref: Set or modify a global configuration setting.
+    :statuscode 410: Endpoint removed.
 
-    :statuscode 201: Setting created.
-
-    :<json object conf: Configuration option
+    :<json object conf: Unused json body
 
     .. sourcecode:: json
 
@@ -74,9 +69,9 @@ def set_global_configuration(configuration: dict = Body(...)):
         }
       }
 
-    :returns: True
+    :returns: False
     """
-    return conf_db.set_configuration(configuration)
+    return False
 
 
 @router.get('/configuration')
