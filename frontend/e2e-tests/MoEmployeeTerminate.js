@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoEmployeeTerminate')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('#employeeTerminate')
 
@@ -18,9 +22,9 @@ const searchEmployeeField = dialog.find('.search-employee .v-autocomplete[data-v
 const searchEmployeeItem = searchEmployeeField.find('.v-autocomplete-list-item')
 const searchEmployeeInput = searchEmployeeField.find('input')
 
-const mainSearchField = Selector('.navbar .autocomplete')
+const mainSearchField = Selector('div').withAttribute('class', 'search')
 const mainSearchItem = mainSearchField.find('.autocomplete-result-list > li')
-const mainSearchInput = mainSearchField.find('input')
+const mainSearchInput = mainSearchField.find('.input-group input')
 
 const presentDetails = Selector('.tabs .detail-present')
 const fromField = presentDetails.find('td.column-from')
@@ -79,14 +83,14 @@ test('Workflow: terminate employee from page', async t => {
     .typeText(mainSearchField, 'erik')
     .expect(mainSearchInput.value)
     .eql('erik')
-    .expect(mainSearchItem.withText(' ').visible).ok()
-    .pressKey('down enter')
-    .expect(mainSearchInput.value).match(/Erik/)
+
+    .navigateTo(`${baseURL}/medarbejder/236e0a78-11a0-4ed9-8545-6286bb8611c7`)
+
     .click(VueSelector('employee-detail-tabs bTabButtonHelper')
       .withText('Engagementer'))
 
-  let name = await mainSearchInput.value
-  let fromDate = await fromField.innerText
+    let fromDate = await fromField.innerText
+    let name = 'Erik Smidt Hansen'
 
   await t
     .expect(toField.innerText)
@@ -137,9 +141,10 @@ test('Workflow: terminate employee role', async t => {
   await t
     .click(mainSearchField)
     .typeText(mainSearchField, 'Anders')
-    .expect(mainSearchItem.withText(' ').visible).ok()
-    .pressKey('down enter')
-    .expect(mainSearchInput.value).match(/Anders/)
+    .expect(mainSearchInput.value)
+    .eql('Anders')
+
+    .navigateTo(`${baseURL}/medarbejder/53181ed2-f1de-4c4a-a8fd-ab358c2c454a`)
 
     .click(VueSelector('employee-detail-tabs bTabButtonHelper')
            .withText('Roller'))

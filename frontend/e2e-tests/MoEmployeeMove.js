@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoEmployeeMove')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/medarbejder/liste`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('#employeeMove')
 
@@ -52,7 +56,7 @@ test('Workflow: move employee', async t => {
     .click(dialog.find('li.tree-node span.tree-anchor span'))
 
     .click(fromInput)
-    
+
     .hover(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')

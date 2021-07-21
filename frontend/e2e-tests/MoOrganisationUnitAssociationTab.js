@@ -4,6 +4,7 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoOrganisationUnitAssociationTab')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('.modal-content')
 
@@ -25,6 +29,9 @@ const associationTypeSelect = dialog.find('.select-association select[data-vv-as
 const associationTypeOption = associationTypeSelect.find('option')
 
 const fromDateInput = dialog.find('.from-date .form-control')
+
+const primaryAssociationType = dialog.find('select[data-vv-as="Primær"]')
+const primaryAssociationTypeOption = primaryAssociationType.find('option')
 
 const submitButton = dialog.find('button .btn .btn-primary')
 
@@ -46,6 +53,8 @@ test('Workflow: organisation association tab empty association', async t => {
       .withText(today.date().toString()))
     .expect(fromDateInput.value).eql(today.format('DD-MM-YYYY'))
 
+    .click(primaryAssociationType)
+    .click(primaryAssociationTypeOption.withText('Sekundær'))
     .click(dialog.find('.btn-primary'))
 
     .expect(VueSelector('MoLog')
@@ -69,7 +78,6 @@ test('Workflow: organisation association tab empty association', async t => {
     .click(associationTypeOption.withText('Teammedarbejder'))
 
     .click(dialog.find('.btn-primary'))
-      .debug()
     .expect(VueSelector('MoLog')
       .find('.alert').nth(0).innerText)
     .match(

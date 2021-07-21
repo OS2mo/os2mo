@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoOrganisationUnitMove')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/fa2e23c9-860a-4c90-bcc6-2c0721869a25`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('#orgUnitMove')
 

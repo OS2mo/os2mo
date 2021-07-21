@@ -4,6 +4,7 @@
 import { ClientFunction, Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoOrganisationUnitMapper')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const mapperButton = Selector('button.btn-mapper')
 const saveButton = Selector('button.btn-submit')

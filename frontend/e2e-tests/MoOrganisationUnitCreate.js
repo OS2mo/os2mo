@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,13 +12,14 @@ fixture('MoOrganisationUnitCreate')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('#orgUnitCreate')
 
-// TODO: Re-enable when TestCafe runs with every config setting
-// https://redmine.magenta-aps.dk/issues/34509
-// const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
-// const timeOption = timeSelect.find('option')
+const timeSelect = dialog.find('select[data-vv-as="Tidsregistrering"]')
+const timeOption = timeSelect.find('option')
 
 const levelSelect = dialog.find('select[data-vv-as="Enhedsniveau"]')
 const levelOption = levelSelect.find('option')
@@ -77,10 +79,8 @@ test('Workflow: create unit', async t => {
     .click(parentInput)
     .click(dialog.find('li.tree-node span.tree-anchor span'))
 
-  // TODO: Re-enable when TestCafe runs with every config setting
-  // https://redmine.magenta-aps.dk/issues/34509
-  // .click(timeSelect)
-  // .click(timeOption.withText('Tjenestetid'))
+    .click(timeSelect)
+    .click(timeOption.withText('Tjenestetid'))
 
     .click(levelSelect)
     .click(levelOption.withText('Niveau 10'))
@@ -123,7 +123,7 @@ test('Workflow: create unit', async t => {
     .typeText(addressEmailInput, 'magenta@gmail.dk')
 
     .click(dialog.find('.btn-primary'))
-    
+
     .expect(VueSelector('MoLog')
       .find('.alert').nth(-1).innerText)
     .match(
@@ -131,7 +131,7 @@ test('Workflow: create unit', async t => {
     )
 
     .expect(dialog.exists).notOk()
-  
+
     // TODO: verify that the unit was actually created, somehow?
 
 })
