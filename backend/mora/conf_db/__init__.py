@@ -178,6 +178,15 @@ def set_configuration(configuration, unitid=None):
         return True
 
 
+def get_settings_configuration():
+    settings = config.get_settings()
+    settings_configuration = {
+        key.lstrip("confdb_"): value for key, value in settings.dict().items()
+        if key.startswith("confdb_")
+    }
+    return settings_configuration
+
+
 def health_check():
     """Return a tuple (healthy, msg) where healthy is a boolean and msg
     is the potential error message.
@@ -191,8 +200,18 @@ def health_check():
     """
     try:
         # Check that a connection can be made
-        get_configuration()
+        db_configuration = get_configuration()
     except Exception as e:
         error_msg = "Configuration database connection error: %s"
         return False, error_msg.format(str(e))
+
+    settings_configuration = get_settings_configuration()
+    dict_difference = dict(
+        set(db_configuration.items()) - set(settings_configuration.items())
+    )
+    if dict_difference:
+        error_msg = "Settings not in sync, mismatched keys: {}"
+        return False, error_msg.format(
+            ", ".join(dict_difference.keys())
+        )
     return True, "Success"
