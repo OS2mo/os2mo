@@ -61,7 +61,7 @@ class Tests(ConfigTestCase):
         self.assertRequest(url, json=payload, status_code=410)
 
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_user_key'] is True)
+        self.assertEqual(user_settings, {})
 
     def test_ou_service_response(self):
         """
