@@ -203,7 +203,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         ))
 
         try:
-            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+            attributes = mapping.ORG_UNIT_EGENSKABER_FIELD(original)[-1].copy()
         except (TypeError, LookupError):
             attributes = {}
 
@@ -220,14 +220,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 data[mapping.INTEGRATION_DATA],
             )
 
-        if changed_props:
+        if attributes or changed_props:
             update_fields.append((
                 mapping.ORG_UNIT_EGENSKABER_FIELD,
                 {
                     **attributes,
                     **changed_props,
                 }
-
             ))
 
         if mapping.ORG_UNIT_TYPE in data:
