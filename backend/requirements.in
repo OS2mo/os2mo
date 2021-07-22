@@ -28,3 +28,4 @@ click
 os2mo-fastapi-utils
 structlog
 python-multipart
+prometheus-fastapi-instrumentator

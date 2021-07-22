@@ -38,6 +38,7 @@ fastapi==0.65.2
     # via
     #   -r requirements.in
     #   os2mo-fastapi-utils
+    #   prometheus-fastapi-instrumentator
 googleapis-common-protos==1.53.0
     # via opentelemetry-exporter-jaeger-proto-grpc
 greenlet==1.1.0
@@ -127,6 +128,10 @@ os2mo-fastapi-utils==0.0.3
 os2mo-http-trigger-protocol==0.0.4
     # via -r requirements.in
 pika==1.2.0
+    # via -r requirements.in
+prometheus-client==0.11.0
+    # via prometheus-fastapi-instrumentator
+prometheus-fastapi-instrumentator==5.7.1
     # via -r requirements.in
 protobuf==3.17.3
     # via googleapis-common-protos

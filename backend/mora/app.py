@@ -32,6 +32,7 @@ from . import triggers
 from .api.v1 import reading_endpoints
 from .config import Environment, get_settings
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
+from .metrics import setup_metrics
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -241,10 +242,6 @@ def create_app(instrument: bool = True):
     # `flaskr/static` directory.
     serviceplatformen.check_config()
     triggers.register(app)
-    if os.path.exists(distdir):
-        app.mount("/", StaticFiles(directory=distdir), name="static")
-    else:
-        logger.warning('No dist directory to serve', distdir=distdir)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
@@ -263,5 +260,12 @@ def create_app(instrument: bool = True):
                                   JSONRenderer(indent=2, sort_keys=True)])
     else:
         setup_logging(processors=[merge_contextvars, JSONRenderer()])
+
+    setup_metrics(app)
+
+    if os.path.exists(distdir):
+        app.mount("/", StaticFiles(directory=distdir), name="static")
+    else:
+        logger.warning('No dist directory to serve', distdir=distdir)
 
     return app
