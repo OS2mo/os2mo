@@ -62,12 +62,32 @@ class Settings(BaseSettings):
     sp_certificate_path: Optional[str]
     sp_production: Optional[bool]
 
-    # Keycloak
+    # Keycloak settings
     keycloak_schema: str = "https"
     keycloak_host: str = "keycloak"
     keycloak_port: int = 443
     keycloak_realm: str = "mo"
     keycloak_signing_alg: str = "RS256"
+
+    # ConfDB settings
+    confdb_show_roles: bool = True
+    confdb_show_kle: bool = False
+    confdb_show_user_key: bool = True
+    confdb_show_location: bool = True
+    confdb_show_time_planning: bool = False
+    confdb_show_level: bool = True
+    confdb_show_primary_engagement: bool = False
+    confdb_show_primary_association: bool = False
+    confdb_show_org_unit_button: bool = False
+    confdb_inherit_manager: bool = True
+    confdb_association_dynamic_facets: str = ''
+    confdb_substitute_roles: str = ''
+    confdb_show_cpr_no: bool = True
+    confdb_show_user_key_in_search: bool = False
+    confdb_extension_field_ui_labels: str = ''
+    confdb_show_engagement_hyperlink: bool = False
+    confdb_show_seniority: bool = False
+    confdb_show_owner: bool = False
 
 
 @lru_cache()

@@ -33,18 +33,18 @@ class Tests(ConfigTestCase):
 
     def test_global_user_settings_write(self):
         """
-        Test that it is possible to write a global setting and read it back.
+        Test that it is no longer possible to write a global setting
         """
 
         url = '/service/configuration'
 
         payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest(url, json=payload)
+        self.assertRequest(url, json=payload, status_code=410)
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_roles'] is False)
+        self.assertTrue(user_settings['show_roles'] is True)
 
         payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest(url, json=payload)
+        self.assertRequest(url, json=payload, status_code=410)
         user_settings = self.assertRequest(url)
         self.assertTrue(user_settings['show_roles'] is True)
 
@@ -58,10 +58,10 @@ class Tests(ConfigTestCase):
 
         payload = {"org_units": {"show_user_key": "True"}}
         url = '/service/ou/{}/configuration'.format(uuid)
-        self.assertRequest(url, json=payload)
+        self.assertRequest(url, json=payload, status_code=410)
 
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_user_key'] is True)
+        self.assertEqual(user_settings, {})
 
     def test_ou_service_response(self):
         """
@@ -69,20 +69,21 @@ class Tests(ConfigTestCase):
         configuration settings, including that this endpoint should convert
         the magic strings 'True' and 'False' into boolean values.
         """
+
         self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
         url = '/service/ou/{}/configuration'.format(uuid)
         payload = {"org_units": {"show_user_key": "True"}}
-        self.assertRequest(url, json=payload)
+        self.assertRequest(url, json=payload, status_code=410)
         payload = {"org_units": {"show_location": "False"}}
-        self.assertRequest(url, json=payload)
+        self.assertRequest(url, json=payload, status_code=410)
 
         service_url = '/service/ou/{}/'.format(uuid)
         response = self.assertRequest(service_url)
         user_settings = response['user_settings']['orgunit']
         self.assertTrue(user_settings['show_user_key'])
-        self.assertFalse(user_settings['show_location'])
+        self.assertTrue(user_settings['show_location'])
 
 
 class TestNavLink(ConfigTestCase):
