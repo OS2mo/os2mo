@@ -20,6 +20,7 @@ from mora import __version__, health, log, config
 from mora.auth.exceptions import AuthError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import auth_exception_handler
+from mora.auth.keycloak.config import keycloak_config_router
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -167,6 +168,11 @@ def create_app():
     app.include_router(
         reading_endpoints.router,
         dependencies=[Depends(auth)]
+    )
+    app.include_router(
+        keycloak_config_router(),
+        prefix="/service",
+        tags=["Auth"],
     )
     app.include_router(
         meta_router(),

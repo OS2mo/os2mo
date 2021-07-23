@@ -24,7 +24,6 @@ services:
     # additional volume for it.
     volumes:
       - .:/app/
-      - ./dev-environment/keycloak.json:/app/frontend/public/keycloak.json
       - /app/frontend/node_modules
     depends_on:
       - mo
