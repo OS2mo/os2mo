@@ -16,6 +16,7 @@ New features
 * #43364: Reimplement settings using Pydantic and environment variables
 * #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
 * #44188: Add local Grafana/OpenTelemetry development environment (:3000/explore)
+* #44596: Implement Prometheus FastAPI instrumentor, new metrics endpoint with version and health checks
 
 Bug fixes
 ---------
