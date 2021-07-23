@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     keycloak_port: int = 443
     keycloak_realm: str = "mo"
     keycloak_signing_alg: str = "RS256"
+    keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
+    keycloak_ssl_required: str = "external"
 
     # ConfDB settings
     confdb_show_roles: bool = True

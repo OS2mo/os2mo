@@ -38,6 +38,7 @@ class TestServiceAuth(unittest.TestCase):
         '/organisation/',
         '/',
         '/favicon.ico',
+        '/service/keycloak.json',
         '/service/{rest_of_path:path}',
         '/testing/testcafe-db-setup',
         '/testing/testcafe-db-teardown'

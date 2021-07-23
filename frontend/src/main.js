@@ -27,7 +27,7 @@ sync(store, router)
 
 Vue.config.productionTip = false
 
-let keycloak = Keycloak(window.location.origin + '/keycloak.json')
+let keycloak = Keycloak(window.location.origin + '/service/keycloak.json')
 
 keycloak.init({ onLoad: 'login-required' }).then((auth) => {
   if (!auth) {
