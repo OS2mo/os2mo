@@ -28,6 +28,7 @@ from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import reading_endpoints
+from .config import Environment, get_settings
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
 
 basedir = os.path.dirname(__file__)
@@ -202,6 +203,11 @@ def create_app():
 
     app = setup_instrumentation(app)
 
-    setup_logging(processors=[merge_contextvars, JSONRenderer()])
+    # Adds pretty printed logs for development
+    if get_settings().environment is Environment.DEVELOPMENT:
+        setup_logging(processors=[merge_contextvars,
+                                  JSONRenderer(indent=2, sort_keys=True)])
+    else:
+        setup_logging(processors=[merge_contextvars, JSONRenderer()])
 
     return app
