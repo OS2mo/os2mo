@@ -1421,6 +1421,7 @@ class Tests(tests.cases.LoRATestCase):
                 "type": "org_unit",
                 "data": {
                     "uuid": org_unit_uuid,
+                    "user_key": org_unit_uuid,
                     "validity": {
                         "from": "2016-06-01",
                     },
@@ -1574,6 +1575,7 @@ class Tests(tests.cases.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "uuid": org_unit_uuid,
+                "user_key": org_unit_uuid,
                 "validity": {
                     "from": "2016-06-01",
                 },

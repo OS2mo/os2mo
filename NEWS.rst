@@ -14,6 +14,11 @@ New features
 * #43364: Reimplement settings using Pydantic and environment variables
 * #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
 
+Bug fixes
+---------
+
+* #44674: Editing an organisation unit's start date caused the wrong start date to be used
+
 Version 1.18.1, 2021-07-07
 ==========================
 
