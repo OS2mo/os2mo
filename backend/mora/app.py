@@ -95,7 +95,6 @@ async def fallback_handler(*args, **kwargs):
         lambda arg: isinstance(arg, Exception),
         chain(args, kwargs.values())
     ))
-    print(type(exc))
     if exc and isinstance(exc, FastAPIHTTPException):
         return http_exception_to_json_response(exc=exc)
     if exc:
