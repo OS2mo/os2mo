@@ -80,7 +80,7 @@ def check_configuration_db_status():
     if success:
         logger.info("Configuration database passed health check")
     else:
-        logger.critical(error_msg=error_msg)
+        logger.critical("Config database failed health check", error_msg=error_msg)
         sys.exit(3)
 
 
