@@ -304,6 +304,7 @@ e2e-test:
   image:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
+  needs: ["Build frontend"]
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
