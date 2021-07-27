@@ -1,18 +1,22 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import json
+from datetime import datetime
+from functools import lru_cache
+from itertools import product
+from typing import Dict
+from typing import List
+from typing import Tuple
+
 import pika
-
-from structlog import get_logger
-
-from mora import exceptions, config
-from mora import util
+from mora import config
+from mora import exceptions
 from mora import mapping
 from mora import triggers
+from mora import util
+from structlog import get_logger
 
 logger = get_logger()
-_amqp_connection = {}
 
 _SERVICES = ("employee", "org_unit")
 _OBJECT_TYPES = (
@@ -29,44 +33,52 @@ _OBJECT_TYPES = (
     "related_unit",
     "role",
 )
-_ACTIONS = ("create", "delete", "update", "refresh")
+_ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
 
 
-def publish_message(service, object_type, action, service_uuid, date):
+def publish_message(
+    service: str,
+    object_type: str,
+    action: str,
+    service_uuid: str,
+    object_uuid: str,
+    datetime: datetime,
+) -> None:
     """Send a message to the MO exchange.
 
     For the full documentation, refer to "AMQP Messages" in the docs.
     The source for that is in ``docs/amqp.rst``.
 
-    Message publishing is a secondary task to writting to lora. We
-    should not throw a HTTPError in the case where lora writting is
-    successful, but amqp is down. Therefore, the try/except block.
     """
-
-    if not config.get_settings().amqp_enable:
-        return
-
     # we are strict about the topic format to avoid programmer errors.
     if service not in _SERVICES:
-        raise ValueError("service {!r} not allowed, use one of {!r}".format(
-                         service, _SERVICES))
+        raise ValueError(
+            "service {!r} not allowed, use one of {!r}".format(service, _SERVICES)
+        )
     if object_type not in _OBJECT_TYPES:
         raise ValueError(
             "object_type {!r} not allowed, use one of {!r}".format(
-                object_type, _OBJECT_TYPES))
+                object_type, _OBJECT_TYPES
+            )
+        )
     if action not in _ACTIONS:
-        raise ValueError("action {!r} not allowed, use one of {!r}".format(
-                         action, _ACTIONS))
+        raise ValueError(
+            "action {!r} not allowed, use one of {!r}".format(action, _ACTIONS)
+        )
 
     topic = "{}.{}.{}".format(service, object_type, action)
     message = {
         "uuid": service_uuid,
-        "time": date.isoformat(),
+        "object_uuid": object_uuid,
+        "time": datetime.isoformat(),
     }
 
-    connection = get_connection()
-
+    # Message publishing is a secondary task to writing to lora.
+    #
+    # We should not throw a HTTPError in the case where lora writing is
+    # successful, but amqp is down. Therefore, the try/except block.
     try:
+        connection = get_connection()
         connection["channel"].basic_publish(
             exchange=config.get_settings().amqp_os2mo_exchange,
             routing_key=topic,
@@ -81,46 +93,41 @@ def publish_message(service, object_type, action, service_uuid, date):
         )
 
 
-def amqp_sender(trigger_dict):
+def amqp_sender(trigger_dict: Dict) -> None:
+    request_type = trigger_dict[triggers.Trigger.REQUEST_TYPE]
+
     request = trigger_dict[triggers.Trigger.REQUEST]
-    if (trigger_dict[triggers.Trigger.REQUEST_TYPE] == mapping.RequestType.EDIT):
-        request = request['data']
+    if request_type == mapping.RequestType.EDIT:
+        request = request["data"]
 
     try:  # date = from or to
-        date = util.get_valid_from(request)
+        datetime = util.get_valid_from(request)
     except exceptions.HTTPException:
-        date = util.get_valid_to(request)
-    action = {
-        mapping.RequestType.CREATE: "create",
-        mapping.RequestType.EDIT: "update",
-        mapping.RequestType.TERMINATE: "delete",
-        mapping.RequestType.REFRESH: "refresh",
-    }[trigger_dict[triggers.Trigger.REQUEST_TYPE]]
+        datetime = util.get_valid_to(request)
 
-    amqp_messages = []
+    action = request_type.value.lower()
+    object_type = trigger_dict[triggers.Trigger.ROLE_TYPE]
+    object_uuid = trigger_dict["uuid"]
+
+    amqp_messages: List[Tuple[str, str]] = []
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
-        amqp_messages.append((
-            'employee',
-            trigger_dict[triggers.Trigger.ROLE_TYPE],
-            action,
-            trigger_dict[triggers.Trigger.EMPLOYEE_UUID],
-            date
-        ))
+        amqp_messages.append(
+            (mapping.EMPLOYEE, trigger_dict[triggers.Trigger.EMPLOYEE_UUID])
+        )
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
-        amqp_messages.append((
-            'org_unit',
-            trigger_dict[triggers.Trigger.ROLE_TYPE],
-            action,
-            trigger_dict[triggers.Trigger.ORG_UNIT_UUID],
-            date
-        ))
+        amqp_messages.append(
+            (mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
+        )
 
-    for message in amqp_messages:
-        publish_message(*message)
+    for service, service_uuid in amqp_messages:
+        publish_message(
+            service, object_type, action, service_uuid, object_uuid, datetime
+        )
 
 
+@lru_cache(maxsize=None)
 def get_connection():
     # we cant bail out here, as it seems amqp trigger
     # tests must be able to run without ENABLE_AMQP
@@ -128,46 +135,48 @@ def get_connection():
     # in which case publish_message will bail out
     # this is the original mode of operation restored
 
-    # Please crash if rabbitmq is unavailable.
-    if not _amqp_connection:
-        conn = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=config.get_settings().amqp_host,
-                port=config.get_settings().amqp_port,
-                heartbeat=0,
-            )
+    conn = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host=config.get_settings().amqp_host,
+            port=config.get_settings().amqp_port,
+            heartbeat=0,
         )
-        channel = conn.channel()
-        channel.exchange_declare(
-            exchange=config.get_settings().amqp_os2mo_exchange,
-            exchange_type="topic",
-        )
-
-        _amqp_connection.update({
-            "conn": conn,
-            "channel": channel,
-        })
-
-    return _amqp_connection
+    )
+    channel = conn.channel()
+    channel.exchange_declare(
+        exchange=config.get_settings().amqp_os2mo_exchange,
+        exchange_type="topic",
+    )
+    return {
+        "conn": conn,
+        "channel": channel,
+    }
 
 
-def register(app):
-    """ Register amqp triggers on:
-        any ROLE_TYPE
-        any RequestType
-        but only after submit (ON_AFTER)
+def register(app) -> bool:
+    """Register an ON_AFTER triggers for all ROLE_TYPEs and RequestTypes.
+
+    This method:
+    * Checks the configuration of the module.
+    * Establishes an AMQP connection to check credentials
+    * Registers the AMQP trigger for all types.
     """
+    if not config.get_settings().amqp_enable:
+        logger.debug("AMQP Triggers not enabled!")
+        return False
+
+    # Initialize the connection to check credentials
+    get_connection()
+
+    # Register trigger on everything
     ROLE_TYPES = [
         mapping.EMPLOYEE,
         mapping.ORG_UNIT,
         *mapping.RELATION_TRANSLATIONS.keys(),
     ]
-
-    trigger_combinations = [
-        (role_type, request_type, mapping.EventType.ON_AFTER)
-        for role_type in ROLE_TYPES
-        for request_type in mapping.RequestType
-    ]
-
+    trigger_combinations = product(
+        ROLE_TYPES, mapping.RequestType, [mapping.EventType.ON_AFTER]
+    )
     for combi in trigger_combinations:
         triggers.Trigger.on(*combi)(amqp_sender)
+    return True
