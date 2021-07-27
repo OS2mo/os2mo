@@ -14,6 +14,7 @@ New features
 * #45211: Added commit shas and tags to docker images.
 * #44082: Role-based access control (RBAC) for the organization part of the system. The feature is enabled via an ENV variable
 * #43998: Rework docker-compose.yaml and made database-backing on confdb configurable.
+* #44747: Added Pydantic models to v1 API endpoints
 * #44744: Cleaned up tags in the OpenAPI docs endpoint (/docs)
 * #44744: Added keycloak support on the OpenAPI docs endpoint (/docs)
 * #44717: Added confdb environment settings, adjusted confdb healthcheck, disabled set configuration endpoints
