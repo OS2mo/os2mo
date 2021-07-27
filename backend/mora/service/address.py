@@ -46,8 +46,7 @@ async def get_address_type(effect):
 
 async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, Any]:
     scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
-    handler = base.get_handler_for_scope(scope).from_effect(effect)
-
+    handler = await base.get_handler_for_scope(scope).afrom_effect(effect)
     return await handler.get_mo_address_and_properties(only_primary_uuid)
 
 

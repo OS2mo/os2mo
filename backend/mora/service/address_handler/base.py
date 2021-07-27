@@ -41,6 +41,12 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         self._value2 = value2
 
     @classmethod
+    async def afrom_effect(cls, effect):
+        """Initialize handler from LoRa object"""
+        handler = cls.from_effect(effect)
+        return handler
+
+    @classmethod
     def from_effect(cls, effect):
         """Initialize handler from LoRa object"""
         # Cut off the prefix

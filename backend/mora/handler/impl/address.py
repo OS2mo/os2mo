@@ -30,7 +30,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
-        handler = base.get_handler_for_scope(scope).from_effect(effect)
+        handler = await base.get_handler_for_scope(scope).afrom_effect(effect)
 
         base_obj_task = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid))

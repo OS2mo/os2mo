@@ -8,6 +8,12 @@ from asyncio import create_task, gather
 from datetime import datetime
 from inspect import isawaitable
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+from functools import partial
+from itertools import starmap
+
+from more_itertools import flatten
+from more_itertools import ilen
+from ra_utils.apply import apply
 
 from .. import exceptions, util
 from .. import mapping
@@ -76,6 +82,7 @@ class ReadingHandler:
         """
         pass
 
+    # TODO: Why do subclasses have funcid instead of obj_id?!
     @classmethod
     @abc.abstractmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
@@ -91,8 +98,12 @@ class ReadingHandler:
         pass
 
     @classmethod
-    async def __async_get_mo_object_from_effect(cls, c, function_id,
-                                                function_obj) -> List[Any]:
+    async def __async_get_mo_object_from_effect(
+        cls,
+        c: Connector,
+        function_id: str,
+        function_obj: Any,
+    ) -> List[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by
         business logic
@@ -101,29 +112,38 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
-        return await gather(*[create_task(
-            cls._get_mo_object_from_effect(effect, start, end, function_id))
-            for start, end, effect in (await cls._get_effects(c, function_obj))
-            if util.is_reg_valid(effect)])
+        effects = await cls._get_effects(c, function_obj)
+        effects = filter(
+            apply(lambda start, end, effect: util.is_reg_valid(effect)),
+            effects
+        )
+        # TODO: This swapping argument order should be avoidable, if the functions
+        #       actually fit together, so they could be chained.
+        effects = starmap(lambda start, end, effect: (effect, start, end), effects)
+        # TODO: Partial could work here if funcid/obj_id was consistently named
+        effects = map(lambda tup: (*tup, function_id), effects)
+        tasks = map(create_task, starmap(
+            cls._get_mo_object_from_effect, effects
+        ))
+        return await gather(*tasks)
 
     @classmethod
-    async def _get_obj_effects(cls, c: Connector,
-                               object_tuples: Iterable[Tuple[str, Dict[Any, Any]]]
-                               ) -> List[Dict[Any, Any]]:
+    async def _get_obj_effects(
+        cls,
+        c: Connector,
+        object_tuples: Iterable[Tuple[str, Dict[Any, Any]]]
+    ) -> List[Dict[Any, Any]]:
         """
         Convert a list of LoRa objects into a list of MO objects
 
         :param c: A LoRa connector
         :param object_tuples: An iterable of (UUID, object) tuples
         """
-        # flatten a bunch of nested tasks
-        return [x for sublist in
-                await gather(
-                    *[create_task(cls.__async_get_mo_object_from_effect(c,
-                                                                        function_id,
-                                                                        function_obj))
-                      for function_id, function_obj in object_tuples])
-                for x in sublist]
+        tasks = map(create_task, starmap(
+            partial(cls.__async_get_mo_object_from_effect, c),
+            object_tuples
+        ))
+        return list(flatten(await gather(*tasks)))
 
 
 class OrgFunkReadingHandler(ReadingHandler):
@@ -151,20 +171,22 @@ class OrgFunkReadingHandler(ReadingHandler):
         object_tuples = await cls._get_lora_object(c, search_fields,
                                                    changed_since=changed_since)
         object_tuples = list(object_tuples)
+
         mo_objects = await cls._get_obj_effects(c, object_tuples)
+        mo_objects = list(mo_objects)
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
-        tasks = []
-        mo_objects = list(mo_objects)
-        for mo_object in mo_objects:
-            for key, val in mo_object.items():
-                if isawaitable(val):
-                    tasks.append(create_task(cls.assign_when_ready(mapping=mo_object,
-                                                                   key=key,
-                                                                   awaitable_value=val)
-                                             )
-                                 )
-        await gather(*tasks)  # ensure everything has completed
+        def generate_awaitables(mo_objects):
+            for mo_object in mo_objects:
+                for key, val in mo_object.items():
+                    if isawaitable(val):
+                        yield mo_object, key, val
+
+        # Ensure all async tasks have completed
+        awaitables = generate_awaitables(mo_objects)
+        awaitables = map(create_task, starmap(cls.assign_when_ready, awaitables))
+        await gather(*awaitables)
+
         return mo_objects
 
     @classmethod
@@ -191,7 +213,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         :return: int
         """
         tuple_gen = await cls._get_lora_object(c, cls._get_search_fields(type, objid))
-        return len(list(filter(lambda tup: util.is_reg_valid(tup[1]), tuple_gen)))
+        return ilen(filter(lambda tup: util.is_reg_valid(tup[1]), tuple_gen))
 
     @classmethod
     def _get_search_fields(cls, type, objid):
