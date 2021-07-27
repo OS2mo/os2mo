@@ -198,8 +198,7 @@ def create_app(instrument: bool = True):
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
         async with request_wide_bulk.cache_context():
-            response = await call_next(request)
-        return response
+            return await call_next(request)
 
     app.include_router(
         health.router,

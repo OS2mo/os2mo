@@ -3,6 +3,7 @@ In development
 
 New features
 ------------
+* #44153: Added Pydantic models to v1 API endpoints
 * #44744: Cleaned up tags in the OpenAPI docs endpoint (/docs)
 * #44744: Added keycloak support on the OpenAPI docs endpoint (/docs)
 * #44717: Added confdb environment settings, adjusted confdb healthcheck, disabled set configuration endpoints
