@@ -24,20 +24,20 @@ from . import related  # noqa
 from . import role  # noqa
 from .validation import validate
 
-routers = (
-    address.router,
-    cpr.router,
-    detail_reading.router,
-    detail_writing.router,
-    employee.router,
-    exports.router,
-    facet.router,
-    integration_data.router,
-    itsystem.router,
-    kle.router,
-    org.router,
-    orgunit.router,
-    related.router,
-    configuration.router,
-    validate.router,
-)
+routers = {
+    "Address": address.router,
+    "CPR": cpr.router,
+    "DetailReading": detail_reading.router,
+    "DetailWriting": detail_writing.router,
+    "Employee": employee.router,
+    "Exports": exports.router,
+    "Facet": facet.router,
+    "IntegrationData": integration_data.router,
+    "ITSystem": itsystem.router,
+    "KLE": kle.router,
+    "Organisation": org.router,
+    "OrganisationUnit": orgunit.router,
+    "Related": related.router,
+    "Configuration": configuration.router,
+    "Validate": validate.router,
+}

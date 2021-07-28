@@ -289,7 +289,7 @@ async def load_sample_structures(minimal=False):
         await load_fixture(path, fixture_name, uuid)
 
 
-def setup_test_routing(app):
+def setup_test_routing():
     """
     Returns an app with testing API for e2e-test enabled. It is a superset
     to `mora.app.create_app()`.
@@ -309,9 +309,7 @@ def setup_test_routing(app):
         _mox_testing_api("db-teardown")
         return jsonable_encoder({"testcafe-db-teardown": True})
 
-    app.include_router(testing_router)
-
-    return app
+    return testing_router
 
 
 @contextlib.contextmanager

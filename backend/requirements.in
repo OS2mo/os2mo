@@ -27,3 +27,4 @@ werkzeug
 click
 os2mo-fastapi-utils
 structlog
+python-multipart

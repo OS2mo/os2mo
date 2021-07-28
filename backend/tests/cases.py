@@ -64,7 +64,7 @@ class _BaseTestCase(TestCase):
         # make sure the configured organisation is always reset
         # every before test
         service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app()
+        app_ = app.create_app(instrument=False)
 
         return app_
 
