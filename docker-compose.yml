@@ -152,10 +152,10 @@ services:
       POSTGRES_PASSWORD: keycloak
 
   otel-collector:
-    image: otel/opentelemetry-collector:0.23.0
-    command: "--config /etc/otel-config.yml"
+    image: otel/opentelemetry-collector:0.31.0
+    command: "--config /etc/otel-collector/config.yaml"
     volumes:
-      - ./dev-environment/otel-config.yml:/etc/otel-config.yml
+      - ./dev-environment/otel-config.yml:/etc/otel-collector/config.yaml
 
   grafana:
     image: grafana/grafana
@@ -173,7 +173,3 @@ services:
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./dev-environment/tempo.yml:/etc/tempo.yaml
-    ports:
-      - "3200"   # tempo
-      - "55680"  # otlp grpc
-      - "55681"  # otlp http

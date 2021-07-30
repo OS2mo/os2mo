@@ -91,9 +91,6 @@ class Settings(BaseSettings):
     confdb_show_seniority: bool = False
     confdb_show_owner: bool = False
 
-    # JAEGER Settings
-    jaeger_port: str = "55678"  # TODO: Ask if this is the right way to do this
-
 
 @lru_cache()
 def get_settings() -> Settings:
