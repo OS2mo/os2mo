@@ -188,7 +188,7 @@ Build docs:
 
 .test-default: &test-default
   stage: test
-  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB"]
+  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
   tags:
     - docker
@@ -282,7 +282,6 @@ Vue-unit-test:
     name: ${FRONTEND_IMAGE_SHA}
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  needs: ["Build frontend"]
   script:
     - cd /app/frontend
     - yarn install --dev
@@ -305,7 +304,6 @@ e2e-test:
   image:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
-  needs: ["Build frontend"]
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
