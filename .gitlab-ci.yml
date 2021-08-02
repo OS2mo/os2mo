@@ -227,8 +227,9 @@ Build docs:
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
-    # for testcafe
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
     BASE_URL: http://mo:80
+
 
 Alembic-test:
   <<: *test-default
@@ -312,6 +313,10 @@ e2e-test:
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo
+    - name: ${KEYCLOAK_IMAGE_SHA}
+      alias: keycloak
+    - name: ${KEYCLOAK_DB_IMAGE_SHA}
+      alias: keycloak-db
   script:
     - cd /
     - /opt/testcafe/docker/testcafe-docker.sh
