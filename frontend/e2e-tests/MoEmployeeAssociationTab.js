@@ -5,7 +5,6 @@ import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support'
 import { login } from './login'
-import log from "../src/store/modules/log";
 
 let moment = require('moment')
 
