@@ -28,4 +28,5 @@ click
 os2mo-fastapi-utils
 structlog
 python-multipart
-prometheus-fastapi-instrumentator
+# Pending PR: https://github.com/trallnag/prometheus-fastapi-instrumentator/pull/61
+prometheus-fastapi-instrumentator @ git+git://github.com/AndreasPB/prometheus-fastapi-instrumentator.git@master#egg=prometheus-fastapi-instrumentator

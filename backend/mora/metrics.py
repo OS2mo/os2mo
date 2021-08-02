@@ -2,29 +2,25 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Callable
 
-from mora.health import dar, dataset, configuration_database, oio_rest, amqp
+from mora.health import dar, dataset, oio_rest, amqp
 from prometheus_client import Info, Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
+from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
 
 from . import __version__
-from .config import Environment, get_settings
+from .config import get_settings
 
 
 def setup_metrics(app):
-    if get_settings().environment is Environment.TESTING:
-        return
+    instrumentator = Instrumentator(should_instrument_requests_inprogress=True)
 
-    instrumentator = Instrumentator()
-
+    instrumentator.add(default())
     instrumentator.add(os2mo_version())
     instrumentator.add(amqp_enabled())
     if get_settings().amqp_enable:
         instrumentator.add(amqp_health())
     instrumentator.add(oio_rest_health())
-    instrumentator.add(configuration_database_health())
-    # TODO: Fix Exception: asyncio does not allow nested (or reentrant) event loops
-    # instrumentator.add(dataset_health())
+    instrumentator.add(dataset_health())
     instrumentator.add(dar_health())
 
     instrumentator.instrument(app).expose(app)
@@ -76,19 +72,6 @@ def oio_rest_health() -> Callable[[InstInfo], None]:
     return instrumentation
 
 
-def configuration_database_health() -> Callable[[InstInfo], None]:
-    """Check if configuration database is reachable and initialized with default data
-    True if reachable and initialized. False if not.
-    """
-    METRIC = Gauge('configuration_database_health', 'Configuration database health')
-
-    def instrumentation(_: InstInfo):
-        METRIC.set(configuration_database())
-
-    return instrumentation
-
-
-# TODO: Fix Exception: asyncio does not allow nested (or reentrant) event loops
 def dataset_health() -> Callable[[InstInfo], None]:
     """Check if LoRa contains data. We check this by determining if an organisation
     exists in the system
@@ -96,8 +79,8 @@ def dataset_health() -> Callable[[InstInfo], None]:
     """
     METRIC = Gauge('dataset_health', 'Dataset health')
 
-    def instrumentation(_: InstInfo):
-        METRIC.set(dataset())
+    async def instrumentation(_: InstInfo):
+        METRIC.set(await dataset())
 
     return instrumentation
 

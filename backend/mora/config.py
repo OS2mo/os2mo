@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import os
 from enum import Enum
 from functools import lru_cache
 from pydantic import BaseSettings, AnyHttpUrl
@@ -100,3 +101,7 @@ def get_settings() -> Settings:
 def is_production() -> bool:
     """Return whether we are running in a production environment"""
     return get_settings().environment is Environment.PRODUCTION
+
+
+def is_under_test() -> bool:
+    return os.environ.get('PYTEST_RUNNING', False)

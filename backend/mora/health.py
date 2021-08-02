@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import asyncio
 
 import requests
 from fastapi import APIRouter
@@ -8,7 +8,6 @@ from pika.exceptions import AMQPError
 from requests.exceptions import RequestException
 from structlog import get_logger
 
-import mora.async_util
 from mora import conf_db, lora, config
 from mora.exceptions import HTTPException
 from mora.triggers.internal import amqp_trigger
@@ -91,7 +90,6 @@ def configuration_database():
 
 
 @register_health_endpoint
-@mora.async_util.async_to_sync  # needs to be sync, flask blueprint endpoint
 async def dataset():
     """
     Check if LoRa contains data. We check this by determining if an organisation
@@ -134,8 +132,11 @@ def dar():
 
 @router.get("/")
 # @util.restrictargs()
-def root():
-    health = {func.__name__: func() for func in HEALTH_ENDPOINTS}
+async def root():
+    health = {
+        func.__name__: await func() if asyncio.iscoroutinefunction(func) else func()
+        for func in HEALTH_ENDPOINTS
+    }
     return health
 
 
