@@ -151,7 +151,25 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
 
-  jaeger:
-    image: jaegertracing/all-in-one
+  otel-collector:
+    image: otel/opentelemetry-collector:0.31.0
+    command: "--config /etc/otel-collector/config.yaml"
+    volumes:
+      - ./dev-environment/otel-config.yml:/etc/otel-collector/config.yaml
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - ./dev-environment/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:  # Disables all auth - Skips login
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
     ports:
-      - "16686:16686"
+      - "3000:3000"
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./dev-environment/tempo.yml:/etc/tempo.yaml
