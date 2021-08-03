@@ -42,7 +42,8 @@ class TestServiceAuth(unittest.TestCase):
         '/service/token',
         '/service/{rest_of_path:path}',
         '/testing/testcafe-db-setup',
-        '/testing/testcafe-db-teardown'
+        '/testing/testcafe-db-teardown',
+        '/metrics'
     )
 
     @staticmethod

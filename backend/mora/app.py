@@ -30,8 +30,9 @@ from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import reading_endpoints
-from .config import Environment, get_settings
+from .config import Environment, get_settings, is_under_test
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
+from .metrics import setup_metrics
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -134,7 +135,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app(instrument: bool = True):
+def create_app():
     """
     Create and return a FastApi app instance for MORA.
     """
@@ -241,10 +242,6 @@ def create_app(instrument: bool = True):
     # `flaskr/static` directory.
     serviceplatformen.check_config()
     triggers.register(app)
-    if os.path.exists(distdir):
-        app.mount("/", StaticFiles(directory=distdir), name="static")
-    else:
-        logger.warning('No dist directory to serve', distdir=distdir)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
@@ -254,8 +251,9 @@ def create_app(instrument: bool = True):
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthError, auth_exception_handler)
 
-    if instrument:
+    if not is_under_test():
         app = setup_instrumentation(app)
+        setup_metrics(app)
 
     # Adds pretty printed logs for development
     if get_settings().environment is Environment.DEVELOPMENT:
@@ -263,5 +261,10 @@ def create_app(instrument: bool = True):
                                   JSONRenderer(indent=2, sort_keys=True)])
     else:
         setup_logging(processors=[merge_contextvars, JSONRenderer()])
+
+    if os.path.exists(distdir):
+        app.mount("/", StaticFiles(directory=distdir), name="static")
+    else:
+        logger.warning('No dist directory to serve', distdir=distdir)
 
     return app
