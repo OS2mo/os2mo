@@ -113,7 +113,7 @@ test('View no mapping', async t => {
     ])})
 
 
-test('Writing mapping', async t => {
+test.skip('Writing mapping', async t => {
   await t
     .click(mapperButton)
     .expect(headerText.exists).ok()
