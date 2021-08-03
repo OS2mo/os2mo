@@ -320,6 +320,7 @@ e2e-test:
     - /opt/testcafe/docker/testcafe-docker.sh
         chromium:headless
         $CI_PROJECT_DIR/frontend/e2e-tests
+        --skip-js-errors
         --selector-timeout 30000
         --screenshot $CI_PROJECT_DIR/artifacts
         --video $CI_PROJECT_DIR/artifacts
