@@ -805,3 +805,14 @@ def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
     :return: List-wrapped obj
     """
     return obj if isinstance(obj, list) else [obj]
+
+
+def query_to_search_phrase(query: str):
+    # If query consists of only digits, spaces and separators, try to
+    # treat it as purely numeric, to support whole and partial matches on
+    # CPR numbers, etc.
+    if re.match(r"[\d|\s|\-]+", query):
+        # Strip non-digits from query
+        query = re.sub(r"[^\d]", "", query)
+    # Substring match
+    return f"%{query}%"

@@ -25,6 +25,7 @@ url = "http://localhost:80/"
 [autocomplete]
 access_address_count = 5
 address_count = 10
+autocomplete_use_new_api = false
 
 
 [organisation]

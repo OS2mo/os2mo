@@ -3,6 +3,7 @@
 
 import Service from './HttpCommon'
 import store from '@/store'
+import { Conf } from '@/store/actions/conf'
 
 export default {
   /**
@@ -13,28 +14,21 @@ export default {
    */
   employees (orgUuid, query) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/e/?query=${query}`)
+
+    let conf = store.getters[Conf.getters.GET_CONF_DB]
+    var serviceUrl
+    if (conf.autocomplete_use_new_api) {
+      serviceUrl = `/e/autocomplete/?query=${query}`
+    } else {
+      serviceUrl = `/o/${orgUuid}/e/?query=${query}`
+    }
+
+    return Service.get(serviceUrl)
       .then(response => {
         return response.data.items
       })
       .catch(error => {
         console.log(error.response)
-      })
-  },
-
-  /**
- * Look up a CPR number in the service platform
- * @param {String} query - search query. Can ONLY be a FULL CPR number
- * @returns {Object} the data matching the query
- */
-  cprLookup (query) {
-    return Service.get(`/e/cpr_lookup/?q=${query}`)
-      .then(response => {
-        return response.data
-      })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
-        return error.response.data
       })
   },
 
@@ -48,12 +42,37 @@ export default {
    */
   organisations (orgUuid, query, date, details) {
     query = query || ''
-    return Service.get(`/o/${orgUuid}/ou/?query=${query}&at=${date}&details=${details}`)
+
+    let conf = store.getters[Conf.getters.GET_CONF_DB]
+    var serviceUrl
+    if (conf.autocomplete_use_new_api) {
+      serviceUrl = `/ou/autocomplete/?query=${query}`
+    } else {
+      serviceUrl = `/o/${orgUuid}/ou/?query=${query}&at=${date}&details=${details}`
+    }
+
+    return Service.get(serviceUrl)
       .then(response => {
         return response.data.items
       })
       .catch(error => {
         console.log(error.response)
+      })
+  },
+
+  /**
+   * Look up a CPR number in the service platform
+   * @param {String} query - search query. Can ONLY be a FULL CPR number
+   * @returns {Object} the data matching the query
+   */
+  cprLookup (query) {
+    return Service.get(`/e/cpr_lookup/?q=${query}`)
+      .then(response => {
+        return response.data
+      })
+      .catch(error => {
+        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
+        return error.response.data
       })
   },
 

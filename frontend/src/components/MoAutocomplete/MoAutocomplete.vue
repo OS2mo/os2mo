@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
     :search="search"
     :getResultValue="getResultValue"
     :autoSelect="true"
-    :debounceTime="1"
+    :debounceTime="500"
     @submit="onSubmit">
     <template
       slot="default"

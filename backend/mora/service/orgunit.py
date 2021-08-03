@@ -43,6 +43,7 @@ from .. import mapping
 from .. import util
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
+from ..lora import AutocompleteScope
 from ..triggers import Trigger
 
 router = APIRouter()
@@ -634,6 +635,15 @@ async def get_one_orgunit(c: lora.Connector,
         r['%s_count' % key] = await reader.get_count(c, 'ou', unitid)
 
     return r
+
+
+@router.get('/ou/autocomplete/')
+async def autocomplete_orgunits(query: str):
+    connector = common.get_connector()
+    if query:
+        scope = AutocompleteScope(connector, "organisationsenhed")
+        return (await scope.fetch(phrase=util.query_to_search_phrase(query)))
+    return {"items": []}
 
 
 @router.get('/{type}/{parentid}/children')

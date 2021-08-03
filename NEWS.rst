@@ -5,6 +5,7 @@ New features
 ------------
 
 * #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
+* #38239: Users can now search on more properties of employees and organisation units.
 
 Version 1.18.1, 2021-07-07
 ==========================

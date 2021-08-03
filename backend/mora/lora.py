@@ -446,3 +446,19 @@ async def get_version():
             return (await response.json())["lora_version"]
         except ValueError:
             return "Could not find lora version: %s" % await response.text()
+
+
+class AutocompleteScope(Scope):
+    def __init__(self, connector, path):
+        self.connector = connector
+        self.path = f"autocomplete/{path}"
+
+    async def fetch(self, phrase):
+        params = {"phrase": phrase}
+        async with ClientSession() as session:
+            response = await session.get(self.base_path, params=params)
+            await _check_response(response)
+            return {"items": (await response.json())["results"]}
+
+    async def paged_get(self, func, **params):
+        raise NotImplementedError()
