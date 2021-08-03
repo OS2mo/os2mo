@@ -315,6 +315,7 @@ e2e-test:
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
   script:
+    - sleep 30
     - cd /
     - /opt/testcafe/docker/testcafe-docker.sh
         chromium:headless
