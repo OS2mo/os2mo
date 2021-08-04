@@ -51,9 +51,9 @@ class Settings(BaseSettings):
 
     # AMQP settings
     amqp_enable: bool = False
-    amqp_host: Optional[str]
-    amqp_port: Optional[str]
-    amqp_os2mo_exchange: Optional[str]
+    amqp_host: str = "msg_broker"
+    amqp_port: int = 5672
+    amqp_os2mo_exchange: str = "os2mo"
 
     # Serviceplatform settings
     sp_service_uuid: Optional[UUID]

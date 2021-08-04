@@ -1,16 +1,22 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Set
 
 from structlog import get_logger
 
 from .. import util
 from ..exceptions import ErrorCodes
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 
 logger = get_logger()
 
 
 def register(app):
+    """Call register on our internal trigger modules."""
     from mora.triggers.internal import amqp_trigger, http_trigger
 
     trigger_modules = [amqp_trigger, http_trigger]
@@ -20,15 +26,28 @@ def register(app):
         try:
             trigger_module.register(app)
         except Exception:
-            logger.exception("Exception during register call",
-                             trigger_module=trigger_module)
+            logger.exception(
+                "Exception during register call", trigger_module=trigger_module
+            )
             raise
 
 
 class Trigger:
     """Trigger registry, retrieval, and decorator methods"""
 
-    registry = {}
+    registry: Dict[
+        str,
+        Dict[
+            RequestType,
+            Dict[
+                EventType,
+                Set[
+                    # TODO: Replace Dict[str, Any] with MOTriggerPayload
+                    Callable[[Dict[str, Any]], None]
+                ],
+            ],
+        ],
+    ] = {}
 
     class Error(Exception):
         def __init__(self, message, **extra):
@@ -47,17 +66,19 @@ class Trigger:
 
     @classmethod
     def run(cls, trigger_dict):
-        """find relevant triggers for supplied
-        role type, request type, and event type
-        and call each triggerfunction with the argument
+        """Find the relevant set of trigger functions and trigger them in turn.
+
+        The relevant set is found by lookup into the registry using role, request and
+        event-type.
         """
         # TODO: Lad return typen fra triggers ende i Arbejdsloggen?
         if util.get_args_flag("triggerless"):
             return
+
         triggers = (
             cls.registry.get(trigger_dict[cls.ROLE_TYPE], {})
             .get(trigger_dict[cls.REQUEST_TYPE], {})
-            .get(trigger_dict[cls.EVENT_TYPE], [])
+            .get(trigger_dict[cls.EVENT_TYPE], set())
         )
         results = []
         for t in triggers:
@@ -70,10 +91,11 @@ class Trigger:
         return results
 
     @classmethod
-    def on(cls, role_type, request_type: RequestType, event_type: EventType):
-        """find relevant registry-list for supplied
-        role type, request type, and event type
-        then append this trigger function to the list
+    def on(cls, role_type: str, request_type: RequestType, event_type: EventType):
+        """Add the decorated trigger function to relevant set of functions.
+
+        The relevant set is found by lookup into the registry using role, request and
+        event-type.
         """
         assert request_type in RequestType
         assert event_type in EventType
