@@ -321,6 +321,7 @@ e2e-test:
         chromium:headless
         $CI_PROJECT_DIR/frontend/e2e-tests
         --skip-js-errors
+        --speed 0.7
         --selector-timeout 30000
         --screenshot $CI_PROJECT_DIR/artifacts
         --video $CI_PROJECT_DIR/artifacts
