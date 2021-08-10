@@ -137,7 +137,7 @@ services:
     #   - /var/lib/postgresql/data
 
   mox-db-init:
-    image: magentaaps/postgres-os2mo:12.2-11.7
+    image: magentaaps/postgres-os2mo:12.2-11.7-test
     # build:
     #   context: ../postgres-os2mo
     #   dockerfile: docker/Dockerfile
