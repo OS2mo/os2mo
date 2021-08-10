@@ -4,11 +4,13 @@
 import axios from 'axios';
 import _ from 'lodash';
 
-export let baseURL = process.env.BASE_URL || 'http://localhost:5000';
+export let baseURL = process.env.BASE_URL || 'http://localhost:5001';
+export let bakendBaseURL = process.env.BASE_URL || 'http://localhost:5000';
+
 
 export async function setup(ctx) {
 
-  await axios.get(`${baseURL}/testing/testcafe-db-setup`)
+  await axios.get(`${bakendBaseURL}/testing/testcafe-db-setup`)
     .then(response => {
       if (_.isEqual(response.data, { 'testcafe-db-setup': true })) {
 
@@ -36,7 +38,7 @@ export async function teardown(ctx) {
   if (ctx.setup_error) {
     console.warn("Setup of the test database failed. Skipping teardown.");
   } else {
-    await axios.get(`${baseURL}/testing/testcafe-db-teardown`)
+    await axios.get(`${bakendBaseURL}/testing/testcafe-db-teardown`)
       .then(response => {
         console.log("Teardown database for testcafe.");
 

@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support'
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -18,8 +19,14 @@ const engagementCheckbox = dialog.find('.container')
 
 const parentEngagementInput = dialog.find('input[data-vv-as="Angiv enhed"]')
 
+const engagementBoarder = dialog.find('.btn-engagement')
+const engagementButton = engagementBoarder.find('.btn-outline-success')
+
 const jobFunctionEngagementSelect = dialog.find('select[data-vv-as="Stillingsbetegnelse"]')
 const jobFunctionEngagementOption = jobFunctionEngagementSelect.find('option')
+
+const primaryEngagementSelect = dialog.find('.btn-engagement select[data-vv-as="Primær"]')
+const primaryEngagementOption = primaryEngagementSelect.find('option')
 
 const engagementTypeSelect = dialog.find('select[data-vv-as="Engagementstype"]')
 const engagementTypeOption = engagementTypeSelect.find('option')
@@ -39,6 +46,9 @@ const addressVisibilityOption = addressVisibility.find('option')
 const associationCheckbox = dialog.find('[data-vv-as="Primær tilknytning"] .container')
 
 const parentAssociationInput = dialog.find('.unit-association input[data-vv-as="Angiv enhed"]')
+
+const primaryAssociationSelect = dialog.find('.btn-association select[data-vv-as="Primær"]')
+const primaryAssociationOption = primaryAssociationSelect.find('option')
 
 const associationTypeSelect = dialog.find('.select-association select[data-vv-as="Tilknytningsrolle"]')
 const associationTypeOption = associationTypeSelect.find('option')
@@ -67,19 +77,21 @@ const responsibilityManagerSelect = dialog.find('.responsibility-manager select[
 const responsibilityManagerOption = responsibilityManagerSelect.find('option')
 
 // Search field
-const searchField = Selector('.search-bar')
-const searchFieldItem = searchField.find('.v-autocomplete-list-item')
+const searchField = Selector('div').withAttribute('class', 'search')
+const searchFieldItem = searchField.find('.autocomplete-result-list')
 
 fixture('MoEmployeeCreate')
   .before(setup)
   .after(teardown)
-  .page(`${baseURL}/medarbejder/liste`)
+  .page(`${baseURL}/medarbejder/liste/`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 test('Workflow: create employee', async t => {
   let today = moment()
 
   await t
-
     .hover('#mo-workflow', { offsetX: 10, offsetY: 10 })
     .click('.btn-employee-create')
 
@@ -101,6 +113,8 @@ test('Workflow: create employee', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(engagementButton)
+
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
@@ -118,6 +132,9 @@ test('Workflow: create employee', async t => {
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    .click(primaryEngagementSelect)
+    .click(primaryEngagementOption.withText('Sekundær'))
 
     // Address
     .click(dialog.find('.btn-address .btn-outline-success'))
@@ -139,6 +156,9 @@ test('Workflow: create employee', async t => {
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Projektleder'))
+
+    .click(primaryAssociationSelect)
+    .click(primaryAssociationOption.withText('Sekundær'))
 
     // Role
     .click(dialog.find('.btn-role .btn-outline-success'))
@@ -182,7 +202,9 @@ test('Workflow: create employee', async t => {
     .match(
       /Medarbejderen (.+) er blevet oprettet under (.+)\./
     )
+
     // Verify that we can search for the newly created employee
+    .navigateTo(`${baseURL}/medarbejder/liste/`)
     .click(searchField)
     .typeText(searchField.find('input'), 'sig')
     .expect(searchFieldItem.withText('Signe Kristensen').visible).ok()
@@ -203,6 +225,8 @@ test('Workflow: create employee with role only', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(engagementButton)
+
     .click(parentEngagementInput)
     .click(dialog.find('span.tree-anchor'))
 
@@ -219,6 +243,8 @@ test('Workflow: create employee with role only', async t => {
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
 
+    .click(primaryEngagementSelect)
+    .click(primaryEngagementOption.withText('Sekundær'))
     // Role
     .click(dialog.find('.btn-role .btn-outline-success'))
 
@@ -264,6 +290,8 @@ test('Workflow: create employee with association to unit lacking address', async
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(engagementButton)
+
     .click(parentEngagementInput)
     .expect(dialog.find('span.tree-anchor').exists)
     .ok()
@@ -271,7 +299,7 @@ test('Workflow: create employee with association to unit lacking address', async
 
     .click(jobFunctionEngagementSelect)
     .click(jobFunctionEngagementOption.withText('Skolepsykolog'))
-    
+
     .click(engagementTypeSelect)
     .click(engagementTypeOption.withText('Ansat'))
 
@@ -281,6 +309,9 @@ test('Workflow: create employee with association to unit lacking address', async
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    .click(primaryEngagementSelect)
+    .click(primaryEngagementOption.withText('Sekundær'))
 
     // Association
     .click(dialog.find('.btn-association .btn-outline-success'))
@@ -294,6 +325,9 @@ test('Workflow: create employee with association to unit lacking address', async
     .ok()
     .click(dialog.find('.unit-association .tree-node .tree-content')
       .withText('Social og sundhed'))
+
+    .click(primaryAssociationSelect)
+    .click(primaryAssociationOption.withText('Sekundær'))
 
     .click(associationTypeSelect)
     .click(associationTypeOption.withText('Projektleder'))
@@ -334,6 +368,8 @@ test('Workflow: create employee with itsystem only', async t => {
     .expect(checkbox.checked).ok()
 
     // Engagement
+    .click(engagementButton)
+
     .click(parentEngagementInput)
     .click(dialog.find('span.tree-anchor'))
 
@@ -349,6 +385,9 @@ test('Workflow: create employee with itsystem only', async t => {
     .click(dialog.find('.vdp-datepicker .day:not(.blank)')
       .withText(today.date().toString()))
     .expect(fromInput.value).eql(today.format('DD-MM-YYYY'))
+
+    .click(primaryEngagementSelect)
+    .click(primaryEngagementOption.withText('Sekundær'))
 
     // IT System
     .click(dialog.find('.btn-itSystem .btn-outline-success'))

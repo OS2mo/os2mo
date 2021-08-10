@@ -4,6 +4,7 @@
 import {Selector} from 'testcafe'
 import { baseURL, setup, teardown } from './support';
 import VueSelector from 'testcafe-vue-selectors'
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,13 +12,14 @@ fixture('MoOrganisationUnitTerminate')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const createDialog = Selector('#orgUnitCreate')
 
-// TODO: Re-enable when TestCafe runs with every config setting
-// https://redmine.magenta-aps.dk/issues/34509
-// const createTimeSelect = createDialog.find('select[data-vv-as="Tidsregistrering"]')
-// const createTimeOption = createTimeSelect.find('option')
+const createTimeSelect = createDialog.find('select[data-vv-as="Tidsregistrering"]')
+const createTimeOption = createTimeSelect.find('option')
 
 const levelSelect = createDialog.find('select[data-vv-as="Enhedsniveau"]')
 const levelOption = levelSelect.find('option')
@@ -73,10 +75,9 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
 
-  // TODO: Re-enable when TestCafe runs with every config setting
-  // https://redmine.magenta-aps.dk/issues/34509
-  // .click(createTimeSelect)
-  // .click(createTimeOption.withText('Tjenestetid'))
+
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(levelSelect)
     .click(levelOption.withText('Niveau 10'))
@@ -174,11 +175,11 @@ test('Workflow: terminate and rename org unit, selecting date first', async t =>
   let actualPresent = present.split(/[\n\t]+/).map(s => s.trim()).join("|")
 
   let expectedPast = [
-    "Hjørring VM 2018", "Institut", "Niveau 10", "Lønorganisation",
+    "Hjørring VM 2018", "Institut", "Niveau 10", "Tjenestetid", "Lønorganisation",
     lastMonth.format("DD-MM-YYYY"), yesterday.format("DD-MM-YYYY"), ""
   ].join("|")
   let expectedPresent = [
-    "Hjørring VM 2019", "Institut", "Niveau 10", "Lønorganisation",
+    "Hjørring VM 2019", "Institut", "Niveau 10", "Tjenestetid", "Lønorganisation",
     today.format("DD-MM-YYYY"), twoMonths.format("DD-MM-YYYY"), ""
   ].join("|")
 
@@ -209,10 +210,8 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
     .click(createParentInput)
     .click(createDialog.find('li.tree-node span.tree-anchor span'))
 
-  // TODO: Re-enable when TestCafe runs with every config setting
-  // https://redmine.magenta-aps.dk/issues/34509
-  // .click(createTimeSelect)
-  // .click(createTimeOption.withText('Tjenestetid'))
+    .click(createTimeSelect)
+    .click(createTimeOption.withText('Tjenestetid'))
 
     .click(levelSelect)
     .click(levelOption.withText('Niveau 10'))
@@ -318,11 +317,11 @@ test('Workflow: terminate and rename org unit, selecting unit first', async t =>
   let actualFuture = future.split(/[\n\t]+/).map(s => s.trim()).join("|")
 
   let expectedPresent = [
-    "Hjørring VM 2018", "Institut", "Niveau 10", "Lønorganisation",
+    "Hjørring VM 2018", "Institut", "Niveau 10", "Tjenestetid", "Lønorganisation",
     lastMonth.format("DD-MM-YYYY"), lastDayOfThisMonth.format("DD-MM-YYYY"), ""
   ].join("|")
   let expectedFuture = [
-    "Hjørring VM 2019", "Institut", "Niveau 10", "Lønorganisation",
+    "Hjørring VM 2019", "Institut", "Niveau 10", "Tjenestetid", "Lønorganisation",
     nextMonth.format("DD-MM-YYYY"), twoMonths.format("DD-MM-YYYY"), ""
   ].join("|")
 

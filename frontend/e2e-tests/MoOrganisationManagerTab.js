@@ -4,6 +4,7 @@
 import VueSelector from 'testcafe-vue-selectors'
 import { Selector } from 'testcafe'
 import { baseURL, setup, teardown } from './support';
+import {login} from "./login";
 
 let moment = require('moment')
 
@@ -11,6 +12,9 @@ fixture('MoOrganisationManagerTab')
   .before(setup)
   .after(teardown)
   .page(`${baseURL}/organisation/2874e1dc-85e6-4269-823a-e1125484dfd3`)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 const dialog = Selector('.modal-content')
 

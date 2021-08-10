@@ -442,10 +442,10 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "http://localhost:5001/*"
+        "*"
       ],
       "webOrigins": [
-        "http://localhost:5001"
+        "*"
       ],
       "notBefore": 0,
       "bearerOnly": false,

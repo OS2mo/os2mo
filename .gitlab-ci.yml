@@ -188,7 +188,7 @@ Build docs:
 
 .test-default: &test-default
   stage: test
-  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB"]
+  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
   tags:
     - docker
@@ -227,8 +227,9 @@ Build docs:
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
-    # for testcafe
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
     BASE_URL: http://mo:80
+
 
 Alembic-test:
   <<: *test-default
@@ -281,7 +282,6 @@ Vue-unit-test:
     name: ${FRONTEND_IMAGE_SHA}
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  needs: ["Build frontend"]
   script:
     - cd /app/frontend
     - yarn install --dev
@@ -300,7 +300,6 @@ Vue-unit-test:
 
 e2e-test:
   <<: *test-default
-  allow_failure: true
   image:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
@@ -311,11 +310,18 @@ e2e-test:
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo
+    - name: ${KEYCLOAK_IMAGE_SHA}
+      alias: keycloak
+    - name: ${KEYCLOAK_DB_IMAGE_SHA}
+      alias: keycloak-db
   script:
+    - sleep 30
     - cd /
     - /opt/testcafe/docker/testcafe-docker.sh
         chromium:headless
         $CI_PROJECT_DIR/frontend/e2e-tests
+        --skip-js-errors
+        --speed 0.7
         --selector-timeout 30000
         --screenshot $CI_PROJECT_DIR/artifacts
         --video $CI_PROJECT_DIR/artifacts

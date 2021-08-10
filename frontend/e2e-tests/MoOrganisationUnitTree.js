@@ -4,6 +4,7 @@
 import { Selector } from 'testcafe'
 import VueSelector from 'testcafe-vue-selectors'
 import { baseURL, setup, teardown } from './support';
+import {login} from "./login";
 
 const trees = new Map([
   ["", [
@@ -57,13 +58,16 @@ let currentUnitName = Selector('.orgunit .orgunit-name').with({ visibilityCheck:
 fixture('MoOrganisationUnitTree')
   .before(setup)
   .after(teardown)
+  .beforeEach(async t => {
+    await login(t)
+  })
 
 for (const [selection, contents] of trees.entries()) {
-  test
-    .page`${baseURL}/organisation/${selection}`
+  test.page`${baseURL}/organisation/${selection}`
   (`Load of '${selection}'`, async t => {
 
     await t
+      .wait(5000)
       .expect(tree.exists)
       .ok()
       .expect(rootNode.exists)
@@ -79,11 +83,11 @@ for (const [selection, contents] of trees.entries()) {
   })
 }
 
-test
-  .page`${baseURL}/organisation/`
+test.page`${baseURL}/organisation/`
 ('Path changes', async t => {
-  
+
   await t
+    .wait(5000)
     .expect(treeNode.exists)
     .ok()
     .expect(rootNode.exists)
