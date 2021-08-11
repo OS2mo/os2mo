@@ -206,18 +206,24 @@ services:
       start_period: 300s
 
   keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:dev
+    image: magentaaps/os2mo-keycloak-realm-builder:1.1.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
       KEYCLOAK_SSL_REQUIRED: external
       KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-      KEYCLOAK_REALM_USER_ENABLED: "true"
-      KEYCLOAK_REALM_USER_USERNAME: bruce
-      KEYCLOAK_REALM_USER_FIRSTNAME: bruce
-      KEYCLOAK_REALM_USER_LASTNAME: lee
-      KEYCLOAK_REALM_USER_EMAIL: bruce-lee@example.org
-      KEYCLOAK_REALM_USER_PASSWORD: bruce
+      KEYCLOAK_REALM_USERS: '[
+        {
+          "username": "bruce",
+          "password": "bruce",
+          "firstname": "Bruce",
+          "lastname": "Lee",
+          "email": "bruce@kung.fu",
+          "enabled": true
+        }
+      ]'
+      KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5001/*"]'
+      KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5001"]'
     volumes:
       - keycloak-volume:/srv/
 
