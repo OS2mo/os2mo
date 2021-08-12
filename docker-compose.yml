@@ -100,6 +100,7 @@ services:
       DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
 
       MAX_WORKERS: "1"
+      TESTING_API: "true"
 
       JAEGER_HOSTNAME: otel-collector
       JAEGER_SERVICE: LoRa
