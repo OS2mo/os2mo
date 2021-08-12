@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-version: '3.4'
-
+version: "3.9"
 services:
   # We use two images in development. One frontend that runs `vue-cli-service
   # serve`, named `frontend` and one that runs flask named `mo`. The frontend
@@ -26,7 +24,8 @@ services:
       - .:/app/
       - /app/frontend/node_modules
     depends_on:
-      - mo
+      mo:
+        condition: service_healthy
     ports:
       - "5001:8080"
     healthcheck:
@@ -34,7 +33,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 300s
 
   mo:
     build:
@@ -46,26 +45,48 @@ services:
     # reloads on file changes. This is very useful when developing the backend.
     # We also change the Flask app to one where a testing API for testcafe
     # e2e-tests is enabled.
-    env_file:
-      - dev-environment/mo-dev.env
-      - dev-environment/conf_db.env
     volumes:
       # Uncomment this with the path you would like to use for queries
       # - /tmp:/queries
+      # For reload
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
+    environment:
+      DUMMY_MODE: "true"
+      ENABLE_CORS: "true"
+      ENVIRONMENT: development
+
+      LORA_URL: "http://mox/"
+
+      CONF_DB_USE: "false"
+
+      OS2MO_LOG_LEVEL: "DEBUG"
+
+      QUERY_EXPORT_DIR: "/queries"
+
+      KEYCLOAK_SCHEMA: "http"
+      KEYCLOAK_PORT: 8080
+
+      JAEGER_HOSTNAME: "otel-collector"
+      JAEGER_SERVICE: OS2mo
     ports:
       - "5000:80"
     depends_on:
-      - mox
-      - msg_broker
+      mox:
+        condition: service_healthy
+      msg_broker:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 5s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 300s
 
   mox:
     image: magentaaps/lora:1.13.0
@@ -73,37 +94,64 @@ services:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
     # command: '/start-reload.sh'
-    env_file:
-      - dev-environment/mox-dev.env
-      - dev-environment/db.env
+    environment:
+      DB_HOST: mox-db
+      DB_PASSWORD: mox
+      DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
+
+      MAX_WORKERS: "1"
+
+      JAEGER_HOSTNAME: otel-collector
+      JAEGER_SERVICE: LoRa
     ports:
       - "8080:80"
     depends_on:
-      - mox-db
+      mox-db-init:
+        condition: service_completed_successfully
+      mox-db:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/site-map"]
       interval: 5s
       timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 300s
 
   mox-db:
-    image: magentaaps/postgres-os2mo:10-11.7-test
-    env_file:
-      - dev-environment/db.env
-      - dev-environment/conf_db.env
+    image: postgres:11
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      start_period: 300s
     # The following will mount the database data directory to RAM. It
     # significantly speeds up the database at the cost of dataloss on shutdown.
     # This is useful for running tests, but should never be used if you want to
     # save the data.
     # tmpfs:
     #   - /var/lib/postgresql/data
+
+  mox-db-init:
+    image: magentaaps/postgres-os2mo:12.2-11.7-test
+    # build:
+    #   context: ../postgres-os2mo
+    #   dockerfile: docker/Dockerfile
+    environment:
+      POSTGRES_HOST: mox-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+
+      DB_NAME: mox
+      DB_USER: mox
+      DB_PASSWORD: mox
+    depends_on:
+      mox-db:
+        condition: service_healthy
 
   msg_broker:
     # Normally, we expect the `rabbitmq` image. The -management images come
@@ -119,17 +167,21 @@ services:
     ports:
       - "5672:5672"    # amqp port
       - "15672:15672"  # management port
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:13.0.0
-    # depends_on:
-    #   - keycloak-db
+    image: quay.io/keycloak/keycloak:14.0.0
     ports:
       - "8081:8080"
     environment:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin
-      KEYCLOAK_IMPORT: /tmp/realm.json
+      KEYCLOAK_IMPORT: /srv/keycloak-realm.json
       DB_VENDOR: POSTGRES
       DB_ADDR: "keycloak-db"
       DB_USER: keycloak
@@ -139,10 +191,41 @@ services:
       # PROXY_ADDRESS_FORWARDING: 'true'
       # KEYCLOAK_FRONTEND_URL: https://proxy/auth
       # KEYCLOAK_LOGLEVEL: DEBUG
+    depends_on:
+      keycloak-gen:
+        condition: service_completed_successfully
+      keycloak-db:
+        condition: service_healthy
     volumes:
-      - type: bind
-        source: ./dev-environment/keycloak-realm.json
-        target: /tmp/realm.json
+      - keycloak-volume:/srv/:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
+
+  keycloak-gen:
+    image: magentaaps/os2mo-keycloak-realm-builder:1.1.0
+    environment:
+      KEYCLOAK_VERSION: 14.0.0
+      KEYCLOAK_SSL_REQUIRED: external
+      KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
+      KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      KEYCLOAK_REALM_USERS: '[
+        {
+          "username": "bruce",
+          "password": "bruce",
+          "firstname": "Bruce",
+          "lastname": "Lee",
+          "email": "bruce@kung.fu",
+          "enabled": true
+        }
+      ]'
+      KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5001/*"]'
+      KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5001"]'
+    volumes:
+      - keycloak-volume:/srv/
 
   keycloak-db:
     image: postgres:13.3
@@ -150,12 +233,21 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
 
   otel-collector:
     image: otel/opentelemetry-collector:0.31.0
     command: "--config /etc/otel-collector/config.yaml"
     volumes:
       - ./dev-environment/otel-config.yml:/etc/otel-collector/config.yaml
+    depends_on:
+      tempo:
+        condition: service_healthy
 
   grafana:
     image: grafana/grafana
@@ -165,11 +257,28 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
+    depends_on:
+      tempo:
+        condition: service_healthy
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
 
   tempo:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./dev-environment/tempo.yml:/etc/tempo.yaml
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3200/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 300s
+volumes:
+  keycloak-volume:

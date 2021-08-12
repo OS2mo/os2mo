@@ -15,6 +15,7 @@ stages:
   - lint
   # build stage is not blocked by lint stage, as we have a DAG:
   # https://docs.gitlab.com/ee/ci/directed_acyclic_graph/index.html
+  - prebuild
   - build
   - test
   - release
@@ -95,6 +96,42 @@ Lint shell scripts:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
 
+# Prebuild stage
+#############
+
+Prebuild Keycloak-realm:
+  stage: prebuild
+  image: 
+    name: magentaaps/os2mo-keycloak-realm-builder:test
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+
+    KEYCLOAK_VERSION: 14.0.0
+    KEYCLOAK_SSL_REQUIRED: external
+    KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
+    KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+    KEYCLOAK_REALM_USERS: '[
+      {
+        "username": "bruce",
+        "password": "bruce",
+        "firstname": "Bruce",
+        "lastname": "Lee",
+        "email": "bruce@kung.fu",
+        "enabled": true
+      }
+    ]'
+    KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
+    KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
+  script:
+    - export KEYCLOAK_REALM_JSON_PATH=$PWD/keycloak-realm.json
+    - cd /app
+    - python main.py
+  artifacts:
+    paths:
+      - keycloak-realm.json
+    expire_in: 1 day
+
 # Build stage
 #############
 
@@ -135,7 +172,7 @@ Build frontend:
 
 Build Keycloak:
   stage: build
-  needs: []
+  needs: ["Prebuild Keycloak-realm"]
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
     name: gcr.io/kaniko-project/executor:v1.5.2-debug
@@ -222,12 +259,12 @@ Build docs:
     LORA_URL: "http://mox/"
     KEYCLOAK_SCHEMA: "http"
     KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
     CONF_DB_HOST: "mox-db"
     CONF_DB_PORT: "5432"
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
     BASE_URL: http://mo:80
 
 
