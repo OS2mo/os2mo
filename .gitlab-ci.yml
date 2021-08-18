@@ -101,8 +101,9 @@ Lint shell scripts:
 
 Prebuild Keycloak-realm:
   stage: prebuild
+  needs: []
   image: 
-    name: magentaaps/os2mo-keycloak-realm-builder:test
+    name: magentaaps/os2mo-keycloak-realm-builder:1.1.1
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -118,7 +119,8 @@ Prebuild Keycloak-realm:
         "firstname": "Bruce",
         "lastname": "Lee",
         "email": "bruce@kung.fu",
-        "enabled": true
+        "enabled": true,
+        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"
       }
     ]'
     KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'

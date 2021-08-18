@@ -16,11 +16,17 @@ For more information regarding reading relations, refer to:
 '''
 import typing
 
-from fastapi import APIRouter, Body
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends
+)
+from starlette.status import HTTP_201_CREATED
 
 from . import handlers
 from .. import exceptions
 from .. import mapping
+from mora.auth.keycloak import oidc
 
 router = APIRouter()
 
@@ -45,9 +51,12 @@ def handle_requests(
     return uuids
 
 
-@router.post('/details/create', status_code=201)
+@router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
-def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
+def create(
+    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     """Creates new relations on employees and units
 
     .. :quickref: Writing; Create relation
@@ -423,7 +432,10 @@ def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
+def edit(
+    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     """Edits a relation or attribute on an employee or unit
 
     .. :quickref: Writing; Edit relation
@@ -933,7 +945,10 @@ def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
+def terminate(
+    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     '''Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation

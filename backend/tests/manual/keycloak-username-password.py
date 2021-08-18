@@ -16,7 +16,6 @@ payload = {
 }
 
 r = requests.post(token_url, data=payload)
-print(r.status_code, r.url)
 token = r.json()['access_token']
 
 headers = {

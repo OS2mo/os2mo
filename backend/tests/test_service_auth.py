@@ -1,14 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import unittest
+import unittest.mock
 
 import fastapi.routing
+from pydantic.error_wrappers import (
+    ErrorWrapper,
+    ValidationError
+)
+from pydantic.errors import MissingError
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_200_OK
 )
 
 from mora import main
+from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 import tests.cases
 
@@ -215,4 +221,34 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
             '/api/v1/it',
             HTTP_200_OK,
             set_auth_header=True
+        )
+
+
+class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.load_sample_structures()
+        self.app.dependency_overrides = []
+
+    @unittest.mock.patch('mora.auth.keycloak.oidc.Token.parse_obj')
+    def test_401_when_uuid_missing_in_token(self, mock_parse_obj):
+        err = ValidationError(
+            errors=[ErrorWrapper(MissingError(), loc='uuid')],
+            model=Token
+        )
+        mock_parse_obj.side_effect = err
+
+        # Make call to random endpoint
+        r = self.assertRequest(
+            '/service/o/',
+            status_code=HTTP_401_UNAUTHORIZED,
+            set_auth_header=True
+        )
+        self.assertEqual(
+            {
+                'status': 'Unauthorized',
+                'msg': str(err)
+            },
+            r
         )

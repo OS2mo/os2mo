@@ -69,11 +69,14 @@ pydantic==1.8.2
     #   os2mo-http-trigger-protocol
 pyparsing==2.4.7
     # via packaging
+pytest-asyncio==0.15.1
+    # via -r requirements-test.in
 pytest-cov==2.12.1
     # via -r requirements-test.in
 pytest==6.2.4
     # via
     #   -r requirements-test.in
+    #   pytest-asyncio
     #   pytest-cov
 python-dateutil==2.8.1
     # via

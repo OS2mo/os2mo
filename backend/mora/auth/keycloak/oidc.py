@@ -7,10 +7,15 @@ from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
+    HTTP_403_FORBIDDEN,
     HTTP_500_INTERNAL_SERVER_ERROR
 )
 import jwt.exceptions
-from mora.auth.exceptions import AuthError
+from mora.auth.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+)
+from mora.auth.keycloak.models import Token
 from mora import config
 
 SCHEMA = config.get_settings().keycloak_schema
@@ -33,18 +38,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='service/token')
 jwks_client = jwt.PyJWKClient(JWKS_URI)
 
 
-async def noauth() -> dict:
+async def noauth() -> Token:
     """Noop auth provider."""
-    return {}
+    return Token(
+        email='not@used.org',
+        preferred_username='unused',
+        uuid='00000000-0000-0000-0000-000000000000'
+    )
 
 
-async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> dict:
+async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> Token:
     """
     Ensure the caller has a valid OIDC token, i.e. that the Authorization
     header is set with a valid bearer token.
 
-    :param request: Incoming request
-    :return: parsed (JWT) token
+    :param token: encoded Keycloak token
+    :return: selected JSON values from the Keycloak token
 
     **Example return value**
 
@@ -64,10 +73,16 @@ async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> dict:
             "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
             "name": "Bruce Lee",
             "preferred_username": "bruce",
+            "realm_access": {
+                "roles": [
+                  "admin"
+              ]
+            },
             "scope": "email profile",
             "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
             "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-            "typ": "Bearer"
+            "typ": "Bearer",
+            "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"
         }
 
     """
@@ -84,10 +99,11 @@ async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> dict:
         # token is invalid. These exceptions will be caught by the
         # auth_exception_handler below which is used by the FastAPI app.
 
-        return jwt.decode(token, signing.key, algorithms=[ALG])
+        decoded_token: dict = jwt.decode(token, signing.key, algorithms=[ALG])
+        return Token.parse_obj(decoded_token)
 
     except Exception as err:
-        raise AuthError(err)
+        raise AuthenticationError(err)
 
 
 auth = keycloak_auth
@@ -99,12 +115,18 @@ if not config.get_settings().os2mo_auth:
 
 
 # Exception handler to be used by the FastAPI app object
-def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
+def authentication_exception_handler(
+    request: Request,
+    err: AuthenticationError
+) -> JSONResponse:
     if err.is_client_side_error():
         logger.exception('Client side authentication error', exception=err.exc)
         return JSONResponse(
             status_code=HTTP_401_UNAUTHORIZED,
-            content={'msg': 'Unauthorized'}
+            content={
+                'status': 'Unauthorized',
+                'msg': str(err.exc)
+            }
         )
 
     logger.exception(
@@ -115,3 +137,38 @@ def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
         status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         content={'msg': 'A server side authentication error occurred'}
     )
+
+
+def authorization_exception_handler(
+    request: Request,
+    err: AuthorizationError
+) -> JSONResponse:
+
+    return JSONResponse(
+        status_code=HTTP_403_FORBIDDEN,
+        content={
+            'status': 'Forbidden',
+            'msg': str(err)
+        }
+    )
+
+
+async def rbac_owner(request: Request, token: Token = Depends(auth)):
+    """
+    Role based access control (RBAC) dependency function for the FastAPI
+    endpoints that require authorization in addition to authentication. The
+    function just returns, if the user is authorized and throws an
+    AuthorizationError if the user is not authorized. If the RBAC feature is
+    not enabled the function will just return immediately.
+
+    :param request: the incoming FastAPI request.
+    :param token: selected JSON values from the Keycloak token
+    """
+
+    if not config.get_settings().keycloak_rbac_enabled:
+        return
+
+    # This special import structure is currently required to avoid circular
+    # import problems in the Python code
+    from mora.auth.keycloak.rbac import _rbac
+    return await _rbac(token, request, False)

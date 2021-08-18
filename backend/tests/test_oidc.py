@@ -3,8 +3,8 @@
 import asyncio
 from datetime import datetime
 import unittest.mock
+from uuid import UUID
 
-from fastapi import Request
 from fastapi.exceptions import HTTPException
 import jwt
 from jwt.exceptions import (
@@ -20,8 +20,9 @@ from starlette.status import (
     HTTP_500_INTERNAL_SERVER_ERROR
 )
 
+from mora.auth.keycloak.models import Token
 import mora.auth.keycloak.oidc as oidc
-from mora.auth.exceptions import AuthError
+from mora.auth.exceptions import AuthenticationError
 
 
 class TestOIDC(unittest.TestCase):
@@ -56,14 +57,15 @@ class TestOIDC(unittest.TestCase):
             'scope': 'email profile',
             'session_state': 'd94f8dc3-d930-49b3-a9dd-9cdc1893b86a',
             'sub': 'c420894f-36ba-4cd5-b4f8-1b24bd8c53db',
-            'typ': 'Bearer'
+            'typ': 'Bearer',
+            'uuid': '99e7b256-7dfa-4ee8-95c6-e3abe82e236a'
         }
 
         # For the async tests
         self.loop = asyncio.get_event_loop()
 
     @staticmethod
-    def generate_token(parsed_token: dict, key: bytes) -> Request:
+    def generate_token(parsed_token: dict, key: bytes) -> str:
         """
         Generate a request containing an auth header with a OIDC Bearer token
         :param parsed_token: parsed token (see example above)
@@ -89,17 +91,17 @@ class TestOIDC(unittest.TestCase):
         )
 
     def test_auth_exception_handler_return_401_for_client_side_error(self):
-        exc = AuthError(InvalidSignatureError())
+        exc = AuthenticationError(InvalidSignatureError())
         self.assertEqual(
             HTTP_401_UNAUTHORIZED,
-            oidc.auth_exception_handler(None, exc).status_code
+            oidc.authentication_exception_handler(None, exc).status_code
         )
 
     def test_auth_exception_handler_return_500_for_server_side_error(self):
-        exc = AuthError(PyJWTError())
+        exc = AuthenticationError(PyJWTError())
         self.assertEqual(
             HTTP_500_INTERNAL_SERVER_ERROR,
-            oidc.auth_exception_handler(None, exc).status_code
+            oidc.authentication_exception_handler(None, exc).status_code
         )
 
     @unittest.mock.patch(
@@ -114,8 +116,14 @@ class TestOIDC(unittest.TestCase):
             self.private_key
         )
 
-        parsed_token = self.loop.run_until_complete(oidc.auth(token))
-        self.assertEqual(self.parsed_token, parsed_token)
+        actual_token = self.loop.run_until_complete(oidc.auth(token))
+        expected_token = Token(
+            email='bruce@kung.fu',
+            preferred_username='bruce',
+            uuid=UUID('99e7b256-7dfa-4ee8-95c6-e3abe82e236a')
+        )
+
+        self.assertEqual(expected_token, actual_token)
 
     @unittest.mock.patch(
         'mora.auth.keycloak.oidc.jwt.PyJWKClient.get_signing_key_from_jwt')
@@ -136,7 +144,7 @@ class TestOIDC(unittest.TestCase):
             hackers_key
         )
 
-        with self.assertRaises(AuthError) as err:
+        with self.assertRaises(AuthenticationError) as err:
             self.loop.run_until_complete(oidc.auth(token))
             self.assertTrue(
                 isinstance(err.exception.exc, InvalidSignatureError))
@@ -159,7 +167,7 @@ class TestOIDC(unittest.TestCase):
             self.private_key
         )
 
-        with self.assertRaises(AuthError) as err:
+        with self.assertRaises(AuthenticationError) as err:
             self.loop.run_until_complete(oidc.auth(token))
             self.assertTrue(
                 isinstance(err.exception.exc, ExpiredSignatureError))
@@ -194,22 +202,23 @@ class TestAuthError(unittest.TestCase):
     """
 
     def test_exception_set_correctly(self):
-        exc = AuthError(InvalidSignatureError())
+        exc = AuthenticationError(InvalidSignatureError())
         self.assertTrue(InvalidSignatureError, type(exc.exc))
 
     def test_is_client_side_error_true_for_invalid_token_error(self):
-        exc = AuthError(InvalidTokenError())
+        exc = AuthenticationError(InvalidTokenError())
         self.assertTrue(exc.is_client_side_error())
 
     def test_is_client_side_error_true_for_http_exception_401(self):
-        exc = AuthError(HTTPException(status_code=HTTP_401_UNAUTHORIZED))
+        exc = AuthenticationError(HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED))
         self.assertTrue(exc.is_client_side_error())
 
     def test_is_client_side_error_false_for_http_exception_500(self):
-        exc = AuthError(HTTPException(
+        exc = AuthenticationError(HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR))
         self.assertFalse(exc.is_client_side_error())
 
     def test_is_client_side_error_false_for_server_error(self):
-        exc = AuthError(PyJWTError())
+        exc = AuthenticationError(PyJWTError())
         self.assertFalse(exc.is_client_side_error())

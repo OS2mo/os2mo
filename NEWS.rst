@@ -3,6 +3,7 @@ In development
 
 New features
 ------------
+* #44082: Role-based access control (RBAC) for the organization part of the system. The feature is enabled via an ENV variable
 * #43998: Rework docker-compose.yaml and made database-backing on confdb configurable.
 * #44744: Cleaned up tags in the OpenAPI docs endpoint (/docs)
 * #44744: Added keycloak support on the OpenAPI docs endpoint (/docs)

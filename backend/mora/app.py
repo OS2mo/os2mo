@@ -19,10 +19,16 @@ from structlog.contextvars import merge_contextvars
 from more_itertools import only
 
 from mora import __version__, health, log, config
-from mora.auth.exceptions import AuthError
+from mora.auth.exceptions import (
+    AuthenticationError,
+    AuthorizationError
+)
 from mora.auth.keycloak.oidc import auth
-from mora.auth.keycloak.oidc import auth_exception_handler
 from mora.auth.keycloak.router import keycloak_router
+from mora.auth.keycloak.oidc import (
+    authentication_exception_handler,
+    authorization_exception_handler
+)
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -249,7 +255,14 @@ def create_app():
     app.add_exception_handler(RequestValidationError,
                               request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
-    app.add_exception_handler(AuthError, auth_exception_handler)
+    app.add_exception_handler(
+        AuthenticationError,
+        authentication_exception_handler
+    )
+    app.add_exception_handler(
+        AuthorizationError,
+        authorization_exception_handler
+    )
 
     if not is_under_test():
         app = setup_instrumentation(app)

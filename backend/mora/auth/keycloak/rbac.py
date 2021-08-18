@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+import asyncio
+from structlog import get_logger
+
+from fastapi import Request
+
+from mora.auth.exceptions import AuthorizationError
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.owner import get_ancestor_owners
+import mora.auth.keycloak.uuid_extractor as uuid_extractor
+from mora.mapping import (
+    ADMIN,
+    OWNER,
+)
+
+logger = get_logger()
+
+
+async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
+    """
+    Role based access control (RBAC) dependency function for the FastAPI
+    endpoints that require authorization in addition to authentication. The
+    function just returns, if the user is authorized and throws an
+    AuthorizationError if the user is not authorized. A user with the admin
+    role set in the Keycloak token is always authorized. A users with the owner
+    role set in the Keycloak token is only authorized if the user is the owner
+    of the org unit(s) subject to modification or one of the units ancestors.
+    A user with no roles set is not authorized.
+
+    :param token: selected JSON values from the Keycloak token
+    :param request: the incoming FastAPI request.
+    :param admin_only: true if endpoint only accessible to admins
+    """
+
+    logger.debug('_rbac called')
+
+    roles = token.realm_access.roles
+
+    if ADMIN in roles:
+        logger.debug('User has admin role - write permission granted')
+        return
+    if OWNER in roles and not admin_only:
+        logger.debug('User has owner role - checking ownership...')
+
+        # E.g. the uuids variable will be [<uuid1>] if we are editing details
+        # of an org unit and [<uuid1>, <uuid2>] if we are moving an org unit
+        uuids = await uuid_extractor.get_org_unit_uuids(request)
+
+        # In some cases several ancestor owner sets are needed, e.g. if
+        # we are moving a unit. In such cases we have to check for
+        # ownerships in both the source (the unit to be moved) and target
+        # (the receiving unit) ancestor trees. In some cases only the
+        # source is relevant, e.g. if an org unit detail is created/edited.
+        # The source_and_target_unit_and_ancestor_owners list below will have
+        # exactly two elements (sets) if we are moving a unit and exactly one
+        # element otherwise, e.g.
+        # [{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}]
+        # when editing details of a unit and
+        # [
+        #   {<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>},
+        #   {<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}
+        # ]
+        # when moving an org unit.
+        source_and_target_unit_and_ancestor_owners = await asyncio.gather(
+            *map(get_ancestor_owners, uuids)
+        )
+
+        ownership_confirmed_in_source_and_target_ancestor_trees = [
+            (token.uuid in ancestor_owner)
+            for ancestor_owner in source_and_target_unit_and_ancestor_owners
+        ]
+
+        if (
+            ownership_confirmed_in_source_and_target_ancestor_trees and
+            all(ownership_confirmed_in_source_and_target_ancestor_trees)
+        ):
+            logger.debug(f"User {token.preferred_username} authorized")
+            return
+
+    logger.debug(f"User {token.preferred_username} with UUID "
+                 f"{token.uuid} not authorized")
+
+    raise AuthorizationError('Not authorized to perform this operation')

@@ -68,6 +68,18 @@ class Settings(BaseSettings):
     keycloak_signing_alg: str = "RS256"
     keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
     keycloak_ssl_required: str = "external"
+    keycloak_rbac_enabled: bool = False
+
+    @root_validator
+    def show_owners_must_be_true_if_rbac_is_enabled(
+            cls, values: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        if values['keycloak_rbac_enabled']:
+            if not values['confdb_show_owner']:
+                raise ValueError(
+                    "'confdb_show_owner' must be true when RBAC is enabled"
+                )
+        return values
 
     # ConfDB database settings
     # Use configuration DB for get_configuration endpoint
