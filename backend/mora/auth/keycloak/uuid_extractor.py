@@ -10,7 +10,7 @@ from uuid import UUID
 from fastapi import Request
 
 from mora import common
-import mora.main
+# import mora.main
 from mora.mapping import (
     ASSOCIATED_ORG_UNITS_FIELD,
     CHILDREN,
@@ -25,13 +25,27 @@ logger = get_logger()
 UUID_KEY = 'uuid'
 
 # URL paths
-CREATE_OU = mora.main.app.url_path_for('create_org_unit')
-TERMINATE_DETAIL = mora.main.app.url_path_for('terminate')
+
+# TODO: re-introduce feature where the paths below are fetched via
+#  the main.app-url_path_for(...). The importing of mora.main
+#  causes the instrumentation to fail why we are temporarily using
+#  hard-coded constants instead -
+#  see https://redmine.magenta-aps.dk/issues/45047
+
+# CREATE_OU = mora.main.app.url_path_for('create_org_unit')
+# TERMINATE_DETAIL = mora.main.app.url_path_for('terminate')
+# TERMINATE_UNIT = re.compile(
+#     mora.main.app.url_path_for(
+#         'terminate_org_unit',
+#         uuid='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+#     )
+# )
+
+CREATE_OU = '/service/ou/create'
+TERMINATE_DETAIL = '/service/details/terminate'
 TERMINATE_UNIT = re.compile(
-    mora.main.app.url_path_for(
-        'terminate_org_unit',
-        uuid='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-    )
+    '/service/ou/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    '/terminate'
 )
 
 
