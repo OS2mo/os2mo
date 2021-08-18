@@ -30,6 +30,21 @@ const ApiV1 = axios.create({
   }
 })
 
+Service.interceptors.response.use(
+  response => response,
+  error => {
+    const {status} = error.response;
+    if (status === 403) {
+      if (localStorage.moLocale === 'da'){
+        alert('Du har ikke rettigheder til at foretage denne operation.')
+      } else if (localStorage.moLocale === 'en') {
+        alert('You do not have the privileges to perform this operation.')
+      }
+    }
+    return Promise.reject(error);
+ }
+);
+
 Service.interceptors.request.use(function (config){
   config.headers["Authorization"] = "Bearer " + keycloak.token
   return config

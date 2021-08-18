@@ -12,6 +12,7 @@ notsouid
 python-dotenv
 watchdog
 pytest
+pytest-asyncio
 pytest-cov
 aiohttp
 aioresponses

@@ -16,20 +16,27 @@ import enum
 import logging
 import locale
 import operator
-import uuid
 from asyncio import create_task, gather
 from datetime import date
 from itertools import chain
 from typing import Any, Awaitable, Dict, List
 from typing import Iterable
 from typing import Optional
-from uuid import UUID
+from uuid import (
+    uuid4,
+    UUID
+)
 
-from fastapi import APIRouter, Body
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends
+)
 from fastapi import Query
 from more_itertools import unzip
 
 import mora.async_util
+from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from . import facet
 from . import handlers
@@ -89,7 +96,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             required=False
         )
 
-        unitid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)())[
@@ -1292,7 +1299,10 @@ async def list_orgunit_tree(
 
 @router.post('/ou/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create_org_unit(req: dict = Body(...)):
+def create_org_unit(
+    req: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1398,7 +1408,7 @@ async def terminate_org_unit_validation(unitid, request):
 
 
 @router.post(
-    '/ou/{unitid}/terminate',
+    '/ou/{uuid}/terminate',
     responses={
         200: {
             'description': 'The termination succeeded',
@@ -1408,9 +1418,11 @@ async def terminate_org_unit_validation(unitid, request):
         409: {'description': 'Validation failed'},
     },
 )
+# @util.restrictargs('force', 'triggerless')
 def terminate_org_unit(
-    unitid: UUID,
-    request: dict = Body(...)
+    uuid: UUID,
+    request: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an organisational unit from a specified date.
 
@@ -1421,6 +1433,19 @@ def terminate_org_unit(
                 "to": "2021-12-31"
             }
         }
+
+    .. :quickref: Unit; Terminate
+
+    :query boolean force: When ``true``, bypass validations.
+
+    :statuscode 200: The termination succeeded.
+    :statuscode 404: No such unit found.
+    :statuscode 409: Validation failed, see below.
+
+    :param uuid: The UUID of the organisational unit to be terminated.
+
+    :<json object validity: The date on which the termination should happen,
+        in ISO 8601.
 
     ## Validation
 
@@ -1460,8 +1485,8 @@ def terminate_org_unit(
     "to"-date to "infinity". This behavior is deprecated and should no longer
     be used.
     """
-    unitid = str(unitid)
-    mora.async_util.async_to_sync(terminate_org_unit_validation)(unitid, request)
-    request[mapping.UUID] = unitid
+    uuid = str(uuid)
+    mora.async_util.async_to_sync(terminate_org_unit_validation)(uuid, request)
+    request[mapping.UUID] = uuid
     handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
     return handler.submit()

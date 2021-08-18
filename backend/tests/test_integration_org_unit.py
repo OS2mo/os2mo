@@ -52,7 +52,7 @@ def expected_error_response(error_key, **overrides):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@patch('mora.service.orgunit.uuid.uuid4', new=lambda: mock_uuid)
+@patch('mora.service.orgunit.uuid4', new=lambda: mock_uuid)
 @patch('mora.conf_db.get_configuration',
        new=lambda *x: {})
 class Tests(tests.cases.LoRATestCase):

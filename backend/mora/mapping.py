@@ -41,6 +41,9 @@ INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
 IS_PRIMARY = 'is_primary'
 SENIORITY = 'seniority'
+CHILDREN = 'children'
+DATA = 'data'
+TYPE = 'type'
 
 # Address
 ADDRESS_KEY = 'Adresse'
@@ -107,6 +110,7 @@ ENGAGEMENT_ASSOCIATION_KEY = 'engagement_association'
 ENGAGEMENT_ASSOCIATION_TYPE = 'engagement_association_type'
 
 # Org unit
+OU = 'ou'
 ORG_UNIT_TYPE = 'org_unit_type'
 TIME_PLANNING = 'time_planning'
 PARENT = 'parent'
@@ -117,6 +121,9 @@ ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
 # Owner
 OWNER = 'owner'
 OWNER_INFERENCE_PRIORITY = 'owner_inference_priority'
+
+# Auth
+ADMIN = 'admin'
 
 
 class OwnerInferencePriority(enum.Enum):
@@ -167,10 +174,10 @@ RELATION_TRANSLATIONS = {
 
 OBJECTTYPE = 'objekttype'
 
-
 #
 # TYPES
 #
+
 
 @enum.unique
 class FieldTypes(enum.IntEnum):

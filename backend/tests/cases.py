@@ -41,7 +41,8 @@ async def fake_auth():
         'scope': 'email profile',
         'session_state': 'd94f8dc3-d930-49b3-a9dd-9cdc1893b86a',
         'sub': 'c420894f-36ba-4cd5-b4f8-1b24bd8c53db',
-        'typ': 'Bearer'
+        'typ': 'Bearer',
+        'uuid': '99e7b256-7dfa-4ee8-95c6-e3abe82e236a'
     }
 
 
@@ -87,6 +88,9 @@ class _BaseTestCase(TestCase):
                 'password': 'bruce'
             }
         )
+
+        logger.debug('Keycloak token: ' + json.dumps(r.json()))
+
         return r.json()['access_token']
 
     def assertRequest(self, path, status_code=None, message=None, *,

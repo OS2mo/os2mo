@@ -239,4 +239,94 @@ e.g. for the development environment it can be accessed at
 Authorization
 =============
 
-Role-based authorization (RBAC) will soon be implemented for OS2mo.
+Role-based access control (RBAC) can be enabled in MO, if this is required.
+
+The RBAC feature is based on the owner feature of MO and the role concept in
+Keycloak. The systems utilizes two Keycloak roles: the "admin" role and the
+"owner" role (these must be created in Keycloak as described below).
+Access is granted to the system according to these rules:
+
+#. All users have read permissions to all parts of the system.
+#. Users with no role assigned do not have write permissions to any parts
+   of the system.
+#. Users with the admin role assigned are always authorized and have write
+   permissions to all parts of the system.
+#. A user with the owner role assigned is only authorized for write operations
+   if the user is the owner of the org unit(s) subject to modification or one
+   of the units ancestors.
+
+Configuration of MO
+-------------------
+
+Set the following environment variables on the Docker container of MO to enable
+RBAC:
+
+.. code-block:: bash
+
+ KEYCLOAK_RBAC_ENABLED: "true"
+ CONFDB_SHOW_OWNER: "true"
+
+Configuration of Keycloak
+-------------------------
+
+Keycloak is configured via the
+`OS2mo Keycloak Realm Builder
+<https://github.com/OS2mo/keycloak-realm-builder>`_. The realm
+builder takes a number of environment variables as input and returns a
+Keycloak realm JSON configuration file as output. In order to enable RBAC,
+the following environment variable must to set on the realm builder
+Docker container (*note: NOT the Keycloak container itself*):
+
+.. code-block:: bash
+
+  KEYCLOAK_RBAC_ENABLED: "true"
+
+In the development environment, it is also necessary to
+
+#. Set the desired role for each user (or leave out the role attribute if no role
+   should be set).
+#. Set a UUID on the user via the ``uuid`` Keycloak user attribute. This UUID must
+   match the UUID of the corresponding employee in MO.
+
+The users can be set on the realm builder container by using the
+``KEYCLOAK_REALM_USERS`` environment variable e.g. like this:
+
+.. code-block:: bash
+
+        KEYCLOAK_REALM_USERS: '[
+          {
+            "username": "eline",
+            "password": "eline",
+            "firstname": "Eline",
+            "lastname": "Wedsgaard Christensen",
+            "email": "elinec@kolding.dk",
+            "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+            "roles": ["owner"],
+            "enabled": true
+          }
+        ]'
+
+In this case ``1c571f8f-0e3e-4ffa-9ff0-d35505781924`` is the UUID of the employee
+``eline`` in MO. See a full example in the `docker-compose.yml` file.
+
+Keycloak token and RBAC
+-----------------------
+
+When RBAC is enabled, the Keycloak token will contain information about the roles
+of the user, i.e. the decoded token will contain e.g. these attributes:
+
+.. code-block
+
+  {
+    ...
+    "realm_access": {
+      "roles": [
+        "owner"
+      ]
+    },
+    "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+    ...
+  }
+
+OS2mo will then (in this example) grant access according the owner priviledges
+in the system.
