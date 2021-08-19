@@ -26,15 +26,15 @@ def register(object_type):
     return decorator
 
 
-def get_handler_for_type(object_type) -> 'ReadingHandler':
+def get_handler_for_type(object_type) -> "ReadingHandler":
     try:
-        return READING_HANDLERS[object_type]
+        handler = READING_HANDLERS[object_type]
     except LookupError:
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=object_type)
+    return handler
 
 
 class ReadingHandler:
-
     @classmethod
     @abc.abstractmethod
     async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
@@ -49,8 +49,9 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def get_from_type(cls, c, type, obj_uuid,
-                            changed_since: Optional[datetime] = None):
+    async def get_from_type(
+        cls, c, type, obj_uuid, changed_since: Optional[datetime] = None
+    ):
         """
         Read a list of objects related to a certain object
 
@@ -91,8 +92,9 @@ class ReadingHandler:
         pass
 
     @classmethod
-    async def __async_get_mo_object_from_effect(cls, c, function_id,
-                                                function_obj) -> List[Any]:
+    async def __async_get_mo_object_from_effect(
+        cls, c, function_id, function_obj
+    ) -> List[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by
         business logic
@@ -101,15 +103,20 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
-        return await gather(*[create_task(
-            cls._get_mo_object_from_effect(effect, start, end, function_id))
-            for start, end, effect in (await cls._get_effects(c, function_obj))
-            if util.is_reg_valid(effect)])
+        return await gather(
+            *[
+                create_task(
+                    cls._get_mo_object_from_effect(effect, start, end, function_id)
+                )
+                for start, end, effect in (await cls._get_effects(c, function_obj))
+                if util.is_reg_valid(effect)
+            ]
+        )
 
     @classmethod
-    async def _get_obj_effects(cls, c: Connector,
-                               object_tuples: Iterable[Tuple[str, Dict[Any, Any]]]
-                               ) -> List[Dict[Any, Any]]:
+    async def _get_obj_effects(
+        cls, c: Connector, object_tuples: Iterable[Tuple[str, Dict[Any, Any]]]
+    ) -> List[Dict[Any, Any]]:
         """
         Convert a list of LoRa objects into a list of MO objects
 
@@ -117,22 +124,26 @@ class ReadingHandler:
         :param object_tuples: An iterable of (UUID, object) tuples
         """
         # flatten a bunch of nested tasks
-        return [x for sublist in
-                await gather(
-                    *[create_task(cls.__async_get_mo_object_from_effect(c,
-                                                                        function_id,
-                                                                        function_obj))
-                      for function_id, function_obj in object_tuples])
-                for x in sublist]
+        return [
+            x
+            for sublist in await gather(
+                *[
+                    create_task(
+                        cls.__async_get_mo_object_from_effect(
+                            c, function_id, function_obj
+                        )
+                    )
+                    for function_id, function_obj in object_tuples
+                ]
+            )
+            for x in sublist
+        ]
 
 
 class OrgFunkReadingHandler(ReadingHandler):
     function_key = None
 
-    SEARCH_FIELDS = {
-        'e': 'tilknyttedebrugere',
-        'ou': 'tilknyttedeenheder'
-    }
+    SEARCH_FIELDS = {"e": "tilknyttedebrugere", "ou": "tilknyttedeenheder"}
 
     @staticmethod
     async def assign_when_ready(mapping, key, awaitable_value):
@@ -148,8 +159,9 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
-        object_tuples = await cls._get_lora_object(c, search_fields,
-                                                   changed_since=changed_since)
+        object_tuples = await cls._get_lora_object(
+            c, search_fields, changed_since=changed_since
+        )
         object_tuples = list(object_tuples)
         mo_objects = await cls._get_obj_effects(c, object_tuples)
 
@@ -159,17 +171,20 @@ class OrgFunkReadingHandler(ReadingHandler):
         for mo_object in mo_objects:
             for key, val in mo_object.items():
                 if isawaitable(val):
-                    tasks.append(create_task(cls.assign_when_ready(mapping=mo_object,
-                                                                   key=key,
-                                                                   awaitable_value=val)
-                                             )
-                                 )
+                    tasks.append(
+                        create_task(
+                            cls.assign_when_ready(
+                                mapping=mo_object, key=key, awaitable_value=val
+                            )
+                        )
+                    )
         await gather(*tasks)  # ensure everything has completed
         return mo_objects
 
     @classmethod
-    async def get_from_type(cls, c, type, objid,
-                            changed_since: Optional[datetime] = None):
+    async def get_from_type(
+        cls, c, type, objid, changed_since: Optional[datetime] = None
+    ):
         """Retrieve a list of MO objects of type 'type' and with object ID
         'objid'.
 
@@ -178,8 +193,9 @@ class OrgFunkReadingHandler(ReadingHandler):
         :param changed_since: Date used to filter registrations from LoRa
         :return: list of matching MO objects
         """
-        return await cls.get(c, cls._get_search_fields(type, objid),
-                             changed_since=changed_since)
+        return await cls.get(
+            c, cls._get_search_fields(type, objid), changed_since=changed_since
+        )
 
     @classmethod
     async def get_count(cls, c, type, objid):
@@ -218,11 +234,12 @@ class OrgFunkReadingHandler(ReadingHandler):
         if not field:
             return False
 
-        return field[0]['funktionsnavn'] == cls.function_key
+        return field[0]["funktionsnavn"] == cls.function_key
 
     @classmethod
-    async def _get_lora_object(cls, c, search_fields,
-                               changed_since: Optional[datetime] = None):
+    async def _get_lora_object(
+        cls, c, search_fields, changed_since: Optional[datetime] = None
+    ):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
@@ -240,46 +257,40 @@ class OrgFunkReadingHandler(ReadingHandler):
     @classmethod
     async def _get_effects(cls, c, obj, **params):
         relevant = {
-            'attributter': (
-                'organisationfunktionegenskaber',
-                'organisationfunktionudvidelser',
+            "attributter": (
+                "organisationfunktionegenskaber",
+                "organisationfunktionudvidelser",
             ),
-            'relationer': (
-                'opgaver',
-                'adresser',
-                'organisatoriskfunktionstype',
-                'tilknyttedeenheder',
-                'tilknyttedeklasser',
-                'tilknyttedebrugere',
-                'tilknyttedefunktioner',
-                'tilknyttedeitsystemer',
-                'tilknyttedepersoner',
-                'primær',
+            "relationer": (
+                "opgaver",
+                "adresser",
+                "organisatoriskfunktionstype",
+                "tilknyttedeenheder",
+                "tilknyttedeklasser",
+                "tilknyttedebrugere",
+                "tilknyttedefunktioner",
+                "tilknyttedeitsystemer",
+                "tilknyttedepersoner",
+                "primær",
             ),
-            'tilstande': (
-                'organisationfunktiongyldighed',
-            ),
+            "tilstande": ("organisationfunktiongyldighed",),
         }
         also = {
-            'relationer': (
-                'tilhoerer',
-                'tilknyttedeorganisationer',
+            "relationer": (
+                "tilhoerer",
+                "tilknyttedeorganisationer",
             ),
         }
 
-        return await c.organisationfunktion.get_effects(
-            obj,
-            relevant,
-            also,
-            **params
-        )
+        return await c.organisationfunktion.get_effects(obj, relevant, also, **params)
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end,
-                                         funcid) -> Dict[str, Any]:
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid
+    ) -> Dict[str, Any]:
 
         properties = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
-        user_key = properties['brugervendtnoegle']
+        user_key = properties["brugervendtnoegle"]
 
         r = {
             mapping.UUID: funcid,
@@ -287,16 +298,13 @@ class OrgFunkReadingHandler(ReadingHandler):
             mapping.VALIDITY: util.get_validity_object(start, end),
         }
 
-        if properties.get('integrationsdata') is not None:
+        if properties.get("integrationsdata") is not None:
             try:
                 r[mapping.INTEGRATION_DATA] = json.loads(
-                    properties['integrationsdata'],
+                    properties["integrationsdata"],
                 )
             except json.JSONDecodeError:
-                logger.warning(
-                    'invalid integration data for function',
-                    funcid=funcid
-                )
+                logger.warning("invalid integration data for function", funcid=funcid)
                 r[mapping.INTEGRATION_DATA] = None
 
         return r
