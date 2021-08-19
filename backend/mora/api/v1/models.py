@@ -10,7 +10,7 @@ class Facet(MOBase):
     description: str
 
 
-class SmallClass(MOBase):
+class SmallKlasse(MOBase):
     name: str
     user_key: str
     example: Optional[str]
@@ -18,13 +18,13 @@ class SmallClass(MOBase):
     owner: Optional[str]
 
 
-class Class(SmallClass):
+class Klasse(SmallKlasse):
     full_name: str
     top_level_facet: Facet
     facet: Facet
 
 
-class OrganizationUnit(MOBase):
+class OrganisationUnit(MOBase):
     name: str
     user_key: str
     validity: Validity
@@ -43,22 +43,22 @@ class Person(MOBase):
 class Manager(MOBase):
     user_key: str
     validity: Validity
-    responsibility: List[Class]
-    org_unit: OrganizationUnit
+    responsibility: List[Klasse]
+    org_unit: OrganisationUnit
     person: Person
-    manager_type: Class
-    manager_level: Class
+    manager_type: Klasse
+    manager_level: Klasse
 
 
 class Role(MOBase):
     user_key: str
     validity: Validity
     person: Person
-    org_unit: OrganizationUnit
-    role_type: Class
+    org_unit: OrganisationUnit
+    role_type: Klasse
 
 
-class Itsystem(MOBase):
+class ITSystem(MOBase):
     name: str
     reference: Optional[str]
     system_type: Optional[str]
@@ -66,22 +66,22 @@ class Itsystem(MOBase):
     validity: Validity
 
 
-class ItsystemBinding(MOBase):
+class ITSystemBinding(MOBase):
     user_key: str
     validity: Validity
-    itsystem: Itsystem
+    itsystem: ITSystem
     person: Person
-    org_unit: Optional[OrganizationUnit]
+    org_unit: Optional[Klasse]
 
 
 class Association(MOBase):
     user_key: str
     validity: Validity
     person: Person
-    org_unit: OrganizationUnit
-    association_type: Class
-    primary: Optional[Class]
-    dynamic_classes: Optional[List[Class]]
+    org_unit: OrganisationUnit
+    association_type: Klasse
+    primary: Optional[Klasse]
+    dynamic_classes: Optional[List[Klasse]]
     substitute: Any
 
 
@@ -90,10 +90,10 @@ class Engagement(MOBase):
     validity: Validity
     integration_data: Dict[str, str]
     person: Person
-    org_unit: OrganizationUnit
-    job_function: Class
-    engagement_type: Class
-    primary: Class
+    org_unit: OrganisationUnit
+    job_function: Klasse
+    engagement_type: Klasse
+    primary: Klasse
     is_primary: Optional[bool]
     fraction: Optional[float]
     extension_1: Optional[str]
@@ -111,37 +111,37 @@ class Engagement(MOBase):
 class Address(MOBase):
     user_key: str
     validity: Validity
-    address_type: Class
+    address_type: Klasse
     href: Optional[str]
     name: str
     value: str
     value2: Optional[str]
-    visibility: Optional[SmallClass]
+    visibility: Optional[SmallKlasse]
     person: Optional[Person]
-    org_unit: Optional[OrganizationUnit]
+    org_unit: Optional[OrganisationUnit]
 
 
-class Organization(MOBase):
+class Organisation(MOBase):
     name: str
     user_key: str
 
 
-class OrganizationUnitFull(OrganizationUnit):
+class OrganisationUnitFull(OrganisationUnit):
     location: str
     user_settings: Dict[str, Any]
-    parent: Optional["OrganizationUnitFull"]
-    org: Organization
-    org_unit_type: Class
-    time_planning: Class
-    org_unit_level: Class
+    parent: Optional["OrganisationUnitFull"]
+    org: Organisation
+    org_unit_type: Klasse
+    time_planning: Klasse
+    org_unit_level: Klasse
 
 
-OrganizationUnitFull.update_forward_refs()
+OrganisationUnitFull.update_forward_refs()
 
 
 class Employee(Person):
     cpr_no: Optional[str]
-    org: Organization
+    org: Organisation
     user_key: str
     validity: Validity
 
@@ -150,16 +150,16 @@ class Leave(MOBase):
     user_key: str
     validity: Validity
     person: Person
-    leave_type: SmallClass
+    leave_type: SmallKlasse
     engagement: Engagement
 
 
 class KLE(MOBase):
     user_key: str
     validity: Validity
-    kle_aspect: List[Class]
-    kle_number: Class
-    org_unit: Optional[OrganizationUnit]
+    kle_aspect: List[SmallKlasse]
+    kle_number: Klasse
+    org_unit: Optional[OrganisationUnit]
 
 
 class Owner(MOBase):
@@ -167,19 +167,19 @@ class Owner(MOBase):
     validity: Validity
     owner_inference_priority: Optional[Any]
     owner: Person
-    org_unit: OrganizationUnit
+    org_unit: OrganisationUnit
     person: Optional[Person]
 
 
 class RelatedUnit(MOBase):
     user_key: str
     validity: Validity
-    org_unit: List[OrganizationUnit]
+    org_unit: List[OrganisationUnit]
 
 
 class EngagementAssociation(MOBase):
     user_key: str
     validity: Validity
     engagement: Engagement
-    org_unit: OrganizationUnit
-    engagement_association_type: Class
+    org_unit: OrganisationUnit
+    engagement_association_type: Klasse

@@ -14,17 +14,17 @@ from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.api.v1.models import Address
 from mora.api.v1.models import Association
-from mora.api.v1.models import Employee
+from mora.api.v1.models import Employee, MOBase
 from mora.api.v1.models import RelatedUnit
 from mora.api.v1.models import Engagement
 from mora.api.v1.models import EngagementAssociation
 from mora.api.v1.models import Owner
-from mora.api.v1.models import OrganizationUnitFull
+from mora.api.v1.models import OrganisationUnitFull
 from mora.api.v1.models import Manager
 from mora.api.v1.models import Role
 from mora.api.v1.models import KLE
 from mora.api.v1.models import Leave
-from mora.api.v1.models import ItsystemBinding
+from mora.api.v1.models import ITSystemBinding
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.util import date_to_datetime
@@ -96,7 +96,7 @@ async def orgfunk_endpoint(
     )
 
 
-def export_orgfunk_endpoints(orgfunk, return_type):
+def export_orgfunk_endpoints(orgfunk, return_type: MOBase):
     @date_to_datetime
     async def search_orgfunk_base(
         at: Optional[Any] = None,
@@ -106,9 +106,9 @@ def export_orgfunk_endpoints(orgfunk, return_type):
         org_funcs = await orgfunk_endpoint(
             orgfunk_type=orgfunk,
             query_args={"at": at, "validity": validity},
-            changed_since=changed_since
+            changed_since=changed_since,
         )
-        return parse_obj_as(List[return_type], org_funcs)
+        return parse_obj_as(List[return_type], org_funcs)  # type: ignore
 
     @date_to_datetime
     async def search_orgfunk_special(
@@ -146,18 +146,18 @@ def export_orgfunk_endpoints(orgfunk, return_type):
             "only_primary_uuid": only_primary_uuid,
         }
         org_funcs = await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)
-        return parse_obj_as(List[return_type], org_funcs)
+        return parse_obj_as(List[return_type], org_funcs)  # type: ignore
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
 
     router.get(
         f"/{orgfunk.value}",
-        response_model=List[return_type],
+        response_model=List[return_type],  # type: ignore
     )(search_orgfunk)
 
     router.get(
         f"/{orgfunk.value}/by_uuid",
-        response_model=List[return_type],
+        response_model=List[return_type],  # type: ignore
     )(get_orgfunk_by_uuid)
 
 
@@ -180,7 +180,7 @@ def export_role_endpoints(role, return_type):
         roles = await cls.get(
             c, {"at": at, "validity": validity}, changed_since=changed_since
         )
-        return parse_obj_as(List[return_type], roles)
+        return parse_obj_as(List[return_type], roles)  # type: ignore
 
     search_role.__name__ = f"search_{role}"
 
@@ -208,7 +208,7 @@ def export_role_endpoints(role, return_type):
             {"at": at, "validity": validity, "uuid": uuid},
             changed_since=changed_since,
         )
-        return parse_obj_as(List[return_type], roles)
+        return parse_obj_as(List[return_type], roles)  # type: ignore
 
     get_role_by_uuid.__name__ = f"get_{role}_by_uuid"
 
@@ -228,7 +228,7 @@ orgfunk_type_map = {
     MoOrgFunk.ASSOCIATION: Association,
     MoOrgFunk.ENGAGEMENT: Engagement,
     MoOrgFunk.ENGAGEMENT_ASSOCIATION: EngagementAssociation,
-    MoOrgFunk.IT: ItsystemBinding,
+    MoOrgFunk.IT: ITSystemBinding,
     MoOrgFunk.KLE: KLE,
     MoOrgFunk.LEAVE: Leave,
     MoOrgFunk.MANAGER: Manager,
@@ -243,7 +243,7 @@ for orgfunk, return_type in orgfunk_type_map.items():
     export_orgfunk_endpoints(orgfunk, return_type)
 
 role_type_map = {
-    ORG_UNIT_ROLE_TYPE: OrganizationUnitFull,
+    ORG_UNIT_ROLE_TYPE: OrganisationUnitFull,
     EMPLOYEE_ROLE_TYPE: Employee,
 }
 for role, return_type in role_type_map.items():
