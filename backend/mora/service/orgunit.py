@@ -38,12 +38,15 @@ from more_itertools import unzip
 import mora.async_util
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
+from . import autocomplete
 from . import facet
 from . import handlers
 from . import org
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from .. import common, conf_db
+from .. import common
+from .. import conf_db
+from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -640,6 +643,14 @@ async def get_one_orgunit(c: lora.Connector,
         r['%s_count' % key] = await reader.get_count(c, 'ou', unitid)
 
     return r
+
+
+@router.get('/ou/autocomplete/')
+async def autocomplete_orgunits(query: str):
+    settings = config.get_settings()
+    return await autocomplete.get_results(
+        "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+    )
 
 
 @router.get('/{type}/{parentid}/children')

@@ -20,6 +20,9 @@ New features
 * #37599: Users can now terminate organisation unit registrations (as an alternative to terminating the entire organisation unit)
 * #44188: Add local Grafana/OpenTelemetry development environment (:3000/explore)
 * #44596: Implement Prometheus FastAPI instrumentor, new metrics endpoint with version and health checks
+* #38239: Users can now search on more properties of employees and organisation units.
+* #39858: Users can now see additional properties of employees and organisation units in the search results, if configured.
+* #44530: Speed up the search for matching organisation units from the "org unit picker", if configured.
 
 Bug fixes
 ---------

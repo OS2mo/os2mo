@@ -25,10 +25,12 @@ from fastapi import APIRouter, Body
 
 import mora.async_util
 from mora.request_scoped.bulking import request_wide_bulk
+from . import autocomplete
 from . import handlers
 from . import org
 from .validation import validator
 from .. import common
+from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -365,6 +367,14 @@ async def get_one_employee(c: lora.Connector, userid,
         r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
 
     return r
+
+
+@router.get('/e/autocomplete/')
+async def autocomplete_employees(query: str):
+    settings = config.get_settings()
+    return await autocomplete.get_results(
+        "bruger", settings.confdb_autocomplete_attrs_employee, query
+    )
 
 
 @router.get('/o/{orgid}/e/')

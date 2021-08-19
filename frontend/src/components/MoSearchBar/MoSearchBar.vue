@@ -25,10 +25,13 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import sortBy from 'lodash.sortby'
+import Autocomplete from '@/api/Autocomplete'
 import Search from '@/api/Search'
 import MoAutocomplete from '@/components/MoAutocomplete/MoAutocomplete.vue'
 import { MoInputDate } from '@/components/MoInput'
+import store from '@/store'
 import { AtDate } from '@/store/actions/atDate'
+import { Conf } from '@/store/actions/conf'
 
 export default {
   name: 'MoSearchBar',
@@ -100,24 +103,32 @@ export default {
     updateItems (query) {
       let vm = this
       let org = this.$store.state.organisation
+      let conf = store.getters[Conf.getters.GET_CONF_DB]
 
       return new Promise(resolve => {
+        var req
+
         if (query.length < 2) {
           return resolve([])
         }
 
         if (vm.routeName === 'EmployeeDetail') {
-          Search.employees(org.uuid, query)
-            .then(response => {
-              resolve(sortBy(response, 'name'))
-            })
+          if (conf.confdb_autocomplete_use_new_api) {
+            req = Autocomplete.employees(query)
+          } else {
+            req = Search.employees(org.uuid, query)
+          }
         }
+
         if (vm.routeName === 'OrganisationDetail') {
-          Search.organisations(org.uuid, query, this.atDate)
-            .then(response => {
-              resolve(sortBy(response, 'name'))
-            })
+          if (conf.confdb_autocomplete_use_new_api) {
+            req = Autocomplete.organisations(query)
+          } else {
+            req = Search.organisations(org.uuid, query, this.atDate)
+          }
         }
+
+        req.then(response => { resolve(sortBy(response, 'name')) })
       })
     },
 

@@ -38,7 +38,7 @@ SPDX-License-Identifier: MPL-2.0
          @click.prevent="selectSearchResult(result)">
         <span v-for="(part, index) in result.path" :key="index">
           {{ part }}
-          <span>&raquo;</span>
+          <span v-if="index != result.path.length - 1">&raquo;</span>
         </span>
       </a>
     </div>
