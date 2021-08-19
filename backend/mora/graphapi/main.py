@@ -16,13 +16,15 @@ from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.types import Info
 
 from mora.graphapi.auth import IsAuthenticated
+from mora.graphapi.dataloaders import get_addresses
+from mora.graphapi.dataloaders import get_employees
+from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.dataloaders import get_org_units
+from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.schema import Address
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
-from mora.graphapi.dataloaders import get_employees
-from mora.graphapi.dataloaders import get_org_units
-from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.middleware import StarletteContextExtension
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -97,6 +99,28 @@ class Query:
     async def employee_by_uuid(self, info: Info, uuid: UUID) -> Optional[Employee]:
         return await info.context["employee_loader"].load(str(uuid))
 
+    # Addresses
+    # ---------
+    @strawberry.field(
+        permission_classes=[IsAuthenticated], description="Get a list of all addresses"
+    )
+    async def addresses(self, info: Info) -> List[Address]:
+        return await get_addresses()
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a list of addresses by uuids",
+    )
+    async def addresses_by_uuids(self, info: Info, uuids: List[UUID]) -> List[Address]:
+        tasks = map(info.context["address_loader"].load, map(str, uuids))
+        return await gather(*tasks)
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated], description="Get a single address by uuid"
+    )
+    async def address_by_uuid(self, info: Info, uuid: UUID) -> Optional[Address]:
+        return await info.context["address_loader"].load(str(uuid))
+
 
 class MyGraphQL(GraphQL):
     # Subclass as done here:
@@ -125,7 +149,7 @@ def get_schema():
         extensions=[
             OpenTelemetryExtension,
             StarletteContextExtension,
-        ]
+        ],
     )
     return schema
 

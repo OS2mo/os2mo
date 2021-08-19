@@ -12,14 +12,19 @@ from strawberry.dataloader import DataLoader
 
 from mora.api.v1.reading_endpoints import role_type_search_factory
 from mora.api.v1.reading_endpoints import role_type_uuid_factory
+from mora.api.v1.reading_endpoints import uuid_func_factory
+from mora.api.v1.reading_endpoints import search_func_factory
 from mora.api.v1.reading_endpoints import EMPLOYEE_ROLE_TYPE
 from mora.api.v1.reading_endpoints import ORG_UNIT_ROLE_TYPE
 from mora.api.v1.reading_endpoints import CommonQueryParams
+from mora.api.v1.reading_endpoints import orgfunk_endpoint
+from mora.api.v1.reading_endpoints import MoOrgFunk
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.service import org
 
+from mora.graphapi.schema import Address
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
@@ -60,14 +65,52 @@ def bulk_role_search_factory(
     return bulk_search_role
 
 
+OrgFunkType = TypeVar("OrgFunkType")
+
+
+def bulk_orgfunk_load_factory(
+    orgfunk: str, strawberry_type: OrgFunkType
+) -> Callable[[List[UUID]], OrgFunkType]:
+    """Generates a bulk loader function for an organisation function."""
+
+    async def bulk_load_orgfunk(keys: List[UUID]) -> List[Optional[strawberry_type]]:
+        """Bulk loader function for an organisation function."""
+        result = await uuid_func_factory(orgfunk)(
+            uuid=keys,
+            at=None,
+            validity=None,
+            only_primary_uuid=None,
+        )
+        uuid_map = {obj["uuid"]: strawberry_type.construct(obj) for obj in result}
+        return list(map(uuid_map.get, keys))
+
+    return bulk_load_orgfunk
+
+
+def bulk_orgfunk_search_factory(
+    orgfunk: str, strawberry_type: OrgFunkType
+) -> Callable[[], OrgFunkType]:
+    """Generates a searcher function for an organisation function."""
+
+    async def bulk_search_orgfunk() -> List[strawberry_type]:
+        """Searcher function for an organisation function."""
+        result = await search_func_factory(orgfunk)(
+            common=CommonQueryParams(at=None, validity=None, changed_since=None)
+        )
+        return list(map(strawberry_type.construct, result))
+
+    return bulk_search_orgfunk
+
+
 # Use our bulk-loader generators to generate loaders for each type
 load_org_units = bulk_role_load_factory(ORG_UNIT_ROLE_TYPE, OrganisationUnit)
 load_employees = bulk_role_load_factory(EMPLOYEE_ROLE_TYPE, Employee)
-
+load_addresses = bulk_orgfunk_load_factory(MoOrgFunk.ADDRESS, Address)
 
 # Use searcher generators to generate searchers for each type
 get_org_units = bulk_role_search_factory(ORG_UNIT_ROLE_TYPE, OrganisationUnit)
 get_employees = bulk_role_search_factory(EMPLOYEE_ROLE_TYPE, Employee)
+get_addresses = bulk_orgfunk_search_factory(MoOrgFunk.ADDRESS, Address)
 
 
 async def load_org(keys: List[int]) -> List[Organisation]:
@@ -112,6 +155,23 @@ async def load_org_units_children(keys: List[UUID]) -> List[List[Organisation]]:
     return await gather(*tasks)
 
 
+async def get_address_by_owning_uuid(uuid: UUID) -> List[Address]:
+    """Non-bulk loader for addresses by owning UUID."""
+    result = await orgfunk_endpoint(
+        orgfunk_type=MoOrgFunk.ADDRESS,
+        query_args={"vilkaarligrel": uuid},
+        changed_since=None,
+    )
+    return list(map(Address.construct, result))
+
+
+async def load_addresses_by_owning_uuid(keys: List[UUID]) -> List[List[Address]]:
+    """Non-bulk loader for addresses by owning UUID with bulk interface."""
+    # TODO: This function should be replaced with a bulk version
+    tasks = map(get_address_by_owning_uuid, keys)
+    return await gather(*tasks)
+
+
 def get_loaders() -> Dict[str, DataLoader]:
     """Get all available dataloaders as a dictionary."""
     return {
@@ -119,4 +179,8 @@ def get_loaders() -> Dict[str, DataLoader]:
         "org_unit_loader": DataLoader(load_fn=load_org_units),
         "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "employee_loader": DataLoader(load_fn=load_employees),
+        "address_loader": DataLoader(load_fn=load_addresses),
+        "address_by_owning_uuid_loader": DataLoader(
+            load_fn=load_addresses_by_owning_uuid
+        ),
     }

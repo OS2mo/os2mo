@@ -37,6 +37,40 @@ class QLValidity:
 
 
 @strawberry.type(
+    description=(
+        "An Address; postal, office number, phone number, etc."
+        "Can either attached to an Employee, Organisation Unit or Engagement."
+    )
+)
+class Address(Constructable):
+    # TODO: Minimal details level
+    uuid: UUID
+    user_key: str
+    validity: QLValidity
+
+    # address_type: Class
+
+    href: Optional[str]
+    name: str
+    value: str
+    value2: Optional[str]
+
+    # org_unit: Optional[OrganisationUnit]
+
+    @classmethod
+    def construct(cls, obj: dict) -> "Address":
+        return Address(
+            uuid=obj["uuid"],
+            user_key=obj["user_key"],
+            validity=obj["validity"],
+            href=obj.get("href"),
+            name=obj["name"],
+            value=obj["value"],
+            value2=obj.get("value2"),
+        )
+
+
+@strawberry.type(
     description=("The root-organisation." "One and only one of these can exist.")
 )
 class Organisation(Constructable):
@@ -70,6 +104,10 @@ class Employee(Constructable):
     async def org(self, info: Info) -> Organisation:
         return await info.context["org_loader"].load(0)
 
+    @strawberry.field(description="All addresses attached to this employee")
+    async def addresses(self, info: Info) -> List[Address]:
+        return await info.context["address_by_owning_uuid_loader"].load(self.uuid)
+
 
 @strawberry.type(
     description=(
@@ -100,3 +138,7 @@ class OrganisationUnit(Constructable):
     )
     async def children(self, info: Info) -> List["OrganisationUnit"]:
         return await info.context["org_unit_children_loader"].load(self.uuid)
+
+    @strawberry.field(description="All addresses attached to this employee")
+    async def addresses(self, info: Info) -> List[Address]:
+        return await info.context["address_by_owning_uuid_loader"].load(self.uuid)
