@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
 
+    # GraphQL settings
+    graphql_enable: bool = False
+
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
     fetch_trigger_timeout: int = 5
