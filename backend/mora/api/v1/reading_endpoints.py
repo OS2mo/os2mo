@@ -299,7 +299,7 @@ async def search_employee(
 
 @router.get(
     f"/{EMPLOYEE_ROLE_TYPE}/by_uuid",
-    response_model=Employee,
+    response_model=List[Employee],
 )
 @date_to_datetime
 async def get_employee_by_uuid(
@@ -354,7 +354,7 @@ async def search_org_unit(
 
 @router.get(
     f"/{ORG_UNIT_ROLE_TYPE}/by_uuid",
-    response_model=OrganisationUnitFull,
+    response_model=List[OrganisationUnitFull],
 )
 @date_to_datetime
 async def get_org_unit_by_uuid(
@@ -458,5 +458,5 @@ for orgfunk in MoOrgFunk:
 for orgfunk, return_type in orgfunk_type_map.items():
     router.get(
         f"/{orgfunk.value}/by_uuid",
-        response_model=return_type,
+        response_model=List[return_type],
     )(uuid_func_factory(orgfunk))

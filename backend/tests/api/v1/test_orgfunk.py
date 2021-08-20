@@ -107,4 +107,4 @@ class Reading(TestCase):
         # parametrized test
         for orgfunk in MoOrgFunk:
             return_value = self.construct_orgfunk_model(orgfunk, data)
-            self.api_exposing_org_funk_uuid_endpoint_helper(orgfunk, return_value)
+            self.api_exposing_org_funk_uuid_endpoint_helper(orgfunk, [return_value])

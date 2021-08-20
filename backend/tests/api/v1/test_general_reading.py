@@ -137,7 +137,7 @@ class Reading(TestCase):
             reader, *search_tuple, [instance2dict(instance)]
         )
         self.search_endpoint_helper2(
-            reader, *uuid_tuple, instance2dict(instance)
+            reader, *uuid_tuple, [instance2dict(instance)]
         )
 
     @given(st.builds(OrganisationUnitFull))
@@ -149,21 +149,21 @@ class Reading(TestCase):
             reader, *search_tuple, [instance2dict(instance)]
         )
         self.search_endpoint_helper2(
-            reader, *uuid_tuple, instance2dict(instance)
+            reader, *uuid_tuple, [instance2dict(instance)]
         )
 
     @given(st.builds(Employee))
     @settings(max_examples=1)
     def test_uuid_endpoint_employee(self, instance):
         self.uuid_endpoint_helper(
-            "employee", employee.EmployeeReader, instance2dict(instance)
+            "employee", employee.EmployeeReader, [instance2dict(instance)]
         )
 
     @given(st.builds(OrganisationUnitFull))
     @settings(max_examples=1)
     def test_uuid_endpoint_org_unit(self, instance):
         self.uuid_endpoint_helper(
-            "org_unit", org_unit.OrgUnitReader, instance2dict(instance)
+            "org_unit", org_unit.OrgUnitReader, [instance2dict(instance)]
         )
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
