@@ -24,7 +24,7 @@ def keycloak_router():
             "realm": REALM,
             "auth-server-url": settings.keycloak_auth_server_url,
             "ssl-required": settings.keycloak_ssl_required,
-            "resource": "mo",
+            "resource": settings.keycloak_mo_client,
             "public-client": True,
             "confidential-port": 0,
         }
@@ -51,7 +51,7 @@ def keycloak_router():
             )
 
         payload = {
-            "client_id": "mo",
+            "client_id": settings.keycloak_mo_client,
             "username": form_data.username,
             "password": form_data.password,
             "grant_type": "password",

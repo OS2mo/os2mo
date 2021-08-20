@@ -1,31 +1,42 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from enum import Enum
 
 from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import Extra
+from pydantic import root_validator
+from typing import Any
+from typing import Dict
+from typing import Optional
 from typing import Set
 from uuid import UUID
 
-from mora.mapping import ADMIN
-from mora.mapping import OWNER
+from mora import config
 
-
-class Roles(str, Enum):
-    admin = ADMIN
-    owner = OWNER
+settings = config.get_settings()
 
 
 class RealmAccess(BaseModel):
-    roles: Set[Roles] = set()
+    roles: Set[str] = set()
 
 
 class Token(BaseModel):
-    email: EmailStr
-    preferred_username: str
+    azp: str
+    email: Optional[EmailStr]
+    preferred_username: Optional[str]
     realm_access: RealmAccess = RealmAccess(roles=set())
-    uuid: UUID
+    uuid: Optional[UUID]
+
+    @root_validator
+    def uuid_attribute_required_for_mo_client(
+        cls, values: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        if values.get("azp") == settings.keycloak_mo_client:
+            if values.get("uuid") is None:
+                raise ValueError(
+                    'The uuid user attribute is missing in the token'
+                )
+        return values
 
     class Config:
         extra = Extra.ignore

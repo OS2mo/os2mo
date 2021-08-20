@@ -4,6 +4,7 @@ import asyncio
 from datetime import datetime
 import unittest.mock
 from uuid import UUID
+from uuid import uuid4
 
 from fastapi.exceptions import HTTPException
 import jwt
@@ -14,12 +15,14 @@ from jwt.exceptions import (
     PyJWTError
 )
 from cryptography.hazmat.primitives import serialization
+from pydantic import ValidationError
 
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_500_INTERNAL_SERVER_ERROR
 )
 
+from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 import mora.auth.keycloak.oidc as oidc
 from mora.auth.exceptions import AuthenticationError
@@ -43,7 +46,7 @@ class TestOIDC(unittest.TestCase):
         self.parsed_token = {
             'acr': '1',
             'allowed-origins': ['http://localhost:5001'],
-            'azp': 'vue',
+            'azp': 'mo',
             'email': 'bruce@kung.fu',
             'email_verified': False,
             'exp': int(datetime.now().timestamp()) + 300,
@@ -118,6 +121,7 @@ class TestOIDC(unittest.TestCase):
 
         actual_token = self.loop.run_until_complete(oidc.auth(token))
         expected_token = Token(
+            azp='mo',
             email='bruce@kung.fu',
             preferred_username='bruce',
             uuid=UUID('99e7b256-7dfa-4ee8-95c6-e3abe82e236a')
@@ -222,3 +226,66 @@ class TestAuthError(unittest.TestCase):
     def test_is_client_side_error_false_for_server_error(self):
         exc = AuthenticationError(PyJWTError())
         self.assertFalse(exc.is_client_side_error())
+
+
+class TestTokenModel(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.roles = {'admin', 'owner'}
+        self.realm_access = RealmAccess(roles=self.roles)
+
+    def test_azp_mandatory(self):
+        with self.assertRaises(ValidationError) as err:
+            Token()
+        errors = err.exception.errors()[0]
+
+        self.assertEqual(('azp',), errors['loc'])
+        self.assertEqual('value_error.missing', errors['type'])
+
+    def test_should_ignore_extra_fields(self):
+        token = Token(azp='some-client', extra=0)
+        with self.assertRaises(AttributeError):
+            token.extra
+
+    def test_should_set_realm_access_to_default_value(self):
+        token = Token(azp='some-client')
+        self.assertSetEqual(set(), token.realm_access.roles)
+
+    def test_should_set_roles_correctly(self):
+        token = Token(azp='some-client', realm_access=self.realm_access)
+        self.assertSetEqual(self.roles, token.realm_access.roles)
+
+    def test_uuid_required_if_client_is_mo(self):
+        with self.assertRaises(ValidationError) as err:
+            Token(azp='mo')
+        errors = err.exception.errors()[0]
+
+        self.assertEqual(
+            'The uuid user attribute is missing in the token',
+            errors['msg']
+        )
+        self.assertEqual('value_error', errors['type'])
+
+    def test_invalid_email_address_not_allowed(self):
+        with self.assertRaises(ValidationError) as err:
+            Token(azp='mo', uuid=uuid4(), email='Invalid email')
+        errors = err.exception.errors()[0]
+
+        self.assertEqual(('email',), errors['loc'])
+        self.assertEqual('value_error.email', errors['type'])
+
+    def test_token_with_all_fields_set(self):
+        uuid = uuid4()
+        token = Token(
+            azp='mo',
+            email='bruce@kung.fu',
+            preferred_username='bruce',
+            realm_access=self.realm_access,
+            uuid=uuid
+        )
+
+        self.assertEqual('mo', token.azp)
+        self.assertEqual('bruce@kung.fu', token.email)
+        self.assertEqual('bruce', token.preferred_username)
+        self.assertSetEqual(self.roles, token.realm_access.roles)
+        self.assertEqual(uuid, token.uuid)
