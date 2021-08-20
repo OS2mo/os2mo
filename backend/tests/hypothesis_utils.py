@@ -45,7 +45,6 @@ def validity_model_strat(draw) -> Validity:
     return Validity(**st_dict)
 
 
-
 st.register_type_strategy(
     Validity, validity_model_strat()
 )

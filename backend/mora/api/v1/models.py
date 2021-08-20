@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from functools import partial
 from typing import Dict
 from typing import List
 from typing import Optional
