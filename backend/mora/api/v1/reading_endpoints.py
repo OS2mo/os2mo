@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Query
+
 from mora import common, mapping
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
@@ -12,6 +13,19 @@ from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.util import date_to_datetime
+from mora.api.v1.models import Address
+from mora.api.v1.models import Association
+from mora.api.v1.models import Employee
+from mora.api.v1.models import RelatedUnit
+from mora.api.v1.models import Engagement
+from mora.api.v1.models import EngagementAssociation
+from mora.api.v1.models import Owner
+from mora.api.v1.models import OrganisationUnitFull
+from mora.api.v1.models import Manager
+from mora.api.v1.models import Role
+from mora.api.v1.models import KLE
+from mora.api.v1.models import Leave
+from mora.api.v1.models import ITSystemBinding
 from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
@@ -81,7 +95,10 @@ async def orgfunk_endpoint(
     )
 
 
-@router.get(f"/{MoOrgFunk.ENGAGEMENT.value}")
+@router.get(
+    f"/{MoOrgFunk.ENGAGEMENT.value}",
+    response_model=List[Engagement],
+)
 @date_to_datetime
 async def search_engagement(
     at: Optional[Any] = None,
@@ -95,7 +112,10 @@ async def search_engagement(
     )
 
 
-@router.get(f"/{MoOrgFunk.ASSOCIATION.value}")
+@router.get(
+    f"/{MoOrgFunk.ASSOCIATION.value}",
+    response_model=List[Association],
+)
 @date_to_datetime
 async def search_association(
     at: Optional[Any] = None,
@@ -109,7 +129,10 @@ async def search_association(
     )
 
 
-@router.get(f"/{MoOrgFunk.IT.value}")
+@router.get(
+    f"/{MoOrgFunk.IT.value}",
+    response_model=List[ITSystemBinding],
+)
 @date_to_datetime
 async def search_it(
     at: Optional[Any] = None,
@@ -123,7 +146,10 @@ async def search_it(
     )
 
 
-@router.get(f"/{MoOrgFunk.KLE.value}")
+@router.get(
+    f"/{MoOrgFunk.KLE.value}",
+    response_model=List[KLE],
+)
 @date_to_datetime
 async def search_kle(
     at: Optional[Any] = None,
@@ -137,7 +163,10 @@ async def search_kle(
     )
 
 
-@router.get(f"/{MoOrgFunk.ROLE.value}")
+@router.get(
+    f"/{MoOrgFunk.ROLE.value}",
+    response_model=List[Role],
+)
 @date_to_datetime
 async def search_role(
     at: Optional[Any] = None,
@@ -151,7 +180,10 @@ async def search_role(
     )
 
 
-@router.get(f"/{MoOrgFunk.ADDRESS.value}")
+@router.get(
+    f"/{MoOrgFunk.ADDRESS.value}",
+    response_model=List[Address],
+)
 @date_to_datetime
 async def search_address(
     at: Optional[Any] = None,
@@ -169,7 +201,10 @@ async def search_address(
     )
 
 
-@router.get(f"/{MoOrgFunk.ENGAGEMENT_ASSOCIATION.value}")
+@router.get(
+    f"/{MoOrgFunk.ENGAGEMENT_ASSOCIATION.value}",
+    response_model=List[EngagementAssociation],
+)
 @date_to_datetime
 async def search_engagement_association(
     at: Optional[Any] = None,
@@ -187,7 +222,10 @@ async def search_engagement_association(
     )
 
 
-@router.get(f"/{MoOrgFunk.LEAVE.value}")
+@router.get(
+    f"/{MoOrgFunk.LEAVE.value}",
+    response_model=List[Leave],
+)
 @date_to_datetime
 async def search_leave(
     at: Optional[Any] = None,
@@ -201,7 +239,10 @@ async def search_leave(
     )
 
 
-@router.get(f"/{MoOrgFunk.MANAGER.value}")
+@router.get(
+    f"/{MoOrgFunk.MANAGER.value}",
+    response_model=List[Manager],
+)
 @date_to_datetime
 async def search_manager(
     at: Optional[Any] = None,
@@ -215,7 +256,10 @@ async def search_manager(
     )
 
 
-@router.get(f"/{MoOrgFunk.RELATED_UNIT.value}")
+@router.get(
+    f"/{MoOrgFunk.RELATED_UNIT.value}",
+    response_model=List[RelatedUnit],
+)
 @date_to_datetime
 async def search_related_unit(
     at: Optional[Any] = None,
@@ -229,7 +273,10 @@ async def search_related_unit(
     )
 
 
-@router.get(f"/{EMPLOYEE_ROLE_TYPE}")
+@router.get(
+    f"/{EMPLOYEE_ROLE_TYPE}",
+    response_model=List[Employee],
+)
 @date_to_datetime
 async def search_employee(
     at: Optional[Any] = None,
@@ -250,7 +297,10 @@ async def search_employee(
     )
 
 
-@router.get(f"/{EMPLOYEE_ROLE_TYPE}/by_uuid")
+@router.get(
+    f"/{EMPLOYEE_ROLE_TYPE}/by_uuid",
+    response_model=Employee,
+)
 @date_to_datetime
 async def get_employee_by_uuid(
     uuid: List[UUID] = Query(...),
@@ -277,7 +327,10 @@ async def get_employee_by_uuid(
     )
 
 
-@router.get(f"/{ORG_UNIT_ROLE_TYPE}")
+@router.get(
+    f"/{ORG_UNIT_ROLE_TYPE}",
+    response_model=List[OrganisationUnitFull],
+)
 @date_to_datetime
 async def search_org_unit(
     at: Optional[Any] = None,
@@ -299,7 +352,10 @@ async def search_org_unit(
     )
 
 
-@router.get(f"/{ORG_UNIT_ROLE_TYPE}/by_uuid")
+@router.get(
+    f"/{ORG_UNIT_ROLE_TYPE}/by_uuid",
+    response_model=OrganisationUnitFull,
+)
 @date_to_datetime
 async def get_org_unit_by_uuid(
     uuid: List[UUID] = Query(...),
@@ -326,7 +382,10 @@ async def get_org_unit_by_uuid(
     )
 
 
-@router.get(f"/{MoOrgFunk.OWNER.value}")
+@router.get(
+    f"/{MoOrgFunk.OWNER.value}",
+    response_model=Owner,
+)
 async def search_owner_unit(
     at: Optional[Any] = None,
     validity: Optional[Any] = None,
@@ -380,5 +439,24 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
     return get_orgfunk_by_uuid
 
 
+orgfunk_type_map = {
+    MoOrgFunk.ADDRESS: Address,
+    MoOrgFunk.ASSOCIATION: Association,
+    MoOrgFunk.ENGAGEMENT: Engagement,
+    MoOrgFunk.ENGAGEMENT_ASSOCIATION: EngagementAssociation,
+    MoOrgFunk.IT: ITSystemBinding,
+    MoOrgFunk.KLE: KLE,
+    MoOrgFunk.LEAVE: Leave,
+    MoOrgFunk.MANAGER: Manager,
+    MoOrgFunk.OWNER: Owner,
+    MoOrgFunk.RELATED_UNIT: RelatedUnit,
+    MoOrgFunk.ROLE: Role,
+}
 for orgfunk in MoOrgFunk:
-    router.get(f"/{orgfunk.value}/by_uuid")(uuid_func_factory(orgfunk))
+    assert orgfunk in orgfunk_type_map
+
+for orgfunk, return_type in orgfunk_type_map.items():
+    router.get(
+        f"/{orgfunk.value}/by_uuid",
+        response_model=return_type,
+    )(uuid_func_factory(orgfunk))
