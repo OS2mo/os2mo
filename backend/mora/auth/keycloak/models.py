@@ -2,12 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from pydantic import BaseModel
-from pydantic import MissingError
-from pydantic import ValidationError
 from pydantic import EmailStr
 from pydantic import Extra
 from pydantic import root_validator
-from pydantic.error_wrappers import ErrorWrapper
 from typing import Any
 from typing import Dict
 from typing import Optional
@@ -36,9 +33,8 @@ class Token(BaseModel):
     ) -> Dict[str, Any]:
         if values.get("azp") == settings.keycloak_mo_client:
             if values["uuid"] is None:
-                raise ValidationError(
-                    errors=[ErrorWrapper(MissingError(), loc='uuid')],
-                    model=Token
+                raise ValueError(
+                    'The uuid user attribute is missing in the token'
                 )
         return values
 

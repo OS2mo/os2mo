@@ -260,8 +260,11 @@ class TestTokenModel(unittest.TestCase):
             Token(azp='mo')
         errors = err.exception.errors()[0]
 
-        self.assertEqual(('__root__', 'uuid'), errors['loc'])
-        self.assertEqual('value_error.missing', errors['type'])
+        self.assertEqual(
+            'The uuid user attribute is missing in the token',
+            errors['msg']
+        )
+        self.assertEqual('value_error', errors['type'])
 
     def test_invalid_email_address_not_allowed(self):
         with self.assertRaises(ValidationError) as err:
