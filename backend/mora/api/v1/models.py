@@ -1,8 +1,12 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import List, Optional, Any, Dict
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from ramodels.mo._shared import Validity, MOBase
+from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import Validity
 
 
 class Facet(MOBase):
@@ -80,7 +84,7 @@ class Association(MOBase):
     person: Person
     org_unit: OrganisationUnit
     association_type: Klasse
-    primary: Optional[Klasse]
+    primary: Klasse
     dynamic_classes: Optional[List[Klasse]]
     substitute: Any
 
@@ -88,7 +92,6 @@ class Association(MOBase):
 class Engagement(MOBase):
     user_key: str
     validity: Validity
-    integration_data: Dict[str, str]
     person: Person
     org_unit: OrganisationUnit
     job_function: Klasse
