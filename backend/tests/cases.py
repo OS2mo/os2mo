@@ -73,20 +73,33 @@ class _BaseTestCase(TestCase):
     def lora_url(self):
         return config.get_settings().lora_url
 
-    def get_token(self):
+    def get_token(self, use_client_secret: bool = False) -> str:
         """
         Get OIDC token from Keycloak to send with the request
         to the MO backend.
+
+        :param use_client_secret: use client secret if true and password otherwise
+        :return: Encoded OIDC token from Keycloak
         """
-        r = requests.post(
-            'http://keycloak:8080'
-            '/auth/realms/mo/protocol/openid-connect/token',
-            data={
+
+        if use_client_secret:
+            data = {
+                'grant_type': 'client_credentials',
+                'client_id': 'dipex',
+                'client_secret': '603f1c82-d012-4d04-9382-dbe659c533fb'
+            }
+        else:
+            data = {
                 'grant_type': 'password',
                 'client_id': 'mo',
                 'username': 'bruce',
                 'password': 'bruce'
             }
+
+        r = requests.post(
+            'http://keycloak:8080'
+            '/auth/realms/mo/protocol/openid-connect/token',
+            data=data
         )
 
         logger.debug('Keycloak token: ' + json.dumps(r.json()))

@@ -223,6 +223,18 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
             set_auth_header=True
         )
 
+    def test_client_secret_token(self):
+        # Verify that a token obtained from a client secret (e.g. via the
+        # DIPEX client) is working
+
+        token = self.get_token(use_client_secret=True)
+
+        self.assertRequest(
+            '/api/v1/it',
+            HTTP_200_OK,
+            headers={'Authorization': 'Bearer ' + token}
+        )
+
 
 class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
