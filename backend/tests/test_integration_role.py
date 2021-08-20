@@ -12,7 +12,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    def test_create_role(self):
+    async def test_create_role(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -122,11 +122,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
+        actual_role = await c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_create_role_on_unit(self):
+    async def test_create_role_on_unit(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -236,11 +236,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(roleid)
+        actual_role = await c.organisationfunktion.get(roleid)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_create_role_no_valid_to(self):
+    async def test_create_role_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -348,7 +348,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
+        actual_role = await c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
