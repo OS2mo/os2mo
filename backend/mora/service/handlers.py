@@ -7,7 +7,6 @@ handlers for the various detail types.
 '''
 
 import abc
-import inspect
 import typing
 
 from structlog import get_logger
@@ -39,7 +38,7 @@ class _RequestHandlerMeta(abc.ABCMeta):
     def __new__(mcls, name, bases, namespace):
         cls = super().__new__(mcls, name, bases, namespace)
 
-        if not inspect.isabstract(cls):
+        if cls.role_type is not None:
             cls._register()
 
         return cls
@@ -86,13 +85,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         }
 
         if request_type == RequestType.CREATE:
-            self.prepare_create(request)
+            mora.async_util.async_to_sync(self.aprepare_create)(request)
         elif request_type == RequestType.EDIT:
-            self.prepare_edit(request)
+            mora.async_util.async_to_sync(self.aprepare_edit)(request)
         elif request_type == RequestType.TERMINATE:
-            self.prepare_terminate(request)
+            mora.async_util.async_to_sync(self.aprepare_terminate)(request)
         elif request_type == RequestType.REFRESH:
-            self.prepare_refresh(request)
+            mora.async_util.async_to_sync(self.aprepare_refresh)(request)
         else:
             raise NotImplementedError
 
@@ -101,7 +100,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         })
         self.trigger_results_before = Trigger.run(self.trigger_dict)
 
-    @abc.abstractmethod
     def prepare_create(self, request: dict):
         """
         Initialize a 'create' request. Performs validation and all
@@ -109,6 +107,16 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
+        raise NotImplementedError
+
+    async def aprepare_create(self, request: dict):
+        """
+        Initialize an asynchronous 'create' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        return self.prepare_create(request)
 
     def prepare_edit(self, request: dict):
         """
@@ -119,15 +127,32 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
 
+    async def aprepare_edit(self, request: dict):
+        """
+        Initialize an asynchronous 'edit' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        return self.prepare_edit(request)
+
     def prepare_terminate(self, request: dict):
         """
         Initialize a 'termination' request. Performs validation and all
         necessary processing
 
         :param request: A dict containing a request
-
         """
         raise NotImplementedError
+
+    async def aprepare_terminate(self, request: dict):
+        """
+        Initialize an asynchronous 'termination' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        return self.prepare_terminate(request)
 
     def prepare_refresh(self, request: dict):
         """
@@ -135,10 +160,18 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         necessary processing
 
         :param request: A dict containing a request
-
         """
         # Default it noop
         pass
+
+    async def aprepare_refresh(self, request: dict):
+        """
+        Initialize an asynchronous 'refresh' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        return self.prepare_refresh(request)
 
     def submit(self) -> str:
         """Submit the request to LoRa.
