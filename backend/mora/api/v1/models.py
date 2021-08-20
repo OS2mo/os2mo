@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import Validity
@@ -122,6 +123,7 @@ class Address(MOBase):
     visibility: Optional[SmallKlasse]
     person: Optional[Person]
     org_unit: Optional[OrganisationUnit]
+    engagement: Optional[Engagement]
 
 
 class Organisation(MOBase):
@@ -177,7 +179,7 @@ class Owner(MOBase):
 class RelatedUnit(MOBase):
     user_key: str
     validity: Validity
-    org_unit: List[OrganisationUnit]
+    org_unit: Tuple[OrganisationUnit, OrganisationUnit]
 
 
 class EngagementAssociation(MOBase):
