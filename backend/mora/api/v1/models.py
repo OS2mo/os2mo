@@ -75,8 +75,8 @@ class ITSystemBinding(MOBase):
     user_key: str
     validity: Validity
     itsystem: ITSystem
-    person: Person
-    org_unit: OrganisationUnit
+    person: Optional[Person]
+    org_unit: Optional[OrganisationUnit]
 
 
 class Association(MOBase):
@@ -85,9 +85,9 @@ class Association(MOBase):
     person: Person
     org_unit: OrganisationUnit
     association_type: Klasse
-    primary: Klasse
+    primary: Optional[Klasse]
     dynamic_classes: Optional[List[Klasse]]
-    substitute: Dict[str, str]
+    substitute: Optional[Dict[str, str]]
 
 
 class Engagement(MOBase):
@@ -97,7 +97,7 @@ class Engagement(MOBase):
     org_unit: OrganisationUnit
     job_function: Klasse
     engagement_type: Klasse
-    primary: Klasse
+    primary: Optional[Klasse]
     is_primary: Optional[bool]
     fraction: Optional[float]
     extension_1: Optional[str]
@@ -133,12 +133,12 @@ class Organisation(MOBase):
 
 class OrganisationUnitFull(OrganisationUnit):
     location: str
-    user_settings: Dict[str, Union[str, bool]]
+    user_settings: Dict[str, Union[str, bool, Dict[str, Union[str, bool]]]]
     parent: Optional["OrganisationUnitFull"]
     org: Organisation
     org_unit_type: Klasse
-    time_planning: Klasse
-    org_unit_level: Klasse
+    time_planning: Optional[Klasse]
+    org_unit_level: Optional[Klasse]
 
 
 OrganisationUnitFull.update_forward_refs()
@@ -162,7 +162,7 @@ class Leave(MOBase):
 class KLE(MOBase):
     user_key: str
     validity: Validity
-    kle_aspect: List[SmallKlasse]
+    kle_aspect: List[Klasse]
     kle_number: Klasse
     org_unit: Optional[OrganisationUnit]
 
@@ -172,7 +172,7 @@ class Owner(MOBase):
     validity: Validity
     owner_inference_priority: Optional[str]
     owner: Person
-    org_unit: OrganisationUnit
+    org_unit: Optional[OrganisationUnit]
     person: Optional[Person]
 
 
