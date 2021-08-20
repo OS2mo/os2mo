@@ -1,12 +1,22 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from functools import partial
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
 from typing import Tuple
+from typing import get_args
+from typing import get_origin
+from typing import Type
+
+from pydantic import BaseModel
+from pydantic.fields import Field
+from pydantic.fields import ModelField
+from pydantic import create_model
 
 from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import MORef
 from ramodels.mo._shared import Validity
 
 
@@ -189,3 +199,61 @@ class EngagementAssociation(MOBase):
     engagement: Engagement
     org_unit: OrganisationUnit
     engagement_association_type: Optional[Klasse]
+
+
+def optional(model_type: Type) -> Tuple[Optional[Type], None]:
+    return (Optional[model_type], None)
+
+
+def required(model_type: Type) -> Tuple[Type, ...]:
+    return (model_type, ...)
+
+
+def mark_required(
+    model_type: Type, is_required: bool
+) -> Union[Tuple[Optional[Type], None], Tuple[Type, ...]]:
+    if is_required:
+        return required(model_type)
+    return optional(model_type)
+
+
+def is_model_reference(field: Field):
+    if not isinstance(field, ModelField):
+        return False
+    if not issubclass(field.type_, BaseModel):
+        return False
+    return True
+
+
+def is_validity(name: str) -> bool:
+    return name == "validity"
+
+
+def to_only_uuid_model(model: BaseModel) -> BaseModel:
+    """Convert a normal model into an "only_primary_uuid" model."""
+
+    def decide_subtype(field):
+        subtypes = get_args(field.type_)
+        origin = get_origin(field.type_)
+        # TODO: Should probably handle Sets, Dict, and such eventually
+        if origin is tuple:
+            # TODO: Should probably inspect element types
+            return Tuple[tuple(MORef for _ in subtypes)]
+        raise ValueError("Unknown combined type")
+
+    def decide_type(name, field):
+        subtypes = get_args(field.type_)
+        if subtypes:
+            return decide_subtype(field)
+        if is_model_reference(field) and not is_validity(name):
+            return MORef
+        return field.type_
+
+    fields = {}
+    for name, field in model.__fields__.items():
+        fields[name] = mark_required(decide_type(name, field), field.required)
+
+    return create_model(
+        model.__name__ + "OnlyPrimaryUUID",
+        **fields
+    )

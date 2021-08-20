@@ -26,6 +26,7 @@ from mora.api.v1.models import Role
 from mora.api.v1.models import KLE
 from mora.api.v1.models import Leave
 from mora.api.v1.models import ITSystemBinding
+from mora.api.v1.models import to_only_uuid_model
 from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
@@ -425,7 +426,7 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         uuid: List[UUID] = Query(...),
         at: Optional[Any] = None,
         validity: Optional[Any] = None,
-        only_primary_uuid: Optional[Any] = None,
+        only_primary_uuid: Optional[bool] = None,
     ):
         args = {
             "at": at,
@@ -455,8 +456,12 @@ orgfunk_type_map = {
 for orgfunk in MoOrgFunk:
     assert orgfunk in orgfunk_type_map
 
-for orgfunk, return_type in orgfunk_type_map.items():
+for orgfunk, return_model in orgfunk_type_map.items():
+    only_uuid_model = to_only_uuid_model(return_model)
     router.get(
         f"/{orgfunk.value}/by_uuid",
-        response_model=List[return_type],
+        response_model=Union[
+            List[return_model],
+            List[only_uuid_model]
+        ],
     )(uuid_func_factory(orgfunk))
