@@ -8,6 +8,7 @@ handlers for the various detail types.
 
 import abc
 import typing
+import asyncio
 
 from structlog import get_logger
 
