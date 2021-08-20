@@ -5,7 +5,7 @@ from uuid import UUID
 from typing import Dict
 
 import freezegun
-from hypothesis import given, assume, settings, strategies as st
+from hypothesis import given, settings, strategies as st
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
@@ -14,7 +14,6 @@ from mora.lora import Connector
 from mora.api.v1.models import OrganisationUnitFull
 from mora.api.v1.models import Employee
 from tests.cases import TestCase
-from tests.hypothesis_utils import validity_strat
 
 
 def instance2dict(instance: BaseModel) -> Dict:

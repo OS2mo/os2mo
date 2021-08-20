@@ -12,10 +12,8 @@ from mora.api.v1.reading_endpoints import orgfunk_type_map
 from mora.mapping import MoOrgFunk
 from tests.cases import TestCase
 
-from hypothesis import given, assume, settings, HealthCheck, strategies as st
+from hypothesis import given, settings, HealthCheck, strategies as st
 from tests.api.v1.test_general_reading import instance2dict
-from tests.hypothesis_utils import validity_strat
-
 
 
 class Reading(TestCase):
@@ -88,7 +86,11 @@ class Reading(TestCase):
         return return_value
 
     @given(st.data())
-    @settings(max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None)
+    @settings(
+        max_examples=1,
+        suppress_health_check=[HealthCheck.too_slow],
+        deadline=None
+    )
     def test_api_exposing_org_funk_endpoint(self, data):
         # parametrized test
         for orgfunk in MoOrgFunk:
@@ -96,7 +98,11 @@ class Reading(TestCase):
             self.api_exposing_org_funk_endpoint_helper(orgfunk, [return_value])
 
     @given(st.data())
-    @settings(max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None)
+    @settings(
+        max_examples=1,
+        suppress_health_check=[HealthCheck.too_slow],
+        deadline=None
+    )
     def test_api_exposing_org_funk_uuid_endpoint(self, data):
         # parametrized test
         for orgfunk in MoOrgFunk:
