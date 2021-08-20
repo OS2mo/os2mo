@@ -25,14 +25,14 @@ class Token(BaseModel):
     email: Optional[EmailStr]
     preferred_username: Optional[str]
     realm_access: RealmAccess = RealmAccess(roles=set())
-    uuid: UUID = None
+    uuid: Optional[UUID]
 
     @root_validator
     def uuid_attribute_required_for_mo_client(
         cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
         if values.get("azp") == settings.keycloak_mo_client:
-            if values["uuid"] is None:
+            if values.get("uuid") is None:
                 raise ValueError(
                     'The uuid user attribute is missing in the token'
                 )
