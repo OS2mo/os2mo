@@ -87,7 +87,7 @@ class Association(MOBase):
     association_type: Klasse
     primary: Klasse
     dynamic_classes: Optional[List[Klasse]]
-    substitute: Dict
+    substitute: Dict[str, str]
 
 
 class Engagement(MOBase):

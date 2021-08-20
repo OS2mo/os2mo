@@ -6,8 +6,10 @@ from datetime import datetime
 from datetime import timedelta
 
 from hypothesis import strategies as st
-date_strat = partial(st.dates, min_value=date(1930, 1, 1))
 
+from mora.api.v1.models import Validity
+
+date_strat = partial(st.dates, min_value=date(1930, 1, 1))
 
 @st.composite
 def dt_minmax(draw):
@@ -35,3 +37,13 @@ def validity_strat(draw):
     optional = {"to_date": st.none() | to_date_strat()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
+
+
+@st.composite
+def validity_model_strat(draw) -> Validity:
+    st_dict = draw(validity_strat())
+    return Validity(**st_dict)
+
+st.register_type_strategy(
+    Validity, validity_model_strat()
+)

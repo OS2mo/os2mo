@@ -129,12 +129,9 @@ class Reading(TestCase):
             )
             self.assertEqual(changed_since, dict(changed_since=None))
 
-    @given(st.builds(Employee, validity=validity_strat()))
+    @given(st.builds(Employee))
     @settings(max_examples=1)
     def test_search_endpoint_employee2(self, instance):
-        assume(instance.validity.to_date)
-        assume(instance.validity.from_date < instance.validity.to_date)
-
         reader = employee.EmployeeReader
         search_tuple, uuid_tuple = endpoint_test_parameters(reader)
         self.search_endpoint_helper2(
@@ -144,12 +141,9 @@ class Reading(TestCase):
             reader, *uuid_tuple, instance2dict(instance)
         )
 
-    @given(st.builds(OrganisationUnitFull, validity=validity_strat()))
+    @given(st.builds(OrganisationUnitFull))
     @settings(max_examples=1)
     def test_search_endpoint_org_unit2(self, instance):
-        assume(instance.validity.to_date)
-        assume(instance.validity.from_date < instance.validity.to_date)
-
         reader = org_unit.OrgUnitReader
         search_tuple, uuid_tuple = endpoint_test_parameters(reader)
         self.search_endpoint_helper2(

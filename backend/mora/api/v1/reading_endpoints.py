@@ -384,7 +384,7 @@ async def get_org_unit_by_uuid(
 
 @router.get(
     f"/{MoOrgFunk.OWNER.value}",
-    response_model=Owner,
+    response_model=List[Owner],
 )
 async def search_owner_unit(
     at: Optional[Any] = None,
