@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Union
 from typing import Tuple
 
 from ramodels.mo._shared import MOBase
@@ -87,7 +87,7 @@ class Association(MOBase):
     association_type: Klasse
     primary: Klasse
     dynamic_classes: Optional[List[Klasse]]
-    substitute: Any
+    substitute: Dict
 
 
 class Engagement(MOBase):
@@ -133,7 +133,7 @@ class Organisation(MOBase):
 
 class OrganisationUnitFull(OrganisationUnit):
     location: str
-    user_settings: Dict[str, Any]
+    user_settings: Dict[str, Union[str, bool]]
     parent: Optional["OrganisationUnitFull"]
     org: Organisation
     org_unit_type: Klasse
@@ -170,7 +170,7 @@ class KLE(MOBase):
 class Owner(MOBase):
     user_key: str
     validity: Validity
-    owner_inference_priority: Optional[Any]
+    owner_inference_priority: Optional[str]
     owner: Person
     org_unit: OrganisationUnit
     person: Optional[Person]

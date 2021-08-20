@@ -2,12 +2,31 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 from uuid import UUID
+from typing import Dict
 
 import freezegun
+from hypothesis import given, assume, settings, strategies as st
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 
 from mora.handler.impl import employee, org_unit
 from mora.lora import Connector
+from mora.api.v1.models import OrganisationUnitFull
+from mora.api.v1.models import Employee
 from tests.cases import TestCase
+from tests.hypothesis_utils import validity_strat
+
+
+def instance2dict(instance: BaseModel) -> Dict:
+    """Convert a pydantic model to a jsonable dictionary.
+
+    Args:
+        instance: Instance to be converted.
+
+    Returns:
+        Dictionary which could be converted to json using json.dumps
+    """
+    return jsonable_encoder(instance.dict(by_alias=True))
 
 
 def reader_to_str(reader):
@@ -17,7 +36,7 @@ def reader_to_str(reader):
         return "org_unit"
 
 
-def endpoint_test_paramters():
+def endpoint_test_parameters(reader):
     uuid1 = "2f16d140-d743-4c9f-9e0e-361da91a06f6"
     uuid2 = "3e702dd1-4103-4116-bb2d-b150aebe807d"
 
@@ -35,82 +54,127 @@ def endpoint_test_paramters():
         uuid=[UUID(uuid1), UUID(uuid2)],
     )
 
-    def reader_to_params(reader):
-        target = reader_to_str(reader)
-        return (
-            (raw_query.format(target), search_params),
-            (raw_uuid_query.format(target), uuid_search_params),
+    target = reader_to_str(reader)
+    return (
+        (raw_query.format(target), search_params),
+        (raw_uuid_query.format(target), uuid_search_params),
+    )
+
+
+class Reading(TestCase):
+
+    @freezegun.freeze_time("2017-01-01", tz_offset=1)
+    def search_endpoint_helper(self, endpoint, reader, return_value):
+        """
+        tests that endpoint query params is parsed properly, and
+        put into the appropriate reader classes
+        :return:
+        """
+        with patch.object(
+            reader,
+            "get",
+        ) as mock:
+            mock.return_value = return_value
+            resp = self.assertRequest(
+                f"/api/v1/{endpoint}?validity=present&at=2017-01-01",
+                200,
+            )
+            self.assertEqual(return_value, resp)
+            call_args = mock.call_args_list
+            assert len(call_args) == 1
+            (connector, search_params), changed_since = call_args[0]
+            assert isinstance(connector, Connector)
+            self.assertEqual(
+                search_params, dict(validity="present", at="2017-01-01")
+            )
+            self.assertEqual(changed_since, dict(changed_since=None))
+
+    @given(st.builds(Employee))
+    @settings(max_examples=1)
+    def test_search_endpoint_employee(self, instance):
+        self.search_endpoint_helper(
+            "employee", employee.EmployeeReader, [instance2dict(instance)]
         )
 
-    return [
-        (reader, _query, _search_params)
-        for reader in [employee.EmployeeReader, org_unit.OrgUnitReader]
-        for _query, _search_params in reader_to_params(reader)
-    ]
+    @given(st.builds(OrganisationUnitFull))
+    @settings(max_examples=1)
+    def test_search_endpoint_org_unit(self, instance):
+        self.search_endpoint_helper(
+            "org_unit", org_unit.OrgUnitReader, [instance2dict(instance)]
+        )
 
-
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(TestCase):
-    def test_search_endpoint(self):
+    @freezegun.freeze_time("2017-01-01", tz_offset=1)
+    def search_endpoint_helper2(self, reader, query, search_params, return_value):
         """
         tests that endpoint query params is parsed properly, and
         put into the appropriate reader classes
         :return:
         """
-        # parametrized test
-        for endpoint, reader in [
-            ("employee", employee.EmployeeReader),
-            ("org_unit", org_unit.OrgUnitReader),
-        ]:
-            with self.subTest(endpoint_spec=endpoint):
-                with patch.object(
-                    reader,
-                    "get",
-                ) as mock:
-                    mock.return_value = {"status": "ok"}
-                    resp = self.assertRequest(
-                        f"/api/v1/{endpoint}?validity=present&at=2017-01-01",
-                        200,
-                    )
-                    self.assertEqual({"status": "ok"}, resp)
-                    call_args = mock.call_args_list
-                    assert len(call_args) == 1
-                    (connector, search_params), changed_since = call_args[0]
-                    assert isinstance(connector, Connector)
-                    self.assertEqual(
-                        search_params, dict(validity="present", at="2017-01-01")
-                    )
-                    self.assertEqual(changed_since, dict(changed_since=None))
+        with patch.object(
+            reader,
+            "get",
+        ) as mock:
+            mock.return_value = return_value
+            resp = self.assertRequest(
+                query,
+                200,
+            )
+            self.assertEqual(return_value, resp)
+            call_args = mock.call_args_list
+            assert len(call_args) == 1
+            (connector, search_params), changed_since = call_args[0]
+            assert isinstance(connector, Connector)
+            self.assertEqual(
+                search_params, search_params
+            )
+            self.assertEqual(changed_since, dict(changed_since=None))
 
-    def test_search_endpoint2(self, ):
-        """
-        tests that endpoint query params is parsed properly, and
-        put into the appropriate reader classes
-        :return:
-        """
-        # parametrized test
-        for reader, query, search_params in endpoint_test_paramters():
-            with self.subTest(endpoint_spec=reader_to_str(reader)):
-                with patch.object(
-                    reader,
-                    "get",
-                ) as mock:
-                    mock.return_value = {"status": "ok"}
-                    resp = self.assertRequest(
-                        query,
-                        200,
-                    )
-                    self.assertEqual({"status": "ok"}, resp)
-                    call_args = mock.call_args_list
-                    assert len(call_args) == 1
-                    (connector, search_params), changed_since = call_args[0]
-                    assert isinstance(connector, Connector)
-                    self.assertEqual(
-                        search_params, search_params
-                    )
-                    self.assertEqual(changed_since, dict(changed_since=None))
+    @given(st.builds(Employee, validity=validity_strat()))
+    @settings(max_examples=1)
+    def test_search_endpoint_employee2(self, instance):
+        assume(instance.validity.to_date)
+        assume(instance.validity.from_date < instance.validity.to_date)
 
-    def test_uuid_endpoint(self):
+        reader = employee.EmployeeReader
+        search_tuple, uuid_tuple = endpoint_test_parameters(reader)
+        self.search_endpoint_helper2(
+            reader, *search_tuple, [instance2dict(instance)]
+        )
+        self.search_endpoint_helper2(
+            reader, *uuid_tuple, instance2dict(instance)
+        )
+
+    @given(st.builds(OrganisationUnitFull, validity=validity_strat()))
+    @settings(max_examples=1)
+    def test_search_endpoint_org_unit2(self, instance):
+        assume(instance.validity.to_date)
+        assume(instance.validity.from_date < instance.validity.to_date)
+
+        reader = org_unit.OrgUnitReader
+        search_tuple, uuid_tuple = endpoint_test_parameters(reader)
+        self.search_endpoint_helper2(
+            reader, *search_tuple, [instance2dict(instance)]
+        )
+        self.search_endpoint_helper2(
+            reader, *uuid_tuple, instance2dict(instance)
+        )
+
+    @given(st.builds(Employee))
+    @settings(max_examples=1)
+    def test_uuid_endpoint_employee(self, instance):
+        self.uuid_endpoint_helper(
+            "employee", employee.EmployeeReader, instance2dict(instance)
+        )
+
+    @given(st.builds(OrganisationUnitFull))
+    @settings(max_examples=1)
+    def test_uuid_endpoint_org_unit(self, instance):
+        self.uuid_endpoint_helper(
+            "org_unit", org_unit.OrgUnitReader, instance2dict(instance)
+        )
+
+    @freezegun.freeze_time("2017-01-01", tz_offset=1)
+    def uuid_endpoint_helper(self, endpoint, reader, return_value):
         """
         tests that endpoint query params is parsed properly, and
         put into the appropriate reader classes
@@ -118,67 +182,56 @@ class Reading(TestCase):
         """
         uuid1 = "2f16d140-d743-4c9f-9e0e-361da91a06f6"
         uuid2 = "3e702dd1-4103-4116-bb2d-b150aebe807d"
-        # parametrized test
-        for endpoint, reader in [
-            ("employee", employee.EmployeeReader),
-            ("org_unit", org_unit.OrgUnitReader),
-        ]:
-            with self.subTest(endpoint_spec=endpoint):
-                with patch.object(
-                    reader,
-                    "get",
-                ) as mock:
-                    mock.return_value = {"status": "ok"}
-                    resp = self.assertRequest(
-                        f"/api/v1/{endpoint}/by_uuid?validity=present&at=2017-01-01&"
-                        f"uuid={uuid1}&"  # any uuid
-                        f"uuid={uuid2}",  # any uuid
-                        200,
-                    )
-                    self.assertEqual({"status": "ok"}, resp)
-                    call_args = mock.call_args_list
-                    assert len(call_args) == 1
-                    (connector, search_params), changed_since = call_args[0]
-                    assert isinstance(connector, Connector)
-                    self.assertEqual(
-                        search_params,
-                        dict(
-                            validity="present",
-                            at="2017-01-01",
-                            uuid=[UUID(uuid1), UUID(uuid2)],
-                        ),
-                    )
-                    self.assertEqual(changed_since, dict(changed_since=None))
+        with patch.object(
+            reader,
+            "get",
+        ) as mock:
+            mock.return_value = return_value
+            resp = self.assertRequest(
+                f"/api/v1/{endpoint}/by_uuid?validity=present&at=2017-01-01&"
+                f"uuid={uuid1}&"  # any uuid
+                f"uuid={uuid2}",  # any uuid
+                200,
+            )
+            self.assertEqual(return_value, resp)
+            call_args = mock.call_args_list
+            assert len(call_args) == 1
+            (connector, search_params), changed_since = call_args[0]
+            assert isinstance(connector, Connector)
+            self.assertEqual(
+                search_params,
+                dict(
+                    validity="present",
+                    at="2017-01-01",
+                    uuid=[UUID(uuid1), UUID(uuid2)],
+                ),
+            )
+            self.assertEqual(changed_since, dict(changed_since=None))
+
         uuid1 = "2f16d140-d743-4c9f-9e0e-361da91a06f6"
         uuid2 = "3e702dd1-4103-4116-bb2d-b150aebe807d"
-        # parametrized test
-        for endpoint, reader in [
-            ("employee", employee.EmployeeReader),
-            ("org_unit", org_unit.OrgUnitReader),
-        ]:
-            with self.subTest(endpoint_spec=endpoint):
-                with patch.object(
-                    reader,
-                    "get",
-                ) as mock:
-                    mock.return_value = {"status": "ok"}
-                    resp = self.assertRequest(
-                        f"/api/v1/{endpoint}/by_uuid?validity=present&at=2017-01-01&"
-                        f"uuid={uuid1}&"  # any uuid
-                        f"uuid={uuid2}",  # any uuid
-                        200,
-                    )
-                    self.assertEqual({"status": "ok"}, resp)
-                    call_args = mock.call_args_list
-                    assert len(call_args) == 1
-                    (connector, search_params), changed_since = call_args[0]
-                    assert isinstance(connector, Connector)
-                    self.assertEqual(
-                        search_params,
-                        dict(
-                            validity="present",
-                            at="2017-01-01",
-                            uuid=[UUID(uuid1), UUID(uuid2)],
-                        ),
-                    )
-                    self.assertEqual(changed_since, dict(changed_since=None))
+        with patch.object(
+            reader,
+            "get",
+        ) as mock:
+            mock.return_value = return_value
+            resp = self.assertRequest(
+                f"/api/v1/{endpoint}/by_uuid?validity=present&at=2017-01-01&"
+                f"uuid={uuid1}&"  # any uuid
+                f"uuid={uuid2}",  # any uuid
+                200,
+            )
+            self.assertEqual(return_value, resp)
+            call_args = mock.call_args_list
+            assert len(call_args) == 1
+            (connector, search_params), changed_since = call_args[0]
+            assert isinstance(connector, Connector)
+            self.assertEqual(
+                search_params,
+                dict(
+                    validity="present",
+                    at="2017-01-01",
+                    uuid=[UUID(uuid1), UUID(uuid2)],
+                ),
+            )
+            self.assertEqual(changed_since, dict(changed_since=None))
