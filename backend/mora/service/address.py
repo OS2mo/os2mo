@@ -10,7 +10,6 @@ from uuid import UUID
 import requests
 from fastapi import APIRouter, Query
 
-import mora.async_util
 from . import facet
 from . import handlers
 from . import org
@@ -165,7 +164,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ADDRESS
     function_key = mapping.ADDRESS_KEY
 
-    def prepare_create(self, req):
+    async def aprepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
                                               required=False)
 
@@ -191,7 +190,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         valid_from, valid_to = util.get_validities(req)
 
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+        org_uuid = (await org.get_configured_organisation(
             util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
@@ -200,10 +199,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector()
         only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
-        type_obj = mora.async_util.async_to_sync(facet.get_one_class
-                                                 )(c,
-                                                   address_type_uuid,
-                                                   only_primary_uuid=only_primary_uuid)
+        type_obj = await facet.get_one_class(
+            c,
+            address_type_uuid,
+            only_primary_uuid=only_primary_uuid)
 
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
@@ -214,13 +213,13 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if org_unit_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            await validator.is_date_range_in_org_unit_range(
                 req[mapping.ORG_UNIT],
                 valid_from,
                 valid_to)
 
         if employee_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            await validator.is_date_range_in_employee_range(
                 req[mapping.PERSON],
                 valid_from,
                 valid_to)
@@ -253,13 +252,12 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
-    def prepare_edit(self, req: dict):
+    async def aprepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=function_uuid)
+        original = await c.organisationfunktion.get(uuid=function_uuid)
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
@@ -366,10 +364,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 data, mapping.ADDRESS_TYPE, required=True)
             only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
-            type_obj = mora.async_util.async_to_sync(
-                facet.get_one_class)(c,
-                                     address_type_uuid,
-                                     only_primary_uuid=only_primary_uuid)
+            type_obj = await facet.get_one_class(
+                c,
+                address_type_uuid,
+                only_primary_uuid=only_primary_uuid)
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
             handler = base.get_handler_for_scope(scope).from_request(data)
@@ -417,6 +415,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
         if employee_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            await validator.is_date_range_in_employee_range(
                 {'uuid': employee_uuid},
                 new_from, new_to)
