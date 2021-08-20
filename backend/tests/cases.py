@@ -82,18 +82,17 @@ class _BaseTestCase(TestCase):
         :return: Encoded OIDC token from Keycloak
         """
 
+        data = {
+            'grant_type': 'password',
+            'client_id': 'mo',
+            'username': 'bruce',
+            'password': 'bruce'
+        }
         if use_client_secret:
             data = {
                 'grant_type': 'client_credentials',
                 'client_id': 'dipex',
                 'client_secret': '603f1c82-d012-4d04-9382-dbe659c533fb'
-            }
-        else:
-            data = {
-                'grant_type': 'password',
-                'client_id': 'mo',
-                'username': 'bruce',
-                'password': 'bruce'
             }
 
         r = requests.post(
