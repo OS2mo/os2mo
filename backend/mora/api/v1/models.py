@@ -110,6 +110,7 @@ class Engagement(MOBase):
     extension_8: Optional[str]
     extension_9: Optional[str]
     extension_10: Optional[str]
+    integration_data: Optional[Dict[str, str]]
 
 
 class Address(MOBase):
@@ -187,4 +188,4 @@ class EngagementAssociation(MOBase):
     validity: Validity
     engagement: Engagement
     org_unit: OrganisationUnit
-    engagement_association_type: Klasse
+    engagement_association_type: Optional[Klasse]
