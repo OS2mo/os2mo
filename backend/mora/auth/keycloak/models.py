@@ -32,7 +32,7 @@ class Token(BaseModel):
 
     @root_validator
     def uuid_attribute_required_for_mo_client(
-            cls, values: Dict[str, Any]
+        cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
         if values.get("azp") == settings.keycloak_mo_client:
             if values["uuid"] is None:
