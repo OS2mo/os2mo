@@ -76,7 +76,7 @@ class ITSystemBinding(MOBase):
     validity: Validity
     itsystem: ITSystem
     person: Person
-    org_unit: Optional[Klasse]
+    org_unit: OrganisationUnit
 
 
 class Association(MOBase):
