@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from uuid import UUID
+
 import freezegun
-import notsouid
 
 import mora.async_util
 import tests.cases
@@ -19,8 +20,6 @@ class Tests(tests.cases.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
-        mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-
         payload = {
             "givenname": "Torkild",
             "surname": "von Testperson",
@@ -33,11 +32,10 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        with notsouid.freeze_uuid(mock_uuid):
-            r = self.request(
-                '/service/e/create',
-                json=payload
-            )
+        r = self.request(
+            '/service/e/create',
+            json=payload
+        )
         userid = r.json()
 
         expected = {
@@ -52,7 +50,6 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "from": "1950-01-01 00:00:00+01"
                         },
-                        "brugervendtnoegle": mock_uuid,
                         "integrationsdata": "{}"
                     }
                 ],
@@ -114,6 +111,10 @@ class Tests(tests.cases.LoRATestCase):
 
         actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
+        # Make sure the bvn is a valid UUID
+        bvn = actual['attributter']['brugeregenskaber'][0].pop('brugervendtnoegle')
+        assert UUID(bvn)
+
         self.assertRegistrationsEqual(expected, actual)
 
         self.assertRequestResponse(
@@ -131,7 +132,7 @@ class Tests(tests.cases.LoRATestCase):
                     'user_key': 'AU',
                     'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                 },
-                'user_key': mock_uuid,
+                'user_key': bvn,
                 'cpr_no': '0101501234',
                 'uuid': userid,
             },

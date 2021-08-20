@@ -14,16 +14,21 @@ http:get:`/service/(any:type)/(uuid:id)/details/`
 '''
 import copy
 import enum
-import uuid
 from functools import partial
 from operator import contains, itemgetter
 from typing import Any, Awaitable, Dict, Union
 from typing import Optional
 from uuid import UUID
+from uuid import uuid4
 
-from fastapi import APIRouter, Body
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends
+)
 
 import mora.async_util
+from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from . import autocomplete
 from . import handlers
@@ -90,7 +95,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
-        userid = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        userid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
 
@@ -554,9 +559,13 @@ async def get_employee(
     return r
 
 
-@router.post('/e/{employee_uuid}/terminate')
+@router.post('/e/{uuid}/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
+def terminate_employee(
+    uuid: UUID,
+    request: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
     instead.
@@ -567,7 +576,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
 
     :statuscode 200: The termination succeeded.
 
-    :param employee_uuid: The UUID of the employee to be terminated.
+    :param uuid: The UUID of the employee to be terminated.
 
     :<json string to: When the termination should occur, as an ISO 8601 date.
     :<json boolean vacate: *Optional* - mark applicable — currently
@@ -585,7 +594,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
       }
 
     """
-    employee_uuid = str(employee_uuid)
+    uuid = str(uuid)
     date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=date, virkningtil='infinity')
@@ -607,7 +616,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
             mapping.RequestType.TERMINATE,
         )
         for objid, obj in mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
-            tilknyttedebrugere=employee_uuid,
+            tilknyttedebrugere=uuid,
             gyldighed='Aktiv',
         )
     ]
@@ -617,8 +626,8 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
         Trigger.REQUEST: request,
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-        Trigger.EMPLOYEE_UUID: employee_uuid,
-        Trigger.UUID: employee_uuid
+        Trigger.EMPLOYEE_UUID: uuid,
+        Trigger.UUID: uuid
     }
 
     Trigger.run(trigger_dict)
@@ -626,7 +635,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
     for handler in request_handlers:
         handler.submit()
 
-    result = employee_uuid
+    result = uuid
 
     trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
@@ -635,14 +644,18 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
 
     # Write a noop entry to the user, to be used for the history
     mora.async_util.async_to_sync(common.add_history_entry)(
-        c.bruger, employee_uuid, "Afslut medarbejder")
+        c.bruger, uuid, "Afslut medarbejder"
+    )
 
     return result
 
 
+# When RBAC enabled: currently, only the admin role can create employees
 @router.post('/e/create', status_code=201)
-# @util.restrictargs('force', 'triggerless')
-def create_employee(req: dict = Body(...)):
+def create_employee(
+    req: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+):
     """Create a new employee
 
     .. :quickref: Employee; Create

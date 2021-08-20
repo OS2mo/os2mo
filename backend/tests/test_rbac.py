@@ -9,6 +9,7 @@ import pytest
 
 from mora.mapping import (
     ADMIN,
+    EntityType,
     OWNER
 )
 from mora.auth.exceptions import AuthorizationError
@@ -56,68 +57,82 @@ class TestOwnerSingleOrgUnit(object):
     """
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_return_when_owner_owns_unit_or_ancestor(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[ORG_UNIT_1]]
-        mock_ancestor_owners.side_effect = [
-            {UUID(ANDERS_AND), UUID(FEDTMULE)}
-        ]
+        mock_uuids.return_value = {ORG_UNIT_1}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = {UUID(ANDERS_AND), UUID(FEDTMULE)}
 
         r = await _rbac(token, None, False)
         assert r is None
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_owner_does_not_owns_unit_or_ancestor(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[ORG_UNIT_1]]
-        mock_ancestor_owners.side_effect = [{UUID(FEDTMULE)}]
+        mock_uuids.return_value = {ORG_UNIT_1}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = {UUID(FEDTMULE)}
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_no_owners_in_ancestors(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[ORG_UNIT_1]]
-        mock_ancestor_owners.side_effect = [set()]
+        mock_uuids.return_value = {ORG_UNIT_1}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = set()
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_uuids_list_empty(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         # This happens when creating a top-level org unit
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[]]
-        mock_ancestor_owners.side_effect = []
+        mock_uuids.return_value = set()
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = None
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
@@ -131,70 +146,81 @@ class TestOwnerMultipleOrgUnits(object):
     """
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_owner_not_in_source_or_target_units(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[ORG_UNIT_1, ORG_UNIT_2]]
-        mock_ancestor_owners.side_effect = [set(), set()]
+        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = set()
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_owner_not_in_target_unit(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [[ORG_UNIT_1, ORG_UNIT_2]]
-        mock_ancestor_owners.side_effect = [{ANDERS_AND}, set()]
+        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.side_effect = [{ANDERS_AND}, set()]
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_raise_exception_when_owner_not_in_source_unit(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [
-            [ORG_UNIT_1, ORG_UNIT_2]]
-        mock_ancestor_owners.side_effect = [set(), {
-            ANDERS_AND}]
+        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.side_effect = [set(), {ANDERS_AND}]
 
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
     @pytest.mark.asyncio
-    @unittest.mock.patch('mora.auth.keycloak.rbac.get_ancestor_owners')
+    @unittest.mock.patch('mora.auth.keycloak.rbac.get_owners')
+    @unittest.mock.patch(
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
     async def test_return_when_owner_in_source_and_target_units(
             self,
             mock_uuids,
-            mock_ancestor_owners
+            mock_get_entity_type,
+            mock_get_owners
     ):
         token = mock_auth(OWNER, ANDERS_AND)()
-        mock_uuids.side_effect = [
-            [ORG_UNIT_1, ORG_UNIT_2]]
-        mock_ancestor_owners.side_effect = [
-            {UUID(ANDERS_AND)}, {UUID(ANDERS_AND)}
-        ]
+        mock_uuids.return_value = {ORG_UNIT_1, ORG_UNIT_2}
+        mock_get_entity_type.return_value = EntityType.ORG_UNIT
+        mock_get_owners.return_value = {UUID(ANDERS_AND)}
 
         r = await _rbac(token, None, False)
         assert r is None
@@ -281,9 +307,9 @@ class TestGetAncestorOwners(object):
             mock_get_connector
     ):
         self.set_up()
-        mock_get_unit_tree.side_effect = [self.org_unit_tree]
+        mock_get_unit_tree.return_value = self.org_unit_tree
         mock_get_from_type.side_effect = [[], self.owners, []]
-        mock_get_connector.side_effect = None
+        mock_get_connector.return_value = None
 
         ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
 
@@ -301,10 +327,10 @@ class TestGetAncestorOwners(object):
             mock_get_connector
     ):
         self.set_up()
-        mock_get_unit_tree.side_effect = [self.org_unit_tree]
+        mock_get_unit_tree.return_value = self.org_unit_tree
         self.owners[0]['owner']['uuid'] = FEDTMULE
         mock_get_from_type.side_effect = [[], self.owners, []]
-        mock_get_connector.side_effect = None
+        mock_get_connector.return_value = None
 
         ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
 
@@ -322,7 +348,7 @@ class TestGetAncestorOwners(object):
             mock_get_connector
     ):
         self.set_up()
-        mock_get_unit_tree.side_effect = [self.org_unit_tree]
+        mock_get_unit_tree.return_value = self.org_unit_tree
 
         anders_and = self.owners[0]
         fedtmule = copy.deepcopy(anders_and)
@@ -330,7 +356,7 @@ class TestGetAncestorOwners(object):
         self.owners.append(fedtmule)
 
         mock_get_from_type.side_effect = [[], self.owners, []]
-        mock_get_connector.side_effect = None
+        mock_get_connector.return_value = None
 
         ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
 
@@ -348,9 +374,9 @@ class TestGetAncestorOwners(object):
             mock_get_connector
     ):
         self.set_up()
-        mock_get_unit_tree.side_effect = [self.org_unit_tree]
-        mock_get_from_type.side_effect = [[], [], []]
-        mock_get_connector.side_effect = None
+        mock_get_unit_tree.return_value = self.org_unit_tree
+        mock_get_from_type.return_value = []
+        mock_get_connector.return_value = None
 
         ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
 

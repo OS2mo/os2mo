@@ -15,6 +15,7 @@ from mora.auth.exceptions import (
     AuthenticationError,
     AuthorizationError,
 )
+
 from mora.auth.keycloak.models import Token
 from mora import config
 

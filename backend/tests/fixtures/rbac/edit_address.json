@@ -1,0 +1,43 @@
+{
+  "type": "address",
+  "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+  "data": {
+    "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+    "user_key": "bruger@example.comw",
+    "validity": {
+      "from": "2021-08-13",
+      "to": null
+    },
+    "address_type": {
+      "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+      "name": "Email",
+      "user_key": "BrugerEmail",
+      "example": "test@example.com",
+      "scope": "EMAIL",
+      "owner": null
+    },
+    "href": "mailto:goofy@example.com",
+    "name": "goofy@example.com",
+    "value": "goofy@andeby.dk",
+    "value2": null,
+    "person": {
+      "givenname": "Fedtmule",
+      "surname": "Hund",
+      "name": "Fedtmule Hund",
+      "nickname_givenname": "George",
+      "nickname_surname": "Geef",
+      "nickname": "George Geef",
+      "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+      "seniority": ""
+    },
+    "type": "address",
+    "org": {
+      "name": "Aarhus Universitet",
+      "user_key": "AU",
+      "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+    }
+  },
+  "person": {
+    "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"
+  }
+}

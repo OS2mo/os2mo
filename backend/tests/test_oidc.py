@@ -111,7 +111,7 @@ class TestOIDC(unittest.TestCase):
         'mora.auth.keycloak.oidc.jwt.PyJWKClient.get_signing_key_from_jwt')
     def test_auth_decodes_token(self, mock_get_signing_key_from_jwt):
         # Mock the public signing.key used in the auth function
-        mock_get_signing_key_from_jwt.side_effect = [self.signing]
+        mock_get_signing_key_from_jwt.return_value = self.signing
 
         # Create auth request with token signed by correct key
         token = TestOIDC.generate_token(
@@ -136,7 +136,7 @@ class TestOIDC(unittest.TestCase):
             mock_get_signing_key_from_jwt
     ):
         # Mock the public signing.key used in the auth function
-        mock_get_signing_key_from_jwt.side_effect = [self.signing]
+        mock_get_signing_key_from_jwt.return_value = self.signing
 
         with open('backend/tests/mocking/mo/auth/hackers-jwtRS256.key',
                   'rb') as fp:
@@ -160,7 +160,7 @@ class TestOIDC(unittest.TestCase):
             mock_get_signing_key_from_jwt
     ):
         # Mock the public signing.key used in the auth function
-        mock_get_signing_key_from_jwt.side_effect = [self.signing]
+        mock_get_signing_key_from_jwt.return_value = self.signing
 
         # Set "exp" to an expired timestamp
         self.parsed_token['exp'] = int(datetime.now().timestamp()) - 1
@@ -183,7 +183,7 @@ class TestOIDC(unittest.TestCase):
             mock_get_signing_key_from_jwt
     ):
         # Mock the public signing.key used in the auth function
-        mock_get_signing_key_from_jwt.side_effect = [self.signing]
+        mock_get_signing_key_from_jwt.return_value = self.signing
         token = TestOIDC.generate_token(
             self.parsed_token,
             self.private_key

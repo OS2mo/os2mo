@@ -8,7 +8,7 @@ from fastapi import Request
 
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.owner import get_ancestor_owners
+from mora.auth.keycloak.owner import get_owners
 import mora.auth.keycloak.uuid_extractor as uuid_extractor
 from mora.mapping import (
     ADMIN,
@@ -44,37 +44,41 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     if OWNER in roles and not admin_only:
         logger.debug('User has owner role - checking ownership...')
 
-        # E.g. the uuids variable will be [<uuid1>] if we are editing details
-        # of an org unit and [<uuid1>, <uuid2>] if we are moving an org unit
+        # E.g. the uuids variable will be {<uuid1>} if we are editing details
+        # of an org unit or an employee and {<uuid1>, <uuid2>} if we are
+        # moving an org unit
         uuids = await uuid_extractor.get_org_unit_uuids(request)
+        logger.debug("UUIDs", uuids=uuids)
+
+        entity_type = await uuid_extractor.get_entity_type(request)
 
         # In some cases several ancestor owner sets are needed, e.g. if
         # we are moving a unit. In such cases we have to check for
         # ownerships in both the source (the unit to be moved) and target
         # (the receiving unit) ancestor trees. In some cases only the
         # source is relevant, e.g. if an org unit detail is created/edited.
-        # The source_and_target_unit_and_ancestor_owners list below will have
-        # exactly two elements (sets) if we are moving a unit and exactly one
-        # element otherwise, e.g.
-        # [{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}]
+        # The owners list below will have exactly two elements (sets) if we
+        # are moving a unit and exactly one element otherwise, e.g.
+        # {{<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}}
         # when editing details of a unit and
-        # [
-        #   {<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>},
-        #   {<owner_uuid>, <owner_parent_uuid>, <owner_grand_parent_uuid>}
-        # ]
+        # {
+        #   {<src_owner_uuid>, <src_owner_parent_uuid>, <src_owner_grand_parent_uuid>},
+        #   {<tar_owner_uuid>, <tar_owner_parent_uuid>, <tar_owner_grand_parent_uuid>}
+        # }
         # when moving an org unit.
-        source_and_target_unit_and_ancestor_owners = await asyncio.gather(
-            *map(get_ancestor_owners, uuids)
+
+        owners = await asyncio.gather(
+            *(get_owners(uuid, entity_type) for uuid in uuids)
         )
 
-        ownership_confirmed_in_source_and_target_ancestor_trees = [
-            (token.uuid in ancestor_owner)
-            for ancestor_owner in source_and_target_unit_and_ancestor_owners
+        current_user_ownership_verified = [
+            (token.uuid in owner)
+            for owner in owners
         ]
 
         if (
-            ownership_confirmed_in_source_and_target_ancestor_trees and
-            all(ownership_confirmed_in_source_and_target_ancestor_trees)
+            current_user_ownership_verified and
+            all(current_user_ownership_verified)
         ):
             logger.debug(f"User {token.preferred_username} authorized")
             return
