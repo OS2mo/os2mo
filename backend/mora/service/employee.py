@@ -23,7 +23,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body
 
-import mora.async_util
 from mora.request_scoped.bulking import request_wide_bulk
 from . import autocomplete
 from . import handlers
@@ -56,7 +55,7 @@ class EmployeeDetails(enum.Enum):
 class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
-    def prepare_create(self, req):
+    async def aprepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "",
                                      required=False)
@@ -86,7 +85,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             required=False
         )
 
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
+        org_uuid = (await org.get_configured_organisation(
             util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
 
         cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
@@ -103,9 +102,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         valid_to = util.POSITIVE_INFINITY
 
         if cpr:
-            mora.async_util.async_to_sync(
-                validator.does_employee_with_cpr_already_exist
-            )(cpr, valid_from, valid_to, org_uuid, userid)
+            await validator.does_employee_with_cpr_already_exist(
+                cpr, valid_from, valid_to, org_uuid, userid)
 
         user = common.create_bruger_payload(
             valid_from=valid_from,
@@ -134,7 +132,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
-    def prepare_edit(self, req: dict):
+    async def aprepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
         userid = util.get_uuid(req, required=False)
@@ -143,7 +141,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.bruger.get)(uuid=userid)
+        original = await c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
         payload = dict()
@@ -261,15 +259,13 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         return nickname_givenname, nickname_surname
 
-    def submit(self):
+    async def submit(self):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.bruger.create)(self.payload,
-                                                                         self.uuid)
+            self.result = await c.bruger.create(self.payload, self.uuid)
         else:
-            self.result = mora.async_util.async_to_sync(c.bruger.update)(self.payload,
-                                                                         self.uuid)
+            self.result = await c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
@@ -558,7 +554,7 @@ async def get_employee(
 
 @router.post('/e/{employee_uuid}/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
+async def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
     instead.
@@ -608,7 +604,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
             },
             mapping.RequestType.TERMINATE,
         )
-        for objid, obj in mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
+        for objid, obj in await c.organisationfunktion.get_all(
             tilknyttedebrugere=employee_uuid,
             gyldighed='Aktiv',
         )
@@ -636,7 +632,7 @@ def terminate_employee(employee_uuid: UUID, request: dict = Body(...)):
     Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
-    mora.async_util.async_to_sync(common.add_history_entry)(
+    await common.add_history_entry(
         c.bruger, employee_uuid, "Afslut medarbejder")
 
     return result

@@ -5,14 +5,13 @@ import copy
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
 
 class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2000-12-01')
-    def test_terminate_employee(self):
+    async def test_terminate_employee(self):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -51,14 +50,11 @@ class Tests(tests.cases.LoRATestCase):
 
             return o
 
-        expected_engagement = mora.async_util.async_to_sync(get_expected)(
-            engagement_uuid)
-        expected_association = mora.async_util.async_to_sync(get_expected)(
-            association_uuid, True)
-        expected_role = mora.async_util.async_to_sync(get_expected)(role_uuid)
-        expected_leave = mora.async_util.async_to_sync(get_expected)(leave_uuid)
-        expected_manager = mora.async_util.async_to_sync(get_expected)(manager_uuid,
-                                                                       True)
+        expected_engagement = await get_expected(engagement_uuid)
+        expected_association = await get_expected(association_uuid, True)
+        expected_role = await get_expected(role_uuid)
+        expected_leave = await get_expected(leave_uuid)
+        expected_manager = await get_expected(manager_uuid, True)
 
         self.assertRequestResponse(
             '/service/e/{}/terminate'.format(userid),
@@ -80,16 +76,11 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid)
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid)
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
-        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            leave_uuid)
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid)
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
+        actual_association = await c.organisationfunktion.get(association_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
+        actual_leave = await c.organisationfunktion.get(leave_uuid)
+        actual_manager = await c.organisationfunktion.get(manager_uuid)
 
         with self.subTest('engagement'):
             self.assertRegistrationsEqual(expected_engagement,
@@ -112,7 +103,7 @@ class Tests(tests.cases.LoRATestCase):
                                           actual_manager)
 
     @freezegun.freeze_time('2000-12-01')
-    def test_terminate_employee_vacatables_full(self):
+    async def test_terminate_employee_vacatables_full(self):
         """
         Ensure that organisationfunktions that can be vacated are
         terminated as well, when run with 'full'
@@ -133,8 +124,8 @@ class Tests(tests.cases.LoRATestCase):
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        def get_expected(id):
-            o = mora.async_util.async_to_sync(c.organisationfunktion.get)(id)
+        async def get_expected(id):
+            o = await c.organisationfunktion.get(id)
 
             o.update(
                 livscykluskode='Rettet',
@@ -169,13 +160,13 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        actual_manager = await c.organisationfunktion.get(
             manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager,
                                       actual_manager)
 
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        actual_association = await c.organisationfunktion.get(
             association_uuid)
 
         self.assertRegistrationsEqual(expected_association,
@@ -234,7 +225,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_manager_via_user(self):
+    async def test_terminate_manager_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -270,7 +261,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         expected_manager = {
-            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)),
+            **(await c.organisationfunktion.get(manager_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -296,7 +287,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        actual_manager = await c.organisationfunktion.get(
             manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
@@ -369,7 +360,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_association_via_user(self):
+    async def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -425,8 +416,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         expected_association = {
-            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                association_uuid)),
+            **(await c.organisationfunktion.get(association_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -435,8 +425,7 @@ class Tests(tests.cases.LoRATestCase):
         expected_association['relationer'][
             'tilknyttedebrugere'] = expected_tilknyttedebrugere
 
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid)
+        actual_association = await c.organisationfunktion.get(association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
 
@@ -496,7 +485,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_manager_properly_via_user(self):
+    async def test_terminate_manager_properly_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -533,7 +522,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         expected_manager = {
-            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)),
+            **(await c.organisationfunktion.get(manager_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -562,13 +551,12 @@ class Tests(tests.cases.LoRATestCase):
 
         }
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid)
+        actual_manager = await c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_association_properly_via_user(self):
+    async def test_terminate_association_properly_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -605,8 +593,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         expected_association = {
-            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                association_uuid)),
+            **(await c.organisationfunktion.get(association_uuid)),
 
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
@@ -635,13 +622,12 @@ class Tests(tests.cases.LoRATestCase):
 
         }
 
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid)
+        actual_association = await c.organisationfunktion.get(association_uuid)
 
         self.assertRegistrationsEqual(expected_association, actual_association)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_manager_directly(self):
+    async def test_terminate_manager_directly(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -654,8 +640,7 @@ class Tests(tests.cases.LoRATestCase):
             '/service/e/{}/details/manager'.format(userid),
         )
 
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid)
+        original = await c.organisationfunktion.get(manager_uuid)
 
         self.assertRequestResponse(
             '/service/details/terminate',
@@ -701,7 +686,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
+        actual = await c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 
@@ -730,7 +715,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_terminate_association_directly(self):
+    async def test_terminate_association_directly(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -743,7 +728,7 @@ class Tests(tests.cases.LoRATestCase):
             '/service/e/{}/details/association'.format(userid),
         )
 
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        original = await c.organisationfunktion.get(
             association_uuid)
 
         self.assertRequestResponse(
@@ -790,7 +775,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        actual = await c.organisationfunktion.get(
             association_uuid)
 
         self.assertRegistrationsEqual(expected, actual)

@@ -362,7 +362,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400
         )
 
-    def test_terminate_leave(self):
+    async def test_terminate_leave(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"

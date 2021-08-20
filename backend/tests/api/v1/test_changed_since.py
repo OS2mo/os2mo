@@ -80,7 +80,7 @@ class ChangedSinceEmployee(ConfigTestCase):
             amqp_topics={"employee.employee.update": 1},
         )
 
-    def test_changed_since_with_edit(self):
+    async def test_changed_since_with_edit(self):
         """
         tests changed_since actually filters the expected
         :return:

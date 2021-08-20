@@ -1045,7 +1045,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_terminate_engagement(self):
+    async def test_terminate_engagement(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1191,8 +1191,7 @@ class Tests(tests.cases.LoRATestCase):
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid)
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 

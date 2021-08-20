@@ -986,7 +986,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_terminate_role(self):
+    async def test_terminate_role(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1109,8 +1109,7 @@ class Tests(tests.cases.LoRATestCase):
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(actual_role, expected_role)
 

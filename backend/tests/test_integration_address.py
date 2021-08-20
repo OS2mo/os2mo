@@ -650,7 +650,7 @@ class Writing(tests.cases.LoRATestCase):
                 amqp_topics={'employee.address.create': 1},
             )
 
-    def test_create_employee_with_address(self, mock):
+    async def test_create_employee_with_address(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -751,17 +751,13 @@ class Writing(tests.cases.LoRATestCase):
             }
         }
 
-        addr_id = mora.async_util.async_to_sync(
-            c.organisationfunktion.fetch)(tilknyttedebrugere=user_id)
+        addr_id = await c.organisationfunktion.fetch(tilknyttedebrugere=user_id)
 
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
         self.assertRegistrationsEqual(
-            expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                addr_id)
-        )
+            expected, await c.organisationfunktion.get(addr_id))
 
     def test_create_engagement_with_address(self, mock):
         self.load_sample_structures()

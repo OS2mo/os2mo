@@ -1320,7 +1320,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-    def test_terminate_association_via_user(self):
+    async def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1442,8 +1442,7 @@ class Tests(tests.cases.LoRATestCase):
 
         association_uuid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'
 
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid)
+        actual_association = await c.organisationfunktion.get(association_uuid)
 
         # drop lora-generated timestamps & users
         del actual_association['fratidspunkt'], actual_association[
