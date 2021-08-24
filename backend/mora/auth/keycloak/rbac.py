@@ -47,7 +47,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         # E.g. the uuids variable will be {<uuid1>} if we are editing details
         # of an org unit or an employee and {<uuid1>, <uuid2>} if we are
         # moving an org unit
-        uuids = await uuid_extractor.get_org_unit_uuids(request)
+        uuids = await uuid_extractor.get_entity_uuids(request)
         logger.debug("UUIDs", uuids=uuids)
 
         entity_type = await uuid_extractor.get_entity_type(request)

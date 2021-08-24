@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from copy import deepcopy
 from datetime import datetime
+from parameterized import parameterized
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN
 )
 
@@ -236,32 +239,31 @@ class TestCommon(tests.cases.LoRATestCase):
 
 class TestCreateOrgUnit(TestCommon):
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
+            (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_creating_org_unit_as_normal_user(self):
-        self.assertRequest(
-            self.url_create,
-            json=dict(),
-            status_code=HTTP_403_FORBIDDEN
-        )
+    def test_create_org_unit(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role, but not owner of the relevant entity
+        3) User with the admin role
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_creating_unit_as_owner_but_not_of_parent_unit(self):
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
         self.assertRequest(
             self.url_create,
             json=self.create_org_unit_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_201_when_creating_unit_as_admin(self):
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-
-        self.assertRequest(
-            self.url_create,
-            json=self.create_org_unit_payload,
-            status_code=HTTP_201_CREATED
+            status_code=status_code
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
@@ -277,81 +279,64 @@ class TestCreateOrgUnit(TestCommon):
             status_code=HTTP_201_CREATED
         )
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
+            (ADMIN, ANDERS_AND, HTTP_201_CREATED)
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_201_when_creating_root_unit_as_admin(self):
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+    def test_create_top_level_unit(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role
+        3) User with the admin role
+
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
         self.create_org_unit_payload.pop('parent')
 
         self.assertRequest(
             self.url_create,
             json=self.create_org_unit_payload,
-            status_code=HTTP_201_CREATED
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_creating_top_level_unit_as_owner_but_non_admin(self):
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-        self.create_org_unit_payload.pop('parent')
-
-        self.assertRequest(
-            self.url_create,
-            json=self.create_org_unit_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_201_when_creating_top_level_unit_as_admin(self):
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-        self.create_org_unit_payload.pop('parent')
-
-        self.assertRequest(
-            self.url_create,
-            json=self.create_org_unit_payload,
-            status_code=HTTP_201_CREATED
+            status_code=status_code
         )
 
 
 class TestRenameOrgUnit(TestCommon):
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_200_OK),
+            (ADMIN, FEDTMULE, HTTP_200_OK)
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_renaming_org_unit_as_normal_user(self):
-        self.assertRequest(
-            self.url_edit_detail,
-            json=dict(),
-            status_code=HTTP_403_FORBIDDEN
-        )
+    def test_rename_org_unit(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role, but not owner of the relevant entity
+        3) User with the owner role and owner of the relative entity
+        4) User with the admin role
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_renaming_org_unit_as_owner_of_different_unit(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-
-        self.assertRequest(
-            self.url_edit_detail,
-            json=self.rename_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_renaming_org_unit_as_owner_of_unit(self):
-        # Use user "Anders And" (who owns the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.assertRequest(
-            self.url_edit_detail,
-            json=self.rename_payload,
-            status_code=HTTP_200_OK
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_renaming_org_unit_as_admin(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
         self.assertRequest(
             self.url_edit_detail,
             json=self.rename_payload,
-            status_code=HTTP_200_OK
+            status_code=status_code
         )
 
 
@@ -369,45 +354,33 @@ class TestTerminateOrgUnit(TestCommon):
             }
         }
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_200_OK),
+            (ADMIN, FEDTMULE, HTTP_200_OK)
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_terminating_org_unit_as_normal_user(self):
-        self.assertRequest(
-            self.url_terminate,
-            json=self.terminate_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
+    def test_terminate_org_unit(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role, but not owner of the relevant entity
+        3) User with the owner role and owner of the relative entity
+        4) User with the admin role
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_terminating_org_unit_as_owner_of_different_unit(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-
-        self.assertRequest(
-            self.url_terminate,
-            json=self.terminate_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_terminating_org_unit_as_owner_of_unit(self):
-        # Use user "Anders And" (who owns the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.assertRequest(
-            self.url_terminate,
-            json=self.terminate_payload,
-            status_code=HTTP_200_OK
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_terminating_org_unit_as_admin(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
         self.assertRequest(
             self.url_terminate,
             json=self.terminate_payload,
-            status_code=HTTP_200_OK
+            status_code=status_code
         )
 
 
@@ -454,30 +427,42 @@ class TestCreateDetail(TestCommon):
             }
         ]
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_201_CREATED),
+            (ADMIN, FEDTMULE, HTTP_201_CREATED)
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_creating_detail_as_normal_user(self):
+    def test_create_detail(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role, but not owner of the relevant entity
+        3) User with the owner role and owner of the relative entity
+        4) User with the admin role
+
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
+
         self.assertRequest(
             self.url_create_detail,
             json=self.create_detail_payload,
-            status_code=HTTP_403_FORBIDDEN
+            status_code=status_code
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_creating_detail_as_owner_of_different_unit(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-
-        self.assertRequest(
-            self.url_create_detail,
-            json=self.create_detail_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_201_when_creating_detail_as_owner_of_unit(self):
+    def test_201_when_creating_multiple_details_as_owner_of_unit(self):
         # Use user "Anders And" (who owns the unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
+        self.create_detail_payload.append(self.create_detail_payload[0])
+
         self.assertRequest(
             self.url_create_detail,
             json=self.create_detail_payload,
@@ -485,14 +470,17 @@ class TestCreateDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_201_when_creating_detail_as_admin(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+    def test_400_when_creating_multiple_details_with_different_types(self):
+        # Use user "Anders And" (who owns the unit)
+        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+        self.create_detail_payload.append(deepcopy(self.create_detail_payload[0]))
+        self.create_detail_payload[1]['type'] = 'org_unit'
 
         self.assertRequest(
             self.url_create_detail,
             json=self.create_detail_payload,
-            status_code=HTTP_201_CREATED
+            status_code=HTTP_400_BAD_REQUEST
         )
 
 
@@ -550,45 +538,33 @@ class TestEditDetail(TestCommon):
             }
         }
 
+    @parameterized.expand(
+        [
+            (None, None, HTTP_403_FORBIDDEN),
+            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+            (OWNER, ANDERS_AND, HTTP_200_OK),
+            (ADMIN, FEDTMULE, HTTP_200_OK)
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_editing_detail_as_normal_user(self):
-        self.assertRequest(
-            self.url_edit_detail,
-            json=self.edit_detail_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
+    def test_edit_detail(self, role: str, userid: str, status_code: int):
+        """
+        Test of write access for the following cases:
+        1) Normal user (no roles set)
+        2) User with the owner role, but not owner of the relevant entity
+        3) User with the owner role and owner of the relative entity
+        4) User with the admin role
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_403_when_editing_detail_as_owner_of_different_unit(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-
-        self.assertRequest(
-            self.url_create_detail,
-            json=self.edit_detail_payload,
-            status_code=HTTP_403_FORBIDDEN
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_editing_detail_as_owner_of_unit(self):
-        # Use user "Anders And" (who owns the unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.assertRequest(
-            self.url_edit_detail,
-            json=self.edit_detail_payload,
-            status_code=HTTP_200_OK
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_200_when_editing_detail_as_admin(self):
-        # Use user "Fedtmule" (who does not own the unit)
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+        :param role: the role of the user
+        :param userid: the UUID of the user
+        :param status_code: the expected HTTP status code
+        """
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
         self.assertRequest(
             self.url_edit_detail,
             json=self.edit_detail_payload,
-            status_code=HTTP_200_OK
+            status_code=status_code
         )
 
 
@@ -598,28 +574,21 @@ class TestIndirectOwnership(TestCommon):
     unit but not the unit subject to modification itself.
     """
 
+    @parameterized.expand(
+        [
+            (OWNER, ANDERS_AND, HTTP_200_OK),
+            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+        ]
+    )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_rename_subunit_with_owner_of_parent(self):
-        # Use user "Anders And" (who owns the parent unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+    def test_rename_subunit(self, role: str, userid: str, status_code: int):
+        self.app.dependency_overrides[auth] = mock_auth(role, userid)
         self.rename_payload['data']['uuid'] = self.org_unit_uuid_2
 
         self.assertRequest(
             self.url_edit_detail,
             json=self.rename_payload,
-            status_code=HTTP_200_OK
-        )
-
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
-    def test_rename_subunit_with_non_owner_of_parent(self):
-        # Use user "Fedtmule" (who does not own the parent unit)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-        self.rename_payload['data']['uuid'] = self.org_unit_uuid_2
-
-        self.assertRequest(
-            self.url_edit_detail,
-            json=self.rename_payload,
-            status_code=HTTP_403_FORBIDDEN
+            status_code=status_code
         )
 
 

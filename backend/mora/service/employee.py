@@ -654,7 +654,7 @@ def terminate_employee(
 @router.post('/e/create', status_code=201)
 def create_employee(
     req: dict = Body(...),
-    permissions=Depends(oidc.rbac_owner)
+    permissions=Depends(oidc.rbac_admin)
 ):
     """Create a new employee
 

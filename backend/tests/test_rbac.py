@@ -61,7 +61,7 @@ class TestOwnerSingleOrgUnit(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_return_when_owner_owns_unit_or_ancestor(
             self,
             mock_uuids,
@@ -81,7 +81,7 @@ class TestOwnerSingleOrgUnit(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_owner_does_not_owns_unit_or_ancestor(
             self,
             mock_uuids,
@@ -101,7 +101,7 @@ class TestOwnerSingleOrgUnit(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_no_owners_in_ancestors(
             self,
             mock_uuids,
@@ -121,7 +121,7 @@ class TestOwnerSingleOrgUnit(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_uuids_list_empty(
             self,
             mock_uuids,
@@ -150,7 +150,7 @@ class TestOwnerMultipleOrgUnits(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_owner_not_in_source_or_target_units(
             self,
             mock_uuids,
@@ -170,7 +170,7 @@ class TestOwnerMultipleOrgUnits(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_owner_not_in_target_unit(
             self,
             mock_uuids,
@@ -190,7 +190,7 @@ class TestOwnerMultipleOrgUnits(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_raise_exception_when_owner_not_in_source_unit(
             self,
             mock_uuids,
@@ -210,7 +210,7 @@ class TestOwnerMultipleOrgUnits(object):
     @unittest.mock.patch(
         'mora.auth.keycloak.rbac.uuid_extractor.get_entity_type')
     @unittest.mock.patch(
-        'mora.auth.keycloak.rbac.uuid_extractor.get_org_unit_uuids')
+        'mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids')
     async def test_return_when_owner_in_source_and_target_units(
             self,
             mock_uuids,
