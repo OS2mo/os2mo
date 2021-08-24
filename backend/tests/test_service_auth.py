@@ -17,6 +17,8 @@ from mora import main
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 import tests.cases
+from mora.config import Settings
+from tests import util
 
 
 class TestServiceAuth(unittest.TestCase):
@@ -264,3 +266,20 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
             },
             r
         )
+
+
+# TODO: Find a way to test that endpoints works when auth is disabled
+@unittest.skip(
+    'Fails since we cannot override "os2mo_auth" in the test due to the fact'
+    'that the Token model is loaded at import time in the oidc.py'
+)
+class TestAuthDisabled(tests.cases.LoRATestCase):
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.load_sample_structures()
+        self.app.dependency_overrides = []
+
+    @util.override_config(Settings(os2mo_auth=False))
+    def test_no_token_required_when_auth_disabled(self):
+        self.assertRequest('/service/o/')

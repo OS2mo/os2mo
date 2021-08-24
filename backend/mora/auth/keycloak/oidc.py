@@ -40,11 +40,7 @@ jwks_client = jwt.PyJWKClient(JWKS_URI)
 
 async def noauth() -> Token:
     """Noop auth provider."""
-    return Token(
-        email='not@used.org',
-        preferred_username='unused',
-        uuid='00000000-0000-0000-0000-000000000000'
-    )
+    return Token()
 
 
 async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> Token:

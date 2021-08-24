@@ -20,7 +20,7 @@ class RealmAccess(BaseModel):
     roles: Set[str] = set()
 
 
-class Token(BaseModel):
+class KeycloakToken(BaseModel):
     azp: str
     email: Optional[EmailStr]
     preferred_username: Optional[str]
@@ -40,3 +40,16 @@ class Token(BaseModel):
 
     class Config:
         extra = Extra.ignore
+
+# TODO: Remove the stuff below, once a proper auth solution is in place,
+#  that works for local DIPEX development.
+#  https://redmine.magenta-aps.dk/issues/44020
+
+
+class NoAuthToken(BaseModel):
+    pass
+
+
+Token = KeycloakToken
+if not settings.os2mo_auth:
+    Token = NoAuthToken
