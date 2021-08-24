@@ -5,7 +5,6 @@ import copy
 
 import freezegun
 
-import mora.async_util
 from mora import lora
 from tests.cases import LoRATestCase
 
@@ -76,7 +75,7 @@ class EngAssocUtils:
 class Tests(LoRATestCase):
     maxDiff = None
 
-    def test_create_engagement_association(self):
+    async def test_create_engagement_association(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -177,16 +176,14 @@ class Tests(LoRATestCase):
             },
         }
 
-        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
+        associations = await c.organisationfunktion.fetch(
             tilknyttedefunktioner=engagement_uuid,
             funktionsnavn="engagement_association",
         )
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
-        actual_association = mora.async_util.async_to_sync(
-            c.organisationfunktion.get
-        )(associationid)
+        actual_association = await c.organisationfunktion.get(associationid)
 
         self.assertRegistrationsEqual(expected, actual_association)
 
@@ -198,7 +195,7 @@ class Tests(LoRATestCase):
             expected,
         )
 
-    def test_create_association_fails_on_two_assocations(self):
+    async def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
         unit"""
         self.load_sample_structures()
@@ -236,7 +233,7 @@ class Tests(LoRATestCase):
             status_code=400,
         )
 
-    def test_edit_association(self):
+    async def test_edit_association(self):
         """
         create then edit
         :return:
@@ -300,7 +297,7 @@ class Tests(LoRATestCase):
             expected,
         )
 
-    def test_terminate_association_directly(self):
+    async def test_terminate_association_directly(self):
         """
         create then terminate
         :return:

@@ -120,7 +120,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         OwnerRequestHandler.raise_unexpected_input(req)
 
     @staticmethod
-    def validate(
+    async def validate(
         validity_from: datetime,
         validity_to: datetime,
         org_unit: Optional[Dict[str, Any]],
@@ -137,21 +137,21 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         :return:
         """
         if org_unit:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            await validator.is_date_range_in_org_unit_range(
                 org_unit, validity_from, validity_to
             )
 
         if owned_person:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            await validator.is_date_range_in_employee_range(
                 owned_person, validity_from, validity_to
             )
 
         if owner:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+            await validator.is_date_range_in_employee_range(
                 owner, validity_from, validity_to
             )
 
-    def prepare_create(self, req: Dict):
+    async def aprepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 
@@ -168,7 +168,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         valid_from, valid_to = util.get_validities(req)
 
         org_uuid = (
-            mora.async_util.async_to_sync(org.get_configured_organisation)(
+            await org.get_configured_organisation(
                 util.get_mapping_uuid(req, mapping.ORG, required=False)
             )
         )["uuid"]

@@ -286,7 +286,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             "org_unit_uuid": org_unit_uuid,
         })
 
-    def prepare_terminate(self, request: Dict[Any, Any]):
+    async def aprepare_terminate(self, request: Dict[Any, Any]):
         """Initialize a 'termination' request. Performs validation and all
         necessary processing
 
@@ -302,4 +302,4 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_field = mapping.USER_FIELD
             self.termination_value = {}
 
-        super().prepare_terminate(request)
+        await super().aprepare_terminate(request)

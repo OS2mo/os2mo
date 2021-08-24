@@ -15,7 +15,7 @@ from . import util
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    def test_create_employee(self):
+    async def test_create_employee(self):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -109,7 +109,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        actual = await c.bruger.get(userid)
 
         # Make sure the bvn is a valid UUID
         bvn = actual['attributter']['brugeregenskaber'][0].pop('brugervendtnoegle')
@@ -139,7 +139,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'employee.employee.create': 1},
         )
 
-    def test_create_employee_like_import(self):
+    async def test_create_employee_like_import(self):
         '''Test creating a user that has no CPR number, but does have a
         user_key and a given UUID.
 
@@ -179,7 +179,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_employee_fails_on_invalid_cpr(self):
+    async def test_create_employee_fails_on_invalid_cpr(self):
         self.load_sample_structures()
         payload = {
             "name": "Torkild Testperson",
@@ -202,7 +202,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_employee_existing_cpr_existing_org(self):
+    async def test_create_employee_existing_cpr_existing_org(self):
         self.load_sample_structures()
 
         payload = {
@@ -257,7 +257,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_employee_existing_cpr_new_org(self):
+    async def test_create_employee_existing_cpr_new_org(self):
         """
         Should not be able to create employee with same CPR no,
         in different organisation, as only one is allowed
@@ -283,7 +283,7 @@ class Tests(tests.cases.LoRATestCase):
             'error': True
         }, r.json())
 
-    def test_create_employee_with_details(self):
+    async def test_create_employee_with_details(self):
         """Test creating an employee with added details.
         Also add three names to a single name parameter and check
         it will be split on lest space."""
@@ -360,7 +360,7 @@ class Tests(tests.cases.LoRATestCase):
         )
         self.assertEqual(1, len(r.json()), 'One engagement should exist')
 
-    def test_create_employee_with_details_fails_atomically(self):
+    async def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
         self.load_sample_structures()
 
@@ -528,7 +528,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_edit_employee_overwrite(self):
+    async def test_edit_employee_overwrite(self):
         # A generic example of editing an employee
 
         self.load_sample_structures()
@@ -655,7 +655,7 @@ class Tests(tests.cases.LoRATestCase):
         }]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        actual = await c.bruger.get(userid)
 
         self.assertEqual(
             expected_brugeregenskaber,
@@ -674,7 +674,7 @@ class Tests(tests.cases.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
-    def test_edit_employee(self):
+    async def test_edit_employee(self):
         # A generic example of editing an employee
 
         self.load_sample_structures()
@@ -786,7 +786,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        actual = await c.bruger.get(userid)
 
         self.assertEqual(
             expected_brugeregenskaber,
@@ -805,7 +805,7 @@ class Tests(tests.cases.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
-    def test_edit_remove_seniority(self):
+    async def test_edit_remove_seniority(self):
         # A generic example of editing an employee
 
         self.load_sample_structures()
@@ -835,7 +835,7 @@ class Tests(tests.cases.LoRATestCase):
         expected_seniorities = ['2017-01-01', None]
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        actual = await c.bruger.get(userid)
         self.assertEqual(
             expected_seniorities,
             list(
@@ -868,7 +868,7 @@ class Tests(tests.cases.LoRATestCase):
         expected_seniorities = [None, None, '2017-01-01']
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+        actual = await c.bruger.get(userid)
 
         self.assertEqual(
             expected_seniorities,
@@ -905,12 +905,14 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
-    def test_edit_integration_data(self):
+    async def test_edit_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
-        mora.async_util.async_to_sync(util.load_fixture)('organisation/bruger',
-                                                         'create_bruger_andersine.json',
-                                                         employee_uuid)
+        await util.load_fixture(
+            'organisation/bruger',
+            'create_bruger_andersine.json',
+            employee_uuid
+        )
 
         req = {
             "type": "employee",

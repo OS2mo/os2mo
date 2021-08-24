@@ -31,7 +31,7 @@ from mora.auth.keycloak import oidc
 router = APIRouter()
 
 
-def handle_requests(
+async def handle_requests(
     reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
     request_type: mapping.RequestType
 ):
@@ -43,9 +43,9 @@ def handle_requests(
     else:
         exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
-    requests = handlers.generate_requests(reqs, request_type)
+    requests = await handlers.generate_requests(reqs, request_type)
 
-    uuids = handlers.submit_requests(requests)
+    uuids = await handlers.submit_requests(requests)
     if is_single_request:
         uuids = uuids[0]
     return uuids
@@ -53,7 +53,7 @@ def handle_requests(
 
 @router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
-def create(
+async def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -427,12 +427,12 @@ def create(
       ]
 
     """
-    return handle_requests(reqs, mapping.RequestType.CREATE)
+    return await handle_requests(reqs, mapping.RequestType.CREATE)
 
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(
+async def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -940,12 +940,12 @@ def edit(
     See :ref:`Adresses <address>` for more information.
 
     """
-    return handle_requests(reqs, mapping.RequestType.EDIT)
+    return await handle_requests(reqs, mapping.RequestType.EDIT)
 
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate(
+async def terminate(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -991,4 +991,4 @@ def terminate(
 
     '''
 
-    return handle_requests(reqs, mapping.RequestType.TERMINATE)
+    return await handle_requests(reqs, mapping.RequestType.TERMINATE)

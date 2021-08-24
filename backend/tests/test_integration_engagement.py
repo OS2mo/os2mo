@@ -4,7 +4,6 @@
 import freezegun
 import notsouid
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
@@ -13,7 +12,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    def test_create_engagement(self):
+    async def test_create_engagement(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -162,12 +161,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid)
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_from_unit(self):
+    async def test_create_engagement_from_unit(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -292,12 +290,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid)
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_no_valid_to(self):
+    async def test_create_engagement_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -422,12 +419,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid)
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_no_job_function(self):
+    async def test_create_engagement_no_job_function(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -539,12 +535,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid)
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 
-    def test_create_engagement_fails_on_empty_payload(self):
+    async def test_create_engagement_fails_on_empty_payload(self):
         self.load_sample_structures()
 
         payload = [
@@ -567,7 +562,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_edit_engagement_fails_on_invalid_payloads(self):
+    async def test_edit_engagement_fails_on_invalid_payloads(self):
         self.load_sample_structures()
 
         payload = {
@@ -592,7 +587,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_engagement_fails_on_missing_unit(self):
+    async def test_create_engagement_fails_on_missing_unit(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -625,7 +620,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_create_engagement_fails_on_missing_person(self):
+    async def test_create_engagement_fails_on_missing_person(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -658,7 +653,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_edit_engagement_no_overwrite(self):
+    async def test_edit_engagement_no_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -860,12 +855,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid)
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_edit_engagement_overwrite(self):
+    async def test_edit_engagement_overwrite(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1040,12 +1034,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid)
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_terminate_engagement(self):
+    async def test_terminate_engagement(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1191,8 +1184,7 @@ class Tests(tests.cases.LoRATestCase):
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid)
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 

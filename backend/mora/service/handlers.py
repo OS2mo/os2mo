@@ -62,7 +62,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request: dict, request_type: RequestType):
+    def __init__(self, request: dict, request_type: RequestType, hest: typing.Optional[str] = None):
         """
         Initialize a request, and perform all required validation.
 
@@ -77,6 +77,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.trigger_results_before = None
         self.trigger_results_after = None
 
+        if hest is None:
+            raise ValueError('Fix it')
+
         self.trigger_dict = {
             Trigger.REQUEST_TYPE: request_type,
             Trigger.REQUEST: request,
@@ -84,21 +87,27 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.EVENT_TYPE: EventType.ON_BEFORE
         }
 
-        if request_type == RequestType.CREATE:
-            mora.async_util.async_to_sync(self.aprepare_create)(request)
-        elif request_type == RequestType.EDIT:
-            mora.async_util.async_to_sync(self.aprepare_edit)(request)
-        elif request_type == RequestType.TERMINATE:
-            mora.async_util.async_to_sync(self.aprepare_terminate)(request)
-        elif request_type == RequestType.REFRESH:
-            mora.async_util.async_to_sync(self.aprepare_refresh)(request)
+    @classmethod
+    async def construct(cls, *args, **kwargs):
+        obj = cls(*args, **kwargs, hest = 'mogens')
+
+        if obj.request_type == RequestType.CREATE:
+            await obj.aprepare_create(obj.request)
+        elif obj.request_type == RequestType.EDIT:
+            await obj.aprepare_edit(obj.request)
+        elif obj.request_type == RequestType.TERMINATE:
+            await obj.aprepare_terminate(obj.request)
+        elif obj.request_type == RequestType.REFRESH:
+            await obj.aprepare_refresh(obj.request)
         else:
             raise NotImplementedError
 
-        self.trigger_dict.update({
-            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
+        obj.trigger_dict.update({
+            Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid
         })
-        self.trigger_results_before = Trigger.run(self.trigger_dict)
+        obj.trigger_results_before = Trigger.run(obj.trigger_dict)
+
+        return obj
 
     def prepare_create(self, request: dict):
         """
@@ -179,6 +188,22 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
+        # self.trigger_dict.update({
+        #     Trigger.RESULT: getattr(self, Trigger.RESULT, None),
+        #     Trigger.EVENT_TYPE: EventType.ON_AFTER,
+        #     Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
+        # })
+        # self.trigger_results_after = Trigger.run(self.trigger_dict)
+
+        # return getattr(self, Trigger.RESULT, None)
+        raise ValueError('Fix meeee')
+
+    async def asubmit(self):
+        """Submit the request to LoRa.
+
+        :return: A string containing the result from submitting the
+                 request to LoRa, typically a UUID.
+        """
         self.trigger_dict.update({
             Trigger.RESULT: getattr(self, Trigger.RESULT, None),
             Trigger.EVENT_TYPE: EventType.ON_AFTER,
@@ -187,7 +212,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.trigger_results_after = Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
-
 
 class OrgFunkRequestHandler(RequestHandler):
     '''Abstract base class for automatically registering
@@ -227,12 +251,12 @@ class OrgFunkRequestHandler(RequestHandler):
         HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
-    def prepare_terminate(self, request: dict):
+    async def aprepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
         date = util.get_valid_to(request, required=True)
 
-        original = mora.async_util.async_to_sync(
-            lora.Connector(effective_date=date).organisationfunktion.get)(self.uuid)
+        original = await lora.Connector(
+            effective_date=date).organisationfunktion.get(self.uuid)
 
         if (
             original is None or
@@ -266,19 +290,19 @@ class OrgFunkRequestHandler(RequestHandler):
                 Trigger.ORG_UNIT_UUID
             ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
-    def submit(self) -> str:
+    async def asubmit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.organisationfunktion.create)(
+            self.result = await c.organisationfunktion.create(
                 self.payload,
                 self.uuid)
         else:
-            self.result = mora.async_util.async_to_sync(c.organisationfunktion.update)(
+            self.result = await c.organisationfunktion.update(
                 self.payload,
                 self.uuid)
 
-        return super().submit()
+        return await super().asubmit()
 
 
 def get_key_for_function(obj: dict) -> str:
@@ -308,7 +332,7 @@ def get_handler_for_role_type(role_type: str):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
-def generate_requests(
+async def generate_requests(
     requests: typing.List[dict],
     request_type: RequestType
 ) -> typing.List[RequestHandler]:
@@ -320,10 +344,10 @@ def generate_requests(
         )
 
     return [
-        HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
+        await HANDLERS_BY_ROLE_TYPE[req.get('type')].construct(req, request_type)
         for req in requests
     ]
 
 
-def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
-    return [request.submit() for request in requests]
+async def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
+    return [await request.asubmit() for request in requests]

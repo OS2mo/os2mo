@@ -227,7 +227,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             )
         })
 
-    def prepare_terminate(self, request: dict):
+    async def prepare_terminate(self, request: dict):
         """Initialize a 'termination' request. Performs validation and all
         necessary processing
 
@@ -243,4 +243,4 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_field = mapping.USER_FIELD
             self.termination_value = {}
 
-        super().prepare_terminate(request)
+        await super().aprepare_terminate(request)

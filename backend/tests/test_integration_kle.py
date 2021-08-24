@@ -25,7 +25,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
                           auto_increment=True)
-    def test_create_kle(self):
+    async def test_create_kle(self):
         self.load_sample_structures()
 
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
@@ -113,7 +113,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_edit_kle_no_overwrite(self):
+    async def test_edit_kle_no_overwrite(self):
         self.load_sample_structures()
 
         org_unit_uuid = "dad7d0ad-c7a9-4a94-969d-464337e31fec"

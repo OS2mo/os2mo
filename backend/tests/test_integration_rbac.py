@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import pytest
+
 from copy import deepcopy
 from datetime import datetime
 from parameterized import parameterized
@@ -238,6 +240,7 @@ class TestCommon(tests.cases.LoRATestCase):
 
 
 class TestCreateOrgUnit(TestCommon):
+    pytestmark = pytest.mark.asyncio  # TODO: Ask someone about this
 
     @parameterized.expand(
         [

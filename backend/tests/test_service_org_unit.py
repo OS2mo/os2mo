@@ -181,7 +181,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch("mora.triggers.internal.http_trigger.http_sender")
     @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_integration_error_on_wrong_status(
+    async def test_returns_integration_error_on_wrong_status(
         self, mock, t_sender_mock, t_fetch_mock
     ):
         t_fetch_mock.return_value = [
@@ -231,7 +231,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
     )
     @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
+    async def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
         t_fetch_mock.return_value = [
             MOTriggerRegister(
                 **{

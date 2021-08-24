@@ -31,9 +31,6 @@ class MockHandler(RequestHandler):
     def prepare_terminate(self, req):
         self.uuid = "terminate"
 
-    def submit(self):
-        super().submit()
-
 
 class RegisterTest(tests.cases.TestCase):
     @aioresponses()
@@ -65,28 +62,30 @@ class Tests(tests.cases.MockRequestContextTestCase):
                       "Trigger.registry outside this test")
         super().setUp()
 
-    def test_handler_trigger_any_exception(self):
+    @async_to_sync
+    async def test_handler_trigger_any_exception(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Exception("Bummer")
 
         with self.assertRaises(HTTPException) as err:
-            MockHandler({}, RequestType.EDIT)
+            await MockHandler.construct({}, RequestType.EDIT)
         self.assertEqual({'description': 'Bummer',
                           'error': True,
                           'error_key': 'E_INTEGRATION_ERROR',
                           'status': 400}, err.exception.detail)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_own_error(self):
+    @async_to_sync
+    async def test_handler_trigger_own_error(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
             raise Trigger.Error("Bummer", stage="final")
 
         with self.assertRaises(HTTPException) as ctxt:
-            MockHandler({}, RequestType.EDIT)
+            await MockHandler.construct({}, RequestType.EDIT)
         self.assertEqual({
             'error': True,
             'error_key': 'E_INTEGRATION_ERROR',
@@ -96,7 +95,8 @@ class Tests(tests.cases.MockRequestContextTestCase):
         }, ctxt.exception.detail)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_edit(self):
+    @async_to_sync
+    async def test_handler_trigger_before_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         def trigger(trigger_dict):
             self.trigger_called = True
@@ -108,10 +108,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'uuid': 'edit'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.EDIT)
+        await MockHandler.construct({}, RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_edit(self):
+    @async_to_sync
+    async def test_handler_trigger_after_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
@@ -124,10 +125,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'result': 'okidoki'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.EDIT).submit()
+        await (await MockHandler.construct({}, RequestType.EDIT)).asubmit()
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_create(self):
+    @async_to_sync
+    async def test_handler_trigger_before_create(self):
         @Trigger.on("mock", RequestType.CREATE,
                     EventType.ON_BEFORE)
         def trigger(trigger_dict):
@@ -140,10 +142,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'uuid': 'create'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.CREATE)
+        await MockHandler.construct({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_create(self):
+    @async_to_sync
+    async def test_handler_trigger_after_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
         def trigger(trigger_dict):
             self.trigger_called = True
@@ -156,10 +159,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'result': 'okidoki'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.CREATE).submit()
+        await (await MockHandler.construct({}, RequestType.CREATE)).asubmit()
         self.assertTrue(self.trigger_called)
-
-    def test_handler_trigger_before_terminate(self):
+    @async_to_sync
+    async def test_handler_trigger_before_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE,
                     EventType.ON_BEFORE)
         def trigger(trigger_dict):
@@ -172,10 +175,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'uuid': 'terminate'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.TERMINATE)
+        await MockHandler.construct({}, RequestType.TERMINATE)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_terminate(self):
+    @async_to_sync
+    async def test_handler_trigger_after_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE,
                     EventType.ON_AFTER)
         def trigger(trigger_dict):
@@ -189,7 +193,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 'result': 'okidoki'
             }, trigger_dict)
 
-        MockHandler({}, RequestType.TERMINATE).submit()
+        await (await MockHandler.construct({}, RequestType.TERMINATE)).asubmit()
         self.assertTrue(self.trigger_called)
 
 

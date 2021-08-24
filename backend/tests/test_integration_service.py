@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from . import util
 
@@ -649,7 +648,7 @@ class Tests(tests.cases.LoRATestCase):
                            "to": None}}],
         )
 
-    def test_employee(self):
+    async def test_employee(self):
         with self.subTest('empty'):
             self.assertRequestResponse(
                 '/service/o/00000000-0000-0000-0000-000000000000/e/',
@@ -809,7 +808,7 @@ class Tests(tests.cases.LoRATestCase):
             {'total': 0, 'items': [], 'offset': 0},
         )
 
-        mora.async_util.async_to_sync(util.load_fixture)(
+        await util.load_fixture(
             'organisation/bruger',
             'create_bruger_andersine.json',
             'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
@@ -1846,7 +1845,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_facet_create_and_update(self):
+    async def test_facet_create_and_update(self):
         self.load_sample_structures(minimal=True)
 
         payload = {

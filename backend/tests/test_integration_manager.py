@@ -7,7 +7,6 @@ from unittest.mock import patch
 import freezegun
 import notsouid
 
-import mora.async_util
 import tests.cases
 from mora import lora
 from mora import util as mora_util
@@ -50,7 +49,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
                           auto_increment=True)
-    def test_create_manager(self):
+    async def test_create_manager(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -200,8 +199,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            managerid)
+        actual_manager = await c.organisationfunktion.get(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
 
@@ -251,7 +249,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-    def test_create_vacant_manager(self):
+    async def test_create_vacant_manager(self):
         self.load_sample_structures()
 
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
@@ -351,7 +349,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.manager.create': 1},
         )
 
-    def test_edit_manager_on_unit(self):
+    async def test_edit_manager_on_unit(self):
         self.load_sample_structures()
 
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
@@ -472,7 +470,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
             )
 
-    def test_edit_manager_no_overwrite(self):
+    async def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -674,8 +672,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid)
+        actual_manager = await c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -710,7 +707,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-    def test_edit_manager_overwrite(self):
+    async def test_edit_manager_overwrite(self):
         self.load_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -928,8 +925,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid)
+        actual_manager = await c.organisationfunktion.get(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -966,7 +962,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @unittest.expectedFailure
-    def test_edit_manager_handles_adapted_zero_to_many_field(self):
+    async def test_edit_manager_handles_adapted_zero_to_many_field(self):
         """Edits of parts of the object should handle adapted zero-to-many
         fields correctly, i.e. multiple fields sharing the same
         relation should remain intact when only one of the
@@ -1131,12 +1127,12 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        actual_manager = await c.organisationfunktion.get(
             manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
-    def test_read_manager_multiple_responsibilities(self):
+    async def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''
         self.load_sample_structures()
 
@@ -1179,7 +1175,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         ]
 
-        mora.async_util.async_to_sync(c.organisationfunktion.update)(
+        await c.organisationfunktion.update(
             {
                 'relationer': {
                     'opgaver': overwritten_responsibilities,
@@ -1191,7 +1187,7 @@ class Tests(tests.cases.LoRATestCase):
         with self.subTest('verify assumption about relation in LoRA'):
             self.assertEqual(
                 sorted(
-                    mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                    await c.organisationfunktion.get(
                         manager_uuid)
                     ['relationer']['opgaver'],
                     key=mora_util.get_uuid,

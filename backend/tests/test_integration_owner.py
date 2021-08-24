@@ -167,7 +167,7 @@ class BaseTests(OwnerOrgUnitTestCase):
             create_status_code=400,
         )
 
-    def test_create_owner_non_existing(self):
+    async def test_create_owner_non_existing(self):
         """
         if owner if set, it needs to be a valid person
         :return:
@@ -186,7 +186,7 @@ class BaseTests(OwnerOrgUnitTestCase):
 class OrgUnitCreateTests(OwnerOrgUnitTestCase):
     maxDiff = None
 
-    def test_create_ou_non_existing(self):
+    async def test_create_ou_non_existing(self):
         """
         need valid ou
         :return:
@@ -200,7 +200,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
             create_status_code=404,
         )
 
-    def test_create_no_owner(self):
+    async def test_create_no_owner(self):
         """
         should be possible to create vacant owner
         :return:
@@ -290,7 +290,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
 class OrgUnitInheritTests(OwnerOrgUnitTestCase):
     maxDiff = None
 
-    def test_inherit(self):
+    async def test_inherit(self):
         """
         when absolutely no owner-orgfunc exists, inherit via the org hierarchy
         :return:
@@ -384,7 +384,7 @@ class OwnerPersonTestCase(ConfigTestCase):
 class PersonTests(OwnerPersonTestCase):
     maxDiff = None
 
-    def test_create_person_non_existing(self):
+    async def test_create_person_non_existing(self):
         """
         need valid person
         :return:
@@ -398,7 +398,7 @@ class PersonTests(OwnerPersonTestCase):
             create_status_code=404,
         )
 
-    def test_create_no_owner(self):
+    async def test_create_no_owner(self):
         """
         it should be possible to create "vacant" owners, i.e. valid person, but simply
         no owner / vacant owner seat
@@ -413,7 +413,7 @@ class PersonTests(OwnerPersonTestCase):
             verifying_response=[],
         )
 
-    def test_create_valid(self):
+    async def test_create_valid(self):
         """
         simply set both owner and person to valid objects
         :return:
@@ -520,12 +520,12 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
                 verifying_response,
             )
 
-    def test_create_with_engagement_priority_and_engagement(self):
+    async def test_create_with_engagement_priority_and_engagement(self):
         """
         should follow engagement and find owner
         :return:
         """
-        self.create_helper(
+        await self.create_helper(
             jsonified_owner=simplified_owner(
                 uuid=func_uuid,
                 person=person2,

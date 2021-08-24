@@ -3,7 +3,6 @@
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
@@ -12,7 +11,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    def test_create_role(self):
+    async def test_create_role(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -122,11 +121,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
+        actual_role = await c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_create_role_on_unit(self):
+    async def test_create_role_on_unit(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -236,11 +235,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(roleid)
+        actual_role = await c.organisationfunktion.get(roleid)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_create_role_no_valid_to(self):
+    async def test_create_role_no_valid_to(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -348,11 +347,11 @@ class Tests(tests.cases.LoRATestCase):
             }
         }
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_id)
+        actual_role = await c.organisationfunktion.get(role_id)
 
         self.assertRegistrationsEqual(actual_role, expected)
 
-    def test_edit_role_no_overwrite(self):
+    async def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -491,12 +490,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_edit_role_minimal(self):
+    async def test_edit_role_minimal(self):
         self.load_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -600,12 +598,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_edit_role_minimal_unit(self):
+    async def test_edit_role_minimal_unit(self):
         self.load_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -709,12 +706,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_edit_role_person(self):
+    async def test_edit_role_person(self):
         self.load_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -830,12 +826,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_edit_role_overwrite(self):
+    async def test_edit_role_overwrite(self):
         self.load_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
@@ -981,12 +976,11 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
-    def test_terminate_role(self):
+    async def test_terminate_role(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1109,8 +1103,7 @@ class Tests(tests.cases.LoRATestCase):
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid)
+        actual_role = await c.organisationfunktion.get(role_uuid)
 
         self.assertRegistrationsEqual(actual_role, expected_role)
 
@@ -1136,7 +1129,7 @@ class Tests(tests.cases.LoRATestCase):
             }],
         )
 
-    def test_create_role_missing_unit(self):
+    async def test_create_role_missing_unit(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1170,7 +1163,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_create_role_missing_user(self):
+    async def test_create_role_missing_user(self):
         self.load_sample_structures()
 
         # Check the POST request

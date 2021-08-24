@@ -3,7 +3,6 @@
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
@@ -20,7 +19,7 @@ class Writing(tests.cases.LoRATestCase):
             'TZ': 'UTC',
         }
 
-    def test_errors(self):
+    async def test_errors(self):
         # In Postgres 10.0 the messages mentioning type names was changed. See
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
         # This test will fail if run against postgres >=10.0. We can ignore it
@@ -257,7 +256,7 @@ class Writing(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    def test_create_employee_itsystem(self):
+    async def test_create_employee_itsystem(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -282,7 +281,7 @@ class Writing(tests.cases.LoRATestCase):
             )
 
         self.assertEqual(
-            list(mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
+            list(await c.organisationfunktion.get_all(
                 funktionsnavn='IT-system',
                 tilknyttedebrugere=userid,
             )),
@@ -345,7 +344,7 @@ class Writing(tests.cases.LoRATestCase):
             amqp_topics={'employee.it.create': 1},
         )
 
-    def test_create_unit_itsystem(self):
+    async def test_create_unit_itsystem(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -370,7 +369,7 @@ class Writing(tests.cases.LoRATestCase):
             )
 
         self.assertEqual(
-            list(mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
+            list(await c.organisationfunktion.get_all(
                 funktionsnavn='IT-system',
                 tilknyttedebrugere=unitid,
             )),
@@ -444,7 +443,7 @@ class Writing(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
-    def test_edit_itsystem(self):
+    async def test_edit_itsystem(self):
         self.load_sample_structures()
 
         it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
@@ -573,8 +572,7 @@ class Writing(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_it_func = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            it_func_id)
+        actual_it_func = await c.organisationfunktion.get(it_func_id)
 
         self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 

@@ -89,7 +89,7 @@ class UnitDetails(enum.Enum):
 class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = 'org_unit'
 
-    def prepare_create(self, req):
+    async def aprepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(
@@ -102,7 +102,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)())[
+        org_uuid = (await org.get_configured_organisation())[
             "uuid"]
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
@@ -144,14 +144,14 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         )
 
         if org_uuid != parent_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+            await validator.is_date_range_in_org_unit_range(
                 {'uuid': parent_uuid}, valid_from, valid_to)
 
         details = util.checked_get(req, 'details', [])
         details_with_org_units = _inject_org_units(details, unitid, valid_from,
                                                    valid_to)
 
-        self.details_requests = handlers.generate_requests(
+        self.details_requests = await handlers.generate_requests(
             details_with_org_units,
             mapping.RequestType.CREATE
         )
@@ -160,7 +160,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def prepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
 
@@ -168,7 +168,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.organisationenhed.get)(uuid=unitid)
+        original = await c.organisationenhed.get(uuid=unitid)
 
         if not original:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -277,12 +277,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
             # only update parent if parent uuid changed
             if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
-                mora.async_util.async_to_sync(validator.is_movable_org_unit)(unitid)
+                await validator.is_movable_org_unit(unitid)
 
-                mora.async_util.async_to_sync(
-                    validator.is_candidate_parent_valid)(unitid,
-                                                         parent_uuid,
-                                                         new_from)
+                await validator.is_candidate_parent_valid(
+                    unitid,
+                    parent_uuid,
+                    new_from
+                )
                 update_fields.append((
                     mapping.PARENT_FIELD,
                     {'uuid': parent_uuid}
@@ -338,26 +339,26 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def submit(self):
+    async def asubmit(self):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.organisationenhed.create)(
+            self.result = await c.organisationenhed.create(
                 self.payload,
                 self.uuid)
 
             if self.details_requests:
                 for r in self.details_requests:
-                    r.submit()
+                    await r.asubmit()
 
         elif self.request_type == mapping.RequestType.REFRESH:
             pass
         else:
-            self.result = mora.async_util.async_to_sync(c.organisationenhed.update)(
+            self.result = await c.organisationenhed.update(
                 self.payload,
                 self.uuid)
 
-        submit = super().submit()
+        submit = await super().asubmit()
         if self.request_type == mapping.RequestType.REFRESH:
             return {
                 "message": "\n".join(
@@ -1310,7 +1311,7 @@ async def list_orgunit_tree(
 
 @router.post('/ou/create', status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create_org_unit(
+async def create_org_unit(
     req: dict = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -1361,9 +1362,9 @@ def create_org_unit(
 
     """
 
-    request = OrgUnitRequestHandler(req, mapping.RequestType.CREATE)
+    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
 
-    return request.submit()
+    return await request.asubmit()
 
 
 async def terminate_org_unit_validation(unitid, request):
@@ -1430,7 +1431,7 @@ async def terminate_org_unit_validation(unitid, request):
     },
 )
 # @util.restrictargs('force', 'triggerless')
-def terminate_org_unit(
+async def terminate_org_unit(
     uuid: UUID,
     request: dict = Body(...),
     permissions=Depends(oidc.rbac_owner)
@@ -1497,7 +1498,7 @@ def terminate_org_unit(
     be used.
     """
     uuid = str(uuid)
-    mora.async_util.async_to_sync(terminate_org_unit_validation)(uuid, request)
+    await terminate_org_unit_validation(uuid, request)
     request[mapping.UUID] = uuid
-    handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
-    return handler.submit()
+    handler = await OrgUnitRequestHandler.construct(request, mapping.RequestType.TERMINATE)
+    return await handler.asubmit()
