@@ -2,4 +2,4 @@
 Release History
 ###############
 
-.. include:: ../NEWS.rst
+.. include:: ../NEWS.md

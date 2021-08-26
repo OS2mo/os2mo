@@ -10,8 +10,6 @@ FROM node:10 AS frontend
 
 ARG COMMIT_SHA
 ARG COMMIT_TAG
-LABEL commit_sha=${COMMIT_SHA}
-LABEL commit_tag=${COMMIT_TAG}
 ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
@@ -33,8 +31,6 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
 
 ARG COMMIT_SHA
 ARG COMMIT_TAG
-LABEL commit_sha=${COMMIT_SHA}
-LABEL commit_tag=${COMMIT_TAG}
 ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
@@ -85,14 +81,14 @@ RUN pip3 install --no-cache-dir \
 COPY docker ./docker
 COPY backend ./backend
 COPY README.rst .
-COPY NEWS.rst .
+COPY NEWS.md .
 COPY LICENSE .
 COPY backend/mora/main.py .
 COPY docker/prestart.sh /app/prestart.sh
 # Install the application as editable. This makes it possible to mount
 # `/app/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
-RUN pip3 install --no-cache-dir -e backend
+RUN rm backend/pyproject.toml && pip3 install --no-cache-dir -e backend
 
 
 # Copy frontend code.

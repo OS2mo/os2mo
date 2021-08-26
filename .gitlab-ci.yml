@@ -18,6 +18,7 @@ stages:
   - prebuild
   - build
   - test
+  - prepare-release
   - release
   - deploy
 
@@ -33,8 +34,7 @@ variables:
 
   IMAGE_DEV: ${RELEASE_REGISTRY_IMAGE}:dev
   IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
-  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
-  IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
+  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}
 
 
 # Only run pipeline when pushing a tag or a branch.
@@ -378,6 +378,68 @@ e2e-test:
 # Release stage
 ###############
 
+Check Autopub:
+  stage: prepare-release
+  needs: []
+  image: python:3
+  variables:
+    PROJECT_ROOT: .
+  tags:
+    - docker
+  before_script:
+    # Prepare autopub
+    - pip install autopub
+    - pip install poetry
+  script:
+    - cd backend
+    - autopub check
+
+Autopub:
+  stage: prepare-release
+  needs: [] #["Unit-test", "e2e-test"]
+  image: python:3
+  variables:
+    PROJECT_ROOT: .
+  tags:
+    - docker
+  before_script:
+    # Setup git
+    - mkdir -p ~/.ssh
+    - cat .gitlab/gitlab-known-hosts >> ~/.ssh/known_hosts
+    - apt-get update -y && apt-get install -y git
+    - git clone https://$AUTOPUB_USER:$AUTOPUB_TOKEN@git.magenta.dk/rammearkitektur/os2mo.git
+    - cd os2mo
+    - git checkout master
+    - git config --global user.name "MagentaBot"
+    - git config --global user.email "info@magenta.dk"
+    # Prepare autopub
+    - pip install autopub
+    - pip install poetry
+    - pip install toml
+  script:
+    - cd backend
+    - ../.gitlab/autopub.sh
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master"
+
+Generate release tags:
+  stage: prepare-release
+  image: magentaaps/semantic-versioning-image-builder:latest
+  interruptible: true
+  script:
+    - python3 -m semvertool "${CI_COMMIT_TAG}" > tags.txt
+    - cat tags.txt
+  artifacts:
+    paths:
+    - tags.txt
+  needs: []
+  rules:
+      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
+      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+  tags:
+    - docker
+
+
 .release-default: &release-default
   stage: release
   needs: ["Unit-test", "e2e-test"]
@@ -413,33 +475,18 @@ Release dev:
       "docker://${IMAGE_SHA}"
       "docker://${IMAGE_DEV}"
 
-Release rc:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^release\/.+$/
-  script:
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_RC}"
-
 Release master:
   <<: *release-default
+  needs: ["Unit-test", "e2e-test", "Generate release tags"]
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
       - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
   script:
-    - skopeo copy
+    - cat tags.txt | xargs -I TAG skopeo copy
       --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
       --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
       "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_VERSION}"
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_LATEST}"
+      "docker://${IMAGE_VERSION}:TAG"
 
 
 Create MR to deploy to test servers:
