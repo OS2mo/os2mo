@@ -8,6 +8,13 @@
 
 FROM node:10 AS frontend
 
+ARG COMMIT_SHA
+ARG COMMIT_TAG
+LABEL commit_sha=${COMMIT_SHA}
+LABEL commit_tag=${COMMIT_TAG}
+ENV COMMIT_SHA=${COMMIT_SHA}
+ENV COMMIT_TAG=${COMMIT_TAG}
+
 WORKDIR /app/frontend
 
 COPY frontend/package.json .
@@ -23,6 +30,13 @@ CMD ["yarn", "dev"]
 
 
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
+
+ARG COMMIT_SHA
+ARG COMMIT_TAG
+LABEL commit_sha=${COMMIT_SHA}
+LABEL commit_tag=${COMMIT_TAG}
+ENV COMMIT_SHA=${COMMIT_SHA}
+ENV COMMIT_TAG=${COMMIT_TAG}
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
