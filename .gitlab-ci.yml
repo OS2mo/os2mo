@@ -57,6 +57,12 @@ workflow:
   services: []
   tags:
     - docker
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+      when: manual
+    - if: $CI_COMMIT_REF_NAME == "master"
+      when: manual
+    - when: always
 
 Lint Python:
   <<: *lint-default
@@ -272,6 +278,12 @@ Build docs:
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     BASE_URL: http://mo:80
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+      when: manual
+    - if: $CI_COMMIT_REF_NAME == "master"
+      when: manual
+    - when: always
 
 
 Alembic-test:
@@ -396,7 +408,7 @@ Check Autopub:
 
 Autopub:
   stage: prepare-release
-  needs: [] #["Unit-test", "e2e-test"]
+  needs: []
   image: python:3
   variables:
     PROJECT_ROOT: .
@@ -442,7 +454,7 @@ Generate release tags:
 
 .release-default: &release-default
   stage: release
-  needs: ["Unit-test", "e2e-test"]
+  needs: ["Build OS2MO"]
   image: alpine:3.13
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -464,10 +476,10 @@ Release feature branch:
       "docker://${IMAGE_SHA}"
       "docker://${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
 
-Release dev:
+Release master:
   <<: *release-default
   rules:
-    - if: $CI_COMMIT_REF_NAME == "development"
+    - if: $CI_COMMIT_REF_NAME == "master"
   script:
     - skopeo copy
       --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
@@ -475,9 +487,9 @@ Release dev:
       "docker://${IMAGE_SHA}"
       "docker://${IMAGE_DEV}"
 
-Release master:
+Release version:
   <<: *release-default
-  needs: ["Unit-test", "e2e-test", "Generate release tags"]
+  needs: ["Build OS2MO", "Generate release tags"]
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
       - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
@@ -491,7 +503,7 @@ Release master:
 
 Create MR to deploy to test servers:
   stage: deploy
-  needs: ["Release master"]
+  needs: ["Release version"]
   image: alpine
   variables:
     GIT_STRATEGY: none # We do not need the source code
