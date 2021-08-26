@@ -143,7 +143,7 @@ class Organisation(MOBase):
 
 class OrganisationUnitFull(OrganisationUnit):
     location: str
-    user_settings: Dict[str, Union[str, bool, Dict[str, Union[str, bool]]]]
+    user_settings: Dict[str, Union[str, bool, Dict[str, Optional[Union[str, bool]]]]]
     parent: Optional["OrganisationUnitFull"]
     org: Organisation
     org_unit_type: Klasse
