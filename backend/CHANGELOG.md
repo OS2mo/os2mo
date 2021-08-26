@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.0.1 - 2021-08-26
+------------------
+
+Optimized GitLab CI to only run the absolutely necessary tasks.
+
 2.0.0 - 2021-08-26
 ------------------
 
