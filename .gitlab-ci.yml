@@ -153,6 +153,8 @@ Build OS2MO:
       --context=$CI_PROJECT_DIR
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
       --destination=${IMAGE_SHA}
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build frontend:
   stage: build
@@ -171,6 +173,8 @@ Build frontend:
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile
       --destination=${FRONTEND_IMAGE_SHA}
       --target=frontend
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build Keycloak:
   stage: build
