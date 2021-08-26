@@ -445,7 +445,7 @@ Check Autopub:
     - pip install poetry
   script:
     - cd backend
-    - autopub check
+    - ../.gitlab/check_autopub.sh
 
 Autopub:
   stage: prepare-release
