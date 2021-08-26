@@ -5,6 +5,10 @@
 AUTOPUB_CHECK=$(autopub check)
 TRIGGER_RELEASE_FOUND=$(echo "${CI_MERGE_REQUEST_LABELS}" | grep "trigger-release")
 
+echo "${CI_MERGE_REQUEST_LABELS}"
+echo "${TRIGGER_RELEASE_FOUND}"
+echo "${AUTOPUB_CHECK}"
+
 if [ -n "${TRIGGER_RELEASE_FOUND}"]; then
     if [ -n "${AUTOPUB_CHECK}" ]; then
         echo "We need a RELEASE.md, but none was found!"
