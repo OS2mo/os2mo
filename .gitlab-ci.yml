@@ -47,22 +47,26 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 
-# Lint stage
-#############
-
-.lint-default: &lint-default
-  stage: lint
-  needs: []
-  image: python:3.8
-  services: []
-  tags:
-    - docker
+.manual-rules: &manual-rules
   rules:
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: manual
     - if: $CI_COMMIT_REF_NAME == "master"
       when: manual
     - when: always
+
+
+# Lint stage
+#############
+
+.lint-default: &lint-default
+  <<: *manual-rules
+  stage: lint
+  needs: []
+  image: python:3.8
+  services: []
+  tags:
+    - docker
 
 Lint Python:
   <<: *lint-default
@@ -106,6 +110,7 @@ Lint shell scripts:
 #############
 
 Prebuild Keycloak-realm:
+  <<: *manual-rules
   stage: prebuild
   needs: []
   image: 
@@ -163,6 +168,7 @@ Build OS2MO:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build frontend:
+  <<: *manual-rules
   stage: build
   needs: []
   image:
@@ -183,6 +189,7 @@ Build frontend:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build Keycloak:
+  <<: *manual-rules
   stage: build
   needs: ["Prebuild Keycloak-realm"]
   image:
@@ -200,6 +207,7 @@ Build Keycloak:
       --destination=${KEYCLOAK_IMAGE_SHA}
 
 Build Keycloak DB:
+  <<: *manual-rules
   stage: build
   needs: []
   image:
@@ -217,6 +225,7 @@ Build Keycloak DB:
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
 Build docs:
+  <<: *manual-rules
   image: python:3.8
   stage: build
   needs: []
@@ -236,6 +245,7 @@ Build docs:
 ############
 
 .test-default: &test-default
+  <<: *manual-rules
   stage: test
   needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
@@ -278,12 +288,6 @@ Build docs:
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     BASE_URL: http://mo:80
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-      when: manual
-    - if: $CI_COMMIT_REF_NAME == "master"
-      when: manual
-    - when: always
 
 
 Alembic-test:
@@ -391,6 +395,7 @@ e2e-test:
 ###############
 
 Check Autopub:
+  <<: *manual-rules
   stage: prepare-release
   needs: []
   image: python:3
