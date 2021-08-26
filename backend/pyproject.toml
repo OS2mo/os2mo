@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+[tool.poetry]
+name = "mo"
+version = "1.18.1"
+description = ""
+authors = ["Magenta ApS <info@magenta.dk>"]
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.autopub]
+git-username = "MagentaBot"
+git-email = "info@magenta.dk"
