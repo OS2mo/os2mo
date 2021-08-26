@@ -29,3 +29,4 @@ Examples:
 - [ ] If the feature introduces changes relevant to the deployment process, Redmine tickets have been created
 - [ ] If this change affects the development workflow, I have notified other developers by email or chat.
 
+/label trigger-release
