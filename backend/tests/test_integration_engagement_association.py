@@ -17,8 +17,8 @@ class EngAssocUtils:
     engagement_association_type_uuid = "5695e331-d837-473f-9b00-6f528fbd23f6"
     user_key = "1234"
     validity = {
-        "from": "2017-12-01",
-        "to": "2018-12-01",
+        "from": "2017-12-01T00:00:00+01:00",
+        "to": "2018-12-01T00:00:00+01:00",
     }
     payload = [
         {
@@ -325,7 +325,7 @@ class Tests(LoRATestCase):
             json=payload,
         )
 
-        new_valid_to = "2017-12-30"
+        new_valid_to = "2017-12-30T00:00:00+01:00"
         expected = EngAssocUtils.expected_created()
         expected[0]["validity"]["to"] = new_valid_to
 
