@@ -304,7 +304,6 @@ Alembic-test:
   artifacts:
     when: always
 
-
 Unit-test:
   <<: *test-default
   image:
@@ -326,6 +325,39 @@ Unit-test:
       --cov-report term
       -p no:cacheprovider
       --color=yes
+      --workers auto
+      -m "not serial"
+      backend/tests/
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage-html
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Integration-test:
+  <<: *test-default
+  image:
+    name: ${IMAGE_SHA}
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test
+      alias: mox-db
+    - name: magentaaps/lora:1.13.1
+      alias: mox
+    - name: ${KEYCLOAK_DB_IMAGE_SHA}
+      alias: keycloak-db
+    - name: ${KEYCLOAK_IMAGE_SHA}
+      alias: keycloak
+  script:
+    - pytest
+      --cov=mora
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      -p no:cacheprovider
+      --color=yes
+      -m "serial"
       backend/tests/
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:

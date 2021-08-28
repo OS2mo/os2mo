@@ -3,6 +3,8 @@
 import json
 import pprint
 
+import pytest
+
 from mora.config import Settings
 from unittest.mock import patch
 
@@ -307,6 +309,7 @@ class MockRequestContextTestCase(TestCase):
         super().setUp()
 
 
+@pytest.mark.serial
 class LoRATestCase(_BaseTestCase):
     '''Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
