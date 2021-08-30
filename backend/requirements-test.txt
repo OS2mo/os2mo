@@ -85,11 +85,14 @@ pytest-asyncio==0.15.1
     # via -r requirements-test.in
 pytest-cov==2.12.1
     # via -r requirements-test.in
+pytest-parallel==0.1.0
+    # via -r requirements-test.in
 pytest==6.2.4
     # via
     #   -r requirements-test.in
     #   pytest-asyncio
     #   pytest-cov
+    #   pytest-parallel
 python-dateutil==2.8.1
     # via
     #   -c requirements.txt
@@ -109,6 +112,8 @@ six==1.16.0
     #   requests-mock
 sortedcontainers==2.4.0
     # via hypothesis
+tblib==1.7.0
+    # via pytest-parallel
 termcolor==1.1.0
     # via -r requirements-test.in
 toml==0.10.2
