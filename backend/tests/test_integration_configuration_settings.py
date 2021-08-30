@@ -4,22 +4,11 @@ from mora.config import Settings, NavLink
 
 from tests import util
 
-from tests.cases import ConfigTestCase
+from tests.cases import LoRATestCase
+from tests.cases import TestCase
 
-from mora.conf_db import set_configuration
 
-
-class Tests(ConfigTestCase):
-    def setUp(self):
-        super().setUp()
-        set_configuration({
-            "org_units": {
-                "show_location": True,
-                "show_user_key": True,
-                "show_roles": True,
-            }
-        })
-
+class Tests(TestCase):
     def test_global_user_settings_read(self):
         """
         Test that it is possible to correctly read default global settings.
@@ -53,7 +42,6 @@ class Tests(ConfigTestCase):
         Test that reading and writing settings on units works corrcectly.
         """
 
-        self.load_sample_structures()
         uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
         payload = {"org_units": {"show_user_key": "True"}}
@@ -61,8 +49,10 @@ class Tests(ConfigTestCase):
         self.assertRequest(url, json=payload, status_code=410)
 
         user_settings = self.assertRequest(url)
-        self.assertEqual(user_settings, {})
+        self.assertIn("show_kle", user_settings)
 
+
+class LoRaTest(LoRATestCase):
     def test_ou_service_response(self):
         """
         Test that the service endpoint for units returns the correct
@@ -86,7 +76,7 @@ class Tests(ConfigTestCase):
         self.assertTrue(user_settings['show_location'])
 
 
-class TestNavLink(ConfigTestCase):
+class TestNavLink(TestCase):
     """
     Test the retrieval of "nav links" via the "/service/navlinks" endpoint
     """
