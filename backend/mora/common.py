@@ -35,8 +35,18 @@ def get_connector(**loraparams) -> lora.Connector:
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])
 
-    if args.get("validity"):
-        loraparams["validity"] = args["validity"]
+    if "validity" in args:
+        if "/" in args["validity"]:
+            try:
+                start, end = args["validity"].split("/")
+            except ValueError:
+                exceptions.ErrorCodes.V_INVALID_VALIDITY(validity=args["validity"])
+            else:
+                loraparams["validity"] = "present"
+                loraparams["virkningfra"] = start
+                loraparams["virkningtil"] = end
+        else:
+            loraparams["validity"] = args["validity"]
 
     return lora.Connector(**loraparams)
 

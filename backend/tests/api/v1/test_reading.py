@@ -56,5 +56,5 @@ class GeneralReadingTestCase(base.BaseReadingTestCase):
         self.uuid_endpoint_helper(
             reading.OrgFunkReadingHandler,
             [instance2dict(instance)],
-            endpoint=f"address/by_uuid",
+            endpoint="address/by_uuid",
         )

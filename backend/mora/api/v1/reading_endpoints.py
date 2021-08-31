@@ -106,7 +106,36 @@ class CommonQueryParams:
     def __init__(
         self,
         at: Optional[Any] = None,
-        validity: Optional[Any] = None,
+        validity: Optional[str] = Query(
+            None,
+            description=(
+                "Supports strings {`past`, `present`, `future`}, or a time interval "
+                "formatted as `<start>/<end>`, where `<start>` and `<end>` can be an "
+                "ISO 8601-formatted string or the values {`-infinity`, `infinity`}."
+            ),
+            examples={
+                "past": {
+                    "summary": "Previously valid elements",
+                    "value": "past",
+                },
+                "present": {
+                    "summary": "Current valid elements",
+                    "value": "present",
+                },
+                "future": {
+                    "summary": "Future valid elements",
+                    "value": "future",
+                },
+                "interval": {
+                    "summary": "Elements valid in a specific interval",
+                    "value": "1912-06-23T12:17:56+01:00/1954-06-07",
+                },
+                "interval_infinite": {
+                    "summary": "Elements valid from a specific date",
+                    "value": "1991-02-20/infinity",
+                },
+            },
+        ),
         changed_since: Optional[Union[datetime, date]] = None,
     ):
         self.at = at
