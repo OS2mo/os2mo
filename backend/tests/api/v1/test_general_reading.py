@@ -1,18 +1,20 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from typing import Dict
 from unittest.mock import patch
 from uuid import UUID
-from typing import Dict
 
 import freezegun
-from hypothesis import given, settings, strategies as st
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
-
-from mora.handler.impl import employee, org_unit
-from mora.lora import Connector
-from mora.api.v1.models import OrganisationUnitFull
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
 from mora.api.v1.models import Employee
+from mora.api.v1.models import OrganisationUnitFull
+from mora.handler.impl import employee
+from mora.handler.impl import org_unit
+from mora.lora import Connector
+from pydantic import BaseModel
 from tests.cases import TestCase
 
 
@@ -61,7 +63,6 @@ def endpoint_test_parameters(reader):
 
 
 class Reading(TestCase):
-
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     def search_endpoint_helper(self, endpoint, reader, return_value):
         """
@@ -83,9 +84,7 @@ class Reading(TestCase):
             assert len(call_args) == 1
             (connector, search_params), changed_since = call_args[0]
             assert isinstance(connector, Connector)
-            self.assertEqual(
-                search_params, dict(validity="present", at="2017-01-01")
-            )
+            self.assertEqual(search_params, dict(validity="present", at="2017-01-01"))
             self.assertEqual(changed_since, dict(changed_since=None))
 
     @given(st.builds(Employee))
@@ -123,9 +122,7 @@ class Reading(TestCase):
             assert len(call_args) == 1
             (connector, search_params), changed_since = call_args[0]
             assert isinstance(connector, Connector)
-            self.assertEqual(
-                search_params, search_params
-            )
+            self.assertEqual(search_params, search_params)
             self.assertEqual(changed_since, dict(changed_since=None))
 
     @given(st.builds(Employee))
@@ -133,24 +130,16 @@ class Reading(TestCase):
     def test_search_endpoint_employee2(self, instance):
         reader = employee.EmployeeReader
         search_tuple, uuid_tuple = endpoint_test_parameters(reader)
-        self.search_endpoint_helper2(
-            reader, *search_tuple, [instance2dict(instance)]
-        )
-        self.search_endpoint_helper2(
-            reader, *uuid_tuple, [instance2dict(instance)]
-        )
+        self.search_endpoint_helper2(reader, *search_tuple, [instance2dict(instance)])
+        self.search_endpoint_helper2(reader, *uuid_tuple, [instance2dict(instance)])
 
     @given(st.builds(OrganisationUnitFull))
     @settings(max_examples=1)
     def test_search_endpoint_org_unit2(self, instance):
         reader = org_unit.OrgUnitReader
         search_tuple, uuid_tuple = endpoint_test_parameters(reader)
-        self.search_endpoint_helper2(
-            reader, *search_tuple, [instance2dict(instance)]
-        )
-        self.search_endpoint_helper2(
-            reader, *uuid_tuple, [instance2dict(instance)]
-        )
+        self.search_endpoint_helper2(reader, *search_tuple, [instance2dict(instance)])
+        self.search_endpoint_helper2(reader, *uuid_tuple, [instance2dict(instance)])
 
     @given(st.builds(Employee))
     @settings(max_examples=1)
