@@ -1598,7 +1598,6 @@ class Tests(tests.cases.LoRATestCase):
                     {
                         'brugervendtnoegle': org_unit_uuid,
                         'enhedsnavn': 'Fake Corp',
-                        'integrationsdata': '{}',
                         'virkning': {
                             'from': '2016-06-01 00:00:00+02',
                             'from_included': True,
@@ -2330,7 +2329,6 @@ class Tests(tests.cases.LoRATestCase):
                         },
                         "brugervendtnoegle": "hum",
                         "enhedsnavn": "Humanistisk fakultet",
-                        "integrationsdata": "{}",
                     }
                 ]
             },
@@ -3249,7 +3247,6 @@ class Tests(tests.cases.LoRATestCase):
         }, {
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{}',
             'virkning': {
                 'from': '2016-01-03 00:00:00+01',
                 'from_included': True,
