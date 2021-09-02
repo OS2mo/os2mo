@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.1.3 - 2021-09-02
+------------------
+
+[#45263] Only perform token UUID check when RBAC is enabled
+
 2.1.2 - 2021-09-02
 ------------------
 
