@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.1.2 - 2021-09-02
+------------------
+
+[#44918] Don't crash if asked to update a nonexistent LoRa object
+
 2.1.1 - 2021-08-30
 ------------------
 
