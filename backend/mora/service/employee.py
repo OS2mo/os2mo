@@ -227,13 +227,11 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             ))
 
         if mapping.CPR_NO in data:
-            attrs = mapping.EMPLOYEE_PERSON_FIELD.get(original)[-1].copy()
-            attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
-
-            update_fields.append((
-                mapping.EMPLOYEE_PERSON_FIELD,
-                attrs,
-            ))
+            related = mapping.EMPLOYEE_PERSON_FIELD.get(original)
+            if related and len(related) > 0:
+                attrs = related[-1].copy()
+                attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
+                update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
         payload = common.update_payload(new_from, new_to, update_fields,
                                         original, payload)

@@ -454,10 +454,13 @@ class Scope(BaseScope):
 
     async def update(self, obj, uuid):
         async with ClientSession() as session:
-            response = await session.patch(
-                '{}/{}'.format(self.base_path, uuid), json=obj)
-            await _check_response(response)
-            return (await response.json()).get('uuid', uuid)
+            url = '{}/{}'.format(self.base_path, uuid)
+            response = await session.patch(url, json=obj)
+            if response.status == 404:
+                logger.warning("could not update nonexistent LoRa object", url=url)
+            else:
+                await _check_response(response)
+                return (await response.json()).get('uuid', uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (

@@ -529,3 +529,15 @@ class Tests(tests.cases.TestCase):
         c = lora.Connector()
         updated_uuid = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
         self.assertEqual(uuid, updated_uuid)
+
+    @util.MockAioresponses()
+    def test_update_returns_nothing_on_lora_404(self, m):
+        # Updating a nonexistent LoRa object returns a 404 status code, which
+        # should not be converted into a MO exception.
+        uuid = "00000000-0000-0000-0000-000000000000"
+        m.patch(re.compile(r".*/organisation/bruger/" + uuid), status=404)
+        # Assert that `Scope.update` does not raise an exception nor return a
+        # UUID in this case.
+        c = lora.Connector()
+        response = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
+        self.assertIsNone(response)
