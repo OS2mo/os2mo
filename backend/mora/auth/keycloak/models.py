@@ -31,11 +31,14 @@ class KeycloakToken(BaseModel):
     def uuid_attribute_required_for_mo_client(
         cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
-        if values.get("azp") == settings.keycloak_mo_client:
-            if values.get("uuid") is None:
-                raise ValueError(
-                    'The uuid user attribute is missing in the token'
-                )
+        if (
+            settings.keycloak_rbac_enabled and
+            values.get("azp") == settings.keycloak_mo_client and
+            values.get("uuid") is None
+        ):
+            raise ValueError(
+                'The uuid user attribute is missing in the token'
+            )
         return values
 
     class Config:
