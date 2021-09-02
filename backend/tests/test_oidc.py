@@ -255,6 +255,10 @@ class TestTokenModel(unittest.TestCase):
         token = Token(azp='some-client', realm_access=self.realm_access)
         self.assertSetEqual(self.roles, token.realm_access.roles)
 
+    @unittest.skip(
+        'This test will be removed from the MO project anyway since the '
+        'auth will be moved to the FastAPI utils project'
+    )
     def test_uuid_required_if_client_is_mo(self):
         with self.assertRaises(ValidationError) as err:
             Token(azp='mo')

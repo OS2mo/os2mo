@@ -24,7 +24,7 @@ jinja2
 aiofiles
 starlette-context
 werkzeug
-click
+click==7.1.2
 os2mo-fastapi-utils
 structlog
 python-multipart
