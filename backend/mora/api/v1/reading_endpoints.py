@@ -4,9 +4,10 @@ from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
-from mora import common, mapping
+from mora.common import get_connector
+from mora import mapping
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
@@ -27,7 +28,6 @@ from mora.api.v1.models import KLE
 from mora.api.v1.models import Leave
 from mora.api.v1.models import ITSystemBinding
 from mora.api.v1.models import to_only_uuid_model
-from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
 
@@ -86,7 +86,7 @@ async def orgfunk_endpoint(
     query_args: Dict[str, Any],
     changed_since: Optional[Union[datetime, date]] = None,
 ) -> Dict[str, Any]:
-    c = common.get_connector()
+    c = get_connector()
     search_params = _extract_search_params(query_args=query_args)
     return await _query_orgfunk(
         c=c,
@@ -96,89 +96,16 @@ async def orgfunk_endpoint(
     )
 
 
-@router.get(
-    f"/{MoOrgFunk.ENGAGEMENT.value}",
-    response_model=List[Engagement],
-)
-@date_to_datetime
-async def search_engagement(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-) -> Dict[str, Any]:
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ENGAGEMENT,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{MoOrgFunk.ASSOCIATION.value}",
-    response_model=List[Association],
-)
-@date_to_datetime
-async def search_association(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ASSOCIATION,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{MoOrgFunk.IT.value}",
-    response_model=List[ITSystemBinding],
-)
-@date_to_datetime
-async def search_it(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.IT,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{MoOrgFunk.KLE.value}",
-    response_model=List[KLE],
-)
-@date_to_datetime
-async def search_kle(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.KLE,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{MoOrgFunk.ROLE.value}",
-    response_model=List[Role],
-)
-@date_to_datetime
-async def search_role(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.ROLE,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
+class CommonQueryParams:
+    def __init__(
+        self,
+        at: Optional[Any] = None,
+        validity: Optional[Any] = None,
+        changed_since: Optional[Union[datetime, date]] = None,
+    ):
+        self.at = at
+        self.validity = validity
+        self.changed_since = changed_since
 
 
 @router.get(
@@ -187,18 +114,16 @@ async def search_role(
 )
 @date_to_datetime
 async def search_address(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
+    common: CommonQueryParams = Depends(),
     engagement: Optional[str] = None,
 ):
-    args = {"at": at, "validity": validity}
+    args = {"at": common.at, "validity": common.validity}
     if engagement is not None:
         args[MoOrgFunk.ENGAGEMENT.value] = engagement
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ADDRESS,
         query_args=args,
-        changed_since=changed_since,
+        changed_since=common.changed_since,
     )
 
 
@@ -208,211 +133,85 @@ async def search_address(
 )
 @date_to_datetime
 async def search_engagement_association(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
+    common: CommonQueryParams = Depends(),
     engagement: Optional[UUID] = None,
 ):
-    args = {"at": at, "validity": validity}
+    args = {"at": common.at, "validity": common.validity}
     if engagement is not None:
         args[MoOrgFunk.ENGAGEMENT.value] = engagement
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT_ASSOCIATION,
         query_args=args,
-        changed_since=changed_since,
+        changed_since=common.changed_since,
     )
 
 
-@router.get(
-    f"/{MoOrgFunk.LEAVE.value}",
-    response_model=List[Leave],
-)
-@date_to_datetime
-async def search_leave(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.LEAVE,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
+def role_type_search_factory(role_type: str):
+    async def search_role_type(
+        common: CommonQueryParams = Depends(),
+    ):
+        """
+        This can be expanded with general search paramters
+        :param at:
+        :param validity:
+        :param changed_since:
+        :return:
+        """
+        c = get_connector()
+        cls = get_handler_for_type(role_type)
+        return await cls.get(
+            c,
+            {"at": common.at, "validity": common.validity},
+            changed_since=common.changed_since
+        )
+    search_role_type.__name__ = f"search_{role_type}"
+    return search_role_type
 
 
-@router.get(
-    f"/{MoOrgFunk.MANAGER.value}",
-    response_model=List[Manager],
-)
-@date_to_datetime
-async def search_manager(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.MANAGER,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
+def role_type_uuid_factory(role_type: str):
+    async def get_role_type_by_uuid(
+        uuid: List[UUID] = Query(...),
+        common: CommonQueryParams = Depends(),
+    ):
+        """
+        As uuid is allowed, this cannot be expanded with general search
+        parameters, a limitation posed by LoRa
+
+        :param uuid:
+        :param at:
+        :param validity:
+        :param changed_since:
+        :return:
+        """
+        c = get_connector()
+        cls = get_handler_for_type(role_type)
+        return await cls.get(
+            c,
+            {"at": common.at, "validity": common.validity, "uuid": uuid},
+            changed_since=common.changed_since,
+        )
+    get_role_type_by_uuid.__name__ = f"get_{role_type}_by_uuid"
+    return get_role_type_by_uuid
 
 
-@router.get(
-    f"/{MoOrgFunk.RELATED_UNIT.value}",
-    response_model=List[RelatedUnit],
-)
-@date_to_datetime
-async def search_related_unit(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.RELATED_UNIT,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{EMPLOYEE_ROLE_TYPE}",
-    response_model=List[Employee],
-)
-@date_to_datetime
-async def search_employee(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
+def search_func_factory(orgfunk: MoOrgFunk):
     """
-    This can be expanded with general search paramters
-    :param at:
-    :param validity:
-    :param changed_since:
-    :return:
+    convenient wrapper to generate "parametrized" endpoints
+    :param orgfunk: parameter we are parametrized over
+    :return: expose-ready function
     """
-    c = common.get_connector()
-    cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
-    return await cls.get(
-        c, {"at": at, "validity": validity}, changed_since=changed_since
-    )
 
-
-@router.get(
-    f"/{EMPLOYEE_ROLE_TYPE}/by_uuid",
-    response_model=List[Employee],
-)
-@date_to_datetime
-async def get_employee_by_uuid(
-    uuid: List[UUID] = Query(...),
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    """
-    As uuid is allowed, this cannot be expanded with general search
-    parameters, a limitation posed by LoRa
-
-    :param uuid:
-    :param at:
-    :param validity:
-    :param changed_since:
-    :return:
-    """
-    c = common.get_connector()
-    cls = get_handler_for_type(EMPLOYEE_ROLE_TYPE)
-    return await cls.get(
-        c,
-        {"at": at, "validity": validity, "uuid": uuid},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{ORG_UNIT_ROLE_TYPE}",
-    response_model=List[OrganisationUnitFull],
-)
-@date_to_datetime
-async def search_org_unit(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    """
-    This can be expanded with general search paramters
-
-    :param at:
-    :param validity:
-    :param changed_since:
-    :return:
-    """
-    c = common.get_connector()
-    cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
-    return await cls.get(
-        c, {"at": at, "validity": validity}, changed_since=changed_since
-    )
-
-
-@router.get(
-    f"/{ORG_UNIT_ROLE_TYPE}/by_uuid",
-    response_model=List[OrganisationUnitFull],
-)
-@date_to_datetime
-async def get_org_unit_by_uuid(
-    uuid: List[UUID] = Query(...),
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    """
-    As uuid is allowed, this cannot be expanded with general search
-    parameters, a limitation posed by LoRa
-
-    :param uuid:
-    :param at:
-    :param validity:
-    :param changed_since: Date used to filter registrations from LoRa
-    :return:
-    """
-    c = common.get_connector()
-    cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
-    return await cls.get(
-        c,
-        {"at": at, "validity": validity, "uuid": uuid},
-        changed_since=changed_since,
-    )
-
-
-@router.get(
-    f"/{MoOrgFunk.OWNER.value}",
-    response_model=List[Owner],
-)
-async def search_owner_unit(
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    changed_since: Optional[Union[datetime, date]] = None,
-):
-    return await orgfunk_endpoint(
-        orgfunk_type=MoOrgFunk.OWNER,
-        query_args={"at": at, "validity": validity},
-        changed_since=changed_since
-    )
-
-
-def to_dict(multi_dict: ImmutableMultiDict) -> Dict[Any, Union[Any, List[Any]]]:
-    """
-    flattens a multi-dict to a simple dictionary, collecting items in lists as needed
-    :param multi_dict:
-    :return:
-    """
-    # convert to dictionary
-    dictionary = {key: multi_dict.getlist(key) for key in multi_dict}
-
-    # unpack lists of one
-    return {
-        key: list_value[0] if len(list_value) == 1 else list_value
-        for key, list_value in dictionary.items()
-    }
+    @date_to_datetime
+    async def search_orgfunk(
+        common: CommonQueryParams = Depends(),
+    ):
+        return await orgfunk_endpoint(
+            orgfunk_type=orgfunk,
+            query_args={"at": common.at, "validity": common.validity},
+            changed_since=common.changed_since,
+        )
+    search_orgfunk.__name__ = f"search_{orgfunk.value}"
+    return search_orgfunk
 
 
 def uuid_func_factory(orgfunk: MoOrgFunk):
@@ -434,7 +233,10 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
             mapping.UUID: uuid,
             "only_primary_uuid": only_primary_uuid,
         }
-        return await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)
+        return await orgfunk_endpoint(
+            orgfunk_type=orgfunk,
+            query_args=args,
+        )
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
     return get_orgfunk_by_uuid
@@ -456,6 +258,24 @@ orgfunk_type_map = {
 for orgfunk in MoOrgFunk:
     assert orgfunk in orgfunk_type_map
 
+for orgfunk in [
+    MoOrgFunk.ASSOCIATION,
+    MoOrgFunk.ENGAGEMENT,
+    MoOrgFunk.IT,
+    MoOrgFunk.KLE,
+    MoOrgFunk.LEAVE,
+    MoOrgFunk.MANAGER,
+    MoOrgFunk.OWNER,
+    MoOrgFunk.RELATED_UNIT,
+    MoOrgFunk.ROLE,
+]:
+    return_model = orgfunk_type_map[orgfunk]
+    router.get(
+        f"/{orgfunk.value}",
+        response_model=List[return_model],
+    )(search_func_factory(orgfunk))
+
+
 for orgfunk, return_model in orgfunk_type_map.items():
     only_uuid_model = to_only_uuid_model(return_model)
     router.get(
@@ -465,3 +285,21 @@ for orgfunk, return_model in orgfunk_type_map.items():
             List[only_uuid_model]
         ],
     )(uuid_func_factory(orgfunk))
+
+
+role_type_map = {
+    EMPLOYEE_ROLE_TYPE: Employee,
+    ORG_UNIT_ROLE_TYPE: OrganisationUnitFull,
+}
+for role_type, model in role_type_map.items():
+    search_function = role_type_search_factory(role_type)
+    get_function = role_type_uuid_factory(role_type)
+
+    router.get(
+        f"/{role_type}",
+        response_model=List[model],
+    )(date_to_datetime(search_function))
+    router.get(
+        f"/{role_type}/by_uuid",
+        response_model=List[model],
+    )(date_to_datetime(get_function))
