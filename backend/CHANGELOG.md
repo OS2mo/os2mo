@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.1.6 - 2021-09-03
+------------------
+
+[#41555] Second attempt on introducing salt-automation fluxcd automatic image updater for dev
+
 2.1.5 - 2021-09-03
 ------------------
 
