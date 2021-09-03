@@ -576,7 +576,9 @@ Update Flux Dev Version:
   tags:
     - docker
   script:
-    - apk add git yq
+    - apk add git
+    - wget https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 -O /usr/bin/yq
+    - chmod +x /usr/bin/yq
     - git config --global user.email "labs@magenta-aps.dk"
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
