@@ -290,6 +290,7 @@ Build docs:
     KEYCLOAK_SCHEMA: "http"
     KEYCLOAK_PORT: 8080
     KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
     CONF_DB_HOST: "mox-db"
     CONF_DB_PORT: "5432"
     AMQP_ENABLE: "false"

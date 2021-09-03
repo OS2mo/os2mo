@@ -1,39 +1,25 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from os2mo_fastapi_utils.auth.models import Token as BaseToken
 from pydantic import BaseModel
-from pydantic import EmailStr
 from pydantic import Extra
 from pydantic import root_validator
 from typing import Any
 from typing import Dict
-from typing import Optional
-from typing import Set
-from uuid import UUID
 
 from mora import config
 
-settings = config.get_settings()
 
-
-class RealmAccess(BaseModel):
-    roles: Set[str] = set()
-
-
-class KeycloakToken(BaseModel):
-    azp: str
-    email: Optional[EmailStr]
-    preferred_username: Optional[str]
-    realm_access: RealmAccess = RealmAccess(roles=set())
-    uuid: Optional[UUID]
+class KeycloakToken(BaseToken):
 
     @root_validator
     def uuid_attribute_required_for_mo_client(
         cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
         if (
-            settings.keycloak_rbac_enabled and
-            values.get("azp") == settings.keycloak_mo_client and
+            config.get_settings().keycloak_rbac_enabled and
+            values.get("azp") == config.get_settings().keycloak_mo_client and
             values.get("uuid") is None
         ):
             raise ValueError(
@@ -54,5 +40,5 @@ class NoAuthToken(BaseModel):
 
 
 Token = KeycloakToken
-if not settings.os2mo_auth:
+if not config.get_settings().os2mo_auth:
     Token = NoAuthToken

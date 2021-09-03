@@ -36,7 +36,7 @@ aiofiles = "^0.7.0"
 starlette-context = "^0.3.2"
 Werkzeug = "^2.0.1"
 click = "^8.0.1"
-os2mo-fastapi-utils = "^0.0.3"
+os2mo-fastapi-utils = "1.0.0"
 structlog = "^21.1.0"
 python-multipart = "^0.0.5"
 service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "0.2.0"}
