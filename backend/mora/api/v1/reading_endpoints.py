@@ -1,33 +1,39 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union
+from datetime import date
+from datetime import datetime
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Depends
-
-from mora.common import get_connector
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Query
 from mora import mapping
+from mora.api.v1.models import Address
+from mora.api.v1.models import Association
+from mora.api.v1.models import Employee
+from mora.api.v1.models import Engagement
+from mora.api.v1.models import EngagementAssociation
+from mora.api.v1.models import ITSystemBinding
+from mora.api.v1.models import KLE
+from mora.api.v1.models import Leave
+from mora.api.v1.models import Manager
+from mora.api.v1.models import OrganisationUnitFull
+from mora.api.v1.models import Owner
+from mora.api.v1.models import RelatedUnit
+from mora.api.v1.models import Role
+from mora.api.v1.models import to_only_uuid_model
+from mora.common import get_connector
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.util import date_to_datetime
-from mora.api.v1.models import Address
-from mora.api.v1.models import Association
-from mora.api.v1.models import Employee
-from mora.api.v1.models import RelatedUnit
-from mora.api.v1.models import Engagement
-from mora.api.v1.models import EngagementAssociation
-from mora.api.v1.models import Owner
-from mora.api.v1.models import OrganisationUnitFull
-from mora.api.v1.models import Manager
-from mora.api.v1.models import Role
-from mora.api.v1.models import KLE
-from mora.api.v1.models import Leave
-from mora.api.v1.models import ITSystemBinding
-from mora.api.v1.models import to_only_uuid_model
 
 router = APIRouter(prefix="/api/v1")
 
@@ -100,7 +106,36 @@ class CommonQueryParams:
     def __init__(
         self,
         at: Optional[Any] = None,
-        validity: Optional[Any] = None,
+        validity: Optional[str] = Query(
+            None,
+            description=(
+                "Supports strings {`past`, `present`, `future`}, or a time interval "
+                "formatted as `<start>/<end>`, where `<start>` and `<end>` can be an "
+                "ISO 8601-formatted string or the values {`-infinity`, `infinity`}."
+            ),
+            examples={
+                "past": {
+                    "summary": "Previously valid elements",
+                    "value": "past",
+                },
+                "present": {
+                    "summary": "Current valid elements",
+                    "value": "present",
+                },
+                "future": {
+                    "summary": "Future valid elements",
+                    "value": "future",
+                },
+                "interval": {
+                    "summary": "Elements valid in a specific interval",
+                    "value": "1912-06-23T12:17:56+01:00/1954-06-07",
+                },
+                "interval_infinite": {
+                    "summary": "Elements valid from a specific date",
+                    "value": "1991-02-20/infinity",
+                },
+            },
+        ),
         changed_since: Optional[Union[datetime, date]] = None,
     ):
         self.at = at
@@ -160,10 +195,13 @@ def role_type_search_factory(role_type: str):
         c = get_connector()
         cls = get_handler_for_type(role_type)
         return await cls.get(
-            c,
-            {"at": common.at, "validity": common.validity},
-            changed_since=common.changed_since
+            c=c,
+            search_fields=_extract_search_params(
+                query_args={"at": common.at, "validity": common.validity}
+            ),
+            changed_since=common.changed_since,
         )
+
     search_role_type.__name__ = f"search_{role_type}"
     return search_role_type
 
@@ -186,10 +224,13 @@ def role_type_uuid_factory(role_type: str):
         c = get_connector()
         cls = get_handler_for_type(role_type)
         return await cls.get(
-            c,
-            {"at": common.at, "validity": common.validity, "uuid": uuid},
+            c=c,
+            search_fields=_extract_search_params(
+                query_args={"at": common.at, "validity": common.validity, "uuid": uuid}
+            ),
             changed_since=common.changed_since,
         )
+
     get_role_type_by_uuid.__name__ = f"get_{role_type}_by_uuid"
     return get_role_type_by_uuid
 
@@ -210,6 +251,7 @@ def search_func_factory(orgfunk: MoOrgFunk):
             query_args={"at": common.at, "validity": common.validity},
             changed_since=common.changed_since,
         )
+
     search_orgfunk.__name__ = f"search_{orgfunk.value}"
     return search_orgfunk
 
@@ -280,10 +322,7 @@ for orgfunk, return_model in orgfunk_type_map.items():
     only_uuid_model = to_only_uuid_model(return_model)
     router.get(
         f"/{orgfunk.value}/by_uuid",
-        response_model=Union[
-            List[return_model],
-            List[only_uuid_model]
-        ],
+        response_model=Union[List[return_model], List[only_uuid_model]],
     )(uuid_func_factory(orgfunk))
 
 

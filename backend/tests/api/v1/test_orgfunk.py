@@ -2,18 +2,20 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from copy import deepcopy
-
 from unittest.mock import patch
 from uuid import UUID
 
 import freezegun
+from hypothesis import HealthCheck
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
 from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.api.v1.reading_endpoints import orgfunk_type_map
 from mora.mapping import MoOrgFunk
 from tests.cases import TestCase
 
-from hypothesis import given, settings, HealthCheck, strategies as st
-from tests.api.v1.test_general_reading import instance2dict
+from .util import instance2dict
 
 
 class Reading(TestCase):
@@ -87,9 +89,7 @@ class Reading(TestCase):
 
     @given(st.data())
     @settings(
-        max_examples=1,
-        suppress_health_check=[HealthCheck.too_slow],
-        deadline=None
+        max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None
     )
     def test_api_exposing_org_funk_endpoint(self, data):
         # parametrized test
@@ -99,9 +99,7 @@ class Reading(TestCase):
 
     @given(st.data())
     @settings(
-        max_examples=1,
-        suppress_health_check=[HealthCheck.too_slow],
-        deadline=None
+        max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None
     )
     def test_api_exposing_org_funk_uuid_endpoint(self, data):
         # parametrized test
