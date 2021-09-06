@@ -61,9 +61,6 @@ services:
 
       OS2MO_LOG_LEVEL: "DEBUG"
 
-      CONF_DB_PASSWORD: "mora"
-      CONF_DB_HOST: "mora-db"
-
       QUERY_EXPORT_DIR: "/queries"
 
       KEYCLOAK_SCHEMA: "http"
@@ -84,19 +81,6 @@ services:
         condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
-
-  mora-db:
-    image: postgres:13.3
-    environment:
-      POSTGRES_DB: mora
-      POSTGRES_USER: mora
-      POSTGRES_PASSWORD: mora
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "mora"]
       interval: 5s
       timeout: 5s
       retries: 3

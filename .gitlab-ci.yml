@@ -113,7 +113,7 @@ Prebuild Keycloak-realm:
   <<: *manual-rules
   stage: prebuild
   needs: []
-  image: 
+  image:
     name: magentaaps/os2mo-keycloak-realm-builder:1.1.1
     entrypoint: [""]
   variables:
@@ -289,20 +289,6 @@ Build docs:
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     BASE_URL: http://mo:80
 
-
-Alembic-test:
-  <<: *test-default
-  image:
-    name: ${IMAGE_SHA}
-  services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
-      alias: mox-db
-  script:
-    - /app/prestart.sh
-    - cd /app/backend/mora/conf_db
-    - ./alembic_test.sh
-  artifacts:
-    when: always
 
 Unit-test:
   <<: *test-default

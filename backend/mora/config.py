@@ -84,7 +84,7 @@ class Settings(BaseSettings):
 
     # ConfDB database settings
     # Use configuration DB for get_configuration endpoint
-    conf_db_use: bool = True
+    conf_db_use: bool = False
     conf_db_name: str = "mora"
     conf_db_user: str = "mora"
     conf_db_password: Optional[str]

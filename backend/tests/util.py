@@ -19,7 +19,7 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from yarl import URL
 
-from mora import conf_db, lora, config
+from mora import lora, config
 from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -293,20 +293,26 @@ def setup_test_routing():
     """
     Returns an app with testing API for e2e-test enabled. It is a superset
     to `mora.app.create_app()`.
-
     """
     testing_router = APIRouter()
+
+    original_settings = config.get_settings
 
     @testing_router.get("/testing/testcafe-db-setup")
     async def _testcafe_db_setup():
         _mox_testing_api("db-setup")
         await load_sample_structures()
-        load_sample_confdb()
+
+        config.get_settings = lambda: get_testcafe_config()
+
         return jsonable_encoder({"testcafe-db-setup": True})
 
     @testing_router.get("/testing/testcafe-db-teardown")
     def _testcafe_db_teardown():
         _mox_testing_api("db-teardown")
+
+        config.get_settings = original_settings
+
         return jsonable_encoder({"testcafe-db-teardown": True})
 
     return testing_router
@@ -457,44 +463,33 @@ class CopyingMock(MagicMock):
         return super().__call__(*args, **kwargs)
 
 
-def load_sample_confdb():
-    """Ensure MO configuration has all feature flags turned on during
-    end-to-end tests.
+def get_testcafe_config() -> Settings:
+    """
+    Generate a set of configuration settings with all feature flags set to True
 
     Used during TestCafe test runs.
     """
 
-    # Base sample configuration
-    configuration = {
-        # comma-separated list of UUIDs
-        "substitute_roles": "",
-        # comma-separated list of UUIDs
-        "association_dynamic_facets": "",
-        # comma-separated list of labels
-        "extension_field_ui_labels": "",
-    }
+    settings = Settings().dict()
 
-    # Names of all feature flags which should be turned on during test
     feature_flags = {
-        "inherit_manager",
-        "show_cpr_no",
-        "show_engagement_hyperlink",
-        "show_kle",
-        "show_level",
-        "show_location",
-        "show_org_unit_button",
-        "show_primary_association",
-        "show_primary_engagement",
-        "show_roles",
-        "show_time_planning",
-        "show_user_key",
-        "show_user_key_in_search",
+        "confdb_inherit_manager",
+        "confdb_show_cpr_no",
+        "confdb_show_engagement_hyperlink",
+        "confdb_show_kle",
+        "confdb_show_level",
+        "confdb_show_location",
+        "confdb_show_org_unit_button",
+        "confdb_show_primary_association",
+        "confdb_show_primary_engagement",
+        "confdb_show_roles",
+        "confdb_show_time_planning",
+        "confdb_show_user_key",
+        "confdb_show_user_key_in_search",
     }
 
-    # Update configuration, setting all feature flags to "True"
-    configuration.update(dict.fromkeys(feature_flags, "True"))
+    settings.update(
+        {key: True for key in feature_flags}
+    )
 
-    # Update `orgunit_settings` table in `mora` database
-    conf_db.set_configuration({"org_units": configuration})
-
-    return configuration
+    return Settings(**settings)
