@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.2.1 - 2021-09-06
+------------------
+
+[#44806] Fix TestCafe no longer be reliant on an actual config database
+
 2.2.0 - 2021-09-06
 ------------------
 
