@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
+    commit_tag: str = "DEVELOPMENT BUILD"
+    commit_sha: str = ""
     lora_url: AnyHttpUrl = "http://mox/"
 
     # Misc OS2mo settings
