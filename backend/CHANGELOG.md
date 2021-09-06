@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.2.0 - 2021-09-06
+------------------
+
+[#45028] Fix and extend support for historic values in v1 API by supporting new `?validity=<start>/<end>` syntax.
+
 2.1.6 - 2021-09-03
 ------------------
 
