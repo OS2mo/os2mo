@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-'''
+"""
 Organisational units
 --------------------
 
@@ -10,40 +9,38 @@ This section describes how to interact with organisational units.
 For more information regarding reading relations involving organisational
 units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 
-'''
+"""
 import copy
 import enum
-import logging
 import locale
+import logging
 import operator
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from datetime import date
 from itertools import chain
-from typing import Any, Awaitable, Dict, List
+from typing import Any
+from typing import Awaitable
+from typing import Dict
 from typing import Iterable
+from typing import List
 from typing import Optional
-from uuid import (
-    uuid4,
-    UUID
-)
-
-from fastapi import (
-    APIRouter,
-    Body,
-    Depends
-)
-from fastapi import Query
-from more_itertools import unzip
+from uuid import UUID
+from uuid import uuid4
 
 import mora.async_util
+from fastapi import APIRouter
+from fastapi import Body
+from fastapi import Depends
+from fastapi import Query
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
+from more_itertools import unzip
+
 from . import autocomplete
 from . import facet
 from . import handlers
 from . import org
-from .tree_helper import prepare_ancestor_tree
-from .validation import validator
 from .. import common
 from .. import conf_db
 from .. import config
@@ -54,6 +51,8 @@ from .. import util
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from .tree_helper import prepare_ancestor_tree
+from .validation import validator
 
 router = APIRouter()
 
@@ -87,39 +86,41 @@ class UnitDetails(enum.Enum):
 
 
 class OrgUnitRequestHandler(handlers.RequestHandler):
-    role_type = 'org_unit'
+    role_type = "org_unit"
 
     def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(
-            req,
-            mapping.INTEGRATION_DATA,
-            {},
-            required=False
+            req, mapping.INTEGRATION_DATA, {}, required=False
         )
 
         unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
         org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)())[
-            "uuid"]
+            "uuid"
+        ]
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
         if parent_uuid is None:
             parent_uuid = org_uuid
 
-        org_unit_type_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT_TYPE,
-                                                   required=False)
+        org_unit_type_uuid = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_TYPE, required=False
+        )
 
-        time_planning_uuid = util.get_mapping_uuid(req, mapping.TIME_PLANNING,
-                                                   required=False)
+        time_planning_uuid = util.get_mapping_uuid(
+            req, mapping.TIME_PLANNING, required=False
+        )
 
-        org_unit_level = util.get_mapping_uuid(req, mapping.ORG_UNIT_LEVEL,
-                                               required=False)
+        org_unit_level = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_LEVEL, required=False
+        )
 
-        org_unit_hierarchy = util.get_mapping_uuid(req, mapping.ORG_UNIT_HIERARCHY,
-                                                   required=False)
+        org_unit_hierarchy = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_HIERARCHY, required=False
+        )
 
         valid_from = util.get_valid_from(req)
         valid_to = util.get_valid_to(req)
@@ -133,10 +134,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             enhedstype=org_unit_type_uuid,
             opgaver=[
                 {
-                    'objekttype': 'tidsregistrering',
-                    'uuid': time_planning_uuid,
+                    "objekttype": "tidsregistrering",
+                    "uuid": time_planning_uuid,
                 },
-            ] if time_planning_uuid else [],
+            ]
+            if time_planning_uuid
+            else [],
             niveau=org_unit_level,
             opmærkning=org_unit_hierarchy,
             overordnet=parent_uuid,
@@ -145,15 +148,16 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         if org_uuid != parent_uuid:
             mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                {'uuid': parent_uuid}, valid_from, valid_to)
+                {"uuid": parent_uuid}, valid_from, valid_to
+            )
 
-        details = util.checked_get(req, 'details', [])
-        details_with_org_units = _inject_org_units(details, unitid, valid_from,
-                                                   valid_to)
+        details = util.checked_get(req, "details", [])
+        details_with_org_units = _inject_org_units(
+            details, unitid, valid_from, valid_to
+        )
 
         self.details_requests = handlers.generate_requests(
-            details_with_org_units,
-            mapping.RequestType.CREATE
+            details_with_org_units, mapping.RequestType.CREATE
         )
 
         self.payload = org_unit
@@ -161,13 +165,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
-        original_data = util.checked_get(req, 'original', {}, required=False)
-        data = util.checked_get(req, 'data', {}, required=True)
+        original_data = util.checked_get(req, "original", {}, required=False)
+        data = util.checked_get(req, "data", {}, required=True)
 
         unitid = util.get_uuid(data, fallback=original_data)
 
         # Get the current org-unit which the user wants to change
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = mora.async_util.async_to_sync(c.organisationenhed.get)(uuid=unitid)
 
         if not original:
@@ -175,42 +179,45 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         new_from, new_to = util.get_validities(data)
 
-        clamp = util.checked_get(data, 'clamp', False)
+        clamp = util.checked_get(data, "clamp", False)
 
         if clamp:
-            new_to = min(new_to, max(
-                util.get_effect_to(effect)
-                for effect in mapping.ORG_UNIT_GYLDIGHED_FIELD.get(original)
-                if effect["gyldighed"] == "Aktiv"
-            ))
+            new_to = min(
+                new_to,
+                max(
+                    util.get_effect_to(effect)
+                    for effect in mapping.ORG_UNIT_GYLDIGHED_FIELD.get(original)
+                    if effect["gyldighed"] == "Aktiv"
+                ),
+            )
 
         # Get org unit uuid for validation purposes
         payload = dict()
-        payload['note'] = 'Rediger organisationsenhed'
+        payload["note"] = "Rediger organisationsenhed"
 
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
-                old_from, old_to, new_from, new_to, payload,
-                ('tilstande', 'organisationenhedgyldighed')
+                old_from,
+                old_to,
+                new_from,
+                new_to,
+                payload,
+                ("tilstande", "organisationenhedgyldighed"),
             )
 
-            original_uuid = util.get_mapping_uuid(original_data,
-                                                  mapping.ORG_UNIT)
+            original_uuid = util.get_mapping_uuid(original_data, mapping.ORG_UNIT)
 
             if original_uuid and original_uuid != unitid:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    'cannot change unit uuid!',
+                    "cannot change unit uuid!",
                 )
 
         update_fields = list()
 
         # Always update gyldighed
-        update_fields.append((
-            mapping.ORG_UNIT_GYLDIGHED_FIELD,
-            {'gyldighed': "Aktiv"}
-        ))
+        update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
             attributes = mapping.ORG_UNIT_EGENSKABER_FIELD(original)[-1].copy()
@@ -220,89 +227,93 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         changed_props = {}
 
         if mapping.USER_KEY in data:
-            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
+            changed_props["brugervendtnoegle"] = data[mapping.USER_KEY]
 
         if mapping.NAME in data:
-            changed_props['enhedsnavn'] = data[mapping.NAME]
+            changed_props["enhedsnavn"] = data[mapping.NAME]
 
         if mapping.INTEGRATION_DATA in data:
-            changed_props['integrationsdata'] = common.stable_json_dumps(
+            changed_props["integrationsdata"] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
             )
 
         if attributes or changed_props:
-            update_fields.append((
-                mapping.ORG_UNIT_EGENSKABER_FIELD,
-                {
-                    **attributes,
-                    **changed_props,
-                }
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_UNIT_EGENSKABER_FIELD,
+                    {
+                        **attributes,
+                        **changed_props,
+                    },
+                )
+            )
 
         if mapping.ORG_UNIT_TYPE in data:
-            update_fields.append((
-                mapping.ORG_UNIT_TYPE_FIELD,
-                {'uuid': data[mapping.ORG_UNIT_TYPE]['uuid']}
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_UNIT_TYPE_FIELD,
+                    {"uuid": data[mapping.ORG_UNIT_TYPE]["uuid"]},
+                )
+            )
 
         if data.get(mapping.ORG_UNIT_LEVEL):
             org_unit_level = util.get_mapping_uuid(data, mapping.ORG_UNIT_LEVEL)
-            update_fields.append((
-                mapping.ORG_UNIT_LEVEL_FIELD,
-                {'uuid': org_unit_level}
-            ))
+            update_fields.append(
+                (mapping.ORG_UNIT_LEVEL_FIELD, {"uuid": org_unit_level})
+            )
 
         if data.get(mapping.ORG_UNIT_HIERARCHY):
             org_unit_hierarchy = util.get_mapping_uuid(data, mapping.ORG_UNIT_HIERARCHY)
-            update_fields.append((
-                mapping.ORG_UNIT_HIERARCHY_FIELD,
-                {'uuid': org_unit_hierarchy}
-            ))
+            update_fields.append(
+                (mapping.ORG_UNIT_HIERARCHY_FIELD, {"uuid": org_unit_hierarchy})
+            )
 
         if mapping.TIME_PLANNING in data and data.get(mapping.TIME_PLANNING):
-            update_fields.append((
-                mapping.ORG_UNIT_TIME_PLANNING_FIELD,
-                {
-                    'objekttype': 'tidsregistrering',
-                    'uuid': data[mapping.TIME_PLANNING]['uuid'],
-                }
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_UNIT_TIME_PLANNING_FIELD,
+                    {
+                        "objekttype": "tidsregistrering",
+                        "uuid": data[mapping.TIME_PLANNING]["uuid"],
+                    },
+                )
+            )
 
         # candidate for change
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
             if parent_uuid is None:
-                parent_uuid = (mora.async_util.async_to_sync(
-                    org.get_configured_organisation)())["uuid"]
+                parent_uuid = (
+                    mora.async_util.async_to_sync(org.get_configured_organisation)()
+                )["uuid"]
 
             # only update parent if parent uuid changed
             if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
                 mora.async_util.async_to_sync(validator.is_movable_org_unit)(unitid)
 
-                mora.async_util.async_to_sync(
-                    validator.is_candidate_parent_valid)(unitid,
-                                                         parent_uuid,
-                                                         new_from)
-                update_fields.append((
-                    mapping.PARENT_FIELD,
-                    {'uuid': parent_uuid}
-                ))
+                mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
+                    unitid, parent_uuid, new_from
+                )
+                update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))
 
-        payload = common.update_payload(new_from, new_to, update_fields,
-                                        original, payload)
+        payload = common.update_payload(
+            new_from, new_to, update_fields, original, payload
+        )
 
         bounds_fields = list(
-            mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields}))
-        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                       original, payload)
+            mapping.ORG_UNIT_FIELDS.difference({x[0] for x in update_fields})
+        )
+        payload = common.ensure_bounds(
+            new_from, new_to, bounds_fields, original, payload
+        )
 
         self.payload = payload
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
-        validity = request.get('validity', {})
-        if 'from' in validity and 'to' in validity:
+        validity = request.get("validity", {})
+        if "from" in validity and "to" in validity:
             # When `validity` contains *both* `from` and `to`, construct a
             # `virkning` of the given dates.
             virkning = common._create_virkning(
@@ -312,22 +323,19 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         else:
             # DEPRECATED: Terminating an org unit by giving *only* a "to date"
             # is now deprecated.
-            virkning = common._create_virkning(
-                util.get_valid_to(request),
-                'infinity'
-            )
+            virkning = common._create_virkning(util.get_valid_to(request), "infinity")
             logger.warning(
                 'terminate org unit called without "from" in "validity"',
             )
 
-        obj_path = ('tilstande', 'organisationenhedgyldighed')
+        obj_path = ("tilstande", "organisationenhedgyldighed")
         val_inactive = {
-            'gyldighed': 'Inaktiv',
-            'virkning': virkning,
+            "gyldighed": "Inaktiv",
+            "virkning": virkning,
         }
 
         payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-        payload['note'] = 'Afslut enhed'
+        payload["note"] = "Afslut enhed"
 
         self.payload = payload
         self.uuid = util.get_uuid(request)
@@ -343,8 +351,8 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         if self.request_type == mapping.RequestType.CREATE:
             self.result = mora.async_util.async_to_sync(c.organisationenhed.create)(
-                self.payload,
-                self.uuid)
+                self.payload, self.uuid
+            )
 
             if self.details_requests:
                 for r in self.details_requests:
@@ -354,8 +362,8 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             pass
         else:
             self.result = mora.async_util.async_to_sync(c.organisationenhed.update)(
-                self.payload,
-                self.uuid)
+                self.payload, self.uuid
+            )
 
         submit = super().submit()
         if self.request_type == mapping.RequestType.REFRESH:
@@ -370,11 +378,11 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
     decorated = copy.deepcopy(details)
     for detail in decorated:
-        detail['org_unit'] = {
+        detail["org_unit"] = {
             mapping.UUID: org_unit_uuid,
             mapping.VALID_FROM: valid_from,
             mapping.VALID_TO: valid_to,
-            'allow_nonexistent': True
+            "allow_nonexistent": True,
         }
 
     return decorated
@@ -387,8 +395,8 @@ def _get_count_related():
 
     Given a URL query '?count=association&count=invalid`, raise a HTTP error.
     """
-    allowed = {'association', 'engagement'}
-    given = set(util.get_query_args().getlist('count'))
+    allowed = {"association", "engagement"}
+    given = set(util.get_query_args().getlist("count"))
     invalid = given - allowed
     if invalid:
         exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -398,11 +406,12 @@ def _get_count_related():
         return given
 
 
-async def __get_one_orgunit_from_cache(unitid: str,
-                                       details: UnitDetails = UnitDetails.NCHILDREN,
-                                       validity: Optional[Any] = None,
-                                       only_primary_uuid: bool = False
-                                       ) -> Optional[Dict[Any, Any]]:
+async def __get_one_orgunit_from_cache(
+    unitid: str,
+    details: UnitDetails = UnitDetails.NCHILDREN,
+    validity: Optional[Any] = None,
+    only_primary_uuid: bool = False,
+) -> Optional[Dict[Any, Any]]:
     """
     Get org unit from cache and process it
     :param unitid: uuid of orgunit
@@ -411,18 +420,26 @@ async def __get_one_orgunit_from_cache(unitid: str,
     :param only_primary_uuid:
     :return: A processed org_unit
     """
-    return await get_one_orgunit(c=request_wide_bulk.connector, unitid=unitid,
-                                 unit=await request_wide_bulk.get_lora_object(
-                                     type_=LoraObjectType.org_unit,
-                                     uuid=unitid) if not only_primary_uuid else None,
-                                 details=details,
-                                 validity=validity, only_primary_uuid=only_primary_uuid)
+    return await get_one_orgunit(
+        c=request_wide_bulk.connector,
+        unitid=unitid,
+        unit=await request_wide_bulk.get_lora_object(
+            type_=LoraObjectType.org_unit, uuid=unitid
+        )
+        if not only_primary_uuid
+        else None,
+        details=details,
+        validity=validity,
+        only_primary_uuid=only_primary_uuid,
+    )
 
 
-async def request_bulked_get_one_orgunit(unitid: str,
-                                         details: UnitDetails = UnitDetails.NCHILDREN,
-                                         validity: Optional[Any] = None,
-                                         only_primary_uuid: bool = False) -> Awaitable:
+async def request_bulked_get_one_orgunit(
+    unitid: str,
+    details: UnitDetails = UnitDetails.NCHILDREN,
+    validity: Optional[Any] = None,
+    only_primary_uuid: bool = False,
+) -> Awaitable:
     """
     EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
     result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
@@ -436,63 +453,70 @@ async def request_bulked_get_one_orgunit(unitid: str,
     if not only_primary_uuid:
         await request_wide_bulk.add(type_=LoraObjectType.org_unit, uuid=unitid)
 
-    return __get_one_orgunit_from_cache(unitid=unitid, details=details,
-                                        validity=validity,
-                                        only_primary_uuid=only_primary_uuid)
+    return __get_one_orgunit_from_cache(
+        unitid=unitid,
+        details=details,
+        validity=validity,
+        only_primary_uuid=only_primary_uuid,
+    )
 
 
-async def get_one_orgunit(c: lora.Connector,
-                          unitid,
-                          unit=None,
-                          details=UnitDetails.NCHILDREN,
-                          validity=None,
-                          only_primary_uuid: bool = False,
-                          count_related: dict = None) -> Optional[Dict[Any, Any]]:
+async def get_one_orgunit(
+    c: lora.Connector,
+    unitid,
+    unit=None,
+    details=UnitDetails.NCHILDREN,
+    validity=None,
+    only_primary_uuid: bool = False,
+    count_related: dict = None,
+) -> Optional[Dict[Any, Any]]:
     """
     Internal API for returning one organisation unit.
     """
     if only_primary_uuid:
-        return {
-            mapping.UUID: unitid
-        }
+        return {mapping.UUID: unitid}
     utilize_request_wide_cache = c is request_wide_bulk.connector
 
     if not unit:  # optional early exit
-        unit = await request_wide_bulk.get_lora_object(LoraObjectType.org_unit,
-                                                       uuid=unitid) \
-            if utilize_request_wide_cache else await c.organisationenhed.get(unitid)
+        unit = (
+            await request_wide_bulk.get_lora_object(
+                LoraObjectType.org_unit, uuid=unitid
+            )
+            if utilize_request_wide_cache
+            else await c.organisationenhed.get(unitid)
+        )
 
         if not unit or not util.is_reg_valid(unit):
             return None
 
-    attrs = unit['attributter']['organisationenhedegenskaber'][0]
-    rels = unit['relationer']
-    validities = unit['tilstande']['organisationenhedgyldighed']
+    attrs = unit["attributter"]["organisationenhedegenskaber"][0]
+    rels = unit["relationer"]
+    validities = unit["tilstande"]["organisationenhedgyldighed"]
 
     unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     org_unit_level = mapping.ORG_UNIT_LEVEL_FIELD.get_uuid(unit)
-    parentid = rels['overordnet'][0]['uuid']
+    parentid = rels["overordnet"][0]["uuid"]
 
     r = {
-        'name': attrs['enhedsnavn'],
-        'user_key': attrs['brugervendtnoegle'],
-        'uuid': unitid,
+        "name": attrs["enhedsnavn"],
+        "user_key": attrs["brugervendtnoegle"],
+        "uuid": unitid,
     }
 
     if details is UnitDetails.NCHILDREN:
-        children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed='Aktiv')
-        r['child_count'] = len(children)
+        children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed="Aktiv")
+        r["child_count"] = len(children)
     elif details is UnitDetails.FULL or details is UnitDetails.PATH:
 
         parent_task = create_task(
-            await request_bulked_get_one_orgunit(unitid=parentid,
-                                                 details=details,
-                                                 only_primary_uuid=only_primary_uuid)
-            if utilize_request_wide_cache else get_one_orgunit(
-                c, parentid,
-                details=details,
-                only_primary_uuid=only_primary_uuid)
+            await request_bulked_get_one_orgunit(
+                unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
+            )
+            if utilize_request_wide_cache
+            else get_one_orgunit(
+                c, parentid, details=details, only_primary_uuid=only_primary_uuid
+            )
         )
 
         if details is UnitDetails.FULL:
@@ -501,40 +525,47 @@ async def get_one_orgunit(c: lora.Connector,
             if unittype:
                 org_unit_type_task = create_task(
                     await facet.request_bulked_get_one_class_full(
-                        classid=unittype,
-                        only_primary_uuid=only_primary_uuid) if
-                    utilize_request_wide_cache else
-                    facet.get_one_class_full(c, unittype,
-                                             only_primary_uuid=only_primary_uuid)
+                        classid=unittype, only_primary_uuid=only_primary_uuid
+                    )
+                    if utilize_request_wide_cache
+                    else facet.get_one_class_full(
+                        c, unittype, only_primary_uuid=only_primary_uuid
+                    )
                 )
 
             if timeplanning:
                 time_planning_task = create_task(
                     await facet.request_bulked_get_one_class_full(
-                        classid=timeplanning,
-                        only_primary_uuid=only_primary_uuid) if
-                    utilize_request_wide_cache else
-                    facet.get_one_class_full(c, timeplanning,
-                                             only_primary_uuid=only_primary_uuid))
+                        classid=timeplanning, only_primary_uuid=only_primary_uuid
+                    )
+                    if utilize_request_wide_cache
+                    else facet.get_one_class_full(
+                        c, timeplanning, only_primary_uuid=only_primary_uuid
+                    )
+                )
 
             if org_unit_level:
                 org_unit_level_task = create_task(
                     await facet.request_bulked_get_one_class_full(
-                        classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
-                    utilize_request_wide_cache else
-                    facet.get_one_class_full(c, org_unit_level,
-                                             only_primary_uuid=only_primary_uuid))
+                        classid=org_unit_level, only_primary_uuid=only_primary_uuid
+                    )
+                    if utilize_request_wide_cache
+                    else facet.get_one_class_full(
+                        c, org_unit_level, only_primary_uuid=only_primary_uuid
+                    )
+                )
 
         parent = await parent_task
 
         if parentid is not None:
             if parent and parent[mapping.LOCATION]:
-                r[mapping.LOCATION] = (parent[mapping.LOCATION] + '\\' +
-                                       parent[mapping.NAME])
+                r[mapping.LOCATION] = (
+                    parent[mapping.LOCATION] + "\\" + parent[mapping.NAME]
+                )
             elif parent:
                 r[mapping.LOCATION] = parent[mapping.NAME]
             else:
-                r[mapping.LOCATION] = ''
+                r[mapping.LOCATION] = ""
 
             if details is UnitDetails.FULL:
                 settings = {}
@@ -542,7 +573,7 @@ async def get_one_orgunit(c: lora.Connector,
 
                 settings.update(local_settings)
                 if parent:
-                    parent_settings = parent[mapping.USER_SETTINGS]['orgunit']
+                    parent_settings = parent[mapping.USER_SETTINGS]["orgunit"]
                     for setting, value in parent_settings.items():
                         settings.setdefault(setting, value)
 
@@ -550,16 +581,14 @@ async def get_one_orgunit(c: lora.Connector,
                 for setting, value in global_settings.items():
                     settings.setdefault(setting, value)
 
-                r[mapping.USER_SETTINGS] = {'orgunit': settings}
+                r[mapping.USER_SETTINGS] = {"orgunit": settings}
 
         if details is UnitDetails.FULL:
             r[mapping.PARENT] = parent
 
             r[mapping.ORG] = await org_task
 
-            r[mapping.ORG_UNIT_TYPE] = (
-                await org_unit_type_task if unittype else None
-            )
+            r[mapping.ORG_UNIT_TYPE] = await org_unit_type_task if unittype else None
 
             r[mapping.TIME_PLANNING] = (
                 await time_planning_task if timeplanning else None
@@ -571,59 +600,80 @@ async def get_one_orgunit(c: lora.Connector,
 
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
-        r[mapping.PARENT] = await (await request_bulked_get_one_orgunit(
-            unitid=parentid, details=UnitDetails.MINIMAL,
-            only_primary_uuid=only_primary_uuid)) if \
-            utilize_request_wide_cache else \
-            await get_one_orgunit(c, parentid,
-                                  details=UnitDetails.MINIMAL,
-                                  only_primary_uuid=only_primary_uuid)
+        r[mapping.PARENT] = (
+            await (
+                await request_bulked_get_one_orgunit(
+                    unitid=parentid,
+                    details=UnitDetails.MINIMAL,
+                    only_primary_uuid=only_primary_uuid,
+                )
+            )
+            if utilize_request_wide_cache
+            else await get_one_orgunit(
+                c,
+                parentid,
+                details=UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         parent_task = create_task(
-            await request_bulked_get_one_orgunit(parentid, details=UnitDetails.MINIMAL,
-                                                 only_primary_uuid=only_primary_uuid) if
-            utilize_request_wide_cache else
-            get_one_orgunit(c, parentid, details=UnitDetails.MINIMAL,
-                            only_primary_uuid=only_primary_uuid))
+            await request_bulked_get_one_orgunit(
+                parentid,
+                details=UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+            if utilize_request_wide_cache
+            else get_one_orgunit(
+                c,
+                parentid,
+                details=UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         org_task = create_task(org.get_configured_organisation())
 
         if unittype:
             org_unit_type_task = create_task(
                 await facet.request_bulked_get_one_class_full(
-                    classid=unittype, only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, unittype,
-                                         only_primary_uuid=only_primary_uuid)
+                    classid=unittype, only_primary_uuid=only_primary_uuid
+                )
+                if utilize_request_wide_cache
+                else facet.get_one_class_full(
+                    c, unittype, only_primary_uuid=only_primary_uuid
+                )
             )
 
         if timeplanning:
             time_planning_task = create_task(
                 await facet.request_bulked_get_one_class_full(
-                    classid=timeplanning, only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, timeplanning,
-                                         only_primary_uuid=only_primary_uuid))
+                    classid=timeplanning, only_primary_uuid=only_primary_uuid
+                )
+                if utilize_request_wide_cache
+                else facet.get_one_class_full(
+                    c, timeplanning, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         if org_unit_level:
             org_unit_level_task = create_task(
                 await facet.request_bulked_get_one_class_full(
-                    classid=org_unit_level, only_primary_uuid=only_primary_uuid) if
-                utilize_request_wide_cache else
-                facet.get_one_class_full(c, org_unit_level,
-                                         only_primary_uuid=only_primary_uuid))
+                    classid=org_unit_level, only_primary_uuid=only_primary_uuid
+                )
+                if utilize_request_wide_cache
+                else facet.get_one_class_full(
+                    c, org_unit_level, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         r[mapping.PARENT] = await parent_task
 
         r[mapping.ORG] = await org_task
 
-        r[mapping.ORG_UNIT_TYPE] = (
-            await org_unit_type_task if unittype else None
-        )
+        r[mapping.ORG_UNIT_TYPE] = await org_unit_type_task if unittype else None
 
-        r[mapping.TIME_PLANNING] = (
-            await time_planning_task if timeplanning else None
-        )
+        r[mapping.TIME_PLANNING] = await time_planning_task if timeplanning else None
 
         r[mapping.ORG_UNIT_LEVEL] = (
             await org_unit_level_task if org_unit_level else None
@@ -634,18 +684,18 @@ async def get_one_orgunit(c: lora.Connector,
     elif details is UnitDetails.INTEGRATION:
         r["integration_data"] = attrs.get("integrationsdata")
     else:
-        raise AssertionError('enum is {}!?'.format(details))
+        raise AssertionError("enum is {}!?".format(details))
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
     count_related = count_related or {}
     for key, reader in count_related.items():
-        r['%s_count' % key] = await reader.get_count(c, 'ou', unitid)
+        r["%s_count" % key] = await reader.get_count(c, "ou", unitid)
 
     return r
 
 
-@router.get('/ou/autocomplete/')
+@router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(query: str):
     settings = config.get_settings()
     return await autocomplete.get_results(
@@ -653,10 +703,15 @@ async def autocomplete_orgunits(query: str):
     )
 
 
-@router.get('/{type}/{parentid}/children')
-async def get_children(type, parentid: UUID, at: Optional[date] = Query(None),
-                       count: Optional[str] = None, org_unit_hierarchy: str = ""):
-    '''Obtain the list of nested units within an organisation or an
+@router.get("/{type}/{parentid}/children")
+async def get_children(
+    type,
+    parentid: UUID,
+    at: Optional[date] = Query(None),
+    count: Optional[str] = None,
+    org_unit_hierarchy: str = "",
+):
+    """Obtain the list of nested units within an organisation or an
     organisational unit.
 
     .. :quickref: Unit; Children
@@ -716,19 +771,19 @@ async def get_children(type, parentid: UUID, at: Optional[date] = Query(None),
         }
       ]
 
-    '''
+    """
     parentid = str(parentid)
     c = common.get_connector()
 
-    if type == 'o':
+    if type == "o":
         scope = c.organisation
     else:
-        assert type == 'ou'
+        assert type == "ou"
         scope = c.organisationenhed
 
     obj = await scope.get(parentid)
 
-    if not obj or not obj.get('attributter'):
+    if not obj or not obj.get("attributter"):
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
 
     return await _get_immediate_children(c, parentid, org_unit_hierarchy)
@@ -741,23 +796,21 @@ async def _get_immediate_children(
 ):
     params = {
         "overordnet": parentid,
-        "gyldighed": 'Aktiv',
+        "gyldighed": "Aktiv",
     }
     if org_unit_hierarchy:
-        params['opmærkning'] = org_unit_hierarchy
+        params["opmærkning"] = org_unit_hierarchy
 
-    immediate_children = await connector.organisationenhed.get_all(
-        **params
-    )
+    immediate_children = await connector.organisationenhed.get_all(**params)
     immediate_children_objects = await _collect_child_objects(
         connector, immediate_children
     )
-    immediate_children_objects.sort(key=operator.itemgetter('name'))
+    immediate_children_objects.sort(key=operator.itemgetter("name"))
     return immediate_children_objects
 
 
 async def _collect_child_objects(connector, children: Iterable[Dict]):
-    only_primary_uuid = util.get_args_flag('only_primary_uuid')
+    only_primary_uuid = util.get_args_flag("only_primary_uuid")
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
     return await gather(
         *[
@@ -775,13 +828,13 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
     )
 
 
-@router.get('/ou/ancestor-tree')
+@router.get("/ou/ancestor-tree")
 async def get_unit_ancestor_tree(
     uuid: List[UUID] = Query(...),
     only_primary_uuid: bool = Query(False),
-    org_unit_hierarchy: str = ""
+    org_unit_hierarchy: str = "",
 ):
-    '''Obtain the tree of ancestors for the given units.
+    """Obtain the tree of ancestors for the given units.
 
     The tree includes siblings of ancestors, with their child counts:
 
@@ -846,7 +899,7 @@ async def get_unit_ancestor_tree(
         }
       }]
 
-    '''
+    """
 
     c = common.get_connector()
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
@@ -870,10 +923,10 @@ async def get_unit_tree(
     org_unit_hierarchy: str = None,
     count_related: Optional[Dict] = None,
 ):
-    '''Return a tree, bounded by the given unitid.
+    """Return a tree, bounded by the given unitid.
 
     The tree includes siblings of ancestors, with their child counts.
-    '''
+    """
 
     async def get_unit(unitid):
         details = (
@@ -890,7 +943,7 @@ async def get_unit_tree(
             count_related=count_related,
         )
         if unitid in children:
-            r['children'] = await get_units(children[unitid])
+            r["children"] = await get_units(children[unitid])
         return r
 
     async def get_units(unitids):
@@ -905,7 +958,7 @@ async def get_unit_tree(
         args = {
             "overordnet": parent_uuid,
             "tilhoerer": get_org(uuid, cache),
-            "gyldighed": 'Aktiv'
+            "gyldighed": "Aktiv",
         }
 
         if org_unit_hierarchy:
@@ -918,7 +971,7 @@ async def get_unit_tree(
         mapping.PARENT_FIELD,
         unitids,
         get_children_args,
-        with_siblings=with_siblings
+        with_siblings=with_siblings,
     )
     # Strip off one level
     root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))
@@ -926,10 +979,11 @@ async def get_unit_tree(
     return await get_units(root for root in root_uuids)
 
 
-@router.get('/ou/{unitid}/')
-async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
-                      count: Optional[str] = None) -> Dict[str, Any]:
-    '''Get an organisational unit
+@router.get("/ou/{unitid}/")
+async def get_orgunit(
+    unitid: UUID, only_primary_uuid: Optional[bool] = None, count: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get an organisational unit
 
     .. :quickref: Unit; Get
 
@@ -1024,15 +1078,18 @@ async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
        }
      }
 
-    '''
+    """
     unitid = str(unitid)
     c = common.get_connector()
     count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
 
-    r = await get_one_orgunit(c, unitid, details=UnitDetails.FULL,
-                              only_primary_uuid=only_primary_uuid,
-                              count_related=count_related,
-                              )
+    r = await get_one_orgunit(
+        c,
+        unitid,
+        details=UnitDetails.FULL,
+        only_primary_uuid=only_primary_uuid,
+        count_related=count_related,
+    )
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -1040,11 +1097,8 @@ async def get_orgunit(unitid: UUID, only_primary_uuid: Optional[bool] = None,
     return r
 
 
-@router.get('/ou/{unitid}/refresh')
-async def trigger_external_integration(
-    unitid: UUID,
-    only_primary_uuid: bool = False
-):
+@router.get("/ou/{unitid}/refresh")
+async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = False):
     """
     Trigger external integration for a given org unit UUID
     :param unitid: The UUID of the org unit to trigger for
@@ -1068,21 +1122,21 @@ async def trigger_external_integration(
 
 def get_details_from_query_args(args):
     arg_map = {
-        'minimal': UnitDetails.MINIMAL,
-        'nchildren': UnitDetails.NCHILDREN,
-        'self': UnitDetails.SELF,
-        'full': UnitDetails.FULL,
-        'integration': UnitDetails.INTEGRATION,
-        'path': UnitDetails.PATH,
+        "minimal": UnitDetails.MINIMAL,
+        "nchildren": UnitDetails.NCHILDREN,
+        "self": UnitDetails.SELF,
+        "full": UnitDetails.FULL,
+        "integration": UnitDetails.INTEGRATION,
+        "path": UnitDetails.PATH,
     }
 
-    if 'details' in args and args['details'] in arg_map:
-        return arg_map[args['details']]
+    if "details" in args and args["details"] in arg_map:
+        return arg_map[args["details"]]
     else:
         return UnitDetails.MINIMAL
 
 
-@router.get('/o/{orgid}/ou/')
+@router.get("/o/{orgid}/ou/")
 # @util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
 async def list_orgunits(
     orgid: UUID,
@@ -1090,9 +1144,9 @@ async def list_orgunits(
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     root: Optional[str] = None,
-    only_primary_uuid: Optional[bool] = None
+    only_primary_uuid: Optional[bool] = None,
 ):
-    '''Query organisational units in an organisation.
+    """Query organisational units in an organisation.
 
     .. :quickref: Unit; List & search
 
@@ -1162,7 +1216,7 @@ async def list_orgunits(
        "total": 4
      }
 
-    '''
+    """
     orgid = str(orgid)
     c = common.get_connector()
 
@@ -1170,11 +1224,11 @@ async def list_orgunits(
         limit=limit,
         start=start,
         tilhoerer=orgid,
-        gyldighed='Aktiv',
+        gyldighed="Aktiv",
     )
 
     if query:
-        kwargs.update(vilkaarligattr='%{}%'.format(query))
+        kwargs.update(vilkaarligattr="%{}%".format(query))
 
     uuid_filters = []
     if root:
@@ -1214,13 +1268,13 @@ async def list_orgunits(
     return search_result
 
 
-@router.get('/o/{orgid}/ou/tree')
+@router.get("/o/{orgid}/ou/tree")
 # @util.restrictargs('at', 'query', 'uuid')
 async def list_orgunit_tree(
     orgid: UUID,
     query: Optional[str] = None,
     uuid: Optional[List[UUID]] = Query(None),
-    only_primary_uuid: bool = False
+    only_primary_uuid: bool = False,
 ):
     """
     Query organisational units in an organisation.
@@ -1292,28 +1346,24 @@ async def list_orgunit_tree(
 
     kwargs = dict(
         tilhoerer=orgid,
-        gyldighed='Aktiv',
+        gyldighed="Aktiv",
     )
 
     if query:
-        kwargs.update(vilkaarligattr='%{}%'.format(query))
+        kwargs.update(vilkaarligattr="%{}%".format(query))
 
     unitids = (
-        list(map(str, uuid)) if uuid is not None else (
-            await c.organisationenhed.fetch(**kwargs))
+        list(map(str, uuid))
+        if uuid is not None
+        else (await c.organisationenhed.fetch(**kwargs))
     )
 
-    return await get_unit_tree(
-        c, unitids, only_primary_uuid=only_primary_uuid
-    )
+    return await get_unit_tree(c, unitids, only_primary_uuid=only_primary_uuid)
 
 
-@router.post('/ou/create', status_code=201)
+@router.post("/ou/create", status_code=201)
 # @util.restrictargs('force', 'triggerless')
-def create_org_unit(
-    req: dict = Body(...),
-    permissions=Depends(oidc.rbac_owner)
-):
+def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1367,46 +1417,55 @@ def create_org_unit(
 
 
 async def terminate_org_unit_validation(unitid, request):
-    validity = request.get('validity', {})
-    if 'from' in validity and 'to' in validity:
+    validity = request.get("validity", {})
+    if "from" in validity and "to" in validity:
         date = util.get_valid_from(request)
     else:
         date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
     await validator.is_date_range_in_org_unit_range(
-        {'uuid': unitid}, date - util.MINIMAL_INTERVAL, date,
+        {"uuid": unitid},
+        date - util.MINIMAL_INTERVAL,
+        date,
     )
 
-    children = set(await c.organisationenhed.fetch(
-        overordnet=unitid,
-        gyldighed='Aktiv',
-    ))
+    children = set(
+        await c.organisationenhed.fetch(
+            overordnet=unitid,
+            gyldighed="Aktiv",
+        )
+    )
 
-    roles = set(await c.organisationfunktion.fetch(
-        tilknyttedeenheder=unitid,
-        gyldighed='Aktiv',
-    ))
+    roles = set(
+        await c.organisationfunktion.fetch(
+            tilknyttedeenheder=unitid,
+            gyldighed="Aktiv",
+        )
+    )
 
-    addresses = set(await c.organisationfunktion.fetch(
-        tilknyttedeenheder=unitid,
-        funktionsnavn=mapping.ADDRESS_KEY,
-        gyldighed='Aktiv',
-    ))
+    addresses = set(
+        await c.organisationfunktion.fetch(
+            tilknyttedeenheder=unitid,
+            funktionsnavn=mapping.ADDRESS_KEY,
+            gyldighed="Aktiv",
+        )
+    )
 
-    active_roles = (roles - addresses)
+    active_roles = roles - addresses
     role_counts = set()
     if active_roles:
         role_counts = set(
             mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
-            for objid, obj in
-            await c.organisationfunktion.get_all_by_uuid(uuids=active_roles)
+            for objid, obj in await c.organisationfunktion.get_all_by_uuid(
+                uuids=active_roles
+            )
         )
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
             child_count=len(children),
-            roles=', '.join(sorted(role_counts)),
+            roles=", ".join(sorted(role_counts)),
         )
     elif children:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
@@ -1414,26 +1473,24 @@ async def terminate_org_unit_validation(unitid, request):
         )
     elif role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
-            roles=', '.join(sorted(role_counts)),
+            roles=", ".join(sorted(role_counts)),
         )
 
 
 @router.post(
-    '/ou/{uuid}/terminate',
+    "/ou/{uuid}/terminate",
     responses={
         200: {
-            'description': 'The termination succeeded',
-            'model': UUID,
+            "description": "The termination succeeded",
+            "model": UUID,
         },
-        404: {'description': 'No such unit found'},
-        409: {'description': 'Validation failed'},
+        404: {"description": "No such unit found"},
+        409: {"description": "Validation failed"},
     },
 )
 # @util.restrictargs('force', 'triggerless')
 def terminate_org_unit(
-    uuid: UUID,
-    request: dict = Body(...),
-    permissions=Depends(oidc.rbac_owner)
+    uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an organisational unit from a specified date.
 
