@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from asyncio import Lock
 from contextlib import asynccontextmanager
 from typing import Any
@@ -34,13 +35,11 @@ class __BulkBookkeeper:
 
         :return:
         """
-        try:
-            for lock in self.__locks.values():
-                await lock.acquire()
-
+        async with self.__global_lock:
+            locks = self.__locks.values()
+            await asyncio.gather(*(lock.acquire() for lock in locks))
             self.__raw_cache.clear()
-        finally:
-            for lock in self.__locks.values():
+            for lock in locks:
                 lock.release()
 
     async def __get_lock(self, type_: LoraObjectType) -> Lock:
