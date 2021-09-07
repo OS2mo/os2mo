@@ -1,16 +1,70 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 [tool.poetry]
-name = "mo"
+name = "OS2mo"
 version = "2.2.1"
-description = ""
 authors = ["Magenta ApS <info@magenta.dk>"]
+description = "OS2mo - Medarbejder og Organisation"
+license = "MPL-2.0"
+documentation = "https://os2mo.readthedocs.io"
 readme = "README.rst"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/rammearkitektur/os2mo"
+keywords = ["os2mo"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+alembic = "^1.6.5"
+requests = "^2.25.1"
+lxml = "^4.6.3"
+python-dateutil = "^2.8.1"
+validators = "^0.18.2"
+psycopg2-binary = "^2.8.6"
+gunicorn = "^20.1.0"
+pika = "^1.2.0"
+PyJWT = {extras = ["crypto"], version = "^2.1.0"}
+toml = "^0.10.2"
+more-itertools = "^8.8.0"
+SQLAlchemy = "^1.4.17"
+SQLAlchemy-Utils = "^0.37.6"
+aiohttp = "^3.7.4"
+os2mo-http-trigger-protocol = "^0.0.4"
+anytree = "^2.8.0"
+fastapi = "^0.65.2"
+Jinja2 = "^3.0.1"
+aiofiles = "^0.7.0"
+starlette-context = "^0.3.2"
+Werkzeug = "^2.0.1"
+click = "^8.0.1"
+os2mo-fastapi-utils = "^0.0.3"
+structlog = "^21.1.0"
+python-multipart = "^0.0.5"
+service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "0.2.0"}
+lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
+prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
+pydantic = {extras = ["email"], version = "^1.7.3"}
+ramodels = "^2.1.1"
 
 [tool.poetry.dev-dependencies]
+flake8 = "^3.9.2"
+flake8-module-name = "^0.2.0"
+flake8-bugbear = "^21.4.3"
+requests-mock = "^1.9.3"
+freezegun = "^1.1.0"
+coverage = "^5.5"
+termcolor = "^1.1.0"
+unittest-xml-reporting = "^3.0.4"
+notsouid = "^0.0.3"
+python-dotenv = "^0.19.0"
+watchdog = "^2.1.3"
+pytest = "^6.2.4"
+pytest-cov = "^2.12.1"
+aioresponses = "^0.7.2"
+parameterized = "^0.8.1"
+hypothesis = "^6.17.4"
+pytest-parallel = "^0.1.0"
+pytest-asyncio = "^0.15.1"
+pip-tools = "^6.2.0"
 
 [build-system]
 requires = ["poetry-core"]
