@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+[tool.poetry]
+name = "OS2mo"
+version = "2.1.1"
+description = "OS2mo - Medarbejder og Organisation"
+authors = ["Magenta <info@magenta.dk>"]
+license = "MPL-2.0"
+documentation = "https://os2mo.readthedocs.io"
+readme = "README.rst"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/rammearkitektur/os2mo"
+keywords = ["os2mo", "docs", "documentation"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.1"
+python-dateutil = "^2.8.2"
+Sphinx = "^2.4.4"
+sphinx-rtd-theme = "^0.5.2"
+sphinxcontrib-httpdomain = "^1.7.0"
+sphinx-click = "^3.0.1"
+recommonmark = "^0.7.1"
+os2mo-http-trigger-protocol = "^0.0.4"
+pydantic = "^1.8.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.autopub]
+git-username = "MagentaBot"
+git-email = "info@magenta.dk"

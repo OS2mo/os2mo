@@ -66,16 +66,18 @@ RUN set -ex \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
+# Enviroment variables for poetry
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PYTHONPATH=/app:/app/backend \
+    POETRY_VERSION="1.1.8" \
+    POETRY_VIRTUALENVS_CREATE=false
 
 # Install requirements
-COPY backend/requirements.txt /app/backend/requirements.txt
-COPY backend/requirements-test.txt /app/backend/requirements-test.txt
-COPY backend/requirements-lint.txt /app/backend/requirements-lint.txt
-RUN pip3 install --no-cache-dir \
-  -r backend/requirements.txt \
-  -r backend/requirements-test.txt \
-  -r backend/requirements-lint.txt
-
+RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
+COPY backend/poetry.lock backend/pyproject.toml /app/backend/
+WORKDIR /app/backend
+RUN poetry install --no-interaction
+WORKDIR /app
 
 # Copy and install backend code.
 COPY docker ./docker
@@ -88,7 +90,7 @@ COPY docker/prestart.sh /app/prestart.sh
 # Install the application as editable. This makes it possible to mount
 # `/app/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
-RUN rm backend/pyproject.toml && pip3 install --no-cache-dir -e backend
+RUN rm backend/pyproject.toml
 
 
 # Copy frontend code.

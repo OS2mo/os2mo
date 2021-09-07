@@ -36,6 +36,7 @@ variables:
   IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
   IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}
 
+  POETRY_VERSION: 1.1.8
 
 # Only run pipeline when pushing a tag or a branch.
 # This is a workaround for a bug causing detached pipelines on MRs
@@ -45,6 +46,11 @@ workflow:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
+
+.poetry-install: &poetry-install
+  - pip3 install poetry==${POETRY_VERSION}
+  - poetry config virtualenvs.create false
+  - cd backend && poetry install --no-interaction
 
 
 .manual-rules: &manual-rules
@@ -71,13 +77,12 @@ workflow:
 Lint Python:
   <<: *lint-default
   before_script:
-    - pip3 install -r backend/requirements-lint.txt
+    - *poetry-install
   script:
-    - cd backend
-    - flake8 --version
+    - poetry run flake8 --version
     # black-compatible settings
     # https://github.com/psf/black/pull/36
-    - flake8 --extend-ignore=B008,W503
+    - poetry run flake8 --extend-ignore=B008,W503 --max-line-length=88
 
 Lint Dockerfiles:
   <<: *lint-default
@@ -233,9 +238,11 @@ Build docs:
   tags:
     - docker
   before_script:
-    - pip3 install -r docs/requirements-docs.txt
+    - pip3 install poetry==${POETRY_VERSION}
+    - poetry config virtualenvs.create false
+    - cd docs && poetry install --no-interaction
   script:
-    - sphinx-build -n -W --keep-going docs /doc-build
+    - sphinx-build -n -W --keep-going . /doc-build
   artifacts:
     paths:
       - /doc-build
