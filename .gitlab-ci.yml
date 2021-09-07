@@ -569,7 +569,7 @@ Update Flux Dev Version:
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation
-    - yq e -i '.spec.values.os2mo.tag  = strenv(CI_COMMIT_TAG)' flux/configuration/projects/os2mo/dev/values.yaml
+    - yq e -i '.spec.values.os2mo.tag  = strenv(CI_COMMIT_TAG)' flux/projects/os2mo/config/dev.yaml
     - git add flux/configuration/projects/os2mo/dev/values.yaml
     - git commit -m "[cd] Deploy OS2MO $CI_COMMIT_TAG to flux dev servers"
-    - git push 
+    - git push
