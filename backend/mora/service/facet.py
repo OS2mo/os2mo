@@ -449,8 +449,6 @@ async def get_one_class(
     attrs = get_attrs(clazz)
     parents = None
 
-    utilize_request_wide_cache: bool = c is request_wide_bulk.connector
-
     def get_parent(clazz):
         """Find the parent UUID of the provided class object."""
         for parentid in mapping.PARENT_CLASS_FIELD.get_uuids(clazz):
@@ -473,30 +471,18 @@ async def get_one_class(
         potential_parent = get_parent(clazz)
         if potential_parent is None:
             return [clazz]
-        new_class = (
-            await request_wide_bulk.get_lora_object(
-                type_=LoraObjectType.class_, uuid=potential_parent
-            )
-            if utilize_request_wide_cache
-            else await c.klasse.get(potential_parent)
+        new_class = await request_wide_bulk.get_lora_object(
+            type_=LoraObjectType.class_, uuid=potential_parent
         )
         return [clazz] + await get_parents(new_class)
 
     async def get_top_level_facet(parents):
         facetid = get_facet_uuid(parents[-1])
-        return (
-            await __get_facet_from_cache(facetid=facetid)
-            if utilize_request_wide_cache
-            else await get_one_facet(c, facetid, orgid=None)
-        )
+        return await __get_facet_from_cache(facetid=facetid)
 
     async def get_facet(clazz):
         facetid = get_facet_uuid(clazz)
-        return (
-            await __get_facet_from_cache(facetid=facetid)
-            if utilize_request_wide_cache
-            else await get_one_facet(c, facetid, orgid=None)
-        )
+        return await __get_facet_from_cache(facetid=facetid)
 
     owner = get_owner_uuid(clazz)
 

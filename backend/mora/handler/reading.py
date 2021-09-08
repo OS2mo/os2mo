@@ -168,12 +168,10 @@ class OrgFunkReadingHandler(ReadingHandler):
         object_tuples = await cls._get_lora_object(
             c, search_fields, changed_since=changed_since
         )
-        object_tuples = list(object_tuples)
         mo_objects = await cls._get_obj_effects(c, object_tuples)
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
         tasks = []
-        mo_objects = list(mo_objects)
         for mo_object in mo_objects:
             for key, val in mo_object.items():
                 if isawaitable(val):

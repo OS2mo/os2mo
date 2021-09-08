@@ -475,15 +475,10 @@ async def get_one_orgunit(
     """
     if only_primary_uuid:
         return {mapping.UUID: unitid}
-    utilize_request_wide_cache = c is request_wide_bulk.connector
 
     if not unit:  # optional early exit
-        unit = (
-            await request_wide_bulk.get_lora_object(
-                LoraObjectType.org_unit, uuid=unitid
-            )
-            if utilize_request_wide_cache
-            else await c.organisationenhed.get(unitid)
+        unit = await request_wide_bulk.get_lora_object(
+            LoraObjectType.org_unit, uuid=unitid
         )
 
         if not unit or not util.is_reg_valid(unit):
@@ -513,10 +508,6 @@ async def get_one_orgunit(
             await request_bulked_get_one_orgunit(
                 unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
             )
-            if utilize_request_wide_cache
-            else get_one_orgunit(
-                c, parentid, details=details, only_primary_uuid=only_primary_uuid
-            )
         )
 
         if details is UnitDetails.FULL:
@@ -527,10 +518,6 @@ async def get_one_orgunit(
                     await facet.request_bulked_get_one_class_full(
                         classid=unittype, only_primary_uuid=only_primary_uuid
                     )
-                    if utilize_request_wide_cache
-                    else facet.get_one_class_full(
-                        c, unittype, only_primary_uuid=only_primary_uuid
-                    )
                 )
 
             if timeplanning:
@@ -538,20 +525,12 @@ async def get_one_orgunit(
                     await facet.request_bulked_get_one_class_full(
                         classid=timeplanning, only_primary_uuid=only_primary_uuid
                     )
-                    if utilize_request_wide_cache
-                    else facet.get_one_class_full(
-                        c, timeplanning, only_primary_uuid=only_primary_uuid
-                    )
                 )
 
             if org_unit_level:
                 org_unit_level_task = create_task(
                     await facet.request_bulked_get_one_class_full(
                         classid=org_unit_level, only_primary_uuid=only_primary_uuid
-                    )
-                    if utilize_request_wide_cache
-                    else facet.get_one_class_full(
-                        c, org_unit_level, only_primary_uuid=only_primary_uuid
                     )
                 )
 
@@ -600,33 +579,9 @@ async def get_one_orgunit(
 
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
-        r[mapping.PARENT] = (
-            await (
-                await request_bulked_get_one_orgunit(
-                    unitid=parentid,
-                    details=UnitDetails.MINIMAL,
-                    only_primary_uuid=only_primary_uuid,
-                )
-            )
-            if utilize_request_wide_cache
-            else await get_one_orgunit(
-                c,
-                parentid,
-                details=UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
-        )
-
         parent_task = create_task(
             await request_bulked_get_one_orgunit(
-                parentid,
-                details=UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid,
-            )
-            if utilize_request_wide_cache
-            else get_one_orgunit(
-                c,
-                parentid,
+                unitid=parentid,
                 details=UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
@@ -639,10 +594,6 @@ async def get_one_orgunit(
                 await facet.request_bulked_get_one_class_full(
                     classid=unittype, only_primary_uuid=only_primary_uuid
                 )
-                if utilize_request_wide_cache
-                else facet.get_one_class_full(
-                    c, unittype, only_primary_uuid=only_primary_uuid
-                )
             )
 
         if timeplanning:
@@ -650,20 +601,12 @@ async def get_one_orgunit(
                 await facet.request_bulked_get_one_class_full(
                     classid=timeplanning, only_primary_uuid=only_primary_uuid
                 )
-                if utilize_request_wide_cache
-                else facet.get_one_class_full(
-                    c, timeplanning, only_primary_uuid=only_primary_uuid
-                )
             )
 
         if org_unit_level:
             org_unit_level_task = create_task(
                 await facet.request_bulked_get_one_class_full(
                     classid=org_unit_level, only_primary_uuid=only_primary_uuid
-                )
-                if utilize_request_wide_cache
-                else facet.get_one_class_full(
-                    c, org_unit_level, only_primary_uuid=only_primary_uuid
                 )
             )
 
