@@ -751,7 +751,7 @@ class Tests(tests.cases.LoRATestCase):
     @util.mock('aabogade.json', allow_mox=True, real_http=True)
     @mora.async_util.async_to_sync
     async def test_create_org_unit(self, m):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1020,7 +1020,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = {
             "name": "Fake Corp",
@@ -1095,7 +1095,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
@@ -1293,7 +1293,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_edit_org_unit(self):
         # A generic example of editing an org unit
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
@@ -1416,7 +1416,7 @@ class Tests(tests.cases.LoRATestCase):
         """ Test setting the start date to something earlier (#23182)
         """
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
@@ -1453,8 +1453,9 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True, real_http=True)
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit_extending_end(self, m):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
         topics = {}
@@ -1526,8 +1527,9 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01')
     @util.mock('aabogade.json', allow_mox=True, real_http=True)
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit_earlier_start_on_created(self, m):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1671,8 +1673,9 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRegistrationsEqual(expected, actual)
 
     @notsouid.freeze_uuid('ec93e37e-774e-40b4-953c-05ca41b80372')
+    @mora.async_util.async_to_sync
     async def test_create_missing_parent(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = {
             "name": "Fake Corp",
@@ -1704,7 +1707,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_root_unit(self):
-        self.load_sample_structures(minimal=True)
+        await self.aload_sample_structures(minimal=True)
 
         unitid = "00000000-0000-0000-0000-000000000000"
         orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -1799,7 +1802,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_root_unit_without_org_id(self):
-        self.load_sample_structures(minimal=True)
+        await self.aload_sample_structures(minimal=True)
 
         unitid = "00000000-0000-0000-0000-000000000000"
         orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -1859,7 +1862,7 @@ class Tests(tests.cases.LoRATestCase):
     @mora.async_util.async_to_sync
     async def test_rename_org_unit(self):
         # A generic example of editing an org unit
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
@@ -1966,7 +1969,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_edit_time_planning(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'
 
@@ -2102,7 +2105,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_rename_root_org_unit(self):
         # Test renaming root units
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
 
@@ -2204,7 +2207,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_rename_root_org_unit_no_parent(self):
         # Test renaming root units
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
 
@@ -2305,7 +2308,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_move_org_unit(self):
         'Test successfully moving organisational units'
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -2416,7 +2419,7 @@ class Tests(tests.cases.LoRATestCase):
         """Should fail validation when trying to move an org unit to one of
         its children """
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -2452,7 +2455,7 @@ class Tests(tests.cases.LoRATestCase):
         """Should fail validation when trying to move an org unit to the root
         level"""
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -2485,7 +2488,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_move_org_unit_should_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '2874e1dc-85e6-4269-823a-e1125484dfd3'
 
@@ -2517,7 +2520,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_move_org_unit_wrong_org(self):
         """Verify that we cannot move a unit into another organisation"""
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
         other_org_uuid = await util.load_fixture(
@@ -2564,7 +2567,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_move_org_autoparent(self):
         "Verify that we cannot create cycles when moving organisational units"
 
-        self.load_sample_structures(False)
+        await self.aload_sample_structures(False)
         hum_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'  # parent
         fil_uuid = '85715fc7-925d-401b-822d-467eb4b163b6'  # child
 
@@ -2597,7 +2600,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_move_org_nowhere(self):
         "Verify that we cannot move units to places that don't exist"
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
 
@@ -2630,7 +2633,7 @@ class Tests(tests.cases.LoRATestCase):
         """Should fail validation when trying to edit an org unit with the
         to-time being before the from-time """
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -3234,7 +3237,7 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     @mora.async_util.async_to_sync
     async def test_edit_integration_data(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         req = {

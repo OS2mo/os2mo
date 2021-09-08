@@ -78,7 +78,7 @@ class Tests(LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_association(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -201,7 +201,7 @@ class Tests(LoRATestCase):
     async def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
         unit"""
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         (
@@ -242,7 +242,7 @@ class Tests(LoRATestCase):
         create then edit
         :return:
         """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         #  ##### CREATE
@@ -307,7 +307,7 @@ class Tests(LoRATestCase):
         create then terminate
         :return:
         """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
 

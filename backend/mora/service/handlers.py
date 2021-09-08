@@ -11,7 +11,6 @@ import typing
 
 from structlog import get_logger
 
-import mora.async_util
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -62,7 +61,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request: dict, request_type: RequestType, hest: typing.Optional[str] = None):
+    def __init__(self, request: dict, request_type: RequestType,
+                 hest: typing.Optional[str] = None):
         """
         Initialize a request, and perform all required validation.
 
@@ -89,7 +89,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     @classmethod
     async def construct(cls, *args, **kwargs):
-        obj = cls(*args, **kwargs, hest = 'mogens')
+        obj = cls(*args, **kwargs, hest='mogens')
 
         if obj.request_type == RequestType.CREATE:
             await obj.aprepare_create(obj.request)
@@ -212,6 +212,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.trigger_results_after = Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
+
 
 class OrgFunkRequestHandler(RequestHandler):
     '''Abstract base class for automatically registering

@@ -167,7 +167,7 @@ class BaseTests(OwnerOrgUnitTestCase):
             create_status_code=400,
         )
 
-    async def test_create_owner_non_existing(self):
+    def test_create_owner_non_existing(self):
         """
         if owner if set, it needs to be a valid person
         :return:

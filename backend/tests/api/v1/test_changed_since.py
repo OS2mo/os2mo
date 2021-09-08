@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from backend.mora.async_util import async_to_sync
 from datetime import datetime
 from urllib import parse
 
@@ -80,12 +81,13 @@ class ChangedSinceEmployee(ConfigTestCase):
             amqp_topics={"employee.employee.update": 1},
         )
 
+    @async_to_sync
     async def test_changed_since_with_edit(self):
         """
         tests changed_since actually filters the expected
         :return:
         """
-        self.load_sample_structures(minimal=False)
+        await self.aload_sample_structures(minimal=False)
         changed_since = datetime.now(tz=DEFAULT_TIMEZONE)
         endpoint = "employee"
         # test once

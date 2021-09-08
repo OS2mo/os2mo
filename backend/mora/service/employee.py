@@ -561,7 +561,7 @@ async def get_employee(
 
 @router.post('/e/{uuid}/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate_employee(
+async def terminate_employee(
     uuid: UUID,
     request: dict = Body(...),
     permissions=Depends(oidc.rbac_owner)
@@ -600,7 +600,7 @@ def terminate_employee(
     c = lora.Connector(effective_date=date, virkningtil='infinity')
 
     request_handlers = [
-        handlers.get_handler_for_function(obj)(
+        await handlers.get_handler_for_function(obj).construct(
             {
                 'uuid': objid,
                 'vacate': util.checked_get(request, 'vacate', False),
@@ -633,7 +633,7 @@ def terminate_employee(
     Trigger.run(trigger_dict)
 
     for handler in request_handlers:
-        handler.submit()
+        await handler.asubmit()
 
     result = uuid
 
@@ -652,7 +652,7 @@ def terminate_employee(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post('/e/create', status_code=201)
-def create_employee(
+async def create_employee(
     req: dict = Body(...),
     permissions=Depends(oidc.rbac_admin)
 ):
@@ -723,7 +723,7 @@ def create_employee(
     :returns: UUID of created employee
 
     """
-    request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
+    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
     return request.submit()
 
 

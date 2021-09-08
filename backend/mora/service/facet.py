@@ -798,7 +798,7 @@ class ClassRequestHandler(handlers.RequestHandler):
 
 
 @router.post('/f/{facet}/')
-def create_or_update_class(
+async def create_or_update_class(
     facet: str,
     class_model: MOClass,
 ):
@@ -809,8 +809,8 @@ def create_or_update_class(
     :param class_model: Pydantic BaseModel for a class
     """
     req = {'facet': facet, 'class_model': class_model}
-    request = ClassRequestHandler(req, mapping.RequestType.CREATE)
-    return request.submit()
+    request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
+    return await request.asubmit()
 
 
 @router.get('/f/{facet}/children')

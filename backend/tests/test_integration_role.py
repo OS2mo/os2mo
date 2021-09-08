@@ -244,7 +244,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_role_no_valid_to(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -357,7 +357,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_role_no_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -501,7 +501,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_role_minimal(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -610,7 +610,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_role_minimal_unit(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -719,7 +719,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_role_person(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         role_uuid = '1b20d0b9-96a0-42a6-b196-293bb86e62e8'
 
@@ -991,7 +991,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_terminate_role(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1141,9 +1141,9 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_role_missing_unit(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
-        # Check the POST request
+        # Check the POST request<
         unitid = "00000000-0000-0000-0000-000000000000"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 

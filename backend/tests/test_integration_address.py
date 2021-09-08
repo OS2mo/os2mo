@@ -652,7 +652,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_employee_with_address(self, mock):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -764,7 +764,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_engagement_with_address(self, mock):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -826,7 +826,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_org_unit_with_address(self, mock):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1073,7 +1073,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_edit_address_user_key(self, mock):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -1142,7 +1142,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_address_related_to_engagement(self, mock):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
 

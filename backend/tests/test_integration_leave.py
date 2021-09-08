@@ -19,7 +19,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_leave(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         userid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
@@ -132,7 +132,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_leave_no_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
@@ -281,7 +281,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_leave(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
@@ -334,7 +334,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_leave_fails_when_no_active_engagement(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
 
@@ -367,7 +367,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_terminate_leave(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -419,7 +419,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_leave_missing_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"

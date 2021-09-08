@@ -52,7 +52,7 @@ class Tests(tests.cases.LoRATestCase):
                           auto_increment=True)
     @async_to_sync
     async def test_create_manager(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -253,7 +253,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_vacant_manager(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 
@@ -354,7 +354,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_manager_on_unit(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         user_id = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -476,7 +476,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_manager_no_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -714,7 +714,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_manager_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -974,7 +974,7 @@ class Tests(tests.cases.LoRATestCase):
         fields correctly, i.e. multiple fields sharing the same
         relation should remain intact when only one of the
         fields are updated"""
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
@@ -1142,7 +1142,7 @@ class Tests(tests.cases.LoRATestCase):
     @async_to_sync
     async def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1194,10 +1194,8 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest('verify assumption about relation in LoRA'):
             self.assertEqual(
-                sorted(
-                    await c.organisationfunktion.get(
-                        manager_uuid)
-                    ['relationer']['opgaver'],
+                sorted((await c.organisationfunktion.get(
+                    manager_uuid))['relationer']['opgaver'],
                     key=mora_util.get_uuid,
                 ),
                 overwritten_responsibilities,

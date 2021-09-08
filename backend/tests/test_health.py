@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import requests_mock
 from aioresponses import aioresponses
 from mock import patch
@@ -53,6 +54,7 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 
 class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
+    @async_to_sync
     async def test_dataset_returns_false_if_no_data_found(self, mock):
         mock.get(config.get_settings().lora_url +
                  "organisation/organisation?"
@@ -64,6 +66,7 @@ class DatasetHealthTests(tests.cases.TestCase):
         self.assertEqual(False, actual)
 
     @aioresponses()
+    @async_to_sync
     async def test_dataset_returns_true_if_data_found(self, mock):
         mock.get((config.get_settings().lora_url +
                   "organisation/organisation"

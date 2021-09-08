@@ -26,7 +26,7 @@ class Writing(tests.cases.LoRATestCase):
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
         # This test will fail if run against postgres >=10.0. We can ignore it
         # with `pytest -m "not psql_9_dependent"`.
-        self.load_sample_structures(minimal=True)
+        await self.aload_sample_structures(minimal=True)
 
         self.assertRequestResponse(
             '/service/details/create',
@@ -260,7 +260,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_employee_itsystem(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -349,7 +349,7 @@ class Writing(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_unit_itsystem(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -449,7 +449,7 @@ class Writing(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
     @async_to_sync
     async def test_edit_itsystem(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
 

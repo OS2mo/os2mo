@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 from unittest.mock import patch
 
 import freezegun
@@ -648,6 +649,7 @@ class Tests(tests.cases.LoRATestCase):
                            "to": None}}],
         )
 
+    @async_to_sync
     async def test_employee(self):
         with self.subTest('empty'):
             self.assertRequestResponse(
@@ -660,7 +662,7 @@ class Tests(tests.cases.LoRATestCase):
                 {'total': 0, 'items': [], 'offset': 0},
             )
 
-        self.load_sample_structures(minimal=True)
+        await self.aload_sample_structures(minimal=True)
 
         with self.subTest('invalid'):
             self.assertRequestFails(
@@ -1845,8 +1847,9 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
+    @async_to_sync
     async def test_facet_create_and_update(self):
-        self.load_sample_structures(minimal=True)
+        await self.aload_sample_structures(minimal=True)
 
         payload = {
             'uuid': '18638313-d9e6-4e1d-aea6-67f5fce7a6b0',

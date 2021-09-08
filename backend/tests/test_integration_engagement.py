@@ -15,7 +15,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -169,7 +169,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_from_unit(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -299,7 +299,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_no_valid_to(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -429,7 +429,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_no_job_function(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -546,7 +546,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_fails_on_empty_payload(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = [
             {
@@ -570,7 +570,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_engagement_fails_on_invalid_payloads(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = {
             "type": "engagement",
@@ -596,7 +596,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_fails_on_missing_unit(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         payload = [
@@ -630,7 +630,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_create_engagement_fails_on_missing_person(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         payload = [
@@ -664,7 +664,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_engagement_no_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
 
@@ -871,7 +871,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_edit_engagement_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1051,7 +1051,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @async_to_sync
     async def test_terminate_engagement(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')

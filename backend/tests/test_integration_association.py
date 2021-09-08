@@ -547,7 +547,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_create_association_with_preexisting(self):
         """An employee cannot have more than one active association per org
         unit """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
@@ -1323,7 +1323,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_terminate_association_via_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1460,7 +1460,7 @@ class AddressTests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_terminate_association_directly(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1525,7 +1525,7 @@ class AddressTests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2018-01-01', tz_offset=1)
     @mora.async_util.async_to_sync
     async def test_terminate_association_in_the_past(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         associationid = 'c2153d5d-4a2b-492d-a18c-c498f7bb6221'

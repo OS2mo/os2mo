@@ -161,6 +161,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
         await (await MockHandler.construct({}, RequestType.CREATE)).asubmit()
         self.assertTrue(self.trigger_called)
+
     @async_to_sync
     async def test_handler_trigger_before_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE,

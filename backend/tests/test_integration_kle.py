@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import freezegun
 import notsouid
 
@@ -25,8 +26,9 @@ class Tests(tests.cases.LoRATestCase):
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
                           auto_increment=True)
+    @async_to_sync
     async def test_create_kle(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
@@ -113,8 +115,9 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
+    @async_to_sync
     async def test_edit_kle_no_overwrite(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         org_unit_uuid = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
         kle_uuid = '4bee0127-a3a3-419a-8bcc-d1b81d21c5b5'

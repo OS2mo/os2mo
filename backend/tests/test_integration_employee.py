@@ -17,7 +17,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_employee(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -146,7 +146,7 @@ class Tests(tests.cases.LoRATestCase):
         user_key and a given UUID.
 
         '''
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "ef78f929-2eb4-4d9e-8891-f9e8dcb47533"
 
@@ -183,7 +183,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_employee_fails_on_invalid_cpr(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
         payload = {
             "name": "Torkild Testperson",
             "cpr_no": "1",
@@ -207,7 +207,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @mora.async_util.async_to_sync
     async def test_create_employee_existing_cpr_existing_org(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = {
             "givenname": "Torkild",
@@ -267,7 +267,7 @@ class Tests(tests.cases.LoRATestCase):
         Should not be able to create employee with same CPR no,
         in different organisation, as only one is allowed
         """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         payload = {
             "name": "Torkild Testperson",
@@ -293,7 +293,7 @@ class Tests(tests.cases.LoRATestCase):
         """Test creating an employee with added details.
         Also add three names to a single name parameter and check
         it will be split on lest space."""
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         employee_uuid = "f7bcc7b1-381a-4f0e-a3f5-48a7b6eedf1c"
 
@@ -369,7 +369,7 @@ class Tests(tests.cases.LoRATestCase):
     @mora.async_util.async_to_sync
     async def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         employee_uuid = "d2e1b69e-def1-41b1-b652-e704af02591c"
 
@@ -539,7 +539,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_edit_employee_overwrite(self):
         # A generic example of editing an employee
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -686,7 +686,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_edit_employee(self):
         # A generic example of editing an employee
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -818,7 +818,7 @@ class Tests(tests.cases.LoRATestCase):
     async def test_edit_remove_seniority(self):
         # A generic example of editing an employee
 
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -917,7 +917,7 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     @mora.async_util.async_to_sync
     async def test_edit_integration_data(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
         await util.load_fixture(
             'organisation/bruger',

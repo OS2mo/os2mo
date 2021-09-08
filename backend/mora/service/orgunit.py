@@ -35,7 +35,6 @@ from fastapi import (
 from fastapi import Query
 from more_itertools import unzip
 
-import mora.async_util
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from . import autocomplete
@@ -1499,5 +1498,7 @@ async def terminate_org_unit(
     uuid = str(uuid)
     await terminate_org_unit_validation(uuid, request)
     request[mapping.UUID] = uuid
-    handler = await OrgUnitRequestHandler.construct(request, mapping.RequestType.TERMINATE)
+    handler = await OrgUnitRequestHandler.construct(
+        request, mapping.RequestType.TERMINATE
+    )
     return await handler.asubmit()

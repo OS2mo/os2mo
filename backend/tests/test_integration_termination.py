@@ -13,7 +13,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2000-12-01')
     async def test_terminate_employee(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -104,12 +104,13 @@ class Tests(tests.cases.LoRATestCase):
                                           actual_manager)
 
     @freezegun.freeze_time('2000-12-01')
+    @async_to_sync
     async def test_terminate_employee_vacatables_full(self):
         """
         Ensure that organisationfunktions that can be vacated are
         terminated as well, when run with 'full'
         """
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
 
@@ -172,8 +173,9 @@ class Tests(tests.cases.LoRATestCase):
                                       actual_association)
 
     @freezegun.freeze_time('2018-01-01')
+    @async_to_sync
     async def test_validation_missing_validity(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         manager_uuid = '05609702-977f-4869-9fb4-50ad74c6999a'
 
@@ -224,8 +226,9 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_manager_via_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -360,7 +363,7 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     @async_to_sync
     async def test_terminate_association_via_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -484,8 +487,9 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_manager_properly_via_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -555,8 +559,9 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_association_properly_via_user(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -626,8 +631,9 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_manager_directly(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -715,8 +721,9 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_association_directly(self):
-        self.load_sample_structures()
+        await self.aload_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
