@@ -6,6 +6,7 @@ import copy
 import freezegun
 
 from mora import lora
+from mora.async_util import async_to_sync
 from tests.cases import LoRATestCase
 
 
@@ -75,6 +76,7 @@ class EngAssocUtils:
 class Tests(LoRATestCase):
     maxDiff = None
 
+    @async_to_sync
     async def test_create_engagement_association(self):
         self.load_sample_structures()
 
@@ -195,6 +197,7 @@ class Tests(LoRATestCase):
             expected,
         )
 
+    @async_to_sync
     async def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
         unit"""
@@ -233,6 +236,7 @@ class Tests(LoRATestCase):
             status_code=400,
         )
 
+    @async_to_sync
     async def test_edit_association(self):
         """
         create then edit
@@ -297,6 +301,7 @@ class Tests(LoRATestCase):
             expected,
         )
 
+    @async_to_sync
     async def test_terminate_association_directly(self):
         """
         create then terminate

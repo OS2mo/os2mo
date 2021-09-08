@@ -749,6 +749,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @util.mock('aabogade.json', allow_mox=True, real_http=True)
+    @mora.async_util.async_to_sync
     async def test_create_org_unit(self, m):
         self.load_sample_structures()
 
@@ -1015,6 +1016,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range """
@@ -1089,6 +1091,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.create': 1},
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
 
@@ -1286,6 +1289,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit(self):
         # A generic example of editing an org unit
 
@@ -1407,6 +1411,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRegistrationsEqual(expected, actual)
 
     @freezegun.freeze_time('2010-01-01')
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit_earlier_start(self):
         """ Test setting the start date to something earlier (#23182)
         """
@@ -1697,6 +1702,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_root_unit(self):
         self.load_sample_structures(minimal=True)
 
@@ -1791,6 +1797,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.create': 1},
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_root_unit_without_org_id(self):
         self.load_sample_structures(minimal=True)
 
@@ -1849,6 +1856,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.create': 1},
         )
 
+    @mora.async_util.async_to_sync
     async def test_rename_org_unit(self):
         # A generic example of editing an org unit
         self.load_sample_structures()
@@ -1956,6 +1964,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @mora.async_util.async_to_sync
     async def test_edit_time_planning(self):
         self.load_sample_structures()
 
@@ -2089,6 +2098,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.org_unit.update': 1},
         )
 
+    @mora.async_util.async_to_sync
     async def test_rename_root_org_unit(self):
         # Test renaming root units
 
@@ -2190,6 +2200,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @mora.async_util.async_to_sync
     async def test_rename_root_org_unit_no_parent(self):
         # Test renaming root units
 
@@ -2290,6 +2301,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @mora.async_util.async_to_sync
     async def test_move_org_unit(self):
         'Test successfully moving organisational units'
 
@@ -2399,6 +2411,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @mora.async_util.async_to_sync
     async def test_move_org_unit_should_fail_validation(self):
         """Should fail validation when trying to move an org unit to one of
         its children """
@@ -2434,6 +2447,7 @@ class Tests(tests.cases.LoRATestCase):
             json=req,
         )
 
+    @mora.async_util.async_to_sync
     async def test_move_org_unit_to_root_fails(self):
         """Should fail validation when trying to move an org unit to the root
         level"""
@@ -2467,6 +2481,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
             json=req)
 
+    @mora.async_util.async_to_sync
     async def test_move_org_unit_should_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""
 
@@ -2498,6 +2513,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
             json=req)
 
+    @mora.async_util.async_to_sync
     async def test_move_org_unit_wrong_org(self):
         """Verify that we cannot move a unit into another organisation"""
 
@@ -2544,6 +2560,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @mora.async_util.async_to_sync
     async def test_move_org_autoparent(self):
         "Verify that we cannot create cycles when moving organisational units"
 
@@ -2576,6 +2593,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @mora.async_util.async_to_sync
     async def test_move_org_nowhere(self):
         "Verify that we cannot move units to places that don't exist"
 
@@ -2607,6 +2625,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_org_unit_should_fail_validation_when_end_before_start(self):
         """Should fail validation when trying to edit an org unit with the
         to-time being before the from-time """
@@ -3213,6 +3232,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    @mora.async_util.async_to_sync
     async def test_edit_integration_data(self):
         self.load_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'

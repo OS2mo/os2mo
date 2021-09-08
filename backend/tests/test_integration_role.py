@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import freezegun
 
 import tests.cases
@@ -11,6 +12,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @async_to_sync
     async def test_create_role(self):
         self.load_sample_structures()
 
@@ -125,6 +127,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_role, expected)
 
+    @async_to_sync
     async def test_create_role_on_unit(self):
         self.load_sample_structures()
 
@@ -239,6 +242,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_role, expected)
 
+    @async_to_sync
     async def test_create_role_no_valid_to(self):
         self.load_sample_structures()
 
@@ -351,6 +355,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_role, expected)
 
+    @async_to_sync
     async def test_edit_role_no_overwrite(self):
         self.load_sample_structures()
 
@@ -494,6 +499,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
+    @async_to_sync
     async def test_edit_role_minimal(self):
         self.load_sample_structures()
 
@@ -602,6 +608,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
+    @async_to_sync
     async def test_edit_role_minimal_unit(self):
         self.load_sample_structures()
 
@@ -710,6 +717,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
+    @async_to_sync
     async def test_edit_role_person(self):
         self.load_sample_structures()
 
@@ -830,6 +838,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
+    @async_to_sync
     async def test_edit_role_overwrite(self):
         self.load_sample_structures()
 
@@ -980,6 +989,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_role, actual_role)
 
+    @async_to_sync
     async def test_terminate_role(self):
         self.load_sample_structures()
 
@@ -1129,6 +1139,7 @@ class Tests(tests.cases.LoRATestCase):
             }],
         )
 
+    @async_to_sync
     async def test_create_role_missing_unit(self):
         self.load_sample_structures()
 
@@ -1163,6 +1174,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
+    @async_to_sync
     async def test_create_role_missing_user(self):
         self.load_sample_structures()
 

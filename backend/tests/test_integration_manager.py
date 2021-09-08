@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import unittest
 from unittest.mock import patch
 
@@ -49,6 +50,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @notsouid.freeze_uuid('11111111-1111-1111-1111-111111111111',
                           auto_increment=True)
+    @async_to_sync
     async def test_create_manager(self):
         self.load_sample_structures()
 
@@ -249,6 +251,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @async_to_sync
     async def test_create_vacant_manager(self):
         self.load_sample_structures()
 
@@ -349,6 +352,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'org_unit.manager.create': 1},
         )
 
+    @async_to_sync
     async def test_edit_manager_on_unit(self):
         self.load_sample_structures()
 
@@ -470,6 +474,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
             )
 
+    @async_to_sync
     async def test_edit_manager_no_overwrite(self):
         self.load_sample_structures()
 
@@ -707,6 +712,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @async_to_sync
     async def test_edit_manager_overwrite(self):
         self.load_sample_structures()
 
@@ -962,6 +968,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @unittest.expectedFailure
+    @async_to_sync
     async def test_edit_manager_handles_adapted_zero_to_many_field(self):
         """Edits of parts of the object should handle adapted zero-to-many
         fields correctly, i.e. multiple fields sharing the same
@@ -1132,6 +1139,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
+    @async_to_sync
     async def test_read_manager_multiple_responsibilities(self):
         '''Test reading a manager with multiple responsibilities, all valid'''
         self.load_sample_structures()

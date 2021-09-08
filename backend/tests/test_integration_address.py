@@ -650,6 +650,7 @@ class Writing(tests.cases.LoRATestCase):
                 amqp_topics={'employee.address.create': 1},
             )
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_with_address(self, mock):
         self.load_sample_structures()
 
@@ -758,8 +759,7 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(
             expected,
-            mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                addr_id)
+            await c.organisationfunktion.get(addr_id)
         )
 
     @mora.async_util.async_to_sync
@@ -1071,7 +1071,8 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    def test_edit_address_user_key(self, mock):
+    @mora.async_util.async_to_sync
+    async def test_edit_address_user_key(self, mock):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
@@ -1096,7 +1097,7 @@ class Writing(tests.cases.LoRATestCase):
 
         c = lora.Connector(virkningfra='-infinity', virkningtil="infinity")
 
-        actual_reg = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
+        actual_reg = await c.organisationfunktion.get(addr_id)
         actual = sorted(
             actual_reg['attributter']['organisationfunktionegenskaber'],
             key=get_effect_from,
@@ -1139,7 +1140,8 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertEqual(actual, expected)
 
-    def test_create_address_related_to_engagement(self, mock):
+    @mora.async_util.async_to_sync
+    async def test_create_address_related_to_engagement(self, mock):
         self.load_sample_structures()
 
         engagement_uuid = 'd000591f-8705-4324-897a-075e3623f37b'
@@ -1154,8 +1156,7 @@ class Writing(tests.cases.LoRATestCase):
             json=req,
         )
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        actual_response = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=created[0])
+        actual_response = await c.organisationfunktion.get(uuid=created[0])
         actual = actual_response['relationer']['tilknyttedefunktioner']
         expected = [{'objekttype': 'engagement',
                      'uuid': engagement_uuid,

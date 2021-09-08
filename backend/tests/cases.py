@@ -315,11 +315,12 @@ class LoRATestCase(_BaseTestCase):
     instance, and deletes all objects between runs.
     '''
 
-    def load_sample_structures(self, minimal=False):
-        func = async_to_sync(load_sample_structures)
+    # TODO replace with async: ATM nested with Pytest wrappers
+    async def load_sample_structures(self, minimal=False):
+        func = load_sample_structures
         for _ in range(5):
             try:
-                return func(minimal)
+                return await func(minimal)
             except ClientOSError:
                 sleep(0.2)
                 logger.exception("retrying")

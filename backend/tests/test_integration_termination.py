@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import copy
 
 import freezegun
@@ -357,6 +358,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
+    @async_to_sync
     async def test_terminate_association_via_user(self):
         self.load_sample_structures()
 

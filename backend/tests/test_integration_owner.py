@@ -186,6 +186,7 @@ class BaseTests(OwnerOrgUnitTestCase):
 class OrgUnitCreateTests(OwnerOrgUnitTestCase):
     maxDiff = None
 
+    @mora.async_util.async_to_sync
     async def test_create_ou_non_existing(self):
         """
         need valid ou
@@ -200,6 +201,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
             create_status_code=404,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_no_owner(self):
         """
         should be possible to create vacant owner
@@ -290,6 +292,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
 class OrgUnitInheritTests(OwnerOrgUnitTestCase):
     maxDiff = None
 
+    @mora.async_util.async_to_sync
     async def test_inherit(self):
         """
         when absolutely no owner-orgfunc exists, inherit via the org hierarchy
@@ -384,7 +387,7 @@ class OwnerPersonTestCase(ConfigTestCase):
 class PersonTests(OwnerPersonTestCase):
     maxDiff = None
 
-    async def test_create_person_non_existing(self):
+    def test_create_person_non_existing(self):
         """
         need valid person
         :return:
@@ -398,7 +401,7 @@ class PersonTests(OwnerPersonTestCase):
             create_status_code=404,
         )
 
-    async def test_create_no_owner(self):
+    def test_create_no_owner(self):
         """
         it should be possible to create "vacant" owners, i.e. valid person, but simply
         no owner / vacant owner seat
@@ -413,7 +416,7 @@ class PersonTests(OwnerPersonTestCase):
             verifying_response=[],
         )
 
-    async def test_create_valid(self):
+    def test_create_valid(self):
         """
         simply set both owner and person to valid objects
         :return:
@@ -520,6 +523,7 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
                 verifying_response,
             )
 
+    @mora.async_util.async_to_sync
     async def test_create_with_engagement_priority_and_engagement(self):
         """
         should follow engagement and find owner

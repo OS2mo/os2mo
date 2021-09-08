@@ -543,6 +543,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_association_with_preexisting(self):
         """An employee cannot have more than one active association per org
         unit """
@@ -1320,6 +1321,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+    @mora.async_util.async_to_sync
     async def test_terminate_association_via_user(self):
         self.load_sample_structures()
 
@@ -1456,6 +1458,7 @@ class Tests(tests.cases.LoRATestCase):
 class AddressTests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @mora.async_util.async_to_sync
     async def test_terminate_association_directly(self):
         self.load_sample_structures()
 
@@ -1520,6 +1523,7 @@ class AddressTests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2018-01-01', tz_offset=1)
+    @mora.async_util.async_to_sync
     async def test_terminate_association_in_the_past(self):
         self.load_sample_structures()
 

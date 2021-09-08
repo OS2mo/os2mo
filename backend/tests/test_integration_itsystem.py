@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import freezegun
 
 import tests.cases
@@ -19,6 +20,7 @@ class Writing(tests.cases.LoRATestCase):
             'TZ': 'UTC',
         }
 
+    @async_to_sync
     async def test_errors(self):
         # In Postgres 10.0 the messages mentioning type names was changed. See
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
@@ -256,6 +258,7 @@ class Writing(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @async_to_sync
     async def test_create_employee_itsystem(self):
         self.load_sample_structures()
 
@@ -344,6 +347,7 @@ class Writing(tests.cases.LoRATestCase):
             amqp_topics={'employee.it.create': 1},
         )
 
+    @async_to_sync
     async def test_create_unit_itsystem(self):
         self.load_sample_structures()
 
@@ -443,6 +447,7 @@ class Writing(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2017-06-22', tz_offset=2)
+    @async_to_sync
     async def test_edit_itsystem(self):
         self.load_sample_structures()
 

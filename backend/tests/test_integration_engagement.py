@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 import freezegun
 import notsouid
 
@@ -12,6 +13,7 @@ from mora import lora
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @async_to_sync
     async def test_create_engagement(self):
         self.load_sample_structures()
 
@@ -165,6 +167,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
+    @async_to_sync
     async def test_create_engagement_from_unit(self):
         self.load_sample_structures()
 
@@ -294,6 +297,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
+    @async_to_sync
     async def test_create_engagement_no_valid_to(self):
         self.load_sample_structures()
 
@@ -423,6 +427,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
+    @async_to_sync
     async def test_create_engagement_no_job_function(self):
         self.load_sample_structures()
 
@@ -539,6 +544,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 
+    @async_to_sync
     async def test_create_engagement_fails_on_empty_payload(self):
         self.load_sample_structures()
 
@@ -562,6 +568,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @async_to_sync
     async def test_edit_engagement_fails_on_invalid_payloads(self):
         self.load_sample_structures()
 
@@ -587,6 +594,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @async_to_sync
     async def test_create_engagement_fails_on_missing_unit(self):
         self.load_sample_structures()
 
@@ -620,6 +628,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
+    @async_to_sync
     async def test_create_engagement_fails_on_missing_person(self):
         self.load_sample_structures()
 
@@ -653,6 +662,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
+    @async_to_sync
     async def test_edit_engagement_no_overwrite(self):
         self.load_sample_structures()
 
@@ -859,6 +869,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
+    @async_to_sync
     async def test_edit_engagement_overwrite(self):
         self.load_sample_structures()
 
@@ -1038,6 +1049,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
+    @async_to_sync
     async def test_terminate_engagement(self):
         self.load_sample_structures()
 

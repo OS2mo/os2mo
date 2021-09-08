@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+from backend.mora.async_util import async_to_sync
 from unittest.mock import patch
 
 import freezegun
@@ -16,6 +17,7 @@ mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @async_to_sync
     async def test_create_leave(self):
         self.load_sample_structures()
 
@@ -91,7 +93,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
-    async def test_create_leave_fails_when_no_active_engagement(self):
+    def test_create_leave_fails_when_no_active_engagement(self):
         """Should fail on validation when the employee has no
         active engagements"""
         self.load_sample_structures()
@@ -128,6 +130,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400
         )
 
+    @async_to_sync
     async def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
 
@@ -276,6 +279,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected_leave, actual_leave)
 
+    @async_to_sync
     async def test_edit_leave(self):
         self.load_sample_structures()
 
@@ -328,6 +332,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
+    @async_to_sync
     async def test_edit_leave_fails_when_no_active_engagement(self):
         self.load_sample_structures()
 
@@ -360,6 +365,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400
         )
 
+    @async_to_sync
     async def test_terminate_leave(self):
         self.load_sample_structures()
 
@@ -411,6 +417,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual([], actual)
 
+    @async_to_sync
     async def test_create_leave_missing_user(self):
         self.load_sample_structures()
 

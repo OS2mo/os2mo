@@ -15,6 +15,7 @@ from . import util
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @mora.async_util.async_to_sync
     async def test_create_employee(self):
         self.load_sample_structures()
 
@@ -139,6 +140,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={'employee.employee.create': 1},
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_like_import(self):
         '''Test creating a user that has no CPR number, but does have a
         user_key and a given UUID.
@@ -179,6 +181,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_fails_on_invalid_cpr(self):
         self.load_sample_structures()
         payload = {
@@ -202,6 +205,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_existing_cpr_existing_org(self):
         self.load_sample_structures()
 
@@ -257,6 +261,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_existing_cpr_new_org(self):
         """
         Should not be able to create employee with same CPR no,
@@ -283,6 +288,7 @@ class Tests(tests.cases.LoRATestCase):
             'error': True
         }, r.json())
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_with_details(self):
         """Test creating an employee with added details.
         Also add three names to a single name parameter and check
@@ -360,6 +366,7 @@ class Tests(tests.cases.LoRATestCase):
         )
         self.assertEqual(1, len(r.json()), 'One engagement should exist')
 
+    @mora.async_util.async_to_sync
     async def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
         self.load_sample_structures()
@@ -528,6 +535,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=400,
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_employee_overwrite(self):
         # A generic example of editing an employee
 
@@ -674,6 +682,7 @@ class Tests(tests.cases.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_employee(self):
         # A generic example of editing an employee
 
@@ -805,6 +814,7 @@ class Tests(tests.cases.LoRATestCase):
             actual['relationer']['tilknyttedepersoner']
         )
 
+    @mora.async_util.async_to_sync
     async def test_edit_remove_seniority(self):
         # A generic example of editing an employee
 
@@ -905,6 +915,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
+    @mora.async_util.async_to_sync
     async def test_edit_integration_data(self):
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'

@@ -160,7 +160,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    async def prepare_edit(self, req: dict):
+    async def aprepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
 
@@ -272,8 +272,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
             if parent_uuid is None:
-                parent_uuid = (mora.async_util.async_to_sync(
-                    org.get_configured_organisation)())["uuid"]
+                parent_uuid = (await org.get_configured_organisation())["uuid"]
 
             # only update parent if parent uuid changed
             if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
