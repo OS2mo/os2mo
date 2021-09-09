@@ -24,7 +24,7 @@
     "owner": "Owner"
   },
   "engagement": {
-    "engagement": "Engagement",
+    "engagement": "Employment",
     "addresses": "Addresses",
     "engagement_association": "@:shared.engagement_association",
     "association": "@:shared.association"
