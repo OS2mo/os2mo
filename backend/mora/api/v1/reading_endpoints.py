@@ -170,10 +170,14 @@ async def search_address(
 async def search_engagement_association(
     common: CommonQueryParams = Depends(),
     engagement: Optional[UUID] = None,
+    org_unit: Optional[UUID] = None,
 ):
     args = {"at": common.at, "validity": common.validity}
     if engagement is not None:
         args[MoOrgFunk.ENGAGEMENT.value] = engagement
+    if org_unit is not None:
+        args["tilknyttedeenheder"] = org_unit
+
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.ENGAGEMENT_ASSOCIATION,
         query_args=args,
