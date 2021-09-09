@@ -68,6 +68,7 @@ workflow:
 .lint-default: &lint-default
   <<: *manual-rules
   stage: lint
+  interruptible: true
   needs: []
   image: python:3.8
   services: []
@@ -117,6 +118,7 @@ Lint shell scripts:
 Prebuild Keycloak-realm:
   <<: *manual-rules
   stage: prebuild
+  interruptible: true
   needs: []
   image:
     name: magentaaps/os2mo-keycloak-realm-builder:2.1.0
@@ -155,6 +157,7 @@ Prebuild Keycloak-realm:
 
 Build OS2MO:
   stage: build
+  interruptible: true
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
@@ -175,6 +178,7 @@ Build OS2MO:
 Build frontend:
   <<: *manual-rules
   stage: build
+  interruptible: true
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
@@ -196,6 +200,7 @@ Build frontend:
 Build Keycloak:
   <<: *manual-rules
   stage: build
+  interruptible: true
   needs: ["Prebuild Keycloak-realm"]
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
@@ -232,6 +237,7 @@ Build Keycloak DB:
 Build docs:
   <<: *manual-rules
   image: python:3.8
+  interruptible: true
   stage: build
   needs: []
   services: []
@@ -254,6 +260,7 @@ Build docs:
 .test-default: &test-default
   <<: *manual-rules
   stage: test
+  interruptible: true
   needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
   tags:
