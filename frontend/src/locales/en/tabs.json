@@ -7,7 +7,8 @@
     "it": "IT",
     "association": "@:shared.association",
     "leave": "Leave",
-    "manager": "Manager"
+    "manager": "Manager",
+    "owner": "Owner"
   },
   "organisation": {
     "unit": "Unit",
@@ -19,7 +20,8 @@
     "roles": "Roles",
     "related": "Related",
     "managers": "Managers",
-    "kle": "KLE-tags"
+    "kle": "KLE-tags",
+    "owner": "Owner"
   },
   "engagement": {
     "engagement": "Engagement",
