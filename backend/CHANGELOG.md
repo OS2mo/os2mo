@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.3.0 - 2021-09-09
+------------------
+
+[#44120] Allow searching for engagement associations by org unit.
+
 2.2.2 - 2021-09-07
 ------------------
 
