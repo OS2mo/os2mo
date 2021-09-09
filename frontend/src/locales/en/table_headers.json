@@ -34,5 +34,8 @@
   "substitute": "@:shared.substitute",
   "first_party_association_type": "Role",
   "third_party_associated": "Affiliated",
-  "third_party_association_type": "Affiliated's role"
+  "third_party_association_type": "Affiliated's role",
+  "seniority": "@:shared.seniority",
+  "owner": "Owner",
+  "owner_inference_priority": "Inferred from"
 }
