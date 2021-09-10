@@ -50,7 +50,6 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "from": "1950-01-01 00:00:00+01"
                         },
-                        "integrationsdata": "{}"
                     }
                 ],
                 'brugerudvidelser': [
@@ -883,6 +882,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     def test_get_integration_data(self):
+        # TODO: Remove
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
         mora.async_util.async_to_sync(util.load_fixture)('organisation/bruger',
@@ -892,7 +892,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             '/service/e/{}/integration-data'.format(employee_uuid),
             {
-                'integration_data': {"von-and-løn-id": "2468"},
                 'surname': 'And',
                 'givenname': 'Andersine',
                 'name': 'Andersine And',
@@ -906,6 +905,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     def test_edit_integration_data(self):
+        # TODO: Remove
         self.load_sample_structures()
         employee_uuid = 'df55a3ad-b996-4ae0-b6ea-a3241c4cbb24'
         mora.async_util.async_to_sync(util.load_fixture)('organisation/bruger',
@@ -916,10 +916,6 @@ class Tests(tests.cases.LoRATestCase):
             "type": "employee",
             "data": {
                 "uuid": employee_uuid,
-                "integration_data": {
-                    "von-and-løn-id": "2468",
-                    "bjørnebanden-hjælper-id": "sorte-slyngel"
-                },
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",
@@ -938,10 +934,6 @@ class Tests(tests.cases.LoRATestCase):
             '/service/e/' +
             employee_uuid +
             '/integration-data?at=2016-01-01', {
-                'integration_data': {
-                    'bjørnebanden-hjælper-id': 'sorte-slyngel',
-                    'von-and-løn-id': '2468'
-                },
                 'surname': 'And',
                 'givenname': 'Andersine',
                 'name': 'Andersine And',

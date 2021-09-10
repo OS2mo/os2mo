@@ -79,9 +79,6 @@ class UnitDetails(enum.Enum):
     # same as above, but with all parents
     FULL = 3
 
-    # minimal and integration_data
-    INTEGRATION = 4
-
     # name, path and UUID
     PATH = 5
 
@@ -91,14 +88,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
     def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
-
-        integration_data = util.checked_get(
-            req,
-            mapping.INTEGRATION_DATA,
-            {},
-            required=False
-        )
-
         unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
@@ -140,7 +129,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             niveau=org_unit_level,
             opmærkning=org_unit_hierarchy,
             overordnet=parent_uuid,
-            integration_data=integration_data,
         )
 
         if org_uuid != parent_uuid:
@@ -224,11 +212,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         if mapping.NAME in data:
             changed_props['enhedsnavn'] = data[mapping.NAME]
-
-        if mapping.INTEGRATION_DATA in data:
-            changed_props['integrationsdata'] = common.stable_json_dumps(
-                data[mapping.INTEGRATION_DATA],
-            )
 
         if attributes or changed_props:
             update_fields.append((
@@ -631,8 +614,6 @@ async def get_one_orgunit(c: lora.Connector,
 
     elif details is UnitDetails.MINIMAL:
         pass  # already done
-    elif details is UnitDetails.INTEGRATION:
-        r["integration_data"] = attrs.get("integrationsdata")
     else:
         raise AssertionError('enum is {}!?'.format(details))
 

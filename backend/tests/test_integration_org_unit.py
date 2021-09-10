@@ -756,7 +756,6 @@ class Tests(tests.cases.LoRATestCase):
 
         payload = {
             "name": "Fake Corp",
-            "integration_data": {"fakekey": 42},
             "time_planning": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52",
             },
@@ -840,7 +839,6 @@ class Tests(tests.cases.LoRATestCase):
                         },
                         "brugervendtnoegle": unitid,
                         "enhedsnavn": "Fake Corp",
-                        "integrationsdata": '{"fakekey": 42}'
                     }
                 ]
             },
@@ -1598,7 +1596,6 @@ class Tests(tests.cases.LoRATestCase):
                     {
                         'brugervendtnoegle': org_unit_uuid,
                         'enhedsnavn': 'Fake Corp',
-                        'integrationsdata': '{}',
                         'virkning': {
                             'from': '2016-06-01 00:00:00+02',
                             'from_included': True,
@@ -2000,7 +1997,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
-    @unittest.expectedFailure
+    #@unittest.expectedFailure
     @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
         """ This test fails due to validity records being
@@ -2330,7 +2327,6 @@ class Tests(tests.cases.LoRATestCase):
                         },
                         "brugervendtnoegle": "hum",
                         "enhedsnavn": "Humanistisk fakultet",
-                        "integrationsdata": "{}",
                     }
                 ]
             },
@@ -3195,13 +3191,13 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     def test_get_integration_data(self):
+        # TODO: Remove
         self.load_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
         self.assertRequestResponse(
             '/service/ou/{}/integration-data'.format(org_unit_uuid),
             {
-                'integration_data': {},
                 'name': 'Humanistisk fakultet',
                 'user_key': 'hum',
                 'uuid': '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e',
@@ -3214,6 +3210,7 @@ class Tests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time('2016-01-01', tz_offset=2)
     def test_edit_integration_data(self):
+        # TODO: Remove
         self.load_sample_structures()
         org_unit_uuid = '9d07123e-47ac-4a9a-88c8-da82e3a4bc9e'
 
@@ -3221,7 +3218,6 @@ class Tests(tests.cases.LoRATestCase):
             "type": "org_unit",
             "data": {
                 "uuid": org_unit_uuid,
-                "integration_data": {"baywatchname": "Hasselhoff"},
                 "validity": {
                     "from": "2016-01-01",
                     "to": "2016-01-02",
@@ -3239,7 +3235,6 @@ class Tests(tests.cases.LoRATestCase):
         expected_organisationenhedegenskaber = [{
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{"baywatchname": "Hasselhoff"}',
             'virkning': {
                 'from': '2016-01-01 00:00:00+01',
                 'from_included': True,
@@ -3249,7 +3244,6 @@ class Tests(tests.cases.LoRATestCase):
         }, {
             'brugervendtnoegle': 'hum',
             'enhedsnavn': 'Humanistisk fakultet',
-            'integrationsdata': '{}',
             'virkning': {
                 'from': '2016-01-03 00:00:00+01',
                 'from_included': True,

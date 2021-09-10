@@ -96,7 +96,6 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
             )],
             funktionstype=association_type_uuid,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = association

@@ -287,16 +287,4 @@ class OrgFunkReadingHandler(ReadingHandler):
             mapping.VALIDITY: util.get_validity_object(start, end),
         }
 
-        if properties.get('integrationsdata') is not None:
-            try:
-                r[mapping.INTEGRATION_DATA] = json.loads(
-                    properties['integrationsdata'],
-                )
-            except json.JSONDecodeError:
-                logger.warning(
-                    'invalid integration data for function',
-                    funcid=funcid
-                )
-                r[mapping.INTEGRATION_DATA] = None
-
         return r

@@ -834,7 +834,6 @@ class Writing(tests.cases.LoRATestCase):
             '/service/ou/create',
             json={
                 "name": "Fake Corp",
-                "integration_data": {"fakekey": 42},
                 "parent": {
                     'uuid': "2874e1dc-85e6-4269-823a-e1125484dfd3"
                 },

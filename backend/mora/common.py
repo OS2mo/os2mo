@@ -348,7 +348,6 @@ def create_organisationsfunktion_payload(
     primær: typing.Optional[str] = None,
     opgaver: typing.Optional[typing.List[dict]] = None,
     adresser: typing.Optional[typing.List[dict]] = None,
-    integration_data: typing.Optional[dict] = None,
     fraktion: typing.Optional[str] = None,
     udvidelse_attributter: typing.Optional[dict] = None,
     tilknyttedepersoner: typing.Optional[typing.List[str]] = None,
@@ -378,13 +377,6 @@ def create_organisationsfunktion_payload(
             ]
         },
     }
-
-    if integration_data is not None:
-        (
-            org_funk["attributter"]["organisationfunktionegenskaber"][0][
-                "integrationsdata"
-            ]
-        ) = stable_json_dumps(integration_data)
 
     if tilknyttedebrugere:
         org_funk["relationer"]["tilknyttedebrugere"] = [
@@ -462,7 +454,6 @@ def create_organisationsenhed_payload(
     niveau: str = None,
     opmærkning: str = None,
     opgaver: typing.List[dict] = None,
-    integration_data: dict = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -496,13 +487,6 @@ def create_organisationsenhed_payload(
     if opmærkning:
         org_unit["relationer"]["opmærkning"] = [{"uuid": opmærkning}]
 
-    if integration_data is not None:
-        (
-            org_unit["attributter"]["organisationenhedegenskaber"][0][
-                "integrationsdata"
-            ]
-        ) = stable_json_dumps(integration_data)
-
     if opgaver:
         org_unit["relationer"]["opgaver"] = opgaver
 
@@ -522,7 +506,6 @@ def create_bruger_payload(
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
-    integration_data: dict = None,
 ):
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -546,11 +529,6 @@ def create_bruger_payload(
             "tilhoerer": [{"uuid": tilhoerer}],
         },
     }
-
-    if integration_data is not None:
-        (
-            user["attributter"]["brugeregenskaber"][0]["integrationsdata"]
-        ) = stable_json_dumps(integration_data)
 
     if cpr:
         user["relationer"]["tilknyttedepersoner"] = [

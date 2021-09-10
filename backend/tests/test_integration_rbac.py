@@ -91,7 +91,6 @@ class TestCommon(tests.cases.LoRATestCase):
 
         self.create_org_unit_payload = {
             "name": "Fake Corp",
-            "integration_data": {"fakekey": 42},
             "time_planning": {
                 'uuid': "ca76a441-6226-404f-88a9-31e02e420e52",
             },

@@ -119,7 +119,6 @@ class Engagement(MOBase):
     extension_8: Optional[str]
     extension_9: Optional[str]
     extension_10: Optional[str]
-    integration_data: Optional[Dict[str, str]]
 
 
 class Address(MOBase):

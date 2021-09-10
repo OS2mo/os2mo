@@ -37,7 +37,6 @@ EMPLOYEE = "employee"
 LOCATION = 'location'
 ERROR = 'error'
 USER_SETTINGS = 'user_settings'
-INTEGRATION_DATA = 'integration_data'
 PRIMARY = 'primary'
 IS_PRIMARY = 'is_primary'
 SENIORITY = 'seniority'

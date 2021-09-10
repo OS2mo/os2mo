@@ -143,6 +143,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         )
 
     def test_auth_service_integration_data(self):
+        # TODO: Remove
         self.assertRequestFails(
             '/service/ou'
             '/00000000-0000-0000-0000-000000000000/integration-data',

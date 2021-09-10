@@ -243,7 +243,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                 orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
             )] if engagement_uuid else [],
             opgaver=handler.get_lora_properties(),
-            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = func

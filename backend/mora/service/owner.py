@@ -193,7 +193,6 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedepersoner=[owner_uuid],
-            integration_data=req.get(mapping.INTEGRATION_DATA),
             udvidelse_attributter={mapping.EXTENSION_1: inference_priority.value}
             if inference_priority is not None
             else None,

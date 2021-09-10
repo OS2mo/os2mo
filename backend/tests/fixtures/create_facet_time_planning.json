@@ -3,7 +3,6 @@
         "facetegenskaber": [
             {
                 "brugervendtnoegle": "time_planning",
-                "integrationsdata": "",
                 "virkning": {
                     "from": "1900-01-01",
                     "to": "infinity"
