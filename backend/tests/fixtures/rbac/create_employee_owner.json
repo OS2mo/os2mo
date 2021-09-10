@@ -1,0 +1,34 @@
+[
+  {
+    "type": "owner",
+    "owner": {
+      "givenname": "Anders",
+      "surname": "And",
+      "name": "Anders And",
+      "nickname_givenname": "Donald",
+      "nickname_surname": "Duck",
+      "nickname": "Donald Duck",
+      "uuid": "<uuid>",
+      "seniority": "",
+      "cpr_no": "0906340000",
+      "org": {
+        "name": "Aarhus Universitet",
+        "user_key": "AU",
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+      },
+      "user_key": "andersand"
+    },
+    "person": {
+      "uuid": "<uuid>"
+    },
+    "org": {
+      "name": "Aarhus Universitet",
+      "user_key": "AU",
+      "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+    },
+    "validity": {
+      "from": "2021-08-03",
+      "to": null
+    }
+  }
+]

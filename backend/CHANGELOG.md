@@ -67,6 +67,7 @@ Optimized GitLab CI to only run the absolutely necessary tasks.
 New features
 ------------
 * #45211: Added commit shas and tags to docker images.
+* #44806: Role-bases access control (RBAC) for the employee part of the system. See notes about configuration in the documentation.
 * #44082: Role-based access control (RBAC) for the organization part of the system. The feature is enabled via an ENV variable
 * #43998: Rework docker-compose.yaml and made database-backing on confdb configurable.
 * #44744: Cleaned up tags in the OpenAPI docs endpoint (/docs)
@@ -92,8 +93,6 @@ Bug fixes
 ---------
 
 * #44674: Editing an organisation unit's start date caused the wrong start date to be used
-
-
 
 OLD CHANGELOG BELOW
 ===================

@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import asyncio
+
+from structlog import get_logger
 from typing import List
-from typing import Optional
 from typing import Set
 from uuid import UUID
 from more_itertools import flatten
@@ -11,8 +12,20 @@ from more_itertools import flatten
 from mora import common
 from mora.handler.impl.owner import OwnerReader
 import mora.service.orgunit
-from mora.mapping import OU
+
+from mora.mapping import EntityType
+from mora.mapping import OWNER
+from mora.mapping import UUID as UUID_KEY
 from mora.auth.keycloak import uuid_extractor
+
+logger = get_logger()
+
+
+async def get_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
+    logger.debug('get_owners called')
+    if entity_type == EntityType.ORG_UNIT:
+        return await get_ancestor_owners(uuid)
+    return await _get_entity_owners(uuid, EntityType.EMPLOYEE)
 
 
 async def get_ancestor_owners(uuid: UUID) -> Set[UUID]:
@@ -26,12 +39,15 @@ async def get_ancestor_owners(uuid: UUID) -> Set[UUID]:
     :return: set of owner UUIDs
     """
 
+    logger.debug('get_ancestor_owners called')
+
     ancestors_tree = await _get_ancestors(uuid)
     ancestor_uuids = uuid_extractor.get_ancestor_uuids(ancestors_tree)
 
     ancestor_owner_sublists = await asyncio.gather(
-        *map(_get_org_unit_owners, ancestor_uuids)
+        *(_get_entity_owners(uuid, EntityType.ORG_UNIT) for uuid in ancestor_uuids)
     )
+
     ancestor_owners = set(flatten(ancestor_owner_sublists))
 
     return ancestor_owners
@@ -42,7 +58,7 @@ async def _get_ancestors(uuid: UUID) -> List[dict]:
     Get org unit ancestor tree from LoRa.
 
     :param uuid: UUID of the leaf org unit in the tree
-    :return: nested ancestor org unit tree
+    :return: nested ancestor org unit tree branch (including the leaf unit)
 
     **Example return value**
 
@@ -89,17 +105,21 @@ async def _get_ancestors(uuid: UUID) -> List[dict]:
     )
 
 
-async def _get_org_unit_owners(uuid: UUID) -> List[Optional[UUID]]:
+async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
     """
-    Get the UUID of the owner of an org unit
+    Get the UUID of the owner of an entity (org unit or employee)
 
-    :param uuid: the UUID of the org unit
-    :return: list of UUIDs of the owners of the org unit
+    :param uuid: the UUID of the entity
+    :param entity_type: the type of entity (org unit or employee)
+    :return: list of UUIDs of the owners of the entity
     """
 
     # NOTE!!: Currently, there can be multiple owners (but this will change)
 
-    c = common.get_connector()
-    r = await OwnerReader.get_from_type(c, OU, uuid, changed_since=None)
+    logger.debug('_get_entity_owners called for entity type ', entity_type=entity_type)
 
-    return [UUID(item['owner']['uuid']) for item in r if item]
+    c = common.get_connector()
+    r = await OwnerReader.get_from_type(c, entity_type.value, uuid, changed_since=None)
+
+    r = filter(bool, r)
+    return {UUID(item[OWNER][UUID_KEY]) for item in r}

@@ -15,6 +15,7 @@ from mora.auth.exceptions import (
     AuthenticationError,
     AuthorizationError,
 )
+
 from mora.auth.keycloak.models import Token
 from mora import config
 
@@ -149,7 +150,7 @@ def authorization_exception_handler(
     )
 
 
-async def rbac_owner(request: Request, token: Token = Depends(auth)):
+async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth)):
     """
     Role based access control (RBAC) dependency function for the FastAPI
     endpoints that require authorization in addition to authentication. The
@@ -158,6 +159,7 @@ async def rbac_owner(request: Request, token: Token = Depends(auth)):
     not enabled the function will just return immediately.
 
     :param request: the incoming FastAPI request.
+    :param admin_only:  if true, the endpoint can only be called by the admin role
     :param token: selected JSON values from the Keycloak token
     """
 
@@ -167,4 +169,12 @@ async def rbac_owner(request: Request, token: Token = Depends(auth)):
     # This special import structure is currently required to avoid circular
     # import problems in the Python code
     from mora.auth.keycloak.rbac import _rbac
-    return await _rbac(token, request, False)
+    return await _rbac(token, request, admin_only)
+
+
+async def rbac_admin(request: Request, token: Token = Depends(auth)):
+    return await rbac(request, True, token)
+
+
+async def rbac_owner(request: Request, token: Token = Depends(auth)):
+    return await rbac(request, False, token)

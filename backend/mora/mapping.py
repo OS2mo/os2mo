@@ -57,6 +57,7 @@ KLE_NUMBER = 'kle_number'
 
 # Employee
 CPR_NO = 'cpr_no'
+E = 'e'
 
 # Engagement
 ENGAGEMENT_KEY = 'Engagement'
@@ -124,6 +125,11 @@ OWNER_INFERENCE_PRIORITY = 'owner_inference_priority'
 
 # Auth
 ADMIN = 'admin'
+
+
+class EntityType(enum.Enum):
+    EMPLOYEE = E
+    ORG_UNIT = OU
 
 
 class OwnerInferencePriority(enum.Enum):

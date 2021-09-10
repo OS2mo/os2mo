@@ -1,0 +1,34 @@
+[
+  {
+    "type": "address",
+    "org": {
+      "name": "Aarhus Universitet",
+      "user_key": "AU",
+      "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+    },
+    "person": {
+      "uuid": "<uuid>"
+    },
+    "visibility": {
+      "uuid": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
+      "name": "Må vises ekternt",
+      "user_key": "pPublic",
+      "example": null,
+      "scope": null,
+      "owner": null
+    },
+    "address_type": {
+      "uuid": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
+      "name": "Telefon",
+      "user_key": "BrugerTelefon",
+      "example": "20304060",
+      "scope": "PHONE",
+      "owner": null
+    },
+    "value": "12345678",
+    "validity": {
+      "from": "2021-08-04",
+      "to": null
+    }
+  }
+]

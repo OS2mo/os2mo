@@ -1,0 +1,127 @@
+{
+            "person": {
+                "givenname": "Erik Smidt",
+                "surname": "Hansen",
+                "name": "Erik Smidt Hansen",
+                "nickname_givenname": "",
+                "nickname_surname": "",
+                "nickname": "",
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "seniority": "",
+                "cpr_no": "0910810000",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+                },
+                "user_key": "eriksmidthansen"
+            },
+            "type": "leave",
+            "validity": {
+                "from": "2021-08-20",
+                "to": null
+            },
+            "leave_type": {
+                "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                "name": "Barselsorlov",
+                "user_key": "barselsorlov",
+                "example": null,
+                "scope": null,
+                "owner": null
+            },
+            "engagement": {
+                "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                "user_key": "bvn",
+                "validity": {
+                    "from": "2005-12-01",
+                  "to": null
+                },
+                "person": {
+                    "givenname": "Erik Smidt",
+                    "surname": "Hansen",
+                    "name": "Erik Smidt Hansen",
+                    "nickname_givenname": "",
+                    "nickname_surname": "",
+                    "nickname": "",
+                    "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                    "seniority": ""
+                },
+                "org_unit": {
+                    "name": "Humanistisk fakultet",
+                    "user_key": "hum",
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {
+                        "from": "2016-01-01",
+                        "to": null
+                    }
+                },
+                "job_function": {
+                    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                    "name": "Fakultet",
+                    "user_key": "fak",
+                    "example": null,
+                    "scope": null,
+                    "owner": null,
+                    "full_name": "Fakultet",
+                    "top_level_facet": {
+                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                        "user_key": "org_unit_type",
+                        "description": ""
+                    }, "facet": {
+                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                        "user_key": "org_unit_type",
+                        "description": ""
+                    }
+                },
+                "engagement_type": {
+                    "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
+                    "name": "Ansat",
+                    "user_key": "ansat",
+                    "example": null,
+                    "scope": null,
+                    "owner": null,
+                    "full_name": "Ansat",
+                    "top_level_facet": {
+                        "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                        "user_key": "engagement_type",
+                        "description": ""
+                    },
+                    "facet": {
+                        "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
+                              "user_key": "engagement_type",
+                              "description": ""
+                    }
+                },
+                "primary": {
+                    "uuid": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+                    "name": "Sekundær",
+                    "user_key": "sekundær",
+                    "example": null,
+                    "scope": "10",
+                    "owner": null,
+                    "full_name": "Sekundær",
+                    "top_level_facet": {
+                        "uuid": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",
+                        "user_key": "primary_type",
+                        "description": ""
+                    },
+                    "facet": {
+                        "uuid": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",
+                              "user_key": "primary_type",
+                        "description": ""
+                    }
+                },
+                "is_primary": null,
+                "fraction": null,
+                "extension_1": null,
+                "extension_2": null,
+                "extension_3": null,
+                "extension_4": null,
+                "extension_5": null,
+                "extension_6": null,
+                "extension_7": null,
+                "extension_8": null,
+                "extension_9": null,
+                "extension_10": null
+            }
+        }

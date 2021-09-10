@@ -1,0 +1,169 @@
+{
+  "type": "manager",
+  "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+  "data": {
+    "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+    "user_key": "be736ee5-5c44-4ed9-b4a4-15ffa19e2848",
+    "validity": {
+      "from": "2021-08-25",
+      "to": null
+    },
+    "responsibility": [
+      {
+        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        "name": "Fakultet",
+        "user_key": "fak",
+        "example": null,
+        "scope": null,
+        "owner": null
+      }
+    ],
+    "org_unit": {
+      "name": "Humanistisk fakultet",
+      "user_key": "hum",
+      "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+      "location": "Overordnet Enhed",
+      "user_settings": {
+        "orgunit": {
+          "show_roles": true,
+          "show_kle": false,
+          "show_user_key": true,
+          "show_location": true,
+          "show_time_planning": false,
+          "show_level": true,
+          "show_primary_engagement": false,
+          "show_primary_association": false,
+          "show_org_unit_button": false,
+          "inherit_manager": true,
+          "association_dynamic_facets": "",
+          "substitute_roles": "",
+          "show_cpr_no": true,
+          "show_user_key_in_search": false,
+          "extension_field_ui_labels": "",
+          "show_engagement_hyperlink": false,
+          "show_seniority": false,
+          "show_owner": false
+        }
+      },
+      "parent": {
+        "name": "Overordnet Enhed",
+        "user_key": "root",
+        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "location": "",
+        "user_settings": {
+          "orgunit": {
+            "show_roles": true,
+            "show_kle": false,
+            "show_user_key": true,
+            "show_location": true,
+            "show_time_planning": false,
+            "show_level": true,
+            "show_primary_engagement": false,
+            "show_primary_association": false,
+            "show_org_unit_button": false,
+            "inherit_manager": true,
+            "association_dynamic_facets": "",
+            "substitute_roles": "",
+            "show_cpr_no": true,
+            "show_user_key_in_search": false,
+            "extension_field_ui_labels": "",
+            "show_engagement_hyperlink": false,
+            "show_seniority": false,
+            "show_owner": false
+          }
+        },
+        "parent": null,
+        "org": {
+          "name": "Aarhus Universitet",
+          "user_key": "AU",
+          "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+        },
+        "org_unit_type": {
+          "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+          "name": "Afdeling",
+          "user_key": "afd",
+          "example": null,
+          "scope": null,
+          "owner": null,
+          "full_name": "Afdeling",
+          "top_level_facet": {
+            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+            "user_key": "org_unit_type",
+            "description": ""
+          },
+          "facet": {
+            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+            "user_key": "org_unit_type",
+            "description": ""
+          }
+        },
+        "time_planning": null,
+        "org_unit_level": null,
+        "validity": {
+          "from": "2016-01-01",
+          "to": null
+        }
+      },
+      "org": {
+        "name": "Aarhus Universitet",
+        "user_key": "AU",
+        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"
+      },
+      "org_unit_type": {
+        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+        "name": "Institut",
+        "user_key": "inst",
+        "example": null,
+        "scope": null,
+        "owner": null,
+        "full_name": "Institut",
+        "top_level_facet": {
+          "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+          "user_key": "org_unit_type",
+          "description": ""
+        },
+        "facet": {
+          "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+          "user_key": "org_unit_type",
+          "description": ""
+        }
+      },
+      "time_planning": null,
+      "org_unit_level": null,
+      "validity": {
+        "from": "2016-01-01",
+        "to": null
+      }
+    },
+    "person": {
+      "givenname": "Anders",
+      "surname": "And",
+      "name": "Anders And",
+      "nickname_givenname": "Donald",
+      "nickname_surname": "Duck",
+      "nickname": "Donald Duck",
+      "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+      "seniority": ""
+    },
+    "manager_type": {
+      "uuid": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+      "name": "Direktør",
+      "user_key": "Direktør",
+      "example": null,
+      "scope": null,
+      "owner": null
+    },
+    "manager_level": {
+      "uuid": "991915c0-f4f4-4337-95fa-dbeb9da13247",
+      "name": "Niveau 3",
+      "user_key": "Niveau3",
+      "example": null,
+      "scope": null,
+      "owner": null
+    },
+    "type": "manager"
+  },
+  "person": {
+    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+  }
+}
