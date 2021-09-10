@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import abc
-import json
 from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
