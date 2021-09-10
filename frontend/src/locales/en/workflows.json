@@ -3,7 +3,7 @@
     "new_employee": "New employee",
     "leave": "Leave",
     "move_engagement": "Move employment",
-    "move_many_engagements": "Move many employments",
+    "move_many_engagements": "Move many employees",
     "terminate_employee": "Disable employee",
     "labels": {
       "address": "@:shared.address",

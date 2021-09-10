@@ -36,7 +36,7 @@
   "start_date": "@:shared.date.start_date",
   "super_unit": "Parent unit",
   "unit": "@:shared.unit",
-  "choose_organisation": "Choose organisation",
+  "choose_organisation": "Choose organization",
   "manager_address_type": "@:shared.address_type",
   "org_unit_address_type": "@:shared.address_type",
   "org_unit_level": "@:shared.org_unit_level",
