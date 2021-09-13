@@ -1053,7 +1053,6 @@ def get_details_from_query_args(args):
         'nchildren': UnitDetails.NCHILDREN,
         'self': UnitDetails.SELF,
         'full': UnitDetails.FULL,
-        'integration': UnitDetails.INTEGRATION,
         'path': UnitDetails.PATH,
     }
 
