@@ -49,9 +49,9 @@ def split_name(name: str) -> Tuple[str, str]:
 def validate_names(
     values: DictStrAny, name_key: str, givenname_key: str, surname_key: str
 ) -> Dict:
-    if name_key in values:
+    if values.get(name_key) is not None:
         # Both name and given/surname are given erroneously
-        if any([givenname_key in values, surname_key in values]):
+        if values.get(givenname_key) is not None or values.get(surname_key) is not None:
             raise ValueError(
                 f"{name_key} and {givenname_key}/{surname_key} are mutually exclusive"
             )

@@ -97,6 +97,8 @@ class TestEmployee:
     def test_name_validations(self, invalid_dict):
         with pytest.raises(ValidationError, match="mutually exclusive"):
             Employee(**invalid_dict)
+        invalid_dict["name"] = None
+        assert Employee(**invalid_dict)
 
     @given(employee_strat(), not_from_regex(r"^employee$"))
     def test_invalid_type(self, model_dict, invalid_type):
