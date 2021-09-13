@@ -1997,13 +1997,8 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertEqual(expected, actual)
 
-    # @unittest.expectedFailure
     @freezegun.freeze_time('2016-01-01')
     def test_rename_org_unit_early(self):
-        """ This test fails due to validity records being
-            fractioned in lora due to integration_data added
-            the results are not wrong, just fractioned (#25200)
-        """
         # Test that we can rename a unit to a date *earlier* than its
         # creation date. We are expanding the validity times on the
         # object, so we insert a separate copy as to not 'taint' the
@@ -2044,6 +2039,7 @@ class Tests(tests.cases.LoRATestCase):
             '/service/ou/{}/details/org_unit'.format(org_unit_uuid),
             [{
                 'name': 'Whatever',
+                'location': 'Overordnet Enhed',
                 'org': {
                     'name': 'Aarhus Universitet',
                     'user_key': 'AU',
@@ -2061,9 +2057,31 @@ class Tests(tests.cases.LoRATestCase):
                     'user_key': 'fak',
                     'uuid': '4311e351-6a3c-4e7e-ae60-8a3b2938fbd6',
                 },
+                'org_unit_level': None,
                 'parent': {
                     'name': 'Overordnet Enhed',
+                    'location': '',
+                    'org': {
+                        'name': 'Aarhus Universitet',
+                        'user_key': 'AU',
+                        'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
+                    },
+                    'timeplanning': None,
+                    'org_unit_type': {
+                        'example': None,
+                        "facet": org_unit_type_facet,
+                        'full_name': 'Afdeling',
+                        'name': 'Afdeling',
+                        "owner": None,
+                        'scope': None,
+                        "top_level_facet": org_unit_type_facet,
+                        'user_key': 'afd',
+                        'uuid': '32547559-cfc1-4d97-94c6-70b192eff825',
+                    },
+                    'org_unit_level': None,
+                    'parent': None,
                     'user_key': 'root',
+                    'user_settings': {'orgunit': {}},
                     'uuid': '2874e1dc-85e6-4269-823a-e1125484dfd3',
                     'validity': {
                         'from': '2016-01-01',
@@ -2071,6 +2089,7 @@ class Tests(tests.cases.LoRATestCase):
                     },
                 },
                 'user_key': 'samf',
+                'user_settings': {'orgunit': {}},
                 'uuid': org_unit_uuid,
                 'validity': {
                     'from': '2016-01-01', 'to': None,
