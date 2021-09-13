@@ -2066,7 +2066,7 @@ class Tests(tests.cases.LoRATestCase):
                         'user_key': 'AU',
                         'uuid': '456362c4-0ee4-4e5e-a72c-751239745e62',
                     },
-                    'timeplanning': None,
+                    'time_planning': None,
                     'org_unit_type': {
                         'example': None,
                         "facet": org_unit_type_facet,
