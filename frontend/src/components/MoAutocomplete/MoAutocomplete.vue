@@ -63,6 +63,7 @@ SPDX-License-Identifier: MPL-2.0
   </autocomplete>
 </template>
 
+// autocomplete.trevoyere, is made into a reusable component, named MoAutocomplete 
 <script>
 import Autocomplete from '@trevoreyre/autocomplete-vue'
 import '@trevoreyre/autocomplete-vue/dist/style.css'
@@ -70,6 +71,7 @@ import '@trevoreyre/autocomplete-vue/dist/style.css'
 export default {
   name: 'MoAutocomplete',
 
+// the lib is assigned to the MoAutocomplete component
   components: {
     Autocomplete,
   },
