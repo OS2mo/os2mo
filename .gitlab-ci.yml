@@ -119,7 +119,7 @@ Prebuild Keycloak-realm:
   stage: prebuild
   needs: []
   image:
-    name: magentaaps/os2mo-keycloak-realm-builder:1.1.1
+    name: magentaaps/os2mo-keycloak-realm-builder:2.1.0
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none # We do not need the source code
