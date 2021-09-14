@@ -290,6 +290,9 @@ Build docs:
     KEYCLOAK_SCHEMA: "http"
     KEYCLOAK_PORT: 8080
     KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    AUTH_REALM: "lora"
+    AUTH_SERVER: "http://keycloak:8080/auth"
+    CLIENT_SECRET: "158a2075-aa8a-421c-94a4-2df35377014a"
     KEYCLOAK_VERIFY_AUDIENCE: "false"
     CONF_DB_HOST: "mox-db"
     CONF_DB_PORT: "5432"

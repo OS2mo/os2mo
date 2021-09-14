@@ -128,7 +128,7 @@ class _BaseTestCase(TestCase):
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
             kwargs.setdefault('headers', dict()).update(
-                {'Authorization': 'bearer ' + self.get_token()}
+                {'Authorization': 'Bearer ' + self.get_token()}
             )
 
         r = self.request(path, **kwargs)

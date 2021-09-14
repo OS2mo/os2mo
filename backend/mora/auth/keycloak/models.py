@@ -13,7 +13,7 @@ from mora import config
 
 class KeycloakToken(BaseToken):
 
-    @root_validator
+    @root_validator(allow_reuse=True)
     def uuid_attribute_required_for_mo_client(
         cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:

@@ -61,6 +61,9 @@ services:
       GRAPHQL_ENABLE: "true"
 
       LORA_URL: "http://mox/"
+      AUTH_REALM: "lora"
+      AUTH_SERVER: "http://keycloak:8080/auth"
+      CLIENT_SECRET: "158a2075-aa8a-421c-94a4-2df35377014a"
 
       OS2MO_LOG_LEVEL: "DEBUG"
 
@@ -91,7 +94,7 @@ services:
       start_period: 300s
 
   mox:
-    image: magentaaps/lora:1.13.0
+    image: magentaaps/lora:dev
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
@@ -100,6 +103,9 @@ services:
       DB_HOST: mox-db
       DB_PASSWORD: mox
       DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
+
+      KEYCLOAK_SCHEMA: "http"
+      KEYCLOAK_VERIFY_AUDIENCE: "false"
 
       MAX_WORKERS: "1"
       TESTING_API: "true"
@@ -228,6 +234,8 @@ services:
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5001/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5001"]'
+      KEYCLOAK_LORA_REALM_ENABLED: "true"
+      KEYCLOAK_LORA_CLIENT_SECRET: "158a2075-aa8a-421c-94a4-2df35377014a"
       KEYCLOAK_RBAC_ENABLED: "true"
       KEYCLOAK_REALM_USERS: '[
         {

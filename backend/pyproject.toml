@@ -46,6 +46,7 @@ prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometh
 pydantic = {extras = ["email"], version = "^1.7.3"}
 ramodels = "^2.1.1"
 strawberry-graphql = {extras = ["asgi"], version = "^0.77.10"}
+ra-utils = "0.4.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

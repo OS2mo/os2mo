@@ -86,6 +86,31 @@ class Settings(BaseSettings):
                 )
         return values
 
+    # LoRa auth - if true, MO sends Keycloak tokens in requests to LoRa
+    lora_auth: bool = True
+    auth_realm: Optional[str]
+    auth_server: Optional[AnyHttpUrl]
+    client_secret: Optional[UUID]
+
+    @root_validator
+    def realm_and_client_secret_must_be_set_when_lora_auth_enabled(
+            cls, values: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        if values['lora_auth']:
+            missing_vars = set()
+            if not values['auth_realm']:
+                missing_vars.add('AUTH_REALM')
+            if not values['auth_server']:
+                missing_vars.add('AUTH_SERVER')
+            if not values['client_secret']:
+                missing_vars.add('CLIENT_SECRET')
+            if missing_vars:
+                raise ValueError(
+                    "The following ENV(s) must be set when LoRa auth is "
+                    "enabled: " + ", ".join(missing_vars)
+                )
+        return values
+
     # ConfDB database settings
     # Use configuration DB for get_configuration endpoint
     conf_db_use: bool = False
