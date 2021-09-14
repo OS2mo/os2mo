@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import datetime
 from copy import deepcopy
 from unittest.mock import patch
 from uuid import UUID
 
 import freezegun
-from hypothesis import HealthCheck
 from hypothesis import given
+from hypothesis import HealthCheck
 from hypothesis import settings
 from hypothesis import strategies as st
 from mora.api.v1.reading_endpoints import _extract_search_params
@@ -48,7 +48,10 @@ class Reading(TestCase):
                 self.assertEqual(return_value, resp)
                 mock.assert_called_once_with(
                     orgfunk_type=orgfunk,
-                    query_args={"validity": "present", "at": "2017-01-01"},
+                    query_args={
+                        "validity": "present",
+                        "at": datetime.date(2017, 1, 1),
+                    },
                     changed_since=None,
                 )
 
@@ -72,7 +75,7 @@ class Reading(TestCase):
                     orgfunk_type=orgfunk,
                     query_args={
                         "validity": "present",
-                        "at": "2017-01-01",
+                        "at": datetime.date(2017, 1, 1),
                         "uuid": [
                             UUID("2f16d140-d743-4c9f-9e0e-361da91a06f6"),
                             UUID("3e702dd1-4103-4116-bb2d-b150aebe807d"),

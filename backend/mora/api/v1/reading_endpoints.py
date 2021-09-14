@@ -90,7 +90,7 @@ async def _query_orgfunk(
 async def orgfunk_endpoint(
     orgfunk_type: MoOrgFunk,
     query_args: Dict[str, Any],
-    changed_since: Optional[Union[datetime, date]] = None,
+    changed_since: Optional[Union[date, datetime]] = None,
 ) -> Dict[str, Any]:
     c = get_connector()
     search_params = _extract_search_params(query_args=query_args)
@@ -105,7 +105,9 @@ async def orgfunk_endpoint(
 class CommonQueryParams:
     def __init__(
         self,
-        at: Optional[Any] = None,
+        at: Optional[Union[date, datetime]] = Query(
+            None, description="ISO 8601-compatible date or datetime."
+        ),
         validity: Optional[str] = Query(
             None,
             description=(
@@ -114,13 +116,13 @@ class CommonQueryParams:
                 "ISO 8601-formatted string or the values {`-infinity`, `infinity`}."
             ),
             examples={
-                "past": {
-                    "summary": "Previously valid elements",
-                    "value": "past",
-                },
                 "present": {
                     "summary": "Current valid elements",
                     "value": "present",
+                },
+                "past": {
+                    "summary": "Previously valid elements",
+                    "value": "past",
                 },
                 "future": {
                     "summary": "Future valid elements",
@@ -136,7 +138,7 @@ class CommonQueryParams:
                 },
             },
         ),
-        changed_since: Optional[Union[datetime, date]] = None,
+        changed_since: Optional[Union[date, datetime]] = None,
     ):
         self.at = at
         self.validity = validity
@@ -269,8 +271,8 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
 
     async def get_orgfunk_by_uuid(
         uuid: List[UUID] = Query(...),
-        at: Optional[Any] = None,
-        validity: Optional[Any] = None,
+        at: Optional[Union[date, datetime]] = None,
+        validity: Optional[str] = None,
         only_primary_uuid: Optional[bool] = None,
     ):
         args = {
