@@ -119,7 +119,7 @@ Prebuild Keycloak-realm:
   stage: prebuild
   needs: []
   image:
-    name: magentaaps/os2mo-keycloak-realm-builder:1.1.1
+    name: magentaaps/os2mo-keycloak-realm-builder:2.1.0
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -290,6 +290,7 @@ Build docs:
     KEYCLOAK_SCHEMA: "http"
     KEYCLOAK_PORT: 8080
     KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
     CONF_DB_HOST: "mox-db"
     CONF_DB_PORT: "5432"
     AMQP_ENABLE: "false"

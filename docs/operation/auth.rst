@@ -317,14 +317,14 @@ of the user, i.e. the decoded token will contain e.g. these attributes:
 
 .. code-block:: json
 
-  {
-    "realm_access": {
-      "roles": [
-        "owner"
-      ]
-    },
-    "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
-  }
+    {
+      "realm_access": {
+        "roles": [
+          "owner"
+        ]
+      },
+      "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+    }
 
 OS2mo will then (in this example) grant access according the owner priviledges
 in the system.

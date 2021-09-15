@@ -12,6 +12,8 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
+from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
+from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.tracing import setup_instrumentation, setup_logging
 from structlog import get_logger
 from structlog.processors import JSONRenderer
@@ -19,16 +21,10 @@ from structlog.contextvars import merge_contextvars
 from more_itertools import only
 
 from mora import __version__, health, log, config
-from mora.auth.exceptions import (
-    AuthenticationError,
-    AuthorizationError
-)
+from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.router import keycloak_router
-from mora.auth.keycloak.oidc import (
-    authentication_exception_handler,
-    authorization_exception_handler
-)
+from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -256,7 +252,7 @@ def create_app():
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(
         AuthenticationError,
-        authentication_exception_handler
+        get_auth_exception_handler(logger)
     )
     app.add_exception_handler(
         AuthorizationError,

@@ -2,18 +2,20 @@
 # SPDX-License-Identifier: MPL-2.0
 import unittest.mock
 
-import fastapi.routing
-from pydantic.error_wrappers import (
-    ErrorWrapper,
-    ValidationError
-)
-from pydantic.errors import MissingError
+from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
+from pydantic import ValidationError, MissingError
+from pydantic.error_wrappers import ErrorWrapper
 from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_200_OK
 )
+from os2mo_fastapi_utils.auth.test_helper import (
+    ensure_endpoints_depend_on_oidc_auth_function,
+    ensure_no_auth_endpoints_do_not_depend_on_auth_function,
+)
 
 from mora import main
+from mora.auth.keycloak.models import KeycloakToken
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 import tests.cases
@@ -21,7 +23,7 @@ from mora.config import Settings
 from tests import util
 
 
-class TestServiceAuth(unittest.TestCase):
+class TestEndpointAuthDependency(unittest.TestCase):
     """
     Test that OIDC auth is enabled on all endpoints except from those
     specified in an explicit exclude list (see the NO_AUTH_ENDPOINTS below)
@@ -30,65 +32,42 @@ class TestServiceAuth(unittest.TestCase):
     # No fancy logic (for security reasons) to set the excluded endpoints -
     # all excluded endpoints must be explicitly specified in the list
 
-    NO_AUTH_ENDPOINTS = (
-        '/health/amqp',
-        '/health/oio_rest',
-        '/health/configuration_database',
-        '/health/dataset',
-        '/health/dar',
-        '/health/',
-        '/version/',
-        '/forespoergsler/',
-        '/organisationssammenkobling/',
-        '/medarbejder/{path:path}',
-        '/medarbejder/',
-        '/organisation/{path:path}',
-        '/organisation/',
-        '/',
-        '/favicon.ico',
-        '/service/keycloak.json',
-        '/service/token',
-        '/service/{rest_of_path:path}',
-        '/testing/testcafe-db-setup',
-        '/testing/testcafe-db-teardown',
-        '/metrics'
-    )
-
-    @staticmethod
-    def lookup_auth_dependency(route):
-        # Check if auth dependency exists
-        return any(d.dependency == auth for d in route.dependencies)
+    def setUp(self) -> None:
+        self.no_auth_endpoints = (
+            '/health/amqp',
+            '/health/oio_rest',
+            '/health/configuration_database',
+            '/health/dataset',
+            '/health/dar',
+            '/health/',
+            '/version/',
+            '/forespoergsler/',
+            '/organisationssammenkobling/',
+            '/medarbejder/{path:path}',
+            '/medarbejder/',
+            '/organisation/{path:path}',
+            '/organisation/',
+            '/',
+            '/favicon.ico',
+            '/service/keycloak.json',
+            '/service/token',
+            '/service/{rest_of_path:path}',
+            '/testing/testcafe-db-setup',
+            '/testing/testcafe-db-teardown',
+            '/metrics'
+        )
+        self.all_routes = main.app.routes
+        self.auth_coroutine = auth
 
     def test_ensure_endpoints_depend_on_oidc_auth_function(self):
-        # A little risky since we should avoid "logic" in the test code!
-        # (so direct auth "requests" tests added in class below)
-
-        # Loop through all FastAPI routes (except the ones from the above
-        # exclude list) and make sure they depend (via fastapi.Depends) on the
-        # auth function in the mora.auth.keycloak.oidc sub-module.
-
-        # Skip the starlette.routing.Route's (defined by the framework)
-        routes = filter(
-            lambda route: isinstance(route, fastapi.routing.APIRoute),
-            main.app.routes
+        ensure_endpoints_depend_on_oidc_auth_function(
+            self.all_routes, self.no_auth_endpoints, self.auth_coroutine
         )
-        # Only check endpoints not in the NO_AUTH_ENDPOINTS list
-        routes = filter(
-            lambda route: route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS,
-            routes
-        )
-        for route in routes:
-            has_auth = TestServiceAuth.lookup_auth_dependency(route)
-            assert has_auth, f"Route not protected: {route.path}"
 
     def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(self):
-        no_auth_routes = filter(
-            lambda route: route.path in TestServiceAuth.NO_AUTH_ENDPOINTS,
-            main.app.routes
+        ensure_no_auth_endpoints_do_not_depend_on_auth_function(
+            self.all_routes, self.no_auth_endpoints, self.auth_coroutine
         )
-        for route in no_auth_routes:
-            has_auth = TestServiceAuth.lookup_auth_dependency(route)
-            assert not has_auth, f"Route protected: {route.path}"
 
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
@@ -96,7 +75,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
     def setUp(self):
         super().setUp()
         # Enable the real OIDC auth function
-        self.app.dependency_overrides = []
+        self.app.dependency_overrides = dict()
 
     def test_auth_service_address(self):
         self.assertRequestFails(
@@ -208,7 +187,7 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         super().setUp()
         # Enable the real Keycloak auth mechanism in order to perform Keycloak
         # integration tests
-        self.app.dependency_overrides = []
+        self.app.dependency_overrides = dict()
 
     def test_auth_service_org(self):
         self.load_sample_structures(minimal=True)
@@ -238,20 +217,38 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         )
 
 
+class TestTokenModel(tests.cases.LoRATestCase):
+
+    @util.override_config(
+        Settings(keycloak_rbac_enabled=True, confdb_show_owner=True)
+    )
+    def test_uuid_required_if_client_is_mo(self):
+        with self.assertRaises(ValidationError) as err:
+            KeycloakToken(azp='mo')
+        errors = err.exception.errors()[0]
+
+        self.assertEqual(
+            'The uuid user attribute is missing in the token',
+            errors['msg']
+        )
+        self.assertEqual('value_error', errors['type'])
+
+
 class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.load_sample_structures()
-        self.app.dependency_overrides = []
+    @unittest.mock.patch('mora.auth.keycloak.oidc.auth')
+    def test_401_when_uuid_missing_in_token(self, mock_auth):
+        self.load_sample_structures(minimal=True)
 
-    @unittest.mock.patch('mora.auth.keycloak.oidc.Token.parse_obj')
-    def test_401_when_uuid_missing_in_token(self, mock_parse_obj):
-        err = ValidationError(
+        validation_err = ValidationError(
             errors=[ErrorWrapper(MissingError(), loc='uuid')],
             model=Token
         )
-        mock_parse_obj.side_effect = err
+
+        def fake_auth():
+            raise AuthenticationError(exc=validation_err)
+
+        self.app.dependency_overrides[auth] = fake_auth
 
         # Make call to random endpoint
         r = self.assertRequest(
@@ -262,17 +259,14 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
         self.assertEqual(
             {
                 'status': 'Unauthorized',
-                'msg': str(err)
+                'msg': str(validation_err)
             },
             r
         )
 
 
 # TODO: Find a way to test that endpoints works when auth is disabled
-@unittest.skip(
-    'Fails since we cannot override "os2mo_auth" in the test due to the fact'
-    'that the Token model is loaded at import time in the oidc.py'
-)
+@unittest.skip('Not working...(?)')
 class TestAuthDisabled(tests.cases.LoRATestCase):
 
     def setUp(self) -> None:
