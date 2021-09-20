@@ -252,16 +252,12 @@ Build docs:
     # officially released in any Gitlab runner. It should hopefully be released
     # with 12.6 on 2019-12-22.
     FF_NETWORK_PER_BUILD: 1
+    # for mox-db
+    POSTGRES_PASSWORD: postgres
     # for postgres-os2mo service
     DB_NAME: mox
     DB_USER: mox
     DB_PASSWORD: mox
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-    SESSIONS_DB_NAME: sessions
-    SESSIONS_DB_USER: sessions
-    SESSIONS_DB_PASSWORD: sessions
     # for mox service
     MAX_WORKERS: "1"
     TESTING_API: "true"
@@ -321,8 +317,10 @@ Integration-test:
   image:
     name: ${IMAGE_SHA}
   services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
+    - name: postgres:11
       alias: mox-db
+    - name: magentaaps/postgres-os2mo:12.2-11.7-test
+      alias: mox-db-init
     - name: magentaaps/lora:1.13.1
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
@@ -375,9 +373,11 @@ e2e-test:
     name: magentalabs/testcafe:latest
     entrypoint: ["/bin/sh", "-c"]
   services:
-    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+    - name: postgres:11
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/postgres-os2mo:12.2-11.7-test
+      alias: mox-db-init
+    - name: magentaaps/lora:1.13.1
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo
