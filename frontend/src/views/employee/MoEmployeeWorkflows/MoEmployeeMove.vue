@@ -159,7 +159,7 @@ export default {
   methods: {
     /**
      * Move a employee and check if the data fields are valid.
-     * Then throw a error if not.
+     * Then throw an error if not.
      */
     moveEmployee (evt) {
       evt.preventDefault()

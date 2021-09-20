@@ -44,7 +44,7 @@ import sortBy from 'lodash.sortby'
 import Search from '@/api/Search'
 //import VAutocomplete from 'v-autocomplete'
 //import 'v-autocomplete/dist/v-autocomplete.css'
-//import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
 
 export default {
   name: 'MoEmployeePicker',
@@ -58,6 +58,8 @@ export default {
 
   /**
    * Validator scope, sharing all errors and validation state.
+   * is from VeeValidate, a Template Based Validation Framework for Vue.js
+   * https://vee-validate.logaretm.com/v2/ 
    */
   inject: {
     $validator: '$validator'
@@ -94,7 +96,7 @@ export default {
     }
   },
 
- /*  computed: {
+  computed: {
     orderedListOptions () {
       return sortBy(this.items, 'name')
     },
@@ -108,13 +110,13 @@ export default {
       }
       return validations
     }
-  }, */
+  },
 
   watch: {
-    /* item (newVal) {
+   item (newVal) {
       this.$validator.validate('employee-picker')
       this.$emit('input', newVal)
-    } */
+    } 
   },
 
   methods: {
@@ -126,9 +128,12 @@ export default {
     },
 
     /**
+     * updateItems() is the old VAutocomplete implementation
      * Update employees suggestions based on search query.
+     * This function is used to update the list of employees 
+     * based on the input/query the user types into the input-field
      */
-/*     updateItems (query) {
+    /* updateItems (query) {
       let vm = this
       let org = this.$store.state.organisation
       Search.employees(org.uuid, query)
