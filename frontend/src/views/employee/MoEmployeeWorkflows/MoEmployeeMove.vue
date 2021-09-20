@@ -119,10 +119,16 @@ export default {
      */
     dateConflict () {
       if (this.from && this.original) {
-        if (this.original.validity.to == null) return true
+        if (this.original.validity.to == null) 
+        {
+          return true
+        }
         const newFrom = new Date(this.from)
         const originalTo = new Date(this.original.validity.to)
-        if (newFrom <= originalTo) return true
+        if (newFrom <= originalTo)
+        {
+          return true
+        }
       }
       return false
     },
