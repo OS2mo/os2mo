@@ -97,8 +97,28 @@ services:
       retries: 3
       start_period: 300s
 
+  mo-init:
+    image: magentaaps/os2mo-init:0.1.0
+    environment:
+      AUTH_SERVER: "http://keycloak:8080/auth"
+      MO_URL: "http://mo"
+      CLIENT_ID: "dipex"
+      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      AUTH_REALM: "mo"
+      LORA_URL: "http://mox"
+      LORA_CLIENT_ID: "dipex"
+      LORA_CLIENT_SECRET: "a091ed82-6e82-4efc-a8f0-001e2b127853"
+      LORA_AUTH_REALM: "lora"
+    #volumes:
+    #  - type: bind
+    #    source: ./init.config.yml
+    #    target: /config.yml
+    depends_on:
+      mo:
+        condition: service_healthy
+
   mox:
-    image: magentaaps/lora:2.1.0
+    image: magentaaps/lora:2.1.2
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
