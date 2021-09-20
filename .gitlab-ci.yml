@@ -71,8 +71,6 @@ workflow:
   needs: []
   image: python:3.8
   services: []
-  tags:
-    - docker
 
 Lint Python:
   <<: *lint-default
@@ -160,8 +158,6 @@ Build OS2MO:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
     name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -180,8 +176,6 @@ Build frontend:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
     name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -201,8 +195,6 @@ Build Keycloak:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
     name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -219,8 +211,6 @@ Build Keycloak DB:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
     name: gcr.io/kaniko-project/executor:v1.5.2-debug
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -235,8 +225,6 @@ Build docs:
   stage: build
   needs: []
   services: []
-  tags:
-    - docker
   before_script:
     - pip3 install poetry==${POETRY_VERSION}
     - poetry config virtualenvs.create false
@@ -256,9 +244,6 @@ Build docs:
   stage: test
   needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
-  tags:
-    - docker
-    - network-per-build
   variables:
     # Enable one docker network per job on the runner. This enables services to
     # reach each other over the network. It requires a special runner with this
@@ -428,8 +413,6 @@ Check Autopub:
   image: python:3
   variables:
     PROJECT_ROOT: .
-  tags:
-    - docker
   before_script:
     # Prepare autopub
     - pip install autopub
@@ -444,8 +427,6 @@ Autopub:
   image: python:3
   variables:
     PROJECT_ROOT: .
-  tags:
-    - docker
   before_script:
     # Setup git
     - mkdir -p ~/.ssh
@@ -480,8 +461,6 @@ Generate release tags:
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
       - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
 
 
 .release-default: &release-default
@@ -490,8 +469,6 @@ Generate release tags:
   image: alpine:3.13
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  tags:
-    - docker
   before_script:
     - apk add skopeo=1.2.1-r0
 
@@ -542,8 +519,6 @@ Create MR to deploy to test servers:
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
       - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
   script:
     - apk add git
     - git config --global user.email "labs@magenta-aps.dk"
@@ -568,8 +543,6 @@ Update Flux Dev Version:
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
       - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
   script:
     - apk add git
     - wget https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 -O /usr/bin/yq
