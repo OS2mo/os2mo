@@ -89,7 +89,7 @@ class Employee(MOBase):
     givenname: str = Field(None)
     surname: str = Field(None)
     name: Optional[str]
-    cpr_no: Optional[str] = Field(regex=r"^\d{9}[1-9]$")
+    cpr_no: Optional[str] = Field(regex=r"^\d{10}$")
     seniority: Optional[datetime]
     user_key: Optional[str]
     org: Optional[OrganisationRef]
