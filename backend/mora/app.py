@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import os
 from pathlib import Path
 from itertools import chain
@@ -135,6 +136,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
 
     return http_exception_to_json_response(exc=exc)
+
+
+async def close_aiohttp_sessions():
+    await lora.session.close()
 
 
 def create_app():
@@ -274,5 +279,15 @@ def create_app():
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
         logger.warning('No dist directory to serve', distdir=distdir)
+
+    @app.on_event("startup")
+    def set_session_event_loop():
+        loop = asyncio.get_event_loop()
+        lora.set_event_loop(loop)
+
+    @app.on_event("shutdown")
+    def close_aiohttp_session():
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(close_aiohttp_sessions())
 
     return app

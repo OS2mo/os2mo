@@ -17,6 +17,7 @@ from aiohttp import ClientSession
 from functools import partial
 from itertools import starmap
 
+from mora.async_util import async_session
 import lora_utils
 from more_itertools import chunked
 
@@ -24,6 +25,16 @@ from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
 
 logger = get_logger()
+
+event_loop = None
+
+
+def set_event_loop(fastapi_event_loop):
+    global event_loop
+    event_loop = fastapi_event_loop
+
+
+session = ClientSession(loop=event_loop)
 
 
 def registration_changed_since(
@@ -287,17 +298,16 @@ class BaseScope:
 
 class Scope(BaseScope):
     async def fetch(self, **params):
-        async with ClientSession() as session:
-            response = await session.get(
-                self.base_path,
-                params=param_exotics_to_strings({**self.connector.defaults, **params}))
-            await _check_response(response)
+        response = await session.get(
+            self.base_path,
+            params=param_exotics_to_strings({**self.connector.defaults, **params}))
+        await _check_response(response)
 
-            try:
-                ret = (await response.json())['results'][0]
-                return ret
-            except IndexError:
-                return []
+        try:
+            ret = (await response.json())['results'][0]
+            return ret
+        except IndexError:
+            return []
 
     async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
@@ -434,33 +444,32 @@ class Scope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with ClientSession() as session:
-                r = await session.put(
-                    '{}/{}'.format(self.base_path, uuid), json=obj)
-
-                async with r:
-                    await _check_response(r)
-                    return (await r.json())['uuid']
+            async with session.put('{}/{}'.format(self.base_path, uuid), json=obj) as r:
+                await _check_response(r)
+                return (await r.json())['uuid']
         else:
-            async with ClientSession() as session:
-                r = await session.post(self.base_path, json=obj)
+            async with session.post(self.base_path, json=obj) as r:
                 await _check_response(r)
                 return (await r.json())['uuid']
 
     async def delete(self, uuid):
-        async with ClientSession() as session:
-            response = await session.delete('{}/{}'.format(self.base_path, uuid))
-            await _check_response(response)
+        response = await session.delete('{}/{}'.format(self.base_path, uuid))
+        await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with ClientSession() as session:
-            url = '{}/{}'.format(self.base_path, uuid)
-            response = await session.patch(url, json=obj)
+        url = '{}/{}'.format(self.base_path, uuid)
+        async with session.patch(url, json=obj) as response:
             if response.status == 404:
                 logger.warning("could not update nonexistent LoRa object", url=url)
             else:
                 await _check_response(response)
                 return (await response.json()).get('uuid', uuid)
+        # response = await session.patch(url, json=obj)
+        # if response.status == 404:
+        #     logger.warning("could not update nonexistent LoRa object", url=url)
+        # else:
+        #     await _check_response(response)
+        #     return (await response.json()).get('uuid', uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
@@ -481,12 +490,11 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    async with ClientSession() as session:
-        response = await session.get(config.get_settings().lora_url + "version")
-        try:
-            return (await response.json())["lora_version"]
-        except ValueError:
-            return "Could not find lora version: %s" % await response.text()
+    response = await session.get(config.get_settings().lora_url + "version")
+    try:
+        return (await response.json())["lora_version"]
+    except ValueError:
+        return "Could not find lora version: %s" % await response.text()
 
 
 class AutocompleteScope(BaseScope):
@@ -498,7 +506,6 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with ClientSession() as session:
-            response = await session.get(self.base_path, params=params)
-            await _check_response(response)
-            return {"items": (await response.json())["results"]}
+        response = await session.get(self.base_path, params=params)
+        await _check_response(response)
+        return {"items": (await response.json())["results"]}
