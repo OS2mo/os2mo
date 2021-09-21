@@ -20,7 +20,7 @@ SPDX-License-Identifier: MPL-2.0
     <mo-autocomplete
         :search="updateItems"
         :getResultValue="getResultValue"
-        :onSubmit="selected"
+        :onSubmit="shareWithParentMoEmployeeMove"
       />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
@@ -36,7 +36,7 @@ SPDX-License-Identifier: MPL-2.0
 import MoAutocomplete from '@/components/MoAutocomplete/MoAutocomplete.vue'
 import store from '@/store'
 import { Conf } from '@/store/actions/conf'
-import Autocomplete from '@/api/Autocomplete'
+//import Autocomplete from '@/api/Autocomplete'
 
 
 
@@ -172,12 +172,12 @@ export default {
     },
 
     /**
-     * Go to the selected route.
+     * emit the employee to the parent component MoEmployeeMove.vue
      */
-    selected (item) {
+    shareWithParentMoEmployeeMove (item) {
       if (item.uuid == null) return
       this.items = []
-      this.$router.push({ name: this.routeName, params: { uuid: item.uuid } })
+      this.$emit('input', item)
     }
   },
 
