@@ -4,7 +4,7 @@
 const QueryList = () => import('./')
 
 export default {
-  path: '/indsigt',
+  path: '/forespoergsler',
   name: 'QueryList',
   component: QueryList
 }
