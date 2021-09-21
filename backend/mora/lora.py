@@ -4,6 +4,7 @@
 from __future__ import generator_stop
 
 import asyncio
+import contextlib
 import math
 import re
 import typing
@@ -23,18 +24,29 @@ from more_itertools import chunked
 
 from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
+from functools import lru_cache
 
 logger = get_logger()
 
-event_loop = None
+
+#@lru_cache(maxsize=None)
+@contextlib.contextmanager
+async def get_session():
+    #async with ClientSession() as session:
+    yield ClientSession()
+
+# event_loop = None
+#
+#
+# def set_event_loop(fastapi_event_loop):
+#     global event_loop
+#     event_loop = fastapi_event_loop
 
 
-def set_event_loop(fastapi_event_loop):
-    global event_loop
-    event_loop = fastapi_event_loop
 
 
-session = ClientSession(loop=event_loop)
+#session = ClientSession(loop=event_loop)
+session = ClientSession(loop=asyncio.get_event_loop())
 
 
 def registration_changed_since(
@@ -444,13 +456,18 @@ class Scope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with session.put('{}/{}'.format(self.base_path, uuid), json=obj) as r:
-                await _check_response(r)
-                return (await r.json())['uuid']
+            async with get_session() as session:
+                async with session.put('{}/{}'.format(self.base_path, uuid), json=obj) as r:
+                    await _check_response(r)
+                    return (await r.json())['uuid']
         else:
-            async with session.post(self.base_path, json=obj) as r:
-                await _check_response(r)
-                return (await r.json())['uuid']
+            async with get_session() as session:
+                async with session.post(self.base_path, json=obj) as r:
+                    await _check_response(r)
+                    return (await r.json())['uuid']
+            # async with session.post(self.base_path, json=obj) as r:
+            #     await _check_response(r)
+            #     return (await r.json())['uuid']
 
     async def delete(self, uuid):
         response = await session.delete('{}/{}'.format(self.base_path, uuid))

@@ -34,7 +34,10 @@ def async_session() -> ClientSession:
     # Start a session if needed.
     if (not hasattr(_local_cache,
                     "async_session") or _local_cache.async_session is None):
-        _local_cache.async_session = ClientSession(headers=headers)
+        _local_cache.async_session = ClientSession(
+            headers=headers,
+#            loop=asyncio.get_event_loop()
+        )
     return _local_cache.async_session
 
 
@@ -86,7 +89,7 @@ def async_to_sync(f: typing.Callable):
             loop = asyncio.new_event_loop()
             set_event_loop(loop)
 
-        return loop.run_until_complete(__session_context_helper(f(*args, **kwargs)))
+        return loop.run_until_complete(f(*args, **kwargs))
 
     return wrapper
 

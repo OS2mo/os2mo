@@ -280,14 +280,13 @@ def create_app():
     else:
         logger.warning('No dist directory to serve', distdir=distdir)
 
-    @app.on_event("startup")
-    def set_session_event_loop():
-        loop = asyncio.get_event_loop()
-        lora.set_event_loop(loop)
+    # @app.on_event("startup")
+    # def set_session_event_loop():
+    #     loop = asyncio.get_event_loop()
+    #     lora.set_event_loop(loop)
 
     @app.on_event("shutdown")
-    def close_aiohttp_session():
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(close_aiohttp_sessions())
+    async def close_aiohttp_session():
+        await lora.session.close()
 
     return app
