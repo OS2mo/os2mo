@@ -19,7 +19,12 @@ from ramodels.mo.facet import FacetClass
 
 @st.composite
 def facet_class_strat(draw):
-    required = {"name": st.text(), "user_key": st.text(), "org_uuid": st.uuids()}
+    required = {
+        "facet_uuid": st.uuids(),
+        "name": st.text(),
+        "user_key": st.text(),
+        "org_uuid": st.uuids(),
+    }
     optional = {"scope": st.none() | st.text()}
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
