@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import json
-import os
 
 from typing import List, Union, Optional
 from pydantic import BaseModel, Extra
 from fastapi import APIRouter, Query
+from pathlib import Path
 
 from .. import exceptions, config
 
@@ -35,33 +35,33 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
 
     **param q:** Enables the frontend to choose a specific file or show all files
     """
-    directory = config.get_settings().query_export_dir
-    if not os.path.isdir(directory):
+    export_dir = config.get_settings().query_export_dir
+    directory = Path(export_dir) / "json_reports"
+
+    if not directory.is_dir():
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
 
     if q == ["all"]:
         return [
-            json.load(open(os.path.join(directory, filename)))
-            for filename in os.listdir(directory)
-            if os.path.isfile(os.path.join(directory, filename))
+            json.load(open(directory / filename.name))
+            for filename in directory.iterdir()
+            if (directory / filename.name).is_file()
         ]
     else:
         return [
-            json.load(open(os.path.join(directory, filename)))
-            for filename in q
-            if os.path.isfile(os.path.join(directory, filename))
+            json.load(open(directory / query_file))
+            for query_file in q
+            if (directory / query_file).is_file()
         ]
 
 
 @router.get("/insight/files")
 async def get_insight_filenames() -> List[str]:
     """Lists all available files"""
-    directory = config.get_settings().query_export_dir
-    if not os.path.isdir(directory):
+    export_dir = config.get_settings().query_export_dir
+    directory = Path(export_dir) / "json_reports"
+
+    if not directory.is_dir():
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
 
-    return [
-        filename
-        for filename in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, filename))
-    ]
+    return [filename.name for filename in directory.iterdir() if filename.is_file()]
