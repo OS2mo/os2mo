@@ -1,27 +1,23 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
 
 import freezegun
-from yarl import URL
+from httpx import Response
 
 import mora.async_util
 import tests.cases
 from mora import exceptions
 from mora.service import address
-from tests import util
 
 
 class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time('2016-06-06')
-    @util.MockAioresponses(passthrough=['http://localhost'])
-    def test_autocomplete_no_municipality(self, mock):
-        mock.get(
-            URL('http://mox/organisation/organisation'
-                '?uuid=00000000-0000-0000-0000-000000000000'
-                '&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00'
-                '&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00'
-                '&konsolider=True', encoded=True),
-            payload={
+    @patch('mora.lora.httpx.AsyncClient.get')
+    def test_autocomplete_no_municipality(self, mock_get):
+        mock_get.return_value = Response(
+            status_code=200,
+            json={
                 "results": [
                     [{
                         "id": "00000000-0000-0000-0000-000000000000",
@@ -62,16 +58,11 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
     @freezegun.freeze_time('2016-06-06')
-    @util.MockAioresponses(passthrough=['http://localhost'])
-    def test_autocomplete_invalid_municipality(self, mock):
-        mock.get(
-            URL('http://mox/organisation/organisation'
-                '?uuid=00000000-0000-0000-0000-000000000000'
-                '&virkningfra=2016-06-06T00:00:00%2B02:00'
-                '&virkningtil=2016-06-06T00:00:00.000001%2B02:00'
-                '&konsolider=True', encoded=True),
-
-            payload={
+    @patch('mora.lora.httpx.AsyncClient.get')
+    def test_autocomplete_invalid_municipality(self, mock_get):
+        mock_get.return_value = Response(
+            status_code=200,
+            json={
                 "results": [
                     [{
                         "id": "00000000-0000-0000-0000-000000000000",
@@ -119,17 +110,11 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
     @freezegun.freeze_time('2016-06-06')
-    @util.MockAioresponses(passthrough=['http://localhost'])
-    def test_autocomplete_missing_org(self, mock):
-        mock.get(
-            URL('http://mox/organisation/organisation'
-                '?uuid=00000000-0000-0000-0000-000000000000'
-                '&virkningfra=2016-06-06T00:00:00%2B02:00'
-                '&virkningtil=2016-06-06T00:00:00.000001%2B02:00'
-                '&konsolider=True', encoded=True),
-            payload={
-                "results": []
-            }
+    @patch('mora.lora.httpx.AsyncClient.get')
+    def test_autocomplete_missing_org(self, mock_get):
+        mock_get.return_value = Response(
+            status_code=200,
+            json={"results": []}
         )
 
         self.assertRequestResponse(
@@ -145,8 +130,8 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
     @freezegun.freeze_time('2017-07-28')
-    @util.MockAioresponses(('reading-organisation.json', 'dawa-autocomplete.json'))
-    def test_autocomplete(self, mock):
+    @patch('mora.lora.httpx.AsyncClient.get')
+    def test_autocomplete(self, mock_get):
         found = [
             {
                 "location": {
@@ -221,11 +206,77 @@ class TestAddressLookup(tests.cases.TestCase):
             'address_autocomplete/?q=Strandlodsvej+25M&global=1',
             found,
         )
-
         self.assertRequestResponse(
             '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
             'address_autocomplete/?q=Strandlodsvej+25M&global=true',
             found,
+        )
+
+        mock_get.return_value = Response(
+            status_code=200,
+            json={
+                "results": [
+                    [
+                        {
+                            "id": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                            "registreringer": [
+                                {
+                                    "attributter": {
+                                        "organisationegenskaber": [
+                                            {
+                                                "brugervendtnoegle": "AU",
+                                                "organisationsnavn": "Aarhus Universitet",
+                                                "virkning": {
+                                                    "from": "2016-01-01 00:00:00+01",
+                                                    "from_included": True,
+                                                    "to": "infinity",
+                                                    "to_included": False
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+                                    "fratidspunkt": {
+                                        "graenseindikator": True,
+                                        "tidsstempeldatotid": "2017-08-17T10:27:27.65144+02:00"
+                                    },
+                                    "livscykluskode": "Importeret",
+                                    "note": "Automatisk indlæsning",
+                                    "relationer": {
+                                        "myndighed": [
+                                            {
+                                                "urn": "urn:dk:kommune:751",
+                                                "virkning": {
+                                                    "from": "2016-01-01 00:00:00+01",
+                                                    "from_included": True,
+                                                    "to": "infinity",
+                                                    "to_included": False
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "tilstande": {
+                                        "organisationgyldighed": [
+                                            {
+                                                "gyldighed": "Aktiv",
+                                                "virkning": {
+                                                    "from": "2016-01-01 00:00:00+01",
+                                                    "from_included": True,
+                                                    "to": "infinity",
+                                                    "to_included": False
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "tiltidspunkt": {
+                                        "tidsstempeldatotid": "infinity"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
         )
 
         self.assertRequestResponse(
@@ -234,20 +285,7 @@ class TestAddressLookup(tests.cases.TestCase):
             [],
         )
 
-        # self.assertRequestResponse(
-        #     '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
-        #     'address_autocomplete/?q=Strandlodsvej+25M&global=0',
-        #     [],
-        # )
-        #
-        # self.assertRequestResponse(
-        #     '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
-        #     'address_autocomplete/?q=Strandlodsvej+25M&global=false',
-        #     [],
-        # )
-
-    @util.MockAioresponses('many-addresses.json')
-    def test_many_addresses(self, m):
+    def test_many_addresses(self):
         addresses = {
             '00000000-0000-0000-0000-000000000000': {
                 'href': None,
@@ -306,8 +344,7 @@ class TestAddressLookup(tests.cases.TestCase):
 
                 self.assertEqual(actual, expected)
 
-    @util.MockAioresponses()
-    def test_bad_scope(self, m):
+    def test_bad_scope(self):
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     'Invalid address scope type'):
             mora.async_util.async_to_sync(address.get_one_address)(
