@@ -20,12 +20,14 @@ class FacetClass(MOBase):
     """Payload model for Klasses to be created under the given Facet.
 
     Attributes:
+        facet_uuid (UUID): Facet UUID
         name (str): Human-readable name
         user_key (str): Short, unique key
         scope (Optional[str]): Representation of Klasse type
         org_uuid (UUID): Organisation UUID
     """
 
+    facet_uuid: UUID
     name: str
     user_key: str
     scope: Optional[str]
