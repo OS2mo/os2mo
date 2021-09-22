@@ -16,6 +16,7 @@ keywords = ["os2mo"]
 python = "^3.8"
 alembic = "^1.6.5"
 requests = "^2.25.1"
+httpx = "0.19.0"
 lxml = "^4.6.3"
 python-dateutil = "^2.8.1"
 validators = "^0.18.2"
