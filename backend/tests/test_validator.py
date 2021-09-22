@@ -3,16 +3,16 @@
 
 import datetime
 import unittest
+from unittest.mock import patch
 
 import freezegun
-import yarl
+from httpx import Response
 
 import mora.async_util
 import tests.cases
 from mora import lora, config
 from mora import util as mora_util
 from mora.service.validation import validator
-from . import util
 
 
 class TestIsDateRangeValid(tests.cases.TestCase):
@@ -26,60 +26,53 @@ class TestIsDateRangeValid(tests.cases.TestCase):
                                                                           'whatever'))
 
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
-    def test_validity_ranges(self):
+    @patch('mora.lora.httpx.AsyncClient.get')
+    def test_validity_ranges(self, mock_get):
         settings = config.get_settings()
-        URL = (
-            settings.lora_url + 'organisation/organisationenhed?'
-                                'uuid=00000000-0000-0000-0000-000000000000'
-                                '&virkningfra=2000-01-01T00:00:00%2B01:00'
-                                '&virkningtil=3000-01-01T00:00:00%2B01:00'
-                                '&konsolider=True'
-        )
         c = lora.Connector(virkningfra='2000-01-01',
                            virkningtil='3000-01-01').organisationenhed
 
         def check(expect, validities):
-            with util.MockAioresponses(override_lora=False) as m:
-                m.get(
-                    yarl.URL(URL, encoded=True),
-                    payload={
-                        "results":
-                            [[{
-                                "id": "00000000-0000-0000-0000-000000000000",
-                                "registreringer": [{
-                                    "tilstande": {
-                                        "organisationenhedgyldighed": [
-                                            {
-                                                "gyldighed": v,
-                                                "virkning": {
-                                                    "from": mora_util.to_lora_time(
-                                                        t1,
-                                                    ),
-                                                    "from_included": True,
-                                                    "to": mora_util.to_lora_time(
-                                                        t2,
-                                                    ),
-                                                    "to_included": False
-                                                }
+            mock_get.return_value = Response(
+                status_code=200,
+                json={
+                    "results":
+                        [[{
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "registreringer": [{
+                                "tilstande": {
+                                    "organisationenhedgyldighed": [
+                                        {
+                                            "gyldighed": v,
+                                            "virkning": {
+                                                "from": mora_util.to_lora_time(
+                                                    t1,
+                                                ),
+                                                "from_included": True,
+                                                "to": mora_util.to_lora_time(
+                                                    t2,
+                                                ),
+                                                "to_included": False
                                             }
-                                            for t1, t2, v in validities
-                                        ]
-                                    },
-                                }]
-                            }]]
-                    },
-                )
+                                        }
+                                        for t1, t2, v in validities
+                                    ]
+                                },
+                            }]
+                        }]]
+                }
+            )
 
-                self.assertIs(
-                    expect,
-                    mora.async_util.async_to_sync(validator._is_date_range_valid)(
-                        '00000000-0000-0000-0000-000000000000',
-                        mora_util.parsedatetime('01-01-2000'),
-                        mora_util.parsedatetime('01-01-3000'),
-                        c,
-                        'organisationenhedgyldighed'
-                    )
+            self.assertIs(
+                expect,
+                mora.async_util.async_to_sync(validator._is_date_range_valid)(
+                    '00000000-0000-0000-0000-000000000000',
+                    mora_util.parsedatetime('01-01-2000'),
+                    mora_util.parsedatetime('01-01-3000'),
+                    c,
+                    'organisationenhedgyldighed'
                 )
+            )
 
         # just valid
         check(True, [
