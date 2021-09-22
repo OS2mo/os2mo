@@ -128,7 +128,7 @@ def _check_response(r):
             msg = cause["message"]
         except (ValueError, KeyError):
             cause = None
-            msg = r.text()
+            msg = r.text
 
         raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
 
