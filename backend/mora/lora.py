@@ -19,7 +19,7 @@ from functools import partial
 from itertools import starmap
 
 import lora_utils
-from more_itertools import chunked
+from more_itertools import chunked, one, only
 
 from . import exceptions, config, util
 from .util import DEFAULT_TIMEZONE, from_iso_time
@@ -295,11 +295,7 @@ class Scope(BaseScope):
             )
         _check_response(response)
 
-        try:
-            ret = response.json()['results'][0]
-            return ret
-        except IndexError:
-            return []
+        return only(response.json()['results'], default=[])
 
     async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
@@ -421,16 +417,12 @@ class Scope(BaseScope):
         if not d or not d[0]:
             return None
 
-        registrations = d[0]['registreringer']
-
-        assert len(d) == 1
+        registrations = one(d)['registreringer']
 
         if params.keys() & {'registreretfra', 'registrerettil'}:
             return registrations
         else:
-            assert len(registrations) == 1
-
-            return registrations[0]
+            return one(registrations)
 
     async def create(self, obj, uuid=None):
         obj = uuid_to_str(obj)
