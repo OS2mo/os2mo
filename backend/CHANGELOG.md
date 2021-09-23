@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.4.0 - 2021-09-23
+------------------
+
+[#43749] Added GraphQL endpoint and single endpoint
+
 2.3.0 - 2021-09-09
 ------------------
 
