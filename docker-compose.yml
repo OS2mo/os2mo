@@ -58,6 +58,8 @@ services:
       ENVIRONMENT: development
       PYTHONASYNCIODEBUG: "1"
 
+      GRAPHQL_ENABLE: "true"
+
       LORA_URL: "http://mox/"
 
       OS2MO_LOG_LEVEL: "DEBUG"
