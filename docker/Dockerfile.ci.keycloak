@@ -19,6 +19,13 @@ ENV DB_DATABASE: keycloak
 COPY ./keycloak-realm.json /srv/keycloak-realm.json
 
 CMD [\
+  # The -b flag is important. It is the default CMD from the docker image. It
+  # is passed to keycloak's standalone.sh. If it is not present, the service
+  # will only bind to a single network interface. If there are multiple
+  # interfaces, it appears to choose an interface at random, leading to subtle
+  # breaking when the container is restarted and the interface on the
+  # docker-compose network is not chosen.
+  "-b", "0.0.0.0",\
   "-Dkeycloak.migration.action=import",\
   "-Dkeycloak.migration.provider=singleFile",\
   "-Dkeycloak.migration.file=/srv/keycloak-realm.json"\
