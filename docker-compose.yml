@@ -94,7 +94,7 @@ services:
       start_period: 300s
 
   mox:
-    image: magentaaps/lora:dev
+    image: magentaaps/lora:2.0.0
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
@@ -212,7 +212,7 @@ services:
       # KEYCLOAK_FRONTEND_URL: https://proxy/auth
       # KEYCLOAK_LOGLEVEL: DEBUG
     depends_on:
-      keycloak-gen:
+      keycloak-realm-builder:
         condition: service_completed_successfully
       keycloak-db:
         condition: service_healthy
@@ -225,11 +225,13 @@ services:
       retries: 3
       start_period: 300s
 
-  keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:2.1.0
+  keycloak-realm-builder:
+    image: magentaaps/os2mo-keycloak-realm-builder:2.3.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
-      KEYCLOAK_SSL_REQUIRED: external
+      KEYCLOAK_SSL_REQUIRED_MO: external
+      KEYCLOAK_SSL_REQUIRED_LORA: external
+      KEYCLOAK_LORA_TOKEN_LIFESPAN: 5
       KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5001/*"]'

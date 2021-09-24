@@ -30,7 +30,7 @@ services:
         condition: service_started
   keycloak:
     depends_on:
-      keycloak-gen:
+      keycloak-realm-builder:
         condition: service_completed_successfully
       keycloak-db:
         condition: service_started
