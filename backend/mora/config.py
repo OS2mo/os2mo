@@ -3,14 +3,16 @@
 import os
 from enum import Enum
 from functools import lru_cache
-from pydantic import AnyHttpUrl
-from pydantic import BaseSettings
-from pydantic import root_validator
-from pydantic.types import UUID
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
+from pydantic import Field
+from pydantic import root_validator
+from pydantic.types import UUID
 
 
 class NavLink(BaseSettings):
@@ -32,7 +34,7 @@ class Settings(BaseSettings):
     """
     commit_tag: str = "DEVELOPMENT BUILD"
     commit_sha: str = ""
-    lora_url: AnyHttpUrl = "http://mox/"
+    lora_url: AnyHttpUrl = Field("http://mox/")
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
@@ -42,6 +44,10 @@ class Settings(BaseSettings):
     query_export_dir: Optional[str] = "/queries"
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
+
+    # LoRa client settings
+    # Timeout in seconds or None. If None, requests have NO timeout.
+    lora_client_timeout: Optional[int] = 30
 
     # GraphQL settings
     graphql_enable: bool = False
@@ -73,7 +79,7 @@ class Settings(BaseSettings):
     keycloak_mo_client: str = "mo"
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
-    keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
+    keycloak_auth_server_url: AnyHttpUrl = Field("http://localhost:8081/auth/")
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
 
@@ -150,4 +156,4 @@ def is_production() -> bool:
 
 
 def is_under_test() -> bool:
-    return os.environ.get('PYTEST_RUNNING', False)
+    return os.environ.get("PYTEST_RUNNING") is not None

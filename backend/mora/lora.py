@@ -8,21 +8,27 @@ import math
 import re
 import typing
 import uuid
-
-import httpx
-from structlog import get_logger
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from datetime import datetime
-from enum import Enum, unique
-
+from enum import Enum
+from enum import unique
 from functools import partial
 from itertools import starmap
+from typing import Optional
 
+import httpx
 import lora_utils
-from more_itertools import chunked, one, only
+from more_itertools import chunked
+from more_itertools import one
+from more_itertools import only
+from structlog import get_logger
 
-from . import exceptions, config, util
-from .util import DEFAULT_TIMEZONE, from_iso_time
+from . import config
+from . import exceptions
+from . import util
+from .util import DEFAULT_TIMEZONE
+from .util import from_iso_time
 
 logger = get_logger()
 
@@ -287,8 +293,11 @@ class BaseScope:
 
 
 class Scope(BaseScope):
+
+    client_timeout: Optional[int] = config.get_settings().lora_client_timeout
+
     async def fetch(self, **params):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
             response = await client.get(
                 self.base_path,
                 params=param_exotics_to_strings({**self.connector.defaults, **params})
@@ -428,26 +437,25 @@ class Scope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with httpx.AsyncClient() as client:
-                r = await client.put(
-                    '{}/{}'.format(self.base_path, uuid), json=obj)
+            async with httpx.AsyncClient(timeout=self.client_timeout) as client:
+                r = await client.put("{}/{}".format(self.base_path, uuid), json=obj)
 
             _check_response(r)
             return r.json()['uuid']
         else:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.client_timeout) as client:
                 r = await client.post(self.base_path, json=obj)
             _check_response(r)
             return r.json()['uuid']
 
     async def delete(self, uuid):
-        async with httpx.AsyncClient() as client:
-            response = await client.delete('{}/{}'.format(self.base_path, uuid))
+        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
+            response = await client.delete("{}/{}".format(self.base_path, uuid))
         _check_response(response)
 
     async def update(self, obj, uuid):
-        async with httpx.AsyncClient() as client:
-            url = '{}/{}'.format(self.base_path, uuid)
+        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
+            url = "{}/{}".format(self.base_path, uuid)
             response = await client.patch(url, json=obj)
         if response.status_code == 404:
             logger.warning("could not update nonexistent LoRa object", url=url)
@@ -474,7 +482,8 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    async with httpx.AsyncClient() as client:
+    timeout = config.get_settings().lora_client_timeout
+    async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.get(config.get_settings().lora_url + "version")
     try:
         return response.json()["lora_version"]
@@ -488,10 +497,11 @@ class AutocompleteScope(BaseScope):
         self.path = f"autocomplete/{path}"
 
     async def fetch(self, phrase, class_uuids=None):
+        timeout = config.get_settings().lora_client_timeout
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.get(self.base_path, params=params)
         _check_response(response)
         return {"items": response.json()["results"]}

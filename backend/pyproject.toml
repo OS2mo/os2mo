@@ -67,6 +67,9 @@ hypothesis = "^6.17.4"
 pytest-parallel = "^0.1.0"
 pytest-asyncio = "^0.15.1"
 pip-tools = "^6.2.0"
+mypy = "^0.910"
+black = {version = "^21.9b0", allow-prereleases = true}
+reorder-python-imports = "^2.6.0"
 
 [build-system]
 requires = ["poetry-core"]
