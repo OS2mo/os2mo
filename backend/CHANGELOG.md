@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+2.4.1 - 2021-09-24
+------------------
+
+[#44432] Fix race-condition in bulking cache.
+[#45482] Fix bulking for OrgUnit and Facet.
+
 2.4.0 - 2021-09-23
 ------------------
 
