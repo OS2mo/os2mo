@@ -3,14 +3,16 @@
 import os
 from enum import Enum
 from functools import lru_cache
-from pydantic import AnyHttpUrl
-from pydantic import BaseSettings
-from pydantic import root_validator
-from pydantic.types import UUID
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
+from pydantic import Field
+from pydantic import root_validator
+from pydantic.types import UUID
 
 
 class NavLink(BaseSettings):
@@ -19,9 +21,9 @@ class NavLink(BaseSettings):
 
 
 class Environment(str, Enum):
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -30,7 +32,8 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
-    lora_url: AnyHttpUrl = "http://mox/"
+
+    lora_url: AnyHttpUrl = Field("http://mox/")
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
@@ -40,6 +43,10 @@ class Settings(BaseSettings):
     query_export_dir: Optional[str] = "/queries"
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
+
+    # LoRa client settings
+    # Timeout in seconds or None. If None, requests have NO timeout.
+    lora_client_timeout: Optional[int] = 30
 
     # GraphQL settings
     graphql_enable: bool = False
@@ -71,16 +78,16 @@ class Settings(BaseSettings):
     keycloak_mo_client: str = "mo"
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
-    keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
+    keycloak_auth_server_url: AnyHttpUrl = Field("http://localhost:8081/auth/")
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
 
     @root_validator
     def show_owners_must_be_true_if_rbac_is_enabled(
-            cls, values: Dict[str, Any]
+        cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
-        if values['keycloak_rbac_enabled']:
-            if not values['confdb_show_owner']:
+        if values["keycloak_rbac_enabled"]:
+            if not values["confdb_show_owner"]:
                 raise ValueError(
                     "'confdb_show_owner' must be true when RBAC is enabled"
                 )
@@ -117,11 +124,11 @@ class Settings(BaseSettings):
     confdb_show_primary_association: bool = False
     confdb_show_org_unit_button: bool = False
     confdb_inherit_manager: bool = True
-    confdb_association_dynamic_facets: str = ''
-    confdb_substitute_roles: str = ''
+    confdb_association_dynamic_facets: str = ""
+    confdb_substitute_roles: str = ""
     confdb_show_cpr_no: bool = True
     confdb_show_user_key_in_search: bool = False
-    confdb_extension_field_ui_labels: str = ''
+    confdb_extension_field_ui_labels: str = ""
     confdb_show_engagement_hyperlink: bool = False
     confdb_show_seniority: bool = False
     confdb_show_owner: bool = False
@@ -148,4 +155,4 @@ def is_production() -> bool:
 
 
 def is_under_test() -> bool:
-    return os.environ.get('PYTEST_RUNNING', False)
+    return os.environ.get("PYTEST_RUNNING") is not None
