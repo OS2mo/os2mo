@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.4.2 - 2021-09-24
+------------------
+
+[#45886] Add LoRa HTTPX client timeout configuration. Fixes a bug where requesting large OU trees would time out.
+
 2.4.1 - 2021-09-24
 ------------------
 
