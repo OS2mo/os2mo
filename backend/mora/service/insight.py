@@ -8,9 +8,11 @@ from pydantic import BaseModel, Extra
 from fastapi import APIRouter, Query
 from pathlib import Path
 
-from .. import exceptions, config
+from structlog import get_logger
+from .. import config
 
 router = APIRouter()
+logger = get_logger()
 
 
 class Insight(BaseModel):
@@ -39,7 +41,8 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
     directory = Path(export_dir) / "json_reports"
 
     if not directory.is_dir():
-        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
+        logger.error("No file directory found in ", directory=directory)
+        return []
 
     if q == ["all"]:
         return [
@@ -62,6 +65,7 @@ async def get_insight_filenames() -> List[str]:
     directory = Path(export_dir) / "json_reports"
 
     if not directory.is_dir():
-        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
+        logger.error("No file directory found in ", directory=directory)
+        return []
 
     return [filename.name for filename in directory.iterdir() if filename.is_file()]

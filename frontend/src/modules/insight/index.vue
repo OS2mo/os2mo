@@ -7,26 +7,34 @@ SPDX-License-Identifier: MPL-2.0
         <icon name="exchange-alt"/>
         {{$tc('shared.insight', 2)}}
       </h4>
-      <div v-for="(q, index) in query_files"
-           :key="index">
-        <input type="checkbox"
-               :id="q"
-               :value="q"
-               v-model="chosen_files">
-        <label :for="q">{{q}}</label>
+      <div v-if="query_files.length > 0">
+        <div v-for="(q, index) in query_files"
+             :key="index">
+          <input type="checkbox"
+                 :id="q"
+                 :value="q"
+                 v-model="chosen_files">
+          <label :for="q">{{q}}</label>
+        </div>
       </div>
-
-      <b-tabs content-class="mt-3">
-        <b-tab
-          v-for="(q, index) in query_data"
-          :key="index"
-          :title="q.title">
-          <data-grid :data-list="q.data" :data-fields="q.schema.fields" style="margin: 2rem 0;">
-            <h5 style="margin: 1rem 0;" slot="datagrid-header">{{q.title}}</h5>
-          </data-grid>
-        </b-tab>
-      </b-tabs>
-
+      <div v-if="query_files.length == 0">
+        <h5>No files</h5>
+      </div>
+      <div v-if="query_files.length > 0">
+        <b-tabs content-class="mt-3">
+          <b-tab
+            v-for="(q, index) in query_data"
+            :key="index"
+            :title="q.title">
+            <data-grid :data-list="q.data" :data-fields="q.schema.fields" style="margin: 2rem 0;">
+              <h5 style="margin: 1rem 0;" slot="datagrid-header">{{q.title}}</h5>
+            </data-grid>
+          </b-tab>
+       </b-tabs>
+      </div>
+      <div v-if="query_files.length == 0">
+        <p>No data</p>
+      </div>
     </div>
   </div>
 </template>
