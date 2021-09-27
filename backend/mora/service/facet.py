@@ -805,6 +805,29 @@ class ClassRequestHandler(handlers.RequestHandler):
         self.payload = clazz
         self.uuid = mo_class.uuid or str(uuid4())
 
+    async def aprepare_create(self, request: dict):
+        valid_from = util.NEGATIVE_INFINITY
+        valid_to = util.POSITIVE_INFINITY
+
+        facet_bvn = request['facet']
+        facetids = await get_facetids(facet_bvn)
+        facet_uuid = one(facetids)
+
+        mo_class = request['class_model']
+
+        clazz = common.create_klasse_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            facet_uuid=facet_uuid,
+            org_uuid=mo_class.org_uuid,
+            bvn=mo_class.user_key,
+            title=mo_class.name,
+            scope=mo_class.scope
+        )
+
+        self.payload = clazz
+        self.uuid = mo_class.uuid or str(uuid4())
+
     def submit(self) -> str:
         c = lora.Connector()
 
@@ -819,9 +842,23 @@ class ClassRequestHandler(handlers.RequestHandler):
 
         return super().submit()
 
+    async def asubmit(self) -> str:
+        c = lora.Connector()
 
-@router.post("/f/{facet}/")
-def create_or_update_class(
+        if self.request_type == mapping.RequestType.CREATE:
+            self.result = await c.klasse.create(
+                self.payload, self.uuid
+            )
+        else:
+            self.result = await c.klasse.update(
+                self.payload, self.uuid
+            )
+
+        return await super().asubmit()
+
+
+@router.post('/f/{facet}/')
+async def create_or_update_class(
     facet: str,
     class_model: MOClass,
 ):
@@ -831,9 +868,9 @@ def create_or_update_class(
     :param facet: One of the facet bvns/uuids.
     :param class_model: Pydantic BaseModel for a class
     """
-    req = {"facet": facet, "class_model": class_model}
-    request = ClassRequestHandler(req, mapping.RequestType.CREATE)
-    return request.submit()
+    req = {'facet': facet, 'class_model': class_model}
+    request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
+    return await request.asubmit()
 
 
 @router.get("/f/{facet}/children")

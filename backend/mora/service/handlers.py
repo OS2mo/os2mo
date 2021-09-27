@@ -63,7 +63,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(self, request: dict, request_type: RequestType):
+    def __init__(
+        self, request: dict, request_type: RequestType, sync_construct: bool = True
+    ):
         """
         Initialize a request, and perform all required validation.
 
@@ -84,15 +86,18 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.ROLE_TYPE: self.role_type,
             Trigger.EVENT_TYPE: EventType.ON_BEFORE
         }
+        if sync_construct:
+            self._sync_construct()
 
-        if request_type == RequestType.CREATE:
-            self.prepare_create(request)
-        elif request_type == RequestType.EDIT:
-            self.prepare_edit(request)
-        elif request_type == RequestType.TERMINATE:
-            self.prepare_terminate(request)
-        elif request_type == RequestType.REFRESH:
-            self.prepare_refresh(request)
+    def _sync_construct(self):
+        if self.request_type == RequestType.CREATE:
+            self.prepare_create(self.request)
+        elif self.request_type == RequestType.EDIT:
+            self.prepare_edit(self.request)
+        elif self.request_type == RequestType.TERMINATE:
+            self.prepare_terminate(self.request)
+        elif self.request_type == RequestType.REFRESH:
+            self.prepare_refresh(self.request)
         else:
             raise NotImplementedError
 
@@ -100,6 +105,28 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
         self.trigger_results_before = Trigger.run(self.trigger_dict)
+
+    @classmethod
+    async def construct(cls, *args, **kwargs):
+        obj = cls(*args, **kwargs, sync_construct=False)
+
+        if obj.request_type == RequestType.CREATE:
+            await obj.aprepare_create(obj.request)
+        elif obj.request_type == RequestType.EDIT:
+            await obj.aprepare_edit(obj.request)
+        elif obj.request_type == RequestType.TERMINATE:
+            await obj.aprepare_terminate(obj.request)
+        elif obj.request_type == RequestType.REFRESH:
+            await obj.aprepare_refresh(obj.request)
+        else:
+            raise NotImplementedError
+
+        obj.trigger_dict.update({
+            Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid
+        })
+        obj.trigger_results_before = Trigger.run(obj.trigger_dict)
+
+        return obj
 
     @abc.abstractmethod
     def prepare_create(self, request: dict):
@@ -110,6 +137,15 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
+    def aprepare_create(self, request: dict):
+        """
+        Initialize a 'create' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        raise NotImplementedError('aprepare_create not implemented')
+
     def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
@@ -118,6 +154,15 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
         raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
+
+    def aprepare_edit(self, request: dict):
+        """
+        Initialize an 'edit' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+        """
+        raise NotImplementedError('aprepare_edit not implemented')
 
     def prepare_terminate(self, request: dict):
         """
@@ -128,6 +173,16 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         """
         raise NotImplementedError
+
+    def aprepare_terminate(self, request: dict):
+        """
+        Initialize a 'termination' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+
+        """
+        raise NotImplementedError('aprepare_terminate not implemented')
 
     def prepare_refresh(self, request: dict):
         """
@@ -140,7 +195,33 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         # Default it noop
         pass
 
+    def aprepare_refresh(self, request: dict):
+        """
+        Initialize a 'refresh' request. Performs validation and all
+        necessary processing
+
+        :param request: A dict containing a request
+
+        """
+        # Default it noop
+        pass
+
     def submit(self) -> str:
+        """Submit the request to LoRa.
+
+        :return: A string containing the result from submitting the
+                 request to LoRa, typically a UUID.
+        """
+        self.trigger_dict.update({
+            Trigger.RESULT: getattr(self, Trigger.RESULT, None),
+            Trigger.EVENT_TYPE: EventType.ON_AFTER,
+            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
+        })
+        self.trigger_results_after = Trigger.run(self.trigger_dict)
+
+        return getattr(self, Trigger.RESULT, None)
+
+    async def asubmit(self) -> str:
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
