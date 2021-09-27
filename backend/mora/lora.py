@@ -8,13 +8,12 @@ import math
 import re
 import typing
 import uuid
-
-import httpx
 from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
 from enum import Enum, unique
 
+from aiohttp import ClientSession
 from functools import partial
 from itertools import starmap
 
@@ -121,16 +120,16 @@ def raise_on_status(
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-def _check_response(r):
-    if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
+async def _check_response(r):
+    if 400 <= r.status < 600:  # equivalent to requests.response.ok
         try:
-            cause = r.json()
+            cause = await r.json()
             msg = cause["message"]
         except (ValueError, KeyError):
             cause = None
-            msg = r.text()
+            msg = await r.text()
 
-        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
+        raise_on_status(status_code=r.status, msg=msg, cause=cause)
 
     return r
 
@@ -288,18 +287,17 @@ class BaseScope:
 
 class Scope(BaseScope):
     async def fetch(self, **params):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
+        async with ClientSession() as session:
+            response = await session.get(
                 self.base_path,
-                params=param_exotics_to_strings({**self.connector.defaults, **params})
-            )
-        _check_response(response)
+                params=param_exotics_to_strings({**self.connector.defaults, **params}))
+            await _check_response(response)
 
-        try:
-            ret = response.json()['results'][0]
-            return ret
-        except IndexError:
-            return []
+            try:
+                ret = (await response.json())['results'][0]
+                return ret
+            except IndexError:
+                return []
 
     async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
@@ -436,32 +434,33 @@ class Scope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with httpx.AsyncClient() as client:
-                r = await client.put(
+            async with ClientSession() as session:
+                r = await session.put(
                     '{}/{}'.format(self.base_path, uuid), json=obj)
 
-            _check_response(r)
-            return r.json()['uuid']
+                async with r:
+                    await _check_response(r)
+                    return (await r.json())['uuid']
         else:
-            async with httpx.AsyncClient() as client:
-                r = await client.post(self.base_path, json=obj)
-            _check_response(r)
-            return r.json()['uuid']
+            async with ClientSession() as session:
+                r = await session.post(self.base_path, json=obj)
+                await _check_response(r)
+                return (await r.json())['uuid']
 
     async def delete(self, uuid):
-        async with httpx.AsyncClient() as client:
-            response = await client.delete('{}/{}'.format(self.base_path, uuid))
-        _check_response(response)
+        async with ClientSession() as session:
+            response = await session.delete('{}/{}'.format(self.base_path, uuid))
+            await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with httpx.AsyncClient() as client:
+        async with ClientSession() as session:
             url = '{}/{}'.format(self.base_path, uuid)
-            response = await client.patch(url, json=obj)
-        if response.status_code == 404:
-            logger.warning("could not update nonexistent LoRa object", url=url)
-        else:
-            _check_response(response)
-            return response.json().get('uuid', uuid)
+            response = await session.patch(url, json=obj)
+            if response.status == 404:
+                logger.warning("could not update nonexistent LoRa object", url=url)
+            else:
+                await _check_response(response)
+                return (await response.json()).get('uuid', uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
@@ -482,12 +481,12 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    async with httpx.AsyncClient() as client:
-        response = await client.get(config.get_settings().lora_url + "version")
-    try:
-        return response.json()["lora_version"]
-    except ValueError:
-        return "Could not find lora version: %s" % response.text()
+    async with ClientSession() as session:
+        response = await session.get(config.get_settings().lora_url + "version")
+        try:
+            return (await response.json())["lora_version"]
+        except ValueError:
+            return "Could not find lora version: %s" % await response.text()
 
 
 class AutocompleteScope(BaseScope):
@@ -499,7 +498,7 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with httpx.AsyncClient() as client:
-            response = await client.get(self.base_path, params=params)
-        _check_response(response)
-        return {"items": response.json()["results"]}
+        async with ClientSession() as session:
+            response = await session.get(self.base_path, params=params)
+            await _check_response(response)
+            return {"items": (await response.json())["results"]}
