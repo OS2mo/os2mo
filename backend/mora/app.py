@@ -21,7 +21,7 @@ from structlog.contextvars import merge_contextvars
 from more_itertools import only
 from strawberry.asgi import GraphQL
 
-from mora import __version__, health, log, config
+from mora import health, log, config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.router import keycloak_router
@@ -49,9 +49,15 @@ def meta_router():
 
     @router.get("/version/")
     async def version():
+        settings = config.get_settings()
+
+        commit_tag = settings.commit_tag
+        commit_sha = settings.commit_sha
+        mo_version = f"{commit_tag}@{commit_sha}"
+
         lora_version = await lora.get_version()
         return {
-            "mo_version": __version__,
+            "mo_version": mo_version,
             "lora_version": lora_version,
         }
 

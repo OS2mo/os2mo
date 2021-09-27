@@ -7,7 +7,6 @@ from prometheus_client import Info, Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
 
-from . import __version__
 from .config import get_settings
 
 
@@ -28,10 +27,13 @@ def setup_metrics(app):
 
 def os2mo_version() -> Callable[[InstInfo], None]:
     METRIC = Info('os2mo_version', 'Current version')
+    settings = get_settings()
 
     def instrumentation(_: InstInfo) -> None:
-        METRIC.info({"mo_version": __version__})
-
+        METRIC.info({
+            "mo_version": settings.commit_tag,
+            "mo_commit_sha": settings.commit_sha
+        })
     return instrumentation
 
 
