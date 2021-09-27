@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.4.3 - 2021-09-27
+------------------
+
+[#45924] Fix performance issues caused by introduction of httpx.
+
 2.4.2 - 2021-09-24
 ------------------
 
