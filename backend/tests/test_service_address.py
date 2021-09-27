@@ -225,8 +225,7 @@ class TestAddressLookup(tests.cases.TestCase):
                                         "organisationegenskaber": [
                                             {
                                                 "brugervendtnoegle": "AU",
-                                                "organisationsnavn":
-                                                    "Aarhus Universitet",
+                                                "organisationsnavn": "Aarhus Universitet",
                                                 "virkning": {
                                                     "from": "2016-01-01 00:00:00+01",
                                                     "from_included": True,
@@ -239,8 +238,7 @@ class TestAddressLookup(tests.cases.TestCase):
                                     "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
                                     "fratidspunkt": {
                                         "graenseindikator": True,
-                                        "tidsstempeldatotid":
-                                            "2017-08-17T10:27:27.65144+02:00"
+                                        "tidsstempeldatotid": "2017-08-17T10:27:27.65144+02:00"
                                     },
                                     "livscykluskode": "Importeret",
                                     "note": "Automatisk indlæsning",

@@ -10,7 +10,7 @@ from httpx import Response
 
 import mora.async_util
 import tests.cases
-from mora import lora
+from mora import lora, config
 from mora import util as mora_util
 from mora.service.validation import validator
 
@@ -28,6 +28,7 @@ class TestIsDateRangeValid(tests.cases.TestCase):
     @freezegun.freeze_time('2017-01-01', tz_offset=1)
     @patch('mora.lora.httpx.AsyncClient.get')
     def test_validity_ranges(self, mock_get):
+        settings = config.get_settings()
         c = lora.Connector(virkningfra='2000-01-01',
                            virkningtil='3000-01-01').organisationenhed
 
