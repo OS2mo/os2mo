@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import patch
 
 import freezegun
-from httpx import Response
+from yarl import URL
 
 import mora.async_util
 import tests.cases
@@ -12,6 +11,7 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util as mora_util
+from . import util
 
 
 class TestClass(tests.cases.TestCase):
@@ -1795,15 +1795,19 @@ class TestClass(tests.cases.TestCase):
         self.assertEqual(expected_result, actual_result)
 
     @freezegun.freeze_time('2018-01-01')
-    @patch('mora.lora.httpx.AsyncClient.get')
-    def test_history_missing(self, mock_get):
+    @util.MockAioresponses()
+    def test_history_missing(self, mock):
         userid = '00000000-0000-0000-0000-000000000000'
 
-        mock_get.return_value = Response(
-            status_code=200,
-            json={
+        mock.get(
+            URL('http://mox/organisation/bruger'
+                '?uuid=' + userid +
+                '&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00'
+                '&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00'
+                '&konsolider=True', encoded=True),
+            payload={
                 "results": [],
-            }
+            },
         )
 
         with self.assertRaises(exceptions.HTTPException) as cm:
