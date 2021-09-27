@@ -388,6 +388,40 @@ class mock(requests_mock.Mocker):
             self.__overrider.__exit__(None, None, None)
 
 
+class MockAioresponses(aioresponses.aioresponses):
+
+    def __init__(self, names=None, override_lora=True, **kwargs):
+        self.__names = names
+        self.__kwargs = kwargs
+        self.__override_lora = override_lora
+        self.__names_need_init = True
+        super().__init__(**kwargs)
+
+    def __enter__(self):
+        # if self.__override_lora:
+        #     self.__overrider.__enter__()
+
+        ret = super().__enter__()
+        if self.__names_need_init:  # lazy init, need to wait for __enter__
+            self.__names_need_init = False
+            if self.__names:
+                if not isinstance(self.__names, (list, tuple)):
+                    self.__names = [self.__names]
+
+                # inject the fixture
+                for name in self.__names:
+                    for url, value in get_mock_data(name).items():
+                        encoded_url = URL(url, encoded=True)
+                        self.get(encoded_url, payload=value)
+
+        return ret
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # if self.__override_lora:
+        #     self.__overrider.__exit__(None, None, None)
+        return super().__exit__(exc_type, exc_val, exc_tb)
+
+
 def modified_normalize_url(url: Union[URL, str]) -> URL:
     """Normalize url to make comparisons."""
     url = URL(url)
