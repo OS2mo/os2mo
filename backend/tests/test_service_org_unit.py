@@ -1,14 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import call
-from unittest.mock import patch
-
-from httpx import Response
-
 from mora.config import Settings
 from uuid import UUID
 
 import freezegun
+from mock import call, patch
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
@@ -28,8 +24,8 @@ from tests import util
 
 class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time("2018-03-15")
-    @patch('mora.lora.httpx.AsyncClient.get')
-    def test_unit_past(self, mock_get):
+    @util.MockAioresponses()
+    def test_unit_past(self, mock):
         unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
         reg = {
@@ -145,9 +141,12 @@ class TestAddressLookup(tests.cases.TestCase):
             "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
         }
 
-        mock_get.return_value = Response(
-            status_code=200,
-            json={
+        mock.get(
+            "http://mox/organisation/organisationenhed"
+            "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
+                                "&virkningfra=-infinity"
+                                "&konsolider=True",
+            payload={
                 "results": [
                     [
                         {
@@ -158,7 +157,7 @@ class TestAddressLookup(tests.cases.TestCase):
                         }
                     ]
                 ]
-            }
+            },
         )
 
         with util.patch_query_args({'validity': 'past'}):

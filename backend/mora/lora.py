@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+
 from __future__ import generator_stop
 
 import asyncio
@@ -7,27 +8,20 @@ import math
 import re
 import typing
 import uuid
-from asyncio import create_task
-from asyncio import gather
+from structlog import get_logger
+from asyncio import create_task, gather
 from datetime import datetime
-from enum import Enum
-from enum import unique
+from enum import Enum, unique
+
+from aiohttp import ClientSession
 from functools import partial
 from itertools import starmap
-from typing import Optional
 
-import httpx
 import lora_utils
 from more_itertools import chunked
-from more_itertools import one
-from more_itertools import only
-from structlog import get_logger
 
-from . import config
-from . import exceptions
-from . import util
-from .util import DEFAULT_TIMEZONE
-from .util import from_iso_time
+from . import exceptions, config, util
+from .util import DEFAULT_TIMEZONE, from_iso_time
 
 logger = get_logger()
 
@@ -50,17 +44,10 @@ def registration_changed_since(
 
 
 def filter_registrations(
-    response: typing.List[typing.Dict[str, typing.Any]],
-    wantregs: bool,
-    changed_since: typing.Optional[datetime] = None,
-) -> typing.Iterable[
-    typing.Tuple[
-        str,
-        typing.Union[
-            typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]
-        ],
-    ]
-]:
+    response: typing.List[typing.Dict[str, typing.Any]], wantregs: bool,
+    changed_since: typing.Optional[datetime] = None) -> typing.Iterable[
+    typing.Tuple[str, typing.Union[
+        typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
@@ -120,7 +107,8 @@ def raise_on_status(
         # the update.)
         if noop_pattern.search(msg):
             logger.info(
-                "detected empty change, not raising E_INVALID_INPUT", message=msg
+                "detected empty change, not raising E_INVALID_INPUT",
+                message=msg
             )
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
@@ -132,16 +120,16 @@ def raise_on_status(
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-def _check_response(r):
-    if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
+async def _check_response(r):
+    if 400 <= r.status < 600:  # equivalent to requests.response.ok
         try:
-            cause = r.json()
+            cause = await r.json()
             msg = cause["message"]
         except (ValueError, KeyError):
             cause = None
-            msg = r.text
+            msg = await r.text()
 
-        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
+        raise_on_status(status_code=r.status, msg=msg, cause=cause)
 
     return r
 
@@ -176,52 +164,50 @@ def exotics_to_str(value):
         raise TypeError("Unknown type in bool_to_str", type(value))
 
 
-def param_exotics_to_strings(
-    params: typing.Dict[
-        typing.Any, typing.Union[bool, typing.List, typing.Set, str, int, uuid.UUID]
-    ]
-) -> typing.Dict[typing.Any, typing.Union[str, int, typing.List]]:
+def param_exotics_to_strings(params: typing.Dict[
+    typing.Any, typing.Union[bool, typing.List, typing.Set, str, int, uuid.UUID]]) -> \
+    typing.Dict[typing.Any,
+                typing.Union[str, int, typing.List]]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
     @param params: dict of parameters
     @return:
     """
-    ret = {
-        key: exotics_to_str(value) for key, value in params.items() if value is not None
-    }
+    ret = {key: exotics_to_str(value) for key, value in params.items()
+           if value is not None}
     return ret
 
 
 class Connector:
     def __init__(self, **defaults):
-        self.__validity = defaults.pop("validity", None) or "present"
+        self.__validity = defaults.pop('validity', None) or 'present'
 
         self.now = util.parsedatetime(
-            defaults.pop("effective_date", None) or util.now(),
+            defaults.pop('effective_date', None) or util.now(),
         )
 
-        if self.__validity == "past":
+        if self.__validity == 'past':
             self.start = util.NEGATIVE_INFINITY
             self.end = self.now
 
-        elif self.__validity == "future":
+        elif self.__validity == 'future':
             self.start = self.now
             self.end = util.POSITIVE_INFINITY
 
-        elif self.__validity == "present":
+        elif self.__validity == 'present':
             # we should probably use 'virkningstid' but that means we
             # have to override each and every single invocation of the
             # accessors later on
-            if "virkningfra" in defaults:
+            if 'virkningfra' in defaults:
                 self.start = self.now = util.parsedatetime(
-                    defaults.pop("virkningfra"),
+                    defaults.pop('virkningfra'),
                 )
             else:
                 self.start = self.now
 
-            if "virkningtil" in defaults:
-                self.end = util.parsedatetime(defaults.pop("virkningtil"))
+            if 'virkningtil' in defaults:
+                self.end = util.parsedatetime(defaults.pop('virkningtil'))
             else:
                 self.end = self.start + util.MINIMAL_INTERVAL
 
@@ -246,46 +232,46 @@ class Connector:
         return self.__validity
 
     def is_range_relevant(self, start, end, effect):
-        if self.validity == "present":
+        if self.validity == 'present':
             return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
             return start > self.start and end <= self.end
 
-    def scope(self, type_: LoraObjectType) -> "Scope":
+    def scope(self, type_: LoraObjectType) -> 'Scope':
         if type_ in self.__scopes:
             return self.__scopes[type_]
         return self.__scopes.setdefault(type_, Scope(self, type_.value))
 
     @property
-    def organisation(self) -> "Scope":
+    def organisation(self) -> 'Scope':
         return self.scope(LoraObjectType.org)
 
     @property
-    def organisationenhed(self) -> "Scope":
+    def organisationenhed(self) -> 'Scope':
         return self.scope(LoraObjectType.org_unit)
 
     @property
-    def organisationfunktion(self) -> "Scope":
+    def organisationfunktion(self) -> 'Scope':
         return self.scope(LoraObjectType.org_func)
 
     @property
-    def bruger(self) -> "Scope":
+    def bruger(self) -> 'Scope':
         return self.scope(LoraObjectType.user)
 
     @property
-    def itsystem(self) -> "Scope":
+    def itsystem(self) -> 'Scope':
         return self.scope(LoraObjectType.it_system)
 
     @property
-    def klasse(self) -> "Scope":
+    def klasse(self) -> 'Scope':
         return self.scope(LoraObjectType.class_)
 
     @property
-    def facet(self) -> "Scope":
+    def facet(self) -> 'Scope':
         return self.scope(LoraObjectType.facet)
 
     @property
-    def klassifikation(self) -> "Scope":
+    def klassifikation(self) -> 'Scope':
         return self.scope(LoraObjectType.classification)
 
 
@@ -300,18 +286,18 @@ class BaseScope:
 
 
 class Scope(BaseScope):
-
-    client_timeout: Optional[int] = config.get_settings().lora_client_timeout
-
     async def fetch(self, **params):
-        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
-            response = await client.get(
+        async with ClientSession() as session:
+            response = await session.get(
                 self.base_path,
-                params=param_exotics_to_strings({**self.connector.defaults, **params}),
-            )
-        _check_response(response)
+                params=param_exotics_to_strings({**self.connector.defaults, **params}))
+            await _check_response(response)
 
-        return only(response.json()["results"], default=[])
+            try:
+                ret = (await response.json())['results'][0]
+                return ret
+            except IndexError:
+                return []
 
     async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
@@ -330,7 +316,9 @@ class Scope(BaseScope):
         assert "start" not in params, ass_msg.format("start", ", use 'paged_get'")
         assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
-        wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
+        wantregs = not params.keys().isdisjoint(
+            {'registreretfra', 'registrerettil'}
+        )
         response = await self.fetch(**dict(params), list=1)
 
         return filter_registrations(
@@ -370,9 +358,8 @@ class Scope(BaseScope):
         # # chunk to get some 'fake' performance by parallelize
         # uuid_chunks = divide(n_chunks, uuids)
 
-        need_flat = await gather(
-            *[create_task(self.fetch(uuid=list(ch))) for ch in uuid_chunks]
-        )
+        need_flat = await gather(*[create_task(self.fetch(uuid=list(ch)))
+                                   for ch in uuid_chunks])
         ret = [x for chunk in need_flat for x in chunk]
 
         # ret = await self.fetch(uuid=uuids)
@@ -380,18 +367,13 @@ class Scope(BaseScope):
             response=ret, wantregs=False, changed_since=changed_since
         )
 
-    async def paged_get(
-        self,
-        func: typing.Callable[
-            ["Connector", typing.Any, typing.Any],
-            typing.Union[typing.Any, typing.Coroutine],
-        ],
-        *,
-        start=0,
-        limit=0,
-        uuid_filters=None,
-        **params,
-    ):
+    async def paged_get(self,
+                        func: typing.Callable[['Connector', typing.Any, typing.Any],
+                                              typing.Union[
+                                                  typing.Any, typing.Coroutine]], *,
+                        start=0, limit=0,
+                        uuid_filters=None,
+                        **params):
         """Perform a search on given params, filter and return the result.
 
         :code:`func` is a function from (lora-connector, obj_id, obj) to
@@ -425,7 +407,11 @@ class Scope(BaseScope):
         else:
             obj_iter = starmap(partial(func, self.connector), obj_iter)
 
-        return {"total": total, "offset": start, "items": list(obj_iter)}
+        return {
+            'total': total,
+            'offset': start,
+            'items': list(obj_iter)
+        }
 
     async def get(self, uuid, **params):
         d = await self.fetch(uuid=str(uuid), **params)
@@ -433,45 +419,54 @@ class Scope(BaseScope):
         if not d or not d[0]:
             return None
 
-        registrations = one(d)["registreringer"]
+        registrations = d[0]['registreringer']
 
-        if params.keys() & {"registreretfra", "registrerettil"}:
+        assert len(d) == 1
+
+        if params.keys() & {'registreretfra', 'registrerettil'}:
             return registrations
         else:
-            return one(registrations)
+            assert len(registrations) == 1
+
+            return registrations[0]
 
     async def create(self, obj, uuid=None):
         obj = uuid_to_str(obj)
-        if uuid:
-            async with httpx.AsyncClient(timeout=self.client_timeout) as client:
-                r = await client.put("{}/{}".format(self.base_path, uuid), json=obj)
 
-            _check_response(r)
-            return r.json()["uuid"]
+        if uuid:
+            async with ClientSession() as session:
+                r = await session.put(
+                    '{}/{}'.format(self.base_path, uuid), json=obj)
+
+                async with r:
+                    await _check_response(r)
+                    return (await r.json())['uuid']
         else:
-            async with httpx.AsyncClient(timeout=self.client_timeout) as client:
-                r = await client.post(self.base_path, json=obj)
-            _check_response(r)
-            return r.json()["uuid"]
+            async with ClientSession() as session:
+                r = await session.post(self.base_path, json=obj)
+                await _check_response(r)
+                return (await r.json())['uuid']
 
     async def delete(self, uuid):
-        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
-            response = await client.delete("{}/{}".format(self.base_path, uuid))
-        _check_response(response)
+        async with ClientSession() as session:
+            response = await session.delete('{}/{}'.format(self.base_path, uuid))
+            await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with httpx.AsyncClient(timeout=self.client_timeout) as client:
-            url = "{}/{}".format(self.base_path, uuid)
-            response = await client.patch(url, json=obj)
-        if response.status_code == 404:
-            logger.warning("could not update nonexistent LoRa object", url=url)
-        else:
-            _check_response(response)
-            return response.json().get("uuid", uuid)
+        async with ClientSession() as session:
+            url = '{}/{}'.format(self.base_path, uuid)
+            response = await session.patch(url, json=obj)
+            if response.status == 404:
+                logger.warning("could not update nonexistent LoRa object", url=url)
+            else:
+                await _check_response(response)
+                return (await response.json()).get('uuid', uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
-            await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj
+            await self.get(obj, **params)
+            if isinstance(obj, (str, uuid.UUID))
+            else obj
         )
 
         if not reg:
@@ -486,13 +481,12 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    timeout = config.get_settings().lora_client_timeout
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.get(config.get_settings().lora_url + "version")
-    try:
-        return response.json()["lora_version"]
-    except ValueError:
-        return "Could not find lora version: %s" % response.text()
+    async with ClientSession() as session:
+        response = await session.get(config.get_settings().lora_url + "version")
+        try:
+            return (await response.json())["lora_version"]
+        except ValueError:
+            return "Could not find lora version: %s" % await response.text()
 
 
 class AutocompleteScope(BaseScope):
@@ -501,11 +495,10 @@ class AutocompleteScope(BaseScope):
         self.path = f"autocomplete/{path}"
 
     async def fetch(self, phrase, class_uuids=None):
-        timeout = config.get_settings().lora_client_timeout
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.get(self.base_path, params=params)
-        _check_response(response)
-        return {"items": response.json()["results"]}
+        async with ClientSession() as session:
+            response = await session.get(self.base_path, params=params)
+            await _check_response(response)
+            return {"items": (await response.json())["results"]}
