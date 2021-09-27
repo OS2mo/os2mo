@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.4.4 - 2021-09-27
+------------------
+
+[#45211] Read OS2mo version and commit sha from build arg environment variables
+
 2.4.3 - 2021-09-27
 ------------------
 
