@@ -28,7 +28,6 @@ from typing import Tuple
 from uuid import UUID
 from uuid import uuid4
 
-import mora.async_util
 from fastapi import APIRouter
 from fastapi import Request
 from mora.request_scoped.bulking import request_wide_bulk
@@ -783,27 +782,7 @@ class ClassRequestHandler(handlers.RequestHandler):
     role_type = "class"
 
     def prepare_create(self, request: dict):
-        valid_from = util.NEGATIVE_INFINITY
-        valid_to = util.POSITIVE_INFINITY
-
-        facet_bvn = request["facet"]
-        facetids = mora.async_util.async_to_sync(get_facetids)(facet_bvn)
-        facet_uuid = one(facetids)
-
-        mo_class = request["class_model"]
-
-        clazz = common.create_klasse_payload(
-            valid_from=valid_from,
-            valid_to=valid_to,
-            facet_uuid=facet_uuid,
-            org_uuid=mo_class.org_uuid,
-            bvn=mo_class.user_key,
-            title=mo_class.name,
-            scope=mo_class.scope,
-        )
-
-        self.payload = clazz
-        self.uuid = mo_class.uuid or str(uuid4())
+        raise NotImplementedError('Use aprepare_create instead')
 
     async def aprepare_create(self, request: dict):
         valid_from = util.NEGATIVE_INFINITY
@@ -829,18 +808,7 @@ class ClassRequestHandler(handlers.RequestHandler):
         self.uuid = mo_class.uuid or str(uuid4())
 
     def submit(self) -> str:
-        c = lora.Connector()
-
-        if self.request_type == mapping.RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.klasse.create)(
-                self.payload, self.uuid
-            )
-        else:
-            self.result = mora.async_util.async_to_sync(c.klasse.update)(
-                self.payload, self.uuid
-            )
-
-        return super().submit()
+        raise NotImplementedError('Use asubmit instead')
 
     async def asubmit(self) -> str:
         c = lora.Connector()
