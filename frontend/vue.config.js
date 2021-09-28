@@ -7,7 +7,7 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 // Names of folders in "./src/modules/"
 // This duplicates the contents of "./moduleNames.js" (which is an ES6 module
 // that cannot be imported here.)
-const _moduleNames = ["organisationMapper", "query"]
+const _moduleNames = ["organisationMapper", "query", "insight"]
 
 module.exports = {
   assetsDir: 'static',

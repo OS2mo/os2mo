@@ -2,4 +2,4 @@
 // SPDX-License-Identifier: MPL-2.0
 
 // Names of folders in ./src/modules/
-export const moduleNames = ["organisationMapper", "query"]
+export const moduleNames = ["organisationMapper", "query", "insight"]
