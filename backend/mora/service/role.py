@@ -11,7 +11,6 @@ This section describes how to interact with employee roles.
 
 import uuid
 
-import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -26,7 +25,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ROLE
     function_key = mapping.ROLE_KEY
 
-    def prepare_create(self, req):
+    async def aprepare_create(self, req):
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -37,16 +36,16 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         valid_from, valid_to = util.get_validities(req)
 
         # Validation
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
+        await validator.is_date_range_in_org_unit_range(
             org_unit,
             valid_from,
             valid_to)
-        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+        await validator.is_date_range_in_employee_range(
             employee,
             valid_from,
             valid_to)
 
-        org_uuid = mora.async_util.async_to_sync(org.get_configured_organisation)(
+        org_uuid = await org.get_configured_organisation(
             util.get_mapping_uuid(req, mapping.ORG, required=False))["uuid"]
 
         role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
@@ -74,11 +73,11 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             "org_unit_uuid": org_unit_uuid
         })
 
-    def prepare_edit(self, req: dict):
+    async def aprepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+        original = await c.organisationfunktion.get(
             uuid=role_uuid)
 
         if not original:
@@ -162,7 +161,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(new_from, new_to, bounds_fields,
                                        original, payload)
 
-        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
+        await validator.is_date_range_in_employee_range(
             employee,
             new_from,
             new_to)
