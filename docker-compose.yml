@@ -326,5 +326,11 @@ services:
       timeout: 5s
       retries: 3
       start_period: 300s
+
 volumes:
   keycloak-volume:
+
+networks:
+  default:
+    # The name is used in OS2forms dev env to connect to MO and other services.
+    name: os2molan
