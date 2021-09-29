@@ -4,6 +4,7 @@
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
+import pytest
 from mora.api.v1.models import Address
 from mora.api.v1.models import Employee
 from mora.api.v1.models import OrganisationUnitFull
@@ -29,6 +30,7 @@ class GeneralReadingTestCase(base.BaseReadingTestCase):
 
     @given(st.builds(RelatedUnit))
     @settings(max_examples=1)
+    @pytest.mark.xfail
     def test_search_endpoint_related_unit(self, instance):
         """
         All endpoints except employee and org_unit uses the organisation function
@@ -47,6 +49,7 @@ class GeneralReadingTestCase(base.BaseReadingTestCase):
 
     @given(st.builds(OrganisationUnitFull))
     @settings(max_examples=1)
+    @pytest.mark.xfail
     def test_uuid_endpoint_org_unit(self, instance):
         self.uuid_endpoint_helper(org_unit.OrgUnitReader, [instance2dict(instance)])
 
