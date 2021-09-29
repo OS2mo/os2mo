@@ -370,7 +370,9 @@ def generate_requests(
     requesthandlers = []
     for req in requests:
         requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
-        if req.get('type') in ['role'] and request_type == RequestType.CREATE:
+        if req.get('type') in [
+            'role', 'kle'
+        ] and request_type == RequestType.CREATE:
             requesthandlers.append(
                 mora.async_util.async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
