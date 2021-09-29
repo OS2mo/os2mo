@@ -74,6 +74,58 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
 
+    async def aprepare_create(self, req):
+        org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT,
+                                              required=False)
+
+        valid_from, valid_to = util.get_validities(req)
+
+        org_uuid = (await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+
+        kle_aspects = util.checked_get(
+            req, mapping.KLE_ASPECT, [], required=True, can_be_empty=False
+        )
+
+        opgaver = [
+            {
+                'uuid': util.get_uuid(kle_type)
+            }
+            for kle_type in kle_aspects
+        ]
+
+        kle_annotation_uuid = util.get_mapping_uuid(req,
+                                                    mapping.KLE_NUMBER,
+                                                    required=True)
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        # Validation
+        if org_unit_uuid:
+            await validator.is_date_range_in_org_unit_range(
+                req[mapping.ORG_UNIT],
+                valid_from,
+                valid_to)
+
+        func = common.create_organisationsfunktion_payload(
+            funktionsnavn=mapping.KLE_KEY,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle=bvn,
+            funktionstype=kle_annotation_uuid,
+            tilknyttedebrugere=[],
+            tilknyttedeorganisationer=[org_uuid],
+            tilknyttedeenheder=[org_unit_uuid],
+            opgaver=opgaver
+        )
+
+        self.payload = func
+        self.uuid = func_id
+        self.trigger_dict.update({
+            Trigger.ORG_UNIT_UUID: org_unit_uuid
+        })
+
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
