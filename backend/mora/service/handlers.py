@@ -367,10 +367,19 @@ def generate_requests(
             types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
         )
 
-    return [
-        HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
-        for req in requests
-    ]
+    requesthandlers = []
+    for req in requests:
+        requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
+        if req.get('type') in ['role'] and request_type == RequestType.CREATE:
+            requesthandlers.append(
+                mora.async_util.async_to_sync(
+                    requesthandler_klasse.construct)(req, request_type)
+            )
+        else:
+            requesthandlers.append(
+                requesthandler_klasse(req, request_type)
+            )
+    return requesthandlers
 
 
 def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:

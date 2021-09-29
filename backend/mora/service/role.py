@@ -74,6 +74,54 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             "org_unit_uuid": org_unit_uuid
         })
 
+    async def aprepare_create(self, req):
+        org_unit = util.checked_get(req, mapping.ORG_UNIT,
+                                    {}, required=True)
+        org_unit_uuid = util.get_uuid(org_unit, required=True)
+
+        employee = util.checked_get(req, mapping.PERSON, {}, required=True)
+        employee_uuid = util.get_uuid(employee, required=True)
+
+        valid_from, valid_to = util.get_validities(req)
+
+        # Validation
+        await validator.is_date_range_in_org_unit_range(
+            org_unit,
+            valid_from,
+            valid_to)
+        await validator.is_date_range_in_employee_range(
+            employee,
+            valid_from,
+            valid_to)
+
+        org_uuid = (await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+
+        role_type_uuid = util.get_mapping_uuid(req, mapping.ROLE_TYPE,
+                                               required=True)
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        role = common.create_organisationsfunktion_payload(
+            funktionsnavn=mapping.ROLE_KEY,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle=bvn,
+            tilknyttedebrugere=[employee_uuid],
+            tilknyttedeorganisationer=[org_uuid],
+            tilknyttedeenheder=[org_unit_uuid],
+            funktionstype=role_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
+        )
+
+        self.payload = role
+        self.uuid = func_id
+        self.trigger_dict.update({
+            "employee_uuid": employee_uuid,
+            "org_unit_uuid": org_unit_uuid
+        })
+
     def prepare_edit(self, req: dict):
         role_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
