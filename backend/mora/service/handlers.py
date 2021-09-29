@@ -356,7 +356,24 @@ def get_handler_for_role_type(role_type: str):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
+# def generate_requests(
+#     requests: typing.List[dict],
+#     request_type: RequestType
+# ) -> typing.List[RequestHandler]:
+#     operations = {req.get('type') for req in requests}
+# 
+#     if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
+#         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
+#             types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
+#         )
+# 
+#     return [
+#         HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
+#         for req in requests
+#     ]
+
 def generate_requests(
+    # [{"type": "role", "..."}, {"type": "addresser", "..."}]
     requests: typing.List[dict],
     request_type: RequestType
 ) -> typing.List[RequestHandler]:
@@ -367,10 +384,18 @@ def generate_requests(
             types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
         )
 
-    return [
-        HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
-        for req in requests
-    ]
+    requesthandlers = []
+    for req in requests:
+        requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
+        if req.get('type') in ['role'] and request_type == RequestType.CREATE:
+            requesthandlers.append(
+                mora.async_util.async_to_sync(requesthandler_klasse.construct(req, request_type))
+            )
+        else:
+            requesthandlers.append(
+                requesthandler_klasse(req, request_type)
+            )
+    return requesthandlers
 
 
 def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
