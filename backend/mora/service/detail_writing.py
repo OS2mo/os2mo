@@ -53,7 +53,7 @@ def handle_requests(
 
 @router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
-async def create(
+def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -432,7 +432,7 @@ async def create(
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-async def edit(
+def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -945,7 +945,7 @@ async def edit(
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-async def terminate(
+def terminate(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
