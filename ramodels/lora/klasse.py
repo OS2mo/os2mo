@@ -29,10 +29,7 @@ from ._shared import Responsible
 
 class Klasse(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa klasse.
     """
 
     attributes: KlasseAttributes = Field(alias="attributter")

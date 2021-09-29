@@ -27,10 +27,7 @@ from ._shared import Responsible
 
 class Facet(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa facet.
     """
 
     attributes: FacetAttributes = Field(alias="attributter")

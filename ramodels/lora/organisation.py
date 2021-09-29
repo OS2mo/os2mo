@@ -28,10 +28,7 @@ from ._shared import OrganisationValidState
 
 class Organisation(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa organisation.
     """
 
     attributes: OrganisationAttributes = Field(alias="attributter")
