@@ -7,7 +7,6 @@ from typing import Set
 
 from structlog import get_logger
 
-from .. import util
 from ..exceptions import ErrorCodes
 from ..mapping import EventType
 from ..mapping import RequestType
@@ -65,16 +64,12 @@ class Trigger:
     RESULT = "result"
 
     @classmethod
-    def run(cls, trigger_dict):
+    async def run(cls, trigger_dict):
         """Find the relevant set of trigger functions and trigger them in turn.
 
         The relevant set is found by lookup into the registry using role, request and
         event-type.
         """
-        # TODO: Lad return typen fra triggers ende i Arbejdsloggen?
-        if util.get_args_flag("triggerless"):
-            return
-
         triggers = (
             cls.registry.get(trigger_dict[cls.ROLE_TYPE], {})
             .get(trigger_dict[cls.REQUEST_TYPE], {})
@@ -83,7 +78,7 @@ class Trigger:
         results = []
         for t in triggers:
             try:
-                results.append(t(trigger_dict))
+                results.append(await t(trigger_dict))
             except cls.Error as e:
                 ErrorCodes.E_INTEGRATION_ERROR(str(e), **e.extra)
             except Exception as e:

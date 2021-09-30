@@ -1,21 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora.config import Settings
-
-from tests import util
-
 import freezegun
-from aioresponses import aioresponses
 
 import tests.cases
-from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.mapping import EventType, RequestType
 from mora.service.handlers import (
     RequestHandler
 )
 from mora.triggers import Trigger
-from mora.triggers.internal.http_trigger import register
 
 
 class MockHandler(RequestHandler):
@@ -35,23 +28,6 @@ class MockHandler(RequestHandler):
         super().submit()
 
 
-class RegisterTest(tests.cases.TestCase):
-    @aioresponses()
-    @util.override_config(Settings(http_endpoints=["http://mock_url"]))
-    def test_runs_in_async_context(self, aio_mock):
-        """
-        test that it is possible to register in an async context
-        :return:
-        """
-        aio_mock.get("http://mock_url/triggers", payload=[])
-
-        @async_to_sync
-        async def run_test():
-            register("")
-
-        run_test()
-
-
 class Tests(tests.cases.MockRequestContextTestCase):
     maxDiff = None
 
@@ -67,7 +43,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def test_handler_trigger_any_exception(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             raise Exception("Bummer")
 
@@ -81,7 +57,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def test_handler_trigger_own_error(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             raise Trigger.Error("Bummer", stage="final")
 
@@ -98,7 +74,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def test_handler_trigger_before_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_BEFORE,
@@ -113,7 +89,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def test_handler_trigger_after_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_AFTER)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_AFTER,
@@ -130,7 +106,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
     def test_handler_trigger_before_create(self):
         @Trigger.on("mock", RequestType.CREATE,
                     EventType.ON_BEFORE)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_BEFORE,
@@ -145,7 +121,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def test_handler_trigger_after_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_AFTER,
@@ -162,7 +138,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
     def test_handler_trigger_before_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE,
                     EventType.ON_BEFORE)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_BEFORE,
@@ -178,7 +154,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
     def test_handler_trigger_after_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE,
                     EventType.ON_AFTER)
-        def trigger(trigger_dict):
+        async def trigger(trigger_dict):
             self.trigger_called = True
             self.assertEqual({
                 'event_type': EventType.ON_AFTER,
@@ -200,7 +176,7 @@ class TriggerlessTests(tests.cases.LoRATestCase):
     This test is supposed to test/show the the difference
     """
 
-    def trigger(self, trigger_dict):
+    async def trigger(self, trigger_dict):
         self.trigger_called = True
 
     def setUp(self):

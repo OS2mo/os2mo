@@ -630,7 +630,8 @@ def terminate_employee(
         Trigger.UUID: uuid
     }
 
-    Trigger.run(trigger_dict)
+    if not util.get_args_flag("triggerless"):
+        Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         handler.submit()
@@ -640,7 +641,8 @@ def terminate_employee(
     trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
 
-    Trigger.run(trigger_dict)
+    if not util.get_args_flag("triggerless"):
+        Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     mora.async_util.async_to_sync(common.add_history_entry)(
