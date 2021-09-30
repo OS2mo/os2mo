@@ -1,40 +1,41 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
 
-import requests_mock
 from aioresponses import aioresponses
-from mock import patch
-from requests.exceptions import RequestException
+from httpx import Response, Request
+
+import pytest
 
 import tests.cases
 from mora import health, config
-from tests import util
 
 
-class OIORestHealthTests(tests.cases.TestCase):
-    @util.mock()
-    def test_oio_rest_returns_true_if_reachable(self, mock):
-        mock.get(config.get_settings().lora_url + "site-map")
+HTTPX_MOCK_RESPONSE = Response(
+    status_code=404,
+    request=Request('GET', 'http://some-url.xyz')
+)
 
-        actual = health.oio_rest()
 
-        self.assertEqual(True, actual)
+class TestOIORestHealth:
+    @pytest.mark.asyncio
+    async def test_oio_rest_returns_true_if_reachable(self):
+        assert await health.oio_rest()
 
-    @util.mock()
-    def test_oio_rest_returns_false_if_unreachable(self, mock):
-        mock.get(config.get_settings().lora_url + "site-map", status_code=404)
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_oio_rest_returns_false_if_unreachable(self, mock_get):
+        mock_get.return_value = HTTPX_MOCK_RESPONSE
+        assert not await health.oio_rest()
 
-        actual = health.oio_rest()
-
-        self.assertEqual(False, actual)
-
-    @util.mock()
-    def test_oio_rest_returns_false_if_request_error(self, mock):
-        mock.get(config.get_settings().lora_url + "site-map", exc=RequestException)
-
-        actual = health.oio_rest()
-
-        self.assertEqual(False, actual)
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_oio_rest_returns_false_for_httpx_client_error(self, mock_get):
+        # This is one of the possible erros raised by the httpx client
+        mock_get.side_effect = RuntimeError(
+            "Cannot send a request, as the client has been closed."
+        )
+        assert not await health.oio_rest()
 
 
 class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
@@ -77,25 +78,48 @@ class DatasetHealthTests(tests.cases.TestCase):
         self.assertEqual(True, actual)
 
 
-@requests_mock.Mocker()
-class DARHealthTests(tests.cases.TestCase):
-    def test_dar_returns_false_if_unreachable(self, mock):
-        mock.get("https://dawa.aws.dk/autocomplete", status_code=404)
+class TestKeycloakHealth:
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_keycloak_returns_true_if_reachable(self, mock_get):
+        mock_get.return_value = Response(
+            status_code=200,
+            request=Request('GET', 'http://keycloak:8080/auth/')
+        )
+        assert await health.keycloak()
 
-        actual = health.dar()
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_keycloak_returns_false_if_unreachable(self, mock_get):
+        mock_get.return_value = HTTPX_MOCK_RESPONSE
+        assert not await health.keycloak()
 
-        self.assertEqual(False, actual)
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_keycloak_returns_false_for_httpx_client_error(self, mock_get):
+        # This is one of the possible erros raised by the httpx client
+        mock_get.side_effect = RuntimeError(
+            "Cannot send a request, as the client has been closed."
+        )
+        assert not await health.keycloak()
 
-    def test_dar_returns_false_if_request_error(self, mock):
-        mock.get("https://dawa.aws.dk/autocomplete", exc=RequestException)
 
-        actual = health.dar()
+class TestDARHealth:
+    @pytest.mark.asyncio
+    async def test_dar_returns_true_if_reachable(self):
+        assert await health.dar()
 
-        self.assertEqual(False, actual)
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_dar_returns_false_if_unreachable(self, mock_get):
+        mock_get.return_value = HTTPX_MOCK_RESPONSE
+        assert not await health.dar()
 
-    def test_dar_returns_true_if_reachable(self, mock):
-        mock.get("https://dawa.aws.dk/autocomplete")
-
-        actual = health.dar()
-
-        self.assertEqual(True, actual)
+    @pytest.mark.asyncio
+    @patch('httpx.AsyncClient.get')
+    async def test_dar_returns_false_for_httpx_client_error(self, mock_get):
+        # This is one of the possible erros raised by the httpx client
+        mock_get.side_effect = RuntimeError(
+            "Cannot send a request, as the client has been closed."
+        )
+        assert not await health.dar()

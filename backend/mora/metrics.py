@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Callable
 
-from mora.health import dar, dataset, oio_rest, amqp
+from mora.health import dar, dataset, oio_rest, amqp, keycloak
 from prometheus_client import Info, Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
@@ -68,8 +68,8 @@ def oio_rest_health() -> Callable[[InstInfo], None]:
     """
     METRIC = Gauge('oio_rest_health', 'OIO REST health')
 
-    def instrumentation(_: InstInfo) -> None:
-        METRIC.set(oio_rest())
+    async def instrumentation(_: InstInfo) -> None:
+        METRIC.set(await oio_rest())
 
     return instrumentation
 
@@ -93,7 +93,19 @@ def dar_health() -> Callable[[InstInfo], None]:
     """
     METRIC = Gauge('dar_health', 'DAR health')
 
-    def instrumentation(_: InstInfo):
-        METRIC.set(dar())
+    async def instrumentation(_: InstInfo):
+        METRIC.set(await dar())
+
+    return instrumentation
+
+
+def keycloak_health() -> Callable[[InstInfo], None]:
+    """Check whether Keycloak can be reached
+    True if reachable. False if not.
+    """
+    METRIC = Gauge('keycloak_health', 'Keycloak health')
+
+    async def instrumentation(_: InstInfo):
+        METRIC.set(await keycloak())
 
     return instrumentation

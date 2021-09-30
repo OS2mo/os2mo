@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 
-import requests
 from fastapi import APIRouter
+from httpx import HTTPStatusError
 from pika.exceptions import AMQPError
+from pydantic import AnyUrl
 from requests.exceptions import RequestException
 from structlog import get_logger
 
 from mora import conf_db, lora, config
 from mora.exceptions import HTTPException
+from mora.http import client
 from mora.triggers.internal import amqp_trigger
 
 router = APIRouter()
@@ -26,6 +28,26 @@ def register_health_endpoint(func):
     restricted_args_func = func  # util.restrictargs()(func)
     endpoint_func = router.get(url)(restricted_args_func)
     return endpoint_func
+
+
+async def _is_endpoint_reachable(url: AnyUrl) -> bool:
+    """
+    Check if the url can be reached
+
+    :param url: the endpoint to check
+    :return: True if reachable. False if not
+    """
+
+    try:
+        r = await client.get(url)
+        r.raise_for_status()
+        return True
+    except HTTPStatusError as err:
+        logger.critical(f"Problem contacting {url}", exception=str(err))
+        return False
+    except Exception as err:
+        logger.critical("HTTPX client error", exception=str(err))
+        return False
 
 
 @register_health_endpoint
@@ -57,24 +79,13 @@ def amqp():
 
 
 @register_health_endpoint
-def oio_rest():
+async def oio_rest():
     """
     Check if the configured oio_rest can be reached
     :return: True if reachable. False if not
     """
     url = config.get_settings().lora_url + "site-map"
-    try:
-        r = requests.get(url)
-
-        if r.status_code == 200:
-            return True
-        else:
-            logger.critical("oio_rest returned status code",
-                            request_status_code=r.status_code)
-            return False
-    except RequestException as e:
-        logger.exception("oio_rest returned", exception=e)
-        return False
+    return await _is_endpoint_reachable(url)
 
 
 @register_health_endpoint
@@ -114,24 +125,27 @@ async def dataset():
 
 
 @register_health_endpoint
-def dar():
+async def dar():
     """
     Check whether DAR can be reached
     :return: True if reachable. False if not.
     """
     url = "https://dawa.aws.dk/autocomplete"
-    try:
-        r = requests.get(url, timeout=2)
-        if r.status_code == 200:
-            return True
-        else:
-            return False
-    except RequestException:
-        return False
+    return await _is_endpoint_reachable(url)
+
+
+@register_health_endpoint
+async def keycloak():
+    """
+    Check if Keycloak is running
+    """
+    settings = config.get_settings()
+    url = f"{settings.keycloak_schema}://{settings.keycloak_host}" \
+          f":{settings.keycloak_port}/auth/"
+    return await _is_endpoint_reachable(url)
 
 
 @router.get("/")
-# @util.restrictargs()
 async def root():
     health = {
         func.__name__: await func() if asyncio.iscoroutinefunction(func) else func()
