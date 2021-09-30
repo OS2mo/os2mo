@@ -26,6 +26,7 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.http import client
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -266,6 +267,10 @@ def create_app():
         AuthorizationError,
         authorization_exception_handler
     )
+
+    @app.on_event('shutdown')
+    async def close_httpx_client():
+        await client.aclose()
 
     if not is_under_test():
         app = setup_instrumentation(app)

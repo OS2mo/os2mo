@@ -39,6 +39,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
             '/health/configuration_database',
             '/health/dataset',
             '/health/dar',
+            '/health/keycloak',
             '/health/',
             '/version/',
             '/forespoergsler/',

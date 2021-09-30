@@ -6,7 +6,7 @@ from functools import lru_cache
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
 from pydantic import root_validator
-from pydantic.types import UUID
+from pydantic.types import UUID, PositiveInt
 from typing import Any
 from typing import Dict
 from typing import List
@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     http_endpoints: Optional[List[str]]
     fetch_trigger_timeout: int = 5
     run_trigger_timeout: int = 5
+
+    # HTTPX
+    httpx_timeout: PositiveInt = 10
 
     # AMQP settings
     amqp_enable: bool = False
