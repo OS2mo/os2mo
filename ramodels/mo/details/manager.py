@@ -11,6 +11,8 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Field
+
 from .._shared import ManagerLevel
 from .._shared import ManagerType
 from .._shared import MOBase
@@ -41,13 +43,24 @@ class Manager(MOBase):
         validity:
     """
 
-    type: Literal["manager"] = "manager"
-    org_unit: OrgUnitRef
-    person: PersonRef
-    responsibility: List[Responsibility]
-    manager_level: ManagerLevel
-    manager_type: ManagerType
-    validity: Validity
+    type: Literal["manager"] = Field("manager", description="The object type.")
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit "
+        "for which the manager should be created."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person that will be the resulting manager."
+    )
+    responsibility: List[Responsibility] = Field(
+        description="Manager responsibility objects."
+    )
+    manager_level: ManagerLevel = Field(
+        description="Reference to the manager level klasse for the created manager."
+    )
+    manager_type: ManagerType = Field(
+        description="Reference to the manager type klasse for the created manager."
+    )
+    validity: Validity = Field(description="The validity of the created manager.")
 
     @classmethod
     def from_simplified_fields(
@@ -61,6 +74,7 @@ class Manager(MOBase):
         from_date: str,
         to_date: Optional[str] = None,
     ) -> "Manager":
+        """Create a manager from simplified fields."""
         person = PersonRef(uuid=person_uuid)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         responsibility = [

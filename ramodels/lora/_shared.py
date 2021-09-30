@@ -86,9 +86,8 @@ class InfiniteDatetime(str):
     def __get_validators__(cls) -> Iterator[Callable]:
         """Magic method used by pydantic to collect validators.
 
-        Yields:
-            Iterator[Callable]: One (or more) validation functions,
-            which are evaluated in order.
+        Returns:
+            One (or more) validation functions, which are evaluated in order.
         """
         yield cls.validate
 
@@ -97,15 +96,15 @@ class InfiniteDatetime(str):
         """Validate an incoming value against InfiniteDatetime logic.
 
         Args:
-            value (Any): The value to validate
+            value: The value to validate
 
         Raises:
-            TypeError: If the value is not a 'str' or 'datetime' object.
+            TypeError: If the value is not a `str` or `datetime` object.
             ISOParseError: If the value cannot be parsed as either the strings
-                "-infinity", "infinity", or an ISO-8601 datetime string.
+                `-infinity`, `infinity`, or an ISO-8601 datetime string.
 
         Returns:
-            str: Either "-infinity", "infinity", or an ISO-8601 datetime string.
+            Either `-infinity`, `infinity`, or an ISO-8601 datetime string.
         """
 
         if not isinstance(value, (str, datetime)):
@@ -125,12 +124,12 @@ class InfiniteDatetime(str):
         """Implements the less than magic method for InfiniteDatetime.
 
         Args:
-            other (Any): value to compare against.
+            other: value to compare against.
         Raises:
             TypeError: If other turns out to not be an instance of InfiniteDatetime.
 
         Returns:
-            bool: True if dt(self) < dt(other), otherwise False.
+            True if `dt(self) < dt(other)`, otherwise False.
         """
         if not isinstance(other, InfiniteDatetime):
             raise TypeError(
@@ -149,21 +148,21 @@ class InfiniteDatetime(str):
     def __le__(self, other: Any) -> bool:
         """Implements the less than or equal to magic method for InfiniteDatetime.
 
-        This method is defined using __lt__ and __eq__.
+        This method is defined using `__lt__` and `__eq__`.
         """
         return self.__lt__(other) or self.__eq__(other)
 
     def __gt__(self, other: Any) -> bool:
         """Implements the greater than magic method for InfiniteDatetime.
 
-        This method is defined by negating __le__.
+        This method is defined by negating `__le__`.
         """
         return not self.__le__(other)
 
     def __ge__(self, other: Any) -> bool:
         """Implements the less than or equal to magic method for InfiniteDatetime.
 
-        This method is defined using __gt__ and __eq__.
+        This method is defined using `__gt__` and `__eq__`.
         """
         return self.__gt__(other) or self.__eq__(other)
 
@@ -199,9 +198,12 @@ class Authority(RABase):
     """Authority as given by URN."""
 
     urn: str = Field(
-        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
+        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$",
+        description="URN of the authority.",
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the authority."
+    )
 
 
 class FacetProperties(RABase):
@@ -210,7 +212,9 @@ class FacetProperties(RABase):
     """
 
     user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the property."
+    )
 
 
 class FacetAttributes(RABase):
@@ -219,7 +223,10 @@ class FacetAttributes(RABase):
     """
 
     properties: List[FacetProperties] = Field(
-        alias="facetegenskaber", min_items=1, max_items=1
+        alias="facetegenskaber",
+        min_items=1,
+        max_items=1,
+        description="The facet property denoting the attributes.",
     )
 
 
@@ -236,7 +243,9 @@ class Published(RABase):
         alias="publiceret",
         description="String representing the published status.",
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="The effective time of the states."
+    )
 
 
 class FacetStates(RABase):
@@ -245,7 +254,10 @@ class FacetStates(RABase):
     """
 
     published_state: List[Published] = Field(
-        alias="facetpubliceret", min_items=1, max_items=1
+        alias="facetpubliceret",
+        min_items=1,
+        max_items=1,
+        description="The published state of the facet.",
     )
 
 
@@ -257,8 +269,10 @@ class Responsible(RABase):
     object_type: Literal["organisation"] = Field(
         "organisation", alias="objekttype", description="Object type."
     )
-    uuid: UUID
-    effective_time: EffectiveTime = Field(alias="virkning")
+    uuid: UUID = Field(description="UUID of the object.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the object."
+    )
 
 
 class FacetRef(RABase):
@@ -269,8 +283,10 @@ class FacetRef(RABase):
     object_type: Literal["facet"] = Field(
         "facet", alias="objekttype", description="Object type."
     )
-    uuid: UUID
-    effective_time: EffectiveTime = Field(alias="virkning")
+    uuid: UUID = Field(description="UUID of the reference.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the reference."
+    )
 
 
 class FacetRelations(RABase):
@@ -278,7 +294,12 @@ class FacetRelations(RABase):
     Facet relations given by responsible objects.
     """
 
-    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
+    responsible: List[Responsible] = Field(
+        alias="ansvarlig",
+        min_items=1,
+        max_items=1,
+        description="The responsible object.",
+    )
 
 
 class KlasseProperties(RABase):
@@ -291,7 +312,9 @@ class KlasseProperties(RABase):
     scope: Optional[str] = Field(
         alias="omfang", description="Scope of the LoRa Klasse."
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the properties."
+    )
 
 
 class KlasseRelations(RABase):
@@ -299,8 +322,15 @@ class KlasseRelations(RABase):
     Klasse relations given by responsible objects and facet references.
     """
 
-    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
-    facet: List[FacetRef] = Field(min_items=1, max_items=1)
+    responsible: List[Responsible] = Field(
+        alias="ansvarlig",
+        min_items=1,
+        max_items=1,
+        description="The responsible object.",
+    )
+    facet: List[FacetRef] = Field(
+        min_items=1, max_items=1, description="Facet reference."
+    )
 
 
 class KlasseAttributes(RABase):
@@ -309,7 +339,10 @@ class KlasseAttributes(RABase):
     """
 
     properties: List[KlasseProperties] = Field(
-        alias="klasseegenskaber", min_items=1, max_items=1
+        alias="klasseegenskaber",
+        min_items=1,
+        max_items=1,
+        description="Properties denoting the klasse attributes.",
     )
 
 
@@ -319,7 +352,10 @@ class KlasseStates(RABase):
     """
 
     published_state: List[Published] = Field(
-        alias="klassepubliceret", min_items=1, max_items=1
+        alias="klassepubliceret",
+        min_items=1,
+        max_items=1,
+        description="Published state objects. ",
     )
 
 
@@ -332,7 +368,9 @@ class OrganisationProperties(RABase):
     name: str = Field(
         alias="organisationsnavn", description="Name of the organisation."
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the properties."
+    )
 
 
 class OrganisationAttributes(RABase):
@@ -341,7 +379,10 @@ class OrganisationAttributes(RABase):
     """
 
     properties: List[OrganisationProperties] = Field(
-        alias="organisationegenskaber", min_items=1, max_items=1
+        alias="organisationegenskaber",
+        min_items=1,
+        max_items=1,
+        description="Properties denoting the attributes.",
     )
 
 
@@ -355,7 +396,9 @@ class OrganisationValidState(RABase):
         alias="gyldighed",
         description="String describing the validity of an organisation.",
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the valid states."
+    )
 
 
 class OrganisationStates(RABase):
@@ -364,7 +407,10 @@ class OrganisationStates(RABase):
     """
 
     valid_state: List[OrganisationValidState] = Field(
-        alias="organisationgyldighed", min_items=1, max_items=1
+        alias="organisationgyldighed",
+        min_items=1,
+        max_items=1,
+        description="Valid states denoting the overall state.",
     )
 
 
@@ -373,4 +419,9 @@ class OrganisationRelations(RABase):
     Organisation relations given by an authority object.
     """
 
-    authority: List[Authority] = Field(alias="myndighed", min_items=1, max_items=1)
+    authority: List[Authority] = Field(
+        alias="myndighed",
+        min_items=1,
+        max_items=1,
+        description="Authority object denoting the relations.",
+    )

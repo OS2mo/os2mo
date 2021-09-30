@@ -10,6 +10,8 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Field
+
 from .._shared import EngagementAssociationType
 from .._shared import EngagementRef
 from .._shared import EngagementType
@@ -26,46 +28,40 @@ from .._shared import Validity
 
 
 class Engagement(MOBase):
-    """
-    Attributes:
-        type:
-        org_unit:
-        person:
-        job_function:
-        engagement_type:
-        validity:
-        primary:
-        user_key:
-        extension_1:
-        extension_2:
-        extension_3:
-        extension_4:
-        extension_5:
-        extension_6:
-        extension_7:
-        extension_8:
-        extension_9:
-        extension_10:
-    """
+    """A MO engagement object."""
 
-    type: Literal["engagement"] = "engagement"
-    org_unit: OrgUnitRef
-    person: PersonRef
-    job_function: JobFunction
-    engagement_type: EngagementType
-    validity: Validity
-    primary: Primary
-    user_key: str
-    extension_1: Optional[str]
-    extension_2: Optional[str]
-    extension_3: Optional[str]
-    extension_4: Optional[str]
-    extension_5: Optional[str]
-    extension_6: Optional[str]
-    extension_7: Optional[str]
-    extension_8: Optional[str]
-    extension_9: Optional[str]
-    extension_10: Optional[str]
+    type: Literal["engagement"] = Field("engagement", description="The object type.")
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit "
+        "for which the engagement should be created."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person "
+        "for which the engagement should be created."
+    )
+    job_function: JobFunction = Field(
+        description="Reference to the job function klasse "
+        "for the created engagement object."
+    )
+    engagement_type: EngagementType = Field(
+        description="Reference to the engagement type klasse "
+        "for the created engagement object."
+    )
+    validity: Validity = Field(description="Validity of the created engagement object.")
+    primary: Primary = Field(
+        description="Reference to the primary klasse for the created engagement object."
+    )
+    user_key: str = Field(description="Short, unique key.")
+    extension_1: Optional[str] = Field(description="Optional extra information.")
+    extension_2: Optional[str] = Field(description="Optional extra information.")
+    extension_3: Optional[str] = Field(description="Optional extra information.")
+    extension_4: Optional[str] = Field(description="Optional extra information.")
+    extension_5: Optional[str] = Field(description="Optional extra information.")
+    extension_6: Optional[str] = Field(description="Optional extra information.")
+    extension_7: Optional[str] = Field(description="Optional extra information.")
+    extension_8: Optional[str] = Field(description="Optional extra information.")
+    extension_9: Optional[str] = Field(description="Optional extra information.")
+    extension_10: Optional[str] = Field(description="Optional extra information.")
 
     @classmethod
     def from_simplified_fields(
@@ -90,6 +86,7 @@ class Engagement(MOBase):
         extension_9: Optional[str] = None,
         extension_10: Optional[str] = None,
     ) -> "Engagement":
+        """Create an engagement from simplified fields."""
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         person = PersonRef(uuid=person_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
@@ -119,11 +116,26 @@ class Engagement(MOBase):
 
 
 class EngagementAssociation(MOBase):
-    type: Literal["engagement_association"] = "engagement_association"
-    org_unit: OrgUnitRef
-    engagement: EngagementRef
-    engagement_association_type: EngagementAssociationType
-    validity: Validity
+    """A MO engagement association object."""
+
+    type: Literal["engagement_association"] = Field(
+        "engagement_association", description="The object type."
+    )
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit "
+        "for which the engagement association should be created."
+    )
+    engagement: EngagementRef = Field(
+        description="Reference to the engagement "
+        "for which the engagement association should be created."
+    )
+    engagement_association_type: EngagementAssociationType = Field(
+        description="Reference to the engagement association type klasse "
+        "for the created engagement association object."
+    )
+    validity: Validity = Field(
+        description="Validity of the created engagement association."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -135,6 +147,7 @@ class EngagementAssociation(MOBase):
         from_date: str,
         to_date: Optional[str] = None,
     ) -> "EngagementAssociation":
+        """Create an engagement association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         engagement = EngagementRef(uuid=engagement_uuid)

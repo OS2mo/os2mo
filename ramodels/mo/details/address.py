@@ -10,6 +10,8 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Field
+
 from .._shared import AddressType
 from .._shared import EngagementRef
 from .._shared import MOBase
@@ -27,29 +29,35 @@ from .._shared import Visibility
 
 class Address(MOBase):
     """
-    Attributes:
-        type:
-        value:
-        value2:
-        address_type:
-        org:
-        person:
-        org_unit:
-        engagement:
-        validity:
-        visibility:
+    A MO address object.
     """
 
-    type: Literal["address"] = "address"
-    value: str
-    value2: Optional[str]
-    address_type: AddressType
-    org: Optional[OrganisationRef]
-    person: Optional[PersonRef]
-    org_unit: Optional[OrgUnitRef]
-    engagement: Optional[EngagementRef]
-    validity: Validity
-    visibility: Optional[Visibility]
+    type: Literal["address"] = Field("address", description="The object type.")
+    value: str = Field(description="Value of the address, e.g. street or phone number.")
+    value2: Optional[str] = Field(description="Optional second value of the address.")
+    address_type: AddressType = Field(
+        description="Reference to the address type facet."
+    )
+    org: Optional[OrganisationRef] = Field(
+        description="Reference to the organisation under which the address should "
+        "be created. MO only supports one organisation, so this is rarely used."
+    )
+    person: Optional[PersonRef] = Field(
+        description="Reference to the person object for which the address should "
+        "be created."
+    )
+    org_unit: Optional[OrgUnitRef] = Field(
+        description="Reference to the organisation unit for which the address should "
+        "be created."
+    )
+    engagement: Optional[EngagementRef] = Field(
+        description="Reference to the engagement for which the address should "
+        "be created."
+    )
+    validity: Validity = Field(description="Validity of the created address object.")
+    visibility: Optional[Visibility] = Field(
+        description="Reference to the Visibility klasse of the created address object."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -66,6 +74,7 @@ class Address(MOBase):
         visibility_uuid: Optional[UUID] = None,
         org_uuid: Optional[UUID] = None,
     ) -> "Address":
+        """Create an address from simplified fields."""
         address_type = AddressType(uuid=address_type_uuid)
         org = OrganisationRef(uuid=org_uuid) if org_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
