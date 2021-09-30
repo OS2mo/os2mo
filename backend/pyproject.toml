@@ -75,3 +75,11 @@ build-backend = "poetry.core.masonry.api"
 [tool.autopub]
 git-username = "MagentaBot"
 git-email = "info@magenta.dk"
+
+[tool.pytest.ini_options]
+markers = [
+    "serial",
+]
+filterwarnings = [
+    "ignore::pytest.PytestCacheWarning"
+]

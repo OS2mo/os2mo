@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora.config import Settings
+from asyncio import Future
 from uuid import UUID
 
 import freezegun
@@ -10,6 +10,7 @@ from starlette.datastructures import ImmutableMultiDict
 
 import tests.cases
 from mora import lora, mapping
+from mora.config import Settings
 from mora.async_util import async_to_sync
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
@@ -199,11 +200,9 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         t_fetch_mock.assert_called()
 
         error_msg = "Something horrible happened"
-
-        def side_effect(trigger_url, trigger_dict, timeout):
-            raise HTTPTriggerException(error_msg)
-
-        t_sender_mock.side_effect = side_effect
+        response_future = Future()
+        response_future.set_exception(HTTPTriggerException(error_msg))
+        t_sender_mock.side_effect = response_future
 
         mock.return_value = {"whatever": 123}
         r = self.assertRequest(
@@ -245,8 +244,11 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         Trigger.registry = {}
         register(None)
         t_fetch_mock.assert_called()
+
         response_msg = "Something good happened"
-        t_sender_mock.return_value = response_msg
+        response_future = Future()
+        response_future.set_result(response_msg)
+        t_sender_mock.return_value = response_future
 
         mock.return_value = {"whatever": 123}
         r = self.assertRequest(
@@ -262,7 +264,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
                         "request_type": mapping.RequestType.REFRESH,
                         "request": {"uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4"},
                         "role_type": "org_unit",
-                        "event_type": mapping.EventType.ON_BEFORE,  # WHAT THE FUCK
+                        "event_type": mapping.EventType.ON_BEFORE,
                         "org_unit_uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
                         "uuid": "44c86c7a-cfe0-447e-9706-33821b5721a4",
                     },

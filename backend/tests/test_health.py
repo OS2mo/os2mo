@@ -106,7 +106,12 @@ class TestKeycloakHealth:
 
 class TestDARHealth:
     @pytest.mark.asyncio
-    async def test_dar_returns_true_if_reachable(self):
+    @patch('httpx.AsyncClient.get')
+    async def test_dar_returns_true_if_reachable(self, mock_get):
+        mock_get.return_value = Response(
+            status_code=200,
+            request=Request('GET', "https://dawa.aws.dk/autocomplete")
+        )
         assert await health.dar()
 
     @pytest.mark.asyncio

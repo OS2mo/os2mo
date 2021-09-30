@@ -12,7 +12,8 @@ import typing
 
 from structlog import get_logger
 
-import mora.async_util
+from mora.async_util import async_to_sync
+from mora.async_util import in_separate_thread
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -104,7 +105,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         self.trigger_dict.update({
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
-        self.trigger_results_before = Trigger.run(self.trigger_dict)
+        self.trigger_results_before = None
+        if not util.get_args_flag("triggerless"):
+            self.trigger_results_before = in_separate_thread(
+                async_to_sync(Trigger.run)
+            )(
+                self.trigger_dict
+            )
 
     @classmethod
     async def construct(cls, *args, **kwargs):
@@ -124,7 +131,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         obj.trigger_dict.update({
             Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid
         })
-        obj.trigger_results_before = Trigger.run(obj.trigger_dict)
+        obj.trigger_results_before = None
+        if not util.get_args_flag("triggerless"):
+            obj.trigger_results_before = await Trigger.run(obj.trigger_dict)
 
         return obj
 
@@ -217,7 +226,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.EVENT_TYPE: EventType.ON_AFTER,
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
-        self.trigger_results_after = Trigger.run(self.trigger_dict)
+        self.trigger_results_after = None
+        if not util.get_args_flag("triggerless"):
+            self.trigger_results_after = in_separate_thread(
+                async_to_sync(Trigger.run)
+            )(
+                self.trigger_dict
+            )
 
         return getattr(self, Trigger.RESULT, None)
 
@@ -232,7 +247,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.EVENT_TYPE: EventType.ON_AFTER,
             Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
         })
-        self.trigger_results_after = Trigger.run(self.trigger_dict)
+        self.trigger_results_after = None
+        if not util.get_args_flag("triggerless"):
+            self.trigger_results_after = await Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
 
@@ -279,8 +296,9 @@ class OrgFunkRequestHandler(RequestHandler):
         self.uuid = util.get_uuid(request)
         date = util.get_valid_to(request, required=True)
 
-        original = mora.async_util.async_to_sync(
-            lora.Connector(effective_date=date).organisationfunktion.get)(self.uuid)
+        original = async_to_sync(
+            lora.Connector(effective_date=date).organisationfunktion.get
+        )(self.uuid)
 
         if (
             original is None or
@@ -317,15 +335,15 @@ class OrgFunkRequestHandler(RequestHandler):
     def submit(self) -> str:
         c = lora.Connector()
 
+        method = None
         if self.request_type == RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.organisationfunktion.create)(
-                self.payload,
-                self.uuid)
+            method = async_to_sync(c.organisationfunktion.create)
         else:
-            self.result = mora.async_util.async_to_sync(c.organisationfunktion.update)(
-                self.payload,
-                self.uuid)
-
+            method = async_to_sync(c.organisationfunktion.update)
+        self.result = method(
+            self.payload,
+            self.uuid
+        )
         return super().submit()
 
 
@@ -374,7 +392,7 @@ def generate_requests(
             'role', 'kle', 'itsystem', 'engagement_association'
         ] and request_type == RequestType.CREATE:
             requesthandlers.append(
-                mora.async_util.async_to_sync(
+                async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
             )
         else:

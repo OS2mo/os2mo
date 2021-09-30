@@ -10,7 +10,6 @@ from fastapi.encoders import jsonable_encoder
 from mora import config
 from mora.async_util import async_session
 from mora.async_util import async_to_sync
-from mora.async_util import in_separate_thread
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
@@ -26,8 +25,6 @@ class HTTPTriggerException(Exception):
     pass
 
 
-@in_separate_thread
-@async_to_sync
 async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
     """Triggers the provided event over HTTP(s).
 
@@ -120,7 +117,6 @@ async def fetch_endpoint_trigger(
         raise exc
 
 
-@in_separate_thread
 @async_to_sync
 async def fetch_endpoint_triggers(
     endpoints: List[str], timeout: int = 10

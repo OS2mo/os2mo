@@ -93,7 +93,7 @@ def publish_message(
         )
 
 
-def amqp_sender(trigger_dict: Dict) -> None:
+async def amqp_sender(trigger_dict: Dict) -> None:
     request_type = trigger_dict[triggers.Trigger.REQUEST_TYPE]
 
     request = trigger_dict[triggers.Trigger.REQUEST]
