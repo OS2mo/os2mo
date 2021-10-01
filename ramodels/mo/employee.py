@@ -93,7 +93,9 @@ def validate_names(
 class Employee(MOBase):
     """MO Employee data model."""
 
-    type: Literal["employee"] = Field("employee", description="The object type")
+    type_: Literal["employee"] = Field(
+        "employee", alias="type", description="The object type"
+    )
     givenname: str = Field(None, description="Given name of the employee.")
     surname: str = Field(None, description="Surname of the employee.")
     name: Optional[str] = Field(

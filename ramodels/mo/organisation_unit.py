@@ -27,7 +27,9 @@ from ._shared import Validity
 class OrganisationUnit(MOBase):
     """A MO organisation unit object."""
 
-    type: Literal["org_unit"] = Field("org_unit", description="The object type.")
+    type_: Literal["org_unit"] = Field(
+        "org_unit", alias="type", description="The object type."
+    )
     user_key: str = Field(description="Short, unique key.")
     validity: Validity = Field(description="Validity of the created organisation unit.")
     name: str = Field(description="Name of the created organisation unit.")

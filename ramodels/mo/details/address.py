@@ -32,7 +32,9 @@ class Address(MOBase):
     A MO address object.
     """
 
-    type: Literal["address"] = Field("address", description="The object type.")
+    type_: Literal["address"] = Field(
+        "address", alias="type", description="The object type."
+    )
     value: str = Field(description="Value of the address, e.g. street or phone number.")
     value2: Optional[str] = Field(description="Optional second value of the address.")
     address_type: AddressType = Field(

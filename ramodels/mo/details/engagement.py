@@ -30,7 +30,9 @@ from .._shared import Validity
 class Engagement(MOBase):
     """A MO engagement object."""
 
-    type: Literal["engagement"] = Field("engagement", description="The object type.")
+    type_: Literal["engagement"] = Field(
+        "engagement", alias="type", description="The object type."
+    )
     org_unit: OrgUnitRef = Field(
         description="Reference to the organisation unit "
         "for which the engagement should be created."
@@ -118,8 +120,8 @@ class Engagement(MOBase):
 class EngagementAssociation(MOBase):
     """A MO engagement association object."""
 
-    type: Literal["engagement_association"] = Field(
-        "engagement_association", description="The object type."
+    type_: Literal["engagement_association"] = Field(
+        "engagement_association", alias="type", description="The object type."
     )
     org_unit: OrgUnitRef = Field(
         description="Reference to the organisation unit "

@@ -32,18 +32,11 @@ from .._shared import Validity
 
 
 class Manager(MOBase):
-    """
-    Attributes:
-        type:
-        org_unit:
-        person:
-        responsibility:
-        manager_level:
-        manager_type:
-        validity:
-    """
+    """A MO manager object."""
 
-    type: Literal["manager"] = Field("manager", description="The object type.")
+    type_: Literal["manager"] = Field(
+        "manager", alias="type", description="The object type."
+    )
     org_unit: OrgUnitRef = Field(
         description="Reference to the organisation unit "
         "for which the manager should be created."

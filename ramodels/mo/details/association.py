@@ -28,7 +28,9 @@ class Association(MOBase):
     A MO association object.
     """
 
-    type: Literal["association"] = Field("association", description="The object type.")
+    type_: Literal["association"] = Field(
+        "association", alias="type", description="The object type."
+    )
     org_unit: OrgUnitRef = Field(
         description="Reference to the organisation unit "
         "for which the association should be created."
