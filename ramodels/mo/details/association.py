@@ -40,7 +40,7 @@ class Association(MOBase):
         "for which the association should be created."
     )
     association_type: AssociationType = Field(
-        "Reference to the association type facet."
+        description="Reference to the association type facet."
     )
     validity: Validity = Field(
         description="Validity of the created association object."
