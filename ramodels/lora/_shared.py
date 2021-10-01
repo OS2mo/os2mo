@@ -86,7 +86,7 @@ class InfiniteDatetime(str):
     def __get_validators__(cls) -> Iterator[Callable]:
         """Magic method used by pydantic to collect validators.
 
-        Returns:
+        Yields:
             One (or more) validation functions, which are evaluated in order.
         """
         yield cls.validate
