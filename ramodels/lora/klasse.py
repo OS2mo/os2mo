@@ -29,15 +29,16 @@ from ._shared import Responsible
 
 class Klasse(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa klasse.
     """
 
-    attributes: KlasseAttributes = Field(alias="attributter")
-    states: KlasseStates = Field(alias="tilstande")
-    relations: KlasseRelations = Field(alias="relationer")
+    attributes: KlasseAttributes = Field(
+        alias="attributter", description="The klasse attributes."
+    )
+    states: KlasseStates = Field(alias="tilstande", description="The klasse states.")
+    relations: KlasseRelations = Field(
+        alias="relationer", description="The klasse relations."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -51,6 +52,7 @@ class Klasse(LoraBase):
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Klasse":
+        "Create a Klasse from simplified fields."
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = KlasseProperties(

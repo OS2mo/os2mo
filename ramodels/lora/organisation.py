@@ -28,15 +28,18 @@ from ._shared import OrganisationValidState
 
 class Organisation(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa organisation.
     """
 
-    attributes: OrganisationAttributes = Field(alias="attributter")
-    states: OrganisationStates = Field(alias="tilstande")
-    relations: Optional[OrganisationRelations] = Field(alias="relationer")
+    attributes: OrganisationAttributes = Field(
+        alias="attributter", description="The organisation attributes."
+    )
+    states: OrganisationStates = Field(
+        alias="tilstande", description="The organisation states."
+    )
+    relations: Optional[OrganisationRelations] = Field(
+        alias="relationer", description="The organisation relations."
+    )
 
     # TODO: This should be done with validators setting dynamic fields instead
     @classmethod
@@ -49,6 +52,7 @@ class Organisation(LoraBase):
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Organisation":
+        "Create an organisation from simplified fields."
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = OrganisationProperties(

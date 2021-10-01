@@ -18,12 +18,5 @@ Models used by [OS2mo](https://github.com/OS2mo/os2mo)
 **MO**
 
 - [MO models](mo/mo.md)
-- [Models shared by MO models](mo/mo_shared.md)
+- [Models shared by MO models](mo/shared.md)
 
-<!--
-**Tests**
-
-- [Base](tests/base)
-- [LoRa](tests/lora)
-- [MO](tests/mo)
--->

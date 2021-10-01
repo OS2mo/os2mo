@@ -87,8 +87,7 @@ class InfiniteDatetime(str):
         """Magic method used by pydantic to collect validators.
 
         Yields:
-            Iterator[Callable]: One (or more) validation functions,
-            which are evaluated in order.
+            One (or more) validation functions, which are evaluated in order.
         """
         yield cls.validate
 
@@ -97,15 +96,15 @@ class InfiniteDatetime(str):
         """Validate an incoming value against InfiniteDatetime logic.
 
         Args:
-            value (Any): The value to validate
+            value: The value to validate
 
         Raises:
-            TypeError: If the value is not a 'str' or 'datetime' object.
+            TypeError: If the value is not a `str` or `datetime` object.
             ISOParseError: If the value cannot be parsed as either the strings
-                "-infinity", "infinity", or an ISO-8601 datetime string.
+                `-infinity`, `infinity`, or an ISO-8601 datetime string.
 
         Returns:
-            str: Either "-infinity", "infinity", or an ISO-8601 datetime string.
+            Either `-infinity`, `infinity`, or an ISO-8601 datetime string.
         """
 
         if not isinstance(value, (str, datetime)):
@@ -125,12 +124,12 @@ class InfiniteDatetime(str):
         """Implements the less than magic method for InfiniteDatetime.
 
         Args:
-            other (Any): value to compare against.
+            other: value to compare against.
         Raises:
             TypeError: If other turns out to not be an instance of InfiniteDatetime.
 
         Returns:
-            bool: True if dt(self) < dt(other), otherwise False.
+            True if `dt(self) < dt(other)`, otherwise False.
         """
         if not isinstance(other, InfiniteDatetime):
             raise TypeError(
@@ -149,21 +148,21 @@ class InfiniteDatetime(str):
     def __le__(self, other: Any) -> bool:
         """Implements the less than or equal to magic method for InfiniteDatetime.
 
-        This method is defined using __lt__ and __eq__.
+        This method is defined using `__lt__` and `__eq__`.
         """
         return self.__lt__(other) or self.__eq__(other)
 
     def __gt__(self, other: Any) -> bool:
         """Implements the greater than magic method for InfiniteDatetime.
 
-        This method is defined by negating __le__.
+        This method is defined by negating `__le__`.
         """
         return not self.__le__(other)
 
     def __ge__(self, other: Any) -> bool:
         """Implements the less than or equal to magic method for InfiniteDatetime.
 
-        This method is defined using __gt__ and __eq__.
+        This method is defined using `__gt__` and `__eq__`.
         """
         return self.__gt__(other) or self.__eq__(other)
 
@@ -175,13 +174,15 @@ class InfiniteDatetime(str):
 
 class EffectiveTime(RABase):
     """
-    Attributes:
-        from_date:
-        to_date:
+    The effective time of a given object in LoRa.
     """
 
-    from_date: InfiniteDatetime = Field(alias="from")
-    to_date: InfiniteDatetime = Field(alias="to")
+    from_date: InfiniteDatetime = Field(
+        alias="from", description="Start of the effective time interval."
+    )
+    to_date: InfiniteDatetime = Field(
+        alias="to", description="End of the effective time interval."
+    )
 
     @root_validator
     def check_from_lt_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
@@ -194,198 +195,233 @@ class EffectiveTime(RABase):
 
 
 class Authority(RABase):
-    """
-    Attributes:
-        urn:
-        effective_time:
-    """
+    """Authority as given by URN."""
 
     urn: str = Field(
-        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
+        regex=r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$",
+        description="URN of the authority.",
     )
-    effective_time: EffectiveTime = Field(alias="virkning")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the authority."
+    )
 
 
 class FacetProperties(RABase):
     """
-    Attributes:
-        user_key:
-        effective_time:
+    Properties of a given LoRa facet.
     """
 
-    user_key: str = Field(alias="brugervendtnoegle")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the property."
+    )
 
 
 class FacetAttributes(RABase):
     """
-    Attributes:
-        properties:
+    Attributes of a given LoRa facet.
     """
 
     properties: List[FacetProperties] = Field(
-        alias="facetegenskaber", min_items=1, max_items=1
+        alias="facetegenskaber",
+        min_items=1,
+        max_items=1,
+        description="The facet property denoting the attributes.",
     )
 
 
 class Published(RABase):
     """
-    Attributes:
-        published:
-        effective_time:
+    Published state of a given object in LoRa.
     """
 
     # TODO: published are actually Enums in LoRa, but it's currently not possible
     # to lift them from LoRa systematically. We should definitely fix this!
 
-    published: str = Field("Publiceret", alias="publiceret")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    published: str = Field(
+        "Publiceret",
+        alias="publiceret",
+        description="String representing the published status.",
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="The effective time of the states."
+    )
 
 
 class FacetStates(RABase):
     """
-    Attributes:
-        published_state:
+    States of a given LoRa facet.
     """
 
     published_state: List[Published] = Field(
-        alias="facetpubliceret", min_items=1, max_items=1
+        alias="facetpubliceret",
+        min_items=1,
+        max_items=1,
+        description="The published state of the facet.",
     )
 
 
 class Responsible(RABase):
     """
-    Attributes:
-        object_type:
-        uuid:
-        effective_time:
+    Responsible object in LoRa.
     """
 
-    object_type: Literal["organisation"] = Field("organisation", alias="objekttype")
-    uuid: UUID
-    effective_time: EffectiveTime = Field(alias="virkning")
+    object_type: Literal["organisation"] = Field(
+        "organisation", alias="objekttype", description="Object type."
+    )
+    uuid: UUID = Field(description="UUID of the object.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the object."
+    )
 
 
 class FacetRef(RABase):
     """
-    Attributes:
-        object_type:
-        uuid:
-        effective_time:
+    Reference to given LoRa facets.
     """
 
-    object_type: Literal["facet"] = Field("facet", alias="objekttype")
-    uuid: UUID
-    effective_time: EffectiveTime = Field(alias="virkning")
+    object_type: Literal["facet"] = Field(
+        "facet", alias="objekttype", description="Object type."
+    )
+    uuid: UUID = Field(description="UUID of the reference.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the reference."
+    )
 
 
 class FacetRelations(RABase):
     """
-    Attributes:
-        responsible:
+    Facet relations given by responsible objects.
     """
 
-    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
+    responsible: List[Responsible] = Field(
+        alias="ansvarlig",
+        min_items=1,
+        max_items=1,
+        description="The responsible object.",
+    )
 
 
 class KlasseProperties(RABase):
     """
-    Attributes:
-        user_key:
-        title:
-        scope:
-        effective_time:
+    LoRa klasse properties.
     """
 
-    user_key: str = Field(alias="brugervendtnoegle")
-    title: str = Field(alias="titel")
-    scope: Optional[str] = Field(alias="omfang")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
+    title: str = Field(alias="titel", description="Title of the LoRa Klasse.")
+    scope: Optional[str] = Field(
+        alias="omfang", description="Scope of the LoRa Klasse."
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the properties."
+    )
 
 
 class KlasseRelations(RABase):
     """
-    Attributes:
-        responsible:
-        facet:
+    Klasse relations given by responsible objects and facet references.
     """
 
-    responsible: List[Responsible] = Field(alias="ansvarlig", min_items=1, max_items=1)
-    facet: List[FacetRef] = Field(min_items=1, max_items=1)
+    responsible: List[Responsible] = Field(
+        alias="ansvarlig",
+        min_items=1,
+        max_items=1,
+        description="The responsible object.",
+    )
+    facet: List[FacetRef] = Field(
+        min_items=1, max_items=1, description="Facet reference."
+    )
 
 
 class KlasseAttributes(RABase):
     """
-    Attributes:
-        properties:
+    LoRa Klasse attributes.
     """
 
     properties: List[KlasseProperties] = Field(
-        alias="klasseegenskaber", min_items=1, max_items=1
+        alias="klasseegenskaber",
+        min_items=1,
+        max_items=1,
+        description="Properties denoting the klasse attributes.",
     )
 
 
 class KlasseStates(RABase):
     """
-    Attributes:
-        published_state:
+    Published state of a LoRa Klasse.
     """
 
     published_state: List[Published] = Field(
-        alias="klassepubliceret", min_items=1, max_items=1
+        alias="klassepubliceret",
+        min_items=1,
+        max_items=1,
+        description="Published state objects. ",
     )
 
 
 class OrganisationProperties(RABase):
     """
-    Attributes:
-        user_key:
-        name:
-        effective_time:
+    LoRa organisation properties.
     """
 
-    user_key: str = Field(alias="brugervendtnoegle")
-    name: str = Field(alias="organisationsnavn")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
+    name: str = Field(
+        alias="organisationsnavn", description="Name of the organisation."
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the properties."
+    )
 
 
 class OrganisationAttributes(RABase):
     """
-    Attributes:
-        properties:
+    LoRa organisation attributes.
     """
 
     properties: List[OrganisationProperties] = Field(
-        alias="organisationegenskaber", min_items=1, max_items=1
+        alias="organisationegenskaber",
+        min_items=1,
+        max_items=1,
+        description="Properties denoting the attributes.",
     )
 
 
 class OrganisationValidState(RABase):
     """
-    Attributes:
-        state:
-        effective_time:
+    State of an organisation in LoRa.
     """
 
-    state: str = Field("Aktiv", alias="gyldighed")
-    effective_time: EffectiveTime = Field(alias="virkning")
+    state: str = Field(
+        "Aktiv",
+        alias="gyldighed",
+        description="String describing the validity of an organisation.",
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the valid states."
+    )
 
 
 class OrganisationStates(RABase):
     """
-    Attributes:
-        valid_state:
+    Organisation validity as given by OrganisationValidState.
     """
 
     valid_state: List[OrganisationValidState] = Field(
-        alias="organisationgyldighed", min_items=1, max_items=1
+        alias="organisationgyldighed",
+        min_items=1,
+        max_items=1,
+        description="Valid states denoting the overall state.",
     )
 
 
 class OrganisationRelations(RABase):
     """
-    Attributes:
-        authority:
+    Organisation relations given by an authority object.
     """
 
-    authority: List[Authority] = Field(alias="myndighed", min_items=1, max_items=1)
+    authority: List[Authority] = Field(
+        alias="myndighed",
+        min_items=1,
+        max_items=1,
+        description="Authority object denoting the relations.",
+    )

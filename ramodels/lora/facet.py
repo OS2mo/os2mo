@@ -27,15 +27,16 @@ from ._shared import Responsible
 
 class Facet(LoraBase):
     """
-    Attributes:
-        attributes:
-        states:
-        relations:
+    A LoRa facet.
     """
 
-    attributes: FacetAttributes = Field(alias="attributter")
-    states: FacetStates = Field(alias="tilstande")
-    relations: FacetRelations = Field(alias="relationer")
+    attributes: FacetAttributes = Field(
+        alias="attributter", description="The facet attributes."
+    )
+    states: FacetStates = Field(alias="tilstande", description="The facet states.")
+    relations: FacetRelations = Field(
+        alias="relationer", description="The facet relations."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -46,6 +47,7 @@ class Facet(LoraBase):
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Facet":
+        "Create a Facet from simplified fields."
         # Inner fields
         _effective_time = EffectiveTime(from_date=from_date, to_date=to_date)
         _properties = FacetProperties(user_key=user_key, effective_time=_effective_time)

@@ -10,15 +10,12 @@ nav:
   - index.md
   - base.md
   - LoRa:
-    - Primary: lora/lora.md
-    - Shared: lora/lora_shared.md
+      - Primary: lora/lora.md
+      - Shared: lora/lora_shared.md
   - MO:
-    - Primary: mo/mo.md
-    - Shared: mo/mo_shared.md
-#  - Tests:
-#    - tests/base.md
-#    - tests/lora.md
-#    - tests/mo.md
+      - Primary: mo/mo.md
+      - Details: mo/details.md
+      - Shared: mo/shared.md
 
 theme:
   name: "material"
@@ -34,6 +31,7 @@ theme:
 # Adds Magenta's colour scheme
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/mkdocstrings.css
 
 plugins:
   - search
@@ -44,6 +42,21 @@ plugins:
           selection:
             docstring_options:
               replace_admonitions: no
+          rendering:
+            members_order: source
+            show_signature_annotations: true
+            show_root_toc_entry: false
       watch:
         - ramodels
-        - tests
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.tabbed
+  - pymdownx.tasklist

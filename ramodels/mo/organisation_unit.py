@@ -10,6 +10,8 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Field
+
 from ._shared import MOBase
 from ._shared import OrgUnitHierarchy
 from ._shared import OrgUnitLevel
@@ -23,26 +25,26 @@ from ._shared import Validity
 
 
 class OrganisationUnit(MOBase):
-    """
-    Attributes:
-        type:
-        user_key:
-        validity:
-        name:
-        parent:
-        org_unit_hierarchy:
-        org_unit_type:
-        org_unit_level:
-    """
+    """A MO organisation unit object."""
 
-    type: Literal["org_unit"] = "org_unit"
-    user_key: str
-    validity: Validity
-    name: str
-    parent: Optional[ParentRef]
-    org_unit_hierarchy: Optional[OrgUnitHierarchy]
-    org_unit_type: OrgUnitType
-    org_unit_level: OrgUnitLevel
+    type_: Literal["org_unit"] = Field(
+        "org_unit", alias="type", description="The object type."
+    )
+    user_key: str = Field(description="Short, unique key.")
+    validity: Validity = Field(description="Validity of the created organisation unit.")
+    name: str = Field(description="Name of the created organisation unit.")
+    parent: Optional[ParentRef] = Field(
+        description="Reference to the parent organisation unit, if applicable."
+    )
+    org_unit_hierarchy: Optional[OrgUnitHierarchy] = Field(
+        description="Reference to the organisation unit hierarchy type, if applicable."
+    )
+    org_unit_type: OrgUnitType = Field(
+        description="Reference to the organisation unit type."
+    )
+    org_unit_level: OrgUnitLevel = Field(
+        description="Reference to the organisation unit level type."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -57,7 +59,7 @@ class OrganisationUnit(MOBase):
         org_unit_hierarchy_uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
     ) -> "OrganisationUnit":
-
+        """Create an organisation unti from simplified fields."""
         parent = ParentRef(uuid=parent_uuid) if parent_uuid else None
         org_unit_hierarchy = (
             OrgUnitHierarchy(uuid=org_unit_hierarchy_uuid)

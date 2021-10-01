@@ -41,6 +41,11 @@ class RABase(BaseModel):
     # TODO: This is duplicated to each class that cannot be instantiated.
     # We should probably find a better solution.
     def __new__(cls, *args: Any, **kwargs: Any) -> Any:
+        """Create a new model with the given base model as its base.
+
+        Raises:
+            TypeError: If the base model is instantiated directly.
+        """
         if cls is RABase:
             raise TypeError("RABase may not be instantiated")
         return super().__new__(cls)

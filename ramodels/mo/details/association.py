@@ -10,6 +10,8 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Field
+
 from .._shared import AssociationType
 from .._shared import MOBase
 from .._shared import OrgUnitRef
@@ -23,19 +25,26 @@ from .._shared import Validity
 
 class Association(MOBase):
     """
-    Attributes:
-        type:
-        org_unit:
-        person:
-        association_type:
-        validity:
+    A MO association object.
     """
 
-    type: Literal["association"] = "association"
-    org_unit: OrgUnitRef
-    person: PersonRef
-    association_type: AssociationType
-    validity: Validity
+    type_: Literal["association"] = Field(
+        "association", alias="type", description="The object type."
+    )
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit "
+        "for which the association should be created."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person "
+        "for which the association should be created."
+    )
+    association_type: AssociationType = Field(
+        description="Reference to the association type facet."
+    )
+    validity: Validity = Field(
+        description="Validity of the created association object."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -47,6 +56,7 @@ class Association(MOBase):
         from_date: str,
         to_date: Optional[str] = None,
     ) -> "Association":
+        """Create a new association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         person = PersonRef(uuid=person_uuid)

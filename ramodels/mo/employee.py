@@ -35,10 +35,19 @@ DictStrAny = Dict[str, Any]
 
 # Helper functions
 def deprecation(message: str) -> None:
+    """Raise a deprecation warning with `message` at stacklevel 2."""
     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
 def split_name(name: str) -> Tuple[str, str]:
+    """Split a name into first and last name.
+
+    Args:
+        name: The name to split.
+
+    Returns:
+        A 2-tuple containing first and last name.
+    """
     split = name.split(" ", maxsplit=1)
     if len(split) == 1:
         split.append("")
@@ -48,7 +57,22 @@ def split_name(name: str) -> Tuple[str, str]:
 
 def validate_names(
     values: DictStrAny, name_key: str, givenname_key: str, surname_key: str
-) -> Dict:
+) -> DictStrAny:
+    """Validate a name valies from a dictionary. Used in the Employee model validator.
+
+    Args:
+        values: Value dict to validate.
+        name_key: The key for the name value.
+        givenname_key: The key for the first name value.
+        surname_key: The key for the last name value.
+
+    Raises:
+        ValueError: If both `name_key` and any of the `givenname_key`, `surname_key`
+            are given, as they are mutually exclusive.
+
+    Returns:
+        The value dict, untouched.
+    """
     if values.get(name_key) is not None:
         # Both name and given/surname are given erroneously
         if values.get(givenname_key) is not None or values.get(surname_key) is not None:
@@ -67,36 +91,40 @@ def validate_names(
 
 
 class Employee(MOBase):
-    """MO Employee data model.
+    """MO Employee data model."""
 
-    Attributes:
-        type_: Object type.
-        givenname: Given name of the employee
-        surname: Surname of the employee
-        name: Full name of the employee - will be deprecated, use given name/surname
-        cpr_no: CPR number of the employee
-        seniority: Seniority of the employee
-        user_key: Short, unique key identifying the employee
-        org: The organisation with which the employee is associated
-        nickname_givenname: Given name part of the employee's nickname
-        nickname_surname: Surname part of the employee's nickname
-        nickname: Full nickname of the employee - will be deprecated,
-            use given name/surname
-        details:  A list of details to be created for the employee.
-    """
-
-    type_: Literal["employee"] = Field("employee", alias="type")
-    givenname: str = Field(None)
-    surname: str = Field(None)
-    name: Optional[str]
-    cpr_no: Optional[str] = Field(regex=r"^\d{10}$")
-    seniority: Optional[datetime]
-    user_key: Optional[str]
-    org: Optional[OrganisationRef]
-    nickname_givenname: Optional[str]
-    nickname_surname: Optional[str]
-    nickname: Optional[str]
-    details: Optional[List[Details]]
+    type_: Literal["employee"] = Field(
+        "employee", alias="type", description="The object type"
+    )
+    givenname: str = Field(None, description="Given name of the employee.")
+    surname: str = Field(None, description="Surname of the employee.")
+    name: Optional[str] = Field(
+        description="The full name of the employee. "
+        "This is deprecated, please use givenname/surname."
+    )
+    cpr_no: Optional[str] = Field(
+        regex=r"^\d{10}$", description="CPR number of the employee."
+    )
+    seniority: Optional[datetime] = Field(description="Seniority of the employee.")
+    user_key: Optional[str] = Field(description="Short, unique key.")
+    org: Optional[OrganisationRef] = Field(
+        description="Organisation reference. "
+        "MO only supports one main organisation, so this is rarely used."
+    )
+    nickname_givenname: Optional[str] = Field(
+        description="Given name part of nickname of the employee, if applicable."
+    )
+    nickname_surname: Optional[str] = Field(
+        description="Surname part of nickname of the employee, if applicable."
+    )
+    nickname: Optional[str] = Field(
+        description="Full nickname of the employee. "
+        "Deprecated, please use given name/surname parts if needed."
+    )
+    details: Optional[List[Details]] = Field(
+        description="Details to be created for the employee. "
+        "Note that when this is used, the person reference is implicit in the payload."
+    )
 
     @root_validator(pre=True)
     def validate_name(cls, values: DictStrAny) -> DictStrAny:
