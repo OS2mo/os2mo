@@ -87,3 +87,17 @@ Test on Python 3.9:
 Deploy to PyPI:
   <<: *deploy
   script: poetry publish --build -u OS2mo -p $PYPI_PWD
+
+pages:
+  <<: *install-deps
+  image: python:3.8
+  stage: deploy
+  needs: []
+  script:
+    - poetry run mkdocs build --strict --site-dir public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "development"'
+
