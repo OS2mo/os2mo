@@ -53,6 +53,7 @@ from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
+from ..graphapi.middleware import is_graphql
 
 router = APIRouter()
 
@@ -560,6 +561,13 @@ async def get_one_orgunit(
         "user_key": attrs["brugervendtnoegle"],
         "uuid": unitid,
     }
+    if is_graphql():
+        r.update({
+            "unittype_uuid": unittype,
+            "timeplanning_uuid": timeplanning,
+            "org_unit_level_uuid": org_unit_level,
+            "parent_uuid": parentid,
+        })
 
     if details is UnitDetails.NCHILDREN:
         children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed="Aktiv")
