@@ -343,6 +343,13 @@ def starlette_context():
 
 
 @contextlib.contextmanager
+def patch_is_graphql(is_graphql=False):
+    with starlette_context() as context:
+        context['is_graphql'] = is_graphql
+        yield context
+
+
+@contextlib.contextmanager
 def patch_query_args(query_args=None):
     if not query_args:
         query_args = dict()
