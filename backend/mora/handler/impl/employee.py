@@ -8,6 +8,7 @@ from .. import reading
 from ... import common, exceptions, mapping, util
 from ...lora import Connector
 from ...service import employee
+from ...graphapi.middleware import is_graphql
 
 ROLE_TYPE = "employee"
 
@@ -69,11 +70,15 @@ class EmployeeReader(reading.ReadingHandler):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
+        details = employee.EmployeeDetails.FULL
+        if is_graphql():
+            details = employee.EmployeeDetails.MINIMAL
+
         employee_object = await employee.get_one_employee(
             c,
             obj_id,
             effect,
-            details=employee.EmployeeDetails.FULL,
+            details=details,
             only_primary_uuid=only_primary_uuid,
         )
 

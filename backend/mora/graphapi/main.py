@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import gather
+from uuid import UUID
 from typing import Any
+from typing import List
+from typing import Optional
 from typing import Union
 
 import strawberry
@@ -12,7 +16,9 @@ from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.types import Info
 
 from mora.graphapi.auth import IsAuthenticated
+from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
+from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.middleware import StarletteContextExtension
 
@@ -37,6 +43,30 @@ class Query:
     )
     async def org(self, info: Info) -> Organisation:
         return await info.context["org_loader"].load(0)
+
+
+    # Employees
+    # ---------
+    @strawberry.field(
+        permission_classes=[IsAuthenticated], description="Get a list of all employees"
+    )
+    async def employees(self, info: Info) -> List[Employee]:
+        return await get_employees()
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a list of employees by uuids",
+    )
+    async def employees_by_uuids(self, info: Info, uuids: List[UUID]) -> List[Employee]:
+        tasks = map(info.context["employee_loader"].load, map(str, uuids))
+        return await gather(*tasks)
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a single employee by uuid",
+    )
+    async def employee_by_uuid(self, info: Info, uuid: UUID) -> Optional[Employee]:
+        return await info.context["employee_loader"].load(str(uuid))
 
 
 class MyGraphQL(GraphQL):
