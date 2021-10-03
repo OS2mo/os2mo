@@ -4,6 +4,7 @@ import strawberry
 from strawberry.asgi import GraphQL
 from strawberry.schema.config import StrawberryConfig
 
+from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.schema import Organisation
 from mora.service import org
 
@@ -20,6 +21,7 @@ class Query:
     # Root Organisation
     # -----------------
     @strawberry.field(
+        permission_classes=[IsAuthenticated],
         description=(
             "Get the root-organisation. "
             "This endpoint fails if not exactly one exists in LoRa."

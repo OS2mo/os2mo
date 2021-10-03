@@ -309,6 +309,8 @@ Build docs:
     QUERY_EXPORT_DIR: "/queries"
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     BASE_URL: http://mo:80
+    GRAPHQL_ENABLE: "true"
+    GRAPHQL_AUTH: "false"
 
 
 Unit-test:
@@ -593,7 +595,7 @@ Update Flux Dev Version:
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation
-    - yq e -i '.spec.values.os2mo.tag  = strenv(CI_COMMIT_TAG)' flux/projects/os2mo/config/dev.yaml
+    - yq e -i '.spec.values.os2mo.tag = strenv(CI_COMMIT_TAG)' flux/projects/os2mo/config/dev.yaml
     - git add flux/configuration/projects/os2mo/dev/values.yaml
     - git commit -m "[cd] Deploy OS2MO $CI_COMMIT_TAG to flux dev servers"
     - git push
