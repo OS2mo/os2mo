@@ -51,15 +51,13 @@ def gen_employee(
     return employee
 
 
-def mock_employee(aioresponses, *args, **kwargs) -> UUID:
+def mock_employee(aioresponses, *args, repeat=False, **kwargs) -> UUID:
     employee = gen_employee()
-
     aioresponses.get(
         URL("http://mox/organisation/bruger"),
         payload={"results": [[employee]]},
-        repeat=True,
+        repeat=repeat,
     )
-
     return employee["id"]
 
 
@@ -113,6 +111,27 @@ async def test_query_employees_by_uuids(aioresponses):
             "surname": "last_name",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_query_employees_by_unknown_uuid(aioresponses):
+    """Test that we get an empty response when querying with an unknown uuid."""
+    mock_employee(aioresponses)
+
+    query = """
+        query TestQuery($uuid: UUID!) {
+            employees(uuids: [$uuid]) {
+                uuid
+            }
+        }
+    """
+    result = await execute(query, {"uuid": str(uuid4())})
+
+    # We expect only one outgoing request to be done
+    assert len(aioresponses.requests) == 1
+
+    assert result.errors is None
+    assert result.data["employees"] == []
 
 
 @pytest.mark.asyncio

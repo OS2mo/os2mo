@@ -340,14 +340,17 @@ async def get_one_employee(
     details=EmployeeDetails.MINIMAL,
     only_primary_uuid: bool = False,
 ):
-    if only_primary_uuid:
-        return {mapping.UUID: userid}
-
     if not user:
         user = await c.bruger.get(userid)
 
         if not user or not util.is_reg_valid(user):
             return None
+
+    if only_primary_uuid:
+        # This block could be before the user check, so we would not have to contact
+        # LoRa as we can construct the output without during so, however we need to
+        # actually validate that the user actually exists to avoid false information.
+        return {mapping.UUID: userid}
 
     props = user["attributter"]["brugeregenskaber"][0]
     extensions = user["attributter"]["brugerudvidelser"][0]
@@ -513,72 +516,6 @@ async def list_employees(
         get_full_employee, uuid_filters=uuid_filters, **kwargs
     )
     return search_result
-
-
-@router.get("/e/{id}/")
-# @util.restrictargs('at')
-async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
-    """Retrieve an employee.
-
-    .. :quickref: Employee; Get
-
-    :queryparam date at: Show the employee at this point in time,
-        in ISO-8601 format.
-
-    :<json string name: Full name of the employee (concatenation
-        of givenname and surname).
-    :<json string givenname: Given name of the employee.
-    :<json string surname: Surname of the employee.
-    :<json string nickname: Nickname of the employee (concatenation
-        of the nickname givenname and surname).
-    :<json string nickname_givenname: The given name part of the nickname.
-    :<json string nickname_surname: The surname part of the nickname.
-    :>json string uuid: Machine-friendly UUID.
-    :>json object org: The organisation that this employee belongs to, as
-        yielded by http:get:`/service/o/`.
-    :>json string cpr_no: CPR number of for the corresponding person.
-        Please note that this is the only means for obtaining the CPR
-        number; due to confidentiality requirements, all other end
-        points omit it.
-
-    :status 200: Whenever the user ID is valid and corresponds to an
-        existing user.
-    :status 404: Otherwise.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     {
-       "cpr_no": "0708522600",
-       "name": "Bente Pedersen",
-       "givenname": "Bente",
-       "surname": "Pedersen",
-       "nickname": "Kjukke Mimergolf",
-       "nickname_givenname": "Kjukke",
-       "nickname_surname": "Mimergolf",
-       "org": {
-         "name": "Hj\u00f8rring Kommune",
-         "user_key": "Hj\u00f8rring Kommune",
-         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
-       },
-       "user_key": "2ba3feb8-9617-43c1-8502-e55a2b283c58",
-       "uuid": "c9eaffad-971e-4c0c-8516-44c5d29ca092"
-     }
-
-    """
-    c = common.get_connector()
-    r = await get_one_employee(
-        c,
-        id,
-        user=None,
-        details=EmployeeDetails.FULL,
-        only_primary_uuid=only_primary_uuid,
-    )
-
-    if not r:
-        exceptions.ErrorCodes.E_USER_NOT_FOUND()
-    return r
 
 
 @router.post("/e/{uuid}/terminate")

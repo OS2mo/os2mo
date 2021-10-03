@@ -119,6 +119,27 @@ async def test_query_organisation_units_by_uuids(aioresponses):
 
 
 @pytest.mark.asyncio
+async def test_query_organisation_units_by_unknown_uuid(aioresponses):
+    """Test that we get an empty response when querying with an unknown uuid."""
+    mock_organisation_unit(aioresponses)
+
+    query = """
+        query TestQuery($uuid: UUID!) {
+            org_units(uuids: [$uuid]) {
+                uuid, user_key, name, parent_uuid
+            }
+        }
+    """
+    result = await execute(query, {"uuid": str(uuid4())})
+
+    # We expect only one outgoing request to be done
+    assert len(aioresponses.requests) == 1
+
+    assert result.errors is None
+    assert result.data["org_units"] == []
+
+
+@pytest.mark.asyncio
 async def test_query_no_organisation_units(aioresponses):
     """Test that we get an empty result if no organisation units exist."""
     aioresponses.get(
