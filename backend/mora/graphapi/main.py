@@ -3,6 +3,7 @@
 import strawberry
 from strawberry.asgi import GraphQL
 from strawberry.schema.config import StrawberryConfig
+from strawberry.extensions.tracing import OpenTelemetryExtension
 
 from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.schema import Organisation
@@ -45,6 +46,9 @@ def get_schema():
         #
         # Additionally it is perserves the naming of the underlying Python functions.
         config=StrawberryConfig(auto_camel_case=False),
+        extensions=[
+            OpenTelemetryExtension,
+        ]
     )
     return schema
 
