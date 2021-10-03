@@ -59,6 +59,7 @@ services:
       PYTHONASYNCIODEBUG: "1"
 
       GRAPHQL_ENABLE: "true"
+      GRAPHQL_AUTH: "false"
 
       LORA_URL: "http://mox/"
 
