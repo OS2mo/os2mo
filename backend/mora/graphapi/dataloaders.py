@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import gather
 from uuid import UUID
 from typing import Callable
 from typing import Dict
@@ -12,11 +13,16 @@ from strawberry.dataloader import DataLoader
 from mora.api.v1.reading_endpoints import role_type_search_factory
 from mora.api.v1.reading_endpoints import role_type_uuid_factory
 from mora.api.v1.reading_endpoints import EMPLOYEE_ROLE_TYPE
+from mora.api.v1.reading_endpoints import ORG_UNIT_ROLE_TYPE
 from mora.api.v1.reading_endpoints import CommonQueryParams
+from mora.common import get_connector
+from mora.handler.reading import get_handler_for_type
+from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.service import org
 
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
+from mora.graphapi.schema import OrganisationUnit
 
 
 RoleType = TypeVar("RoleType")
@@ -55,10 +61,12 @@ def bulk_role_search_factory(
 
 
 # Use our bulk-loader generators to generate loaders for each type
+load_org_units = bulk_role_load_factory(ORG_UNIT_ROLE_TYPE, OrganisationUnit)
 load_employees = bulk_role_load_factory(EMPLOYEE_ROLE_TYPE, Employee)
 
 
 # Use searcher generators to generate searchers for each type
+get_org_units = bulk_role_search_factory(ORG_UNIT_ROLE_TYPE, OrganisationUnit)
 get_employees = bulk_role_search_factory(EMPLOYEE_ROLE_TYPE, Employee)
 
 
@@ -78,9 +86,37 @@ async def load_org(keys: List[int]) -> List[Organisation]:
     return [Organisation.construct(obj)] * len(keys)
 
 
+async def get_org_unit_children(parent_uuid: UUID) -> List[OrganisationUnit]:
+    """Non-bulk loader for organisation unit children."""
+    c = get_connector()
+    cls = get_handler_for_type(ORG_UNIT_ROLE_TYPE)
+    result = await cls.get(
+        c=c,
+        search_fields=_extract_search_params(
+            query_args={
+                "at": None,
+                "validity": None,
+                "overordnet": parent_uuid,
+                "gyldighed": "Aktiv",
+            }
+        ),
+        changed_since=None,
+    )
+    return list(map(OrganisationUnit.construct, result))
+
+
+async def load_org_units_children(keys: List[UUID]) -> List[List[Organisation]]:
+    """Non-bulk loader for organisation unit children with bulk interface."""
+    # TODO: This function should be replaced with a bulk version
+    tasks = map(get_org_unit_children, keys)
+    return await gather(*tasks)
+
+
 def get_loaders() -> Dict[str, DataLoader]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
+        "org_unit_loader": DataLoader(load_fn=load_org_units),
+        "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "employee_loader": DataLoader(load_fn=load_employees),
     }

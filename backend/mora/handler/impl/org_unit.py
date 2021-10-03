@@ -11,6 +11,7 @@ from ... import exceptions
 from ... import mapping
 from ... import util
 from ...service import orgunit
+from ...graphapi.middleware import is_graphql
 
 ROLE_TYPE = "org_unit"
 
@@ -68,11 +69,15 @@ class OrgUnitReader(reading.ReadingHandler):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag('only_primary_uuid')
 
+        details = orgunit.UnitDetails.FULL
+        if is_graphql():
+            details = orgunit.UnitDetails.MINIMAL
+
         return await orgunit.get_one_orgunit(
             c,
             obj_id,
             effect,
-            details=orgunit.UnitDetails.FULL,
+            details=details,
             validity={
                 mapping.FROM: util.to_iso_date(start),
                 mapping.TO: util.to_iso_date(end, is_end=True),
