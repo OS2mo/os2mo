@@ -22,7 +22,6 @@ from structlog import get_logger
 from structlog.processors import JSONRenderer
 from structlog.contextvars import merge_contextvars
 from more_itertools import only
-from strawberry.asgi import GraphQL
 
 from mora import health, log, config
 from mora.auth.exceptions import AuthorizationError
@@ -34,7 +33,7 @@ from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
-from mora.graphapi.schema import schema
+from mora.graphapi.main import setup_graphql
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
@@ -288,9 +287,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         setup_metrics(app)
 
     if settings.graphql_enable:
-        graphql_app = GraphQL(schema)
-        app.add_route("/graphql", graphql_app)
-        app.add_websocket_route("/subscriptions", graphql_app)
+        app = setup_graphql(app)
 
     # Adds pretty printed logs for development
     if settings.environment is Environment.DEVELOPMENT:
