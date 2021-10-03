@@ -45,6 +45,7 @@ class Settings(BaseSettings):
 
     # GraphQL settings
     graphql_enable: bool = False
+    graphql_auth: bool = True
 
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
