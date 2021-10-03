@@ -1,13 +1,20 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+from typing import Union
+
 import strawberry
+from starlette.requests import Request
+from starlette.websockets import WebSocket
 from strawberry.asgi import GraphQL
 from strawberry.schema.config import StrawberryConfig
 from strawberry.extensions.tracing import OpenTelemetryExtension
+from strawberry.types import Info
 
 from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.schema import Organisation
-from mora.service import org
+from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.middleware import StarletteContextExtension
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -28,9 +35,19 @@ class Query:
             "This endpoint fails if not exactly one exists in LoRa."
         ),
     )
-    async def org(self) -> Organisation:
-        obj = await org.get_configured_organisation()
-        return Organisation(**obj)
+    async def org(self, info: Info) -> Organisation:
+        return await info.context["org_loader"].load(0)
+
+
+class MyGraphQL(GraphQL):
+    # Subclass as done here:
+    # * https://strawberry.rocks/docs/guides/dataloaders#usage-with-context
+
+    async def get_context(
+        self, request: Union[Request, WebSocket], response: Any
+    ) -> Any:
+        # Add our dataloaders to the context, such that they are available everywhere
+        return {"request": request, "response": response, **get_loaders()}
 
 
 def get_schema():
@@ -48,6 +65,7 @@ def get_schema():
         config=StrawberryConfig(auto_camel_case=False),
         extensions=[
             OpenTelemetryExtension,
+            StarletteContextExtension,
         ],
     )
     return schema
@@ -55,7 +73,7 @@ def get_schema():
 
 def setup_graphql(app):
     schema = get_schema()
-    graphql_app = GraphQL(schema)
+    graphql_app = MyGraphQL(schema)
 
     app.add_route("/graphql", graphql_app)
     # Subscriptions could be implemented using our trigger system.

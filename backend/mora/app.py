@@ -30,6 +30,7 @@ from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.graphapi.main import setup_graphql
+from mora.graphapi.middleware import GraphQLContextPlugin
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
@@ -153,7 +154,10 @@ def create_app():
     middleware = [
         Middleware(
             RawContextMiddleware,
-            plugins=(QueryArgContextPlugin(),)
+            plugins=(
+                QueryArgContextPlugin(),
+                GraphQLContextPlugin(),
+            )
         )
     ]
     tags_metadata = chain([

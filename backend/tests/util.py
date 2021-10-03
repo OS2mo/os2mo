@@ -10,6 +10,8 @@ from mora.config import Settings
 from typing import Union
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qsl
+from starlette_context import _request_scope_context_storage
+from starlette_context import context
 
 import aioresponses
 import jinja2
@@ -327,6 +329,22 @@ def override_config(config_obj: Settings):
         yield
     finally:
         config.get_settings = original
+
+
+@contextlib.contextmanager
+def starlette_context():
+    token = _request_scope_context_storage.set({})
+    try:
+        yield context
+    finally:
+        _request_scope_context_storage.reset(token)
+
+
+@contextlib.contextmanager
+def patch_is_graphql(is_graphql=False):
+    with starlette_context() as context:
+        context['is_graphql'] = is_graphql
+        yield context
 
 
 @contextlib.contextmanager
