@@ -18,7 +18,9 @@ from strawberry.types import Info
 from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
+from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.dataloaders import get_employees
+from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.middleware import StarletteContextExtension
 
@@ -43,6 +45,34 @@ class Query:
     )
     async def org(self, info: Info) -> Organisation:
         return await info.context["org_loader"].load(0)
+
+    # Organisational Units
+    # --------------------
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a list of all organisation units",
+    )
+    async def org_units(self, info: Info) -> List[OrganisationUnit]:
+        return await get_org_units()
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a list of organisation units by uuids",
+    )
+    async def org_units_by_uuids(
+        self, info: Info, uuids: List[UUID]
+    ) -> List[OrganisationUnit]:
+        tasks = map(info.context["org_unit_loader"].load, map(str, uuids))
+        return await gather(*tasks)
+
+    @strawberry.field(
+        permission_classes=[IsAuthenticated],
+        description="Get a single organisation unit by uuid",
+    )
+    async def org_unit_by_uuid(
+        self, info: Info, uuid: UUID
+    ) -> Optional[OrganisationUnit]:
+        return await info.context["org_unit_loader"].load(str(uuid))
 
     # Employees
     # ---------
