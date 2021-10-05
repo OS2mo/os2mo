@@ -164,6 +164,82 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
+    async def aprepare_create(self, req):
+        name = util.checked_get(req, mapping.NAME, "", required=True)
+
+        integration_data = util.checked_get(
+            req, mapping.INTEGRATION_DATA, {}, required=False
+        )
+
+        unitid = util.get_uuid(req, required=False) or str(uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, unitid)
+
+        org_uuid = (await org.get_configured_organisation())[
+            "uuid"
+        ]
+
+        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
+        if parent_uuid is None:
+            parent_uuid = org_uuid
+
+        org_unit_type_uuid = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_TYPE, required=False
+        )
+
+        time_planning_uuid = util.get_mapping_uuid(
+            req, mapping.TIME_PLANNING, required=False
+        )
+
+        org_unit_level = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_LEVEL, required=False
+        )
+
+        org_unit_hierarchy = util.get_mapping_uuid(
+            req, mapping.ORG_UNIT_HIERARCHY, required=False
+        )
+
+        valid_from = util.get_valid_from(req)
+        valid_to = util.get_valid_to(req)
+
+        org_unit = common.create_organisationsenhed_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            enhedsnavn=name,
+            brugervendtnoegle=bvn,
+            tilhoerer=org_uuid,
+            enhedstype=org_unit_type_uuid,
+            opgaver=[
+                {
+                    "objekttype": "tidsregistrering",
+                    "uuid": time_planning_uuid,
+                },
+            ]
+            if time_planning_uuid
+            else [],
+            niveau=org_unit_level,
+            opmærkning=org_unit_hierarchy,
+            overordnet=parent_uuid,
+            integration_data=integration_data,
+        )
+
+        if org_uuid != parent_uuid:
+            await validator.is_date_range_in_org_unit_range(
+                {"uuid": parent_uuid}, valid_from, valid_to
+            )
+
+        details = util.checked_get(req, "details", [])
+        details_with_org_units = _inject_org_units(
+            details, unitid, valid_from, valid_to
+        )
+
+        self.details_requests = handlers.generate_requests(
+            details_with_org_units, mapping.RequestType.CREATE
+        )
+
+        self.payload = org_unit
+        self.uuid = unitid
+        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
+
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
         data = util.checked_get(req, "data", {}, required=True)

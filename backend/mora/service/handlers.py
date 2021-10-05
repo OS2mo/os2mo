@@ -389,7 +389,7 @@ def generate_requests(
     for req in requests:
         requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
         if req.get('type') in [
-            'role', 'kle', 'itsystem', 'engagement_association', 'leave'
+            'role', 'kle', 'itsystem', 'engagement_association', 'leave', 'orgunit'
         ] and request_type == RequestType.CREATE:
             requesthandlers.append(
                 async_to_sync(
