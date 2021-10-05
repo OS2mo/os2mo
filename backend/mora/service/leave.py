@@ -68,6 +68,49 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         self.uuid = func_id
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
 
+    async def aprepare_create(self, req):
+
+        employee = util.checked_get(req, mapping.PERSON, {}, required=True)
+        employee_uuid = util.get_uuid(employee, required=True)
+
+        org_uuid = (await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+
+        leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
+                                                required=True)
+
+        engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
+        valid_from, valid_to = util.get_validities(req)
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        # Validation
+        await validator.is_date_range_in_employee_range(
+            employee,
+            valid_from,
+            valid_to)
+        await validator.does_employee_have_active_engagement(
+            employee_uuid,
+            valid_from,
+            valid_to)
+
+        leave = common.create_organisationsfunktion_payload(
+            funktionsnavn=mapping.LEAVE_KEY,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle=bvn,
+            tilknyttedebrugere=[employee_uuid],
+            tilknyttedeorganisationer=[org_uuid],
+            tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else None,
+            funktionstype=leave_type_uuid,
+            integration_data=req.get(mapping.INTEGRATION_DATA),
+        )
+
+        self.payload = leave
+        self.uuid = func_id
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
+
     def prepare_edit(self, req: dict):
         leave_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
