@@ -210,6 +210,65 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )
 
+    async def aprepare_create(self, req: Dict):
+        """To create a vacant owner, set employee_uuid to None
+        and set a value org_unit_uuid"""
+
+        (
+            org_unit,
+            owned_person,
+            owner,
+            org_unit_uuid,
+            owner_uuid,
+            owned_person_uuid,
+            inference_priority,
+        ) = self.extract_info_owner_info(req=req)
+
+        valid_from, valid_to = util.get_validities(req)
+
+        org_uuid = (
+            await org.get_configured_organisation(
+                util.get_mapping_uuid(req, mapping.ORG, required=False)
+            )
+        )["uuid"]
+
+        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
+
+        # Validation
+        self.validate(
+            org_unit=org_unit,
+            owned_person=owned_person,
+            owner=owner,
+            validity_from=valid_from,
+            validity_to=valid_to,
+        )
+        owner = common.create_organisationsfunktion_payload(
+            funktionsnavn=mapping.OWNER,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            brugervendtnoegle=bvn,
+            tilknyttedebrugere=[owned_person_uuid] if owned_person_uuid else [],
+            tilknyttedeorganisationer=[org_uuid],
+            tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
+            tilknyttedepersoner=[owner_uuid],
+            integration_data=req.get(mapping.INTEGRATION_DATA),
+            udvidelse_attributter={mapping.EXTENSION_1: inference_priority.value}
+            if inference_priority is not None
+            else None,
+        )
+
+        self.payload = owner
+        self.uuid = func_id
+
+        self.trigger_dict.update(
+            self.calc_triggers(
+                owned_person_uuid=owned_person_uuid,
+                org_unit_uuid=org_unit_uuid,
+                req=req,
+            )
+        )
+
     def prepare_edit(self, req: dict):
         func_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
