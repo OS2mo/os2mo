@@ -8,7 +8,7 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-import pika
+import aio_pika
 from mora import config
 from mora import exceptions
 from mora import mapping
@@ -36,7 +36,7 @@ _OBJECT_TYPES = (
 _ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
 
 
-def publish_message(
+async def publish_message(
     service: str,
     object_type: str,
     action: str,
@@ -73,18 +73,19 @@ def publish_message(
         "time": datetime.isoformat(),
     }
 
+    message = aio_pika.Message(body=json.dumps(message).encode("utf-8"))
+
     # Message publishing is a secondary task to writing to lora.
     #
     # We should not throw a HTTPError in the case where lora writing is
     # successful, but amqp is down. Therefore, the try/except block.
     try:
-        connection = get_connection()
-        connection["channel"].basic_publish(
-            exchange=config.get_settings().amqp_os2mo_exchange,
+        connection = await get_connection()
+        await connection["exchange"].publish(
+            message=message,
             routing_key=topic,
-            body=json.dumps(message),
         )
-    except pika.exceptions.AMQPError:
+    except aio_pika.exceptions.AMQPError:
         logger.error(
             "Failed to publish AMQP message",
             topic=topic,
@@ -122,34 +123,31 @@ async def amqp_sender(trigger_dict: Dict) -> None:
         )
 
     for service, service_uuid in amqp_messages:
-        publish_message(
+        await publish_message(
             service, object_type, action, service_uuid, object_uuid, datetime
         )
 
 
-@lru_cache(maxsize=None)
-def get_connection():
+async def get_connection():
     # we cant bail out here, as it seems amqp trigger
     # tests must be able to run without ENABLE_AMQP
     # instead we leave the connection object empty
     # in which case publish_message will bail out
     # this is the original mode of operation restored
 
-    conn = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            host=config.get_settings().amqp_host,
-            port=config.get_settings().amqp_port,
-            heartbeat=0,
-        )
+    connection = await aio_pika.connect_robust(
+        host=config.get_settings().amqp_host,
+        port=config.get_settings().amqp_port,
     )
-    channel = conn.channel()
-    channel.exchange_declare(
-        exchange=config.get_settings().amqp_os2mo_exchange,
-        exchange_type="topic",
+    channel = await connection.channel()
+    exchange = await channel.declare_exchange(
+        name=config.get_settings().amqp_os2mo_exchange,
+        type="topic",
     )
     return {
-        "conn": conn,
+        "connection": connection,
         "channel": channel,
+        "exchange": exchange,
     }
 
 
@@ -164,9 +162,6 @@ def register(app) -> bool:
     if not config.get_settings().amqp_enable:
         logger.debug("AMQP Triggers not enabled!")
         return False
-
-    # Initialize the connection to check credentials
-    get_connection()
 
     # Register trigger on everything
     ROLE_TYPES = [

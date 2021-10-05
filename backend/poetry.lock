@@ -1,4 +1,19 @@
 [[package]]
+name = "aio-pika"
+version = "6.8.0"
+description = "Wrapper for the aiormq for asyncio and humans."
+category = "main"
+optional = false
+python-versions = ">3.5.*, <4"
+
+[package.dependencies]
+aiormq = ">=3.2.3,<4"
+yarl = "*"
+
+[package.extras]
+develop = ["aiomisc (>=10.1.6,<10.2.0)", "async-generator", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "shortuuid", "nox", "sphinx", "sphinx-autobuild", "timeout-decorator", "tox (>=2.4)"]
+
+[[package]]
 name = "aiofiles"
 version = "0.7.0"
 description = "File support for asyncio."
@@ -35,6 +50,21 @@ python-versions = "*"
 
 [package.dependencies]
 aiohttp = ">=2.0.0,<4.0.0"
+
+[[package]]
+name = "aiormq"
+version = "3.3.1"
+description = "Pure python AMQP asynchronous client library"
+category = "main"
+optional = false
+python-versions = ">3.5.*"
+
+[package.dependencies]
+pamqp = "2.3.0"
+yarl = "*"
+
+[package.extras]
+develop = ["aiomisc (>=11.0,<12.0)", "async-generator", "coverage (!=4.3)", "coveralls", "pylava", "pytest", "pytest-cov", "tox (>=2.4)"]
 
 [[package]]
 name = "alembic"
@@ -851,6 +881,17 @@ python-versions = ">=3.6"
 pyparsing = ">=2.0.2"
 
 [[package]]
+name = "pamqp"
+version = "2.3.0"
+description = "RabbitMQ Focused AMQP low-level library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+codegen = ["lxml"]
+
+[[package]]
 name = "parameterized"
 version = "0.8.1"
 description = "Parameterized testing with any Python test framework"
@@ -871,19 +912,6 @@ python-versions = "*"
 
 [package.dependencies]
 tomli = {version = "*", markers = "python_version >= \"3.6\""}
-
-[[package]]
-name = "pika"
-version = "1.2.0"
-description = "Pika Python AMQP Client Library"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.extras]
-gevent = ["gevent"]
-tornado = ["tornado"]
-twisted = ["twisted"]
 
 [[package]]
 name = "pip-tools"
@@ -1521,9 +1549,13 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4f61a850e3534cad1ba6723eb543fcd870e5cd8f6f762be0db3b06809e5627a7"
+content-hash = "6d66d9b3ad4daa9d8bce7589539448627ba745b567aaf916c15c4c9526373466"
 
 [metadata.files]
+aio-pika = [
+    {file = "aio-pika-6.8.0.tar.gz", hash = "sha256:1d4305a5f78af3857310b4fe48348cdcf6c097e0e275ea88c2cd08570531a369"},
+    {file = "aio_pika-6.8.0-py3-none-any.whl", hash = "sha256:e69afef8695f47c5d107bbdba21bdb845d5c249acb3be53ef5c2d497b02657c0"},
+]
 aiofiles = [
     {file = "aiofiles-0.7.0-py3-none-any.whl", hash = "sha256:c67a6823b5f23fcab0a2595a289cec7d8c863ffcb4322fb8cd6b90400aedfdbc"},
     {file = "aiofiles-0.7.0.tar.gz", hash = "sha256:a1c4fc9b2ff81568c83e21392a82f344ea9d23da906e4f6a52662764545e19d4"},
@@ -1570,6 +1602,10 @@ aiohttp = [
 aioresponses = [
     {file = "aioresponses-0.7.2-py2.py3-none-any.whl", hash = "sha256:2f8ff624543066eb465b0238de68d29231e8488f41dc4b5a9dae190982cdae50"},
     {file = "aioresponses-0.7.2.tar.gz", hash = "sha256:82e495d118b74896aa5b4d47e17effb5e2cc783e510ae395ceade5e87cabe89a"},
+]
+aiormq = [
+    {file = "aiormq-3.3.1-py3-none-any.whl", hash = "sha256:e584dac13a242589aaf42470fd3006cb0dc5aed6506cbd20357c7ec8bbe4a89e"},
+    {file = "aiormq-3.3.1.tar.gz", hash = "sha256:8218dd9f7198d6e7935855468326bbacf0089f926c70baa8dd92944cb2496573"},
 ]
 alembic = [
     {file = "alembic-1.7.3-py3-none-any.whl", hash = "sha256:d0c580041f9f6487d5444df672a83da9be57398f39d6c1802bbedec6fefbeef6"},
@@ -2143,6 +2179,10 @@ packaging = [
     {file = "packaging-21.0-py3-none-any.whl", hash = "sha256:c86254f9220d55e31cc94d69bade760f0847da8000def4dfe1c6b872fd14ff14"},
     {file = "packaging-21.0.tar.gz", hash = "sha256:7dc96269f53a4ccec5c0670940a4281106dd0bb343f47b7471f779df49c2fbe7"},
 ]
+pamqp = [
+    {file = "pamqp-2.3.0-py2.py3-none-any.whl", hash = "sha256:2f81b5c186f668a67f165193925b6bfd83db4363a6222f599517f29ecee60b02"},
+    {file = "pamqp-2.3.0.tar.gz", hash = "sha256:5cd0f5a85e89f20d5f8e19285a1507788031cfca4a9ea6f067e3cf18f5e294e8"},
+]
 parameterized = [
     {file = "parameterized-0.8.1-py2.py3-none-any.whl", hash = "sha256:9cbb0b69a03e8695d68b3399a8a5825200976536fe1cb79db60ed6a4c8c9efe9"},
     {file = "parameterized-0.8.1.tar.gz", hash = "sha256:41bbff37d6186430f77f900d777e5bb6a24928a1c46fb1de692f8b52b8833b5c"},
@@ -2150,10 +2190,6 @@ parameterized = [
 pep517 = [
     {file = "pep517-0.11.0-py2.py3-none-any.whl", hash = "sha256:3fa6b85b9def7ba4de99fb7f96fe3f02e2d630df8aa2720a5cf3b183f087a738"},
     {file = "pep517-0.11.0.tar.gz", hash = "sha256:e1ba5dffa3a131387979a68ff3e391ac7d645be409216b961bc2efe6468ab0b2"},
-]
-pika = [
-    {file = "pika-1.2.0-py2.py3-none-any.whl", hash = "sha256:59da6701da1aeaf7e5e93bb521cc03129867f6e54b7dd352c4b3ecb2bd7ec624"},
-    {file = "pika-1.2.0.tar.gz", hash = "sha256:f023d6ac581086b124190cb3dc81dd581a149d216fa4540ac34f9be1e3970b89"},
 ]
 pip-tools = [
     {file = "pip-tools-6.3.0.tar.gz", hash = "sha256:1835a1848bdfb22b2b6e5d10d630844ff5ee15e24b6c3bf92319c76f205d347f"},

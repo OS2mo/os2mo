@@ -53,6 +53,8 @@ services:
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
     environment:
+      AMQP_ENABLE: "true"
+
       DUMMY_MODE: "true"
       ENABLE_CORS: "true"
       ENVIRONMENT: development
