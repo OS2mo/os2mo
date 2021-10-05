@@ -279,7 +279,7 @@ def create_app():
     if get_settings().graphql_enable:
         graphql_app = GraphQL(schema)
         app.add_route("/graphql", graphql_app)
-        app.add_websocket_route("/subscriptions", graphql_app)
+        app.add_websocket_route("/graphql", graphql_app)
 
     # Adds pretty printed logs for development
     if get_settings().environment is Environment.DEVELOPMENT:

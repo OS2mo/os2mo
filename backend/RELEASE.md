@@ -1,3 +1,3 @@
 Release type: minor
 
-[#46142] Converted our AMQP Trigger to be async
+[#46141] Added support for GraphQL subscriptions

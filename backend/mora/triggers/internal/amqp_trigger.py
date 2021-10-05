@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
+from uuid import uuid4
 from datetime import datetime
 from itertools import product
+from typing import Any
+from typing import AsyncGenerator
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -35,20 +38,7 @@ _OBJECT_TYPES = (
 _ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
 
 
-async def publish_message(
-    service: str,
-    object_type: str,
-    action: str,
-    service_uuid: str,
-    object_uuid: str,
-    datetime: datetime,
-) -> None:
-    """Send a message to the MO exchange.
-
-    For the full documentation, refer to "AMQP Messages" in the docs.
-    The source for that is in ``docs/amqp.rst``.
-
-    """
+def construct_topic(service: str, object_type: str, action: str) -> str:
     # we are strict about the topic format to avoid programmer errors.
     if service not in _SERVICES:
         raise ValueError(
@@ -66,13 +56,46 @@ async def publish_message(
         )
 
     topic = "{}.{}.{}".format(service, object_type, action)
+    return topic
+
+
+async def listen_to_topic(topic: str) -> AsyncGenerator[Dict[str, Any], None]:
+    """Listen for AMQP messages on the given routing-key."""
+    # Declaring queue
+    queue_name = "os2mo-consumer-" + str(uuid4())
+
+    logger.debug("Creating listener queue", queue_name=queue_name)
+    connection = await get_connection()
+    queue = await connection["channel"].declare_queue(queue_name, durable=False)
+    await queue.bind(connection["exchange"], routing_key=topic)
+    logger.debug("Created listener queue", queue_name=queue_name)
+
+    async with queue.iterator() as queue_iter:
+        async for message in queue_iter:
+            async with message.process():
+                payload = json.loads(message.body.decode("utf-8"))
+                logger.debug("AMQP listener received message", queue_name=queue_name, message=payload)
+                yield payload
+
+
+async def publish_message(
+    topic: str,
+    service_uuid: str,
+    object_uuid: str,
+    datetime: datetime,
+) -> None:
+    """Send a message to the MO exchange.
+
+    For the full documentation, refer to "AMQP Messages" in the docs.
+    The source for that is in ``docs/amqp.rst``.
+
+    """
     message = {
+        "message_uuid": str(uuid4()),
         "uuid": service_uuid,
         "object_uuid": object_uuid,
         "time": datetime.isoformat(),
     }
-
-    message = aio_pika.Message(body=json.dumps(message).encode("utf-8"))
 
     # Message publishing is a secondary task to writing to lora.
     #
@@ -81,7 +104,9 @@ async def publish_message(
     try:
         connection = await get_connection()
         await connection["exchange"].publish(
-            message=message,
+            message=aio_pika.Message(
+                body=json.dumps(message).encode("utf-8")
+            ),
             routing_key=topic,
         )
     except aio_pika.exceptions.AMQPError:
@@ -122,9 +147,8 @@ async def amqp_sender(trigger_dict: Dict) -> None:
         )
 
     for service, service_uuid in amqp_messages:
-        await publish_message(
-            service, object_type, action, service_uuid, object_uuid, datetime
-        )
+        topic = construct_topic(service, object_type, action)
+        await publish_message(topic, service_uuid, object_uuid, datetime)
 
 
 async def get_connection():
