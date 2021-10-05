@@ -395,6 +395,13 @@ def generate_requests(
                 async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
             )
+        elif req.get('type') in [
+            'role'
+        ] and request_type == RequestType.EDIT:
+            requesthandlers.append(
+                async_to_sync(
+                    requesthandler_klasse.construct)(req, request_type)
+            )
         else:
             requesthandlers.append(
                 requesthandler_klasse(req, request_type)
