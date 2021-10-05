@@ -4,7 +4,7 @@ import asyncio
 
 from fastapi import APIRouter
 from httpx import HTTPStatusError
-from pika.exceptions import AMQPError
+from aio_pika.exceptions import AMQPError
 from pydantic import AnyUrl
 from requests.exceptions import RequestException
 from structlog import get_logger
@@ -51,7 +51,7 @@ async def _is_endpoint_reachable(url: AnyUrl) -> bool:
 
 
 @register_health_endpoint
-def amqp():
+async def amqp():
     """Check if AMQP connection is open.
 
     Return `True` if open. `False` if not open or an error occurs.
@@ -59,10 +59,10 @@ def amqp():
     """
     if not config.get_settings().amqp_enable:
         return None
-    connection = amqp_trigger.get_connection()
+    connection = await amqp_trigger.get_connection()
 
     try:
-        conn = connection.get("conn")
+        conn = connection.get("connection")
     except AMQPError as e:
         logger.exception("AMQP health check error", e=e)
         return False
@@ -71,7 +71,7 @@ def amqp():
         logger.critical("AMQP connection not found")
         return False
 
-    if not conn.is_open:
+    if conn.is_closed:
         logger.critical("AMQP connection is closed")
         return False
 
