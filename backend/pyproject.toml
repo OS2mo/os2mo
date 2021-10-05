@@ -21,7 +21,6 @@ python-dateutil = "^2.8.1"
 validators = "^0.18.2"
 psycopg2-binary = "^2.8.6"
 gunicorn = "^20.1.0"
-pika = "^1.2.0"
 PyJWT = {extras = ["crypto"], version = "^2.1.0"}
 toml = "^0.10.2"
 more-itertools = "^8.8.0"
@@ -46,6 +45,7 @@ prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometh
 pydantic = {extras = ["email"], version = "^1.7.3"}
 ramodels = "^2.1.1"
 strawberry-graphql = {extras = ["asgi"], version = "^0.77.10"}
+aio-pika = "^6.8.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

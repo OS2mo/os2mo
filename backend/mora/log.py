@@ -8,7 +8,6 @@ from . import config
 
 def init():
     logging.getLogger("urllib3").setLevel(logging.INFO)
-    logging.getLogger("pika").setLevel(logging.INFO)
 
     log_level = config.get_settings().os2mo_log_level
     logger = logging.getLogger()

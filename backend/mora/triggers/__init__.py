@@ -16,7 +16,8 @@ logger = get_logger()
 
 def register(app):
     """Call register on our internal trigger modules."""
-    from mora.triggers.internal import amqp_trigger, http_trigger
+    from mora.triggers.internal import amqp_trigger
+    from mora.triggers.internal import http_trigger
 
     trigger_modules = [amqp_trigger, http_trigger]
 
