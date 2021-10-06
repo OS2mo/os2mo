@@ -255,6 +255,106 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             )
         })
 
+    async def aprepare_edit(self, req: dict):
+        function_uuid = util.get_uuid(req)
+
+        # Get the current org-funktion which the user wants to change
+        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        original = await c.organisationfunktion.get(uuid=function_uuid)
+
+        if not original:
+            exceptions.ErrorCodes.E_NOT_FOUND()
+
+        data = req.get('data')
+        new_from, new_to = util.get_validities(data)
+
+        payload = {
+            'note': 'Rediger IT-system',
+        }
+
+        original_data = req.get('original')
+        if original_data:
+            # We are performing an update
+            old_from, old_to = util.get_validities(original_data)
+            payload = common.inactivate_old_interval(
+                old_from, old_to, new_from, new_to, payload,
+                ('tilstande', 'organisationfunktiongyldighed')
+            )
+
+        update_fields = [
+            # Always update gyldighed
+            (
+                mapping.ORG_FUNK_GYLDIGHED_FIELD,
+                {'gyldighed': "Aktiv"}
+            ),
+        ]
+
+        if mapping.ITSYSTEM in data:
+            update_fields.append((
+                mapping.SINGLE_ITSYSTEM_FIELD,
+                {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
+            ))
+
+        if data.get(mapping.PERSON):
+            update_fields.append((
+                mapping.USER_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.PERSON),
+                },
+            ))
+
+        if data.get(mapping.ORG_UNIT):
+            update_fields.append((
+                mapping.ASSOCIATED_ORG_UNIT_FIELD,
+                {
+                    'uuid':
+                        util.get_mapping_uuid(data, mapping.ORG_UNIT),
+                },
+            ))
+
+        try:
+            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
+        except (TypeError, LookupError):
+            attributes = {}
+        new_attributes = {}
+
+        if mapping.USER_KEY in data:
+            new_attributes['brugervendtnoegle'] = util.checked_get(
+                data, mapping.USER_KEY, "")
+
+        if new_attributes:
+            update_fields.append((
+                mapping.ORG_FUNK_EGENSKABER_FIELD,
+                {
+                    **attributes,
+                    **new_attributes
+                },
+            ))
+
+        payload = common.update_payload(new_from, new_to, update_fields,
+                                        original,
+                                        payload)
+
+        bounds_fields = list(mapping.ITSYSTEM_FIELDS.difference(
+            {x[0] for x in update_fields},
+        ))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
+                                       original,
+                                       payload)
+
+        self.payload = payload
+        self.uuid = function_uuid
+        self.trigger_dict.update({
+            Trigger.ORG_UNIT_UUID: (
+                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+            ),
+            Trigger.EMPLOYEE_UUID: (
+                util.get_mapping_uuid(data, mapping.PERSON) or
+                mapping.USER_FIELD.get_uuid(original)
+            )
+        })
+
 
 @router.get('/o/{orgid}/it/')
 # @util.restrictargs('at')
