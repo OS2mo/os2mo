@@ -139,6 +139,83 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
+    async def aprepare_create(self, req):
+        name = util.checked_get(req, mapping.NAME, "", required=False)
+        givenname = util.checked_get(req, mapping.GIVENNAME, "",
+                                     required=False)
+        surname = util.checked_get(req, mapping.SURNAME, "",
+                                   required=False)
+
+        if name and (surname or givenname):
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                name='Supply either name or given name/surame'
+            )
+
+        if name:
+            givenname = name.rsplit(" ", maxsplit=1)[0]
+            surname = name[len(givenname):].strip()
+
+        if (not name) and (not givenname) and (not surname):
+            raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                name='Missing name or givenname or surname'
+            )
+
+        nickname_givenname, nickname_surname = self._handle_nickname(req)
+
+        integration_data = util.checked_get(
+            req,
+            mapping.INTEGRATION_DATA,
+            {},
+            required=False
+        )
+
+        org_uuid = (await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+
+        cpr = util.checked_get(req, mapping.CPR_NO, "", required=False)
+        userid = util.get_uuid(req, required=False) or str(uuid4())
+        bvn = util.checked_get(req, mapping.USER_KEY, userid)
+        seniority = req.get(mapping.SENIORITY, None)
+
+        try:
+            valid_from = \
+                util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
+        except ValueError as exc:
+            exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
+
+        valid_to = util.POSITIVE_INFINITY
+
+        if cpr:
+            await validator.does_employee_with_cpr_already_exist
+            (cpr, valid_from, valid_to, org_uuid, userid)
+
+        user = common.create_bruger_payload(
+            valid_from=valid_from,
+            valid_to=valid_to,
+            fornavn=givenname,
+            efternavn=surname,
+            kaldenavn_fornavn=nickname_givenname,
+            kaldenavn_efternavn=nickname_surname,
+            seniority=seniority,
+            brugervendtnoegle=bvn,
+            tilhoerer=org_uuid,
+            cpr=cpr,
+            integration_data=integration_data,
+        )
+
+        details = util.checked_get(req, 'details', [])
+        details_with_persons = _inject_persons(details, userid, valid_from,
+                                               valid_to)
+        # Validate the creation requests
+        self.details_requests = handlers.generate_requests(
+            details_with_persons,
+            mapping.RequestType.CREATE
+        )
+
+        self.payload = user
+        self.uuid = userid
+        self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
+
     def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, 'original', {}, required=False)
         data = util.checked_get(req, 'data', {}, required=True)
