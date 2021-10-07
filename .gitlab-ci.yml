@@ -94,10 +94,10 @@ pages:
   stage: deploy
   needs: []
   script:
+    - poetry run python docs/generate_schemas.py
     - poetry run mkdocs build --strict --site-dir public
   artifacts:
     paths:
       - public
   rules:
     - if: '$CI_COMMIT_BRANCH == "development"'
-
