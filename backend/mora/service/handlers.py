@@ -10,6 +10,7 @@ import abc
 import inspect
 import typing
 
+from fastapi import Request
 from structlog import get_logger
 
 from mora.async_util import async_to_sync
@@ -89,6 +90,24 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         }
         if sync_construct:
             self._sync_construct()
+
+    def _get_virkning(self, request) -> None:
+        validity = request.get("validity", {})
+        if "from" in validity and "to" in validity:
+            # When `validity` contains *both* `from` and `to`, construct a
+            # `virkning` of the given dates.
+            self.virkning = common._create_virkning(
+                util.get_valid_from(request),
+                util.get_valid_to(request),
+            )
+        else:
+            # DEPRECATED: Terminating an entity by giving *only* a "to date"
+            # is now deprecated.
+            self.virkning = common._create_virkning(
+                util.get_valid_to(request),
+                "infinity"
+            )
+            logger.warning('terminate org unit called without "from" in "validity"',)
 
     def _sync_construct(self):
         if self.request_type == RequestType.CREATE:
@@ -179,9 +198,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         necessary processing
 
         :param request: A dict containing a request
-
         """
-        raise NotImplementedError
+        self._get_virkning(request)
 
     def aprepare_terminate(self, request: dict):
         """
@@ -191,7 +209,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
 
         """
-        raise NotImplementedError('aprepare_terminate not implemented')
+        self._get_virkning(request)
 
     def prepare_refresh(self, request: dict):
         """

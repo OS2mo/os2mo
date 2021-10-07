@@ -388,26 +388,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
-        validity = request.get("validity", {})
-        if "from" in validity and "to" in validity:
-            # When `validity` contains *both* `from` and `to`, construct a
-            # `virkning` of the given dates.
-            virkning = common._create_virkning(
-                util.get_valid_from(request),
-                util.get_valid_to(request),
-            )
-        else:
-            # DEPRECATED: Terminating an org unit by giving *only* a "to date"
-            # is now deprecated.
-            virkning = common._create_virkning(util.get_valid_to(request), "infinity")
-            logger.warning(
-                'terminate org unit called without "from" in "validity"',
-            )
+        super().prepare_terminate(request)
 
         obj_path = ("tilstande", "organisationenhedgyldighed")
         val_inactive = {
             "gyldighed": "Inaktiv",
-            "virkning": virkning,
+            "virkning": self.virkning,
         }
 
         payload = util.set_obj_value(dict(), obj_path, [val_inactive])
@@ -1156,7 +1142,6 @@ def get_details_from_query_args(args):
 
 
 @router.get("/o/{orgid}/ou/")
-# @util.restrictargs('at', 'start', 'limit', 'query', 'root', 'details')
 async def list_orgunits(
     orgid: UUID,
     start: Optional[int] = 0,
@@ -1288,7 +1273,6 @@ async def list_orgunits(
 
 
 @router.get("/o/{orgid}/ou/tree")
-# @util.restrictargs('at', 'query', 'uuid')
 async def list_orgunit_tree(
     orgid: UUID,
     query: Optional[str] = None,
@@ -1381,7 +1365,6 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-# @util.restrictargs('force', 'triggerless')
 def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
     """Creates new organisational unit
 
@@ -1507,7 +1490,6 @@ async def terminate_org_unit_validation(unitid, request):
         409: {"description": "Validation failed"},
     },
 )
-# @util.restrictargs('force', 'triggerless')
 def terminate_org_unit(
     uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
