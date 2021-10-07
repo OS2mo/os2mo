@@ -3,3 +3,6 @@
 
 # Env
 .env
+
+# Generated schemas
+*schemas.md

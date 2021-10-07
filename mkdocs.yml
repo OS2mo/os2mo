@@ -8,14 +8,16 @@ repo_url: https://git.magenta.dk/rammearkitektur/ra-data-models
 
 nav:
   - index.md
-  - base.md
-  - LoRa:
-      - Primary: lora/lora.md
-      - Shared: lora/lora_shared.md
-  - MO:
-      - Primary: mo/mo.md
-      - Details: mo/details.md
-      - Shared: mo/shared.md
+  - Examples:
+      - Creating Organisation Units: examples/org_units.md
+      - Creating Employees: examples/employees.md
+  - Schemas:
+      - MO Schemas: mo/schemas.md
+      - LoRa Schemas: lora/schemas.md
+  - API Reference:
+      - MO API Models: mo/api.md
+      - LoRa API Models: lora/api.md
+      - Base & Custom Exceptions: base.md
 
 theme:
   name: "material"
@@ -27,6 +29,9 @@ theme:
     - scheme: slate
       toggle:
         icon: material/weather-sunny
+  features:
+    - navigation.top
+    - navigation.tabs
 
 # Adds Magenta's colour scheme
 extra_css:
@@ -60,3 +65,6 @@ markdown_extensions:
       check_paths: true
   - pymdownx.tabbed
   - pymdownx.tasklist
+  - toc:
+      toc_depth: 3
+      permalink: "#"

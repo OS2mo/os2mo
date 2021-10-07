@@ -2,7 +2,6 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: OS2mo Data Models
 Upstream-Contact: Magenta ApS <info@magenta.dk>
 
-Files: .flake8 mypy.ini poetry.* *.toml *.json *.yaml *.yml .gitignore
+Files: .flake8 mypy.ini poetry.* *.toml *.json *.yaml *.yml .gitignore *schemas.md
 Copyright: 2021 Magenta ApS <https://magenta.dk>
 License: MPL-2.0
-
