@@ -10,7 +10,6 @@ import abc
 import inspect
 import typing
 
-from fastapi import Request
 from structlog import get_logger
 
 from mora.async_util import async_to_sync
@@ -93,21 +92,28 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     def _get_virkning(self, request) -> None:
         validity = request.get("validity", {})
-        if "from" in validity and "to" in validity:
+        if mapping.FROM in validity and mapping.TO in validity:
             # When `validity` contains *both* `from` and `to`, construct a
             # `virkning` of the given dates.
             self.virkning = common._create_virkning(
                 util.get_valid_from(request),
                 util.get_valid_to(request),
             )
-        else:
+        elif mapping.FROM not in validity and mapping.TO in validity:
             # DEPRECATED: Terminating an entity by giving *only* a "to date"
             # is now deprecated.
+            # TODO: handle if "to" is infinity
             self.virkning = common._create_virkning(
                 util.get_valid_to(request),
                 "infinity"
             )
             logger.warning('terminate org unit called without "from" in "validity"',)
+        else:
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                key="Validity must be set with either 'to' or both 'from' "
+                    "and 'to'",
+                obj=request
+            )
 
     def _sync_construct(self):
         if self.request_type == RequestType.CREATE:
@@ -165,7 +171,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    def aprepare_create(self, request: dict):
+    async def aprepare_create(self, request: dict):
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
@@ -183,7 +189,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
 
-    def aprepare_edit(self, request: dict):
+    async def aprepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
@@ -201,7 +207,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         self._get_virkning(request)
 
-    def aprepare_terminate(self, request: dict):
+    async def aprepare_terminate(self, request: dict):
         """
         Initialize a 'termination' request. Performs validation and all
         necessary processing
@@ -222,7 +228,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         # Default it noop
         pass
 
-    def aprepare_refresh(self, request: dict):
+    async def aprepare_refresh(self, request: dict):
         """
         Initialize a 'refresh' request. Performs validation and all
         necessary processing
@@ -311,11 +317,14 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
+        super().prepare_terminate(request)
+
         self.uuid = util.get_uuid(request)
-        date = util.get_valid_to(request, required=True)
 
         original = async_to_sync(
-            lora.Connector(effective_date=date).organisationfunktion.get
+            lora.Connector(
+                effective_date=self.virkning['from']
+            ).organisationfunktion.get
         )(self.uuid)
 
         if (
@@ -329,8 +338,8 @@ class OrgFunkRequestHandler(RequestHandler):
             )
 
         self.payload = common.update_payload(
-            date,
-            util.POSITIVE_INFINITY,
+            self.virkning['from'],
+            self.virkning['to'],
             [(
                 self.termination_field,
                 self.termination_value,

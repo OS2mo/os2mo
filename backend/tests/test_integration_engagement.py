@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import freezegun
 import notsouid
 
@@ -1045,7 +1044,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_terminate_engagement(self):
+    def test_terminate_engagement_via_employee(self):
         self.load_sample_structures()
 
         # Check the POST request
@@ -1195,6 +1194,53 @@ class Tests(tests.cases.LoRATestCase):
             engagement_uuid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
+
+    def test_terminate_engagement_with_both_from_and_to_date(self):
+        self.load_sample_structures()
+
+        # Terminate engagement for Anders And employed at humanistisk fak
+        employee_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+        engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
+
+        payload = {
+            "type": "engagement",
+            "uuid": engagement_uuid,
+            "validity": {
+                "from": "2018-10-22",
+                "to": "2018-10-25"
+            }
+        }
+
+        self.assertRequest(
+            "/service/details/terminate",
+            json=payload
+        )
+
+        # Assert termination request is persisted correctly in the past
+        r = self.request(
+            f"/service/e/{employee_uuid}/details/engagement"
+            f"?validity=past&at=2021-10-08"
+        )
+        self.assertEqual(
+            {
+                "from": "2017-01-01",
+                "to": "2018-10-21"
+            },
+            r.json()[0]["validity"]
+        )
+
+        # Assert termination request is persisted correctly in the present
+        r = self.request(
+            f"/service/e/{employee_uuid}/details/engagement"
+            f"?validity=present&at=2021-10-08"
+        )
+        self.assertEqual(
+            {
+                "from": "2018-10-26",
+                "to": None
+            },
+            r.json()[0]["validity"]
+        )
 
     def test_reading_engagement_only_primary_uuid(self):
         self.load_sample_structures()
