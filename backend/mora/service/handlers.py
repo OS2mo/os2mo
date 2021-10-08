@@ -472,7 +472,7 @@ def generate_requests(
                     requesthandler_klasse.construct)(req, request_type)
             )
         elif req.get('type') in [
-            'association', 'org_unit' 'manager'
+            'association', 'org_unit' 'manager', 'employee'
         ] and request_type == RequestType.TERMINATE:
             requesthandlers.append(
                 async_to_sync(

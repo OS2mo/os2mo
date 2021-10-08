@@ -332,6 +332,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def submit(self):
+        raise NotImplementedError('Use asubmit instead')
+
+    async def asubmit(self):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
@@ -346,7 +349,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         # process subrequests, if any
         [r.submit() for r in getattr(self, "details_requests", [])]
 
-        return super().submit()
+        return await super().asubmit()
 
 
 async def __get_employee_from_cache(
@@ -643,8 +646,10 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
 
 @router.post("/e/{uuid}/terminate")
 # @util.restrictargs('force', 'triggerless')
-def terminate_employee(
-    uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
+async def terminate_employee(
+    uuid: UUID,
+    request: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -694,7 +699,7 @@ def terminate_employee(
             },
             mapping.RequestType.TERMINATE,
         )
-        for objid, obj in mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
+        for objid, obj in await c.organisationfunktion.get_all(
             tilknyttedebrugere=uuid,
             gyldighed="Aktiv",
         )
@@ -713,7 +718,7 @@ def terminate_employee(
         Trigger.run(trigger_dict)
 
     for handler in request_handlers:
-        handler.submit()
+        handler.asubmit()
 
     result = uuid
 
@@ -724,7 +729,7 @@ def terminate_employee(
         Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
-    mora.async_util.async_to_sync(common.add_history_entry)(
+    await common.add_history_entry(
         c.bruger, uuid, "Afslut medarbejder"
     )
 
@@ -732,8 +737,11 @@ def terminate_employee(
 
 
 # When RBAC enabled: currently, only the admin role can create employees
-@router.post("/e/create", status_code=201)
-def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+@router.post('/e/create', status_code=201)
+async def create_employee(
+    req: dict = Body(...),
+    permissions=Depends(oidc.rbac_admin)
+):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -801,8 +809,8 @@ def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin))
     :returns: UUID of created employee
 
     """
-    request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
-    return request.submit()
+    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    return request.asubmit()
 
 
 def _inject_persons(details, employee_uuid, valid_from, valid_to):
