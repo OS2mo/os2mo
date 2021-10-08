@@ -90,80 +90,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = "org_unit"
 
     def prepare_create(self, req):
-        name = util.checked_get(req, mapping.NAME, "", required=True)
-
-        integration_data = util.checked_get(
-            req, mapping.INTEGRATION_DATA, {}, required=False
-        )
-
-        unitid = util.get_uuid(req, required=False) or str(uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, unitid)
-
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)())[
-            "uuid"
-        ]
-
-        parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
-        if parent_uuid is None:
-            parent_uuid = org_uuid
-
-        org_unit_type_uuid = util.get_mapping_uuid(
-            req, mapping.ORG_UNIT_TYPE, required=False
-        )
-
-        time_planning_uuid = util.get_mapping_uuid(
-            req, mapping.TIME_PLANNING, required=False
-        )
-
-        org_unit_level = util.get_mapping_uuid(
-            req, mapping.ORG_UNIT_LEVEL, required=False
-        )
-
-        org_unit_hierarchy = util.get_mapping_uuid(
-            req, mapping.ORG_UNIT_HIERARCHY, required=False
-        )
-
-        valid_from = util.get_valid_from(req)
-        valid_to = util.get_valid_to(req)
-
-        org_unit = common.create_organisationsenhed_payload(
-            valid_from=valid_from,
-            valid_to=valid_to,
-            enhedsnavn=name,
-            brugervendtnoegle=bvn,
-            tilhoerer=org_uuid,
-            enhedstype=org_unit_type_uuid,
-            opgaver=[
-                {
-                    "objekttype": "tidsregistrering",
-                    "uuid": time_planning_uuid,
-                },
-            ]
-            if time_planning_uuid
-            else [],
-            niveau=org_unit_level,
-            opmærkning=org_unit_hierarchy,
-            overordnet=parent_uuid,
-            integration_data=integration_data,
-        )
-
-        if org_uuid != parent_uuid:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                {"uuid": parent_uuid}, valid_from, valid_to
-            )
-
-        details = util.checked_get(req, "details", [])
-        details_with_org_units = _inject_org_units(
-            details, unitid, valid_from, valid_to
-        )
-
-        self.details_requests = handlers.generate_requests(
-            details_with_org_units, mapping.RequestType.CREATE
-        )
-
-        self.payload = org_unit
-        self.uuid = unitid
-        self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
+        raise NotImplementedError("Use aprepare_create() instead")
 
     async def aprepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
@@ -242,6 +169,9 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
+        raise NotImplementedError('Use aprepare_edit instead')
+
+    async def aprepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
         data = util.checked_get(req, "data", {}, required=True)
 
@@ -249,7 +179,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        original = mora.async_util.async_to_sync(c.organisationenhed.get)(uuid=unitid)
+        original = await c.organisationenhed.get(uuid=unitid)
 
         if not original:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -360,15 +290,13 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         if mapping.PARENT in data:
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
             if parent_uuid is None:
-                parent_uuid = (
-                    mora.async_util.async_to_sync(org.get_configured_organisation)()
-                )["uuid"]
+                parent_uuid = (await org.get_configured_organisation())["uuid"]
 
             # only update parent if parent uuid changed
             if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
-                mora.async_util.async_to_sync(validator.is_movable_org_unit)(unitid)
+                await validator.is_movable_org_unit(unitid)
 
-                mora.async_util.async_to_sync(validator.is_candidate_parent_valid)(
+                await validator.is_candidate_parent_valid(
                     unitid, parent_uuid, new_from
                 )
                 update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))
@@ -389,6 +317,9 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
+        raise NotImplementedError('Use aprepare_terminate instead')
+
+    async def aprepare_terminate(self, request: dict):
         virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
 
         obj_path = ("tilstande", "organisationenhedgyldighed")
@@ -404,7 +335,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
-    def prepare_refresh(self, request: dict):
+    async def aprepare_refresh(self, request: dict):
         unitid = request[mapping.UUID]
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
@@ -1128,7 +1059,8 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
 
     request = {}
     request[mapping.UUID] = unitid
-    handler = OrgUnitRequestHandler(request, mapping.RequestType.REFRESH)
+    handler = await OrgUnitRequestHandler.construct(
+        request, mapping.RequestType.REFRESH)
     result = handler.submit()
     return result
 
@@ -1498,7 +1430,7 @@ async def terminate_org_unit_validation(unitid, request):
         409: {"description": "Validation failed"},
     },
 )
-def terminate_org_unit(
+async def terminate_org_unit(
     uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an organisational unit from a specified date.
@@ -1563,7 +1495,8 @@ def terminate_org_unit(
     be used.
     """
     uuid = str(uuid)
-    mora.async_util.async_to_sync(terminate_org_unit_validation)(uuid, request)
+    await terminate_org_unit_validation(uuid, request)
     request[mapping.UUID] = uuid
-    handler = OrgUnitRequestHandler(request, mapping.RequestType.TERMINATE)
+    handler = await OrgUnitRequestHandler.construct(
+        request, mapping.RequestType.TERMINATE)
     return handler.submit()
