@@ -325,6 +325,7 @@ Unit-test:
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
+      --cov-fail-under=50
       -p no:cacheprovider
       --color=yes
       --workers auto
@@ -357,6 +358,7 @@ Integration-test:
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
+      --cov-fail-under=70
       -p no:cacheprovider
       --color=yes
       -m "serial"

@@ -3,7 +3,7 @@
 from tests import util
 from unittest.mock import patch
 
-import mora.async_util
+from mora.async_util import async_to_sync
 from mora import exceptions
 from mora.service.address_handler import ean
 from . import base
@@ -19,7 +19,8 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
     value = '1234567890123'
     visibility = '1f6295e8-9000-43ec-b694-4d288fa158bb'
 
-    def test_from_effect(self):
+    @async_to_sync
+    async def test_from_effect(self):
         # Arrange
         effect = {
             'relationer': {
@@ -33,7 +34,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
             }
         }
 
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         # Act
         actual_value = address_handler._value
@@ -43,14 +44,15 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         self.assertEqual(self.value, actual_value)
         self.assertEqual(self.visibility, actual_visibility)
 
-    def test_from_request(self):
+    @async_to_sync
+    async def test_from_request(self):
         # Arrange
         value = '1234567890123'
 
         request = {
             'value': value
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         # Act
         actual_value = address_handler.value
@@ -58,7 +60,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @mora.async_util.async_to_sync
+    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = '1234567890123'
@@ -94,7 +96,8 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_fails_on_invalid_value(self):
+    @async_to_sync
+    async def test_fails_on_invalid_value(self):
         # Arrange
         invalid_values = [
             '1234',
@@ -104,9 +107,10 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Act & Assert
         for value in invalid_values:
             with self.assertRaises(exceptions.HTTPException):
-                self.handler.validate_value(value)
+                await self.handler.validate_value(value)
 
-    def test_validation_succeeds_on_correct_values(self):
+    @async_to_sync
+    async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = [
             "1234123412341"
@@ -115,12 +119,13 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Act & Assert
         for value in valid_values:
             # Shouldn't raise exception
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_with_force(self):
+    @async_to_sync
+    async def test_validation_succeeds_with_force(self):
         # Arrange
         value = 'GARBAGEGARBAGE'  # Not a valid EAN
 
         # Act & Assert
         with util.patch_query_args({'force': '1'}):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)

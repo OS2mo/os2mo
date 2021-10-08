@@ -3,7 +3,7 @@
 
 from unittest.mock import patch
 
-import mora.async_util
+from mora.async_util import async_to_sync
 import tests.cases
 from mora.service.address_handler import text
 
@@ -18,7 +18,8 @@ class TextAddressHandlerTests(tests.cases.TestCase):
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'Test text whatever'
 
-    def test_from_effect(self):
+    @async_to_sync
+    async def test_from_effect(self):
         # Arrange
         value = 'Test text whatever'
 
@@ -30,7 +31,7 @@ class TextAddressHandlerTests(tests.cases.TestCase):
             }
         }
 
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         # Act
         actual_value = address_handler.value
@@ -38,14 +39,15 @@ class TextAddressHandlerTests(tests.cases.TestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_from_request(self):
+    @async_to_sync
+    async def test_from_request(self):
         # Arrange
         value = 'Test text whatever'
 
         request = {
             'value': value
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         # Act
         actual_value = address_handler.value
@@ -53,7 +55,7 @@ class TextAddressHandlerTests(tests.cases.TestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @mora.async_util.async_to_sync
+    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = 'Test text whatever'

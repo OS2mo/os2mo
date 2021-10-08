@@ -41,7 +41,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         self._value2 = value2
 
     @classmethod
-    def from_effect(cls, effect):
+    async def from_effect(cls, effect):
         """Initialize handler from LoRa object"""
         # Cut off the prefix
         urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
@@ -53,10 +53,10 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         return cls(value, visibility)
 
     @classmethod
-    def from_request(cls, request):
+    async def from_request(cls, request):
         """Initialize handler from MO object"""
         value = util.checked_get(request, mapping.VALUE, "", required=True)
-        cls.validate_value(value)
+        await cls.validate_value(value)
 
         visibility = util.get_mapping_uuid(
             request, mapping.VISIBILITY, required=False)
@@ -65,7 +65,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def validate_value(value):
+    async def validate_value(value):
         """Validate that the address value is correctly formed"""
         pass
 

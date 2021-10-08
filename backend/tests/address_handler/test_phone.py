@@ -3,7 +3,7 @@
 from tests import util
 from unittest.mock import patch
 
-import mora.async_util
+from mora.async_util import async_to_sync
 from mora import exceptions
 from mora.service.address_handler import phone
 from . import base
@@ -19,7 +19,8 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = '+4512345678'
 
-    def test_from_effect(self):
+    @async_to_sync
+    async def test_from_effect(self):
         # Arrange
         visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
         value = '+4512345678'
@@ -36,7 +37,7 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
             }
         }
 
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         # Act
         actual_value = address_handler._value
@@ -46,7 +47,8 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         self.assertEqual(value, actual_value)
         self.assertEqual(visibility, actual_visibility)
 
-    def test_from_request(self):
+    @async_to_sync
+    async def test_from_request(self):
         # Arrange
         visibility = '0261fdd3-4aa3-4c9b-9542-8163a1184738'
         request = {
@@ -55,7 +57,7 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
                 'uuid': visibility
             }
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         expected_value = '12345678'
 
@@ -67,7 +69,7 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         self.assertEqual(expected_value, actual_value)
         self.assertEqual(visibility, actual_visibility)
 
-    @mora.async_util.async_to_sync
+    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = '12345678'
@@ -107,14 +109,16 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_fails_on_invalid_value(self):
+    @async_to_sync
+    async def test_fails_on_invalid_value(self):
         # Arrange
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
             # Not a valid phone number
-            self.handler.validate_value('asdasd')
+            await self.handler.validate_value('asdasd')
 
-    def test_validation_succeeds_on_correct_values(self):
+    @async_to_sync
+    async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = [
             '+4520931217'
@@ -125,12 +129,13 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         # Act & Assert
         for value in valid_values:
             # Shouldn't raise exception
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_with_force(self):
+    @async_to_sync
+    async def test_validation_succeeds_with_force(self):
         # Arrange
         value = 'GARBAGEGARBAGE'  # Not a valid phone number
 
         # Act & Assert
         with util.patch_query_args({'force': '1'}):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)

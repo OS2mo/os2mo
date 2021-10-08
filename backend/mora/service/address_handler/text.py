@@ -15,7 +15,7 @@ class TextAddressHandler(base.AddressHandler):
         return self.prefix + util.urnquote(self.value)
 
     @classmethod
-    def from_effect(cls, effect):
+    async def from_effect(cls, effect):
         """Initialize handler from LoRa object"""
         # Cut off the prefix
         urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
@@ -28,6 +28,6 @@ class TextAddressHandler(base.AddressHandler):
         return cls(value, visibility)
 
     @staticmethod
-    def validate_value(value):
+    async def validate_value(value):
         """Text value can be whatever"""
         pass

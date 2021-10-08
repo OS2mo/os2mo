@@ -3,7 +3,7 @@
 from tests import util
 from unittest.mock import patch
 
-import mora.async_util
+from mora.async_util import async_to_sync
 import tests.cases
 from mora import exceptions
 from mora.service.address_handler import email
@@ -19,7 +19,8 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = 'mail@mail.dk'
 
-    def test_from_effect(self):
+    @async_to_sync
+    async def test_from_effect(self):
         # Arrange
         value = 'mail@mail.dk'
 
@@ -31,7 +32,7 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
             }
         }
 
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         # Act
         actual_value = address_handler.value
@@ -39,14 +40,15 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_from_request(self):
+    @async_to_sync
+    async def test_from_request(self):
         # Arrange
         value = 'mail@mail.dk'
 
         request = {
             'value': value
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         # Act
         actual_value = address_handler.value
@@ -54,7 +56,7 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @mora.async_util.async_to_sync
+    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         address_handler = self.handler(self.value, self.visibility)
@@ -89,15 +91,17 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_fails_on_invalid_value(self):
+    @async_to_sync
+    async def test_fails_on_invalid_value(self):
         # Arrange
         value = 'asdasd'  # Not a valid email address
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_on_correct_values(self):
+    @async_to_sync
+    async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = [
             'test@test.com',
@@ -108,12 +112,13 @@ class EmailAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Act & Assert
         for value in valid_values:
             # Shouldn't raise exception
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_with_force(self):
+    @async_to_sync
+    async def test_validation_succeeds_with_force(self):
         # Arrange
         value = 'GARBAGEGARBAGE'  # Not a valid email address
 
         # Act & Assert
         with util.patch_query_args({'force': '1'}):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)

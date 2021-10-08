@@ -46,6 +46,7 @@ pydantic = {extras = ["email"], version = "^1.7.3"}
 ramodels = "^2.1.1"
 strawberry-graphql = {extras = ["asgi"], version = "^0.77.10"}
 aio-pika = "^6.8.0"
+os2mo-dar-client = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

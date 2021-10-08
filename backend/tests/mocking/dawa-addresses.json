@@ -1,5 +1,5 @@
 {
-  "https://dawa.aws.dk/adresser?id=0a3f50a0-23c9-32b8-e044-0003ba298018&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=0a3f50a0-23c9-32b8-e044-0003ba298018&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f507a-da84-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "Pilestr\u00e6de",
@@ -18,7 +18,7 @@
       "y": 55.68113676
     }
   ],
-  "https://dawa.aws.dk/adresser?id=44c532e1-f617-4174-b144-d37ce9fda2bd&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=44c532e1-f617-4174-b144-d37ce9fda2bd&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "\u00c5bogade",
@@ -37,7 +37,7 @@
       "y": 56.17233057
     }
   ],
-  "https://dawa.aws.dk/adresser?id=606cf42e-9dc2-4477-bf70-594830fcbdec&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=606cf42e-9dc2-4477-bf70-594830fcbdec&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "\u00c5bogade",
@@ -56,7 +56,7 @@
       "y": 56.17233057
     }
   ],
-  "https://dawa.aws.dk/adresser?id=ae95777c-7ec1-4039-8025-e2ecce5099fb&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=ae95777c-7ec1-4039-8025-e2ecce5099fb&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5096-c91f-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "R\u00e5dhuspladsen",
@@ -75,7 +75,7 @@
       "y": 56.15263055
     }
   ],
-  "https://dawa.aws.dk/adresser?id=b1f1817d-5f02-4331-b8b3-97330a5d3197&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=b1f1817d-5f02-4331-b8b3-97330a5d3197&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5096-a0da-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "Nordre Ringgade",
@@ -94,7 +94,7 @@
       "y": 56.17102843
     }
   ],
-  "https://dawa.aws.dk/adresser?id=bae093df-3b06-4f23-90a8-92eabedb3622&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=bae093df-3b06-4f23-90a8-92eabedb3622&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f507a-582d-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "Christiansb Slotspl",
@@ -113,7 +113,7 @@
       "y": 55.67563739
     }
   ],
-  "https://dawa.aws.dk/adresser?id=d901ff7e-8ad9-4581-84c7-5759aaa82f7b&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=d901ff7e-8ad9-4581-84c7-5759aaa82f7b&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5096-a0db-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "Nordre Ringgade",

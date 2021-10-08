@@ -1,5 +1,5 @@
 {
-  "https://dawa.aws.dk/adresser?id=44c532e1-f617-4174-b144-d37ce9fda2bd&noformat=1&struktur=mini": [
+  "https://api.dataforsyningen.dk/adresser?id=44c532e1-f617-4174-b144-d37ce9fda2bd&noformat=1&struktur=mini": [
     {
       "adgangsadresseid": "0a3f5097-3260-32b8-e044-0003ba298018",
       "adresseringsvejnavn": "\u00c5bogade",
