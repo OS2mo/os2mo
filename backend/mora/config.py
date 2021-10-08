@@ -154,4 +154,4 @@ def is_production() -> bool:
 
 
 def is_under_test() -> bool:
-    return os.environ.get('PYTEST_RUNNING', False)
+    return os.environ.get("PYTEST_RUNNING") is not None
