@@ -151,7 +151,44 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 owner, validity_from, validity_to
             )
 
+    @staticmethod
+    async def avalidate(
+        validity_from: datetime,
+        validity_to: datetime,
+        org_unit: Optional[Dict[str, Any]],
+        owned_person: Optional[Dict[str, Any]],
+        owner: Optional[Dict[str, Any]],
+    ):
+        """
+        validate parsed input - raise on error
+        :param validity_from: validity from date
+        :param validity_to: validity from date
+        :param org_unit: potential org_unit
+        :param owned_person: potential owned_person
+        :param owner: potential owner
+        :return:
+        """
+        if org_unit:
+            await validator.is_date_range_in_org_unit_range(
+                org_unit, validity_from, validity_to
+            )
+
+        if owned_person:
+            await validator.is_date_range_in_employee_range(
+                owned_person, validity_from, validity_to
+            )
+
+        if owner:
+            await validator.is_date_range_in_employee_range(
+                owner, validity_from, validity_to
+            )
+
     def prepare_create(self, req: Dict):
+        """To create a vacant owner, set employee_uuid to None
+        and set a value org_unit_uuid"""
+        raise NotImplementedError('Use prepare_create instead')
+
+    async def aprepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 
@@ -168,7 +205,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         valid_from, valid_to = util.get_validities(req)
 
         org_uuid = (
-            mora.async_util.async_to_sync(org.get_configured_organisation)(
+            await org.get_configured_organisation(
                 util.get_mapping_uuid(req, mapping.ORG, required=False)
             )
         )["uuid"]
@@ -177,7 +214,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
-        self.validate(
+        await self.avalidate(
             org_unit=org_unit,
             owned_person=owned_person,
             owner=owner,
