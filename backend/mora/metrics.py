@@ -56,8 +56,8 @@ def amqp_health() -> Callable[[InstInfo], None]:
     """
     METRIC = Gauge('amqp_health', 'AMQP health')
 
-    def instrumentation(_: InstInfo) -> None:
-        METRIC.set(amqp())
+    async def instrumentation(_: InstInfo) -> None:
+        METRIC.set(await amqp())
 
     return instrumentation
 

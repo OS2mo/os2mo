@@ -16,6 +16,7 @@ import click
 import sqlalchemy
 
 from structlog import get_logger
+from mora.async_util import async_to_sync
 
 from mora.conf_db import create_db_table
 
@@ -101,24 +102,27 @@ def wait_for_rabbitmq(seconds):
         logger.info("AMQP is disabled. MO will not send messages.")
         return 0
 
-    import pika
+    # XXX: Has to live here to avoid issues building documentation:
+    # TypeError: metaclass conflict: the metaclass of a derived class must be a
+    #            (non-strict) subclass of the metaclasses of all its bases.
+    # Fun!
+    from mora.triggers.internal import amqp_trigger
 
-    def connector():
-        pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=settings.amqp_host,
-                port=settings.amqp_port,
-                heartbeat=0,
-            )
-        )
+    @async_to_sync
+    async def connector():
+        connection_pool, _ = await amqp_trigger.get_connection_pools()
+        async with connection_pool.acquire() as connection:
+            if not connection:
+                raise ValueError("AMQP connection not found")
+            if connection.is_closed:
+                raise ValueError("AMQP connection is closed")
 
     _wait_for_service(
         "rabbitmq",
         connector,
-        pika.exceptions.AMQPConnectionError,
+        ValueError,
         seconds,
     )
-
     return 8
 
 
