@@ -11,7 +11,6 @@ This section describes how to interact with employee associations.
 import uuid
 from typing import Any, Dict
 
-import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -32,79 +31,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
         :param req: request as received by flask
         :return:
         """
-        org_unit = util.checked_get(req, mapping.ORG_UNIT,
-                                    {}, required=True)
-        org_unit_uuid = util.get_uuid(org_unit, required=True)
-
-        # dynamic_classes = util.checked_get(req, mapping.CLASSES, [])
-        # dynamic_classes = list(map(util.get_uuid, dynamic_classes))
-
-        # employee = util.checked_get(req, mapping.PERSON, {})
-        # employee_uuid = util.get_uuid(employee, required=False)
-
-        engagement = util.checked_get(req, mapping.ENGAGEMENT, {})
-        engagement_uuid = util.get_uuid(engagement, required=False)
-
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
-
-        association_type_uuid = util.get_mapping_uuid(
-            req,
-            mapping.ENGAGEMENT_ASSOCIATION_TYPE,
-            required=True)
-
-        valid_from, valid_to = util.get_validities(req)
-
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
-
-        # substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
-
-        # Validation
-        # remove substitute if not needed
-        # if substitute_uuid:  # substitute is specified
-        #     validator.is_substitute_allowed(association_type_uuid)
-
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            org_unit,
-            valid_from,
-            valid_to)
-        if engagement:
-            mora.async_util.async_to_sync(validator.is_date_range_in_engagement_range)(
-                engagement,
-                valid_from,
-                valid_to)
-        if engagement_uuid:
-            mora.async_util.async_to_sync(
-                validator.does_engagement_have_existing_association)(
-                engagement_uuid,
-                org_unit_uuid,
-                valid_from)
-            # validator.is_substitute_self(employee_uuid=employee_uuid,
-            #                              substitute_uuid=substitute_uuid)
-
-        association = common.create_organisationsfunktion_payload(
-            funktionsnavn=mapping.ENGAGEMENT_ASSOCIATION_KEY,
-            valid_from=valid_from,
-            valid_to=valid_to,
-            brugervendtnoegle=bvn,
-            tilknyttedeorganisationer=[org_uuid],
-            tilknyttedeenheder=[org_unit_uuid],
-            # tilknyttedeklasser=dynamic_classes,
-            tilknyttedefunktioner=[common.associated_orgfunc(
-                uuid=engagement_uuid,
-                orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
-            )],
-            funktionstype=association_type_uuid,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
-        )
-
-        self.payload = association
-        self.uuid = func_id
-        self.trigger_dict.update({
-            # "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid,
-        })
+        raise NotImplementedError('Use aprepare_create instead')
 
     async def aprepare_create(self, req: Dict[Any, Any]):
         """
@@ -193,11 +120,19 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
         :param req: request as received by flask
         :return:
         """
+        raise NotImplementedError('Use aprepare_edit instead')
+
+    async def aprepare_edit(self, req: Dict[Any, Any]):
+        """
+        To edit into a vacant association, set employee_uuid to None and set a
+        value org_unit_uuid
+        :param req: request as received by flask
+        :return:
+        """
         association_uuid = req.get('uuid')
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=association_uuid)
+        original = await c.organisationfunktion.get(uuid=association_uuid)
 
         data = req.get('data')
         new_from, new_to = util.get_validities(data)
@@ -296,14 +231,13 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if engagement:
-            mora.async_util.async_to_sync(validator.is_date_range_in_engagement_range)(
+            await validator.is_date_range_in_engagement_range(
                 engagement,
                 new_from,
                 new_to)
 
         if engagement:
-            mora.async_util.async_to_sync(
-                validator.does_engagement_have_existing_association)(
+            await validator.does_engagement_have_existing_association(
                 engagement_uuid,
                 org_unit_uuid,
                 new_from,
