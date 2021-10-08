@@ -1,26 +1,29 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import json
 import pprint
-
-import pytest
-
-from mora.config import Settings
-from unittest.mock import patch
-
+from asyncio import AbstractEventLoop
 from time import sleep
 from unittest.case import TestCase
+from unittest.mock import patch
 
+import pytest
 import requests
 from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 from structlog import get_logger
 
-from mora import app, conf_db, service, config
-from mora.async_util import _local_cache, async_to_sync
+from mora import app
+from mora import conf_db
+from mora import config
+from mora import service
+from mora.async_util import _local_cache
+from mora.async_util import async_to_sync
 from mora.auth.keycloak.oidc import auth
-from mora.request_scoped.bulking import request_wide_bulk
-from tests.util import _mox_testing_api, load_sample_structures
+from mora.config import Settings
+from tests.util import _mox_testing_api
+from tests.util import load_sample_structures
 
 logger = get_logger()
 
@@ -48,6 +51,21 @@ async def fake_auth():
     }
 
 
+class AlwaysCreateLoopEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
+    def get_event_loop(self) -> AbstractEventLoop:
+        """
+        Asyncio's DefaultEventLoopPolicy, but creates loops in non-main threads.
+        This nasty hack is needed because many of our tests are using async_to_sync
+        wrappers. Does not affect production code.
+        """
+        try:
+            return super().get_event_loop()
+        except RuntimeError:
+            loop = self.new_event_loop()
+            self.set_event_loop(loop)
+            return loop
+
+
 class _BaseTestCase(TestCase):
     """
     Base class for MO testcases w/o LoRA access.
@@ -55,6 +73,11 @@ class _BaseTestCase(TestCase):
 
     maxDiff = None
     app_settings_overrides = {}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        asyncio.set_event_loop_policy(AlwaysCreateLoopEventLoopPolicy())
 
     def setUp(self):
         super().setUp()
