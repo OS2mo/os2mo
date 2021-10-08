@@ -21,6 +21,11 @@ from .util import instance2dict
 
 
 class ReadingWithAtTestCase(base.BaseReadingTestCase):
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     @given(st.builds(Employee))
     @settings(max_examples=1)
     def test_search_employee_with_validity(self, instance):

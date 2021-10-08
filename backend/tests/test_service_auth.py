@@ -74,6 +74,10 @@ class TestEndpointAuthDependency(unittest.TestCase):
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     def setUp(self):
         super().setUp()
         # Enable the real OIDC auth function
@@ -184,6 +188,10 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     Keycloak integration tests of a few endpoints (one from /service endpoints
     and one from the /api/v1 endpoints)
     """
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
 
     def setUp(self):
         super().setUp()

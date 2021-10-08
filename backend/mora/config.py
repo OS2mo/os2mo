@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
 
+    # V1 API
+    v1_api_enable: bool = False
+
     # GraphQL settings
     graphql_enable: bool = False
 
@@ -144,8 +147,8 @@ class Settings(BaseSettings):
 
 
 @lru_cache()
-def get_settings() -> Settings:
-    return Settings()
+def get_settings(*args, **kwargs) -> Settings:
+    return Settings(*args, **kwargs)
 
 
 def is_production() -> bool:

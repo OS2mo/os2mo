@@ -54,6 +54,7 @@ class _BaseTestCase(TestCase):
     """
 
     maxDiff = None
+    app_settings_overrides = {}
 
     def setUp(self):
         super().setUp()
@@ -67,7 +68,7 @@ class _BaseTestCase(TestCase):
         # make sure the configured organisation is always reset
         # every before test
         service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app()
+        app_ = app.create_app(self.app_settings_overrides)
 
         return app_
 
@@ -359,7 +360,9 @@ class ConfigTestCase(LoRATestCase):
 
     @classmethod
     def setUpClass(cls):
-        conf_db.config.get_settings = lambda: Settings(conf_db_name="test_confdb")
+        conf_db.config.get_settings = lambda *args, **kwargs: Settings(
+            conf_db_name="test_confdb", *args, **kwargs
+        )
         super().setUpClass()
 
     @classmethod

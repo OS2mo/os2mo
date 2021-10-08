@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import os
+from typing import Any
+from typing import Dict
+from typing import Optional
 from pathlib import Path
 from itertools import chain
 
@@ -36,7 +39,7 @@ from tests.util import setup_test_routing
 from . import exceptions, lora, service
 from . import triggers
 from .api.v1 import reading_endpoints
-from .config import Environment, get_settings, is_under_test
+from .config import Environment, is_under_test
 from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
 from .metrics import setup_metrics
 
@@ -148,10 +151,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app():
+def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     """
     Create and return a FastApi app instance for MORA.
     """
+    settings_overrides = settings_overrides or {}
+
     log.init()
     middleware = [
         Middleware(
@@ -202,7 +207,7 @@ def create_app():
         middleware=middleware,
         openapi_tags=list(tags_metadata),
     )
-    settings = config.get_settings()
+    settings = config.get_settings(**settings_overrides)
     if settings.enable_cors:
         app.add_middleware(
             CORSMiddleware,
@@ -228,10 +233,14 @@ def create_app():
             router, prefix="/service", tags=["Service." + name],
             dependencies=[Depends(auth)]
         )
-    app.include_router(
-        reading_endpoints.router, tags=["Reading"],
-        dependencies=[Depends(auth)]
-    )
+    if settings.v1_api_enable:
+        print("V1 ENABLED")
+        app.include_router(
+            reading_endpoints.router, tags=["Reading"],
+            dependencies=[Depends(auth)]
+        )
+    else:
+        print("V1 DISABLED")
     app.include_router(
         keycloak_router(),
         prefix="/service",
@@ -281,13 +290,13 @@ def create_app():
         app = setup_instrumentation(app)
         setup_metrics(app)
 
-    if get_settings().graphql_enable:
+    if settings.graphql_enable:
         graphql_app = GraphQL(schema)
         app.add_route("/graphql", graphql_app)
         app.add_websocket_route("/subscriptions", graphql_app)
 
     # Adds pretty printed logs for development
-    if get_settings().environment is Environment.DEVELOPMENT:
+    if settings.environment is Environment.DEVELOPMENT:
         setup_logging(processors=[merge_contextvars,
                                   JSONRenderer(indent=2, sort_keys=True)])
     else:
