@@ -566,4 +566,4 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_field = mapping.USER_FIELD
             self.termination_value = {}
 
-        super().aprepare_terminate(request)
+        await super().aprepare_terminate(request)
