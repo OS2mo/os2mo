@@ -461,7 +461,7 @@ def generate_requests(
             )
         elif req.get('type') in [
             'role', 'kle', 'itsystem', 'engagement_association', 'engagement',
-            'address', 'leave', 'manager', 'association', 'owner'
+            'address', 'leave', 'manager', 'association', 'owner', 'employee',
         ] and request_type == RequestType.EDIT:
             requesthandlers.append(
                 async_to_sync(
