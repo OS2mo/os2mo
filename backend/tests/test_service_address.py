@@ -4,11 +4,13 @@
 import freezegun
 from yarl import URL
 
-import mora.async_util
-import tests.cases
+from mora.async_util import async_to_sync
 from mora import exceptions
 from mora.service import address
 from tests import util
+
+import tests.cases
+from tests.util import dar_loader
 
 
 class TestAddressLookup(tests.cases.TestCase):
@@ -234,20 +236,9 @@ class TestAddressLookup(tests.cases.TestCase):
             [],
         )
 
-        # self.assertRequestResponse(
-        #     '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
-        #     'address_autocomplete/?q=Strandlodsvej+25M&global=0',
-        #     [],
-        # )
-        #
-        # self.assertRequestResponse(
-        #     '/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/'
-        #     'address_autocomplete/?q=Strandlodsvej+25M&global=false',
-        #     [],
-        # )
-
-    @util.MockAioresponses('many-addresses.json')
-    def test_many_addresses(self, m):
+    @dar_loader()
+    @async_to_sync
+    async def test_many_addresses(self):
         addresses = {
             '00000000-0000-0000-0000-000000000000': {
                 'href': None,
@@ -290,10 +281,9 @@ class TestAddressLookup(tests.cases.TestCase):
                 'value2': None
             },
         }
-
         for addrid, expected in sorted(addresses.items()):
             with self.subTest(addrid):
-                actual = mora.async_util.async_to_sync(address.get_one_address)(
+                actual = await address.get_one_address(
                     {
                         'relationer': {
                             'adresser': [{
@@ -303,14 +293,13 @@ class TestAddressLookup(tests.cases.TestCase):
                         }
                     },
                 )
-
                 self.assertEqual(actual, expected)
 
-    @util.MockAioresponses()
-    def test_bad_scope(self, m):
+    @async_to_sync
+    async def test_bad_scope(self):
         with self.assertRaisesRegex(exceptions.HTTPException,
                                     'Invalid address scope type'):
-            mora.async_util.async_to_sync(address.get_one_address)(
+            await address.get_one_address(
                 {
                     'relationer': {
                         'adresser': [{

@@ -46,7 +46,7 @@ async def get_address_type(effect):
 
 async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, Any]:
     scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('objekttype')
-    handler = base.get_handler_for_scope(scope).from_effect(effect)
+    handler = await base.get_handler_for_scope(scope).from_effect(effect)
 
     return await handler.get_mo_address_and_properties(only_primary_uuid)
 
@@ -127,7 +127,7 @@ async def address_autocomplete(
     addrs = collections.OrderedDict(
         (addr['tekst'], addr['adgangsadresse']['id'])
         for addr in session.get(
-            'https://dawa.aws.dk/adgangsadresser/autocomplete',
+            'https://api.dataforsyningen.dk/adgangsadresser/autocomplete',
             # use a list to work around unordered dicts in Python < 3.6
             params=[
                 ('per_side', 5),
@@ -139,7 +139,7 @@ async def address_autocomplete(
     )
 
     for addr in session.get(
-        'https://dawa.aws.dk/adresser/autocomplete',
+        'https://api.dataforsyningen.dk/adresser/autocomplete',
         # use a list to work around unordered dicts in Python < 3.6
         params=[
             ('per_side', 10),
@@ -207,7 +207,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
-        handler = base.get_handler_for_scope(scope).from_request(req)
+        handler = mora.async_util.async_to_sync(
+            base.get_handler_for_scope(scope).from_request
+        )(req)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = handler.name or func_id
@@ -293,7 +295,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         scope = util.checked_get(type_obj, 'scope', '', required=True)
 
-        handler = base.get_handler_for_scope(scope).from_request(req)
+        handler = await base.get_handler_for_scope(scope).from_request(req)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = handler.name or func_id
@@ -458,7 +460,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                                      only_primary_uuid=only_primary_uuid)
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
-            handler = base.get_handler_for_scope(scope).from_request(data)
+            handler = mora.async_util.async_to_sync(
+                base.get_handler_for_scope(scope).from_request
+            )(data)
             lora_addr = handler.get_lora_address()
             if isinstance(lora_addr, list):
                 update_fields.extend(map(
@@ -626,7 +630,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
             scope = util.checked_get(type_obj, 'scope', '', required=True)
 
-            handler = base.get_handler_for_scope(scope).from_request(data)
+            handler = await base.get_handler_for_scope(scope).from_request(data)
             lora_addr = handler.get_lora_address()
             if isinstance(lora_addr, list):
                 update_fields.extend(map(

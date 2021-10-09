@@ -1,19 +1,23 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import mora.async_util
+from mora.async_util import async_to_sync
 from mora import exceptions
 from mora.service.address_handler import dar
+
 from . import base
 from .. import util
+from ..util import dar_loader
 
 
-@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class DarAddressHandlerTests(base.AddressHandlerTestCase):
     handler = dar.DARAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
-    def test_from_effect(self, mock):
+    @dar_loader()
+    @async_to_sync
+    @util.darmock('dawa-addresses.json', real_http=True)
+    async def test_from_effect(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
@@ -25,7 +29,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
             }
         }
 
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         # Act
         actual_value = address_handler.value
@@ -33,14 +37,17 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    def test_from_request(self, mock):
+    @dar_loader()
+    @async_to_sync
+    @util.darmock('dawa-addresses.json', real_http=True)
+    async def test_from_request(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
         request = {
             'value': value
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         # Act
         actual_value = address_handler.value
@@ -48,14 +55,16 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @mora.async_util.async_to_sync
+    @dar_loader()
+    @async_to_sync
+    @util.darmock('dawa-addresses.json', real_http=True)
     async def test_get_mo_address(self, mock):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
         request = {
             'value': value
         }
-        address_handler = self.handler.from_request(request)
+        address_handler = await self.handler.from_request(request)
 
         expected = {
             'href': None,
@@ -70,7 +79,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_get_lora_address(self, mock):
+    def test_get_lora_address(self):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
         visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
@@ -87,31 +96,39 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    def test_validation_fails_on_invalid_value(self, mock):
+    @dar_loader()
+    @async_to_sync
+    async def test_validation_fails_on_invalid_value(self):
         # Arrange
         value = '1234'  # Not a valid DAR UUID
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_fails_on_unknown_uuid(self, mock):
+    @dar_loader()
+    @async_to_sync
+    async def test_validation_fails_on_unknown_uuid(self):
         # Arrange
         value = 'e30645d3-2c2b-4b9f-9b7a-3b7fc0b4b80d'  # Not a valid DAR UUID
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_on_correct_uuid(self, mock):
+    @dar_loader()
+    @async_to_sync
+    async def test_validation_succeeds_on_correct_uuid(self):
         # Arrange
         value = '0a3f50a0-23c9-32b8-e044-0003ba298018'
 
         # Act & Assert
         # Assert that no exception is raised
-        self.handler.validate_value(value)
+        await self.handler.validate_value(value)
 
-    def test_validation_succeeds_on_correct_values(self, mock):
+    @dar_loader()
+    @async_to_sync
+    async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = [
             '0a3f50a0-23c9-32b8-e044-0003ba298018'
@@ -120,17 +137,20 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         # Act & Assert
         for value in valid_values:
             # Shouldn't raise exception
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_validation_succeeds_with_force(self, mock):
+    @async_to_sync
+    async def test_validation_succeeds_with_force(self):
         # Arrange
         value = 'GARBAGEGARBAGE'  # Not a valid DAR UUID
 
         # Act & Assert
         with util.patch_query_args({'force': '1'}):
-            self.handler.validate_value(value)
+            await self.handler.validate_value(value)
 
-    def test_failed_lookup_from_request(self, mock):
+    @dar_loader()
+    @async_to_sync
+    async def test_failed_lookup_from_request(self):
         """Ensure that invalid DAR UUIDs fail validation on request"""
         # Arrange
         # Nonexisting DAR UUID should fail
@@ -141,7 +161,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
             request = {
                 'value': value
             }
-            self.handler.from_request(request)
+            await self.handler.from_request(request)
         self.assertEqual(
             {'description': 'Invalid address',
              'error': True,
@@ -151,8 +171,8 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
             err.exception.detail
         )
 
-    @mora.async_util.async_to_sync
-    async def test_lookup_from_request_with_force_succeeds(self, mock):
+    @async_to_sync
+    async def test_lookup_from_request_with_force_succeeds(self):
         """Ensure that validation is skipped when force is True"""
         # Arrange
         # Nonexisting DAR UUID
@@ -171,11 +191,13 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
             request = {
                 'value': value
             }
-            handler = self.handler.from_request(request)
+            handler = await self.handler.from_request(request)
             actual = await handler.get_mo_address_and_properties()
             self.assertEqual(expected, actual)
 
-    @mora.async_util.async_to_sync
+    @dar_loader()
+    @async_to_sync
+    @util.darmock('dawa-addresses.json', real_http=True)
     async def test_failed_lookup_from_effect(self, mock):
         """Ensure that failed effect lookups are handled appropriately"""
         # Arrange
@@ -197,7 +219,7 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
                 }]
             }
         }
-        address_handler = self.handler.from_effect(effect)
+        address_handler = await self.handler.from_effect(effect)
 
         self.assertEqual(expected,
                          await address_handler.get_mo_address_and_properties())

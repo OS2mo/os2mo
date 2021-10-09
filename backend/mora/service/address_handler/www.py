@@ -14,7 +14,7 @@ class WWWAddressHandler(base.AddressHandler):
 
     @staticmethod
     @forceable
-    def validate_value(value):
+    async def validate_value(value):
         """Ensure value is correct URL"""
         if not validators.url(value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_WWW(

@@ -5,11 +5,14 @@ import json
 import os
 import re
 from copy import deepcopy
+from json import dumps
 
 from mora.config import Settings
 from typing import Union
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qsl
+from starlette_context import _request_scope_context_storage
+from starlette_context import context
 
 import aioresponses
 import jinja2
@@ -21,6 +24,7 @@ from yarl import URL
 
 from mora import lora, config
 from mora.exceptions import ImproperlyConfigured
+from mora.service.address_handler.dar import create_address_loader
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -330,11 +334,27 @@ def override_config(config_obj: Settings):
 
 
 @contextlib.contextmanager
+def starlette_context():
+    token = _request_scope_context_storage.set({})
+    try:
+        yield context
+    finally:
+        _request_scope_context_storage.reset(token)
+
+
+@contextlib.contextmanager
 def patch_query_args(query_args=None):
     if not query_args:
         query_args = dict()
     with patch('mora.util.context', new={'query_args': query_args}):
         yield
+
+
+@contextlib.contextmanager
+def dar_loader():
+    with starlette_context() as context:
+        context['dar_loader'] = lambda: create_address_loader()
+        yield context
 
 
 class mock(requests_mock.Mocker):
@@ -416,10 +436,38 @@ class MockAioresponses(aioresponses.aioresponses):
 
         return ret
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # if self.__override_lora:
-        #     self.__overrider.__exit__(None, None, None)
-        return super().__exit__(exc_type, exc_val, exc_tb)
+
+class darmock(aioresponses.aioresponses):
+
+    def __init__(self, names=None, allow_mox=False, real_http=False, **kwargs):
+        passthrough = []
+        if real_http:
+            passthrough.append("https://api.dataforsyningen.dk")
+        if allow_mox:
+            passthrough.append("http://mox")
+
+        super().__init__(**kwargs, passthrough=passthrough)
+
+        self.__mock_gets = {}
+        if names:
+            if not isinstance(names, (list, tuple)):
+                names = [names]
+            for name in names:
+                for url, value in get_mock_data(name).items():
+                    self.__mock_gets[url] = value
+
+    def start(self):
+        result = super().start()
+        for url, value in self.__mock_gets.items():
+            self.get(url, json=value)
+        return result
+
+    def get(self, *args, json=None, body="", **kwargs):
+        if json is not None and body != "":
+            raise ValueError("Cannot pass json and body simultaneously")
+        if json is not None:
+            body = dumps(json)
+        return super().get(*args, **kwargs, body=body)
 
 
 def modified_normalize_url(url: Union[URL, str]) -> URL:

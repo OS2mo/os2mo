@@ -322,8 +322,7 @@ async def address_value(
     scope = util.checked_get(type_obj, 'scope', '', required=True)
 
     handler = base.get_handler_for_scope(scope)
-
-    handler.validate_value(value)
+    await handler.validate_value(value)
 
     return {"success": True}
 

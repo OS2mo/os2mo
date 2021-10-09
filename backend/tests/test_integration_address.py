@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
+import re
 import freezegun
 
 import mora.async_util
@@ -33,10 +33,10 @@ address_type_facet = {
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class Writing(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_errors(self, mock):
         self.load_sample_structures()
 
@@ -230,6 +230,7 @@ class Writing(tests.cases.LoRATestCase):
                 json=req,
             )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_dar_address_fails_correctly(self, mock):
         """Ensure that we fail when creating a DAR address when lookup fails"""
         self.load_sample_structures()
@@ -263,6 +264,7 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertEqual(expected_msg, msg)
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_edit_errors(self, mock):
         self.load_sample_structures()
 
@@ -301,6 +303,7 @@ class Writing(tests.cases.LoRATestCase):
                 json=req,
             )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_add_org_unit_address(self, mock):
         self.load_sample_structures()
 
@@ -405,6 +408,7 @@ class Writing(tests.cases.LoRATestCase):
                 addr_id)
         )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_add_org_unit_address_contact_open_hours(self, mock):
         self.load_sample_structures()
 
@@ -517,6 +521,7 @@ class Writing(tests.cases.LoRATestCase):
                 addr_id)
         )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_add_employee_address(self, mock):
         self.load_sample_structures()
 
@@ -650,6 +655,7 @@ class Writing(tests.cases.LoRATestCase):
                 amqp_topics={'employee.address.create': 1},
             )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_employee_with_address(self, mock):
         self.load_sample_structures()
 
@@ -763,6 +769,7 @@ class Writing(tests.cases.LoRATestCase):
                 addr_id)
         )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_engagement_with_address(self, mock):
         self.load_sample_structures()
 
@@ -825,6 +832,7 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertEqual(expected_tilknyttedefunktioner, actual)
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_org_unit_with_address(self, mock):
         self.load_sample_structures()
 
@@ -945,6 +953,7 @@ class Writing(tests.cases.LoRATestCase):
             mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)
         )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_edit_address(self, mock):
         self.load_sample_structures()
 
@@ -1072,6 +1081,7 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_edit_address_user_key(self, mock):
         self.load_sample_structures()
 
@@ -1140,6 +1150,7 @@ class Writing(tests.cases.LoRATestCase):
 
         self.assertEqual(actual, expected)
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_create_address_related_to_engagement(self, mock):
         self.load_sample_structures()
 
@@ -1169,9 +1180,9 @@ class Writing(tests.cases.LoRATestCase):
 
 
 @freezegun.freeze_time('2017-01-01', tz_offset=1)
-@util.mock('dawa-addresses.json', allow_mox=True, real_http=True)
 class Reading(tests.cases.LoRATestCase):
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_missing_class(self, mock):
         self.load_sample_structures(minimal=True)
 
@@ -1188,6 +1199,7 @@ class Reading(tests.cases.LoRATestCase):
 
         self.assertEqual(None, r[0]['address_type'])
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=True)
     def test_reading(self, mock):
         self.load_sample_structures()
 
@@ -1244,6 +1256,7 @@ class Reading(tests.cases.LoRATestCase):
                 [],
             )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=False)
     def test_missing_address(self, mock):
         self.load_sample_structures()
 
@@ -1253,10 +1266,8 @@ class Reading(tests.cases.LoRATestCase):
 
         for t in ('adresser', 'adgangsadresser',
                   'historik/adresser', 'historik/adgangsadresser'):
-            mock.get(
-                'https://dawa.aws.dk/' + t,
-                json=[],
-            )
+            pattern = re.compile(r'^https://api.dataforsyningen.dk/' + t + ".*$")
+            mock.get(pattern, json=[])
 
         mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
             {
@@ -1306,6 +1317,7 @@ class Reading(tests.cases.LoRATestCase):
             }],
         )
 
+    @util.darmock('dawa-addresses.json', allow_mox=True, real_http=False)
     def test_missing_error(self, mock):
         self.load_sample_structures()
 
@@ -1314,15 +1326,15 @@ class Reading(tests.cases.LoRATestCase):
         functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
 
         mock.get(
-            'https://dawa.aws.dk/adresser',
+            re.compile(r"^https://api.dataforsyningen.dk/adresser.*$"),
             json={
                 "type": "ResourceNotFoundError",
                 "title": "The resource was not found",
                 "details": {
-                    "id": "bd7e5317-4a9e-437b-8923-11156406b117",
+                    "id": addrid,
                 },
             },
-            status_code=500,
+            status=500,
         )
 
         mora.async_util.async_to_sync(lora.Connector().organisationfunktion.update)(
@@ -1368,7 +1380,7 @@ class Reading(tests.cases.LoRATestCase):
                 },
                 'uuid': '414044e0-fe5f-4f82-be20-1e107ad50e80',
                 'validity': {'from': '2016-01-01', 'to': '2019-12-31'},
-                'value': 'bd7e5317-4a9e-437b-8923-11156406b117',
+                'value': addrid,
                 'value2': None,
             }],
         )

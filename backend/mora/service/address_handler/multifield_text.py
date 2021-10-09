@@ -32,7 +32,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
         return first(urns, None)
 
     @classmethod
-    def from_effect(cls, effect):
+    async def from_effect(cls, effect):
         """Initialize handler from LoRa object"""
         # Cut off the prefix
         value = cls._value_from_effect(effect, cls.prefix)
@@ -43,16 +43,16 @@ class MultifieldTextAddressHandler(base.AddressHandler):
         return cls(value, visibility, value2=value2)
 
     @staticmethod
-    def validate_value(value):
+    async def validate_value(value):
         """Text value is not restricted."""
         pass
 
     @classmethod
-    def from_request(cls, request):
+    async def from_request(cls, request):
         value = util.checked_get(request, mapping.VALUE, "", required=True)
         value2 = util.checked_get(request, mapping.VALUE2, "", required=False)
-        cls.validate_value(value)
-        cls.validate_value(value2)
+        await cls.validate_value(value)
+        await cls.validate_value(value2)
 
         visibility = util.get_mapping_uuid(
             request, mapping.VISIBILITY, required=False

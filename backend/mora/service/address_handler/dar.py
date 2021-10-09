@@ -1,31 +1,63 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from functools import lru_cache
+from typing import Any
+from typing import List
+from typing import Optional
+from uuid import UUID
 
-import requests
-import uuid
-
+from os2mo_dar_client import AsyncDARClient
+from aiohttp import ClientResponseError
+from starlette_context import context
+from starlette_context.plugins import Plugin
+from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
 from . import base
 from ..validation.validator import forceable
 from ... import exceptions
 
-session = requests.Session()
-session.headers = {
-    'User-Agent': 'MORA',
-}
-
 NOT_FOUND = "Ukendt"
 
 logger = get_logger()
 
 
+async def load_addresses(keys: List[UUID]) -> List[Optional[dict]]:
+    adarclient = AsyncDARClient(timeout=120)
+    async with adarclient:
+        try:
+            addresses, _ = await adarclient.fetch(set(keys))
+        except ClientResponseError as exc:
+            logger.exception("address lookup failed", exc=exc)
+            return [None for key in keys]
+    return list(map(addresses.get, keys))
+
+
+def create_address_loader():
+    return DataLoader(load_fn=load_addresses)
+
+
+class DARLoaderPlugin(Plugin):
+    key = "dar_loader"
+
+    async def process_request(self, _: Any) -> Optional[Any]:
+        # TODO: Lazily constructed to work around an async_to_sync issue:
+        #       RuntimeError: Non-thread-safe operation invoked on an event loop other
+        #                     than the current one.
+        #       Should be removed when async_to_sync is gone
+        @lru_cache
+        def create():
+            return create_address_loader()
+
+        return create
+
+
 class DARAddressHandler(base.AddressHandler):
-    scope = 'DAR'
-    prefix = 'urn:dar:'
+    scope = "DAR"
+    prefix = "urn:dar:"
 
     @classmethod
-    def from_effect(cls, effect):
+    async def from_effect(cls, effect):
         """
         Initialize handler from LoRa object
 
@@ -33,30 +65,27 @@ class DARAddressHandler(base.AddressHandler):
         gracefully and return _some_ kind of result
         """
         # Cut off the prefix
-        handler = super().from_effect(effect)
+        handler = await super().from_effect(effect)
 
-        try:
-            address_object = handler._fetch_from_dar(handler.value)
-            handler._name = ''.join(
-                handler._address_string_chunks(address_object))
-            handler._href = (
-                'https://www.openstreetmap.org/'
-                '?mlon={x}&mlat={y}&zoom=16'.format(**address_object)
-                if 'x' in address_object and 'y' in address_object
-                else None
-            )
-        except LookupError:
-            logger.warning(
-                'address lookup failed', handler_value=handler.value
-            )
-
+        dar_loader = context["dar_loader"]()
+        address_object = await dar_loader.load(UUID(handler.value))
+        if address_object is None:
+            logger.warning("address lookup failed", handler_value=handler.value)
             handler._name = NOT_FOUND
             handler._href = None
+        else:
+            handler._name = "".join(handler._address_string_chunks(address_object))
+            handler._href = (
+                "https://www.openstreetmap.org/"
+                "?mlon={x}&mlat={y}&zoom=16".format(**address_object)
+                if "x" in address_object and "y" in address_object
+                else None
+            )
 
         return handler
 
     @classmethod
-    def from_request(cls, request):
+    async def from_request(cls, request):
         """
         Initialize handler from MO object
 
@@ -64,7 +93,7 @@ class DARAddressHandler(base.AddressHandler):
         to save an invalid object to LoRa.
         This lookup can be circumvented if the 'force' flag is used.
         """
-        handler = super().from_request(request)
+        handler = await super().from_request(request)
         handler._href = None
         handler._name = handler._value
         return handler
@@ -78,80 +107,46 @@ class DARAddressHandler(base.AddressHandler):
         return self._href
 
     @staticmethod
-    def _fetch_from_dar(addrid):
-        for addrtype in (
-            'adresser', 'adgangsadresser',
-            'historik/adresser', 'historik/adgangsadresser'
-        ):
-            try:
-                r = session.get(
-                    'https://dawa.aws.dk/' + addrtype,
-                    # use a list to work around unordered dicts in Python < 3.6
-                    params=[
-                        ('id', addrid),
-                        ('noformat', '1'),
-                        ('struktur', 'mini'),
-                    ],
-                )
-
-                addrobjs = r.json()
-
-                r.raise_for_status()
-
-                if addrobjs:
-                    # found, escape loop!
-                    break
-            # The request mocking library throws a pretty generic exception
-            # catch and rethrow as something we know how to manage
-            except Exception as e:
-                raise LookupError(str(e)) from e
-
-        else:
-            raise LookupError('no such address {!r}'.format(addrid))
-
-        return addrobjs.pop()
-
-    @staticmethod
     def _address_string_chunks(addr):
         # loosely inspired by 'adressebetegnelse' in apiSpecification/util.js
         # from https://github.com/DanmarksAdresser/Dawa/
 
-        yield addr['vejnavn']
+        yield addr["vejnavn"]
 
-        if addr.get('husnr') is not None:
-            yield ' '
-            yield addr['husnr']
+        if addr.get("husnr") is not None:
+            yield " "
+            yield addr["husnr"]
 
-        if addr.get('etage') is not None or addr.get('dør') is not None:
-            yield ','
+        if addr.get("etage") is not None or addr.get("dør") is not None:
+            yield ","
 
-        if addr.get('etage') is not None:
-            yield ' '
-            yield addr['etage']
-            yield '.'
+        if addr.get("etage") is not None:
+            yield " "
+            yield addr["etage"]
+            yield "."
 
-        if addr.get('dør') is not None:
-            yield ' '
-            yield addr['dør']
+        if addr.get("dør") is not None:
+            yield " "
+            yield addr["dør"]
 
-        yield ', '
+        yield ", "
 
-        if addr.get('supplerendebynavn') is not None:
-            yield addr['supplerendebynavn']
-            yield ', '
+        if addr.get("supplerendebynavn") is not None:
+            yield addr["supplerendebynavn"]
+            yield ", "
 
-        yield addr['postnr']
-        yield ' '
-        yield addr['postnrnavn']
+        yield addr["postnr"]
+        yield " "
+        yield addr["postnrnavn"]
 
     @staticmethod
     @forceable
-    def validate_value(value):
+    async def validate_value(value):
         """Values should be UUID in DAR"""
+        dar_loader = context["dar_loader"]()
         try:
-            uuid.UUID(value)
-            DARAddressHandler._fetch_from_dar(value)
+            address_object = await dar_loader.load(UUID(value))
+            if address_object is None:
+                raise LookupError("no such address {!r}".format(value))
         except (ValueError, LookupError):
-            exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(
-                value=value
-            )
+            exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(value=value)

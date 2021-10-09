@@ -30,6 +30,7 @@ from mora.http import client
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
+from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.graphapi.schema import schema
 from tests.util import setup_test_routing
 from . import exceptions, lora, service
@@ -154,7 +155,10 @@ def create_app():
     middleware = [
         Middleware(
             RawContextMiddleware,
-            plugins=(QueryArgContextPlugin(),)
+            plugins=(
+                QueryArgContextPlugin(),
+                DARLoaderPlugin(),
+            )
         )
     ]
     tags_metadata = chain([

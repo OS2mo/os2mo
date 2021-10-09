@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-from mock import MagicMock, patch
+from mock import AsyncMock, patch
 
 import tests.cases
 from mora import util as mora_util
@@ -194,7 +194,7 @@ class TestValidateAPI(tests.cases.TestCase):
             'scope': scope
         }
 
-        get_handler_for_scope.return_value = handler = MagicMock()
+        get_handler_for_scope.return_value = handler = AsyncMock()
 
         self.client.post(
             '/service/validate/address/',

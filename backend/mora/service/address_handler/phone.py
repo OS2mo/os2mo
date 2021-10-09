@@ -18,7 +18,7 @@ class PhoneAddressHandler(base.AddressHandler):
 
     @staticmethod
     @forceable
-    def validate_value(value):
+    async def validate_value(value):
         """Phone number is only digits, optionally with country code"""
         if not re.match(r'^\+?\d+$', value):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_PHONE(

@@ -13,7 +13,6 @@ various small functions used in many places.
 import collections
 import copy
 import datetime
-import functools
 import io
 import itertools
 import json
@@ -30,6 +29,7 @@ from structlog import get_logger
 from asyncio import iscoroutinefunction
 from datetime import date
 from functools import wraps
+from functools import reduce
 from typing import Any
 
 import dateutil.parser
@@ -222,7 +222,7 @@ def now() -> datetime.datetime:
 #     all_allowed_values = allowed_values | required_values
 #
 #     def wrap(f):
-#         @functools.wraps(f)
+#         @wraps(f)
 #         def wrapper(*args, **kwargs):
 #             if flask.g.get('are_args_valid'):
 #                 return f(*args, **kwargs)
@@ -345,7 +345,7 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
 
 
 def cached(func):
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args):
         try:
             return wrapper.cache[args]
@@ -580,7 +580,7 @@ def get_obj_value(obj,
                   filter_fn: typing.Callable[[dict], bool] = None,
                   default: T = None) -> typing.Optional[T]:
     try:
-        props = functools.reduce(operator.getitem, path, obj)
+        props = reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
         return default
 

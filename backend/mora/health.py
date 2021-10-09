@@ -8,6 +8,7 @@ from aio_pika.exceptions import AMQPError
 from pydantic import AnyUrl
 from requests.exceptions import RequestException
 from structlog import get_logger
+from os2mo_dar_client import AsyncDARClient
 
 from mora import conf_db, lora, config
 from mora.exceptions import HTTPException
@@ -128,8 +129,9 @@ async def dar():
     Check whether DAR can be reached
     :return: True if reachable. False if not.
     """
-    url = "https://dawa.aws.dk/autocomplete"
-    return await _is_endpoint_reachable(url)
+    adarclient = AsyncDARClient(timeout=2)
+    async with adarclient:
+        return await adarclient.healthcheck()
 
 
 @register_health_endpoint
