@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.6.0 - 2021-10-09
+------------------
+
+[#45051] Made DAR lookups async using os2mo-dar-client
+
 2.5.0 - 2021-10-08
 ------------------
 
