@@ -93,7 +93,7 @@ services:
       start_period: 300s
 
   mox:
-    image: magentaaps/lora:1.13.0
+    image: magentaaps/lora:2.1.0
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
@@ -105,6 +105,8 @@ services:
 
       MAX_WORKERS: "1"
       TESTING_API: "true"
+
+      LORA_AUTH: "false"
 
       JAEGER_HOSTNAME: otel-collector
       JAEGER_SERVICE: LoRa
