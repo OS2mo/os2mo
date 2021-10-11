@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+3.0.0 - 2021-10-11
+------------------
+
+[#46240] Update LoRa to version 2.1.0. Most users will want to set LORA_AUTH=false in their environment.
+[#46240] Update Keycloak Realm Builder to version 2.3.0.
+
 2.7.0 - 2021-10-11
 ------------------
 

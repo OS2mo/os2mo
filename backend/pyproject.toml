@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 [tool.poetry]
 name = "OS2mo"
-version = "2.7.0"
+version = "3.0.0"
 authors = ["Magenta ApS <info@magenta.dk>"]
 description = "OS2mo - Medarbejder og Organisation"
 license = "MPL-2.0"
