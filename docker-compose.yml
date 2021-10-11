@@ -60,6 +60,10 @@ services:
       ENVIRONMENT: development
       PYTHONASYNCIODEBUG: "1"
 
+      CONF_DB_NAME: "mox"
+      CONF_DB_USER: "mox"
+      CONF_DB_PASSWORD: "mox"
+
       GRAPHQL_ENABLE: "true"
 
       LORA_URL: "http://mox/"
