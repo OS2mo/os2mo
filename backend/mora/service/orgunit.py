@@ -102,9 +102,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
-        org_uuid = (await org.get_configured_organisation())[
-            "uuid"
-        ]
+        org_uuid = (await org.get_configured_organisation())["uuid"]
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
         if parent_uuid is None:

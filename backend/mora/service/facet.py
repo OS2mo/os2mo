@@ -788,11 +788,11 @@ class ClassRequestHandler(handlers.RequestHandler):
         valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 
-        facet_bvn = request['facet']
+        facet_bvn = request["facet"]
         facetids = await get_facetids(facet_bvn)
         facet_uuid = one(facetids)
 
-        mo_class = request['class_model']
+        mo_class = request["class_model"]
 
         clazz = common.create_klasse_payload(
             valid_from=valid_from,
@@ -801,7 +801,7 @@ class ClassRequestHandler(handlers.RequestHandler):
             org_uuid=mo_class.org_uuid,
             bvn=mo_class.user_key,
             title=mo_class.name,
-            scope=mo_class.scope
+            scope=mo_class.scope,
         )
 
         self.payload = clazz
@@ -814,18 +814,14 @@ class ClassRequestHandler(handlers.RequestHandler):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = await c.klasse.create(
-                self.payload, self.uuid
-            )
+            self.result = await c.klasse.create(self.payload, self.uuid)
         else:
-            self.result = await c.klasse.update(
-                self.payload, self.uuid
-            )
+            self.result = await c.klasse.update(self.payload, self.uuid)
 
         return await super().asubmit()
 
 
-@router.post('/f/{facet}/')
+@router.post("/f/{facet}/")
 async def create_or_update_class(
     facet: str,
     class_model: MOClass,
@@ -836,7 +832,7 @@ async def create_or_update_class(
     :param facet: One of the facet bvns/uuids.
     :param class_model: Pydantic BaseModel for a class
     """
-    req = {'facet': facet, 'class_model': class_model}
+    req = {"facet": facet, "class_model": class_model}
     request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
     return await request.asubmit()
 

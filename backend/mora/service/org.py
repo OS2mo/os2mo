@@ -23,7 +23,7 @@ router = APIRouter()
 
 
 class ConfiguredOrganisation:
-    """ OS2mo organisation is cached as an attribute on this class
+    """OS2mo organisation is cached as an attribute on this class
     hence there must be exactly one organisation in the lora database
     """
     organisation = None
@@ -67,30 +67,31 @@ async def get_lora_organisation(c, orgid, org=None):
         if not org or not util.is_reg_valid(org):
             return None
 
-    attrs = org['attributter']['organisationegenskaber'][0]
+    attrs = org["attributter"]["organisationegenskaber"][0]
     ret = {
-        'name': attrs['organisationsnavn'],
-        'user_key': attrs['brugervendtnoegle'],
-        'uuid': orgid,
+        "name": attrs["organisationsnavn"],
+        "user_key": attrs["brugervendtnoegle"],
+        "uuid": orgid,
     }
     return ret
 
 
 async def get_valid_organisations():
-    """ return all valid organisations, being the ones
-        who have at least one top organisational unit
+    """return all valid organisations, being the ones
+    who have at least one top organisational unit
     """
-    c = common.lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-    orgs = await c.organisation.get_all(bvn='%')
-    orglist = await gather(*[create_task(get_lora_organisation(c, orgid, org))
-                             for orgid, org in orgs])
+    c = common.lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    orgs = await c.organisation.get_all(bvn="%")
+    orglist = await gather(
+        *[create_task(get_lora_organisation(c, orgid, org)) for orgid, org in orgs]
+    )
     return orglist
 
 
-@router.get('/o/')
+@router.get("/o/")
 # @util.restrictargs('at')
 async def list_organisations():
-    '''List displayable organisations. This endpoint is retained for
+    """List displayable organisations. This endpoint is retained for
     backwards compatibility. It will always return a list of only one
     organisation as only one organisation is currently allowed.
 
@@ -119,11 +120,11 @@ async def list_organisations():
        }
      ]
 
-    '''
+    """
     return [await get_configured_organisation()]
 
 
-@router.get('/o/{orgid}/')
+@router.get("/o/{orgid}/")
 # @util.restrictargs('at')
 async def get_organisation(orgid: UUID):
     """
@@ -174,43 +175,46 @@ async def get_organisation(orgid: UUID):
     org = await c.organisation.get(orgid)
 
     try:
-        attrs = org['attributter']['organisationegenskaber'][0]
+        attrs = org["attributter"]["organisationegenskaber"][0]
     except (KeyError, TypeError):
         ErrorCodes.E_NO_SUCH_ENDPOINT()
 
-    units = await c.organisationenhed.fetch(tilhoerer=orgid, gyldighed='Aktiv')
-    children = await c.organisationenhed.fetch(overordnet=orgid, gyldighed='Aktiv')
+    units = await c.organisationenhed.fetch(tilhoerer=orgid, gyldighed="Aktiv")
+    children = await c.organisationenhed.fetch(overordnet=orgid, gyldighed="Aktiv")
 
     # FIXME: we should filter for activity, but that's extremely slow
     # 0.8s -> 12.3s for 28k users and 33k functions
     # https://redmine.magenta-aps.dk/issues/21273
     users = await c.bruger.fetch(tilhoerer=orgid)
-    engagements = await c.organisationfunktion. \
-        fetch(tilknyttedeorganisationer=orgid,
-              funktionsnavn=mapping.ENGAGEMENT_KEY)
+    engagements = await c.organisationfunktion.fetch(
+        tilknyttedeorganisationer=orgid, funktionsnavn=mapping.ENGAGEMENT_KEY
+    )
 
     associations = await c.organisationfunktion.fetch(
         tilknyttedeorganisationer=orgid,
         funktionsnavn=mapping.ASSOCIATION_KEY,
     )
-    leaves = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
-                                                funktionsnavn=mapping.LEAVE_KEY)
-    roles = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
-                                               funktionsnavn=mapping.ROLE_KEY)
-    managers = await c.organisationfunktion.fetch(tilknyttedeorganisationer=orgid,
-                                                  funktionsnavn=mapping.MANAGER_KEY)
+    leaves = await c.organisationfunktion.fetch(
+        tilknyttedeorganisationer=orgid, funktionsnavn=mapping.LEAVE_KEY
+    )
+    roles = await c.organisationfunktion.fetch(
+        tilknyttedeorganisationer=orgid, funktionsnavn=mapping.ROLE_KEY
+    )
+    managers = await c.organisationfunktion.fetch(
+        tilknyttedeorganisationer=orgid, funktionsnavn=mapping.MANAGER_KEY
+    )
 
     ret = {
-        'name': attrs['organisationsnavn'],
-        'user_key': attrs['brugervendtnoegle'],
-        'uuid': orgid,
-        'child_count': len(children),
-        'unit_count': len(units),
-        'person_count': len(users),
-        'engagement_count': len(engagements),
-        'association_count': len(associations),
-        'leave_count': len(leaves),
-        'role_count': len(roles),
-        'manager_count': len(managers),
+        "name": attrs["organisationsnavn"],
+        "user_key": attrs["brugervendtnoegle"],
+        "uuid": orgid,
+        "child_count": len(children),
+        "unit_count": len(units),
+        "person_count": len(users),
+        "engagement_count": len(engagements),
+        "association_count": len(associations),
+        "leave_count": len(leaves),
+        "role_count": len(roles),
+        "manager_count": len(managers),
     }
     return ret
