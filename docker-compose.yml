@@ -93,7 +93,7 @@ services:
       start_period: 300s
 
   mox:
-    image: magentaaps/lora:1.13.0
+    image: magentaaps/lora:2.1.0
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
@@ -105,6 +105,8 @@ services:
 
       MAX_WORKERS: "1"
       TESTING_API: "true"
+
+      LORA_AUTH: "false"
 
       JAEGER_HOSTNAME: otel-collector
       JAEGER_SERVICE: LoRa
@@ -222,10 +224,12 @@ services:
       start_period: 300s
 
   keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:2.1.0
+    image: magentaaps/os2mo-keycloak-realm-builder:2.3.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
-      KEYCLOAK_SSL_REQUIRED: external
+      KEYCLOAK_SSL_REQUIRED_MO: external
+      KEYCLOAK_LORA_REALM_ENABLED: "true"
+      KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
       KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5000/*", "http://localhost:5001/*"]'
