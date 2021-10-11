@@ -19,9 +19,9 @@ class NavLink(BaseSettings):
 
 
 class Environment(str, Enum):
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
+
     commit_tag: str = "DEVELOPMENT BUILD"
     commit_sha: str = ""
     lora_url: AnyHttpUrl = "http://mox/"
@@ -82,10 +83,10 @@ class Settings(BaseSettings):
 
     @root_validator
     def show_owners_must_be_true_if_rbac_is_enabled(
-            cls, values: Dict[str, Any]
+        cls, values: Dict[str, Any]
     ) -> Dict[str, Any]:
-        if values['keycloak_rbac_enabled']:
-            if not values['confdb_show_owner']:
+        if values["keycloak_rbac_enabled"]:
+            if not values["confdb_show_owner"]:
                 raise ValueError(
                     "'confdb_show_owner' must be true when RBAC is enabled"
                 )
@@ -122,11 +123,11 @@ class Settings(BaseSettings):
     confdb_show_primary_association: bool = False
     confdb_show_org_unit_button: bool = False
     confdb_inherit_manager: bool = True
-    confdb_association_dynamic_facets: str = ''
-    confdb_substitute_roles: str = ''
+    confdb_association_dynamic_facets: str = ""
+    confdb_substitute_roles: str = ""
     confdb_show_cpr_no: bool = True
     confdb_show_user_key_in_search: bool = False
-    confdb_extension_field_ui_labels: str = ''
+    confdb_extension_field_ui_labels: str = ""
     confdb_show_engagement_hyperlink: bool = False
     confdb_show_seniority: bool = False
     confdb_show_owner: bool = False
