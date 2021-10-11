@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+2.7.0 - 2021-10-11
+------------------
+
+[#46170] Allow a limited termination period on org functions
+
 2.6.0 - 2021-10-09
 ------------------
 
