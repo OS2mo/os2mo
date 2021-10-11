@@ -31,6 +31,7 @@ from datetime import date
 from functools import wraps
 from functools import reduce
 from typing import Any
+from typing import Union
 
 import dateutil.parser
 import dateutil.tz
@@ -63,7 +64,11 @@ _tzinfos = {
 logger = get_logger()
 
 
-def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
+def parsedatetime(
+    s: Union[str, datetime.date, datetime.datetime],
+    default=_sentinel
+) -> datetime.datetime:
+
     if isinstance(s, datetime.date):
         dt = s
 
@@ -117,7 +122,7 @@ def do_ranges_overlap(first_start, first_end, second_start, second_end):
     return max(first_start, second_start) < min(first_end, second_end)
 
 
-def to_lora_time(s):
+def to_lora_time(s: Union[str, datetime.date, datetime.datetime]) -> str:
     dt = parsedatetime(s)
 
     if dt == POSITIVE_INFINITY:

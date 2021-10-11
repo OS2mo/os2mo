@@ -90,6 +90,34 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         if sync_construct:
             self._sync_construct()
 
+    @staticmethod
+    def get_virkning_for_terminate(request) -> dict:
+        validity = request.get("validity", {})
+        if mapping.FROM in validity and mapping.TO in validity:
+            # When `validity` contains *both* `from` and `to`, construct a
+            # `virkning` of the given dates.
+            return common._create_virkning(
+                util.get_valid_from(request),
+                util.get_valid_to(request),
+            )
+        elif mapping.FROM not in validity and mapping.TO in validity:
+            # DEPRECATED: Terminating an entity by giving *only* a "to date"
+            # is now deprecated.
+
+            # TODO: handle if "to" is infinity
+
+            logger.warning('terminate org unit called without "from" in "validity"', )
+            return common._create_virkning(
+                util.get_valid_to(request),
+                "infinity"
+            )
+        else:
+            exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+                key="Validity must be set with either 'to' or both 'from' "
+                    "and 'to'",
+                obj=request
+            )
+
     def _sync_construct(self):
         if self.request_type == RequestType.CREATE:
             self.prepare_create(self.request)
@@ -146,7 +174,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    def aprepare_create(self, request: dict):
+    async def aprepare_create(self, request: dict):
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
@@ -164,7 +192,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
 
-    def aprepare_edit(self, request: dict):
+    async def aprepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
@@ -179,11 +207,10 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         necessary processing
 
         :param request: A dict containing a request
-
         """
         raise NotImplementedError
 
-    def aprepare_terminate(self, request: dict):
+    async def aprepare_terminate(self, request: dict):
         """
         Initialize a 'termination' request. Performs validation and all
         necessary processing
@@ -204,7 +231,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         # Default it noop
         pass
 
-    def aprepare_refresh(self, request: dict):
+    async def aprepare_refresh(self, request: dict):
         """
         Initialize a 'refresh' request. Performs validation and all
         necessary processing
@@ -294,10 +321,10 @@ class OrgFunkRequestHandler(RequestHandler):
 
     def prepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
-        date = util.get_valid_to(request, required=True)
+        virkning = RequestHandler.get_virkning_for_terminate(request)
 
         original = async_to_sync(
-            lora.Connector(effective_date=date).organisationfunktion.get
+            lora.Connector(effective_date=virkning['from']).organisationfunktion.get
         )(self.uuid)
 
         if (
@@ -311,8 +338,8 @@ class OrgFunkRequestHandler(RequestHandler):
             )
 
         self.payload = common.update_payload(
-            date,
-            util.POSITIVE_INFINITY,
+            virkning['from'],
+            virkning['to'],
             [(
                 self.termination_field,
                 self.termination_value,

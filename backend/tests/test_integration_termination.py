@@ -209,10 +209,11 @@ class Tests(tests.cases.LoRATestCase):
                 self.assertRequestResponse(
                     '/service/details/terminate',
                     {
-                        'description': 'Missing validity',
+                        'description': 'Missing required value.',
                         'error': True,
                         'error_key': 'V_MISSING_REQUIRED_VALUE',
-                        'key': 'validity',
+                        'key': "Validity must be set with either 'to' or both "
+                               "'from' and 'to'",
                         'obj': req,
                         'status': 400,
                     },

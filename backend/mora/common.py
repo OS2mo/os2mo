@@ -17,6 +17,7 @@ import datetime
 import functools
 import json
 import typing
+from typing import Union
 import uuid
 
 import werkzeug
@@ -253,7 +254,10 @@ def _merge_obj_effects(
     return sorted(result, key=util.get_effect_from)
 
 
-def _create_virkning(valid_from: str, valid_to: str) -> dict:
+def _create_virkning(
+    valid_from: Union[str, datetime.date, datetime.datetime],
+    valid_to: Union[str, datetime.date, datetime.datetime]
+) -> dict:
     """
     Create virkning object
 
