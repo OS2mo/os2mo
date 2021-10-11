@@ -90,7 +90,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         if sync_construct:
             self._sync_construct()
 
-    def _get_virkning(self, request) -> None:
+    def _get_virkning_for_terminate(self, request) -> None:
         validity = request.get("validity", {})
         if mapping.FROM in validity and mapping.TO in validity:
             # When `validity` contains *both* `from` and `to`, construct a
@@ -205,7 +205,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        self._get_virkning(request)
+        self._get_virkning_for_terminate(request)
 
     async def aprepare_terminate(self, request: dict):
         """
@@ -215,7 +215,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
 
         """
-        self._get_virkning(request)
+        self._get_virkning_for_terminate(request)
 
     def prepare_refresh(self, request: dict):
         """
