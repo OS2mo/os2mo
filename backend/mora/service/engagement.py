@@ -109,7 +109,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
     async def aprepare_create(self, req):
-
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
                                     {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
@@ -186,12 +185,6 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             Trigger.EMPLOYEE_UUID: employee_uuid,
             Trigger.ORG_UNIT_UUID: org_unit_uuid
         })
-
-    def prepare_terminate(self, request: dict):
-        super().prepare_terminate(request)
-
-    async def aprepare_terminate(self, request: dict):
-        await super().aprepare_terminate(request)
 
     def submit(self):
         if hasattr(self, 'addresses'):

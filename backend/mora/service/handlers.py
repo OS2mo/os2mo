@@ -90,24 +90,27 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         if sync_construct:
             self._sync_construct()
 
-    def _get_virkning_for_terminate(self, request) -> None:
+    @staticmethod
+    def get_virkning_for_terminate(request) -> dict:
         validity = request.get("validity", {})
         if mapping.FROM in validity and mapping.TO in validity:
             # When `validity` contains *both* `from` and `to`, construct a
             # `virkning` of the given dates.
-            self.virkning = common._create_virkning(
+            return common._create_virkning(
                 util.get_valid_from(request),
                 util.get_valid_to(request),
             )
         elif mapping.FROM not in validity and mapping.TO in validity:
             # DEPRECATED: Terminating an entity by giving *only* a "to date"
             # is now deprecated.
+
             # TODO: handle if "to" is infinity
-            self.virkning = common._create_virkning(
+
+            logger.warning('terminate org unit called without "from" in "validity"', )
+            return common._create_virkning(
                 util.get_valid_to(request),
                 "infinity"
             )
-            logger.warning('terminate org unit called without "from" in "validity"',)
         else:
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
                 key="Validity must be set with either 'to' or both 'from' "
@@ -205,7 +208,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        self._get_virkning_for_terminate(request)
+        raise NotImplementedError
 
     async def aprepare_terminate(self, request: dict):
         """
@@ -215,7 +218,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
 
         """
-        self._get_virkning_for_terminate(request)
+        raise NotImplementedError('aprepare_terminate not implemented')
 
     def prepare_refresh(self, request: dict):
         """
@@ -317,14 +320,11 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
-        super().prepare_terminate(request)
-
         self.uuid = util.get_uuid(request)
+        virkning = RequestHandler.get_virkning_for_terminate(request)
 
         original = async_to_sync(
-            lora.Connector(
-                effective_date=self.virkning['from']
-            ).organisationfunktion.get
+            lora.Connector(effective_date=virkning['from']).organisationfunktion.get
         )(self.uuid)
 
         if (
@@ -338,8 +338,8 @@ class OrgFunkRequestHandler(RequestHandler):
             )
 
         self.payload = common.update_payload(
-            self.virkning['from'],
-            self.virkning['to'],
+            virkning['from'],
+            virkning['to'],
             [(
                 self.termination_field,
                 self.termination_value,

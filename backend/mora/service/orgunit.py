@@ -388,12 +388,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
-        super().prepare_terminate(request)
+        virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
 
         obj_path = ("tilstande", "organisationenhedgyldighed")
         val_inactive = {
             "gyldighed": "Inaktiv",
-            "virkning": self.virkning,
+            "virkning": virkning,
         }
 
         payload = util.set_obj_value(dict(), obj_path, [val_inactive])
