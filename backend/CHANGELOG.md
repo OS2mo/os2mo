@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.1.0 - 2021-10-12
+------------------
+
+[#45717] V1 API moved behind feature flag pending removal
+
 3.0.1 - 2021-10-12
 ------------------
 
