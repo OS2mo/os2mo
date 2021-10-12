@@ -440,7 +440,8 @@ def get_handler_for_role_type(role_type: str):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
-def generate_requests(
+@async_to_sync
+async def generate_requests(
     requests: typing.List[dict],
     request_type: RequestType
 ) -> typing.List[RequestHandler]:
@@ -454,30 +455,9 @@ def generate_requests(
     requesthandlers = []
     for req in requests:
         requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
-        if request_type == RequestType.CREATE:
-            requesthandlers.append(
-                async_to_sync(
-                    requesthandler_klasse.construct)(req, request_type)
-            )
-        elif req.get('type') in [
-            'role', 'kle', 'itsystem', 'engagement_association', 'engagement',
-            'address', 'leave', 'manager', 'association', 'owner'
-        ] and request_type == RequestType.EDIT:
-            requesthandlers.append(
-                async_to_sync(
-                    requesthandler_klasse.construct)(req, request_type)
-            )
-        elif req.get('type') in [
-            'association',
-        ] and request_type == RequestType.TERMINATE:
-            requesthandlers.append(
-                async_to_sync(
-                    requesthandler_klasse.construct)(req, request_type)
-            )
-        else:
-            requesthandlers.append(
-                requesthandler_klasse(req, request_type)
-            )
+        requesthandlers.append(
+            await requesthandler_klasse.construct(req, request_type)
+        )
     return requesthandlers
 
 
