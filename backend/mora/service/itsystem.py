@@ -39,62 +39,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ITSYSTEM_KEY
 
     def prepare_create(self, req):
-        c = lora.Connector()
-
-        systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
-        system = mora.async_util.async_to_sync(c.itsystem.get)(systemid)
-
-        if not system:
-            exceptions.ErrorCodes.E_NOT_FOUND()
-
-        org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=False)
-        org_unit_uuid = util.get_uuid(org_unit, required=False)
-
-        employee = util.checked_get(req, mapping.PERSON, {}, required=False)
-        employee_uuid = util.get_uuid(employee, required=False)
-
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
-
-        valid_from, valid_to = util.get_validities(req)
-
-        func_id = util.get_uuid(req, required=False) or str(uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
-
-        # Validation
-        if org_unit:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                org_unit,
-                valid_from,
-                valid_to)
-
-        if employee:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                employee,
-                valid_from,
-                valid_to)
-
-        # TODO: validate that the date range is in
-        # the validity of the IT system!
-
-        func = common.create_organisationsfunktion_payload(
-            funktionsnavn=mapping.ITSYSTEM_KEY,
-            valid_from=valid_from,
-            valid_to=valid_to,
-            brugervendtnoegle=bvn,
-            tilknyttedebrugere=[employee_uuid] if employee_uuid else [],
-            tilknyttedeorganisationer=[org_uuid],
-            tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
-            tilknyttedeitsystemer=[systemid],
-            integration_data=req.get(mapping.INTEGRATION_DATA),
-        )
-
-        self.payload = func
-        self.uuid = func_id
-        self.trigger_dict.update({
-            Trigger.EMPLOYEE_UUID: employee_uuid,
-            Trigger.ORG_UNIT_UUID: org_unit_uuid
-        })
+        raise NotImplementedError('Use aprepare_create instead')
 
     async def aprepare_create(self, req):
         c = lora.Connector()
