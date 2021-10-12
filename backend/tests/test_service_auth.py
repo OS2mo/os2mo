@@ -50,6 +50,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
             '/organisation/',
             '/',
             '/favicon.ico',
+            '/indsigt',
             '/service/keycloak.json',
             '/service/token',
             '/service/{rest_of_path:path}',
