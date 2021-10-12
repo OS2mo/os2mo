@@ -248,12 +248,13 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
     def prepare_edit(self, req: dict):
+        raise NotImplementedError('Use aprepare_edit instead')
+
+    async def aprepare_edit(self, req: dict):
         func_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=func_uuid
-        )
+        original = await c.organisationfunktion.get(uuid=func_uuid)
 
         data = req.get("data")
         (
