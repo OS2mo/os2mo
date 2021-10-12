@@ -74,6 +74,11 @@ class EngAssocUtils:
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(LoRATestCase):
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     maxDiff = None
 
     def test_create_engagement_association(self):

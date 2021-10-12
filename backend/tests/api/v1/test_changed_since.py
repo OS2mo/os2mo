@@ -27,6 +27,11 @@ def changed_since_parameters():
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class ChangedSinceBasic(ConfigTestCase):
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     def test_changed_since(self):
         """
         tests that the "changed_since" parameter does anything
@@ -44,6 +49,11 @@ class ChangedSinceBasic(ConfigTestCase):
 
 
 class ChangedSinceEmployee(ConfigTestCase):
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     def _req_endpoint(self, endpoint: str, changed_since: datetime, expected: bool):
         resp = self.assertRequest(
             f"/api/v1/{endpoint}?changed_since={parse.quote(str(changed_since))}",

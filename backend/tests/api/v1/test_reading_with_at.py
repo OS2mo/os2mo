@@ -19,6 +19,11 @@ from .util import instance2dict
 
 
 class ReadingWithAtTestCase(base.BaseReadingTestCase):
+
+    app_settings_overrides = {
+        "v1_api_enable": True
+    }
+
     @given(instance=st.builds(Employee))
     @settings(max_examples=1)
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
