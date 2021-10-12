@@ -81,6 +81,7 @@ def static_content_router():
     @router.get("/medarbejder/{path:path}")
     @router.get("/organisationssammenkobling/")
     @router.get("/forespoergsler/")
+    @router.get("/indsigt")
     def index(path=""):
         """Serve index.html on `/` and unknown paths."""
         return FileResponse(distdir + "/index.html")
