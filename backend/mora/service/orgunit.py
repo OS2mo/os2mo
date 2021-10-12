@@ -466,9 +466,6 @@ async def request_bulked_get_one_orgunit(
     :param only_primary_uuid:
     :return: Awaitable returning the processed org_unit
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.org_unit, uuid=unitid)
-
     return __get_one_orgunit_from_cache(
         unitid=unitid,
         details=details,

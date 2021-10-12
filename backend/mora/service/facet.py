@@ -399,8 +399,6 @@ async def request_bulked_get_one_class(
     :param only_primary_uuid:
     :return: Awaitable returning the processed class
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.class_, uuid=classid)
     return __get_class_from_cache(
         classid=classid, details=details, only_primary_uuid=only_primary_uuid
     )

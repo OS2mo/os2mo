@@ -296,8 +296,6 @@ async def request_bulked_get_one_itsystem(
     :param only_primary_uuid:
     :return: Awaitable returning the processed system
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.it_system, uuid=systemid)
     return __get_itsystem_from_cache(
         systemid=systemid, only_primary_uuid=only_primary_uuid
     )

@@ -388,9 +388,6 @@ async def request_bulked_get_one_employee(
     :param only_primary_uuid:
     :return: Awaitable returning the processed employee
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.user, uuid=userid)
-
     return __get_employee_from_cache(
         userid=userid, details=details, only_primary_uuid=only_primary_uuid
     )

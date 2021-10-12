@@ -372,7 +372,6 @@ class LoRATestCase(_BaseTestCase):
     @classmethod
     def setUpClass(cls):
         _mox_testing_api("db-setup")
-        request_wide_bulk._disable_caching()
         super().setUpClass()
 
     @classmethod
