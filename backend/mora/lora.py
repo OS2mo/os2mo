@@ -19,6 +19,7 @@ from typing import Set
 from typing import Tuple
 from typing import Union
 
+from fastapi.encoders import jsonable_encoder
 from structlog import get_logger
 from asyncio import create_task, gather
 from datetime import datetime
@@ -56,7 +57,7 @@ def filter_registrations(
     response: List[Dict[str, Any]],
     wantregs: bool,
     changed_since: Optional[datetime] = None,
-) -> Iterable[Tuple[str, Union[List[Dict[str, Any]], Dict[str, Any]],]]:
+) -> Iterable[Tuple[str, Union[List[Dict[str, Any]], Dict[str, Any]]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
@@ -167,7 +168,7 @@ def exotics_to_str(value):
     elif isinstance(value, int) or isinstance(value, str):
         return value
     else:
-        raise TypeError("Unknown type in bool_to_str", type(value))
+        raise TypeError("Unknown type in exotics_to_str", type(value))
 
 
 def param_exotics_to_strings(
@@ -296,10 +297,14 @@ class Scope(BaseScope):
         async with ClientSession() as session:
             response = await session.get(
                 self.base_path,
-                params=param_exotics_to_strings({**self.connector.defaults, **params}),
+                # We send the parameters as JSON through the body of the GET request to
+                # allow arbitrarily many, as opposed to being limited by the length of a
+                # URL if we were using query parameters.
+                json=jsonable_encoder(
+                    param_exotics_to_strings({**self.connector.defaults, **params})
+                ),
             )
             await _check_response(response)
-
             try:
                 ret = (await response.json())["results"][0]
                 return ret

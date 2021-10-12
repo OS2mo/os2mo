@@ -1,17 +1,18 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import datetime
 import unittest
 
 import freezegun
-import yarl
-
 import mora.async_util
 import tests.cases
-from mora import lora, config
+import yarl
+from mora import config
+from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
+from more_itertools import one
+
 from . import util
 
 
@@ -26,52 +27,47 @@ class TestIsDateRangeValid(tests.cases.TestCase):
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     def test_validity_ranges(self):
         settings = config.get_settings()
-        URL = (
-            settings.lora_url + "organisation/organisationenhed?"
-            "uuid=00000000-0000-0000-0000-000000000000"
-            "&virkningfra=2000-01-01T00:00:00%2B01:00"
-            "&virkningtil=3000-01-01T00:00:00%2B01:00"
-            "&konsolider=True"
-        )
+        url = yarl.URL(f"{settings.lora_url}organisation/organisationenhed")
         c = lora.Connector(
             virkningfra="2000-01-01", virkningtil="3000-01-01"
         ).organisationenhed
 
         def check(expect, validities):
             with util.MockAioresponses(override_lora=False) as m:
-                m.get(
-                    yarl.URL(URL, encoded=True),
-                    payload={
-                        "results": [
-                            [
-                                {
-                                    "id": "00000000-0000-0000-0000-000000000000",
-                                    "registreringer": [
-                                        {
-                                            "tilstande": {
-                                                "organisationenhedgyldighed": [
-                                                    {
-                                                        "gyldighed": v,
-                                                        "virkning": {
-                                                            "from": mora_util.to_lora_time(
-                                                                t1,
-                                                            ),
-                                                            "from_included": True,
-                                                            "to": mora_util.to_lora_time(
-                                                                t2,
-                                                            ),
-                                                            "to_included": False,
-                                                        },
-                                                    }
-                                                    for t1, t2, v in validities
-                                                ]
-                                            },
-                                        }
-                                    ],
-                                }
-                            ]
+                payload = {
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "tilstande": {
+                                            "organisationenhedgyldighed": [
+                                                {
+                                                    "gyldighed": v,
+                                                    "virkning": {
+                                                        "from": mora_util.to_lora_time(
+                                                            t1,
+                                                        ),
+                                                        "from_included": True,
+                                                        "to": mora_util.to_lora_time(
+                                                            t2,
+                                                        ),
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                                for t1, t2, v in validities
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
                         ]
-                    },
+                    ]
+                }
+                m.get(
+                    url,
+                    payload=payload,
                 )
 
                 self.assertIs(
@@ -83,6 +79,17 @@ class TestIsDateRangeValid(tests.cases.TestCase):
                         c,
                         "organisationenhedgyldighed",
                     ),
+                )
+
+                call_args = one(m.requests["GET", url])
+                self.assertEqual(
+                    call_args.kwargs["json"],
+                    {
+                        "uuid": ["00000000-0000-0000-0000-000000000000"],
+                        "virkningfra": "2000-01-01T00:00:00+01:00",
+                        "virkningtil": "3000-01-01T00:00:00+01:00",
+                        "konsolider": "True",
+                    },
                 )
 
         # just valid

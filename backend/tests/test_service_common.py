@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import freezegun
-from yarl import URL
-
 import mora.async_util
 import tests.cases
 from mora import common
@@ -11,6 +8,9 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util as mora_util
+from more_itertools import one
+from yarl import URL
+
 from . import util
 
 
@@ -1799,16 +1799,9 @@ class TestClass(tests.cases.TestCase):
     def test_history_missing(self, mock):
         userid = "00000000-0000-0000-0000-000000000000"
 
+        url = URL("http://mox/organisation/bruger")
         mock.get(
-            URL(
-                "http://mox/organisation/bruger"
-                "?uuid="
-                + userid
-                + "&virkningtil=2018-01-01T00%3A00%3A00.000001%2B01%3A00"
-                "&virkningfra=2018-01-01T00%3A00%3A00%2B01%3A00"
-                "&konsolider=True",
-                encoded=True,
-            ),
+            url,
             payload={
                 "results": [],
             },
@@ -1820,6 +1813,17 @@ class TestClass(tests.cases.TestCase):
                 userid,
                 "kaflaflibob",
             )
+
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": [userid],
+                "virkningfra": "2018-01-01T00:00:00+01:00",
+                "virkningtil": "2018-01-01T00:00:00.000001+01:00",
+                "konsolider": "True",
+            },
+        )
 
         self.assertEqual(
             cm.exception.detail,

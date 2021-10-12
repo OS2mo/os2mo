@@ -4,25 +4,29 @@ from asyncio import Future
 from uuid import UUID
 
 import freezegun
-from mock import call, patch
-from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
-
 import tests.cases
-from mora import lora, mapping
-from mora.config import Settings
+from mock import call
+from mock import patch
+from mora import lora
+from mora import mapping
 from mora.async_util import async_to_sync
+from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
-from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
-from mora.service.orgunit import (
-    get_children,
-    get_orgunit,
-    get_unit_ancestor_tree,
-)
+from mora.service.orgunit import _get_count_related
+from mora.service.orgunit import get_children
+from mora.service.orgunit import get_one_orgunit
+from mora.service.orgunit import get_orgunit
+from mora.service.orgunit import get_unit_ancestor_tree
+from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
-from mora.triggers.internal.http_trigger import HTTPTriggerException, register
+from mora.triggers.internal.http_trigger import HTTPTriggerException
+from mora.triggers.internal.http_trigger import register
+from more_itertools import one
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
 from tests import util
+from yarl import URL
 
 
 class TestAddressLookup(tests.cases.TestCase):
@@ -144,11 +148,9 @@ class TestAddressLookup(tests.cases.TestCase):
             "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
         }
 
+        url = URL("http://mox/organisation/organisationenhed")
         mock.get(
-            "http://mox/organisation/organisationenhed"
-            "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
-            "&virkningfra=-infinity"
-            "&konsolider=True",
+            url,
             payload={
                 "results": [
                     [
@@ -168,6 +170,17 @@ class TestAddressLookup(tests.cases.TestCase):
                 "/service/ou/" + unitid + "/details/org_unit?validity=past",
                 [],
             )
+
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": [unitid],
+                "virkningfra": "-infinity",
+                "virkningtil": "2018-03-15T00:00:00+01:00",
+                "konsolider": "True",
+            },
+        )
 
 
 class TestTriggerExternalIntegration(tests.cases.TestCase):

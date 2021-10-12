@@ -3,13 +3,18 @@
 import re
 
 import freezegun
-from aioresponses import aioresponses
-
 import mora.async_util
 import tests.cases
-from mora import exceptions, config
+from aioresponses import aioresponses
+from mora import config
+from mora import exceptions
 from mora import lora
 from mora import util as mora_util
+from more_itertools import last
+from more_itertools import one
+from parameterized import parameterized
+from yarl import URL
+
 from . import util
 
 
@@ -18,14 +23,9 @@ class Tests(tests.cases.TestCase):
     @util.MockAioresponses()
     def test_get_effects(self, m):
         lora_url = config.get_settings().lora_url
-        URL = (
-            lora_url + "organisation/organisationenhed?"
-            "uuid=00000000-0000-0000-0000-000000000000"
-            "&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00"
-            "&virkningtil=infinity&konsolider=True"
-        )
+        url = URL(f"{lora_url}organisation/organisationenhed")
         m.get(
-            URL,
+            url,
             payload={
                 "results": [
                     [
@@ -199,68 +199,101 @@ class Tests(tests.cases.TestCase):
             ],
         )
 
-    @util.MockAioresponses()
-    def test_errors(self, m):
-        for status_in, status_out, error_key in (
+        call_args = one(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "infinity",
+                "konsolider": "True",
+            },
+        )
+
+    @parameterized.expand(
+        [
             (400, 400, "E_INVALID_INPUT"),
             (401, 401, "E_UNAUTHORIZED"),
             (403, 403, "E_FORBIDDEN"),
             (426, 500, "E_UNKNOWN"),
             (500, 500, "E_UNKNOWN"),
-        ):
-            c = lora.Connector()
+        ]
+    )
+    @util.MockAioresponses()
+    def test_errors(self, status_in, status_out, error_key, m):
+        c = lora.Connector()
+        url = URL("http://mox/organisation/organisationenhed")
 
-            with self.subTest("{} - json".format(status_in)):
-                m.get(
-                    re.compile(
-                        r"http://mox/organisation/organisationenhed\?.*uuid=42.*"
-                    ),
-                    payload={
-                        "message": "go away",
-                    },
-                    status=status_in,
-                )
+        with self.subTest("{} - json".format(status_in)):
+            m.get(
+                url,
+                payload={
+                    "message": "go away",
+                },
+                status=status_in,
+            )
 
-                with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+            with self.assertRaises(exceptions.HTTPException) as ctxt:
+                mora.async_util.async_to_sync(c.organisationenhed.get)("42")
 
-                self.assertEqual(
-                    {
-                        "error": True,
-                        "status": status_out,
-                        "error_key": error_key,
-                        "description": "go away",
-                    },
-                    ctxt.exception.detail,
-                )
+            call_args = last(m.requests["GET", url])
+            self.assertEqual(
+                call_args.kwargs["json"],
+                {
+                    "uuid": ["42"],
+                    "virkningfra": "2010-06-01T02:00:00+02:00",
+                    "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                    "konsolider": "True",
+                },
+            )
 
-            with self.subTest("{} - text".format(status_in)):
-                m.get(
-                    re.compile(
-                        r"http://mox/organisation/organisationenhed\?.*uuid=42.*"
-                    ),
-                    body="I hate you",
-                    status=status_in,
-                )
+            self.assertEqual(
+                {
+                    "error": True,
+                    "status": status_out,
+                    "error_key": error_key,
+                    "description": "go away",
+                },
+                ctxt.exception.detail,
+            )
 
-                with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+        with self.subTest("{} - text".format(status_in)):
+            m.get(
+                url,
+                body="I hate you",
+                status=status_in,
+            )
 
-                self.assertEqual(
-                    {
-                        "error": True,
-                        "status": status_out,
-                        "error_key": error_key,
-                        "description": "I hate you",
-                    },
-                    ctxt.exception.detail,
-                )
+            with self.assertRaises(exceptions.HTTPException) as ctxt:
+                mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+
+            call_args = last(m.requests["GET", url])
+            self.assertEqual(
+                call_args.kwargs["json"],
+                {
+                    "uuid": ["42"],
+                    "virkningfra": "2010-06-01T02:00:00+02:00",
+                    "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                    "konsolider": "True",
+                },
+            )
+
+            self.assertEqual(
+                {
+                    "error": True,
+                    "status": status_out,
+                    "error_key": error_key,
+                    "description": "I hate you",
+                },
+                ctxt.exception.detail,
+            )
 
     @util.MockAioresponses()
     def test_error_debug(self, m):
         # with util.override_lora_url():
+        url = URL("http://mox/organisation/organisationenhed")
         m.get(
-            re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
+            url,
             payload={
                 "message": "go away",
                 "something": "other",
@@ -270,6 +303,17 @@ class Tests(tests.cases.TestCase):
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
             mora.async_util.async_to_sync(lora.Connector().organisationenhed.get)("42")
+
+        call_args = one(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["42"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
 
         self.assertEqual(
             {
@@ -284,33 +328,31 @@ class Tests(tests.cases.TestCase):
     @util.MockAioresponses()
     def test_finding_nothing(self, m):
         c = lora.Connector()
-
+        url = URL("http://mox/organisation/organisationenhed")
         m.get(
-            re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
+            url,
             payload={"results": []},
         )
 
         self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)("42"))
-
-        m.get(
-            re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
-            payload={"results": []},
+        call_args = one(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["42"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                "konsolider": "True",
+            },
         )
-
-        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)("42"))
 
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @aioresponses()
     def test_get_effects_2(self, m):
         lora_url = config.get_settings().lora_url
-        URL = (
-            lora_url + "organisation/organisationenhed?"
-            "uuid=00000000-0000-0000-0000-000000000000"
-            "&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00"
-            "&virkningtil=infinity&konsolider=True"
-        )
+        url = URL(f"{lora_url}organisation/organisationenhed")
         m.get(
-            URL,
+            url,
             payload={
                 "results": [
                     [
@@ -482,6 +524,17 @@ class Tests(tests.cases.TestCase):
                     )
                 )
             ],
+        )
+
+        call_args = one(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2001-01-01T01:00:00+01:00",
+                "virkningtil": "infinity",
+                "konsolider": "True",
+            },
         )
 
     def test_raise_on_status_detects_noop_change(self):

@@ -1,31 +1,24 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import freezegun
-from yarl import URL
-
-from mora.async_util import async_to_sync
-from mora import exceptions
-from mora.service import address
-from tests import util
-
 import tests.cases
+from aioresponses import CallbackResult
+from mora import exceptions
+from mora.async_util import async_to_sync
+from mora.service import address
+from more_itertools import one
+from tests import util
 from tests.util import dar_loader
+from yarl import URL
 
 
 class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
     def test_autocomplete_no_municipality(self, mock):
+        url = URL("http://mox/organisation/organisation")
         mock.get(
-            URL(
-                "http://mox/organisation/organisation"
-                "?uuid=00000000-0000-0000-0000-000000000000"
-                "&virkningfra=2016-06-06T00%3A00%3A00%2B02%3A00"
-                "&virkningtil=2016-06-06T00%3A00%3A00.000001%2B02%3A00"
-                "&konsolider=True",
-                encoded=True,
-            ),
+            url,
             payload={
                 "results": [
                     [
@@ -68,18 +61,23 @@ class TestAddressLookup(tests.cases.TestCase):
             status_code=400,
         )
 
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2016-06-06T00:00:00+02:00",
+                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
+
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
     def test_autocomplete_invalid_municipality(self, mock):
+        url = URL("http://mox/organisation/organisation")
         mock.get(
-            URL(
-                "http://mox/organisation/organisation"
-                "?uuid=00000000-0000-0000-0000-000000000000"
-                "&virkningfra=2016-06-06T00:00:00%2B02:00"
-                "&virkningtil=2016-06-06T00:00:00.000001%2B02:00"
-                "&konsolider=True",
-                encoded=True,
-            ),
+            url,
             payload={
                 "results": [
                     [
@@ -129,18 +127,23 @@ class TestAddressLookup(tests.cases.TestCase):
             status_code=400,
         )
 
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2016-06-06T00:00:00+02:00",
+                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
+
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
     def test_autocomplete_missing_org(self, mock):
+        url = URL("http://mox/organisation/organisation")
         mock.get(
-            URL(
-                "http://mox/organisation/organisation"
-                "?uuid=00000000-0000-0000-0000-000000000000"
-                "&virkningfra=2016-06-06T00:00:00%2B02:00"
-                "&virkningtil=2016-06-06T00:00:00.000001%2B02:00"
-                "&konsolider=True",
-                encoded=True,
-            ),
+            url,
             payload={"results": []},
         )
 
@@ -156,9 +159,20 @@ class TestAddressLookup(tests.cases.TestCase):
             status_code=400,
         )
 
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2016-06-06T00:00:00+02:00",
+                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
+
     @freezegun.freeze_time("2017-07-28")
-    @util.MockAioresponses(("reading-organisation.json", "dawa-autocomplete.json"))
-    def test_autocomplete(self, mock):
+    @util.MockAioresponses(("dawa-autocomplete.json",))
+    def test_autocomplete_global(self, mock):
         found = [
             {
                 "location": {
@@ -238,6 +252,90 @@ class TestAddressLookup(tests.cases.TestCase):
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
             "address_autocomplete/?q=Strandlodsvej+25M&global=true",
             found,
+        )
+
+    @freezegun.freeze_time("2017-07-28")
+    @util.MockAioresponses()
+    def test_autocomplete_local(self, mock):
+        url = URL("http://mox/organisation/organisation")
+
+        def callback(url, json, **kwargs):
+            if json.get("uuid") == ["456362c4-0ee4-4e5e-a72c-751239745e62"]:
+                # noqa
+                payload = {
+                    "results": [
+                        [
+                            {
+                                "id": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                                "registreringer": [
+                                    {
+                                        "attributter": {
+                                            "organisationegenskaber": [
+                                                {
+                                                    "brugervendtnoegle": "AU",
+                                                    "organisationsnavn": "Aarhus Universitet",  # noqa: E501
+                                                    "virkning": {
+                                                        "from": "2016-01-01 00:00:00+01",  # noqa: E501
+                                                        "from_included": True,
+                                                        "to": "infinity",
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                        "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",  # noqa: E501
+                                        "fratidspunkt": {
+                                            "graenseindikator": True,
+                                            "tidsstempeldatotid": "2017-08-17T10:27:27.65144+02:00",  # noqa: E501
+                                        },
+                                        "livscykluskode": "Importeret",
+                                        "note": "Automatisk indlæsning",
+                                        "relationer": {
+                                            "myndighed": [
+                                                {
+                                                    "urn": "urn:dk:kommune:751",
+                                                    "virkning": {
+                                                        "from": "2016-01-01 00:00:00+01",  # noqa: E501
+                                                        "from_included": True,
+                                                        "to": "infinity",
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                        "tilstande": {
+                                            "organisationgyldighed": [
+                                                {
+                                                    "gyldighed": "Aktiv",
+                                                    "virkning": {
+                                                        "from": "2016-01-01 00:00:00+01",  # noqa: E501
+                                                        "from_included": True,
+                                                        "to": "infinity",
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                        "tiltidspunkt": {
+                                            "tidsstempeldatotid": "infinity"
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
+                    ]
+                }
+            else:
+                payload = {
+                    "results": [
+                        ["456362c4-0ee4-4e5e-a72c-751239745e62"],
+                    ],
+                }
+            return CallbackResult(payload=payload)
+
+        mock.get(
+            url,
+            callback=callback,
         )
 
         self.assertRequestResponse(
