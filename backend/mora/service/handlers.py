@@ -359,6 +359,45 @@ class OrgFunkRequestHandler(RequestHandler):
                 Trigger.ORG_UNIT_UUID
             ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
+    async def aprepare_terminate(self, request: dict):
+        self.uuid = util.get_uuid(request)
+        date = util.get_valid_to(request, required=True)
+
+        original = await lora.Connector(
+            effective_date=date).organisationfunktion.get(self.uuid)
+
+        if (
+            original is None or
+            util.is_reg_valid(original) and
+            get_key_for_function(original) != self.function_key
+        ):
+            exceptions.ErrorCodes.E_NOT_FOUND(
+                uuid=self.uuid,
+                original=original,
+            )
+
+        self.payload = common.update_payload(
+            date,
+            util.POSITIVE_INFINITY,
+            [(
+                self.termination_field,
+                self.termination_value,
+            )],
+            original,
+            {
+                'note': "Afsluttet",
+            },
+        )
+
+        if self.trigger_dict.get(Trigger.EMPLOYEE_UUID, None) is None:
+            self.trigger_dict[
+                Trigger.EMPLOYEE_UUID
+            ] = mapping.USER_FIELD.get_uuid(original)
+        if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
+            self.trigger_dict[
+                Trigger.ORG_UNIT_UUID
+            ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+
     def submit(self) -> str:
         c = lora.Connector()
 
@@ -422,8 +461,15 @@ def generate_requests(
             )
         elif req.get('type') in [
             'role', 'kle', 'itsystem', 'engagement_association', 'engagement',
-            'address', 'leave', 'manager',
+            'address', 'leave', 'manager', 'association'
         ] and request_type == RequestType.EDIT:
+            requesthandlers.append(
+                async_to_sync(
+                    requesthandler_klasse.construct)(req, request_type)
+            )
+        elif req.get('type') in [
+            'association',
+        ] and request_type == RequestType.TERMINATE:
             requesthandlers.append(
                 async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
