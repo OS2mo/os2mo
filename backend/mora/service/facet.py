@@ -532,7 +532,7 @@ async def get_facetids(facet: str):
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
-    facetids = await c.facet.fetch(uuid=uuid, bvn=bvn, publiceret="Publiceret")
+    facetids = await c.facet.load_uuids(uuid=uuid, bvn=bvn, publiceret="Publiceret")
 
     if not facetids:
         raise exceptions.HTTPException(
@@ -563,9 +563,9 @@ async def get_classes_under_facet(
         )
 
     return facetids and await get_one_facet(
-        c,
-        facetids[0],
-        orgid,
+        c=c,
+        facetid=facetids[0],
+        orgid=orgid,
         data=await c.klasse.paged_get(
             getter_fn, facet=facetids, publiceret="Publiceret", start=start, limit=limit
         ),
@@ -579,7 +579,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
     :param c: A LoRa connector
     :return: A sorted list of tuples of (uuid, scope) for all available primary classes
     """
-    facet_id = (await c.facet.fetch(bvn="primary_type"))[0]
+    facet_id = (await c.facet.load_uuids(bvn="primary_type"))[0]
 
     classes = await gather(
         *[

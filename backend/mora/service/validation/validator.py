@@ -437,7 +437,7 @@ async def does_uuid_have_existing_association(
     """
     c = lora.Connector(effective_date=valid_from)
 
-    r = await c.organisationfunktion.fetch(
+    r = await c.organisationfunktion.load_uuids(
         tilknyttedeenheder=org_unit_uuid,
         gyldighed="Aktiv",
         funktionsnavn=association_function_key,
@@ -481,7 +481,7 @@ async def does_employee_have_active_engagement(employee_uuid, valid_from, valid_
         virkningfra=util.to_lora_time(valid_from),
         virkningtil=util.to_lora_time(valid_to),
     )
-    r = await c.organisationfunktion.fetch(
+    r = await c.organisationfunktion.load_uuids(
         tilknyttedebrugere=employee_uuid,
         gyldighed="Aktiv",
         funktionsnavn=mapping.ENGAGEMENT_KEY,
@@ -527,7 +527,7 @@ async def does_employee_with_cpr_already_exist(
         virkningtil=util.to_lora_time(valid_to),
     )
 
-    user_ids = await c.bruger.fetch(
+    user_ids = await c.bruger.load_uuids(
         tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr), tilhoerer=org_uuid
     )
 

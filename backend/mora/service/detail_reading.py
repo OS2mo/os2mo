@@ -78,7 +78,7 @@ async def list_details(type, id: UUID):
 
     r = {
         functype: bool(
-            await c.organisationfunktion.fetch(funktionsnavn=funcname, **search),
+            await c.organisationfunktion.load_uuids(funktionsnavn=funcname, **search),
         )
         for functype, funcname in handlers.FUNCTION_KEYS.items()
     }

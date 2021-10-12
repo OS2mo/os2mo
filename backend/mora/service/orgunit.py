@@ -523,10 +523,12 @@ async def get_one_orgunit(
         })
 
     if details is UnitDetails.NCHILDREN:
-        children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed="Aktiv")
+        children = await c.organisationenhed.load_uuids(
+            overordnet=unitid,
+            gyldighed="Aktiv",
+        )
         r["child_count"] = len(children)
     elif details is UnitDetails.FULL or details is UnitDetails.PATH:
-
         parent_task = create_task(
             await request_bulked_get_one_orgunit(
                 unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
@@ -782,9 +784,9 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
         *[
             create_task(
                 get_one_orgunit(
-                    connector,
-                    childid,
-                    child,
+                    c=connector,
+                    unitid=childid,
+                    unit=child,
                     only_primary_uuid=only_primary_uuid,
                     count_related=count_related,
                 )
@@ -1395,21 +1397,21 @@ async def terminate_org_unit_validation(unitid, request):
     )
 
     children = set(
-        await c.organisationenhed.fetch(
+        await c.organisationenhed.load_uuids(
             overordnet=unitid,
             gyldighed="Aktiv",
         )
     )
 
     roles = set(
-        await c.organisationfunktion.fetch(
+        await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=unitid,
             gyldighed="Aktiv",
         )
     )
 
     addresses = set(
-        await c.organisationfunktion.fetch(
+        await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=unitid,
             funktionsnavn=mapping.ADDRESS_KEY,
             gyldighed="Aktiv",

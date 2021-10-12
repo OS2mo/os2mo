@@ -3,10 +3,8 @@
 from __future__ import generator_stop
 
 import asyncio
-import math
 import re
 import uuid
-from asyncio import create_task
 from asyncio import gather
 from collections import defaultdict
 from datetime import datetime
@@ -540,9 +538,8 @@ class Scope(BaseScope):
         assert "start" not in params, ass_msg.format("start", ", use 'paged_get'")
         assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
+        response = await self.load(**params)
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
-        response = await self.fetch(**dict(params), list=1)
-
         return filter_registrations(
             response=response, wantregs=wantregs, changed_since=changed_since
         )
@@ -552,40 +549,11 @@ class Scope(BaseScope):
         uuids: Union[List, Set],
         changed_since: Optional[datetime] = None,
     ) -> Iterable[Tuple[str, Dict[Any, Any]]]:
-
-        """Get a list of objects by their UUIDs.
-
+        """
+        Get a list of objects by their UUIDs.
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-
-        # There is currently an issue in uvicorn related to long request URLs
-        # https://github.com/encode/uvicorn/issues/344
-        # Until it is fixed we need to enforce a max length of requests
-
-        # I haven't been able to determine exactly how long requests can be
-        # The following value is based purely on experimentation
-        max_uuid_part_length = 5000
-        # length of uuid + '?uuid=' = 42
-        uuids_per_chunk = math.floor(max_uuid_part_length / 42)
-        uuid_chunks = chunked(uuids, uuids_per_chunk)
-
-        # # heuristic, depends on who is serving this app
-        # n_chunk_target = multiprocessing.cpu_count() * 2 + 1
-        # length = len(uuids)
-        # min_size = 20
-        # n_chunks = n_chunk_target
-        # if length < min_size:
-        #     n_chunks = 1
-        #
-        # # chunk to get some 'fake' performance by parallelize
-        # uuid_chunks = divide(n_chunks, uuids)
-
-        need_flat = await gather(
-            *[create_task(self.fetch(uuid=list(ch))) for ch in uuid_chunks]
-        )
-        ret = [x for chunk in need_flat for x in chunk]
-
-        # ret = await self.fetch(uuid=uuids)
+        ret = await self.load(uuid=uuids)
         return filter_registrations(
             response=ret, wantregs=False, changed_since=changed_since
         )
@@ -638,7 +606,7 @@ class Scope(BaseScope):
         return {"total": total, "offset": start, "items": list(obj_iter)}
 
     async def get(self, uuid, **params):
-        d = await self.fetch(uuid=str(uuid), **params)
+        d = await self.load(uuid=str(uuid), **params)
 
         if not d or not d[0]:
             return None

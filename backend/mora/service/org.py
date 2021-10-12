@@ -179,28 +179,28 @@ async def get_organisation(orgid: UUID):
     except (KeyError, TypeError):
         ErrorCodes.E_NO_SUCH_ENDPOINT()
 
-    units = await c.organisationenhed.fetch(tilhoerer=orgid, gyldighed="Aktiv")
-    children = await c.organisationenhed.fetch(overordnet=orgid, gyldighed="Aktiv")
+    units = await c.organisationenhed.load_uuids(tilhoerer=orgid, gyldighed="Aktiv")
+    children = await c.organisationenhed.load_uuids(overordnet=orgid, gyldighed="Aktiv")
 
     # FIXME: we should filter for activity, but that's extremely slow
     # 0.8s -> 12.3s for 28k users and 33k functions
     # https://redmine.magenta-aps.dk/issues/21273
-    users = await c.bruger.fetch(tilhoerer=orgid)
-    engagements = await c.organisationfunktion.fetch(
+    users = await c.bruger.load_uuids(tilhoerer=orgid)
+    engagements = await c.organisationfunktion.load_uuids(
         tilknyttedeorganisationer=orgid, funktionsnavn=mapping.ENGAGEMENT_KEY
     )
 
-    associations = await c.organisationfunktion.fetch(
+    associations = await c.organisationfunktion.load_uuids(
         tilknyttedeorganisationer=orgid,
         funktionsnavn=mapping.ASSOCIATION_KEY,
     )
-    leaves = await c.organisationfunktion.fetch(
+    leaves = await c.organisationfunktion.load_uuids(
         tilknyttedeorganisationer=orgid, funktionsnavn=mapping.LEAVE_KEY
     )
-    roles = await c.organisationfunktion.fetch(
+    roles = await c.organisationfunktion.load_uuids(
         tilknyttedeorganisationer=orgid, funktionsnavn=mapping.ROLE_KEY
     )
-    managers = await c.organisationfunktion.fetch(
+    managers = await c.organisationfunktion.load_uuids(
         tilknyttedeorganisationer=orgid, funktionsnavn=mapping.MANAGER_KEY
     )
 
