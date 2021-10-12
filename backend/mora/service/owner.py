@@ -184,7 +184,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
     def prepare_create(self, req: Dict):
-        raise NotImplementedError('Use prepare_create instead')
+        raise NotImplementedError("Use prepare_create instead")
 
     async def aprepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
@@ -246,7 +246,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
     def prepare_edit(self, req: dict):
-        raise NotImplementedError('Use aprepare_edit instead')
+        raise NotImplementedError("Use aprepare_edit instead")
 
     async def aprepare_edit(self, req: dict):
         func_uuid = req.get("uuid")

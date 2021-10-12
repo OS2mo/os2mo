@@ -782,7 +782,7 @@ class ClassRequestHandler(handlers.RequestHandler):
     role_type = "class"
 
     def prepare_create(self, request: dict):
-        raise NotImplementedError('Use aprepare_create instead')
+        raise NotImplementedError("Use aprepare_create instead")
 
     async def aprepare_create(self, request: dict):
         valid_from = util.NEGATIVE_INFINITY
@@ -808,7 +808,7 @@ class ClassRequestHandler(handlers.RequestHandler):
         self.uuid = mo_class.uuid or str(uuid4())
 
     def submit(self) -> str:
-        raise NotImplementedError('Use asubmit instead')
+        raise NotImplementedError("Use asubmit instead")
 
     async def asubmit(self) -> str:
         c = lora.Connector()
