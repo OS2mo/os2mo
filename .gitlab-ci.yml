@@ -83,7 +83,7 @@ Lint Python:
     - poetry run flake8 --version
     # black-compatible settings
     # https://github.com/psf/black/pull/36
-    - poetry run flake8 --extend-ignore=B008,W503 --max-line-length=88
+    - poetry run flake8 --extend-ignore=B008,W503,E203 --max-line-length=88
 
 Lint Dockerfiles:
   <<: *lint-default
