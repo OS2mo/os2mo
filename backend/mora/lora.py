@@ -1,16 +1,26 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from __future__ import generator_stop
 
 import asyncio
 import math
 import re
 import uuid
+from asyncio import create_task
+from asyncio import gather
+from collections import defaultdict
+from datetime import datetime
+from enum import Enum
+from enum import unique
+from functools import partial
+from itertools import starmap
 from typing import Any
+from typing import Awaitable
 from typing import Callable
+from typing import Container
 from typing import Coroutine
 from typing import Dict
+from typing import ItemsView
 from typing import Iterable
 from typing import List
 from typing import NoReturn
@@ -19,21 +29,17 @@ from typing import Set
 from typing import Tuple
 from typing import Union
 
-from fastapi.encoders import jsonable_encoder
-from structlog import get_logger
-from asyncio import create_task, gather
-from datetime import datetime
-from enum import Enum, unique
-
-from aiohttp import ClientSession
-from functools import partial
-from itertools import starmap
-
 import lora_utils
-from more_itertools import chunked
+from aiohttp import ClientSession
+from fastapi.encoders import jsonable_encoder
+from strawberry.dataloader import DataLoader
+from structlog import get_logger
 
-from . import exceptions, config, util
-from .util import DEFAULT_TIMEZONE, from_iso_time
+from . import config
+from . import exceptions
+from . import util
+from .util import DEFAULT_TIMEZONE
+from .util import from_iso_time
 
 logger = get_logger()
 
@@ -282,6 +288,79 @@ class Connector:
         return self.scope(LoraObjectType.classification)
 
 
+def group_params(params_list: List[Dict[str, set]]) -> Dict[str, Set[str]]:
+    """
+    Transform parameters list from
+        [
+            {"a": {1}, "b": {11}},
+            {"a": {2}, "b": {22, 33}},
+            {"a": {3}, "b": {33}},
+        ]
+    to
+        {
+            "a": {1, 2, 3},
+            "b": {11, 22, 33},
+        }
+    with duplicates removed.
+    """
+    params = defaultdict(set)
+    for param in params_list:
+        for key, value in param.items():
+            params[key].update(value)
+    return dict(params)  # we don't want defaultdict behaviour returned
+
+
+class ParameterValuesExtractor:
+    @classmethod
+    def get_key_value_items(
+        cls, d: Dict[str, Any], search_keys: Container[str]
+    ) -> Iterable[Tuple[str, Any]]:
+        """
+        Given a LoRa result (nested dict), extract the value(s) for each key in
+        search_keys as (key,value)-pairs.
+        """
+        for path, value in cls.traverse(d.items()):
+            if (key := cls.get_key_for_path(path)) in search_keys:
+                yield key, value
+
+    @classmethod
+    def traverse(
+        cls,
+        items: Union[Iterable[Tuple[str, Any]], ItemsView[str, Any]],
+        path: tuple = (),
+    ):
+        """
+        Recursively traverse the given nested dictionary, yielding (path, leaf)-pairs,
+        where 'path' is expressed as a tuple of path components. The input dictionary is
+        accepted as (key,value)-pairs to more easily support both lists and dicts.
+        """
+        for key, value in items:
+            p = path + (key,)
+            if isinstance(value, dict):
+                yield from cls.traverse(value.items(), path=p)
+            elif isinstance(value, list):
+                yield from cls.traverse(enumerate(value), path=p)
+            else:
+                yield p, value
+
+    @classmethod
+    def get_key_for_path(cls, path: Iterable[Union[str, int]]) -> str:
+        """
+        Given a path (a,b,c), extract the final relevant path component (c). Each path
+        component can be either a string or integer, for a dict key or list index,
+        respectively. The following augmentations are performed:
+          - 'uuid' is used in place of 'id', as that is always the input parameter used.
+          - If c is 'uuid' and under the 'relationer' path, the next *labeled* (i.e.
+            string, not list index integer) parent is returned.
+        """
+        *prefixes, suffix = path
+        if suffix == "id":
+            suffix = "uuid"
+        if suffix == "uuid" and "relationer" in prefixes:
+            return next(p for p in reversed(prefixes) if isinstance(p, str))
+        return suffix
+
+
 class BaseScope:
     def __init__(self, connector, path):
         self.connector = connector
@@ -293,6 +372,139 @@ class BaseScope:
 
 
 class Scope(BaseScope):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.loader = DataLoader(load_fn=self._load_loads, cache=False)
+        self.current_param_keys = None
+
+    def load(self, **params: Union[str, Any]) -> Awaitable[List[dict]]:
+        """
+        Like fetch(), but utilises Strawberry DataLoader to bulk requests automatically.
+        Unlike fetch(), we never return just a list of UUIDs, since full objects are
+        fetched anyway to map the individual results back into the original load()s.
+        load(**params) == fetch(**params, list=1)
+        load(uuid=uuid) == fetch(uuid=uuid)
+        """
+        # Fetch directly if we won't be able to map the results back to the call params
+        has_arbitrary_rel = not {"vilkaarligattr", "vilkaarligrel"}.isdisjoint(
+            params.keys()
+        )
+        has_wildcards = any("%" in v for v in params.values() if isinstance(v, str))
+        if has_arbitrary_rel or has_wildcards:
+            return self.fetch(**params, list=True)
+
+        # Convert parameters to ensure we can map the results back to the load() calls.
+        # Also removes None values, as they won't actually be sent to LoRa anyway.
+        params = param_exotics_to_strings(params)
+
+        # LoRa supports using 'bvn' as an alias for 'brugervendtnoegle', but it's easier
+        # if we can assume that the input parameters correspond to the output data.
+        if "bvn" in params:
+            params["brugervendtnoegle"] = params.pop("bvn")
+
+        # We need to ensure all parameter keys in the batch are the same to avoid over-
+        # constraining the results of the calls with the fewest keys. Take for example a
+        # fully dense database with objects (a,b) in the interval 1-4:
+        # load(a=1)
+        # load(a=2, b=[3,4])
+        # => fetch(a=[1,2], b=[3,4])
+        # => [(a=1,b=3), (a=1,b=4), (a=2,b=3), (a=2,b=4)]
+        # I.e. (a=1,b=1) and (a=1,b=2) for load(a=1) are missing from the results.
+        if params.keys() != self.current_param_keys:
+            # TODO: What if we get calls load(a);load(b);load(a);load(b)? Could probably
+            #  maintain multiple batches in a self.batches[param_keys] if necessary.
+            self.loader.batch = None  # forces creation of a new batch on loader.load()
+            self.current_param_keys = params.keys()
+
+        # Convert all parameter values to sets for uniform processing
+        for key, value in params.items():
+            if not isinstance(value, Iterable) or isinstance(value, str):
+                value = (value,)
+            params[key] = set(value)
+
+        return self.loader.load(params)
+
+    async def load_uuids(self, **params: Union[str, Iterable]) -> List[str]:
+        """
+        Like load(), but map results back into UUIDs.
+        load_uuids(**params) == fetch(**params)
+        """
+        return [x["id"] for x in await self.load(**params)]
+
+    async def _load_loads(self, params_list: List[Dict[str, set]]) -> List[List[Dict]]:
+        """
+        Called by the DataLoader once all the load() calls have been collected.
+        Takes a list of arguments to the original load() calls, and must return a list
+        of the same length, corresponding to the return value for each load().
+        """
+        param_keys = params_list[0].keys()  # all parameter keys in the batch are equal
+        grouped_params = group_params(params_list)  # [{a: 1}, {a: 2}] -> {a: [1,2]}
+
+        # Get the UUIDs of the objects we need to fully fetch
+        only_uuids = grouped_params.keys() == {"uuid"}
+        if only_uuids:
+            uuids = grouped_params["uuid"]
+        else:
+            uuid_results = await self.fetch(
+                **grouped_params,
+                list=True,
+            )
+            uuids = [r["id"] for r in uuid_results]
+
+        # Fully fetch objects
+        results = await self.fetch(uuid=uuids)
+
+        # To associate each result object with the load() call(s!) that caused it, we
+        # establish a mapping from each requested parameter (key,value)-pair into the
+        # load() call(s) with that parameter pair. As an example, consider the calls:
+        # X = load(a=1, b=[5,6])
+        # Y = load(a=2, b=[6,7])
+        # Z = load(a=3, b=6)
+        # calls_for_params = {
+        #   a: {1: {X}, 2: {Y}, 3: {Z}},
+        #   b: {5: {X}, 6: {X,Y,Z}, 7: {Y}}
+        # }
+        calls_for_params = defaultdict(lambda: defaultdict(set))
+        for i, param in enumerate(params_list):
+            for key, values in param.items():
+                for value in values:
+                    calls_for_params[key][value].add(i)
+
+        # To support multi-parameter load()s, a result object is associated with the
+        # call if and only if its values matches the call parameters on *all* of the
+        # parameter keys. Note that result objects may have multiple values for each
+        # key. For example, consider the result object (a=[1,3], b=6]):
+        # calls_for_params[a][1] => {X}
+        # calls_for_params[a][3] => {Z}
+        # calls_for_params[b][6] => {X,Y,Z}
+        # Intersection(
+        #   Union({X},{Z}),  # a
+        #   Union({X,Y,Z}),  # b
+        # ) = {X,Z}, therefore add the result to X and Z's results.
+        # In the implementation, calls are referenced by their index in params_list.
+        if not param_keys:
+            # If the call parameters are empty, however, each call gets all objects
+            # since none of them are filtering and we know the parameter keys are equal.
+            return [results for _ in params_list]
+
+        results_for_calls = list([] for _ in params_list)
+        for result in results:
+            # Find values in result for all parameter keys => [(a,1), (b,6), (a,3)]
+            result_param_items = ParameterValuesExtractor.get_key_value_items(
+                result, param_keys
+            )
+            # Collect calls matching ANY value from parameters => {a: {X,Z}, b: {X,Y,Z}}
+            result_param_calls = defaultdict(set)
+            for key, value in result_param_items:
+                result_param_calls[key].update(calls_for_params[key][value])
+            # Collapse into calls matching on ALL key,value parameters => {X,Z}
+            result_calls = set.intersection(*result_param_calls.values())
+            # Add this result to the matching calls => {X: [result], Y: [], Z: [result]}
+            for call in result_calls:
+                results_for_calls[call].append(result)
+
+        return results_for_calls
+
     async def fetch(self, **params):
         async with ClientSession() as session:
             response = await session.get(
