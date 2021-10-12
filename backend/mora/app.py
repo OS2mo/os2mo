@@ -234,13 +234,10 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             dependencies=[Depends(auth)]
         )
     if settings.v1_api_enable:
-        print("V1 ENABLED")
         app.include_router(
             reading_endpoints.router, tags=["Reading"],
             dependencies=[Depends(auth)]
         )
-    else:
-        print("V1 DISABLED")
     app.include_router(
         keycloak_router(),
         prefix="/service",
