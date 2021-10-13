@@ -9,6 +9,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+import asyncio
 import uuid
 from itertools import chain
 
@@ -99,11 +100,11 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                     req, mapping.VALIDITY, {}
                 )
 
-        self.addresses = map(lambda adr_obj: AddressRequestHandler(
-            adr_obj,
-            mapping.RequestType.CREATE,
-        ), addresses)
-
+        address_tasks = (
+            AddressRequestHandler.construct(addr_obj, mapping.RequestType.CREATE)
+            for addr_obj in addresses
+        )
+        self.addresses = await asyncio.gather(*address_tasks)
         self.payload = payload
         self.uuid = func_id
         self.trigger_dict.update({
