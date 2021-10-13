@@ -364,10 +364,13 @@ Integration-test:
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
       --cov-fail-under=70
+      --test-group-count $CI_NODE_TOTAL 
+      --test-group=$CI_NODE_INDEX
       -p no:cacheprovider
       --color=yes
       -m "serial"
       backend/tests/
+  parallel: 5
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
