@@ -9,6 +9,7 @@ This section describes how to interact with engagements linking
 employees and organisational units.
 
 '''
+import asyncio
 import uuid
 from itertools import chain
 
@@ -31,82 +32,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     def prepare_create(self, req):
-        org_unit = util.checked_get(req, mapping.ORG_UNIT,
-                                    {}, required=True)
-        org_unit_uuid = util.get_uuid(org_unit, required=True)
-
-        valid_from, valid_to = util.get_validities(req)
-
-        employee = util.checked_get(req, mapping.PERSON, {}, required=True)
-        employee_uuid = util.get_uuid(employee, required=True)
-        mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-            employee,
-            valid_from,
-            valid_to)
-
-        mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-            org_unit,
-            valid_from,
-            valid_to)
-
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
-
-        primary = util.get_mapping_uuid(req, mapping.PRIMARY)
-
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
-
-        job_function_uuid = util.get_mapping_uuid(req,
-                                                  mapping.JOB_FUNCTION)
-        engagement_type_uuid = util.get_mapping_uuid(req,
-                                                     mapping.ENGAGEMENT_TYPE,
-                                                     required=True)
-
-        extension_attributes = self.get_extension_attribute_fields(req)
-
-        payload = common.create_organisationsfunktion_payload(
-            funktionsnavn=mapping.ENGAGEMENT_KEY,
-            primær=primary,
-            fraktion=req.get(mapping.FRACTION),
-            valid_from=valid_from,
-            valid_to=valid_to,
-            brugervendtnoegle=bvn,
-            tilknyttedebrugere=[employee_uuid],
-            tilknyttedeorganisationer=[org_uuid],
-            tilknyttedeenheder=[org_unit_uuid],
-            funktionstype=engagement_type_uuid,
-            opgaver=[{'uuid': job_function_uuid}] if job_function_uuid else [],
-            integration_data=req.get(mapping.INTEGRATION_DATA),
-            udvidelse_attributter=extension_attributes
-        )
-
-        # deal with addresses
-        addresses = util.checked_get(req, mapping.ADDRESS, [])
-        addr_ids = take(len(addresses), map(str, repeatfunc(uuid.uuid4)))
-
-        for address_obj, addr_id in zip(addresses, addr_ids):
-            address_obj[mapping.ENGAGEMENT] = {
-                mapping.UUID: func_id,
-                mapping.OBJECTTYPE: mapping.ENGAGEMENT
-            }
-            address_obj['uuid'] = addr_id
-            if not address_obj.get('validity'):
-                address_obj['validity'] = util.checked_get(
-                    req, mapping.VALIDITY, {}
-                )
-
-        self.addresses = map(lambda adr_obj: AddressRequestHandler(
-            adr_obj,
-            mapping.RequestType.CREATE,
-        ), addresses)
-
-        self.payload = payload
-        self.uuid = func_id
-        self.trigger_dict.update({
-            Trigger.EMPLOYEE_UUID: employee_uuid,
-            Trigger.ORG_UNIT_UUID: org_unit_uuid
-        })
+        raise NotImplementedError('Use aprepare_create instead')
 
     async def aprepare_create(self, req):
         org_unit = util.checked_get(req, mapping.ORG_UNIT,
@@ -174,11 +100,11 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                     req, mapping.VALIDITY, {}
                 )
 
-        self.addresses = map(lambda adr_obj: AddressRequestHandler(
-            adr_obj,
-            mapping.RequestType.CREATE,
-        ), addresses)
-
+        address_tasks = (
+            AddressRequestHandler.construct(addr_obj, mapping.RequestType.CREATE)
+            for addr_obj in addresses
+        )
+        self.addresses = await asyncio.gather(*address_tasks)
         self.payload = payload
         self.uuid = func_id
         self.trigger_dict.update({

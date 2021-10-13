@@ -25,12 +25,6 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
     def prepare_create(self, req: Dict[Any, Any]):
-        """
-        To create a vacant association, set employee_uuid to None and set a
-        value org_unit_uuid
-        :param req: request as received by flask
-        :return:
-        """
         raise NotImplementedError('Use aprepare_create instead')
 
     async def aprepare_create(self, req: Dict[Any, Any]):

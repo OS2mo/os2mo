@@ -25,69 +25,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.MANAGER_KEY
 
     def prepare_create(self, req):
-        """ To create a vacant manager postition, set employee_uuid to None
-        and set a value org_unit_uuid """
-        org_unit = util.checked_get(req, mapping.ORG_UNIT,
-                                    {}, required=True)
-        org_unit_uuid = util.get_uuid(org_unit, required=True)
-
-        employee = util.checked_get(req, mapping.PERSON, {}, required=False)
-        employee_uuid = util.get_uuid(employee, required=False)
-
-        valid_from, valid_to = util.get_validities(req)
-
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
-
-        manager_type_uuid = util.get_mapping_uuid(req, mapping.MANAGER_TYPE)
-        manager_level_uuid = util.get_mapping_uuid(req, mapping.MANAGER_LEVEL)
-
-        responsibilities = util.checked_get(req, mapping.RESPONSIBILITY, [])
-
-        opgaver = [
-            {
-                'objekttype': 'lederansvar',
-                'uuid': util.get_uuid(responsibility)
-            }
-            for responsibility in responsibilities
-        ]
-
-        func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
-        bvn = util.checked_get(req, mapping.USER_KEY, func_id)
-
-        if manager_level_uuid:
-            opgaver.append({
-                'objekttype': 'lederniveau',
-                'uuid': manager_level_uuid
-            })
-
-        # Validation
-
-        if employee:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                employee,
-                valid_from,
-                valid_to)
-
-        manager = common.create_organisationsfunktion_payload(
-            funktionsnavn=mapping.MANAGER_KEY,
-            valid_from=valid_from,
-            valid_to=valid_to,
-            brugervendtnoegle=bvn,
-            tilknyttedebrugere=[employee_uuid],
-            tilknyttedeorganisationer=[org_uuid],
-            tilknyttedeenheder=[org_unit_uuid],
-            funktionstype=manager_type_uuid,
-            opgaver=opgaver,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
-        )
-
-        self.payload = manager
-        self.uuid = func_id
-        self.trigger_dict.update({
-            Trigger.EMPLOYEE_UUID: employee_uuid,
-            Trigger.ORG_UNIT_UUID: org_unit_uuid
-        })
+        raise NotImplementedError('Use aprepare_create instead.')
 
     async def aprepare_create(self, req):
         """ To create a vacant manager postition, set employee_uuid to None
