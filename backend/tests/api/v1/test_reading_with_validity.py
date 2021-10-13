@@ -3,7 +3,6 @@
 import datetime
 
 import freezegun
-import pytest
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
@@ -52,7 +51,6 @@ class ReadingWithAtTestCase(base.BaseReadingTestCase):
 
     @given(st.builds(RelatedUnit))
     @settings(max_examples=1)
-    @pytest.mark.xfail
     def test_search_related_unit_with_validity(self, instance):
         mock = self.search_endpoint_helper(
             reading.OrgFunkReadingHandler,
@@ -92,7 +90,6 @@ class ReadingWithAtTestCase(base.BaseReadingTestCase):
 
     @given(st.builds(OrganisationUnitFull))
     @settings(max_examples=1)
-    @pytest.mark.xfail
     def test_uuid_org_unit_with_validity(self, instance):
         mock = self.uuid_endpoint_helper(
             org_unit.OrgUnitReader,
