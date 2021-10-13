@@ -481,5 +481,38 @@ def generate_requests(
     return requesthandlers
 
 
+async def agenerate_requests(
+    requests: typing.List[dict],
+    request_type: RequestType
+) -> typing.List[RequestHandler]:
+    operations = {req.get('type') for req in requests}
+
+    if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
+        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
+            types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
+        )
+
+    requesthandlers = []
+    for req in requests:
+        requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get('type')]
+        if request_type == RequestType.CREATE:
+            requesthandlers.append(
+                await requesthandler_klasse.construct(req, request_type)
+            )
+        elif request_type == RequestType.EDIT:
+            requesthandlers.append(
+                await requesthandler_klasse.construct(req, request_type)
+            )
+        elif request_type == RequestType.TERMINATE:
+            requesthandlers.append(
+                await requesthandler_klasse.construct(req, request_type)
+            )
+        else:
+            requesthandlers.append(
+                await requesthandler_klasse(req, request_type)
+            )
+    return requesthandlers
+
+
 def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
     return [request.submit() for request in requests]
