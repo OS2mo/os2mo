@@ -42,6 +42,7 @@ from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from ..graphapi.middleware import is_graphql
 
 router = APIRouter()
 
@@ -541,6 +542,14 @@ async def get_one_employee(c: lora.Connector, userid,
         mapping.UUID: userid,
         mapping.SENIORITY: seniority,
     }
+    if is_graphql():
+        rels = user['relationer']
+
+        if rels.get('tilknyttedepersoner'):
+            cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+            r[mapping.CPR_NO] = cpr
+
+        r[mapping.USER_KEY] = props.get('brugervendtnoegle', '')
 
     if details is EmployeeDetails.FULL:
         rels = user['relationer']

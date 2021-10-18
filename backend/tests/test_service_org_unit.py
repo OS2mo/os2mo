@@ -283,6 +283,7 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
         )
         self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
+    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_details_nchildren(self):
         self._assert_orgunit_keys(
@@ -290,6 +291,7 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
             details=UnitDetails.NCHILDREN,
         )
 
+    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_details_path(self):
         self._assert_orgunit_keys(
@@ -297,6 +299,7 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
             details=UnitDetails.PATH,
         )
 
+    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_get_one_orgunit_with_association_count(self):
         result = async_to_sync(get_one_orgunit)(
@@ -350,11 +353,13 @@ class TestGetOrgUnit(tests.cases.ConfigTestCase):
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
+    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             result = async_to_sync(get_orgunit)(self._orgunit_uuid)
             self.assertEqual(result["association_count"], 1)
 
+    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
             result = async_to_sync(get_orgunit)(self._orgunit_uuid)
@@ -373,6 +378,7 @@ class TestGetChildren(tests.cases.ConfigTestCase):
         # Below is the UUID of "Overordnet Enhed".
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
+    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             result = async_to_sync(get_children)("ou", self._orgunit_uuid)
@@ -382,6 +388,7 @@ class TestGetChildren(tests.cases.ConfigTestCase):
                 association_count=1,
             )
 
+    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
             result = async_to_sync(get_children)("ou", self._orgunit_uuid)
@@ -410,6 +417,7 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
         # Below is the UUID of "Filosofisk Institut".
         self._orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
 
+    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
@@ -420,6 +428,7 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
                 association_count=1,
             )
 
+    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
             result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,

@@ -26,6 +26,7 @@ class ConfiguredOrganisation:
     """ OS2mo organisation is cached as an attribute on this class
     hence there must be exactly one organisation in the lora database
     """
+    organisation = None
     valid = False
 
     @classmethod
@@ -41,6 +42,11 @@ class ConfiguredOrganisation:
         elif len(orglist) == 1:
             cls.organisation = orglist[0]
             cls.valid = True
+
+    @classmethod
+    def clear(cls):
+        cls.organisation = None
+        cls.valid = False
 
 
 async def get_configured_organisation(uuid=None):
