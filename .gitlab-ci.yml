@@ -134,17 +134,7 @@ Prebuild Keycloak-realm:
     KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
     KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
     KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-    KEYCLOAK_REALM_USERS: '[
-      {
-        "username": "bruce",
-        "password": "bruce",
-        "firstname": "Bruce",
-        "lastname": "Lee",
-        "email": "bruce@kung.fu",
-        "enabled": true,
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"
-      }
-    ]'
+    KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
     KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
     KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
   script:
