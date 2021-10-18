@@ -17,10 +17,13 @@ from .manager import Manager
 # --------------------------------------------------------------------------------------
 # All
 # --------------------------------------------------------------------------------------
-Details = Union[Address, Association, Engagement, EngagementAssociation, Manager]
+Details = Union[Association, Engagement, EngagementAssociation, Manager]
+EmployeeDetails = Union[Details, Address]
+OrgUnitDetails = Details
 
 __all__ = [
-    "Details",
+    "EmployeeDetails",
+    "OrgUnitDetails",
     "Address",
     "Association",
     "Engagement",

@@ -19,10 +19,25 @@ from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 from tests.conftest import unexpected_value_error
+from tests.mo.details.test_association import association_strat
+from tests.mo.details.test_engagement import engagement_assoc_strat
+from tests.mo.details.test_engagement import engagement_strat
+from tests.mo.details.test_manager import manager_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
+
+
+@st.composite
+def valid_details(draw):
+    details_strat = (
+        association_strat()
+        | engagement_assoc_strat()
+        | engagement_strat()
+        | manager_strat()
+    )
+    return draw(details_strat)
 
 
 @st.composite
@@ -38,6 +53,7 @@ def organisation_unit_strat(draw):
         "type": st.just("org_unit"),
         "parent": st.none() | st.builds(ParentRef),
         "org_unit_hierarchy": st.none() | st.builds(OrgUnitHierarchy),
+        "details": st.none() | st.lists(valid_details()),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore

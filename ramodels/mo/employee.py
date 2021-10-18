@@ -22,7 +22,7 @@ from pydantic import validator
 
 from ._shared import MOBase
 from ._shared import OrganisationRef
-from .details import Details
+from .details import EmployeeDetails
 from ramodels.base import tz_isodate
 
 # --------------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ class Employee(MOBase):
         description="Full nickname of the employee. "
         "Deprecated, please use given name/surname parts if needed."
     )
-    details: Optional[List[Details]] = Field(
+    details: Optional[List[EmployeeDetails]] = Field(
         description="Details to be created for the employee. "
         "Note that when this is used, the person reference is implicit in the payload."
     )
