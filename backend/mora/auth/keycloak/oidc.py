@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from fastapi import Request, Depends
+from fastapi.security import OAuth2PasswordBearer
+from mora.auth.keycloak.legacy import validate_session
 from starlette.responses import JSONResponse
+from structlog import get_logger
 
 from starlette.status import HTTP_403_FORBIDDEN
 from mora.auth.exceptions import AuthorizationError
@@ -10,13 +13,15 @@ from mora.auth.keycloak.models import Token
 from mora import config
 from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
 
+logger = get_logger()
+
 
 async def noauth() -> Token:
     """Noop auth provider."""
     return Token(azp='mo')
 
 
-auth = get_auth_dependency(
+keycloak_auth = get_auth_dependency(
     host=config.get_settings().keycloak_host,
     port=config.get_settings().keycloak_port,
     realm=config.get_settings().keycloak_realm,
@@ -26,11 +31,36 @@ auth = get_auth_dependency(
     alg=config.get_settings().keycloak_signing_alg,
     verify_audience=config.get_settings().keycloak_verify_audience
 )
+
+
+async def legacy_auth_adapter(request: Request):
+    """
+    Legacy support for the old session database to allow for grace-period before
+    switching to Keycloak auth
+
+    We check for a session header and allow people to access the application if
+    they have a session that exists in the old session database
+
+    If no header exists, or session token is invalid, we fall back to Keycloak auth
+    """
+    session_id = request.headers.get('session')
+    if session_id:
+        logger.warning("Legacy session token used")
+        if validate_session(session_id):
+            return await noauth()
+    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl='service/token')(request)
+    return await keycloak_auth(oauth2_scheme)
+
+
 # TODO: Remove this, once a proper auth solution is in place,
 #  that works for local DIPEX development.
 #  https://redmine.magenta-aps.dk/issues/44020
 if not config.get_settings().os2mo_auth:
     auth = noauth
+elif config.get_settings().os2mo_legacy_session_support:
+    auth = legacy_auth_adapter
+else:
+    auth = keycloak_auth
 
 
 def authorization_exception_handler(

@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
 
+    # Legacy auth
+    os2mo_legacy_session_support: bool = False
+    session_db_user = "sessions"
+    session_db_password: Optional[str]
+    session_db_host = "mox-db"
+    session_db_port = "5432"
+    session_db_name = "sessions"
+
     # V1 API
     v1_api_enable: bool = False
 
