@@ -18,7 +18,7 @@ async def test_query_employees_lazy_organisation(aioresponses):
     employee_uuid = mock_employee(aioresponses)
 
     # org is a lazy field here
-    query = "query { employees { uuid, cpr_no, user_key, name, org { uuid, name } }}"
+    query = "query { employees { uuid, cpr_no, user_key }, org { uuid, name } }"
     result = await execute(query)
 
     # We expect only two outgoing request to be done (one for employee, one for org)
@@ -30,13 +30,12 @@ async def test_query_employees_lazy_organisation(aioresponses):
             "uuid": str(employee_uuid),
             "cpr_no": "0101700000",
             "user_key": "user_key",
-            "name": "first_name last_name",
-            "org": {
-                "uuid": str(org_uuid),
-                "name": "name",
-            },
         }
     ]
+    assert result.data["org"] == {
+        "uuid": str(org_uuid),
+        "name": "name",
+    }
 
 
 @pytest.mark.asyncio
@@ -49,7 +48,7 @@ async def test_query_multiple_employees_lazy_organisation(aioresponses):
     aioresponses.get(pattern, payload={"results": [employees]})
 
     # org is a lazy field here
-    query = "query { employees { uuid, org { uuid } }}"
+    query = "query { employees { uuid }, org { uuid } }"
     result = await execute(query)
 
     # We expect only two outgoing request to be done (one for employees, one for org)
@@ -57,5 +56,8 @@ async def test_query_multiple_employees_lazy_organisation(aioresponses):
 
     assert result.errors is None
     assert result.data["employees"] == [
-        {"uuid": employee["id"], "org": {"uuid": org_uuid}} for employee in employees
+        {"uuid": employee["id"]} for employee in employees
     ]
+    assert result.data["org"] == {
+        "uuid": str(org_uuid),
+    }

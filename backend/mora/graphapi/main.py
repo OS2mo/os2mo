@@ -3,6 +3,7 @@
 from asyncio import gather
 from uuid import UUID
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
@@ -50,61 +51,38 @@ class Query:
     # --------------------
     @strawberry.field(
         permission_classes=[IsAuthenticated],
-        description="Get a list of all organisation units",
+        description="Get a list of all organisation units, optionally by uuid(s)",
     )
-    async def org_units(self, info: Info) -> List[OrganisationUnit]:
-        return await get_org_units()
-
-    @strawberry.field(
-        permission_classes=[IsAuthenticated],
-        description="Get a list of organisation units by uuids",
-    )
-    async def org_units_by_uuids(
-        self, info: Info, uuids: List[UUID]
+    async def org_units(
+        self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[OrganisationUnit]:
-        tasks = map(info.context["org_unit_loader"].load, map(str, uuids))
-        return await gather(*tasks)
-
-    @strawberry.field(
-        permission_classes=[IsAuthenticated],
-        description="Get a single organisation unit by uuid",
-    )
-    async def org_unit_by_uuid(
-        self, info: Info, uuid: UUID
-    ) -> Optional[OrganisationUnit]:
-        return await info.context["org_unit_loader"].load(str(uuid))
+        if uuids:
+            tasks = map(info.context["org_unit_loader"].load, uuids)
+            return await gather(*tasks)
+        return await get_org_units()
 
     # Employees
     # ---------
     @strawberry.field(
-        permission_classes=[IsAuthenticated], description="Get a list of all employees"
+        permission_classes=[IsAuthenticated],
+        description="Get a list of all employees, optionally by uuid(s)"
     )
-    async def employees(self, info: Info) -> List[Employee]:
+    async def employees(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[Employee]:
+        if uuids:
+            tasks = map(info.context["employee_loader"].load, uuids)
+            return await gather(*tasks)
         return await get_employees()
 
-    @strawberry.field(
-        permission_classes=[IsAuthenticated],
-        description="Get a list of employees by uuids",
-    )
-    async def employees_by_uuids(self, info: Info, uuids: List[UUID]) -> List[Employee]:
-        tasks = map(info.context["employee_loader"].load, map(str, uuids))
-        return await gather(*tasks)
 
-    @strawberry.field(
-        permission_classes=[IsAuthenticated],
-        description="Get a single employee by uuid",
-    )
-    async def employee_by_uuid(self, info: Info, uuid: UUID) -> Optional[Employee]:
-        return await info.context["employee_loader"].load(str(uuid))
-
-
-class MyGraphQL(GraphQL):
+class MOGraphQL(GraphQL):
     # Subclass as done here:
     # * https://strawberry.rocks/docs/guides/dataloaders#usage-with-context
 
     async def get_context(
         self, request: Union[Request, WebSocket], response: Any
-    ) -> Any:
+    ) -> Dict[str, Any]:
         # Add our dataloaders to the context, such that they are available everywhere
         return {"request": request, "response": response, **get_loaders()}
 
@@ -120,7 +98,7 @@ def get_schema():
         #   to accuracy, results indicate a significant improvement in time and lower
         #   visual effort with the underscore style.
         #
-        # Additionally it is perserves the naming of the underlying Python functions.
+        # Additionally it preserves the naming of the underlying Python functions.
         config=StrawberryConfig(auto_camel_case=False),
         extensions=[
             OpenTelemetryExtension,
@@ -132,7 +110,7 @@ def get_schema():
 
 def setup_graphql(app):
     schema = get_schema()
-    graphql_app = MyGraphQL(schema)
+    graphql_app = MOGraphQL(schema)
 
     app.add_route("/graphql", graphql_app)
     # Subscriptions could be implemented using our trigger system.

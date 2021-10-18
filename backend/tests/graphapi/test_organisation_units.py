@@ -94,7 +94,7 @@ async def test_query_organisation_units_by_uuids(aioresponses):
 
     query = """
         query TestQuery($uuid: UUID!) {
-            org_units_by_uuids(uuids: [$uuid]) {
+            org_units(uuids: [$uuid]) {
                 uuid, user_key, name, parent_uuid
             }
         }
@@ -105,7 +105,7 @@ async def test_query_organisation_units_by_uuids(aioresponses):
     assert len(aioresponses.requests) == 1
 
     assert result.errors is None
-    assert result.data["org_units_by_uuids"] == [
+    assert result.data["org_units"] == [
         {
             "uuid": str(uuid),
             "user_key": "user_key",
@@ -113,32 +113,6 @@ async def test_query_organisation_units_by_uuids(aioresponses):
             "parent_uuid": None,
         }
     ]
-
-
-@pytest.mark.asyncio
-async def test_query_organisation_unit_by_uuid(aioresponses):
-    """Test that we are able to query our organisation unit by UUID (single)."""
-    uuid = mock_organisation_unit(aioresponses)
-
-    query = """
-        query TestQuery($uuid: UUID!) {
-            org_unit_by_uuid(uuid: $uuid) {
-                uuid, user_key, name, parent_uuid
-            }
-        }
-    """
-    result = await execute(query, {"uuid": str(uuid)})
-
-    # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
-
-    assert result.errors is None
-    assert result.data["org_unit_by_uuid"] == {
-        "uuid": str(uuid),
-        "user_key": "user_key",
-        "name": "name",
-        "parent_uuid": None,
-    }
 
 
 @pytest.mark.asyncio
@@ -256,7 +230,7 @@ async def test_query_organisation_unit_tree_root(aioresponses):
 
     query = """
         query TestQuery($uuid: UUID!) {
-            org_unit_by_uuid(uuid: $uuid) {
+            org_units(uuids: [$uuid]) {
                 uuid, parent_uuid, parent { uuid }, children { uuid }
             }
         }
@@ -277,12 +251,12 @@ async def test_query_organisation_unit_tree_root(aioresponses):
     assert parent_uuid is None
 
     assert result.errors is None
-    assert result.data["org_unit_by_uuid"] == {
+    assert result.data["org_units"] == [{
         "uuid": root["id"],
         "parent_uuid": None,
         "parent": None,
         "children": [{"uuid": uuid} for uuid in children_uuids],
-    }
+    }]
 
 
 @pytest.mark.asyncio
@@ -295,7 +269,7 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
 
     query = """
         query TestQuery($uuid: UUID!) {
-            org_unit_by_uuid(uuid: $uuid) {
+            org_units(uuids: [$uuid]) {
                 uuid, parent_uuid, parent { uuid }, children { uuid }
             }
         }
@@ -308,7 +282,7 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
     # 1x To lookup parent
     assert len(aioresponses.requests) == 3
 
-    # We expect the root to have exactly two children
+    # We expect the deepest child to have zero children
     children_uuids = get_children_uuids(parent_map, uuid)
     assert len(children_uuids) == 0
 
@@ -316,12 +290,12 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
     assert parent_uuid is not None
 
     assert result.errors is None
-    assert result.data["org_unit_by_uuid"] == {
+    assert result.data["org_units"] == [{
         "uuid": uuid,
         "parent_uuid": parent_uuid,
         "parent": {"uuid": parent_uuid},
         "children": [],
-    }
+    }]
 
 
 @pytest.mark.parametrize("num_parents", [0, 1, 2, 3])
@@ -342,7 +316,7 @@ async def test_query_organisation_unit_tree_layers(aioresponses, num_parents):
     query = (
         """
         query TestQuery($uuid: UUID!) {
-            org_unit_by_uuid(uuid: $uuid) {
+            org_units(uuids: [$uuid]) {
             """
         + parents_snippet
         + """
@@ -366,4 +340,4 @@ async def test_query_organisation_unit_tree_layers(aioresponses, num_parents):
         }
 
     assert result.errors is None
-    assert result.data["org_unit_by_uuid"] == build_response(uuid, num_parents)
+    assert result.data["org_units"] == [build_response(uuid, num_parents)]

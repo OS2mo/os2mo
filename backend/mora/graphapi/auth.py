@@ -13,6 +13,7 @@ from strawberry.permission import BasePermission
 from mora import config
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import rbac
+from mora.auth.exceptions import AuthorizationError
 
 
 class IsAuthenticated(BasePermission):
@@ -35,8 +36,8 @@ class IsAuthenticated(BasePermission):
             raise PermissionError(exc.detail)
 
         token = await auth(token=oauth2_scheme)
-        # Throws exception if not authenticated
-        await rbac(request, admin_only=False, token=token)
-
-        # No exception -> Full access
+        try:
+            await rbac(request, admin_only=False, token=token)
+        except AuthorizationError:
+            return False
         return True

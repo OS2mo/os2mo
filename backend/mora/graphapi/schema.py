@@ -54,21 +54,28 @@ class Employee(Constructable):
 
     user_key: str
 
-    name: str
     givenname: str
     surname: str
 
-    nickname: str
-    nickname_givenname: str
-    nickname_surname: str
+    nickname_givenname: Optional[str]
+    nickname_surname: Optional[str]
 
-    seniority: str
+    seniority: Optional[str]
     validity: QLValidity
 
-    # TODO: Remove this field?
-    @strawberry.field(description="The root organisation")
-    async def org(self, info: Info) -> Organisation:
-        return await info.context["org_loader"].load(0)
+    @classmethod
+    def construct(cls, obj: Dict[str, Any]) -> "Constructable":
+        """Construct the employee strawberry type from the MO employee object.
+
+        Args:
+            obj: The MO employee dictionary.
+
+        Returns:
+            The constructed employee.
+        """
+        obj.pop("name", None)
+        obj.pop("nickname", None)
+        return cls(**obj)
 
 
 @strawberry.type(
@@ -81,8 +88,8 @@ class OrganisationUnit(Constructable):
     user_key: str
     name: str
 
-    unittype_uuid: Optional[UUID]
-    timeplanning_uuid: Optional[UUID]
+    unit_type_uuid: Optional[UUID]
+    time_planning_uuid: Optional[UUID]
     org_unit_level_uuid: Optional[UUID]
     parent_uuid: Optional[UUID]
 
@@ -90,8 +97,9 @@ class OrganisationUnit(Constructable):
 
     @strawberry.field(description="The parent organisation unit above this unit")
     async def parent(self, info: Info) -> Optional["OrganisationUnit"]:
-        # TODO: Return org as parent when self.parent_uuid is None?
         if self.parent_uuid:
+            if not isinstance(self.parent_uuid, UUID):
+                self.parent_uuid = UUID(self.parent_uuid)
             return await info.context["org_unit_loader"].load(self.parent_uuid)
         return None
 
@@ -99,4 +107,6 @@ class OrganisationUnit(Constructable):
         description="The list of children organisation units below this unit"
     )
     async def children(self, info: Info) -> List["OrganisationUnit"]:
+        if not isinstance(self.uuid, UUID):
+            self.parent_uuid = UUID(self.uuid)
         return await info.context["org_unit_children_loader"].load(self.uuid)

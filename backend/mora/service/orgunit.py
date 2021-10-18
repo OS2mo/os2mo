@@ -563,8 +563,8 @@ async def get_one_orgunit(
     }
     if is_graphql():
         r.update({
-            "unittype_uuid": unittype,
-            "timeplanning_uuid": timeplanning,
+            "unit_type_uuid": unittype,
+            "time_planning_uuid": timeplanning,
             "org_unit_level_uuid": org_unit_level,
             "parent_uuid": parentid,
         })
