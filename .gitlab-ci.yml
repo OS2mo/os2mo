@@ -311,6 +311,7 @@ Build docs:
     BASE_URL: http://mo:80
     GRAPHQL_ENABLE: "true"
     GRAPHQL_AUTH: "false"
+    POSTGRES_HOST_AUTH_METHOD: trust
 
 
 Unit-test:
