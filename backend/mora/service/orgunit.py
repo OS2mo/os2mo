@@ -1305,7 +1305,7 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1353,9 +1353,9 @@ def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner))
 
     """
 
-    request = OrgUnitRequestHandler(req, mapping.RequestType.CREATE)
+    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
 
-    return request.submit()
+    return await request.asubmit()
 
 
 async def terminate_org_unit_validation(unitid, request):
