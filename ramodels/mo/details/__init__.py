@@ -13,6 +13,7 @@ from .association import Association
 from .engagement import Engagement
 from .engagement import EngagementAssociation
 from .it_system import ITSystemBinding
+from .leave import Leave
 from .manager import Manager
 from .role import Role
 
@@ -22,7 +23,7 @@ from .role import Role
 Details = Union[
     Association, Engagement, EngagementAssociation, Manager, ITSystemBinding, Role
 ]
-EmployeeDetails = Union[Details, Address]
+EmployeeDetails = Union[Details, Address, Leave]
 OrgUnitDetails = Details
 
 __all__ = [
@@ -35,4 +36,5 @@ __all__ = [
     "ITSystemBinding",
     "Manager",
     "Role",
+    "Leave",
 ]

@@ -105,6 +105,12 @@ class JobFunction(MORef):
     pass
 
 
+class LeaveType(MORef):
+    """Leave type reference."""
+
+    pass
+
+
 class ManagerLevel(MORef):
     """Manager level reference."""
 
