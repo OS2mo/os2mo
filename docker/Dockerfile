@@ -8,9 +8,7 @@
 
 FROM node:10 AS frontend
 
-ARG COMMIT_SHA
 ARG COMMIT_TAG
-ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
 WORKDIR /app/frontend
@@ -29,9 +27,7 @@ CMD ["yarn", "dev"]
 
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
 
-ARG COMMIT_SHA
 ARG COMMIT_TAG
-ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
