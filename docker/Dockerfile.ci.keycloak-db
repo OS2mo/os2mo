@@ -6,7 +6,6 @@
 
 FROM postgres:13.3
 
-ENV POSTGRES_DB: keycloak
-ENV POSTGRES_USER: keycloak
-ENV POSTGRES_PASSWORD: keycloak
-
+ENV POSTGRES_DB=keycloak
+ENV POSTGRES_USER=keycloak
+ENV POSTGRES_PASSWORD=keycloak
