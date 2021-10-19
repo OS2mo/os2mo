@@ -160,7 +160,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             details, unitid, valid_from, valid_to
         )
 
-        self.details_requests = handlers.generate_requests(
+        self.details_requests = await handlers.agenerate_requests(
             details_with_org_units, mapping.RequestType.CREATE
         )
 
@@ -367,6 +367,30 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 )
             }
         return submit
+
+    async def asubmit(self):
+        c = lora.Connector()
+
+        if self.request_type == mapping.RequestType.CREATE:
+            self.result = await c.organisationenhed.create(self.payload, self.uuid)
+
+            if self.details_requests:
+                for r in self.details_requests:
+                    await r.asubmit()
+
+        elif self.request_type == mapping.RequestType.REFRESH:
+            pass
+        else:
+            self.result = await c.organisationenhed.update(self.payload, self.uuid)
+
+        asubmit = await super().asubmit()
+        if self.request_type == mapping.RequestType.REFRESH:
+            return {
+                "message": "\n".join(
+                    map(str, self.trigger_results_before + self.trigger_results_after)
+                )
+            }
+        return asubmit
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -1061,7 +1085,7 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     request[mapping.UUID] = unitid
     handler = await OrgUnitRequestHandler.construct(
         request, mapping.RequestType.REFRESH)
-    result = handler.submit()
+    result = await handler.asubmit()
     return result
 
 
@@ -1499,4 +1523,4 @@ async def terminate_org_unit(
     request[mapping.UUID] = uuid
     handler = await OrgUnitRequestHandler.construct(
         request, mapping.RequestType.TERMINATE)
-    return handler.submit()
+    return await handler.asubmit()

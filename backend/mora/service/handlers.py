@@ -412,6 +412,20 @@ class OrgFunkRequestHandler(RequestHandler):
         )
         return super().submit()
 
+    async def asubmit(self) -> str:
+        c = lora.Connector()
+
+        method = None
+        if self.request_type == RequestType.CREATE:
+            method = await c.organisationfunktion.create
+        else:
+            method = await c.organisationfunktion.update
+        self.result = method(
+            self.payload,
+            self.uuid
+        )
+        return await super().asubmit()
+
 
 def get_key_for_function(obj: dict) -> str:
     '''Obtain the function key class corresponding to the given LoRA object'''
