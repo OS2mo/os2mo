@@ -417,10 +417,10 @@ class OrgFunkRequestHandler(RequestHandler):
 
         method = None
         if self.request_type == RequestType.CREATE:
-            method = await c.organisationfunktion.create
+            method = c.organisationfunktion.create
         else:
-            method = await c.organisationfunktion.update
-        self.result = method(
+            method = c.organisationfunktion.update
+        self.result = await method(
             self.payload,
             self.uuid
         )
