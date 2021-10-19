@@ -41,4 +41,4 @@ class StarletteContextExtension(Extension):
 
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""
-    return context["is_graphql"]
+    return context.get("is_graphql", False)

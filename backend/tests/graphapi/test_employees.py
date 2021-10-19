@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import re
-from uuid import UUID
-from uuid import uuid4
 from typing import Any
 from typing import Dict
 from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
+from yarl import URL
 
 from .util import execute
 
@@ -54,8 +54,11 @@ def gen_employee(
 def mock_employee(aioresponses, *args, **kwargs) -> UUID:
     employee = gen_employee()
 
-    pattern = re.compile(r"^http://mox/organisation/bruger.*$")
-    aioresponses.get(pattern, payload={"results": [[employee]]})
+    aioresponses.get(
+        URL("http://mox/organisation/bruger"),
+        payload={"results": [[employee]]},
+        repeat=True,
+    )
 
     return employee["id"]
 
@@ -69,7 +72,7 @@ async def test_query_employees(aioresponses):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["employees"] == [
@@ -98,7 +101,7 @@ async def test_query_employees_by_uuids(aioresponses):
     result = await execute(query, {"uuid": str(uuid)})
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["employees"] == [
@@ -115,14 +118,17 @@ async def test_query_employees_by_uuids(aioresponses):
 @pytest.mark.asyncio
 async def test_query_no_employees(aioresponses):
     """Test that we are able to query our employees, and get an empty result."""
-    pattern = re.compile(r"^http://mox/organisation/bruger.*$")
-    aioresponses.get(pattern, payload={"results": []})
+    aioresponses.get(
+        URL("http://mox/organisation/bruger"),
+        payload={"results": []},
+        repeat=True,
+    )
 
     query = "query { employees { uuid }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["employees"] == []
@@ -132,14 +138,17 @@ async def test_query_no_employees(aioresponses):
 async def test_query_multiple_employees(aioresponses):
     """Test that we are able to query multiple employees at once."""
     employees = [gen_employee(), gen_employee(), gen_employee()]
-    pattern = re.compile(r"^http://mox/organisation/bruger.*$")
-    aioresponses.get(pattern, payload={"results": [employees]})
+    aioresponses.get(
+        URL("http://mox/organisation/bruger"),
+        payload={"results": [employees]},
+        repeat=True,
+    )
 
     query = "query { employees { uuid }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["employees"] == [

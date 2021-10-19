@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import re
 from itertools import compress
-from uuid import UUID
-from uuid import uuid4
 from typing import Any
 from typing import Dict
 from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from aioresponses import CallbackResult
 from more_itertools import unzip
+from yarl import URL
 
 from .util import execute
 
@@ -59,8 +59,11 @@ def gen_organisation_unit(
 def mock_organisation_unit(aioresponses, *args, **kwargs) -> UUID:
     organisation_unit = gen_organisation_unit()
 
-    pattern = re.compile(r"^http://mox/organisation/organisationenhed.*$")
-    aioresponses.get(pattern, payload={"results": [[organisation_unit]]})
+    aioresponses.get(
+        URL("http://mox/organisation/organisationenhed"),
+        payload={"results": [[organisation_unit]]},
+        repeat=True,
+    )
 
     return organisation_unit["id"]
 
@@ -74,7 +77,7 @@ async def test_query_organisation_units(aioresponses):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["org_units"] == [
@@ -102,7 +105,7 @@ async def test_query_organisation_units_by_uuids(aioresponses):
     result = await execute(query, {"uuid": str(uuid)})
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["org_units"] == [
@@ -118,14 +121,16 @@ async def test_query_organisation_units_by_uuids(aioresponses):
 @pytest.mark.asyncio
 async def test_query_no_organisation_units(aioresponses):
     """Test that we get an empty result if no organisation units exist."""
-    pattern = re.compile(r"^http://mox/organisation/organisationenhed.*$")
-    aioresponses.get(pattern, payload={"results": []})
-
+    aioresponses.get(
+        URL("http://mox/organisation/organisationenhed"),
+        payload={"results": []},
+        repeat=True,
+    )
     query = "query { org_units { uuid }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["org_units"] == []
@@ -139,14 +144,17 @@ async def test_query_multiple_organisation_units(aioresponses):
         gen_organisation_unit(),
         gen_organisation_unit(),
     ]
-    pattern = re.compile(r"^http://mox/organisation/organisationenhed.*$")
-    aioresponses.get(pattern, payload={"results": [organisation_units]})
+    aioresponses.get(
+        URL("http://mox/organisation/organisationenhed"),
+        payload={"results": [organisation_units]},
+        repeat=True,
+    )
 
     query = "query { org_units { uuid }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["org_units"] == [
@@ -205,19 +213,23 @@ def setup_organisation_tree(aioresponses):
         for organisation_unit in organisation_units
     }
 
-    def callback(url, **kwargs):
+    def callback(url, json, **kwargs):
         matching_org_units = [organisation_units]
-        if "overordnet" in kwargs["params"]:
-            overordnet_uuid = kwargs["params"]["overordnet"]
+        overordnet = json.get("overordnet")
+        uuids = json.get("uuid")
+        if overordnet:
+            overordnet_uuid = overordnet
             children_uuids = get_children_uuids(parent_map, overordnet_uuid)
             matching_org_units = list(map(organisation_unit_map.get, children_uuids))
-        elif "uuid" in kwargs["params"]:
-            uuids = kwargs["params"]["uuid"]
+        elif uuids:
             matching_org_units = list(map(organisation_unit_map.get, uuids))
         return CallbackResult(status=200, payload={"results": [matching_org_units]})
 
-    pattern = re.compile(r"^http://mox/organisation/organisationenhed.*$")
-    aioresponses.get(pattern, callback=callback, repeat=True)
+    aioresponses.get(
+        URL("http://mox/organisation/organisationenhed"),
+        callback=callback,
+        repeat=True,
+    )
 
     return organisation_unit_map, parent_map, org_unit1, org_unit1221
 
@@ -241,7 +253,7 @@ async def test_query_organisation_unit_tree_root(aioresponses):
     # 1x For the first lookup
     # 1x To lookup children
     # As parent is None, no request is made to look it up
-    assert len(aioresponses.requests) == 2
+    assert sum(len(v) for v in aioresponses.requests.values()) == 2
 
     # We expect the root to have exactly two children
     children_uuids = get_children_uuids(parent_map, uuid)
@@ -251,12 +263,14 @@ async def test_query_organisation_unit_tree_root(aioresponses):
     assert parent_uuid is None
 
     assert result.errors is None
-    assert result.data["org_units"] == [{
-        "uuid": root["id"],
-        "parent_uuid": None,
-        "parent": None,
-        "children": [{"uuid": uuid} for uuid in children_uuids],
-    }]
+    assert result.data["org_units"] == [
+        {
+            "uuid": root["id"],
+            "parent_uuid": None,
+            "parent": None,
+            "children": [{"uuid": uuid} for uuid in children_uuids],
+        }
+    ]
 
 
 @pytest.mark.asyncio
@@ -280,7 +294,7 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
     # 1x For the first lookup
     # 1x To lookup children
     # 1x To lookup parent
-    assert len(aioresponses.requests) == 3
+    assert sum(len(v) for v in aioresponses.requests.values()) == 3
 
     # We expect the deepest child to have zero children
     children_uuids = get_children_uuids(parent_map, uuid)
@@ -290,12 +304,14 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
     assert parent_uuid is not None
 
     assert result.errors is None
-    assert result.data["org_units"] == [{
-        "uuid": uuid,
-        "parent_uuid": parent_uuid,
-        "parent": {"uuid": parent_uuid},
-        "children": [],
-    }]
+    assert result.data["org_units"] == [
+        {
+            "uuid": uuid,
+            "parent_uuid": parent_uuid,
+            "parent": {"uuid": parent_uuid},
+            "children": [],
+        }
+    ]
 
 
 @pytest.mark.parametrize("num_parents", [0, 1, 2, 3])
@@ -327,7 +343,7 @@ async def test_query_organisation_unit_tree_layers(aioresponses, num_parents):
     result = await execute(query, {"uuid": str(uuid)})
 
     # We expect one outgoing request per layer of parents in the query
-    assert len(aioresponses.requests) == num_parents + 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == num_parents + 1
 
     def build_response(uuid, levels):
         parent_uuid = parent_map[uuid]

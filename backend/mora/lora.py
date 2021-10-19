@@ -36,6 +36,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
+from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
 
@@ -383,6 +384,13 @@ class Scope(BaseScope):
         load(**params) == fetch(**params, list=1)
         load(uuid=uuid) == fetch(uuid=uuid)
         """
+        # Fetch directly if using GraphQL, since we don't need nested DataLoaders..
+        if is_graphql():
+            extra_params = {}
+            if params.keys() != {"uuid"}:
+                extra_params["list"] = True
+            return self.fetch(**params, **extra_params)
+
         # Fetch directly if we won't be able to map the results back to the call params
         has_arbitrary_rel = not {"vilkaarligattr", "vilkaarligrel"}.isdisjoint(
             params.keys()
