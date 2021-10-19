@@ -7,7 +7,9 @@ repo_name: ra-data-models
 repo_url: https://git.magenta.dk/rammearkitektur/ra-data-models
 
 nav:
-  - index.md
+  - Home:
+      - Introduction: index.md
+      - Changelog: CHANGELOG.md
   - Examples:
       - Creating Organisation Units: examples/org_units.md
       - Creating Employees: examples/employees.md
