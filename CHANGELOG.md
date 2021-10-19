@@ -11,6 +11,67 @@ CHANGELOG
 
 [#44543] Add OrganisationUnit details
 
-PRE-AUTOPUB
-===================
-See https://git.magenta.dk/rammearkitektur/ra-data-models/-/releases
+3.0.0 - 2021-09-22
+------------------
+
+FacetClass now requires facet_uuid 
+
+2.1.3 - 2021-09-20
+------------------
+
+Accept 0 as last integer in CPR numbers 
+
+2.1.1 - 2021-07-13
+------------------
+
+Patch Address from simplified fields method 
+
+2.1.0 - 2021-07-13
+------------------
+
+Address.org is now an optional field 
+
+2.0.1 - 2021-07-01
+------------------
+
+Patch exceptions 
+
+2.0.0 - 2021-07-01
+------------------
+
+MO has been rearranged: details are now a submodule. The employee model has been updated to reflect MO payloads more closely.
+
+1.0.1 - 2021-06-23
+------------------
+
+Export FacetClass 
+
+1.0.0 - 2021-06-10
+------------------
+
+Fully tested data models for OS2Mo & LoRa.
+
+0.3.3 - 2021-05-12
+------------------
+
+Security update - pin Pydantic to 1.8.2
+
+0.3.2 - 2021-05-07
+------------------
+
+Bugfix: KlasseProperties in /lora now has Field(alias="titel")
+
+0.3.1 - 2021-05-05
+------------------
+
+Name change
+
+0.3.0 - 2021-05-05
+------------------
+
+Added MO models
+
+0.2.0 - 2021-05-05
+------------------
+
+LoRa models added
