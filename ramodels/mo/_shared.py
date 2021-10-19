@@ -93,6 +93,12 @@ class AssociationType(MORef):
     pass
 
 
+class ITSystemRef(MORef):
+    """IT System reference."""
+
+    pass
+
+
 class JobFunction(MORef):
     """Job function reference."""
 
