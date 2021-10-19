@@ -24,6 +24,7 @@ from tests.mo.details.test_engagement import engagement_assoc_strat
 from tests.mo.details.test_engagement import engagement_strat
 from tests.mo.details.test_it_system import it_system_strat
 from tests.mo.details.test_manager import manager_strat
+from tests.mo.details.test_role import role_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -38,6 +39,7 @@ def valid_details(draw):
         | engagement_strat()
         | manager_strat()
         | it_system_strat()
+        | role_strat()
     )
     return draw(details_strat)
 

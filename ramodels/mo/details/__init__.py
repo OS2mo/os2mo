@@ -14,12 +14,13 @@ from .engagement import Engagement
 from .engagement import EngagementAssociation
 from .it_system import ITSystemBinding
 from .manager import Manager
+from .role import Role
 
 # --------------------------------------------------------------------------------------
 # All
 # --------------------------------------------------------------------------------------
 Details = Union[
-    Association, Engagement, EngagementAssociation, Manager, ITSystemBinding
+    Association, Engagement, EngagementAssociation, Manager, ITSystemBinding, Role
 ]
 EmployeeDetails = Union[Details, Address]
 OrgUnitDetails = Details
@@ -33,4 +34,5 @@ __all__ = [
     "EngagementAssociation",
     "ITSystemBinding",
     "Manager",
+    "Role",
 ]

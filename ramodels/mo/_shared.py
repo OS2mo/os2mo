@@ -171,6 +171,12 @@ class Responsibility(MORef):
     pass
 
 
+class RoleType(MORef):
+    """Role type reference."""
+
+    pass
+
+
 class Validity(RABase):
     """Validity of a MO object."""
 
