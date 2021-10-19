@@ -44,7 +44,6 @@ ENV PYTHONUNBUFFERED=1
 
 
 WORKDIR /app/
-COPY docker/sys-requirements.txt sys-requirements.txt
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
@@ -58,7 +57,6 @@ RUN set -ex \
   && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install system dependencies from file.
   && apt-get -y update \
-  && apt-get -y install --no-install-recommends "$(grep -Eo '^(\w|-)+' sys-requirements.txt | paste -sd ' ')" \
   && apt-get -y install --no-install-recommends git \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
