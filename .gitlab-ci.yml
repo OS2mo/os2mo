@@ -26,6 +26,7 @@ variables:
   # Project variables
   RELEASE_REGISTRY: docker.io
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
+  KANIKO_VERSION: v1.3.0
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-frontend
@@ -133,17 +134,7 @@ Prebuild Keycloak-realm:
     KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
     KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
     KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-    KEYCLOAK_REALM_USERS: '[
-      {
-        "username": "bruce",
-        "password": "bruce",
-        "firstname": "Bruce",
-        "lastname": "Lee",
-        "email": "bruce@kung.fu",
-        "enabled": true,
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"
-      }
-    ]'
+    KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
     KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
     KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
   script:
@@ -164,7 +155,7 @@ Build OS2MO:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:v1.5.2-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
     entrypoint: [""]
   tags:
     - docker
@@ -185,7 +176,7 @@ Build frontend:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:v1.5.2-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
     entrypoint: [""]
   tags:
     - docker
@@ -207,7 +198,7 @@ Build Keycloak:
   needs: ["Prebuild Keycloak-realm"]
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:v1.5.2-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
     entrypoint: [""]
   tags:
     - docker
@@ -225,7 +216,7 @@ Build Keycloak DB:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:v1.5.2-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
     entrypoint: [""]
   tags:
     - docker
@@ -400,39 +391,38 @@ Vue-unit-test:
     reports:
       cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
-e2e-test:
-  <<: *test-default
-  image:
-    name: magentalabs/testcafe:latest
-    entrypoint: ["/bin/sh", "-c"]
-  services:
-    - name: magentaaps/postgres-os2mo:9.6.15-2-test
-      alias: mox-db
-    - name: magentaaps/lora:dev
-      alias: mox
-    - name: ${IMAGE_SHA}
-      alias: mo
-    - name: ${KEYCLOAK_IMAGE_SHA}
-      alias: keycloak
-    - name: ${KEYCLOAK_DB_IMAGE_SHA}
-      alias: keycloak-db
-  script:
-    - sleep 30
-    - cd /
-    - /opt/testcafe/docker/testcafe-docker.sh
-        chromium:headless
-        $CI_PROJECT_DIR/frontend/e2e-tests
-        --skip-js-errors
-        --speed 0.7
-        --selector-timeout 30000
-        --screenshot $CI_PROJECT_DIR/artifacts
-        --video $CI_PROJECT_DIR/artifacts
-
-  artifacts:
-    when: always
-    paths:
-      - $CI_PROJECT_DIR/artifacts
-  allow_failure: true
+# e2e-test:
+#   <<: *test-default
+#   image:
+#     name: magentalabs/testcafe:latest
+#     entrypoint: ["/bin/sh", "-c"]
+#   services:
+#     - name: magentaaps/postgres-os2mo:9.6.15-2-test
+#       alias: mox-db
+#     - name: magentaaps/lora:dev
+#       alias: mox
+#     - name: ${IMAGE_SHA}
+#       alias: mo
+#     - name: ${KEYCLOAK_IMAGE_SHA}
+#       alias: keycloak
+#     - name: ${KEYCLOAK_DB_IMAGE_SHA}
+#       alias: keycloak-db
+#   script:
+#     - sleep 30
+#     - cd /
+#     - /opt/testcafe/docker/testcafe-docker.sh
+#         chromium:headless
+#         $CI_PROJECT_DIR/frontend/e2e-tests
+#         --skip-js-errors
+#         --speed 0.7
+#         --selector-timeout 30000
+#         --screenshot $CI_PROJECT_DIR/artifacts
+#         --video $CI_PROJECT_DIR/artifacts
+#   artifacts:
+#     when: always
+#     paths:
+#       - $CI_PROJECT_DIR/artifacts
+#   allow_failure: true
 
 
 # Release stage

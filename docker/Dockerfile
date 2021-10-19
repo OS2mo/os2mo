@@ -8,9 +8,7 @@
 
 FROM node:10 AS frontend
 
-ARG COMMIT_SHA
 ARG COMMIT_TAG
-ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
 WORKDIR /app/frontend
@@ -27,11 +25,9 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-slim AS dist
 
-ARG COMMIT_SHA
 ARG COMMIT_TAG
-ENV COMMIT_SHA=${COMMIT_SHA}
 ENV COMMIT_TAG=${COMMIT_TAG}
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
@@ -48,7 +44,6 @@ ENV PYTHONUNBUFFERED=1
 
 
 WORKDIR /app/
-COPY docker/sys-requirements.txt sys-requirements.txt
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
@@ -62,7 +57,7 @@ RUN set -ex \
   && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install system dependencies from file.
   && apt-get -y update \
-  && apt-get -y install --no-install-recommends "$(grep -Eo '^(\w|-)+' sys-requirements.txt | paste -sd ' ')" \
+  && apt-get -y install --no-install-recommends git \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
