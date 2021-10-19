@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -18,6 +19,7 @@ from ._shared import OrgUnitLevel
 from ._shared import OrgUnitType
 from ._shared import ParentRef
 from ._shared import Validity
+from .details import OrgUnitDetails
 
 # --------------------------------------------------------------------------------------
 # Organisation Unit model
@@ -45,6 +47,11 @@ class OrganisationUnit(MOBase):
     org_unit_level: OrgUnitLevel = Field(
         description="Reference to the organisation unit level type."
     )
+    details: Optional[List[OrgUnitDetails]] = Field(
+        description="Details to be created for the organisation unit. "
+        "Note that when this is used, the organisation unit reference "
+        "is implicit in the payload."
+    )
 
     @classmethod
     def from_simplified_fields(
@@ -59,7 +66,7 @@ class OrganisationUnit(MOBase):
         org_unit_hierarchy_uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
     ) -> "OrganisationUnit":
-        """Create an organisation unti from simplified fields."""
+        """Create an organisation unit from simplified fields."""
         parent = ParentRef(uuid=parent_uuid) if parent_uuid else None
         org_unit_hierarchy = (
             OrgUnitHierarchy(uuid=org_unit_hierarchy_uuid)
