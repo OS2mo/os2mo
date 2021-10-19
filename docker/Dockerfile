@@ -25,7 +25,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8 AS dist
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-slim AS dist
 
 ARG COMMIT_TAG
 ENV COMMIT_TAG=${COMMIT_TAG}
@@ -59,6 +59,7 @@ RUN set -ex \
   # Install system dependencies from file.
   && apt-get -y update \
   && apt-get -y install --no-install-recommends "$(grep -Eo '^(\w|-)+' sys-requirements.txt | paste -sd ' ')" \
+  && apt-get -y install --no-install-recommends git \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
