@@ -15,7 +15,8 @@ cache:
 stages:
   - lint
   - test
-  - deploy
+  - prepare-release
+  - release
 
 # ---------------------------------------------------------------------------
 # Templates
@@ -53,10 +54,17 @@ stages:
   variables:
     HYPOTHESIS_PROFILE: ci
 
-.deploy-template: &deploy
+.prep-release-template: &prep-release
+  stage: prepare-release
+  needs: []
+  image: python:3.8
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master"
+
+.release-template: &release
   <<: *install-deps
   image: python:3.8
-  stage: deploy
+  stage: release
   rules:
     # Matches <version core> from SemVer 2.0.0 BNF grammar.
     # Ex. 2.3.4, but not 2.3.4-rc
@@ -82,16 +90,41 @@ Test on Python 3.9:
   image: python:3.9
 
 # ---------------------------------------------------------------------------
-# Deploy
+# Release
 # ---------------------------------------------------------------------------
-Deploy to PyPI:
-  <<: *deploy
+Autopub:
+  <<: *prep-release
+  variables:
+    PROJECT_ROOT: .
+  tags:
+    - docker
+  before_script:
+    # Setup git
+    - mkdir -p ~/.ssh
+    - cat .gitlab/gitlab-known-hosts >> ~/.ssh/known_hosts
+    - git clone https://$AUTOPUB_USER:$AUTOPUB_TOKEN@git.magenta.dk/rammearkitektur/ra-data-models.git
+    - cd ra-data-models
+    - git checkout master
+    - git config --global user.name "MagentaBot"
+    - git config --global user.email "info@magenta.dk"
+    # Prepare autopub
+    - pip install autopub
+    - pip install poetry
+    - pip install toml
+  script:
+    - bash .gitlab/autopub.sh
+
+Release to PyPI:
+  <<: *release
   script: poetry publish --build -u OS2mo -p $PYPI_PWD
 
+# ---------------------------------------------------------------------------
+# Build pages
+# ---------------------------------------------------------------------------
 pages:
   <<: *install-deps
   image: python:3.8
-  stage: deploy
+  stage: release
   needs: []
   script:
     - poetry run python docs/generate_schemas.py
@@ -100,4 +133,4 @@ pages:
     paths:
       - public
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: $CI_COMMIT_BRANCH == "master"
