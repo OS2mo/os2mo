@@ -51,6 +51,26 @@ def handle_requests(
     return uuids
 
 
+async def ahandle_requests(
+    reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
+    request_type: mapping.RequestType
+):
+    if isinstance(reqs, dict):
+        is_single_request = True
+        reqs = [reqs]
+    elif isinstance(reqs, list):
+        is_single_request = False
+    else:
+        exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
+
+    requests = await handlers.agenerate_requests(reqs, request_type)
+
+    uuids = await handlers.asubmit_requests(requests)
+    if is_single_request:
+        uuids = uuids[0]
+    return uuids
+
+
 @router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
 def create(
@@ -945,7 +965,7 @@ def edit(
 
 @router.post('/details/terminate')
 # @util.restrictargs('force', 'triggerless')
-def terminate(
+async def terminate(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -991,4 +1011,4 @@ def terminate(
 
     '''
 
-    return handle_requests(reqs, mapping.RequestType.TERMINATE)
+    return await ahandle_requests(reqs, mapping.RequestType.TERMINATE)

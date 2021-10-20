@@ -361,10 +361,12 @@ class OrgFunkRequestHandler(RequestHandler):
 
     async def aprepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
-        date = util.get_valid_to(request, required=True)
+        virkning = RequestHandler.get_virkning_for_terminate(request)
+        from_date = virkning["from"]
+        to_date = virkning["to"]
 
         original = await lora.Connector(
-            effective_date=date).organisationfunktion.get(self.uuid)
+                effective_date=from_date).organisationfunktion.get(self.uuid)
 
         if (
             original is None or
@@ -377,8 +379,8 @@ class OrgFunkRequestHandler(RequestHandler):
             )
 
         self.payload = common.update_payload(
-            date,
-            util.POSITIVE_INFINITY,
+            from_date,
+            to_date,
             [(
                 self.termination_field,
                 self.termination_value,
@@ -479,7 +481,7 @@ def generate_requests(
                     requesthandler_klasse.construct)(req, request_type)
             )
         elif req.get('type') in [
-            'association', 'org_unit'
+            'association', 'org_unit' 'manager'
         ] and request_type == RequestType.TERMINATE:
             requesthandlers.append(
                 async_to_sync(
@@ -532,3 +534,7 @@ async def agenerate_requests(
 
 def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
     return [request.submit() for request in requests]
+
+
+async def asubmit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
+    return [await request.asubmit() for request in requests]
