@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
+from itertools import cycle
 from unittest.mock import patch
 
 import freezegun
@@ -2607,6 +2608,64 @@ class Tests(tests.cases.LoRATestCase):
                 },
             },
         )
+
+    def test_edit_parent_reads_from_previous_relation(self):
+        # In this test, the org unit tree looks like this:
+        #
+        # "Overordnet Enhed" - 456362c4-0ee4-4e5e-a72c-751239745e62
+        #   -> "Humanistisk Fakultet" - 9d07123e-47ac-4a9a-88c8-da82e3a4bc9e
+        #   -> other children ...
+        # "Lønorganisation" - b1f69701-86d8-496e-a3f1-ccef18ac1958
+        #   -> one child unit
+        #
+        # During the test, we alternate the parent of "Humanistisk Fakultet"
+        # between "Overordnet Enhed" and "Lønorganisation", adding a year to
+        # the start of the validity period each time. The expected result is
+        # that the parent returned by the MO API is the parent we specified.
+
+        overordnet_enhed = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+        lønorganisation = "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+        humanistisk_fakultet = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+        def edit_parent(parent, validity):
+            self.assertRequestResponse(
+                "/service/details/edit?force=1",
+                humanistisk_fakultet,
+                json={
+                    "type": "org_unit",
+                    "data": {
+                        "uuid": humanistisk_fakultet,
+                        "parent": {"uuid": parent},
+                        "validity": validity,
+                        "name": "Not used in this test but required by the MO API",
+                    },
+                },
+            )
+
+        def assert_parent_is(expected_parent, at):
+            with freezegun.freeze_time(at):
+                resp = self.client.get(f"/service/ou/{humanistisk_fakultet}/")
+                resp.raise_for_status()
+                doc = resp.json()
+                actual_parent = doc["parent"]["uuid"]
+                self.assertEqual(actual_parent, expected_parent)
+
+        # Initial state: parent is "Overordnet Enhed"
+        self.load_sample_structures()
+        assert_parent_is(overordnet_enhed, "2016-01-01")
+
+        # Construct iterable of changes, consisting of tuples of (parent uuid,
+        # validity period start). The parent uuid alternates between
+        # "Lønorganisation" and "Overordnet Enhed".
+        changes = zip(
+            cycle((lønorganisation, overordnet_enhed)),
+            (f"{year}-01-01" for year in range(2017, 2022)),
+        )
+
+        # Apply each change, and assert result is correct
+        for expected_parent, validity_start in changes:
+            edit_parent(expected_parent, {"from": validity_start})
+            assert_parent_is(expected_parent, validity_start)
 
     def test_edit_org_unit_should_fail_validation_when_end_before_start(self):
         """Should fail validation when trying to edit an org unit with the

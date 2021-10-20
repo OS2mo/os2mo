@@ -284,20 +284,17 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 )
             )
 
-        # candidate for change
-        if mapping.PARENT in data:
+        if data.get(mapping.PARENT):
             parent_uuid = util.get_mapping_uuid(data, mapping.PARENT)
+            # Default to root org unit if this unit has no parent
             if parent_uuid is None:
                 parent_uuid = (await org.get_configured_organisation())["uuid"]
 
-            # only update parent if parent uuid changed
-            if parent_uuid != mapping.PARENT_FIELD.get_uuid(original):
-                await validator.is_movable_org_unit(unitid)
+            # Validate consequences of changing the parent
+            await validator.is_movable_org_unit(unitid)
+            await validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
 
-                await validator.is_candidate_parent_valid(
-                    unitid, parent_uuid, new_from
-                )
-                update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))
+            update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
