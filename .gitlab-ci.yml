@@ -341,6 +341,7 @@ Integration-test:
   <<: *test-default
   image:
     name: ${IMAGE_SHA}
+  parallel: 6
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
@@ -352,15 +353,16 @@ Integration-test:
       alias: keycloak
   script:
     - pytest
+      -m "serial"
+      --shard-id=$(($CI_NODE_INDEX - 1))
+      --num-shards=$CI_NODE_TOTAL
       --cov=mora
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
-      --cov-fail-under=70
+      --cov-fail-under=60
       -p no:cacheprovider
       --color=yes
-      -m "serial"
-      backend/tests/
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
