@@ -384,20 +384,29 @@ class Scope(BaseScope):
         load(**params) == fetch(**params, list=1)
         load(uuid=uuid) == fetch(uuid=uuid)
         """
-        # Fetch directly if using GraphQL, since we don't need nested DataLoaders..
-        if is_graphql():
-            extra_params = {}
-            if params.keys() != {"uuid"}:
-                extra_params["list"] = True
-            return self.fetch(**params, **extra_params)
-
-        # Fetch directly if we won't be able to map the results back to the call params
-        has_arbitrary_rel = not {"vilkaarligattr", "vilkaarligrel"}.isdisjoint(
-            params.keys()
+        # Fetch directly if we won't be able to map the results back to the call params,
+        # or if using GraphQL, since we really don't need nested DataLoaders in our life
+        has_validity_params = not params.keys().isdisjoint(
+            {
+                "validity",
+                "virkningfra",
+                "virkningtil",
+                "registreretfra",
+                "registrerettil",
+            }
+        )
+        has_arbitrary_rel = not params.keys().isdisjoint(
+            {"vilkaarligattr", "vilkaarligrel"}
         )
         has_wildcards = any("%" in v for v in params.values() if isinstance(v, str))
-        if has_arbitrary_rel or has_wildcards:
-            return self.fetch(**params, list=True)
+        if is_graphql() or has_validity_params or has_arbitrary_rel or has_wildcards:
+            extra_fetch_params = {}
+            # LoRa requires a 'list' operation for anything other than 'uuid', but it
+            # doesn't care about the value - only the presence of the key - so we have
+            # to add the parameter in this roundabout way.
+            if params.keys() != {"uuid"}:
+                extra_fetch_params["list"] = True
+            return self.fetch(**params, **extra_fetch_params)
 
         # Convert parameters to ensure we can map the results back to the load() calls.
         # Also removes None values, as they won't actually be sent to LoRa anyway.
