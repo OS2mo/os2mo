@@ -412,6 +412,20 @@ class OrgFunkRequestHandler(RequestHandler):
         )
         return super().submit()
 
+    async def asubmit(self) -> str:
+        c = lora.Connector()
+
+        method = None
+        if self.request_type == RequestType.CREATE:
+            method = c.organisationfunktion.create
+        else:
+            method = c.organisationfunktion.update
+        self.result = await method(
+            self.payload,
+            self.uuid
+        )
+        return await super().asubmit()
+
 
 def get_key_for_function(obj: dict) -> str:
     '''Obtain the function key class corresponding to the given LoRA object'''
@@ -462,14 +476,20 @@ def generate_requests(
         elif req.get('type') in [
             'role', 'kle', 'itsystem', 'engagement_association', 'engagement',
             'address', 'leave', 'manager', 'association', 'owner', 'employee',
+            'org_unit'
         ] and request_type == RequestType.EDIT:
             requesthandlers.append(
                 async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
             )
         elif req.get('type') in [
-            'association',
+            'association', 'org_unit'
         ] and request_type == RequestType.TERMINATE:
+            requesthandlers.append(
+                async_to_sync(
+                    requesthandler_klasse.construct)(req, request_type)
+            )
+        elif request_type == RequestType.REFRESH:
             requesthandlers.append(
                 async_to_sync(
                     requesthandler_klasse.construct)(req, request_type)
