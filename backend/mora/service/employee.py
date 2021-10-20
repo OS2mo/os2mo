@@ -196,8 +196,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         details = util.checked_get(req, "details", [])
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
         # Validate the creation requests
-        self.details_requests = handlers.generate_requests(
-            details_with_persons, mapping.RequestType.CREATE
+        self.details_requests = await handlers.agenerate_requests(
+            details_with_persons,
+            mapping.RequestType.CREATE
         )
 
         self.payload = user

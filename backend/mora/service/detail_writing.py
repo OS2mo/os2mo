@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 '''
 Writing details
 ---------------
@@ -31,7 +29,7 @@ from mora.auth.keycloak import oidc
 router = APIRouter()
 
 
-def handle_requests(
+async def handle_requests(
     reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
     request_type: mapping.RequestType
 ):
@@ -43,9 +41,9 @@ def handle_requests(
     else:
         exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
-    requests = handlers.generate_requests(reqs, request_type)
+    requests = await handlers.agenerate_requests(reqs, request_type)
 
-    uuids = handlers.submit_requests(requests)
+    uuids = await handlers.submit_requests(requests)
     if is_single_request:
         uuids = uuids[0]
     return uuids
@@ -73,7 +71,7 @@ async def ahandle_requests(
 
 @router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
-def create(
+async def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -447,12 +445,12 @@ def create(
       ]
 
     """
-    return handle_requests(reqs, mapping.RequestType.CREATE)
+    return await handle_requests(reqs, mapping.RequestType.CREATE)
 
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(
+async def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -960,7 +958,7 @@ def edit(
     See :ref:`Adresses <address>` for more information.
 
     """
-    return handle_requests(reqs, mapping.RequestType.EDIT)
+    return await handle_requests(reqs, mapping.RequestType.EDIT)
 
 
 @router.post('/details/terminate')
@@ -1011,4 +1009,4 @@ async def terminate(
 
     '''
 
-    return await ahandle_requests(reqs, mapping.RequestType.TERMINATE)
+    return await handle_requests(reqs, mapping.RequestType.TERMINATE)
