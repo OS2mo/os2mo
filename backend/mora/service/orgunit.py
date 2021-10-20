@@ -169,7 +169,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_edit(self, req: dict):
-        raise NotImplementedError('Use aprepare_edit instead')
+        raise NotImplementedError("Use aprepare_edit instead")
 
     async def aprepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
@@ -317,7 +317,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def prepare_terminate(self, request: dict):
-        raise NotImplementedError('Use aprepare_terminate instead')
+        raise NotImplementedError("Use aprepare_terminate instead")
 
     async def aprepare_terminate(self, request: dict):
         virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
@@ -368,7 +368,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             }
         return submit
 
-    async def asubmit(self):
+    async def asubmit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
