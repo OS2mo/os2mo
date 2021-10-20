@@ -11,7 +11,6 @@ This section describes how to interact with employee associations.
 import uuid
 from typing import Any, Dict
 
-import mora.async_util
 from . import handlers
 from . import org
 from .validation import validator
@@ -42,7 +41,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             return False
 
     def prepare_create(self, req: Dict[Any, Any]):
-        raise NotImplementedError('Use aprepare_create instead')
+        raise NotImplementedError("Use aprepare_create instead")
 
     async def aprepare_create(self, req: Dict[Any, Any]):
         """
@@ -123,172 +122,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
     def prepare_edit(self, req: Dict[Any, Any]):
-        """
-        To edit into a vacant association, set employee_uuid to None and set a
-        value org_unit_uuid
-        :param req: request as received by flask
-        :return:
-        """
-        association_uuid = req.get('uuid')
-        # Get the current org-funktion which the user wants to change
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=association_uuid)
-
-        data = req.get('data')
-        new_from, new_to = util.get_validities(data)
-
-        payload = dict()
-        payload['note'] = 'Rediger tilknytning'
-
-        original_data = req.get('original')
-        if original_data:
-            # We are performing an update
-            old_from, old_to = util.get_validities(original_data)
-            payload = common.inactivate_old_interval(
-                old_from, old_to, new_from, new_to, payload,
-                ('tilstande', 'organisationfunktiongyldighed')
-            )
-
-        update_fields = list()
-
-        # Always update gyldighed
-        update_fields.append((
-            mapping.ORG_FUNK_GYLDIGHED_FIELD,
-            {'gyldighed': "Aktiv"}
-        ))
-
-        try:
-            attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
-        except (TypeError, LookupError):
-            attributes = {}
-        new_attributes = {}
-
-        if mapping.USER_KEY in data:
-            new_attributes['brugervendtnoegle'] = util.checked_get(
-                data, mapping.USER_KEY, "")
-
-        if new_attributes:
-            update_fields.append((
-                mapping.ORG_FUNK_EGENSKABER_FIELD,
-                {
-                    **attributes,
-                    **new_attributes
-                },
-            ))
-
-        if mapping.ASSOCIATION_TYPE in data:
-            association_type_uuid = (data.get(mapping.ASSOCIATION_TYPE).get('uuid'))
-            update_fields.append((
-                mapping.ORG_FUNK_TYPE_FIELD,
-                {'uuid': association_type_uuid},
-            ))
-
-            if not util.is_substitute_allowed(association_type_uuid):
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {'uuid': '', 'urn': ''})
-                )
-
-        if mapping.ORG_UNIT in data:
-            org_unit_uuid = data.get(mapping.ORG_UNIT).get('uuid')
-
-            update_fields.append((
-                mapping.ASSOCIATED_ORG_UNIT_FIELD,
-                {'uuid': org_unit_uuid},
-            ))
-        else:
-            org_unit_uuid = util.get_obj_uuid(
-                original,
-                mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
-            )
-
-        if mapping.PERSON in data:
-            employee = data.get(mapping.PERSON, {})
-            if employee:
-                employee_uuid = employee.get('uuid')
-                update_payload = {
-                    'uuid': employee_uuid,
-                }
-            else:  # allow missing, e.g. vacant association
-                employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
-                update_payload = {
-                    'uuid': '',
-                    'urn': ''
-                }
-
-            update_fields.append((
-                mapping.USER_FIELD,
-                update_payload,
-            ))
-            # update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
-        else:
-            employee = util.get_obj_value(
-                original, mapping.USER_FIELD.path)[-1]
-            employee_uuid = util.get_uuid(employee)
-
-        if mapping.SUBSTITUTE in data and data.get(mapping.SUBSTITUTE):
-            substitute = data.get(mapping.SUBSTITUTE)
-            substitute_uuid = substitute.get('uuid')
-            if employee_uuid:
-                validator.is_substitute_self(employee_uuid=employee_uuid,
-                                             substitute_uuid=substitute_uuid)
-
-            if not substitute_uuid:
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {'uuid': '', 'urn': ''})
-                )
-            else:
-                association_type_uuid = util.get_mapping_uuid(
-                    data,
-                    mapping.ASSOCIATION_TYPE,
-                    required=True
-                )
-                validator.is_substitute_allowed(association_type_uuid)
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {'uuid': substitute_uuid})
-                )
-
-        if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
-            primary = util.get_mapping_uuid(data, mapping.PRIMARY)
-
-            update_fields.append((mapping.PRIMARY_FIELD, {'uuid': primary}))
-
-        for clazz in util.checked_get(data, mapping.CLASSES, []):
-            update_fields.append(
-                (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
-            )
-
-        payload = common.update_payload(new_from, new_to, update_fields,
-                                        original,
-                                        payload)
-
-        bounds_fields = list(
-            mapping.ASSOCIATION_FIELDS.difference(
-                {x[0] for x in update_fields}))
-        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                       original, payload)
-
-        # Validation
-        if employee:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                employee,
-                new_from,
-                new_to)
-
-        if employee:
-            mora.async_util.async_to_sync(
-                validator.does_employee_have_existing_association)(
-                employee_uuid,
-                org_unit_uuid,
-                new_from,
-                association_uuid)
-
-        self.payload = payload
-        self.uuid = association_uuid
-        self.trigger_dict.update({
-            "employee_uuid": employee_uuid,
-            "org_unit_uuid": org_unit_uuid,
-        })
+        raise NotImplementedError("Use aprepare_edit instead")
 
     async def aprepare_edit(self, req: Dict[Any, Any]):
         """
