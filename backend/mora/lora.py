@@ -41,6 +41,7 @@ from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
 
 logger = get_logger()
+settings = config.get_settings()
 
 
 def registration_changed_since(reg: Dict[str, Any], since: datetime) -> bool:
@@ -384,22 +385,33 @@ class Scope(BaseScope):
         load(**params) == fetch(**params, list=1)
         load(uuid=uuid) == fetch(uuid=uuid)
         """
-        # Fetch directly if we won't be able to map the results back to the call params,
-        # or if using GraphQL, since we really don't need nested DataLoaders in our life
-        has_validity_params = not params.keys().isdisjoint(
-            {
-                "validity",
-                "virkningfra",
-                "virkningtil",
-                "registreretfra",
-                "registrerettil",
-            }
-        )
-        has_arbitrary_rel = not params.keys().isdisjoint(
-            {"vilkaarligattr", "vilkaarligrel"}
-        )
-        has_wildcards = any("%" in v for v in params.values() if isinstance(v, str))
-        if is_graphql() or has_validity_params or has_arbitrary_rel or has_wildcards:
+        # Fetch directly if feature flag turned off, or if we won't be able to map the
+        # results back to the call params, or if using GraphQL, since we really don't
+        # need nested DataLoaders in our life right now.
+        def has_validity_params():
+            return not params.keys().isdisjoint(
+                {
+                    "validity",
+                    "virkningfra",
+                    "virkningtil",
+                    "registreretfra",
+                    "registrerettil",
+                }
+            )
+
+        def has_arbitrary_rel():
+            return not params.keys().isdisjoint({"vilkaarligattr", "vilkaarligrel"})
+
+        def has_wildcards():
+            return any("%" in v for v in params.values() if isinstance(v, str))
+
+        if (
+            not settings.bulked_fetch
+            or is_graphql()
+            or has_validity_params()
+            or has_arbitrary_rel()
+            or has_wildcards()
+        ):
             extra_fetch_params = {}
             # LoRa requires a 'list' operation for anything other than 'uuid', but it
             # doesn't care about the value - only the presence of the key - so we have

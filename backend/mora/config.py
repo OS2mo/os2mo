@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     # V1 API
     v1_api_enable: bool = False
 
+    # Bulked LoRa DataLoader fetching
+    bulked_fetch: bool = True
+
     # GraphQL settings
     graphql_enable: bool = False
     graphql_auth: bool = True
