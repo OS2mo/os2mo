@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+3.4.0 - 2021-10-21
+------------------
+
+[#46067] Optimise fetching from LoRa using Strawberry DataLoader.
+[#46024] Send parameters to lora through HTTP GET body as JSON.
+
 3.3.0 - 2021-10-18
 ------------------
 
