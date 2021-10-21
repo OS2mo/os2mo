@@ -102,9 +102,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         unitid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, unitid)
 
-        org_uuid = (await org.get_configured_organisation())[
-            "uuid"
-        ]
+        org_uuid = (await org.get_configured_organisation())["uuid"]
 
         parent_uuid = util.get_mapping_uuid(req, mapping.PARENT)
         if parent_uuid is None:
@@ -468,9 +466,6 @@ async def request_bulked_get_one_orgunit(
     :param only_primary_uuid:
     :return: Awaitable returning the processed org_unit
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.org_unit, uuid=unitid)
-
     return __get_one_orgunit_from_cache(
         unitid=unitid,
         details=details,
@@ -525,10 +520,12 @@ async def get_one_orgunit(
         })
 
     if details is UnitDetails.NCHILDREN:
-        children = await c.organisationenhed.fetch(overordnet=unitid, gyldighed="Aktiv")
+        children = await c.organisationenhed.load_uuids(
+            overordnet=unitid,
+            gyldighed="Aktiv",
+        )
         r["child_count"] = len(children)
     elif details is UnitDetails.FULL or details is UnitDetails.PATH:
-
         parent_task = create_task(
             await request_bulked_get_one_orgunit(
                 unitid=parentid, details=details, only_primary_uuid=only_primary_uuid
@@ -784,9 +781,9 @@ async def _collect_child_objects(connector, children: Iterable[Dict]):
         *[
             create_task(
                 get_one_orgunit(
-                    connector,
-                    childid,
-                    child,
+                    c=connector,
+                    unitid=childid,
+                    unit=child,
                     only_primary_uuid=only_primary_uuid,
                     count_related=count_related,
                 )
@@ -1397,21 +1394,21 @@ async def terminate_org_unit_validation(unitid, request):
     )
 
     children = set(
-        await c.organisationenhed.fetch(
+        await c.organisationenhed.load_uuids(
             overordnet=unitid,
             gyldighed="Aktiv",
         )
     )
 
     roles = set(
-        await c.organisationfunktion.fetch(
+        await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=unitid,
             gyldighed="Aktiv",
         )
     )
 
     addresses = set(
-        await c.organisationfunktion.fetch(
+        await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=unitid,
             funktionsnavn=mapping.ADDRESS_KEY,
             gyldighed="Aktiv",

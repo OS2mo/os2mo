@@ -1,51 +1,69 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import json
 import pprint
-
-import pytest
-
-from mora.config import Settings
-from unittest.mock import patch
-
+from asyncio import AbstractEventLoop
 from time import sleep
 from unittest.case import TestCase
+from unittest.mock import patch
 
+import pytest
 import requests
 from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 from structlog import get_logger
 
-from mora import app, conf_db, service, config
-from mora.async_util import _local_cache, async_to_sync
+from mora import app
+from mora import conf_db
+from mora import config
+from mora import service
+from mora.async_util import _local_cache
+from mora.async_util import async_to_sync
 from mora.auth.keycloak.oidc import auth
-from mora.request_scoped.bulking import request_wide_bulk
-from tests.util import _mox_testing_api, load_sample_structures
+from mora.config import Settings
+from tests.util import _mox_testing_api
+from tests.util import load_sample_structures
 
 logger = get_logger()
 
 
 async def fake_auth():
     return {
-        'acr': '1',
-        'allowed-origins': ['http://localhost:5001'],
-        'azp': 'vue',
-        'email': 'bruce@kung.fu',
-        'email_verified': False,
-        'exp': 1621779689,
-        'family_name': 'Lee',
-        'given_name': 'Bruce',
-        'iat': 1621779389,
-        'iss': 'http://localhost:8081/auth/realms/mo',
-        'jti': '25dbb58d-b3cb-4880-8b51-8b92ada4528a',
-        'name': 'Bruce Lee',
-        'preferred_username': 'bruce',
-        'scope': 'email profile',
-        'session_state': 'd94f8dc3-d930-49b3-a9dd-9cdc1893b86a',
-        'sub': 'c420894f-36ba-4cd5-b4f8-1b24bd8c53db',
-        'typ': 'Bearer',
-        'uuid': '99e7b256-7dfa-4ee8-95c6-e3abe82e236a'
+        "acr": "1",
+        "allowed-origins": ["http://localhost:5001"],
+        "azp": "vue",
+        "email": "bruce@kung.fu",
+        "email_verified": False,
+        "exp": 1621779689,
+        "family_name": "Lee",
+        "given_name": "Bruce",
+        "iat": 1621779389,
+        "iss": "http://localhost:8081/auth/realms/mo",
+        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+        "name": "Bruce Lee",
+        "preferred_username": "bruce",
+        "scope": "email profile",
+        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+        "typ": "Bearer",
+        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
     }
+
+
+class AlwaysCreateLoopEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
+    def get_event_loop(self) -> AbstractEventLoop:
+        """
+        Asyncio's DefaultEventLoopPolicy, but creates loops in non-main threads.
+        This nasty hack is needed because many of our tests are using async_to_sync
+        wrappers. Does not affect production code.
+        """
+        try:
+            return super().get_event_loop()
+        except RuntimeError:
+            loop = self.new_event_loop()
+            self.set_event_loop(loop)
+            return loop
 
 
 class _BaseTestCase(TestCase):
@@ -55,6 +73,11 @@ class _BaseTestCase(TestCase):
 
     maxDiff = None
     app_settings_overrides = {}
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        asyncio.set_event_loop_policy(AlwaysCreateLoopEventLoopPolicy())
 
     def setUp(self):
         super().setUp()
@@ -86,32 +109,39 @@ class _BaseTestCase(TestCase):
         """
 
         data = {
-            'grant_type': 'password',
-            'client_id': 'mo',
-            'username': 'bruce',
-            'password': 'bruce'
+            "grant_type": "password",
+            "client_id": "mo",
+            "username": "bruce",
+            "password": "bruce",
         }
         if use_client_secret:
             data = {
-                'grant_type': 'client_credentials',
-                'client_id': 'dipex',
-                'client_secret': '603f1c82-d012-4d04-9382-dbe659c533fb'
+                "grant_type": "client_credentials",
+                "client_id": "dipex",
+                "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
             }
 
         r = requests.post(
-            'http://keycloak:8080'
-            '/auth/realms/mo/protocol/openid-connect/token',
-            data=data
+            "http://keycloak:8080" "/auth/realms/mo/protocol/openid-connect/token",
+            data=data,
         )
 
-        logger.debug('Keycloak token: ' + json.dumps(r.json()))
+        logger.debug("Keycloak token: " + json.dumps(r.json()))
 
-        return r.json()['access_token']
+        return r.json()["access_token"]
 
-    def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), amqp_topics=(), set_auth_header=False,
-                      **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequest(
+        self,
+        path,
+        status_code=None,
+        message=None,
+        *,
+        drop_keys=(),
+        amqp_topics=(),
+        set_auth_header=False,
+        **kwargs,
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -124,17 +154,17 @@ class _BaseTestCase(TestCase):
         :return: The result of the request, as a string or object, if
                  JSON.
 
-        '''
+        """
 
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
-            kwargs.setdefault('headers', dict()).update(
-                {'Authorization': 'bearer ' + self.get_token()}
+            kwargs.setdefault("headers", dict()).update(
+                {"Authorization": "bearer " + self.get_token()}
             )
 
         r = self.request(path, **kwargs)
 
-        if r.headers.get('content-type') == 'application/json':
+        if r.headers.get("content-type") == "application/json":
             actual = r.json()
         else:
             print(r.headers, r.content, r.raw)
@@ -148,7 +178,7 @@ class _BaseTestCase(TestCase):
 
         if status_code is None:
             if message is None:
-                message = 'status of {!r} was {}, not 2xx'.format(
+                message = "status of {!r} was {}, not 2xx".format(
                     path,
                     r.status_code,
                 )
@@ -160,7 +190,7 @@ class _BaseTestCase(TestCase):
 
         else:
             if message is None:
-                message = 'status of {!r} was {}, not {}'.format(
+                message = "status of {!r} was {}, not {}".format(
                     path,
                     r.status_code,
                     status_code,
@@ -168,7 +198,7 @@ class _BaseTestCase(TestCase):
 
             if r.status_code != status_code:
                 ppa = pprint.pformat(actual)
-                print(f'actual response:\n{ppa}')
+                print(f"actual response:\n{ppa}")
 
                 self.fail(message)
 
@@ -180,9 +210,16 @@ class _BaseTestCase(TestCase):
 
         return actual
 
-    def assertRequestResponse(self, path, expected, message=None,
-                              amqp_topics=(), set_auth_header=False, **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequestResponse(
+        self,
+        path,
+        expected,
+        message=None,
+        amqp_topics=(),
+        set_auth_header=False,
+        **kwargs,
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -192,21 +229,25 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        actual = self.assertRequest(path, message=message,
-                                    amqp_topics=amqp_topics,
-                                    set_auth_header=set_auth_header,
-                                    **kwargs)
+        actual = self.assertRequest(
+            path,
+            message=message,
+            amqp_topics=amqp_topics,
+            set_auth_header=set_auth_header,
+            **kwargs,
+        )
 
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
 
         self.assertEqual(expected, actual, message)
 
-    def assertRequestFails(self, path, code, message=None,
-                           set_auth_header=False, **kwargs):
-        '''Issue a request and assert that it fails with the given status.
+    def assertRequestFails(
+        self, path, code, message=None, set_auth_header=False, **kwargs
+    ):
+        """Issue a request and assert that it fails with the given status.
 
         ``**kwargs`` is passed directly to the test client -- see the
         documentation for :py:class:`werkzeug.test.EnvironBuilder` for
@@ -215,21 +256,26 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        self.assertRequest(path, message=message, status_code=code,
-                           set_auth_header=set_auth_header, **kwargs)
+        self.assertRequest(
+            path,
+            message=message,
+            status_code=code,
+            set_auth_header=set_auth_header,
+            **kwargs,
+        )
 
     def request(self, path, **kwargs):
-        if 'json' in kwargs:
+        if "json" in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data'})
+            assert kwargs.keys().isdisjoint({"method", "data"})
 
             # kwargs['method'] = 'POST'
-            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs.setdefault('headers', dict()).update(
-                {'Content-Type': 'application/json'}
+            kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
+            kwargs.setdefault("headers", dict()).update(
+                {"Content-Type": "application/json"}
             )
             return self.client.post(path, **kwargs)
 
@@ -245,10 +291,7 @@ class _BaseTestCase(TestCase):
 
         """
         if isinstance(obj, dict):
-            return {
-                k: TestCase.__sort_inner_lists(v)
-                for k, v in obj.items()
-            }
+            return {k: TestCase.__sort_inner_lists(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return sorted(
                 map(TestCase.__sort_inner_lists, obj),
@@ -260,7 +303,7 @@ class _BaseTestCase(TestCase):
     def assertRegistrationsEqual(self, expected, actual, message=None):
 
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -275,7 +318,7 @@ class _BaseTestCase(TestCase):
 
     def assertRegistrationsNotEqual(self, expected, actual, message=None):
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -304,7 +347,7 @@ class MockRequestContextTestCase(TestCase):
         # take place in a request
         # It looks iffy, and it is, but the _real_ solution would be to rewrite the
         # relevant code to not depend on a global request context
-        patcher = patch('mora.util.context', new={'query_args': {}})
+        patcher = patch("mora.util.context", new={"query_args": {}})
         patcher.start()
         self.addCleanup(patcher.stop)
         super().setUp()
@@ -312,9 +355,9 @@ class MockRequestContextTestCase(TestCase):
 
 @pytest.mark.serial
 class LoRATestCase(_BaseTestCase):
-    '''Base class for LoRA testcases; the test creates an empty LoRA
+    """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
-    '''
+    """
 
     def load_sample_structures(self, minimal=False):
         func = async_to_sync(load_sample_structures)
@@ -329,7 +372,6 @@ class LoRATestCase(_BaseTestCase):
     @classmethod
     def setUpClass(cls):
         _mox_testing_api("db-setup")
-        request_wide_bulk._disable_caching()
         super().setUpClass()
 
     @classmethod
@@ -344,8 +386,8 @@ class LoRATestCase(_BaseTestCase):
     @async_to_sync
     async def tearDown(self):
         if (
-            hasattr(_local_cache, "async_session") and
-            _local_cache.async_session is not None
+            hasattr(_local_cache, "async_session")
+            and _local_cache.async_session is not None
         ):
             await _local_cache.async_session.close()
             _local_cache.async_session = None
@@ -356,7 +398,7 @@ class ConfigTestCase(LoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
-        conf_db.set_configuration({'org_units': dict(conf)})
+        conf_db.set_configuration({"org_units": dict(conf)})
 
     @classmethod
     def setUpClass(cls):

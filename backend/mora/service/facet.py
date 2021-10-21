@@ -399,8 +399,6 @@ async def request_bulked_get_one_class(
     :param only_primary_uuid:
     :return: Awaitable returning the processed class
     """
-    if not only_primary_uuid:
-        await request_wide_bulk.add(type_=LoraObjectType.class_, uuid=classid)
     return __get_class_from_cache(
         classid=classid, details=details, only_primary_uuid=only_primary_uuid
     )
@@ -532,7 +530,7 @@ async def get_facetids(facet: str):
 
     uuid, bvn = (facet, None) if util.is_uuid(facet) else (None, facet)
 
-    facetids = await c.facet.fetch(uuid=uuid, bvn=bvn, publiceret="Publiceret")
+    facetids = await c.facet.load_uuids(uuid=uuid, bvn=bvn, publiceret="Publiceret")
 
     if not facetids:
         raise exceptions.HTTPException(
@@ -563,9 +561,9 @@ async def get_classes_under_facet(
         )
 
     return facetids and await get_one_facet(
-        c,
-        facetids[0],
-        orgid,
+        c=c,
+        facetid=facetids[0],
+        orgid=orgid,
         data=await c.klasse.paged_get(
             getter_fn, facet=facetids, publiceret="Publiceret", start=start, limit=limit
         ),
@@ -579,7 +577,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
     :param c: A LoRa connector
     :return: A sorted list of tuples of (uuid, scope) for all available primary classes
     """
-    facet_id = (await c.facet.fetch(bvn="primary_type"))[0]
+    facet_id = (await c.facet.load_uuids(bvn="primary_type"))[0]
 
     classes = await gather(
         *[
@@ -788,11 +786,11 @@ class ClassRequestHandler(handlers.RequestHandler):
         valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 
-        facet_bvn = request['facet']
+        facet_bvn = request["facet"]
         facetids = await get_facetids(facet_bvn)
         facet_uuid = one(facetids)
 
-        mo_class = request['class_model']
+        mo_class = request["class_model"]
 
         clazz = common.create_klasse_payload(
             valid_from=valid_from,
@@ -801,7 +799,7 @@ class ClassRequestHandler(handlers.RequestHandler):
             org_uuid=mo_class.org_uuid,
             bvn=mo_class.user_key,
             title=mo_class.name,
-            scope=mo_class.scope
+            scope=mo_class.scope,
         )
 
         self.payload = clazz
@@ -814,18 +812,14 @@ class ClassRequestHandler(handlers.RequestHandler):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = await c.klasse.create(
-                self.payload, self.uuid
-            )
+            self.result = await c.klasse.create(self.payload, self.uuid)
         else:
-            self.result = await c.klasse.update(
-                self.payload, self.uuid
-            )
+            self.result = await c.klasse.update(self.payload, self.uuid)
 
         return await super().asubmit()
 
 
-@router.post('/f/{facet}/')
+@router.post("/f/{facet}/")
 async def create_or_update_class(
     facet: str,
     class_model: MOClass,
@@ -836,7 +830,7 @@ async def create_or_update_class(
     :param facet: One of the facet bvns/uuids.
     :param class_model: Pydantic BaseModel for a class
     """
-    req = {'facet': facet, 'class_model': class_model}
+    req = {"facet": facet, "class_model": class_model}
     request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
     return await request.asubmit()
 

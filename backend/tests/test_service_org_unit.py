@@ -4,23 +4,29 @@ from asyncio import Future
 from uuid import UUID
 
 import freezegun
-from mock import call, patch
-from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
-
 import tests.cases
-from mora import lora, mapping
-from mora.config import Settings
+from mock import call
+from mock import patch
+from mora import lora
+from mora import mapping
 from mora.async_util import async_to_sync
+from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
-from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
-from mora.service.orgunit import (
-    get_children, get_orgunit, get_unit_ancestor_tree,
-)
+from mora.service.orgunit import _get_count_related
+from mora.service.orgunit import get_children
+from mora.service.orgunit import get_one_orgunit
+from mora.service.orgunit import get_orgunit
+from mora.service.orgunit import get_unit_ancestor_tree
+from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
-from mora.triggers.internal.http_trigger import HTTPTriggerException, register
+from mora.triggers.internal.http_trigger import HTTPTriggerException
+from mora.triggers.internal.http_trigger import register
+from more_itertools import one
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
 from tests import util
+from yarl import URL
 
 
 class TestAddressLookup(tests.cases.TestCase):
@@ -142,11 +148,9 @@ class TestAddressLookup(tests.cases.TestCase):
             "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
         }
 
+        url = URL("http://mox/organisation/organisationenhed")
         mock.get(
-            "http://mox/organisation/organisationenhed"
-            "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
-                                "&virkningfra=-infinity"
-                                "&konsolider=True",
+            url,
             payload={
                 "results": [
                     [
@@ -161,11 +165,22 @@ class TestAddressLookup(tests.cases.TestCase):
             },
         )
 
-        with util.patch_query_args({'validity': 'past'}):
+        with util.patch_query_args({"validity": "past"}):
             self.assertRequestResponse(
                 "/service/ou/" + unitid + "/details/org_unit?validity=past",
                 [],
             )
+
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": [unitid],
+                "virkningfra": "-infinity",
+                "virkningtil": "2018-03-15T00:00:00+01:00",
+                "konsolider": "True",
+            },
+        )
 
 
 class TestTriggerExternalIntegration(tests.cases.TestCase):
@@ -283,7 +298,6 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
         )
         self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
-    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_details_nchildren(self):
         self._assert_orgunit_keys(
@@ -291,7 +305,6 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
             details=UnitDetails.NCHILDREN,
         )
 
-    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_details_path(self):
         self._assert_orgunit_keys(
@@ -299,7 +312,6 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
             details=UnitDetails.PATH,
         )
 
-    @util.patch_is_graphql()
     @util.patch_query_args()
     def test_get_one_orgunit_with_association_count(self):
         result = async_to_sync(get_one_orgunit)(
@@ -323,24 +335,24 @@ class TestGetCountRelated(tests.cases.TestCase):
         self._multiple = {"association", "engagement"}
 
     def test_valid_name(self):
-        with util.patch_query_args(ImmutableMultiDict({'count': 'association'})):
+        with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_valid_name_repeated(self):
         with util.patch_query_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'association')])
+            ImmutableMultiDict([("count", "association"), ("count", "association")])
         ):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_multiple_valid_names(self):
         with util.patch_query_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'engagement')])
+            ImmutableMultiDict([("count", "association"), ("count", "engagement")])
         ):
             self.assertSetEqual(self._multiple, _get_count_related())
 
     def test_invalid_name(self):
         with util.patch_query_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'foobar')])
+            ImmutableMultiDict([("count", "association"), ("count", "foobar")])
         ):
             with self.assertRaises(HTTPException):
                 _get_count_related()
@@ -353,13 +365,11 @@ class TestGetOrgUnit(tests.cases.ConfigTestCase):
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
-    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             result = async_to_sync(get_orgunit)(self._orgunit_uuid)
             self.assertEqual(result["association_count"], 1)
 
-    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
             result = async_to_sync(get_orgunit)(self._orgunit_uuid)
@@ -378,7 +388,6 @@ class TestGetChildren(tests.cases.ConfigTestCase):
         # Below is the UUID of "Overordnet Enhed".
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
-    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
             result = async_to_sync(get_children)("ou", self._orgunit_uuid)
@@ -388,7 +397,6 @@ class TestGetChildren(tests.cases.ConfigTestCase):
                 association_count=1,
             )
 
-    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
             result = async_to_sync(get_children)("ou", self._orgunit_uuid)
@@ -417,22 +425,22 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
         # Below is the UUID of "Filosofisk Institut".
         self._orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
 
-    @util.patch_is_graphql()
     def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
-                                                           only_primary_uuid=False)
+            result = async_to_sync(get_unit_ancestor_tree)(
+                self._orgunit_uuid, only_primary_uuid=False
+            )
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
                 association_count=1,
             )
 
-    @util.patch_is_graphql()
     def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
-                                                           only_primary_uuid=False)
+            result = async_to_sync(get_unit_ancestor_tree)(
+                self._orgunit_uuid, only_primary_uuid=False
+            )
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",

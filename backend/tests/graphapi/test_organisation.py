@@ -1,20 +1,20 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import re
-from uuid import UUID
-from uuid import uuid4
+from itertools import chain
 from typing import Any
 from typing import Dict
 from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
-from more_itertools import distinct_permutations
-from more_itertools import one
-from itertools import chain
-
-from .util import execute
 from mora.service.org import ConfiguredOrganisation
 from mora.service.org import get_configured_organisation
+from more_itertools import distinct_permutations
+from more_itertools import one
+from yarl import URL
+
+from .util import execute
 
 
 def gen_organisation(
@@ -48,8 +48,11 @@ def mock_organisation(aioresponses, *args, **kwargs) -> UUID:
 
     organisation = gen_organisation(*args, **kwargs)
 
-    pattern = re.compile(r"^http://mox/organisation/organisation?.*$")
-    aioresponses.get(pattern, payload={"results": [[organisation]]})
+    aioresponses.get(
+        URL("http://mox/organisation/organisation"),
+        payload={"results": [[organisation]]},
+        repeat=True,
+    )
     return organisation["id"]
 
 
@@ -60,11 +63,10 @@ async def test_mocking_and_cache_clearing(aioresponses):
     The purpose of this test is to easily be able to debug mocking / caching issues.
     """
     uuid = mock_organisation(aioresponses)
-
     raw_org = await get_configured_organisation()
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
@@ -78,7 +80,7 @@ async def test_query_organisation(aioresponses):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     assert result.data["org"] == {
@@ -92,14 +94,17 @@ async def test_query_organisation(aioresponses):
 async def test_invalid_query_no_organisation(aioresponses):
     """Test that we get an error when querying with no organisation."""
     ConfiguredOrganisation.clear()
-    pattern = re.compile(r"^http://mox/organisation/organisation?.*$")
-    aioresponses.get(pattern, payload={"results": []})
+    aioresponses.get(
+        URL("http://mox/organisation/organisation"),
+        payload={"results": []},
+        repeat=True,
+    )
 
     query = "query { org { uuid, name, user_key }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     # We expect one and only one error
     error = one(result.errors)
@@ -135,7 +140,7 @@ async def test_query_all_permutations_of_organisation(aioresponses, fields):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
 
     assert result.errors is None
     # Check that all expected fields are in output
@@ -159,7 +164,7 @@ async def test_non_existing_field_query(aioresponses):
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert len(aioresponses.requests) == 0
+    assert sum(len(v) for v in aioresponses.requests.values()) == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == (
@@ -177,7 +182,7 @@ async def test_no_fields_query(aioresponses):
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert len(aioresponses.requests) == 0
+    assert sum(len(v) for v in aioresponses.requests.values()) == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == ("Syntax Error: Expected Name, found '}'.")

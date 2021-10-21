@@ -1,34 +1,50 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from __future__ import generator_stop
 
 import asyncio
-import math
 import re
-import typing
 import uuid
-from structlog import get_logger
-from asyncio import create_task, gather
+from asyncio import gather
+from collections import defaultdict
 from datetime import datetime
-from enum import Enum, unique
-
-from aiohttp import ClientSession
+from enum import Enum
+from enum import unique
 from functools import partial
 from itertools import starmap
+from typing import Any
+from typing import Awaitable
+from typing import Callable
+from typing import Container
+from typing import Coroutine
+from typing import Dict
+from typing import ItemsView
+from typing import Iterable
+from typing import List
+from typing import NoReturn
+from typing import Optional
+from typing import Set
+from typing import Tuple
+from typing import Union
 
 import lora_utils
-from more_itertools import chunked
+from aiohttp import ClientSession
+from fastapi.encoders import jsonable_encoder
+from strawberry.dataloader import DataLoader
+from structlog import get_logger
 
-from . import exceptions, config, util
-from .util import DEFAULT_TIMEZONE, from_iso_time
+from . import config
+from . import exceptions
+from . import util
+from .graphapi.middleware import is_graphql
+from .util import DEFAULT_TIMEZONE
+from .util import from_iso_time
 
 logger = get_logger()
+settings = config.get_settings()
 
 
-def registration_changed_since(
-    reg: typing.Dict[str, typing.Any], since: datetime
-) -> bool:
+def registration_changed_since(reg: Dict[str, Any], since: datetime) -> bool:
     from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
     if from_time is None:
         raise ValueError(f"unexpected reg: {reg}")
@@ -44,10 +60,10 @@ def registration_changed_since(
 
 
 def filter_registrations(
-    response: typing.List[typing.Dict[str, typing.Any]], wantregs: bool,
-    changed_since: typing.Optional[datetime] = None) -> typing.Iterable[
-    typing.Tuple[str, typing.Union[
-        typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]]]]:
+    response: List[Dict[str, Any]],
+    wantregs: bool,
+    changed_since: Optional[datetime] = None,
+) -> Iterable[Tuple[str, Union[List[Dict[str, Any]], Dict[str, Any]]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
@@ -84,9 +100,7 @@ class LoraObjectType(Enum):
     classification = "klassifikation/klassifikation"
 
 
-def raise_on_status(
-    status_code: int, msg, cause: typing.Optional = None
-) -> typing.NoReturn:
+def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
     """
     unified raising error codes
 
@@ -107,8 +121,7 @@ def raise_on_status(
         # the update.)
         if noop_pattern.search(msg):
             logger.info(
-                "detected empty change, not raising E_INVALID_INPUT",
-                message=msg
+                "detected empty change, not raising E_INVALID_INPUT", message=msg
             )
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
@@ -161,53 +174,53 @@ def exotics_to_str(value):
     elif isinstance(value, int) or isinstance(value, str):
         return value
     else:
-        raise TypeError("Unknown type in bool_to_str", type(value))
+        raise TypeError("Unknown type in exotics_to_str", type(value))
 
 
-def param_exotics_to_strings(params: typing.Dict[
-    typing.Any, typing.Union[bool, typing.List, typing.Set, str, int, uuid.UUID]]) -> \
-    typing.Dict[typing.Any,
-                typing.Union[str, int, typing.List]]:
+def param_exotics_to_strings(
+    params: Dict[Any, Union[bool, List, Set, str, int, uuid.UUID]]
+) -> Dict[Any, Union[str, int, List]]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
     @param params: dict of parameters
     @return:
     """
-    ret = {key: exotics_to_str(value) for key, value in params.items()
-           if value is not None}
+    ret = {
+        key: exotics_to_str(value) for key, value in params.items() if value is not None
+    }
     return ret
 
 
 class Connector:
     def __init__(self, **defaults):
-        self.__validity = defaults.pop('validity', None) or 'present'
+        self.__validity = defaults.pop("validity", None) or "present"
 
         self.now = util.parsedatetime(
-            defaults.pop('effective_date', None) or util.now(),
+            defaults.pop("effective_date", None) or util.now(),
         )
 
-        if self.__validity == 'past':
+        if self.__validity == "past":
             self.start = util.NEGATIVE_INFINITY
             self.end = self.now
 
-        elif self.__validity == 'future':
+        elif self.__validity == "future":
             self.start = self.now
             self.end = util.POSITIVE_INFINITY
 
-        elif self.__validity == 'present':
+        elif self.__validity == "present":
             # we should probably use 'virkningstid' but that means we
             # have to override each and every single invocation of the
             # accessors later on
-            if 'virkningfra' in defaults:
+            if "virkningfra" in defaults:
                 self.start = self.now = util.parsedatetime(
-                    defaults.pop('virkningfra'),
+                    defaults.pop("virkningfra"),
                 )
             else:
                 self.start = self.now
 
-            if 'virkningtil' in defaults:
-                self.end = util.parsedatetime(defaults.pop('virkningtil'))
+            if "virkningtil" in defaults:
+                self.end = util.parsedatetime(defaults.pop("virkningtil"))
             else:
                 self.end = self.start + util.MINIMAL_INTERVAL
 
@@ -232,47 +245,120 @@ class Connector:
         return self.__validity
 
     def is_range_relevant(self, start, end, effect):
-        if self.validity == 'present':
+        if self.validity == "present":
             return util.do_ranges_overlap(self.start, self.end, start, end)
         else:
             return start > self.start and end <= self.end
 
-    def scope(self, type_: LoraObjectType) -> 'Scope':
+    def scope(self, type_: LoraObjectType) -> "Scope":
         if type_ in self.__scopes:
             return self.__scopes[type_]
         return self.__scopes.setdefault(type_, Scope(self, type_.value))
 
     @property
-    def organisation(self) -> 'Scope':
+    def organisation(self) -> "Scope":
         return self.scope(LoraObjectType.org)
 
     @property
-    def organisationenhed(self) -> 'Scope':
+    def organisationenhed(self) -> "Scope":
         return self.scope(LoraObjectType.org_unit)
 
     @property
-    def organisationfunktion(self) -> 'Scope':
+    def organisationfunktion(self) -> "Scope":
         return self.scope(LoraObjectType.org_func)
 
     @property
-    def bruger(self) -> 'Scope':
+    def bruger(self) -> "Scope":
         return self.scope(LoraObjectType.user)
 
     @property
-    def itsystem(self) -> 'Scope':
+    def itsystem(self) -> "Scope":
         return self.scope(LoraObjectType.it_system)
 
     @property
-    def klasse(self) -> 'Scope':
+    def klasse(self) -> "Scope":
         return self.scope(LoraObjectType.class_)
 
     @property
-    def facet(self) -> 'Scope':
+    def facet(self) -> "Scope":
         return self.scope(LoraObjectType.facet)
 
     @property
-    def klassifikation(self) -> 'Scope':
+    def klassifikation(self) -> "Scope":
         return self.scope(LoraObjectType.classification)
+
+
+def group_params(params_list: List[Dict[str, set]]) -> Dict[str, Set[str]]:
+    """
+    Transform parameters list from
+        [
+            {"a": {1}, "b": {11}},
+            {"a": {2}, "b": {22, 33}},
+            {"a": {3}, "b": {33}},
+        ]
+    to
+        {
+            "a": {1, 2, 3},
+            "b": {11, 22, 33},
+        }
+    with duplicates removed.
+    """
+    params = defaultdict(set)
+    for param in params_list:
+        for key, value in param.items():
+            params[key].update(value)
+    return dict(params)  # we don't want defaultdict behaviour returned
+
+
+class ParameterValuesExtractor:
+    @classmethod
+    def get_key_value_items(
+        cls, d: Dict[str, Any], search_keys: Container[str]
+    ) -> Iterable[Tuple[str, Any]]:
+        """
+        Given a LoRa result (nested dict), extract the value(s) for each key in
+        search_keys as (key,value)-pairs.
+        """
+        for path, value in cls.traverse(d.items()):
+            if (key := cls.get_key_for_path(path)) in search_keys:
+                yield key, value
+
+    @classmethod
+    def traverse(
+        cls,
+        items: Union[Iterable[Tuple[str, Any]], ItemsView[str, Any]],
+        path: tuple = (),
+    ):
+        """
+        Recursively traverse the given nested dictionary, yielding (path, leaf)-pairs,
+        where 'path' is expressed as a tuple of path components. The input dictionary is
+        accepted as (key,value)-pairs to more easily support both lists and dicts.
+        """
+        for key, value in items:
+            p = path + (key,)
+            if isinstance(value, dict):
+                yield from cls.traverse(value.items(), path=p)
+            elif isinstance(value, list):
+                yield from cls.traverse(enumerate(value), path=p)
+            else:
+                yield p, value
+
+    @classmethod
+    def get_key_for_path(cls, path: Iterable[Union[str, int]]) -> str:
+        """
+        Given a path (a,b,c), extract the final relevant path component (c). Each path
+        component can be either a string or integer, for a dict key or list index,
+        respectively. The following augmentations are performed:
+          - 'uuid' is used in place of 'id', as that is always the input parameter used.
+          - If c is 'uuid' and under the 'relationer' path, the next *labeled* (i.e.
+            string, not list index integer) parent is returned.
+        """
+        *prefixes, suffix = path
+        if suffix == "id":
+            suffix = "uuid"
+        if suffix == "uuid" and "relationer" in prefixes:
+            return next(p for p in reversed(prefixes) if isinstance(p, str))
+        return suffix
 
 
 class BaseScope:
@@ -286,20 +372,185 @@ class BaseScope:
 
 
 class Scope(BaseScope):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.loader = DataLoader(load_fn=self._load_loads, cache=False)
+        self.current_param_keys = None
+
+    def load(self, **params: Union[str, Any]) -> Awaitable[List[dict]]:
+        """
+        Like fetch(), but utilises Strawberry DataLoader to bulk requests automatically.
+        Unlike fetch(), we never return just a list of UUIDs, since full objects are
+        fetched anyway to map the individual results back into the original load()s.
+        load(**params) == fetch(**params, list=1)
+        load(uuid=uuid) == fetch(uuid=uuid)
+        """
+        # Fetch directly if feature flag turned off, or if we won't be able to map the
+        # results back to the call params, or if using GraphQL, since we really don't
+        # need nested DataLoaders in our life right now.
+        def has_validity_params():
+            return not params.keys().isdisjoint(
+                {
+                    "validity",
+                    "virkningfra",
+                    "virkningtil",
+                    "registreretfra",
+                    "registrerettil",
+                }
+            )
+
+        def has_arbitrary_rel():
+            return not params.keys().isdisjoint({"vilkaarligattr", "vilkaarligrel"})
+
+        def has_wildcards():
+            return any("%" in v for v in params.values() if isinstance(v, str))
+
+        if (
+            not settings.bulked_fetch
+            or is_graphql()
+            or has_validity_params()
+            or has_arbitrary_rel()
+            or has_wildcards()
+        ):
+            extra_fetch_params = {}
+            # LoRa requires a 'list' operation for anything other than 'uuid', but it
+            # doesn't care about the value - only the presence of the key - so we have
+            # to add the parameter in this roundabout way.
+            if params.keys() != {"uuid"}:
+                extra_fetch_params["list"] = True
+            return self.fetch(**params, **extra_fetch_params)
+
+        # Convert parameters to ensure we can map the results back to the load() calls.
+        # Also removes None values, as they won't actually be sent to LoRa anyway.
+        params = param_exotics_to_strings(params)
+
+        # LoRa supports using 'bvn' as an alias for 'brugervendtnoegle', but it's easier
+        # if we can assume that the input parameters correspond to the output data.
+        if "bvn" in params:
+            params["brugervendtnoegle"] = params.pop("bvn")
+
+        # We need to ensure all parameter keys in the batch are the same to avoid over-
+        # constraining the results of the calls with the fewest keys. Take for example a
+        # fully dense database with objects (a,b) in the interval 1-4:
+        # load(a=1)
+        # load(a=2, b=[3,4])
+        # => fetch(a=[1,2], b=[3,4])
+        # => [(a=1,b=3), (a=1,b=4), (a=2,b=3), (a=2,b=4)]
+        # I.e. (a=1,b=1) and (a=1,b=2) for load(a=1) are missing from the results.
+        if params.keys() != self.current_param_keys:
+            # TODO: What if we get calls load(a);load(b);load(a);load(b)? Could probably
+            #  maintain multiple batches in a self.batches[param_keys] if necessary.
+            self.loader.batch = None  # forces creation of a new batch on loader.load()
+            self.current_param_keys = params.keys()
+
+        # Convert all parameter values to sets for uniform processing
+        for key, value in params.items():
+            if not isinstance(value, Iterable) or isinstance(value, str):
+                value = (value,)
+            params[key] = set(value)
+
+        return self.loader.load(params)
+
+    async def load_uuids(self, **params: Union[str, Iterable]) -> List[str]:
+        """
+        Like load(), but map results back into UUIDs.
+        load_uuids(**params) == fetch(**params)
+        """
+        return [x["id"] for x in await self.load(**params)]
+
+    async def _load_loads(self, params_list: List[Dict[str, set]]) -> List[List[Dict]]:
+        """
+        Called by the DataLoader once all the load() calls have been collected.
+        Takes a list of arguments to the original load() calls, and must return a list
+        of the same length, corresponding to the return value for each load().
+        """
+        param_keys = params_list[0].keys()  # all parameter keys in the batch are equal
+        grouped_params = group_params(params_list)  # [{a: 1}, {a: 2}] -> {a: [1,2]}
+
+        # Get the UUIDs of the objects we need to fully fetch
+        only_uuids = grouped_params.keys() == {"uuid"}
+        if only_uuids:
+            uuids = grouped_params["uuid"]
+        else:
+            uuid_results = await self.fetch(
+                **grouped_params,
+                list=True,
+            )
+            uuids = [r["id"] for r in uuid_results]
+
+        # Fully fetch objects
+        results = await self.fetch(uuid=uuids)
+
+        # To associate each result object with the load() call(s!) that caused it, we
+        # establish a mapping from each requested parameter (key,value)-pair into the
+        # load() call(s) with that parameter pair. As an example, consider the calls:
+        # X = load(a=1, b=[5,6])
+        # Y = load(a=2, b=[6,7])
+        # Z = load(a=3, b=6)
+        # calls_for_params = {
+        #   a: {1: {X}, 2: {Y}, 3: {Z}},
+        #   b: {5: {X}, 6: {X,Y,Z}, 7: {Y}}
+        # }
+        calls_for_params = defaultdict(lambda: defaultdict(set))
+        for i, param in enumerate(params_list):
+            for key, values in param.items():
+                for value in values:
+                    calls_for_params[key][value].add(i)
+
+        # To support multi-parameter load()s, a result object is associated with the
+        # call if and only if its values matches the call parameters on *all* of the
+        # parameter keys. Note that result objects may have multiple values for each
+        # key. For example, consider the result object (a=[1,3], b=6]):
+        # calls_for_params[a][1] => {X}
+        # calls_for_params[a][3] => {Z}
+        # calls_for_params[b][6] => {X,Y,Z}
+        # Intersection(
+        #   Union({X},{Z}),  # a
+        #   Union({X,Y,Z}),  # b
+        # ) = {X,Z}, therefore add the result to X and Z's results.
+        # In the implementation, calls are referenced by their index in params_list.
+        if not param_keys:
+            # If the call parameters are empty, however, each call gets all objects
+            # since none of them are filtering and we know the parameter keys are equal.
+            return [results for _ in params_list]
+
+        results_for_calls = list([] for _ in params_list)
+        for result in results:
+            # Find values in result for all parameter keys => [(a,1), (b,6), (a,3)]
+            result_param_items = ParameterValuesExtractor.get_key_value_items(
+                result, param_keys
+            )
+            # Collect calls matching ANY value from parameters => {a: {X,Z}, b: {X,Y,Z}}
+            result_param_calls = defaultdict(set)
+            for key, value in result_param_items:
+                result_param_calls[key].update(calls_for_params[key][value])
+            # Collapse into calls matching on ALL key,value parameters => {X,Z}
+            result_calls = set.intersection(*result_param_calls.values())
+            # Add this result to the matching calls => {X: [result], Y: [], Z: [result]}
+            for call in result_calls:
+                results_for_calls[call].append(result)
+
+        return results_for_calls
+
     async def fetch(self, **params):
         async with ClientSession() as session:
             response = await session.get(
                 self.base_path,
-                params=param_exotics_to_strings({**self.connector.defaults, **params}))
+                # We send the parameters as JSON through the body of the GET request to
+                # allow arbitrarily many, as opposed to being limited by the length of a
+                # URL if we were using query parameters.
+                json=jsonable_encoder(
+                    param_exotics_to_strings({**self.connector.defaults, **params})
+                ),
+            )
             await _check_response(response)
-
             try:
-                ret = (await response.json())['results'][0]
+                ret = (await response.json())["results"][0]
                 return ret
             except IndexError:
                 return []
 
-    async def get_all(self, changed_since: typing.Optional[datetime] = None, **params):
+    async def get_all(self, changed_since: Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -316,64 +567,38 @@ class Scope(BaseScope):
         assert "start" not in params, ass_msg.format("start", ", use 'paged_get'")
         assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
-        wantregs = not params.keys().isdisjoint(
-            {'registreretfra', 'registrerettil'}
-        )
-        response = await self.fetch(**dict(params), list=1)
-
+        response = await self.load(**params)
+        wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
         return filter_registrations(
             response=response, wantregs=wantregs, changed_since=changed_since
         )
 
     async def get_all_by_uuid(
         self,
-        uuids: typing.Union[typing.List, typing.Set],
-        changed_since: typing.Optional[datetime] = None,
-    ) -> typing.Iterable[typing.Tuple[str, typing.Dict[typing.Any, typing.Any]]]:
-
-        """Get a list of objects by their UUIDs.
-
+        uuids: Union[List, Set],
+        changed_since: Optional[datetime] = None,
+    ) -> Iterable[Tuple[str, Dict[Any, Any]]]:
+        """
+        Get a list of objects by their UUIDs.
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
-
-        # There is currently an issue in uvicorn related to long request URLs
-        # https://github.com/encode/uvicorn/issues/344
-        # Until it is fixed we need to enfore a max length of requests
-
-        # I haven't been able to determine exactly how long requests can be
-        # The following value is based purely on experimentation
-        max_uuid_part_length = 5000
-        # length of uuid + '?uuid=' = 42
-        uuids_per_chunk = math.floor(max_uuid_part_length / 42)
-        uuid_chunks = chunked(uuids, uuids_per_chunk)
-
-        # # heuristic, depends on who is serving this app
-        # n_chunk_target = multiprocessing.cpu_count() * 2 + 1
-        # length = len(uuids)
-        # min_size = 20
-        # n_chunks = n_chunk_target
-        # if length < min_size:
-        #     n_chunks = 1
-        #
-        # # chunk to get some 'fake' performance by parallelize
-        # uuid_chunks = divide(n_chunks, uuids)
-
-        need_flat = await gather(*[create_task(self.fetch(uuid=list(ch)))
-                                   for ch in uuid_chunks])
-        ret = [x for chunk in need_flat for x in chunk]
-
-        # ret = await self.fetch(uuid=uuids)
+        ret = await self.load(uuid=uuids)
         return filter_registrations(
             response=ret, wantregs=False, changed_since=changed_since
         )
 
-    async def paged_get(self,
-                        func: typing.Callable[['Connector', typing.Any, typing.Any],
-                                              typing.Union[
-                                                  typing.Any, typing.Coroutine]], *,
-                        start=0, limit=0,
-                        uuid_filters=None,
-                        **params):
+    async def paged_get(
+        self,
+        func: Callable[
+            ["Connector", Any, Any],
+            Union[Any, Coroutine],
+        ],
+        *,
+        start=0,
+        limit=0,
+        uuid_filters=None,
+        **params,
+    ):
         """Perform a search on given params, filter and return the result.
 
         :code:`func` is a function from (lora-connector, obj_id, obj) to
@@ -407,23 +632,19 @@ class Scope(BaseScope):
         else:
             obj_iter = starmap(partial(func, self.connector), obj_iter)
 
-        return {
-            'total': total,
-            'offset': start,
-            'items': list(obj_iter)
-        }
+        return {"total": total, "offset": start, "items": list(obj_iter)}
 
     async def get(self, uuid, **params):
-        d = await self.fetch(uuid=str(uuid), **params)
+        d = await self.load(uuid=str(uuid), **params)
 
         if not d or not d[0]:
             return None
 
-        registrations = d[0]['registreringer']
+        registrations = d[0]["registreringer"]
 
         assert len(d) == 1
 
-        if params.keys() & {'registreretfra', 'registrerettil'}:
+        if params.keys() & {"registreretfra", "registrerettil"}:
             return registrations
         else:
             assert len(registrations) == 1
@@ -435,38 +656,35 @@ class Scope(BaseScope):
 
         if uuid:
             async with ClientSession() as session:
-                r = await session.put(
-                    '{}/{}'.format(self.base_path, uuid), json=obj)
+                r = await session.put("{}/{}".format(self.base_path, uuid), json=obj)
 
                 async with r:
                     await _check_response(r)
-                    return (await r.json())['uuid']
+                    return (await r.json())["uuid"]
         else:
             async with ClientSession() as session:
                 r = await session.post(self.base_path, json=obj)
                 await _check_response(r)
-                return (await r.json())['uuid']
+                return (await r.json())["uuid"]
 
     async def delete(self, uuid):
         async with ClientSession() as session:
-            response = await session.delete('{}/{}'.format(self.base_path, uuid))
+            response = await session.delete("{}/{}".format(self.base_path, uuid))
             await _check_response(response)
 
     async def update(self, obj, uuid):
         async with ClientSession() as session:
-            url = '{}/{}'.format(self.base_path, uuid)
+            url = "{}/{}".format(self.base_path, uuid)
             response = await session.patch(url, json=obj)
             if response.status == 404:
                 logger.warning("could not update nonexistent LoRa object", url=url)
             else:
                 await _check_response(response)
-                return (await response.json()).get('uuid', uuid)
+                return (await response.json()).get("uuid", uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
-            await self.get(obj, **params)
-            if isinstance(obj, (str, uuid.UUID))
-            else obj
+            await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj
         )
 
         if not reg:
