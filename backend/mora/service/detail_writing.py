@@ -73,7 +73,7 @@ async def ahandle_requests(
 
 @router.post('/details/create', status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
-def create(
+async def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -447,12 +447,12 @@ def create(
       ]
 
     """
-    return handle_requests(reqs, mapping.RequestType.CREATE)
+    return await ahandle_requests(reqs, mapping.RequestType.CREATE)
 
 
 @router.post('/details/edit')
 # @util.restrictargs('force', 'triggerless')
-def edit(
+async def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner)
 ):
@@ -960,7 +960,7 @@ def edit(
     See :ref:`Adresses <address>` for more information.
 
     """
-    return handle_requests(reqs, mapping.RequestType.EDIT)
+    return await ahandle_requests(reqs, mapping.RequestType.EDIT)
 
 
 @router.post('/details/terminate')
