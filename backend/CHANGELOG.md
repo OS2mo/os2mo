@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.4.2 - 2021-10-22
+------------------
+
+[#46504] Fix memory leak caused by `in_separate_thread` introduced in 718bfa5e.
+
 3.4.1 - 2021-10-21
 ------------------
 
