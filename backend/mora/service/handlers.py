@@ -13,7 +13,6 @@ import typing
 from structlog import get_logger
 
 from mora.async_util import async_to_sync
-from mora.async_util import in_separate_thread
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -135,11 +134,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         })
         self.trigger_results_before = None
         if not util.get_args_flag("triggerless"):
-            self.trigger_results_before = in_separate_thread(
-                async_to_sync(Trigger.run)
-            )(
-                self.trigger_dict
-            )
+            self.trigger_results_before = async_to_sync(Trigger.run)(self.trigger_dict)
 
     @classmethod
     async def construct(cls, *args, **kwargs):
@@ -255,11 +250,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         })
         self.trigger_results_after = None
         if not util.get_args_flag("triggerless"):
-            self.trigger_results_after = in_separate_thread(
-                async_to_sync(Trigger.run)
-            )(
-                self.trigger_dict
-            )
+            self.trigger_results_after = async_to_sync(Trigger.run)(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
 

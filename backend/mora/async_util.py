@@ -4,7 +4,6 @@ import asyncio
 import threading
 import typing
 from asyncio import set_event_loop
-from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 
 from aiohttp import ClientSession
@@ -87,23 +86,5 @@ def async_to_sync(f: typing.Callable):
             set_event_loop(loop)
 
         return loop.run_until_complete(__session_context_helper(f(*args, **kwargs)))
-
-    return wrapper
-
-
-def in_separate_thread(f: typing.Callable):
-    """
-    Spawn an entirely separate thread to run this function in. Decorator designed.
-
-    Ugly solution to the fact that the trigger system is not yet ported to async.
-    :param f: A callable
-    :return: return value of f
-    """
-
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(f, *args, **kwargs)
-            return future.result()
 
     return wrapper
