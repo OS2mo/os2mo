@@ -9,11 +9,12 @@ from mora.lora import group_params
 class TestLoraGroupParams:
     def test_group_params(self):
         actual = group_params(
-            [
-                {"a": {1}, "b": {11}},
-                {"a": {2}, "b": {22, 33}},
-                {"a": {3}, "b": {33}},
-            ]
+            param_keys=("a", "b"),
+            params_list=[
+                (frozenset({1}), frozenset({11})),
+                (frozenset({2}), frozenset({22, 33})),
+                (frozenset({3}), frozenset({33})),
+            ],
         )
         expected = {
             "a": {1, 2, 3},

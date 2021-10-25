@@ -688,6 +688,9 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
+        # Create a new connector to clear the cache
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
         actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
@@ -774,6 +777,9 @@ class Tests(tests.cases.LoRATestCase):
                 ]
             },
         )
+
+        # Create a new connector to clear the cache
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(
             association_uuid

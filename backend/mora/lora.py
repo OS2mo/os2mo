@@ -18,6 +18,7 @@ from typing import Callable
 from typing import Container
 from typing import Coroutine
 from typing import Dict
+from typing import FrozenSet
 from typing import ItemsView
 from typing import Iterable
 from typing import List
@@ -25,6 +26,7 @@ from typing import NoReturn
 from typing import Optional
 from typing import Set
 from typing import Tuple
+from typing import TypeVar
 from typing import Union
 
 import lora_utils
@@ -39,6 +41,9 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+
+T = TypeVar("T")
+V = TypeVar("V")
 
 logger = get_logger()
 settings = config.get_settings()
@@ -178,8 +183,8 @@ def exotics_to_str(value):
 
 
 def param_exotics_to_strings(
-    params: Dict[Any, Union[bool, List, Set, str, int, uuid.UUID]]
-) -> Dict[Any, Union[str, int, List]]:
+    params: Dict[T, Union[bool, List, Set, str, int, uuid.UUID]]
+) -> Dict[T, Union[str, int, List]]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
@@ -288,13 +293,18 @@ class Connector:
         return self.scope(LoraObjectType.classification)
 
 
-def group_params(params_list: List[Dict[str, set]]) -> Dict[str, Set[str]]:
+def group_params(
+    param_keys: Tuple[T],
+    params_list: List[Tuple[FrozenSet[V]]],
+) -> Dict[T, Set[V]]:
     """
-    Transform parameters list from
+    Transform parameters from
+        (a, b)
+    and
         [
-            {"a": {1}, "b": {11}},
-            {"a": {2}, "b": {22, 33}},
-            {"a": {3}, "b": {33}},
+            ({1}, {11}),
+            ({2}, {22, 33}),
+            ({3}, {33}),
         ]
     to
         {
@@ -303,11 +313,11 @@ def group_params(params_list: List[Dict[str, set]]) -> Dict[str, Set[str]]:
         }
     with duplicates removed.
     """
-    params = defaultdict(set)
-    for param in params_list:
-        for key, value in param.items():
-            params[key].update(value)
-    return dict(params)  # we don't want defaultdict behaviour returned
+    grouped_params = defaultdict(set)
+    for params in params_list:
+        for key, values in zip(param_keys, params):
+            grouped_params[key].update(values)
+    return dict(grouped_params)  # we don't want defaultdict behaviour returned
 
 
 class ParameterValuesExtractor:
@@ -374,10 +384,9 @@ class BaseScope:
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.loader = DataLoader(load_fn=self._load_loads, cache=False)
-        self.current_param_keys = None
+        self.loaders: Dict[Tuple[str], DataLoader] = {}
 
-    def load(self, **params: Union[str, Any]) -> Awaitable[List[dict]]:
+    def load(self, **params: Any) -> Awaitable[List[dict]]:
         """
         Like fetch(), but utilises Strawberry DataLoader to bulk requests automatically.
         Unlike fetch(), we never return just a list of UUIDs, since full objects are
@@ -429,7 +438,7 @@ class Scope(BaseScope):
         if "bvn" in params:
             params["brugervendtnoegle"] = params.pop("bvn")
 
-        # We need to ensure all parameter keys in the batch are the same to avoid over-
+        # We need to ensure all parameter keys in a batch are equal to avoid over-
         # constraining the results of the calls with the fewest keys. Take for example a
         # fully dense database with objects (a,b) in the interval 1-4:
         # load(a=1)
@@ -437,19 +446,22 @@ class Scope(BaseScope):
         # => fetch(a=[1,2], b=[3,4])
         # => [(a=1,b=3), (a=1,b=4), (a=2,b=3), (a=2,b=4)]
         # I.e. (a=1,b=1) and (a=1,b=2) for load(a=1) are missing from the results.
-        if params.keys() != self.current_param_keys:
-            # TODO: What if we get calls load(a);load(b);load(a);load(b)? Could probably
-            #  maintain multiple batches in a self.batches[param_keys] if necessary.
-            self.loader.batch = None  # forces creation of a new batch on loader.load()
-            self.current_param_keys = params.keys()
+        param_keys = tuple(params.keys())  # dict keys must be hashable
+        loader = self.loaders.setdefault(
+            param_keys,
+            DataLoader(load_fn=partial(self._load_loads, param_keys)),
+        )
 
-        # Convert all parameter values to sets for uniform processing
-        for key, value in params.items():
+        # Convert all parameter values to sets for uniform processing. We pass it on to
+        # the Strawberry DataLoader as a tuple of frozensets because it needs to be
+        # hashable to enable caching. We don't need to pass the keys since the
+        # DataLoader is unique per key.
+        def to_frozenset(value: Any) -> frozenset:
             if not isinstance(value, Iterable) or isinstance(value, str):
                 value = (value,)
-            params[key] = set(value)
+            return frozenset(value)
 
-        return self.loader.load(params)
+        return loader.load(tuple(to_frozenset(v) for v in params.values()))
 
     async def load_uuids(self, **params: Union[str, Iterable]) -> List[str]:
         """
@@ -458,14 +470,18 @@ class Scope(BaseScope):
         """
         return [x["id"] for x in await self.load(**params)]
 
-    async def _load_loads(self, params_list: List[Dict[str, set]]) -> List[List[Dict]]:
+    async def _load_loads(
+        self,
+        param_keys: Tuple[str],
+        params_list: List[Tuple[frozenset]],
+    ) -> List[List[Dict]]:
         """
         Called by the DataLoader once all the load() calls have been collected.
         Takes a list of arguments to the original load() calls, and must return a list
         of the same length, corresponding to the return value for each load().
         """
-        param_keys = params_list[0].keys()  # all parameter keys in the batch are equal
-        grouped_params = group_params(params_list)  # [{a: 1}, {a: 2}] -> {a: [1,2]}
+        # (a,b), [(1,2), (3,4)] -> {a: [1,2], b: [3,4]}
+        grouped_params = group_params(param_keys, params_list)
 
         # Get the UUIDs of the objects we need to fully fetch
         only_uuids = grouped_params.keys() == {"uuid"}
@@ -492,8 +508,8 @@ class Scope(BaseScope):
         #   b: {5: {X}, 6: {X,Y,Z}, 7: {Y}}
         # }
         calls_for_params = defaultdict(lambda: defaultdict(set))
-        for i, param in enumerate(params_list):
-            for key, values in param.items():
+        for i, params in enumerate(params_list):
+            for key, values in zip(param_keys, params):
                 for value in values:
                     calls_for_params[key][value].add(i)
 
