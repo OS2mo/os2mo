@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.2.0 - 2021-10-25
+------------------
+
+[#44433] Implement details: ITSystem, Role, Leave
+
 3.1.0 - 2021-10-19
 ------------------
 
