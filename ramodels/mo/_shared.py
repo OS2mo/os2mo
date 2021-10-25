@@ -93,8 +93,20 @@ class AssociationType(MORef):
     pass
 
 
+class ITSystemRef(MORef):
+    """IT System reference."""
+
+    pass
+
+
 class JobFunction(MORef):
     """Job function reference."""
+
+    pass
+
+
+class LeaveType(MORef):
+    """Leave type reference."""
 
     pass
 
@@ -161,6 +173,12 @@ class Primary(MORef):
 
 class Responsibility(MORef):
     """Responsibility type reference."""
+
+    pass
+
+
+class RoleType(MORef):
+    """Role type reference."""
 
     pass
 
