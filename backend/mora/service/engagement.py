@@ -112,10 +112,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         })
 
     def submit(self):
+        raise NotImplementedError("Use asubmit instead")
+
+    async def asubmit(self):
         if hasattr(self, 'addresses'):
             for addr in self.addresses:
-                addr.submit()
-        return super().submit()
+                await addr.asubmit()
+        return await super().asubmit()
 
     def prepare_edit(self, req: dict):
         raise NotImplementedError("Use aprepare_edit instead")

@@ -10,6 +10,8 @@ import abc
 import inspect
 import typing
 
+import asyncio
+
 from structlog import get_logger
 
 from mora.async_util import async_to_sync
@@ -524,4 +526,6 @@ async def agenerate_requests(
 
 
 async def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
-    return [await request.asubmit() for request in requests]
+    return await asyncio.gather(
+        *(request.asubmit() for request in requests)
+    )
