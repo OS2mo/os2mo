@@ -175,8 +175,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         valid_to = util.POSITIVE_INFINITY
 
         if cpr:
-            await validator.does_employee_with_cpr_already_exist
-            (cpr, valid_from, valid_to, org_uuid, userid)
+            await validator.does_employee_with_cpr_already_exist(
+                cpr, valid_from, valid_to, org_uuid, userid
+            )
 
         user = common.create_bruger_payload(
             valid_from=valid_from,
