@@ -509,12 +509,14 @@ async def get_one_orgunit(
         "uuid": unitid,
     }
     if is_graphql():
-        r.update({
-            "unit_type_uuid": unittype,
-            "time_planning_uuid": timeplanning,
-            "org_unit_level_uuid": org_unit_level,
-            "parent_uuid": parentid,
-        })
+        r.update(
+            {
+                "unit_type_uuid": unittype,
+                "time_planning_uuid": timeplanning,
+                "org_unit_level_uuid": org_unit_level,
+                "parent_uuid": parentid,
+            }
+        )
 
     if details is UnitDetails.NCHILDREN:
         children = await c.organisationenhed.load_uuids(
@@ -1078,7 +1080,8 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     request = {}
     request[mapping.UUID] = unitid
     handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.REFRESH)
+        request, mapping.RequestType.REFRESH
+    )
     result = await handler.asubmit()
     return result
 
@@ -1516,5 +1519,6 @@ async def terminate_org_unit(
     await terminate_org_unit_validation(uuid, request)
     request[mapping.UUID] = uuid
     handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.TERMINATE)
+        request, mapping.RequestType.TERMINATE
+    )
     return await handler.asubmit()

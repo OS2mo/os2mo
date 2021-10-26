@@ -15,7 +15,7 @@ from ... import util
 _router = APIRouter()
 
 
-@_router.post('/org-unit/')
+@_router.post("/org-unit/")
 async def org_unit_validity(req: dict = Body(...)):
     """
     Verify that an org unit is valid within a given set of start/end dates
@@ -53,13 +53,12 @@ async def org_unit_validity(req: dict = Body(...)):
     org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
     valid_from, valid_to = util.get_validities(req)
 
-    await validator.is_date_range_in_org_unit_range(
-        org_unit, valid_from, valid_to)
+    await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
 
     return {"success": True}
 
 
-@_router.post('/employee/')
+@_router.post("/employee/")
 async def employee_validity(req: dict = Body(...)):
     """
     Verify that an employee is valid within a given set of start/end dates
@@ -97,7 +96,7 @@ async def employee_validity(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post('/cpr/')
+@_router.post("/cpr/")
 async def check_cpr(req: dict = Body(...)):
     """
     Verify that an employee with the given CPR no. does not already exist
@@ -133,7 +132,7 @@ async def check_cpr(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post('/active-engagements/')
+@_router.post("/active-engagements/")
 async def employee_engagements(req: dict = Body(...)):
     """
     Verify that an employee has active engagements
@@ -172,7 +171,7 @@ async def employee_engagements(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post('/existing-associations/')
+@_router.post("/existing-associations/")
 async def employee_existing_associations(req: dict = Body(...)):
     """
     Verify that an employee does not have existing associations for a given
@@ -221,7 +220,7 @@ async def employee_existing_associations(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post('/movable-org-unit/')
+@_router.post("/movable-org-unit/")
 async def movable_org_unit(req: dict = Body(...)):
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
 
@@ -230,7 +229,7 @@ async def movable_org_unit(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post('/candidate-parent-org-unit/')
+@_router.post("/candidate-parent-org-unit/")
 async def candidate_parent_org_unit(req: dict = Body(...)):
     """
     Verify that a given parent is a suitable candidate for an org unit move,
@@ -271,17 +270,14 @@ async def candidate_parent_org_unit(req: dict = Body(...)):
     parent_uuid = util.get_mapping_uuid(req, mapping.PARENT, required=True)
     valid_from = util.get_valid_from(req)
 
-    await validator.is_candidate_parent_valid(
-        org_unit_uuid, parent_uuid, valid_from
-    )
+    await validator.is_candidate_parent_valid(org_unit_uuid, parent_uuid, valid_from)
 
     return {"success": True}
 
 
-@_router.post('/address/')
+@_router.post("/address/")
 async def address_value(
-    req: dict = Body(...),
-    only_primary_uuid: Optional[bool] = None
+    req: dict = Body(...), only_primary_uuid: Optional[bool] = None
 ):
     """
     Verify that a given address value conforms to the format for the given
@@ -309,8 +305,7 @@ async def address_value(
     * ``V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL``
     """
 
-    address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE,
-                                              required=True)
+    address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE, required=True)
     value = util.checked_get(req, mapping.VALUE, default="", required=True)
 
     c = lora.Connector()
@@ -319,7 +314,7 @@ async def address_value(
         c, address_type_uuid, only_primary_uuid=only_primary_uuid
     )
 
-    scope = util.checked_get(type_obj, 'scope', '', required=True)
+    scope = util.checked_get(type_obj, "scope", "", required=True)
 
     handler = base.get_handler_for_scope(scope)
     await handler.validate_value(value)
@@ -329,4 +324,4 @@ async def address_value(
 
 # important to include AFTER path_operations are in place
 router = APIRouter()
-router.include_router(_router, prefix='/validate')
+router.include_router(_router, prefix="/validate")

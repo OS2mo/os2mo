@@ -34,15 +34,15 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
     :param admin_only: true if endpoint only accessible to admins
     """
 
-    logger.debug('_rbac called')
+    logger.debug("_rbac called")
 
     roles = token.realm_access.roles
 
     if ADMIN in roles:
-        logger.debug('User has admin role - write permission granted')
+        logger.debug("User has admin role - write permission granted")
         return
     if OWNER in roles and not admin_only:
-        logger.debug('User has owner role - checking ownership...')
+        logger.debug("User has owner role - checking ownership...")
 
         # E.g. the uuids variable will be {<uuid1>} if we are editing details
         # of an org unit or an employee and {<uuid1>, <uuid2>} if we are
@@ -71,19 +71,14 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
             *(get_owners(uuid, entity_type) for uuid in uuids)
         )
 
-        current_user_ownership_verified = [
-            (token.uuid in owner)
-            for owner in owners
-        ]
+        current_user_ownership_verified = [(token.uuid in owner) for owner in owners]
 
-        if (
-            current_user_ownership_verified and
-            all(current_user_ownership_verified)
-        ):
+        if current_user_ownership_verified and all(current_user_ownership_verified):
             logger.debug(f"User {token.preferred_username} authorized")
             return
 
-    logger.debug(f"User {token.preferred_username} with UUID "
-                 f"{token.uuid} not authorized")
+    logger.debug(
+        f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized"
+    )
 
-    raise AuthorizationError('Not authorized to perform this operation')
+    raise AuthorizationError("Not authorized to perform this operation")

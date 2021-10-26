@@ -4,9 +4,9 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''
+"""
 Update, i.e. re-fetch, a JSON fixture
-'''
+"""
 
 import json
 import os
@@ -17,14 +17,15 @@ import requests
 
 
 @click.command()
-@click.option('-u', '--base-url', default='http://localhost:5000')
-@click.argument('files', type=click.Path(exists=True, dir_okay=False),
-                required=True, nargs=-1)
+@click.option("-u", "--base-url", default="http://localhost:5000")
+@click.argument(
+    "files", type=click.Path(exists=True, dir_okay=False), required=True, nargs=-1
+)
 def main(base_url, files):
     sess = requests.Session()
 
     def get(url):
-        if url.startswith('/'):
+        if url.startswith("/"):
             url = base_url + url
         print(url, file=sys.stderr)
         r = sess.get(url)
@@ -36,7 +37,7 @@ def main(base_url, files):
         with open(fn) as fp:
             d = json.load(fp)
 
-        with open(fn + '~', 'w') as fp:
+        with open(fn + "~", "w") as fp:
             json.dump(
                 dict(zip(d, map(get, d))),
                 fp,
@@ -45,10 +46,10 @@ def main(base_url, files):
             )
 
             # ensure trailing newline
-            fp.write('\n')
+            fp.write("\n")
 
         os.rename(fp.name, fn)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

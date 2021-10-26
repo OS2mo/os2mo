@@ -26,21 +26,20 @@ def setup_metrics(app):
 
 
 def os2mo_version() -> Callable[[InstInfo], None]:
-    METRIC = Info('os2mo_version', 'Current version')
+    METRIC = Info("os2mo_version", "Current version")
     settings = get_settings()
 
     def instrumentation(_: InstInfo) -> None:
-        METRIC.info({
-            "mo_version": settings.commit_tag,
-            "mo_commit_sha": settings.commit_sha
-        })
+        METRIC.info(
+            {"mo_version": settings.commit_tag, "mo_commit_sha": settings.commit_sha}
+        )
+
     return instrumentation
 
 
 def amqp_enabled() -> Callable[[InstInfo], None]:
-    """Checks if AMQP is enabled in config.py::Settings
-    """
-    METRIC = Gauge('amqp_enabled', 'AMQP enabled')
+    """Checks if AMQP is enabled in config.py::Settings"""
+    METRIC = Gauge("amqp_enabled", "AMQP enabled")
 
     def instrumentation(_: InstInfo):
         METRIC.set(get_settings().amqp_enable)
@@ -54,7 +53,7 @@ def amqp_health() -> Callable[[InstInfo], None]:
     Updates metric with `True` if open. `False` if not open or an error occurs.
     Doesn't run if AMQP support is disabled.
     """
-    METRIC = Gauge('amqp_health', 'AMQP health')
+    METRIC = Gauge("amqp_health", "AMQP health")
 
     async def instrumentation(_: InstInfo) -> None:
         METRIC.set(await amqp())
@@ -66,7 +65,7 @@ def oio_rest_health() -> Callable[[InstInfo], None]:
     """Check if the configured oio_rest can be reached
     True if reachable. False if not
     """
-    METRIC = Gauge('oio_rest_health', 'OIO REST health')
+    METRIC = Gauge("oio_rest_health", "OIO REST health")
 
     async def instrumentation(_: InstInfo) -> None:
         METRIC.set(await oio_rest())
@@ -79,7 +78,7 @@ def dataset_health() -> Callable[[InstInfo], None]:
     exists in the system
     True if data. False if not.
     """
-    METRIC = Gauge('dataset_health', 'Dataset health')
+    METRIC = Gauge("dataset_health", "Dataset health")
 
     async def instrumentation(_: InstInfo):
         METRIC.set(await dataset())
@@ -91,7 +90,7 @@ def dar_health() -> Callable[[InstInfo], None]:
     """Check whether DAR can be reached
     True if reachable. False if not.
     """
-    METRIC = Gauge('dar_health', 'DAR health')
+    METRIC = Gauge("dar_health", "DAR health")
 
     async def instrumentation(_: InstInfo):
         METRIC.set(await dar())
@@ -103,7 +102,7 @@ def keycloak_health() -> Callable[[InstInfo], None]:
     """Check whether Keycloak can be reached
     True if reachable. False if not.
     """
-    METRIC = Gauge('keycloak_health', 'Keycloak health')
+    METRIC = Gauge("keycloak_health", "Keycloak health")
 
     async def instrumentation(_: InstInfo):
         METRIC.set(await keycloak())

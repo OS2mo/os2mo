@@ -9,8 +9,8 @@ from ... import exceptions
 
 
 class WWWAddressHandler(base.AddressHandler):
-    scope = 'WWW'
-    prefix = 'urn:magenta.dk:www:'
+    scope = "WWW"
+    prefix = "urn:magenta.dk:www:"
 
     @staticmethod
     @forceable

@@ -5,10 +5,7 @@ import unittest.mock
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from pydantic import ValidationError, MissingError
 from pydantic.error_wrappers import ErrorWrapper
-from starlette.status import (
-    HTTP_401_UNAUTHORIZED,
-    HTTP_200_OK
-)
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_200_OK
 from os2mo_fastapi_utils.auth.test_helper import (
     ensure_endpoints_depend_on_oidc_auth_function,
     ensure_no_auth_endpoints_do_not_depend_on_auth_function,
@@ -34,29 +31,29 @@ class TestEndpointAuthDependency(unittest.TestCase):
 
     def setUp(self) -> None:
         self.no_auth_endpoints = (
-            '/health/amqp',
-            '/health/oio_rest',
-            '/health/configuration_database',
-            '/health/dataset',
-            '/health/dar',
-            '/health/keycloak',
-            '/health/',
-            '/version/',
-            '/forespoergsler/',
-            '/organisationssammenkobling/',
-            '/medarbejder/{path:path}',
-            '/medarbejder/',
-            '/organisation/{path:path}',
-            '/organisation/',
-            '/',
-            '/favicon.ico',
-            '/indsigt',
-            '/service/keycloak.json',
-            '/service/token',
-            '/service/{rest_of_path:path}',
-            '/testing/testcafe-db-setup',
-            '/testing/testcafe-db-teardown',
-            '/metrics'
+            "/health/amqp",
+            "/health/oio_rest",
+            "/health/configuration_database",
+            "/health/dataset",
+            "/health/dar",
+            "/health/keycloak",
+            "/health/",
+            "/version/",
+            "/forespoergsler/",
+            "/organisationssammenkobling/",
+            "/medarbejder/{path:path}",
+            "/medarbejder/",
+            "/organisation/{path:path}",
+            "/organisation/",
+            "/",
+            "/favicon.ico",
+            "/indsigt",
+            "/service/keycloak.json",
+            "/service/token",
+            "/service/{rest_of_path:path}",
+            "/testing/testcafe-db-setup",
+            "/testing/testcafe-db-teardown",
+            "/metrics",
         )
         self.all_routes = main.app.routes
         self.auth_coroutine = auth
@@ -74,9 +71,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
-    app_settings_overrides = {
-        "v1_api_enable": True
-    }
+    app_settings_overrides = {"v1_api_enable": True}
 
     def setUp(self):
         super().setUp()
@@ -85,59 +80,47 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
     def test_auth_service_address(self):
         self.assertRequestFails(
-            '/service/e/00000000-0000-0000-0000-000000000000/details/address',
-            HTTP_401_UNAUTHORIZED
+            "/service/e/00000000-0000-0000-0000-000000000000/details/address",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_cpr(self):
-        self.assertRequestFails(
-            '/service/e/cpr_lookup/?q=1234',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/e/cpr_lookup/?q=1234", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_details_reading(self):
         self.assertRequestFails(
-            '/service/e/00000000-0000-0000-0000-000000000000/details/',
-            HTTP_401_UNAUTHORIZED
+            "/service/e/00000000-0000-0000-0000-000000000000/details/",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_details_writing(self):
         self.assertRequestResponse(
-            '/service/details/create',
-            'Not authenticated',
+            "/service/details/create",
+            "Not authenticated",
             status_code=HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_service_employee(self):
         self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/e/',
-            HTTP_401_UNAUTHORIZED
+            "/service/o/00000000-0000-0000-0000-000000000000/e/", HTTP_401_UNAUTHORIZED
         )
 
     def test_auth_service_exports(self):
-        self.assertRequestFails(
-            '/service/exports/not-important',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/exports/not-important", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_facets(self):
-        self.assertRequestFails(
-            '/service/c/ancestor-tree',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_integration_data(self):
         self.assertRequestFails(
-            '/service/ou'
-            '/00000000-0000-0000-0000-000000000000/integration-data',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou" "/00000000-0000-0000-0000-000000000000/integration-data",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_itsystem(self):
         self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/it/',
-            HTTP_401_UNAUTHORIZED
+            "/service/o/00000000-0000-0000-0000-000000000000/it/", HTTP_401_UNAUTHORIZED
         )
 
     def test_auth_service_kle(self):
@@ -145,42 +128,36 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         pass
 
     def test_auth_service_org(self):
-        self.assertRequestFails(
-            '/service/o/',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/o/", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_orgunit(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/children',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou/00000000-0000-0000-0000-000000000000/children",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_related(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/map',
+            "/service/ou/00000000-0000-0000-0000-000000000000/map",
             HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_service_configuration(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/configuration',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_validate(self):
         self.assertRequestFails(
-            '/service/validate/org-unit/',
+            "/service/validate/org-unit/",
             HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_api_v1(self):
-        self.assertRequestFails(
-            '/api/v1/it',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
 
 
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
@@ -189,9 +166,7 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     and one from the /api/v1 endpoints)
     """
 
-    app_settings_overrides = {
-        "v1_api_enable": True
-    }
+    app_settings_overrides = {"v1_api_enable": True}
 
     def setUp(self):
         super().setUp()
@@ -201,18 +176,10 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
 
     def test_auth_service_org(self):
         self.load_sample_structures(minimal=True)
-        self.assertRequest(
-            '/service/o/',
-            HTTP_200_OK,
-            set_auth_header=True
-        )
+        self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
     def test_auth_api_v1(self):
-        self.assertRequest(
-            '/api/v1/it',
-            HTTP_200_OK,
-            set_auth_header=True
-        )
+        self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
 
     def test_client_secret_token(self):
         # Verify that a token obtained from a client secret (e.g. via the
@@ -221,38 +188,30 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         token = self.get_token(use_client_secret=True)
 
         self.assertRequest(
-            '/api/v1/it',
-            HTTP_200_OK,
-            headers={'Authorization': 'Bearer ' + token}
+            "/api/v1/it", HTTP_200_OK, headers={"Authorization": "Bearer " + token}
         )
 
 
 class TestTokenModel(tests.cases.LoRATestCase):
-
-    @util.override_config(
-        Settings(keycloak_rbac_enabled=True, confdb_show_owner=True)
-    )
+    @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
     def test_uuid_required_if_client_is_mo(self):
         with self.assertRaises(ValidationError) as err:
-            KeycloakToken(azp='mo')
+            KeycloakToken(azp="mo")
         errors = err.exception.errors()[0]
 
         self.assertEqual(
-            'The uuid user attribute is missing in the token',
-            errors['msg']
+            "The uuid user attribute is missing in the token", errors["msg"]
         )
-        self.assertEqual('value_error', errors['type'])
+        self.assertEqual("value_error", errors["type"])
 
 
 class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
-
-    @unittest.mock.patch('mora.auth.keycloak.oidc.auth')
+    @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
     def test_401_when_uuid_missing_in_token(self, mock_auth):
         self.load_sample_structures(minimal=True)
 
         validation_err = ValidationError(
-            errors=[ErrorWrapper(MissingError(), loc='uuid')],
-            model=Token
+            errors=[ErrorWrapper(MissingError(), loc="uuid")], model=Token
         )
 
         def fake_auth():
@@ -262,23 +221,14 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
         # Make call to random endpoint
         r = self.assertRequest(
-            '/service/o/',
-            status_code=HTTP_401_UNAUTHORIZED,
-            set_auth_header=True
+            "/service/o/", status_code=HTTP_401_UNAUTHORIZED, set_auth_header=True
         )
-        self.assertEqual(
-            {
-                'status': 'Unauthorized',
-                'msg': str(validation_err)
-            },
-            r
-        )
+        self.assertEqual({"status": "Unauthorized", "msg": str(validation_err)}, r)
 
 
 # TODO: Find a way to test that endpoints works when auth is disabled
-@unittest.skip('Not working...(?)')
+@unittest.skip("Not working...(?)")
 class TestAuthDisabled(tests.cases.LoRATestCase):
-
     def setUp(self) -> None:
         super().setUp()
         self.load_sample_structures()
@@ -286,4 +236,4 @@ class TestAuthDisabled(tests.cases.LoRATestCase):
 
     @util.override_config(Settings(os2mo_auth=False))
     def test_no_token_required_when_auth_disabled(self):
-        self.assertRequest('/service/o/')
+        self.assertRequest("/service/o/")

@@ -14,6 +14,7 @@ from uuid import UUID
 from fastapi import Request
 
 from mora import common
+
 # import mora.main
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
@@ -30,7 +31,7 @@ from mora.mapping import (
     PERSON,
     ROLE,
     TYPE,
-    USER_FIELD
+    USER_FIELD,
 )
 
 logger = get_logger()
@@ -38,12 +39,12 @@ logger = get_logger()
 
 def _get_terminate_entity_regex(entity: EntityType) -> re.Pattern:
     return re.compile(
-        f'/service/{entity.value}/[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-'
-        f'[0-9a-f]{{4}}-[0-9a-f]{{12}}/terminate'
+        f"/service/{entity.value}/[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-"
+        f"[0-9a-f]{{4}}-[0-9a-f]{{12}}/terminate"
     )
 
 
-UUID_KEY = 'uuid'
+UUID_KEY = "uuid"
 
 # URL paths
 
@@ -58,8 +59,8 @@ UUID_KEY = 'uuid'
 # TERMINATE_UNIT = _get_terminate_entity_regex('terminate_org_unit')
 # TERMINATE_EMPLOYEE = _get_terminate_entity_regex('terminate_employee')
 
-CREATE_OU = '/service/ou/create'
-TERMINATE_DETAIL = '/service/details/terminate'
+CREATE_OU = "/service/ou/create"
+TERMINATE_DETAIL = "/service/details/terminate"
 TERMINATE_UNIT = _get_terminate_entity_regex(EntityType.ORG_UNIT)
 TERMINATE_EMPLOYEE = _get_terminate_entity_regex(EntityType.EMPLOYEE)
 
@@ -68,8 +69,9 @@ def return_value_logger(coro):
     @functools.wraps(coro)
     async def wrapper(*args, **kwargs):
         result = await coro(*args, **kwargs)
-        logger.debug(f'{coro.__name__} returns', return_value=result)
+        logger.debug(f"{coro.__name__} returns", return_value=result)
         return result
+
     return wrapper
 
 
@@ -92,6 +94,7 @@ def get_ancestor_uuids(tree: List[dict]) -> Set[UUID]:
     if CHILDREN in node:
         uuids = uuids.union(get_ancestor_uuids(node[CHILDREN]))
     return uuids
+
 
 # The following functions (or coroutines) are strategies for extracting the
 # org unit UUID(s) when an endpoint with the RBAC feature enabled is called.
@@ -116,7 +119,7 @@ async def get_entity_uuids(request: Request) -> Set[UUID]:
     :return: list of the entity UUID(s)
     """
 
-    logger.debug('uuid_extract_strategy called')
+    logger.debug("uuid_extract_strategy called")
 
     if request.url.path == CREATE_OU:
         return await create_ou_extract_strategy(request)
@@ -139,13 +142,13 @@ async def create_ou_extract_strategy(request: Request) -> Set[UUID]:
     :return: list containing the org unit UUID
     """
 
-    logger.debug('create_ou_uuid_extract_strategy called')
+    logger.debug("create_ou_uuid_extract_strategy called")
 
     payload = await request.json()
     if PARENT not in payload:
         return set()
     uuid = payload[PARENT][UUID_KEY]
-    logger.debug('Parent org unit UUID is ' + uuid)
+    logger.debug("Parent org unit UUID is " + uuid)
 
     return {UUID(uuid)}
 
@@ -159,7 +162,7 @@ def path_extract_strategy(request: Request) -> Set[UUID]:
     :return: list containing the org unit UUID
     """
 
-    logger.debug('path_extract_strategy called')
+    logger.debug("path_extract_strategy called")
 
     return {UUID(request.path_params.get(UUID_KEY))}
 
@@ -174,7 +177,7 @@ async def terminate_detail_extract_strategy(request: Request) -> Set[UUID]:
     :return: list containing the org unit UUID
     """
 
-    logger.debug('terminate_detail_uuid_extract_strategy called')
+    logger.debug("terminate_detail_uuid_extract_strategy called")
 
     payload = await request.json()
 
@@ -212,17 +215,17 @@ async def json_extract_strategy(request: Request) -> Set[UUID]:
     :return: list of the org unit UUID(s)
     """
 
-    logger.debug('json_uuid_extract_strategy called')
+    logger.debug("json_uuid_extract_strategy called")
 
     payload = await request.json()
     if isinstance(payload, dict):
         payload = [payload]
 
     if not all(obj.get(TYPE) == payload[0].get(TYPE) for obj in payload):
-        logger.debug('Object types not identical')
+        logger.debug("Object types not identical")
         raise HTTPException(
             error_key=ErrorCodes.E_INVALID_INPUT,
-            message='Object types in payload list must be identical'
+            message="Object types in payload list must be identical",
         )
     _type = payload[0].get(TYPE)
 
@@ -234,9 +237,7 @@ async def json_extract_strategy(request: Request) -> Set[UUID]:
                 return UUID(obj[ORG_UNIT][UUID_KEY])
             if obj[TYPE] == ENGAGEMENT:
                 org_function = await _get_org_function(obj)
-                org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(
-                    org_function
-                )
+                org_unit_uuid = ASSOCIATED_ORG_UNITS_FIELD.get_uuid(org_function)
                 return UUID(org_unit_uuid)
             return UUID(obj[DATA][ORG_UNIT][UUID_KEY])
         # Creating or editing detail (address, IT-system,...)
@@ -289,10 +290,10 @@ async def get_entity_type(request: Request) -> EntityType:
 
     types = await asyncio.gather(*(obj_to_type(obj) for obj in payload))
     if not all(_type == types[0] for _type in types):
-        logger.debug('Types not identical')
+        logger.debug("Types not identical")
         raise HTTPException(
             error_key=ErrorCodes.E_INVALID_INPUT,
-            message='Object types in payload list must be identical'
+            message="Object types in payload list must be identical",
         )
 
     return types[0]
@@ -301,6 +302,7 @@ async def get_entity_type(request: Request) -> EntityType:
 async def _get_org_function(payload: dict) -> dict:
     c = common.get_connector()
     return await c.organisationfunktion.get(uuid=payload[UUID_KEY])
+
 
 # TODO: so far there are only integration tests covering this module -
 #  unit tests are still missing - and since this code probably will be

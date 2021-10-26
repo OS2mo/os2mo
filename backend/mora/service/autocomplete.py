@@ -19,11 +19,9 @@ async def get_results(entity, class_uuids, query):
 
         # Fetch autocomplete results from LoRa
         scope = AutocompleteScope(connector, entity)
-        results = (
-            await scope.fetch(
-                phrase=util.query_to_search_phrase(query),
-                class_uuids=class_uuids,
-            )
+        results = await scope.fetch(
+            phrase=util.query_to_search_phrase(query),
+            class_uuids=class_uuids,
         )
 
         # Add class title to each attr of each result
@@ -34,9 +32,9 @@ async def get_results(entity, class_uuids, query):
                 out = {"uuid": class_uuid, "value": attr[1]}
                 try:
                     class_data = class_map[class_uuid]
-                    out["title"] = (
-                        class_data["attributter"]["klasseegenskaber"][0]["titel"]
-                    )
+                    out["title"] = class_data["attributter"]["klasseegenskaber"][0][
+                        "titel"
+                    ]
                 except (KeyError, TypeError):
                     out["title"] = None
                 attrs[idx] = out

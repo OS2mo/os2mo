@@ -140,8 +140,10 @@ async def keycloak():
     Check if Keycloak is running
     """
     settings = config.get_settings()
-    url = f"{settings.keycloak_schema}://{settings.keycloak_host}" \
-          f":{settings.keycloak_port}/auth/"
+    url = (
+        f"{settings.keycloak_schema}://{settings.keycloak_host}"
+        f":{settings.keycloak_port}/auth/"
+    )
     return await _is_endpoint_reachable(url)
 
 

@@ -13,8 +13,7 @@ from tests import util
 
 
 HTTPX_MOCK_RESPONSE = Response(
-    status_code=404,
-    request=Request('GET', 'http://some-url.xyz')
+    status_code=404, request=Request("GET", "http://some-url.xyz")
 )
 
 
@@ -24,13 +23,13 @@ class TestOIORestHealth:
         assert await health.oio_rest()
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient.get')
+    @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_if_unreachable(self, mock_get):
         mock_get.return_value = HTTPX_MOCK_RESPONSE
         assert not await health.oio_rest()
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient.get')
+    @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
         mock_get.side_effect = RuntimeError(
@@ -58,11 +57,11 @@ class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     @async_to_sync
     async def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(config.get_settings().lora_url +
-                 "organisation/organisation?"
-                 "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
-                 payload={"results": [[]]},
-                 )
+        mock.get(
+            config.get_settings().lora_url + "organisation/organisation?"
+            "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
+            payload={"results": [[]]},
+        )
         actual = await health.dataset()
 
         self.assertEqual(False, actual)
@@ -71,12 +70,13 @@ class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     @async_to_sync
     async def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get((config.get_settings().lora_url +
-                  "organisation/organisation"
-                  "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
-                  ),
-                 payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
-                 )
+        mock.get(
+            (
+                config.get_settings().lora_url + "organisation/organisation"
+                "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
+            ),
+            payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
+        )
 
         actual = await health.dataset()
 
@@ -85,22 +85,21 @@ class DatasetHealthTests(tests.cases.TestCase):
 
 class TestKeycloakHealth:
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient.get')
+    @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_true_if_reachable(self, mock_get):
         mock_get.return_value = Response(
-            status_code=200,
-            request=Request('GET', 'http://keycloak:8080/auth/')
+            status_code=200, request=Request("GET", "http://keycloak:8080/auth/")
         )
         assert await health.keycloak()
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient.get')
+    @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_if_unreachable(self, mock_get):
         mock_get.return_value = HTTPX_MOCK_RESPONSE
         assert not await health.keycloak()
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient.get')
+    @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
         mock_get.side_effect = RuntimeError(

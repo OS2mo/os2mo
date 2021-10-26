@@ -252,7 +252,4 @@ def to_only_uuid_model(model: BaseModel) -> BaseModel:
     for name, field in model.__fields__.items():
         fields[name] = mark_required(decide_type(name, field), field.required)
 
-    return create_model(
-        model.__name__ + "OnlyPrimaryUUID",
-        **fields
-    )
+    return create_model(model.__name__ + "OnlyPrimaryUUID", **fields)

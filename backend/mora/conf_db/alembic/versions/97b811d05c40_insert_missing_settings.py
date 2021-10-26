@@ -41,9 +41,7 @@ _DEFAULT_CONF = (
 
 def _find_missing_default_keys(session):
     """Check for missing default settings."""
-    query = select([Config.setting]).where(
-        Config.object == None  # noqa: E711
-    )
+    query = select([Config.setting]).where(Config.object == None)  # noqa: E711
     result = session.execute(query)
     settings_in_db = set(map(itemgetter(0), result))
     default = set(map(itemgetter(0), _DEFAULT_CONF))
