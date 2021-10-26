@@ -1,47 +1,58 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import os
+from itertools import chain
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import Optional
-from pathlib import Path
-from itertools import chain
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException as FastAPIHTTPException
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from more_itertools import only
+from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
+from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
+from os2mo_fastapi_utils.tracing import setup_instrumentation
+from os2mo_fastapi_utils.tracing import setup_logging
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
-from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
-from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
-from os2mo_fastapi_utils.tracing import setup_instrumentation, setup_logging
 from structlog import get_logger
-from structlog.processors import JSONRenderer
 from structlog.contextvars import merge_contextvars
-from more_itertools import only
+from structlog.processors import JSONRenderer
 
-from mora import health, log, config
+from . import exceptions
+from . import lora
+from . import service
+from . import triggers
+from .api.v1 import reading_endpoints
+from .config import Environment
+from .config import is_under_test
+from .exceptions import ErrorCodes
+from .exceptions import http_exception_to_json_response
+from .exceptions import HTTPException
+from .metrics import setup_metrics
+from mora import config
+from mora import health
+from mora import log
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
-from mora.auth.keycloak.router import keycloak_router
 from mora.auth.keycloak.oidc import authorization_exception_handler
+from mora.auth.keycloak.router import keycloak_router
+from mora.graphapi.main import setup_graphql
+from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.http import client
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
-from mora.graphapi.main import setup_graphql
-from mora.graphapi.middleware import GraphQLContextPlugin
 from tests.util import setup_test_routing
-from . import exceptions, lora, service
-from . import triggers
-from .api.v1 import reading_endpoints
-from .config import Environment, is_under_test
-from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .metrics import setup_metrics
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -108,16 +119,13 @@ async def fallback_handler(*args, **kwargs):
     https://github.com/tiangolo/fastapi/issues/2750#issuecomment-775526951
     :return:
     """
-    exc = only(filter(
-        lambda arg: isinstance(arg, Exception),
-        chain(args, kwargs.values())
-    ))
+    exc = only(
+        filter(lambda arg: isinstance(arg, Exception), chain(args, kwargs.values()))
+    )
     if exc and isinstance(exc, FastAPIHTTPException):
         return http_exception_to_json_response(exc=exc)
     if exc:
-        err = ErrorCodes.E_UNKNOWN.to_http_exception(
-            message=str(exc)
-        )
+        err = ErrorCodes.E_UNKNOWN.to_http_exception(message=str(exc))
         return http_exception_to_json_response(exc=err)
     err = ErrorCodes.E_UNKNOWN.to_http_exception(
         message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
@@ -125,9 +133,7 @@ async def fallback_handler(*args, **kwargs):
     return http_exception_to_json_response(exc=err)
 
 
-async def request_validation_handler(
-    request: Request, exc: RequestValidationError
-):
+async def request_validation_handler(request: Request, exc: RequestValidationError):
     """
     Ensure a nicely formatted json response, with
 
@@ -165,45 +171,52 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
                 QueryArgContextPlugin(),
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
-            )
+            ),
         )
     ]
-    tags_metadata = chain([
-        {
-            "name": "Reading",
-            "description": "Data reading endpoints for integrations.",
-        },
-        {
-            "name": "Service",
-            "description": "Mixed service data endpoints, supporting the UI.",
-        }
-    ], [
-        {
-            "name": "Service." + name,
-            "description": "",
-        } for name in service.routers.keys()
-    ], [
-        {
-            "name": "Auth",
-            "description": "Authentication endpoints.",
-        },
-        {
-            "name": "Meta",
-            "description": "Various unrelated endpoints.",
-        },
-        {
-            "name": "Testing",
-            "description": "Endpoints related to testing. Enabled by configuration.",
-        },
-        {
-            "name": "Health",
-            "description": "Healthcheck endpoints, called by the observability setup.",
-        },
-        {
-            "name": "Static",
-            "description": "Endpoints serving static frontend content.",
-        },
-    ])
+    tags_metadata = chain(
+        [
+            {
+                "name": "Reading",
+                "description": "Data reading endpoints for integrations.",
+            },
+            {
+                "name": "Service",
+                "description": "Mixed service data endpoints, supporting the UI.",
+            },
+        ],
+        [
+            {
+                "name": "Service." + name,
+                "description": "",
+            }
+            for name in service.routers.keys()
+        ],
+        [
+            {
+                "name": "Auth",
+                "description": "Authentication endpoints.",
+            },
+            {
+                "name": "Meta",
+                "description": "Various unrelated endpoints.",
+            },
+            {
+                "name": "Testing",
+                "description": "Endpoints related to testing. "
+                "Enabled by configuration.",
+            },
+            {
+                "name": "Health",
+                "description": "Healthcheck endpoints. "
+                "Called by the observability setup.",
+            },
+            {
+                "name": "Static",
+                "description": "Endpoints serving static frontend content.",
+            },
+        ],
+    )
     app = FastAPI(
         middleware=middleware,
         openapi_tags=list(tags_metadata),
@@ -231,13 +244,14 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
 
     for name, router in service.routers.items():
         app.include_router(
-            router, prefix="/service", tags=["Service." + name],
-            dependencies=[Depends(auth)]
+            router,
+            prefix="/service",
+            tags=["Service." + name],
+            dependencies=[Depends(auth)],
         )
     if settings.v1_api_enable:
         app.include_router(
-            reading_endpoints.router, tags=["Reading"],
-            dependencies=[Depends(auth)]
+            reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
         )
     app.include_router(
         keycloak_router(),
@@ -254,10 +268,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     )
 
     if not config.is_production():
-        app.include_router(
-            setup_test_routing(),
-            tags=["Testing"]
-        )
+        app.include_router(setup_test_routing(), tags=["Testing"])
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
@@ -268,19 +279,12 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
-    app.add_exception_handler(RequestValidationError,
-                              request_validation_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
-    app.add_exception_handler(
-        AuthenticationError,
-        get_auth_exception_handler(logger)
-    )
-    app.add_exception_handler(
-        AuthorizationError,
-        authorization_exception_handler
-    )
+    app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
+    app.add_exception_handler(AuthorizationError, authorization_exception_handler)
 
-    @app.on_event('shutdown')
+    @app.on_event("shutdown")
     async def close_httpx_client():
         await client.aclose()
 
@@ -293,14 +297,15 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
 
     # Adds pretty printed logs for development
     if settings.environment is Environment.DEVELOPMENT:
-        setup_logging(processors=[merge_contextvars,
-                                  JSONRenderer(indent=2, sort_keys=True)])
+        setup_logging(
+            processors=[merge_contextvars, JSONRenderer(indent=2, sort_keys=True)]
+        )
     else:
         setup_logging(processors=[merge_contextvars, JSONRenderer()])
 
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning('No dist directory to serve', distdir=distdir)
+        logger.warning("No dist directory to serve", distdir=distdir)
 
     return app

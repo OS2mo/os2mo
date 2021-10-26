@@ -65,7 +65,7 @@ class Query:
     # ---------
     @strawberry.field(
         permission_classes=[IsAuthenticated],
-        description="Get a list of all employees, optionally by uuid(s)"
+        description="Get a list of all employees, optionally by uuid(s)",
     )
     async def employees(
         self, info: Info, uuids: Optional[List[UUID]] = None

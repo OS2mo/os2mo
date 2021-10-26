@@ -90,7 +90,7 @@ class TestLoraDataLoader:
     async def test_load_multi_params(self, mock_organisationenhed_requests):
         c = Connector()
         load_a1, load_a1_b1 = await asyncio.gather(
-            c.organisationenhed.load(a=1),       # call 0
+            c.organisationenhed.load(a=1),  # call 0
             c.organisationenhed.load(a=1, b=1),  # call 1
         )
 
@@ -109,8 +109,8 @@ class TestLoraDataLoader:
         load_a1_b1, load_a1_b2, load_b1, load_a1, load_a2_b1 = await asyncio.gather(
             c.organisationenhed.load(a=1, b=1),  # call 0
             c.organisationenhed.load(a=1, b=2),  # call 0
-            c.organisationenhed.load(b=1),       # call 1
-            c.organisationenhed.load(a=1),       # call 2
+            c.organisationenhed.load(b=1),  # call 1
+            c.organisationenhed.load(a=1),  # call 2
             c.organisationenhed.load(a=2, b=1),  # call 0
         )
 

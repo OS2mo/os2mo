@@ -9,13 +9,15 @@ Create Date: 2021-03-31 12:33:30.208757
 """
 from alembic import op
 
-from mora.conf_db.alembic.helpers.new_defaults import (add_default_fields,
-                                                       remove_default_fields)
+from mora.conf_db.alembic.helpers.new_defaults import (
+    add_default_fields,
+    remove_default_fields,
+)
 from mora.conf_db.alembic.helpers.session import get_session
 
 # revision identifiers, used by Alembic.
-revision = 'd879327dade8'
-down_revision = '43fef976e18f'
+revision = "d879327dade8"
+down_revision = "43fef976e18f"
 branch_labels = None
 depends_on = None
 

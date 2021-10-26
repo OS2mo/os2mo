@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-'''
+"""
 Writing details
 ---------------
 
@@ -11,14 +11,10 @@ For more information regarding reading relations, refer to:
 
 * http:get:`/service/(any:type)/(uuid:id)/details/`
 
-'''
+"""
 import typing
 
-from fastapi import (
-    APIRouter,
-    Body,
-    Depends
-)
+from fastapi import APIRouter, Body, Depends
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers
@@ -31,7 +27,7 @@ router = APIRouter()
 
 async def handle_requests(
     reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
-    request_type: mapping.RequestType
+    request_type: mapping.RequestType,
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -49,11 +45,11 @@ async def handle_requests(
     return uuids
 
 
-@router.post('/details/create', status_code=HTTP_201_CREATED)
+@router.post("/details/create", status_code=HTTP_201_CREATED)
 # @util.restrictargs('force', 'triggerless')
 async def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
-    permissions=Depends(oidc.rbac_owner)
+    permissions=Depends(oidc.rbac_owner),
 ):
     """Creates new relations on employees and units
 
@@ -428,11 +424,11 @@ async def create(
     return await handle_requests(reqs, mapping.RequestType.CREATE)
 
 
-@router.post('/details/edit')
+@router.post("/details/edit")
 # @util.restrictargs('force', 'triggerless')
 async def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
-    permissions=Depends(oidc.rbac_owner)
+    permissions=Depends(oidc.rbac_owner),
 ):
     """Edits a relation or attribute on an employee or unit
 
@@ -941,13 +937,13 @@ async def edit(
     return await handle_requests(reqs, mapping.RequestType.EDIT)
 
 
-@router.post('/details/terminate')
+@router.post("/details/terminate")
 # @util.restrictargs('force', 'triggerless')
 async def terminate(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
-    permissions=Depends(oidc.rbac_owner)
+    permissions=Depends(oidc.rbac_owner),
 ):
-    '''Terminate a relation as of a given day.
+    """Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation
 
@@ -987,6 +983,6 @@ async def terminate(
 
       "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
 
-    '''
+    """
 
     return await handle_requests(reqs, mapping.RequestType.TERMINATE)

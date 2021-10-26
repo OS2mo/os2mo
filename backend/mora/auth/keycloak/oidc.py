@@ -18,18 +18,18 @@ logger = get_logger()
 
 async def noauth() -> Token:
     """Noop auth provider."""
-    return Token(azp='mo')
+    return Token(azp="mo")
 
 
 keycloak_auth = get_auth_dependency(
     host=config.get_settings().keycloak_host,
     port=config.get_settings().keycloak_port,
     realm=config.get_settings().keycloak_realm,
-    token_url_path='service/token',
+    token_url_path="service/token",
     token_model=Token,
     http_schema=config.get_settings().keycloak_schema,
     alg=config.get_settings().keycloak_signing_alg,
-    verify_audience=config.get_settings().keycloak_verify_audience
+    verify_audience=config.get_settings().keycloak_verify_audience,
 )
 
 
@@ -43,12 +43,12 @@ async def legacy_auth_adapter(request: Request):
 
     If no header exists, or session token is invalid, we fall back to Keycloak auth
     """
-    session_id = request.headers.get('session')
+    session_id = request.headers.get("session")
     if session_id:
         logger.warning("Legacy session token used")
         if validate_session(session_id):
             return await noauth()
-    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl='service/token')(request)
+    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl="service/token")(request)
     return await keycloak_auth(oauth2_scheme)
 
 
@@ -64,16 +64,11 @@ else:
 
 
 def authorization_exception_handler(
-    request: Request,
-    err: AuthorizationError
+    request: Request, err: AuthorizationError
 ) -> JSONResponse:
 
     return JSONResponse(
-        status_code=HTTP_403_FORBIDDEN,
-        content={
-            'status': 'Forbidden',
-            'msg': str(err)
-        }
+        status_code=HTTP_403_FORBIDDEN, content={"status": "Forbidden", "msg": str(err)}
     )
 
 
@@ -96,6 +91,7 @@ async def rbac(request: Request, admin_only: bool, token: Token = Depends(auth))
     # This special import structure is currently required to avoid circular
     # import problems in the Python code
     from mora.auth.keycloak.rbac import _rbac
+
     return await _rbac(token, request, admin_only)
 
 

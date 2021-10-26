@@ -44,11 +44,11 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
     async def from_effect(cls, effect):
         """Initialize handler from LoRa object"""
         # Cut off the prefix
-        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get('urn')
-        value = urn[len(cls.prefix):]
+        urn = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get("urn")
+        value = urn[len(cls.prefix) :]
 
         visibility_field = mapping.VISIBILITY_FIELD(effect)
-        visibility = visibility_field[0]['uuid'] if visibility_field else None
+        visibility = visibility_field[0]["uuid"] if visibility_field else None
 
         return cls(value, visibility)
 
@@ -58,8 +58,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         value = util.checked_get(request, mapping.VALUE, "", required=True)
         await cls.validate_value(value)
 
-        visibility = util.get_mapping_uuid(
-            request, mapping.VISIBILITY, required=False)
+        visibility = util.get_mapping_uuid(request, mapping.VISIBILITY, required=False)
 
         return cls(value, visibility)
 
@@ -110,12 +109,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         """
         properties = []
         if self.visibility:
-            properties.append(
-                {
-                    'objekttype': 'synlighed',
-                    'uuid': self.visibility
-                }
-            )
+            properties.append({"objekttype": "synlighed", "uuid": self.visibility})
         return properties
 
     def get_lora_address(self) -> Union[List[Dict[str, str]], Dict[str, str]]:
@@ -130,12 +124,13 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
           }
         """
         return {
-            'objekttype': self.scope,
-            'urn': self.urn,
+            "objekttype": self.scope,
+            "urn": self.urn,
         }
 
-    async def __get_mo_properties(self,
-                                  only_primary_uuid: bool = False) -> Dict[Any, Any]:
+    async def __get_mo_properties(
+        self, only_primary_uuid: bool = False
+    ) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -153,17 +148,19 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         properties = {}
         if self.visibility:
             c = lora.Connector()
-            properties.update({
-                mapping.VISIBILITY: await facet.get_one_class(
-                    c, self.visibility,
-                    only_primary_uuid=only_primary_uuid,
-                )
-            })
+            properties.update(
+                {
+                    mapping.VISIBILITY: await facet.get_one_class(
+                        c,
+                        self.visibility,
+                        only_primary_uuid=only_primary_uuid,
+                    )
+                }
+            )
         return properties
 
     async def get_mo_address_and_properties(
-        self,
-        only_primary_uuid: bool = False
+        self, only_primary_uuid: bool = False
     ) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the address, including any eventual
@@ -193,5 +190,6 @@ def get_handler_for_scope(scope: str) -> AddressHandler:
     handler = ADDRESS_HANDLERS.get(scope)
     if not handler:
         raise exceptions.ErrorCodes.E_INVALID_INPUT(
-            'Invalid address scope type {}'.format(scope))
+            "Invalid address scope type {}".format(scope)
+        )
     return handler

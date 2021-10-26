@@ -19,13 +19,13 @@ import sys
 from unittest.mock import MagicMock
 
 TOP_DIR = os.path.dirname(os.path.dirname(__file__))
-BACKEND_DIR = os.path.join(TOP_DIR, 'backend')
-FRONTEND_DIR = os.path.join(TOP_DIR, 'frontend')
+BACKEND_DIR = os.path.join(TOP_DIR, "backend")
+FRONTEND_DIR = os.path.join(TOP_DIR, "frontend")
 
-DOCS_DIR = os.path.join(TOP_DIR, 'docs')
-BLUEPRINTS_DIR = os.path.join(DOCS_DIR, 'blueprints')
+DOCS_DIR = os.path.join(TOP_DIR, "docs")
+BLUEPRINTS_DIR = os.path.join(DOCS_DIR, "blueprints")
 
-os.environ['ENV'] = 'docs'
+os.environ["ENV"] = "docs"
 
 #
 # -- Generated files ------------------------------------------------------
@@ -42,82 +42,82 @@ sys.path.insert(0, BACKEND_DIR)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinxcontrib.httpdomain',
-    'sphinx_click.ext',
+    "sphinx.ext.coverage",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.githubpages",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
+    "sphinxcontrib.httpdomain",
+    "sphinx_click.ext",
 ]
 
 MOCK_MODULES = [
-    'flask_session',
-    'flask_session.sessions',
-    'lxml',
-    'lxml.etree',
-    'service_person_stamdata_udvidet',
-    'lora_utils',
-    'flask_saml_sso',
-    'flask_saml_sso.health',
-    'validators',
-    'psycopg2',
-    'psycopg2.extras',
-    'psycopg2.sql',
-    'sqlalchemy',
-    'sqlalchemy.sql',
-    'sqlalchemy.orm',
-    'sqlalchemy.exc',
-    'sqlalchemy.ext',
-    'sqlalchemy.ext.declarative',
-    'sqlalchemy_utils',
-    'pika',
-    'pika.exceptions',
-    'toml',
-    'more_itertools',
-    'alembic',
-    'alembic.config',
-    'aiohttp',
-    'anytree',
-    'anytree.search',
-    'aiofiles',
-    'aiofiles.os',
-    'aioresponses',
-    'jwt',
-    'jwt.exceptions',
-    'fastapi',
-    'fastapi.exceptions',
-    'fastapi.responses',
-    'fastapi.security',
-    'fastapi.staticfiles',
-    'fastapi.encoders',
-    'fastapi.testclient',
-    'fastapi_sqlalchemy',
-    'starlette',
-    'starlette.middleware',
-    'starlette.middleware.cors',
-    'starlette.requests',
-    'starlette.responses',
-    'starlette.status',
-    'starlette.datastructures',
-    'starlette_context',
-    'starlette_context.middleware',
-    'requests_mock',
-    'mora.log',
-    'mora.exceptions',
-    'onelogin',
-    'onelogin.saml2',
-    'onelogin.saml2.auth',
-    'onelogin.saml2.settings',
-    'onelogin.saml2.response',
-    'onelogin.saml2.xml_utils',
-    'onelogin.saml2.constants',
-    'onelogin.saml2.idp_metadata_parser',
-    'yarl',
-    'os2mo_fastapi_utils.tracing',
-    'structlog',
-    'structlog.processors',
-    'structlog.contextvars',
+    "flask_session",
+    "flask_session.sessions",
+    "lxml",
+    "lxml.etree",
+    "service_person_stamdata_udvidet",
+    "lora_utils",
+    "flask_saml_sso",
+    "flask_saml_sso.health",
+    "validators",
+    "psycopg2",
+    "psycopg2.extras",
+    "psycopg2.sql",
+    "sqlalchemy",
+    "sqlalchemy.sql",
+    "sqlalchemy.orm",
+    "sqlalchemy.exc",
+    "sqlalchemy.ext",
+    "sqlalchemy.ext.declarative",
+    "sqlalchemy_utils",
+    "pika",
+    "pika.exceptions",
+    "toml",
+    "more_itertools",
+    "alembic",
+    "alembic.config",
+    "aiohttp",
+    "anytree",
+    "anytree.search",
+    "aiofiles",
+    "aiofiles.os",
+    "aioresponses",
+    "jwt",
+    "jwt.exceptions",
+    "fastapi",
+    "fastapi.exceptions",
+    "fastapi.responses",
+    "fastapi.security",
+    "fastapi.staticfiles",
+    "fastapi.encoders",
+    "fastapi.testclient",
+    "fastapi_sqlalchemy",
+    "starlette",
+    "starlette.middleware",
+    "starlette.middleware.cors",
+    "starlette.requests",
+    "starlette.responses",
+    "starlette.status",
+    "starlette.datastructures",
+    "starlette_context",
+    "starlette_context.middleware",
+    "requests_mock",
+    "mora.log",
+    "mora.exceptions",
+    "onelogin",
+    "onelogin.saml2",
+    "onelogin.saml2.auth",
+    "onelogin.saml2.settings",
+    "onelogin.saml2.response",
+    "onelogin.saml2.xml_utils",
+    "onelogin.saml2.constants",
+    "onelogin.saml2.idp_metadata_parser",
+    "yarl",
+    "os2mo_fastapi_utils.tracing",
+    "structlog",
+    "structlog.processors",
+    "structlog.contextvars",
 ]
 sys.modules.update({mod_name: MagicMock() for mod_name in MOCK_MODULES})
 
@@ -126,16 +126,16 @@ asyncio_mock.get_event_loop.return_value.is_running.return_value = False
 sys.modules.update({"asyncio": asyncio_mock})
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates', 'mora/templates']
+templates_path = ["_templates", "mora/templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
+source_suffix = [".rst", ".md"]
 # source_suffix = '.rst'
 
 source_parsers = {
-    '.md': 'recommonmark.parser.CommonMarkParser',
+    ".md": "recommonmark.parser.CommonMarkParser",
 }
 
 # https://stackoverflow.com/a/30624034
@@ -153,7 +153,6 @@ nitpick_ignore = [
     ("http:obj", "int"),
     ("http:obj", "integer"),
     ("http:obj", "dict"),
-
     ("py:class", "RequestHandler"),
     ("py:class", "click.exceptions.ClickException"),
     ("py:class", "string"),
@@ -165,54 +164,54 @@ nitpick_ignore = [
 # References to other Sphinx documentation sites.
 #
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
-    'flask': ('http://flask.pocoo.org/docs/', None),
-    'mox': ('https://mox.readthedocs.io/en/development/', None),
+    "python": ("https://docs.python.org/3", None),
+    "werkzeug": ("http://werkzeug.pocoo.org/docs/", None),
+    "flask": ("http://flask.pocoo.org/docs/", None),
+    "mox": ("https://mox.readthedocs.io/en/development/", None),
 }
 
-primary_domain = 'py'
+primary_domain = "py"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'OS2MO 2.0'
-copyright = 'OS2 — Offentligt digitaliseringsfællesskab'
-author = 'Magenta ApS'
+project = "OS2MO 2.0"
+copyright = "OS2 — Offentligt digitaliseringsfællesskab"
+author = "Magenta ApS"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 
-with open(os.path.join(FRONTEND_DIR, 'package.json')) as fp:
+with open(os.path.join(FRONTEND_DIR, "package.json")) as fp:
     # 'version' is the short X.Y version and 'release' is the full
     # version, including alpha/beta/rc tags.
-    release = version = json.load(fp)['version']
+    release = version = json.load(fp)["version"]
 
 # The language for content autogenerated by Sphinx. Refer to documentation
 # for a list of supported languages.
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'da_DK'
+language = "da_DK"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = [
-    'docs',
-    '_build',
-    'Thumbs.db',
-    '.DS_Store',
-    'venv*',
-    'sandbox',
-    'node_modules',
+    "docs",
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+    "venv*",
+    "sandbox",
+    "node_modules",
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
@@ -230,16 +229,16 @@ html_theme = "sphinx_rtd_theme"
 #
 html_theme_options = {
     # 'headerbg': "#002f5d",
-    'logo_only': True,
+    "logo_only": True,
 }
 
 html_show_sphinx = False
-html_logo = 'graphics/logo.svg'
+html_logo = "graphics/logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['static']
+html_static_path = ["static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -247,35 +246,32 @@ html_static_path = ['static']
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-        'donate.html',
+    "**": [
+        "about.html",
+        "navigation.html",
+        "relations.html",  # needs 'show_related': True theme option to display
+        "searchbox.html",
+        "donate.html",
     ]
 }
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Os2modoc'
+htmlhelp_basename = "Os2modoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    'papersize': 'a4paper',
-
+    "papersize": "a4paper",
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -285,18 +281,14 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mora.tex', 'OS2MO 2.0 Documentation',
-     'Magenta ApS', 'manual'),
+    (master_doc, "mora.tex", "OS2MO 2.0 Documentation", "Magenta ApS", "manual"),
 ]
 
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'mora', 'OS2MO 2.0 Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "mora", "OS2MO 2.0 Documentation", [author], 1)]
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -305,9 +297,12 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (
-        master_doc, 'MORa', 'OS2MO 2.0 Documentation',
-        author, 'OS2MO 2.0',
-        'OS2MO 2.0 — MedarbejderOrganisation + LoRa, fuldstænding dokumentation',
-        'Miscellaneous',
+        master_doc,
+        "MORa",
+        "OS2MO 2.0 Documentation",
+        author,
+        "OS2MO 2.0",
+        "OS2MO 2.0 — MedarbejderOrganisation + LoRa, fuldstænding dokumentation",
+        "Miscellaneous",
     ),
 ]

@@ -199,8 +199,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
         # Validate the creation requests
         self.details_requests = await handlers.agenerate_requests(
-            details_with_persons,
-            mapping.RequestType.CREATE
+            details_with_persons, mapping.RequestType.CREATE
         )
 
         self.payload = user
@@ -226,14 +225,14 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         return nickname_givenname, nickname_surname
 
     async def aprepare_edit(self, req: dict):
-        original_data = util.checked_get(req, 'original', {}, required=False)
-        data = util.checked_get(req, 'data', {}, required=True)
+        original_data = util.checked_get(req, "original", {}, required=False)
+        data = util.checked_get(req, "data", {}, required=True)
         userid = util.get_uuid(req, required=False)
         if not userid:
             userid = util.get_uuid(data, fallback=original_data)
 
         # Get the current org-unit which the user wants to change
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
@@ -242,48 +241,48 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
-                old_from, old_to, new_from, new_to, payload,
-                ('tilstande', 'brugergyldighed')
+                old_from,
+                old_to,
+                new_from,
+                new_to,
+                payload,
+                ("tilstande", "brugergyldighed"),
             )
 
-            original_uuid = util.get_mapping_uuid(original_data,
-                                                  mapping.EMPLOYEE)
+            original_uuid = util.get_mapping_uuid(original_data, mapping.EMPLOYEE)
 
             if original_uuid and original_uuid != userid:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    'cannot change employee uuid!',
+                    "cannot change employee uuid!",
                 )
 
         update_fields = list()
 
         # Always update gyldighed
-        update_fields.append((
-            mapping.EMPLOYEE_GYLDIGHED_FIELD,
-            {'gyldighed': "Aktiv"}
-        ))
+        update_fields.append((mapping.EMPLOYEE_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         changed_props = {}
         changed_extended_props = {}
 
         if mapping.USER_KEY in data:
-            changed_props['brugervendtnoegle'] = data[mapping.USER_KEY]
+            changed_props["brugervendtnoegle"] = data[mapping.USER_KEY]
 
-        givenname = data.get(mapping.GIVENNAME, '')
-        surname = data.get(mapping.SURNAME, '')
-        name = data.get(mapping.NAME, '')
+        givenname = data.get(mapping.GIVENNAME, "")
+        surname = data.get(mapping.SURNAME, "")
+        name = data.get(mapping.NAME, "")
 
         if name and (surname or givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                name='Supply either name or given name/surame'
+                name="Supply either name or given name/surame"
             )
         if name:
             givenname = name.rsplit(" ", maxsplit=1)[0]
-            surname = name[len(givenname):].strip()
+            surname = name[len(givenname) :].strip()
 
         if givenname:
-            changed_extended_props['fornavn'] = givenname
+            changed_extended_props["fornavn"] = givenname
         if surname:
-            changed_extended_props['efternavn'] = surname
+            changed_extended_props["efternavn"] = surname
 
         nickname_givenname, nickname_surname = self._handle_nickname(data)
 
@@ -291,46 +290,53 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # clear rather than skip if exists, but value is None
         if seniority is None and mapping.SENIORITY in data:
-            seniority = ''
+            seniority = ""
 
         if nickname_givenname is not None:
-            changed_extended_props['kaldenavn_fornavn'] = nickname_givenname
+            changed_extended_props["kaldenavn_fornavn"] = nickname_givenname
         if nickname_surname is not None:
-            changed_extended_props['kaldenavn_efternavn'] = nickname_surname
+            changed_extended_props["kaldenavn_efternavn"] = nickname_surname
         if seniority is not None:
-            changed_extended_props['seniority'] = seniority
+            changed_extended_props["seniority"] = seniority
 
         if mapping.INTEGRATION_DATA in data:
-            changed_props['integrationsdata'] = common.stable_json_dumps(
+            changed_props["integrationsdata"] = common.stable_json_dumps(
                 data[mapping.INTEGRATION_DATA],
             )
 
         if changed_props:
-            update_fields.append((
-                mapping.EMPLOYEE_EGENSKABER_FIELD,
-                changed_props,
-            ))
+            update_fields.append(
+                (
+                    mapping.EMPLOYEE_EGENSKABER_FIELD,
+                    changed_props,
+                )
+            )
 
         if changed_extended_props:
-            update_fields.append((
-                mapping.EMPLOYEE_UDVIDELSER_FIELD,
-                changed_extended_props,
-            ))
+            update_fields.append(
+                (
+                    mapping.EMPLOYEE_UDVIDELSER_FIELD,
+                    changed_extended_props,
+                )
+            )
 
         if mapping.CPR_NO in data:
             related = mapping.EMPLOYEE_PERSON_FIELD.get(original)
             if related and len(related) > 0:
                 attrs = related[-1].copy()
-                attrs['urn'] = 'urn:dk:cpr:person:{}'.format(data[mapping.CPR_NO])
+                attrs["urn"] = "urn:dk:cpr:person:{}".format(data[mapping.CPR_NO])
                 update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
-        payload = common.update_payload(new_from, new_to, update_fields,
-                                        original, payload)
+        payload = common.update_payload(
+            new_from, new_to, update_fields, original, payload
+        )
 
         bounds_fields = list(
-            mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
-        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                       original, payload)
+            mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields})
+        )
+        payload = common.ensure_bounds(
+            new_from, new_to, bounds_fields, original, payload
+        )
         self.payload = payload
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
@@ -342,13 +348,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = await c.bruger.create(
-                self.payload, self.uuid
-            )
+            self.result = await c.bruger.create(self.payload, self.uuid)
         else:
-            self.result = await c.bruger.update(
-                self.payload, self.uuid
-            )
+            self.result = await c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
         await asyncio.gather(
@@ -438,13 +440,13 @@ async def get_one_employee(
         mapping.SENIORITY: seniority,
     }
     if is_graphql():
-        rels = user['relationer']
+        rels = user["relationer"]
 
-        if rels.get('tilknyttedepersoner'):
-            cpr = rels['tilknyttedepersoner'][0]['urn'].rsplit(':', 1)[-1]
+        if rels.get("tilknyttedepersoner"):
+            cpr = rels["tilknyttedepersoner"][0]["urn"].rsplit(":", 1)[-1]
             r[mapping.CPR_NO] = cpr
 
-        r[mapping.USER_KEY] = props.get('brugervendtnoegle', '')
+        r[mapping.USER_KEY] = props.get("brugervendtnoegle", "")
 
     if details is EmployeeDetails.FULL:
         rels = user["relationer"]
@@ -733,9 +735,7 @@ async def terminate_employee(
         Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
-    await common.add_history_entry(
-        c.bruger, uuid, "Afslut medarbejder"
-    )
+    await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
     return result
 

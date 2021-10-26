@@ -20,9 +20,7 @@ from .util import instance2dict
 
 class ReadingWithAtTestCase(base.BaseReadingTestCase):
 
-    app_settings_overrides = {
-        "v1_api_enable": True
-    }
+    app_settings_overrides = {"v1_api_enable": True}
 
     @given(instance=st.builds(Employee))
     @settings(max_examples=1)

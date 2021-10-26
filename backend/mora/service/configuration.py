@@ -13,7 +13,7 @@ logger = get_logger()
 router = APIRouter()
 
 
-@router.post('/ou/{unitid}/configuration', status_code=410)
+@router.post("/ou/{unitid}/configuration", status_code=410)
 def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
     """Removed configuration setting endpoint.
 
@@ -36,7 +36,7 @@ def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) ->
     return False
 
 
-@router.get('/ou/{unitid}/configuration')
+@router.get("/ou/{unitid}/configuration")
 def get_org_unit_configuration(unitid: UUID):
     """Read configuration settings for an ou.
 
@@ -53,7 +53,7 @@ def get_org_unit_configuration(unitid: UUID):
     return configuration
 
 
-@router.post('/configuration', status_code=410)
+@router.post("/configuration", status_code=410)
 def set_global_configuration(configuration: dict = Body(...)) -> bool:
     """Removed global configuration setting endpoint.
 
@@ -74,7 +74,7 @@ def set_global_configuration(configuration: dict = Body(...)) -> bool:
     return False
 
 
-@router.get('/configuration')
+@router.get("/configuration")
 def get_global_configuration():
     """Read configuration settings for an ou.
 
@@ -97,7 +97,7 @@ def get_global_configuration():
     return configuration
 
 
-@router.get('/navlinks')
+@router.get("/navlinks")
 def get_navlinks():
     """Retrieve nav links.
 

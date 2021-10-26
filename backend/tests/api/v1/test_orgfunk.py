@@ -20,9 +20,7 @@ from .util import instance2dict
 
 class Reading(TestCase):
 
-    app_settings_overrides = {
-        "v1_api_enable": True
-    }
+    app_settings_overrides = {"v1_api_enable": True}
 
     def test_extract_search_params(self):
         base = {"abc": "def", 123: 456}

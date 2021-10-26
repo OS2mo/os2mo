@@ -22,7 +22,7 @@ logger = get_logger()
 
 
 async def get_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
-    logger.debug('get_owners called')
+    logger.debug("get_owners called")
     if entity_type == EntityType.ORG_UNIT:
         return await get_ancestor_owners(uuid)
     return await _get_entity_owners(uuid, EntityType.EMPLOYEE)
@@ -39,7 +39,7 @@ async def get_ancestor_owners(uuid: UUID) -> Set[UUID]:
     :return: set of owner UUIDs
     """
 
-    logger.debug('get_ancestor_owners called')
+    logger.debug("get_ancestor_owners called")
 
     ancestors_tree = await _get_ancestors(uuid)
     ancestor_uuids = uuid_extractor.get_ancestor_uuids(ancestors_tree)
@@ -100,9 +100,7 @@ async def _get_ancestors(uuid: UUID) -> List[dict]:
 
     """
     c = common.get_connector()
-    return await mora.service.orgunit.get_unit_tree(
-        c, [str(uuid)], with_siblings=False
-    )
+    return await mora.service.orgunit.get_unit_tree(c, [str(uuid)], with_siblings=False)
 
 
 async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
@@ -116,7 +114,7 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
 
     # NOTE!!: Currently, there can be multiple owners (but this will change)
 
-    logger.debug('_get_entity_owners called for entity type ', entity_type=entity_type)
+    logger.debug("_get_entity_owners called for entity type ", entity_type=entity_type)
 
     c = common.get_connector()
     r = await OwnerReader.get_from_type(c, entity_type.value, uuid, changed_since=None)

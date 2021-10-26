@@ -18,9 +18,7 @@ from .util import instance2dict
 
 class GeneralReadingTestCase(base.BaseReadingTestCase):
 
-    app_settings_overrides = {
-        "v1_api_enable": True
-    }
+    app_settings_overrides = {"v1_api_enable": True}
 
     @given(st.builds(Employee))
     @settings(max_examples=1)

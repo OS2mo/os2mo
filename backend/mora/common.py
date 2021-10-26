@@ -256,7 +256,7 @@ def _merge_obj_effects(
 
 def _create_virkning(
     valid_from: Union[str, datetime.date, datetime.datetime],
-    valid_to: Union[str, datetime.date, datetime.datetime]
+    valid_to: Union[str, datetime.date, datetime.datetime],
 ) -> dict:
     """
     Create virkning object

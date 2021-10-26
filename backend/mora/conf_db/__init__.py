@@ -18,7 +18,7 @@ from mora import exceptions, config
 
 logger = get_logger()
 
-SUBSTITUTE_ROLES = 'substitute_roles'
+SUBSTITUTE_ROLES = "substitute_roles"
 
 Base = declarative_base()
 
@@ -102,8 +102,8 @@ def create_db_table():
 
     # Set up Alembic config
     base_path = Path("backend/mora/conf_db")
-    ini = Path('alembic.ini')
-    alembic_dir = Path('alembic')
+    ini = Path("alembic.ini")
+    alembic_dir = Path("alembic")
     ini_path = base_path / ini
     alembic_path = base_path / alembic_dir
     alembic_cfg = AlembicConfig(file_=str(ini_path))
@@ -132,9 +132,7 @@ def _get_session():
 
 
 def set_db_configuration(configuration, unitid=None):
-    logger.debug(
-        "set_configuration", unitid=unitid, configuration=configuration
-    )
+    logger.debug("set_configuration", unitid=unitid, configuration=configuration)
     configuration = configuration["org_units"]
 
     with _get_session() as session:
@@ -173,22 +171,19 @@ def get_db_configuration(unitid=None):
         return setting, value
 
     with _get_session() as session:
-        query = select([Config.setting, Config.value]).where(
-            Config.object == unitid
-        )
+        query = select([Config.setting, Config.value]).where(Config.object == unitid)
         result = session.execute(query)
         result = starmap(convert_bool, result)
         configuration = dict(result)
-        logger.debug(
-            "get_configuration", unitid=unitid, configuration=configuration
-        )
+        logger.debug("get_configuration", unitid=unitid, configuration=configuration)
         return configuration
 
 
 def get_settings_configuration():
     settings = config.get_settings()
     settings_configuration = {
-        key.lstrip("confdb_"): value for key, value in settings.dict().items()
+        key.lstrip("confdb_"): value
+        for key, value in settings.dict().items()
         if key.startswith("confdb_")
     }
     return settings_configuration
@@ -229,7 +224,5 @@ def health_check():
     )
     if dict_difference:
         error_msg = "Settings not in sync, mismatched keys: {}"
-        return False, error_msg.format(
-            ", ".join(dict_difference.keys())
-        )
+        return False, error_msg.format(", ".join(dict_difference.keys()))
     return True, "Success"

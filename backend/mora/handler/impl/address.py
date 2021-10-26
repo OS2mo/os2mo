@@ -33,12 +33,15 @@ class AddressReader(reading.OrgFunkReadingHandler):
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
 
         base_obj_task = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        facet_task = create_task(facet.request_bulked_get_one_class_full(
-            address_type,
-            only_primary_uuid=only_primary_uuid))
+        facet_task = create_task(
+            facet.request_bulked_get_one_class_full(
+                address_type, only_primary_uuid=only_primary_uuid
+            )
+        )
 
         address_task = create_task(
             handler.get_mo_address_and_properties(only_primary_uuid)
@@ -46,21 +49,26 @@ class AddressReader(reading.OrgFunkReadingHandler):
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(
-                    person,
-                    only_primary_uuid=only_primary_uuid))
+                    person, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         if org_unit:
-            org_unit_task = create_task(orgunit.request_bulked_get_one_orgunit(
-                org_unit, details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid
-            ))
+            org_unit_task = create_task(
+                orgunit.request_bulked_get_one_orgunit(
+                    org_unit,
+                    details=orgunit.UnitDetails.MINIMAL,
+                    only_primary_uuid=only_primary_uuid,
+                )
+            )
 
         if engagement_uuid is not None:
             if only_primary_uuid:
                 engagement = {mapping.UUID: engagement_uuid}
             else:
-                engagement = await get_engagement(request_wide_bulk.connector,
-                                                  uuid=engagement_uuid)
+                engagement = await get_engagement(
+                    request_wide_bulk.connector, uuid=engagement_uuid
+                )
 
         r = {
             **await base_obj_task,

@@ -26,6 +26,7 @@ class ConfiguredOrganisation:
     """OS2mo organisation is cached as an attribute on this class
     hence there must be exactly one organisation in the lora database
     """
+
     organisation = None
     valid = False
 

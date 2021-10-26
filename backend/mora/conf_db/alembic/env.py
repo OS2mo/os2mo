@@ -52,7 +52,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
-        process_revision_directives=process_revision_directives  # prevent empty
+        process_revision_directives=process_revision_directives,  # prevent empty
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -74,7 +74,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
-            process_revision_directives=process_revision_directives  # prevent empty
+            process_revision_directives=process_revision_directives,  # prevent empty
         )
         with context.begin_transaction():
             context.run_migrations()
