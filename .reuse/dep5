@@ -9,7 +9,7 @@ Source: https://os2mo.readthedocs.io/
 # Copyright: $YEAR $NAME <$CONTACT>
 # License: ...
 
-Files: backend/tests/integration_test_data/* backend/tests/fixtures/* backend/tests/mocking/*.json
+Files: backend/tests/integration_test_data/* backend/tests/fixtures/* backend/tests/mocking/*.json .*yaml *.yml
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
 
