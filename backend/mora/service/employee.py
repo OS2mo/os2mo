@@ -21,6 +21,8 @@ from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
+import asyncio
+
 from fastapi import APIRouter, Body, Depends
 
 import mora.async_util
@@ -196,8 +198,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         details = util.checked_get(req, "details", [])
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
         # Validate the creation requests
-        self.details_requests = handlers.generate_requests(
-            details_with_persons, mapping.RequestType.CREATE
+        self.details_requests = await handlers.agenerate_requests(
+            details_with_persons,
+            mapping.RequestType.CREATE
         )
 
         self.payload = user
@@ -333,21 +336,26 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def submit(self):
+        raise NotImplementedError("Use asubmit instead")
+
+    async def asubmit(self):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.bruger.create)(
+            self.result = await c.bruger.create(
                 self.payload, self.uuid
             )
         else:
-            self.result = mora.async_util.async_to_sync(c.bruger.update)(
+            self.result = await c.bruger.update(
                 self.payload, self.uuid
             )
 
         # process subrequests, if any
-        [r.submit() for r in getattr(self, "details_requests", [])]
+        await asyncio.gather(
+            *(r.asubmit() for r in getattr(self, "details_requests", []))
+        )
 
-        return super().submit()
+        return await super().asubmit()
 
 
 async def __get_employee_from_cache(
@@ -644,7 +652,7 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
 
 @router.post("/e/{uuid}/terminate")
 # @util.restrictargs('force', 'triggerless')
-def terminate_employee(
+async def terminate_employee(
     uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an employee and all of his roles beginning at a
@@ -681,7 +689,7 @@ def terminate_employee(
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
     request_handlers = [
-        handlers.get_handler_for_function(obj)(
+        await handlers.get_handler_for_function(obj).construct(
             {
                 "uuid": objid,
                 "vacate": util.checked_get(request, "vacate", False),
@@ -695,7 +703,7 @@ def terminate_employee(
             },
             mapping.RequestType.TERMINATE,
         )
-        for objid, obj in mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
+        for objid, obj in await c.organisationfunktion.get_all(
             tilknyttedebrugere=uuid,
             gyldighed="Aktiv",
         )
@@ -714,7 +722,7 @@ def terminate_employee(
         Trigger.run(trigger_dict)
 
     for handler in request_handlers:
-        handler.submit()
+        await handler.asubmit()
 
     result = uuid
 
@@ -725,7 +733,7 @@ def terminate_employee(
         Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
-    mora.async_util.async_to_sync(common.add_history_entry)(
+    await common.add_history_entry(
         c.bruger, uuid, "Afslut medarbejder"
     )
 
@@ -734,7 +742,7 @@ def terminate_employee(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post("/e/create", status_code=201)
-def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -802,8 +810,8 @@ def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin))
     :returns: UUID of created employee
 
     """
-    request = EmployeeRequestHandler(req, mapping.RequestType.CREATE)
-    return request.submit()
+    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    return await request.asubmit()
 
 
 def _inject_persons(details, employee_uuid, valid_from, valid_to):
