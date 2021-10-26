@@ -11,7 +11,7 @@ from mora import config
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
-from more_itertools import one
+from parameterized import parameterized
 
 from . import util
 
@@ -24,166 +24,128 @@ class TestIsDateRangeValid(tests.cases.TestCase):
             )
         )
 
+    @parameterized.expand(
+        [
+            # just valid
+            (True, [("-infinity", "infinity", "Aktiv")]),
+            # exact coverage
+            (True, [("01-01-2000", "01-01-3000", "Aktiv")]),
+            # multiple sequences, but valid
+            (
+                True,
+                [
+                    ("01-01-1940", "01-01-1950", "Inaktiv"),
+                    ("01-01-1950", "01-01-2100", "Aktiv"),
+                    ("01-01-2100", "01-01-2300", "Aktiv"),
+                    ("01-01-2300", "01-01-2500", "Aktiv"),
+                    ("01-01-2500", "01-01-2700", "Aktiv"),
+                    ("01-01-2700", "01-01-2900", "Aktiv"),
+                    ("01-01-2900", "01-01-3100", "Aktiv"),
+                    ("01-01-3100", "01-01-3300", "Inaktiv"),
+                ],
+            ),
+            # valid sequences, with gaps outside active period.
+            (
+                True,
+                [
+                    ("01-01-1960", "01-01-1980", "Aktiv"),
+                    ("01-01-2000", "01-01-3000", "Aktiv"),
+                ],
+            ),
+            # no validity
+            (False, []),
+            # completely invalid
+            (False, [("-infinity", "infinity", "Inaktiv")]),
+            # no complete coverage
+            (False, [("01-01-2000", "01-01-2100", "Aktiv")]),
+            # there's a hole in the middle
+            (
+                False,
+                [
+                    ("01-01-2000", "01-01-2250", "Aktiv"),
+                    ("01-01-2750", "infinity", "Aktiv"),
+                ],
+            ),
+            # there's an invalidity in the middle
+            (
+                False,
+                [
+                    ("01-01-2000", "01-01-2250", "Aktiv"),
+                    ("01-01-2250", "01-01-2750", "Inaktiv"),
+                    ("01-01-2750", "infinity", "Aktiv"),
+                ],
+            ),
+            # starts too late!
+            (False, [("01-01-2500", "infinity", "Aktiv")]),
+            # ends too soon!
+            (False, [("01-01-1930", "01-01-2500", "Aktiv")]),
+        ]
+    )
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    def test_validity_ranges(self):
+    @util.MockAioresponses(override_lora=False)
+    def test_validity_ranges(self, expect, validities, m):
         settings = config.get_settings()
         url = yarl.URL(f"{settings.lora_url}organisation/organisationenhed")
         c = lora.Connector(
             virkningfra="2000-01-01", virkningtil="3000-01-01"
         ).organisationenhed
 
-        def check(expect, validities):
-            with util.MockAioresponses(override_lora=False) as m:
-                payload = {
-                    "results": [
-                        [
-                            {
-                                "id": "00000000-0000-0000-0000-000000000000",
-                                "registreringer": [
-                                    {
-                                        "tilstande": {
-                                            "organisationenhedgyldighed": [
-                                                {
-                                                    "gyldighed": v,
-                                                    "virkning": {
-                                                        "from": mora_util.to_lora_time(
-                                                            t1,
-                                                        ),
-                                                        "from_included": True,
-                                                        "to": mora_util.to_lora_time(
-                                                            t2,
-                                                        ),
-                                                        "to_included": False,
-                                                    },
-                                                }
-                                                for t1, t2, v in validities
-                                            ]
-                                        },
-                                    }
-                                ],
-                            }
-                        ]
-                    ]
-                }
-                m.get(
-                    url,
-                    payload=payload,
-                )
-
-                self.assertIs(
-                    expect,
-                    mora.async_util.async_to_sync(validator._is_date_range_valid)(
-                        "00000000-0000-0000-0000-000000000000",
-                        mora_util.parsedatetime("01-01-2000"),
-                        mora_util.parsedatetime("01-01-3000"),
-                        c,
-                        "organisationenhedgyldighed",
-                    ),
-                )
-
-                call_args = one(m.requests["GET", url])
-                self.assertEqual(
-                    call_args.kwargs["json"],
+        payload = {
+            "results": [
+                [
                     {
-                        "uuid": ["00000000-0000-0000-0000-000000000000"],
-                        "virkningfra": "2000-01-01T00:00:00+01:00",
-                        "virkningtil": "3000-01-01T00:00:00+01:00",
-                        "konsolider": "True",
-                    },
-                )
-
-        # just valid
-        check(
-            True,
-            [
-                ("-infinity", "infinity", "Aktiv"),
-            ],
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "registreringer": [
+                            {
+                                "tilstande": {
+                                    "organisationenhedgyldighed": [
+                                        {
+                                            "gyldighed": v,
+                                            "virkning": {
+                                                "from": mora_util.to_lora_time(
+                                                    t1,
+                                                ),
+                                                "from_included": True,
+                                                "to": mora_util.to_lora_time(
+                                                    t2,
+                                                ),
+                                                "to_included": False,
+                                            },
+                                        }
+                                        for t1, t2, v in validities
+                                    ]
+                                },
+                            }
+                        ],
+                    }
+                ]
+            ]
+        }
+        m.get(
+            url,
+            payload=payload,
         )
 
-        # exact coverage
-        check(
-            True,
-            [
-                ("01-01-2000", "01-01-3000", "Aktiv"),
-            ],
+        self.assertIs(
+            expect,
+            mora.async_util.async_to_sync(validator._is_date_range_valid)(
+                "00000000-0000-0000-0000-000000000000",
+                mora_util.parsedatetime("01-01-2000"),
+                mora_util.parsedatetime("01-01-3000"),
+                c,
+                "organisationenhedgyldighed",
+            ),
         )
 
-        # multiple sequences, but valid
-        check(
-            True,
-            [
-                ("01-01-1940", "01-01-1950", "Inaktiv"),
-                ("01-01-1950", "01-01-2100", "Aktiv"),
-                ("01-01-2100", "01-01-2300", "Aktiv"),
-                ("01-01-2300", "01-01-2500", "Aktiv"),
-                ("01-01-2500", "01-01-2700", "Aktiv"),
-                ("01-01-2700", "01-01-2900", "Aktiv"),
-                ("01-01-2900", "01-01-3100", "Aktiv"),
-                ("01-01-3100", "01-01-3300", "Inaktiv"),
-            ],
-        )
-
-        # valid sequences, with gaps outside active period.
-        check(
-            True,
-            [
-                ("01-01-1960", "01-01-1980", "Aktiv"),
-                ("01-01-2000", "01-01-3000", "Aktiv"),
-            ],
-        )
-
-        # no validity
-        check(False, [])
-
-        # completely invalid
-        check(
-            False,
-            [
-                ("-infinity", "infinity", "Inaktiv"),
-            ],
-        )
-
-        # no complete coverage
-        check(
-            False,
-            [
-                ("01-01-2000", "01-01-2100", "Aktiv"),
-            ],
-        )
-
-        # there's a hole in the middle
-        check(
-            False,
-            [
-                ("01-01-2000", "01-01-2250", "Aktiv"),
-                ("01-01-2750", "infinity", "Aktiv"),
-            ],
-        )
-
-        # there's an invalidity in the middle
-        check(
-            False,
-            [
-                ("01-01-2000", "01-01-2250", "Aktiv"),
-                ("01-01-2250", "01-01-2750", "Inaktiv"),
-                ("01-01-2750", "infinity", "Aktiv"),
-            ],
-        )
-
-        # starts too late!
-        check(
-            False,
-            [
-                ("01-01-2500", "infinity", "Aktiv"),
-            ],
-        )
-
-        # ends too soon!
-        check(
-            False,
-            [
-                ("01-01-1930", "01-01-2500", "Aktiv"),
-            ],
+        call_args = m.requests["GET", url][0]
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["00000000-0000-0000-0000-000000000000"],
+                "virkningfra": "2000-01-01T00:00:00+01:00",
+                "virkningtil": "3000-01-01T00:00:00+01:00",
+                "konsolider": "True",
+            },
         )
 
 

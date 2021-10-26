@@ -3,6 +3,7 @@
 import os
 
 import pytest
+from aioresponses import aioresponses as aioresponses_
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
@@ -45,3 +46,10 @@ def mocked_context(monkeypatch) -> _Context:
 
     monkeypatch.setattr(_Context, "data", data)
     return _Context()
+
+
+@pytest.fixture
+def aioresponses():
+    """Pytest fixture for aioresponses."""
+    with aioresponses_() as aior:
+        yield aior

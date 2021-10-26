@@ -220,73 +220,85 @@ class Tests(tests.cases.TestCase):
         ]
     )
     @util.MockAioresponses()
-    def test_errors(self, status_in, status_out, error_key, m):
+    def test_errors_json(self, status_in, status_out, error_key, m):
         c = lora.Connector()
         url = URL("http://mox/organisation/organisationenhed")
 
-        with self.subTest("{} - json".format(status_in)):
-            m.get(
-                url,
-                payload={
-                    "message": "go away",
-                },
-                status=status_in,
-            )
+        m.get(
+            url,
+            payload={
+                "message": "go away",
+            },
+            status=status_in,
+        )
 
-            with self.assertRaises(exceptions.HTTPException) as ctxt:
-                mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            mora.async_util.async_to_sync(c.organisationenhed.get)("42")
 
-            call_args = last(m.requests["GET", url])
-            self.assertEqual(
-                call_args.kwargs["json"],
-                {
-                    "uuid": ["42"],
-                    "virkningfra": "2010-06-01T02:00:00+02:00",
-                    "virkningtil": "2010-06-01T02:00:00.000001+02:00",
-                    "konsolider": "True",
-                },
-            )
+        call_args = last(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["42"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
 
-            self.assertEqual(
-                {
-                    "error": True,
-                    "status": status_out,
-                    "error_key": error_key,
-                    "description": "go away",
-                },
-                ctxt.exception.detail,
-            )
+        self.assertEqual(
+            {
+                "error": True,
+                "status": status_out,
+                "error_key": error_key,
+                "description": "go away",
+            },
+            ctxt.exception.detail,
+        )
 
-        with self.subTest("{} - text".format(status_in)):
-            m.get(
-                url,
-                body="I hate you",
-                status=status_in,
-            )
+    @parameterized.expand(
+        [
+            (400, 400, "E_INVALID_INPUT"),
+            (401, 401, "E_UNAUTHORIZED"),
+            (403, 403, "E_FORBIDDEN"),
+            (426, 500, "E_UNKNOWN"),
+            (500, 500, "E_UNKNOWN"),
+        ]
+    )
+    @util.MockAioresponses()
+    def test_errors_text(self, status_in, status_out, error_key, m):
+        c = lora.Connector()
+        url = URL("http://mox/organisation/organisationenhed")
 
-            with self.assertRaises(exceptions.HTTPException) as ctxt:
-                mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+        m.get(
+            url,
+            body="I hate you",
+            status=status_in,
+        )
 
-            call_args = last(m.requests["GET", url])
-            self.assertEqual(
-                call_args.kwargs["json"],
-                {
-                    "uuid": ["42"],
-                    "virkningfra": "2010-06-01T02:00:00+02:00",
-                    "virkningtil": "2010-06-01T02:00:00.000001+02:00",
-                    "konsolider": "True",
-                },
-            )
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            mora.async_util.async_to_sync(c.organisationenhed.get)("42")
 
-            self.assertEqual(
-                {
-                    "error": True,
-                    "status": status_out,
-                    "error_key": error_key,
-                    "description": "I hate you",
-                },
-                ctxt.exception.detail,
-            )
+        call_args = last(m.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": ["42"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        )
+
+        self.assertEqual(
+            {
+                "error": True,
+                "status": status_out,
+                "error_key": error_key,
+                "description": "I hate you",
+            },
+            ctxt.exception.detail,
+        )
 
     @util.MockAioresponses()
     def test_error_debug(self, m):
