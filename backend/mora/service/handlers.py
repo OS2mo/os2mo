@@ -298,7 +298,7 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
-        raise NotImplementedError("Use prepare_terminate instead")
+        raise NotImplementedError("Use aprepare_terminate instead")
 
     async def aprepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
