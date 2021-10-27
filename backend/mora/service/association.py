@@ -120,10 +120,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    def prepare_edit(self, req: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: Dict[Any, Any]):
+    async def prepare_edit(self, req: Dict[Any, Any]):
         """
         To edit into a vacant association, set employee_uuid to None and set a
         value org_unit_uuid

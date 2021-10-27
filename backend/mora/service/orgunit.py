@@ -166,10 +166,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
         data = util.checked_get(req, "data", {}, required=True)
 

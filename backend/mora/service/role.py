@@ -70,10 +70,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             {"employee_uuid": employee_uuid, "org_unit_uuid": org_unit_uuid}
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         role_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

@@ -70,10 +70,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         self.uuid = func_id
         self.trigger_dict.update({Trigger.ORG_UNIT_UUID: org_unit_uuid})
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

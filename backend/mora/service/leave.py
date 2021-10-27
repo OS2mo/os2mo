@@ -68,10 +68,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         self.uuid = func_id
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         leave_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

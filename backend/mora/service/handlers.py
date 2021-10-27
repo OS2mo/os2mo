@@ -120,7 +120,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         if self.request_type == RequestType.CREATE:
             self.prepare_create(self.request)
         elif self.request_type == RequestType.EDIT:
-            self.prepare_edit(self.request)
+            raise NotImplementedError("Use async .construct instead")
         elif self.request_type == RequestType.TERMINATE:
             self.prepare_terminate(self.request)
         elif self.request_type == RequestType.REFRESH:
@@ -142,7 +142,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         if obj.request_type == RequestType.CREATE:
             await obj.aprepare_create(obj.request)
         elif obj.request_type == RequestType.EDIT:
-            await obj.aprepare_edit(obj.request)
+            await obj.prepare_edit(obj.request)
         elif obj.request_type == RequestType.TERMINATE:
             await obj.aprepare_terminate(obj.request)
         elif obj.request_type == RequestType.REFRESH:
@@ -177,7 +177,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError("aprepare_create not implemented")
 
-    def prepare_edit(self, request: dict):
+    async def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
         necessary processing
@@ -185,15 +185,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
         raise NotImplementedError("Use POST with a matching UUID instead (PUT)")
-
-    async def aprepare_edit(self, request: dict):
-        """
-        Initialize an 'edit' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-        """
-        raise NotImplementedError("aprepare_edit not implemented")
 
     def prepare_terminate(self, request: dict):
         """

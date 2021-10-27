@@ -255,10 +255,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             {Trigger.EMPLOYEE_UUID: employee_uuid, Trigger.ORG_UNIT_UUID: org_unit_uuid}
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

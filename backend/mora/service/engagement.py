@@ -112,10 +112,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 await addr.asubmit()
         return await super().asubmit()
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change
