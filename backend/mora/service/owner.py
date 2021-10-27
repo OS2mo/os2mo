@@ -11,8 +11,6 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, NoReturn, Optional, Tuple
 
-import mora.async_util
-
 from .. import common, lora, mapping, util
 from ..common import parse_owner_inference_priority_str
 from ..exceptions import ErrorCodes
@@ -127,29 +125,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         owned_person: Optional[Dict[str, Any]],
         owner: Optional[Dict[str, Any]],
     ):
-        """
-        validate parsed input - raise on error
-        :param validity_from: validity from date
-        :param validity_to: validity from date
-        :param org_unit: potential org_unit
-        :param owned_person: potential owned_person
-        :param owner: potential owner
-        :return:
-        """
-        if org_unit:
-            mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                org_unit, validity_from, validity_to
-            )
-
-        if owned_person:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                owned_person, validity_from, validity_to
-            )
-
-        if owner:
-            mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                owner, validity_from, validity_to
-            )
+        raise NotImplementedError("Use avalidate instead")
 
     @staticmethod
     async def avalidate(
