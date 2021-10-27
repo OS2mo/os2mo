@@ -162,10 +162,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ADDRESS
     function_key = mapping.ADDRESS_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=False)
 
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=False)

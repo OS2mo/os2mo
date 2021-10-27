@@ -34,7 +34,7 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = "related_unit"
     function_key = mapping.RELATED_UNIT_KEY
 
-    def prepare_create(self, req: dict):
+    async def prepare_create(self, req: dict):
         raise NotImplementedError
 
     def prepare_edit(self, req: dict):

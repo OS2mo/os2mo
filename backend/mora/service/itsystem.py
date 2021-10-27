@@ -37,10 +37,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)

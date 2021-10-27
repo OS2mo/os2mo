@@ -21,10 +21,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.KLE
     function_key = mapping.KLE_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=False)
 
         valid_from, valid_to = util.get_validities(req)

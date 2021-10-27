@@ -118,7 +118,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
     def _sync_construct(self):
         if self.request_type == RequestType.CREATE:
-            self.prepare_create(self.request)
+            raise NotImplementedError("Use async .construct instead")
         elif self.request_type == RequestType.EDIT:
             self.prepare_edit(self.request)
         elif self.request_type == RequestType.TERMINATE:
@@ -140,7 +140,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         obj = cls(*args, **kwargs, sync_construct=False)
 
         if obj.request_type == RequestType.CREATE:
-            await obj.aprepare_create(obj.request)
+            await obj.prepare_create(obj.request)
         elif obj.request_type == RequestType.EDIT:
             await obj.aprepare_edit(obj.request)
         elif obj.request_type == RequestType.TERMINATE:
@@ -160,22 +160,14 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         return obj
 
     @abc.abstractmethod
-    def prepare_create(self, request: dict):
+    async def prepare_create(self, request: dict):
         """
         Initialize a 'create' request. Performs validation and all
         necessary processing
 
         :param request: A dict containing a request
         """
-
-    async def aprepare_create(self, request: dict):
-        """
-        Initialize a 'create' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-        """
-        raise NotImplementedError("aprepare_create not implemented")
+        raise NotImplementedError("prepare_create not implemented")
 
     def prepare_edit(self, request: dict):
         """

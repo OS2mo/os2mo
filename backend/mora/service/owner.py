@@ -183,10 +183,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 owner, validity_from, validity_to
             )
 
-    def prepare_create(self, req: Dict):
-        raise NotImplementedError("Use prepare_create instead")
-
-    async def aprepare_create(self, req: Dict):
+    async def prepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 

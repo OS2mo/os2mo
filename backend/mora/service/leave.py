@@ -24,10 +24,7 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.LEAVE
     function_key = mapping.LEAVE_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
 
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)

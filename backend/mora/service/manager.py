@@ -23,10 +23,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.MANAGER
     function_key = mapping.MANAGER_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead.")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         """To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid"""
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)

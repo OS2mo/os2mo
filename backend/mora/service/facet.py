@@ -779,10 +779,7 @@ async def get_all_classes(
 class ClassRequestHandler(handlers.RequestHandler):
     role_type = "class"
 
-    def prepare_create(self, request: dict):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, request: dict):
+    async def prepare_create(self, request: dict):
         valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 

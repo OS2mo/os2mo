@@ -16,7 +16,7 @@ class MockHandler(RequestHandler):
     def prepare_edit(self, req):
         self.uuid = "edit"
 
-    def prepare_create(self, req):
+    async def prepare_create(self, req):
         self.uuid = "create"
 
     def prepare_terminate(self, req):
@@ -132,7 +132,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.CREATE)
+        MockHandler.construct({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_create(self):
@@ -151,7 +151,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.CREATE).submit()
+        MockHandler.construct({}, RequestType.CREATE).submit()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_terminate(self):

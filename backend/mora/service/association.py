@@ -40,10 +40,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             return False
 
-    def prepare_create(self, req: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req: Dict[Any, Any]):
+    async def prepare_create(self, req: Dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid

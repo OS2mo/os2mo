@@ -25,10 +25,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ROLE
     function_key = mapping.ROLE_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 

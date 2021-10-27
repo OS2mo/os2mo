@@ -89,10 +89,7 @@ class UnitDetails(enum.Enum):
 class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = "org_unit"
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create() instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(

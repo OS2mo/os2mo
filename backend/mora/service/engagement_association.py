@@ -24,10 +24,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ENGAGEMENT_ASSOCIATION_KEY
     function_key = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
-    def prepare_create(self, req: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req: Dict[Any, Any]):
+    async def prepare_create(self, req: Dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
