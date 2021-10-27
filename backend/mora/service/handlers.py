@@ -167,6 +167,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
+        raise NotImplementedError("prepare_create not implemented")
 
     async def aprepare_create(self, request: dict):
         """
@@ -448,44 +449,7 @@ def get_handler_for_role_type(role_type: str):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
-def generate_requests(
-    requests: typing.List[dict], request_type: RequestType
-) -> typing.List[RequestHandler]:
-    operations = {req.get("type") for req in requests}
-
-    if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
-        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
-            types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
-        )
-
-    requesthandlers = []
-    for req in requests:
-        requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get("type")]
-        if request_type == RequestType.CREATE:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif request_type == RequestType.EDIT:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif (
-            req.get("type") in ["association", "org_unit" "manager"]
-            and request_type == RequestType.TERMINATE
-        ):
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif request_type == RequestType.REFRESH:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        else:
-            requesthandlers.append(requesthandler_klasse(req, request_type))
-    return requesthandlers
-
-
-async def agenerate_requests(
+async def generate_requests(
     requests: typing.List[dict], request_type: RequestType
 ) -> typing.List[RequestHandler]:
     operations = {req.get("type") for req in requests}
@@ -507,6 +471,10 @@ async def agenerate_requests(
                 await requesthandler_klasse.construct(req, request_type)
             )
         elif request_type == RequestType.TERMINATE:
+            requesthandlers.append(
+                await requesthandler_klasse.construct(req, request_type)
+            )
+        elif request_type == RequestType.REFRESH:
             requesthandlers.append(
                 await requesthandler_klasse.construct(req, request_type)
             )

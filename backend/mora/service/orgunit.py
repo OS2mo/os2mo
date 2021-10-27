@@ -158,7 +158,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             details, unitid, valid_from, valid_to
         )
 
-        self.details_requests = await handlers.agenerate_requests(
+        self.details_requests = await handlers.generate_requests(
             details_with_org_units, mapping.RequestType.CREATE
         )
 
