@@ -229,22 +229,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
     def prepare_terminate(self, request: dict):
-        """Initialize a 'termination' request. Performs validation and all
-        necessary processing
-
-        Unlike the other handlers for ``organisationfunktion``, this
-        one checks for and handles the ``vacate`` field in the
-        request. If this is set, the manager is merely marked as
-        *vacant*, i.e. without an employee or person.
-
-        :param request: A dict containing a request
-
-        """
-        if util.checked_get(request, "vacate", False):
-            self.termination_field = mapping.USER_FIELD
-            self.termination_value = {}
-
-        super().prepare_terminate(request)
+        raise NotImplementedError("Use prepare_terminate instead")
 
     async def aprepare_terminate(self, request: dict):
         """Initialize a 'termination' request. Performs validation and all
