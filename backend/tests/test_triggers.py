@@ -3,6 +3,7 @@
 import freezegun
 
 import tests.cases
+import mora.async_util
 from mora.exceptions import HTTPException
 from mora.mapping import EventType, RequestType
 from mora.service.handlers import RequestHandler
@@ -14,16 +15,28 @@ class MockHandler(RequestHandler):
     result = "okidoki"
 
     def prepare_edit(self, req):
+        raise NotImplementedError("Use aprepare_edit instead")
+
+    async def aprepare_edit(self, req):
         self.uuid = "edit"
 
     def prepare_create(self, req):
+        raise NotImplementedError("Use aprepare_create")
+
+    async def aprepare_create(self, req):
         self.uuid = "create"
 
     def prepare_terminate(self, req):
+        raise NotImplementedError("Use aprepare_terminate")
+
+    async def aprepare_terminate(self, req):
         self.uuid = "terminate"
 
     def submit(self):
-        super().submit()
+        raise NotImplementedError("Use asubmit instead")
+
+    async def asubmit(self):
+        await super().asubmit()
 
 
 class Tests(tests.cases.MockRequestContextTestCase):
@@ -48,7 +61,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
             raise Exception("Bummer")
 
         with self.assertRaises(HTTPException) as err:
-            MockHandler({}, RequestType.EDIT)
+            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
         self.assertEqual(
             {
                 "description": "Bummer",
@@ -67,7 +80,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
             raise Trigger.Error("Bummer", stage="final")
 
         with self.assertRaises(HTTPException) as ctxt:
-            MockHandler({}, RequestType.EDIT)
+            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
         self.assertEqual(
             {
                 "error": True,
@@ -95,7 +108,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.EDIT)
+        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_edit(self):
@@ -114,7 +127,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.EDIT).submit()
+        mora.async_util.async_to_sync(
+            mora.async_util.async_to_sync(MockHandler.construct)(
+                {}, RequestType.EDIT
+            ).asubmit
+        )()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_create(self):
@@ -132,7 +149,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.CREATE)
+        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_create(self):
@@ -151,7 +168,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.CREATE).submit()
+        mora.async_util.async_to_sync(
+            mora.async_util.async_to_sync(MockHandler.construct)(
+                {}, RequestType.CREATE
+            ).asubmit
+        )()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_terminate(self):
@@ -169,7 +190,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.TERMINATE)
+        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.TERMINATE)
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_after_terminate(self):
@@ -188,7 +209,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler({}, RequestType.TERMINATE).submit()
+        mora.async_util.async_to_sync(
+            mora.async_util.async_to_sync(MockHandler.construct)(
+                {}, RequestType.TERMINATE
+            ).asubmit
+        )()
         self.assertTrue(self.trigger_called)
 
 

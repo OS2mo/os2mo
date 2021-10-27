@@ -237,23 +237,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         pass
 
     def submit(self) -> str:
-        """Submit the request to LoRa.
-
-        :return: A string containing the result from submitting the
-                 request to LoRa, typically a UUID.
-        """
-        self.trigger_dict.update(
-            {
-                Trigger.RESULT: getattr(self, Trigger.RESULT, None),
-                Trigger.EVENT_TYPE: EventType.ON_AFTER,
-                Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid,
-            }
-        )
-        self.trigger_results_after = None
-        if not util.get_args_flag("triggerless"):
-            self.trigger_results_after = async_to_sync(Trigger.run)(self.trigger_dict)
-
-        return getattr(self, Trigger.RESULT, None)
+        raise NotImplementedError("Use asubmit instead")
 
     async def asubmit(self) -> str:
         """Submit the request to LoRa.
@@ -314,46 +298,7 @@ class OrgFunkRequestHandler(RequestHandler):
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
     def prepare_terminate(self, request: dict):
-        self.uuid = util.get_uuid(request)
-        virkning = RequestHandler.get_virkning_for_terminate(request)
-
-        original = async_to_sync(
-            lora.Connector(effective_date=virkning["from"]).organisationfunktion.get
-        )(self.uuid)
-
-        if (
-            original is None
-            or util.is_reg_valid(original)
-            and get_key_for_function(original) != self.function_key
-        ):
-            exceptions.ErrorCodes.E_NOT_FOUND(
-                uuid=self.uuid,
-                original=original,
-            )
-
-        self.payload = common.update_payload(
-            virkning["from"],
-            virkning["to"],
-            [
-                (
-                    self.termination_field,
-                    self.termination_value,
-                )
-            ],
-            original,
-            {
-                "note": "Afsluttet",
-            },
-        )
-
-        if self.trigger_dict.get(Trigger.EMPLOYEE_UUID, None) is None:
-            self.trigger_dict[Trigger.EMPLOYEE_UUID] = mapping.USER_FIELD.get_uuid(
-                original
-            )
-        if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
-            self.trigger_dict[
-                Trigger.ORG_UNIT_UUID
-            ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+        raise NotImplementedError("Use aprepare_terminate instead")
 
     async def aprepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
@@ -400,15 +345,7 @@ class OrgFunkRequestHandler(RequestHandler):
             ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
     def submit(self) -> str:
-        c = lora.Connector()
-
-        method = None
-        if self.request_type == RequestType.CREATE:
-            method = async_to_sync(c.organisationfunktion.create)
-        else:
-            method = async_to_sync(c.organisationfunktion.update)
-        self.result = method(self.payload, self.uuid)
-        return super().submit()
+        raise NotImplementedError("Use asubmit instead")
 
     async def asubmit(self) -> str:
         c = lora.Connector()
@@ -451,38 +388,7 @@ def get_handler_for_role_type(role_type: str):
 def generate_requests(
     requests: typing.List[dict], request_type: RequestType
 ) -> typing.List[RequestHandler]:
-    operations = {req.get("type") for req in requests}
-
-    if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
-        exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
-            types=sorted(operations - HANDLERS_BY_ROLE_TYPE.keys()),
-        )
-
-    requesthandlers = []
-    for req in requests:
-        requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get("type")]
-        if request_type == RequestType.CREATE:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif request_type == RequestType.EDIT:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif (
-            req.get("type") in ["association", "org_unit" "manager"]
-            and request_type == RequestType.TERMINATE
-        ):
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        elif request_type == RequestType.REFRESH:
-            requesthandlers.append(
-                async_to_sync(requesthandler_klasse.construct)(req, request_type)
-            )
-        else:
-            requesthandlers.append(requesthandler_klasse(req, request_type))
-    return requesthandlers
+    raise NotImplementedError("Use agenerate_requests instead")
 
 
 async def agenerate_requests(

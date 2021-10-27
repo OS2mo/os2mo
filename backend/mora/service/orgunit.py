@@ -28,7 +28,6 @@ from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
-import mora.async_util
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
@@ -336,32 +335,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
     def submit(self):
-        c = lora.Connector()
-
-        if self.request_type == mapping.RequestType.CREATE:
-            self.result = mora.async_util.async_to_sync(c.organisationenhed.create)(
-                self.payload, self.uuid
-            )
-
-            if self.details_requests:
-                for r in self.details_requests:
-                    r.submit()
-
-        elif self.request_type == mapping.RequestType.REFRESH:
-            pass
-        else:
-            self.result = mora.async_util.async_to_sync(c.organisationenhed.update)(
-                self.payload, self.uuid
-            )
-
-        submit = super().submit()
-        if self.request_type == mapping.RequestType.REFRESH:
-            return {
-                "message": "\n".join(
-                    map(str, self.trigger_results_before + self.trigger_results_after)
-                )
-            }
-        return submit
+        raise NotImplementedError("Use asubmit instead")
 
     async def asubmit(self) -> str:
         c = lora.Connector()
