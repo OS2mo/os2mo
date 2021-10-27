@@ -117,7 +117,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
         MockHandler({}, RequestType.EDIT).submit()
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_create(self):
+    async def test_handler_trigger_before_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -132,10 +132,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler.construct({}, RequestType.CREATE)
+        await MockHandler.construct({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_create(self):
+    async def test_handler_trigger_after_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -151,7 +151,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        MockHandler.construct({}, RequestType.CREATE).submit()
+        await MockHandler.construct({}, RequestType.CREATE).submit()
         self.assertTrue(self.trigger_called)
 
     def test_handler_trigger_before_terminate(self):
