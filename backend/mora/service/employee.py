@@ -650,7 +650,7 @@ async def terminate_employee(
     }
 
     if not util.get_args_flag("triggerless"):
-        Trigger.run(trigger_dict)
+        await Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         await handler.asubmit()
@@ -661,7 +661,7 @@ async def terminate_employee(
     trigger_dict[Trigger.RESULT] = result
 
     if not util.get_args_flag("triggerless"):
-        Trigger.run(trigger_dict)
+        await Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
