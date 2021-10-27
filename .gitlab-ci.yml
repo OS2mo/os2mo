@@ -320,6 +320,7 @@ Unit-test:
       --cov-fail-under=50
       -p no:cacheprovider
       --color=yes
+      --show-capture=no
       --workers auto
       -m "not serial"
       backend/tests/
@@ -357,6 +358,7 @@ Integration-test:
       --cov-fail-under=60
       -p no:cacheprovider
       --color=yes
+      --show-capture=no
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
