@@ -4,8 +4,8 @@
 import abc
 from typing import Any, Dict, List, Union
 
+from ... import common
 from ... import exceptions
-from ... import lora
 from ... import mapping
 from ... import util
 from ...service import facet
@@ -147,7 +147,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
         """
         properties = {}
         if self.visibility:
-            c = lora.Connector()
+            c = common.get_connector()
             properties.update(
                 {
                     mapping.VISIBILITY: await facet.get_one_class(

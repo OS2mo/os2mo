@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Common LoRA logic
 -----------------
 
@@ -10,17 +9,20 @@ similar to py:module:`mora.util`, they aren't mere utility methods, and
 can have deep knowledge of how we expect LoRA to behave.
 
 """
-
 import collections
 import copy
 import datetime
 import functools
 import json
 import typing
-from typing import Union
 import uuid
+from typing import Union
 
 import werkzeug
+from starlette.requests import HTTPConnection
+from starlette.requests import Request
+from starlette_context import context
+from starlette_context.plugins import Plugin
 
 from . import exceptions
 from . import lora
@@ -30,8 +32,30 @@ from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
 
 
+class LoRaConnectorPlugin(Plugin):
+    """
+    Startlette Context Plugin to cache the LoRa Connector on a request-basis.
+    """
+
+    key = "lora_connector"
+
+    async def process_request(
+        self, request: Union[Request, HTTPConnection]
+    ) -> typing.Optional[typing.Any]:
+        @functools.lru_cache()
+        def cached_create_connector(**kwargs):
+            return _create_connector(**kwargs)
+
+        return cached_create_connector
+
+
 def get_connector(**loraparams) -> lora.Connector:
-    args = util.get_query_args()
+    create_connector = context.get(LoRaConnectorPlugin.key, _create_connector)
+    return create_connector(**loraparams)
+
+
+def _create_connector(**loraparams) -> lora.Connector:
+    args = util.get_query_args() or {}
 
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])
