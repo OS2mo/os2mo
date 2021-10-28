@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+3.4.5 - 2021-10-28
+------------------
+
+[#46561] Cache LoRa Connector to allow for proper DataLoader usage in lora.py
+[#46561] Fix get_configured_organisation broken on cold cache
+
 3.4.4 - 2021-10-26
 ------------------
 
