@@ -34,7 +34,7 @@ router = APIRouter()
 
 
 async def get_address_type(effect):
-    c = lora.Connector()
+    c = common.get_connector()
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get("uuid")
     only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
@@ -93,7 +93,7 @@ async def address_autocomplete(
     orgid = str(orgid)
 
     if not global_lookup:
-        org = await lora.Connector().organisation.get(orgid)
+        org = await common.get_connector().organisation.get(orgid)
 
         if not org:
             exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()

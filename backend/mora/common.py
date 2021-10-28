@@ -55,7 +55,7 @@ def get_connector(**loraparams) -> lora.Connector:
 
 
 def _create_connector(**loraparams) -> lora.Connector:
-    args = util.get_query_args()
+    args = util.get_query_args() or {}
 
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])

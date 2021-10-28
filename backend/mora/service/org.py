@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Organisation
 ------------
 
 This section describes how to interact with organisations.
 """
-
-from asyncio import create_task, gather
+import asyncio
+from asyncio import create_task
+from asyncio import gather
+from collections import defaultdict
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -27,6 +28,8 @@ class ConfiguredOrganisation:
     hence there must be exactly one organisation in the lora database
     """
 
+    # TODO: Replace with 'validate_lock = asyncio.Lock()' when async_to_sync is removed
+    validate_locks = defaultdict(asyncio.Lock)
     organisation = None
     valid = False
 
@@ -51,8 +54,16 @@ class ConfiguredOrganisation:
 
 
 async def get_configured_organisation(uuid=None):
-    if not ConfiguredOrganisation.valid:
-        await ConfiguredOrganisation.validate()
+    # Access to validate() is guarded behind a lock to ensure we don't schedule multiple
+    # (in some cases hundreds) requests on the very first call before the cache (the
+    # 'organisation' attribute) is populated.
+    # TODO: The locks dict is a workaround to support multiple loops. When async_to_sync
+    #  is eliminated, attach ONE Lock directly to ConfiguredOrganisation. Exclusivity is
+    #  maintained solely for performance, so per-loop exclusivity is sufficient.
+    validate_lock = ConfiguredOrganisation.validate_locks[asyncio.get_running_loop()]
+    async with validate_lock:
+        if not ConfiguredOrganisation.valid:
+            await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
     if uuid and uuid != org["uuid"]:
