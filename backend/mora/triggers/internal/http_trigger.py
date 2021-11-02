@@ -9,7 +9,6 @@ import aiohttp
 from fastapi.encoders import jsonable_encoder
 from mora import config
 from mora.async_util import async_session
-from mora.async_util import async_to_sync
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
@@ -117,7 +116,6 @@ async def fetch_endpoint_trigger(
         raise exc
 
 
-@async_to_sync
 async def fetch_endpoint_triggers(
     endpoints: List[str], timeout: int = 10
 ) -> Dict[str, List[MOTriggerRegister]]:
@@ -143,7 +141,7 @@ async def fetch_endpoint_triggers(
         return dict(trigger_tuples)
 
 
-def register(app) -> bool:
+async def register(app) -> bool:
     """Register triggers for what the http trigger handlers need.
 
     This method:
@@ -164,7 +162,9 @@ def register(app) -> bool:
     run_trigger_timeout = settings.run_trigger_timeout
 
     # Fetch configured triggers for all endpoints
-    endpoint_trigger_dict = fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)
+    endpoint_trigger_dict = await fetch_endpoint_triggers(
+        endpoints, fetch_trigger_timeout
+    )
     logger.debug(
         "Got endpoint_trigger_dict", endpoint_trigger_dict=endpoint_trigger_dict
     )

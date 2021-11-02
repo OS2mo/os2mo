@@ -211,7 +211,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
             )
         ]
         Trigger.registry = {}
-        register(None)
+        async_to_sync(register)(None)
         t_fetch_mock.assert_called()
 
         error_msg = "Something horrible happened"
@@ -257,7 +257,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
             )
         ]
         Trigger.registry = {}
-        register(None)
+        async_to_sync(register)(None)
         t_fetch_mock.assert_called()
 
         response_msg = "Something good happened"
