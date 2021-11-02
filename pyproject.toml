@@ -13,6 +13,7 @@ keywords = ["os2mo", "data models"]
 python = "^3.8"
 pydantic = "^1.8.2"
 "backports.zoneinfo" = { version = "^0.2.1", python = "<3.9" }
+datamodel-code-generator = "^0.11.14"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
@@ -31,6 +32,9 @@ mkdocstrings = "^0.15.2"
 [tool.autopub]
 git-username = "MagentaBot"
 git-email = "info@magenta.dk"
+
+[tool.poetry.scripts]
+lorafetch = 'ramodels.fetch:gen_models'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
