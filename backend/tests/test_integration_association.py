@@ -31,7 +31,7 @@ class Tests(tests.cases.LoRATestCase):
         association_uuid = "00000000-0000-0000-0000-000000000000"
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-        subid = "aefb4355-11b1-411b-a64d-34f2ff9640f6"
+        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
         payload = [
             {
                 "type": "association",
@@ -122,7 +122,7 @@ class Tests(tests.cases.LoRATestCase):
                 ],
                 "tilknyttedefunktioner": [
                     {
-                        "uuid": "aefb4355-11b1-411b-a64d-34f2ff9640f6",
+                        "uuid": subid,
                         "virkning": {
                             "from": "2017-12-01 " "00:00:00+01",
                             "from_included": True,
@@ -175,8 +175,8 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "dynamic_classes": [],
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {"uuid": unitid},
+                "person": {"uuid": userid},
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
                 "user_key": "1234",
                 "uuid": "00000000-0000-0000-0000-000000000000",
@@ -198,8 +198,8 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "dynamic_classes": [],
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {"uuid": unitid},
+                "person": {"uuid": userid},
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
                 "user_key": "1234",
                 "uuid": "00000000-0000-0000-0000-000000000000",
@@ -241,8 +241,8 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "dynamic_classes": [],
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {"uuid": unitid},
+                "person": {"uuid": userid},
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
                 "user_key": "1234",
                 "uuid": "00000000-0000-0000-0000-000000000000",
@@ -283,7 +283,7 @@ class Tests(tests.cases.LoRATestCase):
         association_uuid2 = "00000000-0000-0000-0000-000000000001"
 
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        subid = "aefb4355-11b1-411b-a64d-34f2ff9640f6"
+        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 
         def payload(assoc_uuid, include_person=True):
             """
@@ -378,7 +378,7 @@ class Tests(tests.cases.LoRATestCase):
                 ],
                 "tilknyttedefunktioner": [
                     {
-                        "uuid": "aefb4355-11b1-411b-a64d-34f2ff9640f6",
+                        "uuid": subid,
                         "virkning": {
                             "from": "2017-12-01 " "00:00:00+01",
                             "from_included": True,
@@ -443,7 +443,7 @@ class Tests(tests.cases.LoRATestCase):
             return {
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "dynamic_classes": [],
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "org_unit": {"uuid": unitid},
                 "person": None,
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
                 "user_key": "1234",
@@ -828,8 +828,8 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "dynamic_classes": [{"uuid": "cafebabe-c370-4502-81c2-7697009c9053"}],
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {"uuid": unitid},
+                "person": {"uuid": userid},
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
                 "user_key": "1234",
                 "uuid": "00000000-0000-0000-0000-000000000000",
@@ -858,6 +858,7 @@ class Tests(tests.cases.LoRATestCase):
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 
         req = [
             {
@@ -868,7 +869,9 @@ class Tests(tests.cases.LoRATestCase):
                     "association_type": {
                         "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"
                     },
-                    "substitute": {"uuid": "3afe52b2-6dc1-4ebf-ab27-790ee2931604"},
+                    "substitute": {
+                        "uuid": subid,
+                    },
                     "validity": {
                         "from": "2017-01-01",
                     },
@@ -895,7 +898,7 @@ class Tests(tests.cases.LoRATestCase):
                     },
                     "dynamic_classes": [],
                     "org_unit": {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "uuid": unitid,
                     },
                     "person": {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
@@ -903,7 +906,9 @@ class Tests(tests.cases.LoRATestCase):
                     "primary": None,
                     "user_key": "bvn",
                     "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                    "substitute": {"uuid": "3afe52b2-6dc1-4ebf-ab27-790ee2931604"},
+                    "substitute": {
+                        "uuid": subid,
+                    },
                     "validity": {
                         "from": "2017-01-01",
                         "to": None,
@@ -937,13 +942,15 @@ class Tests(tests.cases.LoRATestCase):
                         },
                         "dynamic_classes": [],
                         "org_unit": {
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                            "uuid": unitid,
                         },
                         "person": None,
                         "primary": None,
                         "user_key": "bvn",
                         "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                        "substitute": {"uuid": "3afe52b2-6dc1-4ebf-ab27-790ee2931604"},
+                        "substitute": {
+                            "uuid": subid,
+                        },
                         "validity": {
                             "from": "2017-01-01",
                             "to": None,
@@ -968,7 +975,7 @@ class Tests(tests.cases.LoRATestCase):
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-        subid = "3afe52b2-6dc1-4ebf-ab27-790ee2931604"
+        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 
         req = [
             {
@@ -1032,7 +1039,7 @@ class Tests(tests.cases.LoRATestCase):
                     },
                     "dynamic_classes": [],
                     "org_unit": {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "uuid": unitid,
                     },
                     "person": {
                         "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",

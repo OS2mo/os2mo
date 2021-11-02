@@ -42,7 +42,7 @@ def gen_organisation(
     return organisation
 
 
-def mock_organisation(aioresponses, *args, **kwargs) -> UUID:
+def mock_organisation(aioresponses, *args, repeat=False, **kwargs) -> UUID:
     # Clear Organisation cache before mocking a new one
     ConfiguredOrganisation.clear()
 
@@ -51,7 +51,7 @@ def mock_organisation(aioresponses, *args, **kwargs) -> UUID:
     aioresponses.get(
         URL("http://mox/organisation/organisation"),
         payload={"results": [[organisation]]},
-        repeat=True,
+        repeat=repeat,
     )
     return organisation["id"]
 

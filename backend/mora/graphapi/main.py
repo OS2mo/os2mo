@@ -58,7 +58,8 @@ class Query:
     ) -> List[OrganisationUnit]:
         if uuids:
             tasks = map(info.context["org_unit_loader"].load, uuids)
-            return await gather(*tasks)
+            org_units = await gather(*tasks)
+            return list(filter(lambda ou: ou is not None, org_units))
         return await get_org_units()
 
     # Employees
@@ -72,7 +73,8 @@ class Query:
     ) -> List[Employee]:
         if uuids:
             tasks = map(info.context["employee_loader"].load, uuids)
-            return await gather(*tasks)
+            employees = await gather(*tasks)
+            return list(filter(lambda empl: empl is not None, employees))
         return await get_employees()
 
 

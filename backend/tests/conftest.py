@@ -23,6 +23,10 @@ def pytest_runtest_setup(item):
     os.environ["PYTEST_RUNNING"] = "True"
 
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "serial: mark test to run serially")
+
+
 st.register_type_strategy(Validity, validity_model_strat())
 
 
