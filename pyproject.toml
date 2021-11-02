@@ -32,6 +32,9 @@ mkdocstrings = "^0.15.2"
 git-username = "MagentaBot"
 git-email = "info@magenta.dk"
 
+[tool.poetry.scripts]
+lorafetch = 'ramodels.fetch:gen_models'
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
