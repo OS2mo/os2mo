@@ -47,6 +47,7 @@ ramodels = "^2.1.1"
 strawberry-graphql = {extras = ["opentelemetry", "asgi"], version = "^0.78.0"}
 aio-pika = "^6.8.0"
 os2mo-dar-client = "^0.1.0"
+ra-utils = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

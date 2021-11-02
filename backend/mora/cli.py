@@ -16,7 +16,7 @@ import click
 import sqlalchemy
 
 from structlog import get_logger
-from mora.async_util import async_to_sync
+from ra_utils.async_to_sync import async_to_sync
 
 from mora.conf_db import create_db_table
 
