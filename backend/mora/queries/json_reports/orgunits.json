@@ -1,0 +1,599 @@
+{
+  "title": "Orgunits",
+  "schema":{
+    "fields":[
+      {
+        "name":"index",
+        "type":"integer"
+      },
+      {
+        "name":"uuid",
+        "type":"string"
+      },
+      {
+        "name":"Navn",
+        "type":"string"
+      },
+      {
+        "name":"Enhedtype UUID",
+        "type":"string"
+      },
+      {
+        "name":"Gyldig fra",
+        "type":"string"
+      },
+      {
+        "name":"Gyldig til",
+        "type":"string"
+      },
+      {
+        "name":"Enhedstype Titel",
+        "type":"string"
+      }
+    ],
+    "primaryKey":[
+      "index"
+    ],
+    "pandas_version":"0.20.0"
+  },
+  "data":[
+    {
+      "index":0,
+      "uuid":"f06ee470-9f17-566f-acbe-e938112d46d9",
+      "Navn":"Kolding Kommune",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":1,
+      "uuid":"b6c11152-0645-4712-a207-ba2c53b391ab",
+      "Navn":"Borgmesterens Afdeling",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":2,
+      "uuid":"1f06ed67-aa6e-4bbc-96d9-2f262b9202b5",
+      "Navn":"Budget og Planl\u00e6gning",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":3,
+      "uuid":"f1c20ee2-ecbb-4b74-b91c-66ef9831c5cd",
+      "Navn":"Byudvikling",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":4,
+      "uuid":"e054559b-bc15-4203-bced-44375aed1555",
+      "Navn":"Erhverv",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":5,
+      "uuid":"96a4715c-f4df-422f-a4b0-9dcc686753f7",
+      "Navn":"HR og organisation",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":6,
+      "uuid":"25e39a21-caef-4e96-ac90-7cc27173082e",
+      "Navn":"IT-Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":7,
+      "uuid":"7a8e45f7-4de0-44c8-990f-43c0565ee505",
+      "Navn":"Skole og B\u00f8rn",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":8,
+      "uuid":"9b7b3dde-16c9-4f88-87cc-e03aa5b4e709",
+      "Navn":"IT-Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":9,
+      "uuid":"2665d8e0-435b-5bb6-a550-f275692984ef",
+      "Navn":"Skoler og b\u00f8rnehaver",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":10,
+      "uuid":"bcb8400d-e6ec-5937-953c-245b9c47bfe5",
+      "Navn":"Almind b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":11,
+      "uuid":"bc876b6c-3682-5b60-804b-95ff759b5509",
+      "Navn":"Almind skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":12,
+      "uuid":"a79ef130-57cf-5598-8a00-b25994db02e0",
+      "Navn":"Bjert b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+     "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":13,
+      "uuid":"429ae94a-a4a7-5af0-9570-924e01f4f170",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":14,
+      "uuid":"db5acaf3-abaf-5d7d-8dfe-bcbf2baca04b",
+      "Navn":"Bjert skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":15,
+      "uuid":"327301c2-fdab-5773-9357-d0df0548258e",
+      "Navn":"Christiansfeld b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":16,
+      "uuid":"18443c6b-dbd4-58eb-984e-25b6350d9f50",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":17,
+      "uuid":"0c655440-867d-561e-8c28-2aa0ac8d1e20",
+      "Navn":"Teknisk Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":18,
+      "uuid":"7764d0c7-e776-5f07-8a9d-5ee6f5b717b0",
+      "Navn":"Christiansfeld skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":19,
+      "uuid":"93d836a8-a863-53a2-b969-58bed3bc8ee3",
+      "Navn":"Egtved b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":20,
+      "uuid":"b2627fff-afeb-5bc6-b5b6-df6a218fb0fa",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":21,
+      "uuid":"7b0074af-98f9-5bdf-801e-d3f20a05b8b8",
+      "Navn":"Egtved skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":22,
+      "uuid":"6aaa91fd-42aa-52d3-aacb-20050b1e2c7a",
+      "Navn":"Haderslev b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":23,
+      "uuid":"fefb46ae-4dde-5530-80a8-0be34c7149f2",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":24,
+      "uuid":"3589b521-37b8-5e7f-9c1e-c89e1939e4e5",
+      "Navn":"Teknisk Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":25,
+      "uuid":"1c690f27-35c5-5c02-975a-930e6b524805",
+      "Navn":"Haderslev skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":26,
+      "uuid":"b144ff95-50ca-59cb-9d8d-0aee251d8903",
+      "Navn":"Hejls b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":27,
+      "uuid":"51696c38-7008-579c-a6d8-d5b2d1bfec66",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":28,
+      "uuid":"48fa5e8a-5a47-5df3-a10b-292ed181e054",
+      "Navn":"Hejls skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":29,
+      "uuid":"1caba8d9-6b9f-506b-b845-9a8c4f5b8a03",
+      "Navn":"Jordrup b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":30,
+      "uuid":"7133da92-e624-56c9-8e23-bac319a537e1",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":31,
+      "uuid":"44d69c40-7fd3-5db2-8511-df4acf5c97b4",
+      "Navn":"Jordrup skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":32,
+      "uuid":"ddc5c715-d63f-59a7-9f26-b4b2588a8152",
+      "Navn":"Kolding b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":33,
+      "uuid":"a6c0e992-2ac8-5558-a3e3-f24078732cc9",
+      "Navn":"Kolding skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":34,
+      "uuid":"80746b64-3e0d-5d20-90f5-67387133c04b",
+      "Navn":"Lunderskov b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":35,
+      "uuid":"09c347ef-451f-5919-8d41-02cc989a6d8b",
+      "Navn":"Lunderskov skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":36,
+      "uuid":"b4537f2b-b9d2-5fd8-b68a-04238401e9ad",
+      "Navn":"Sj\u00f8lund b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":37,
+      "uuid":"10837513-021c-5b69-94c1-b53ffe0ce847",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":38,
+      "uuid":"6fc9ba6b-ca5b-5e09-a594-40363c45aae0",
+      "Navn":"Teknisk Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":39,
+      "uuid":"d420fbbc-7152-592d-a4d9-1cb103a1c067",
+      "Navn":"Sj\u00f8lund skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":40,
+      "uuid":"f582e76e-3276-5c83-a48d-ef1fd7a58ce7",
+      "Navn":"Sommersted b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":41,
+      "uuid":"6dab4dc9-d22e-5ef1-b752-1017f536a76c",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":42,
+      "uuid":"ddf55dab-10c4-58eb-ac0f-bef4d980acb0",
+      "Navn":"Sommersted skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":43,
+      "uuid":"316358a3-6007-5802-af99-656a19999f0c",
+      "Navn":"S\u00f8nder Stenderup b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":44,
+      "uuid":"77ea8694-1fde-5a53-9a6b-0280b1960914",
+      "Navn":"Administration",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":45,
+      "uuid":"6e629aef-4e5a-537a-8320-5e05015685f6",
+      "Navn":"Teknisk Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":46,
+      "uuid":"13f3cebf-2625-564a-bcfc-31272eb9bce2",
+      "Navn":"S\u00f8nder Stenderup skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":47,
+      "uuid":"756c7fde-4d6b-5cc1-a4a2-4ffdfda96a59",
+      "Navn":"Vamdrup b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":48,
+      "uuid":"5cb38a3c-cacd-5d54-9eb3-88eae2baba1b",
+      "Navn":"Vamdrup skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":49,
+      "uuid":"582d0b5e-3c3b-52e8-8d93-42573a6a3d88",
+      "Navn":"Viuf b\u00f8rnehus",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":50,
+      "uuid":"08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
+      "Navn":"Viuf skole",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":51,
+      "uuid":"535ba446-d618-4e51-8dae-821d63e26560",
+      "Navn":"Social Indsats",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":52,
+      "uuid":"a6773531-6c0a-4c7b-b0e2-77992412b610",
+      "Navn":"Social og sundhed",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":53,
+      "uuid":"23a2ace2-52ca-458d-bead-d1a42080579f",
+      "Navn":"Teknik og Milj\u00f8",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":54,
+      "uuid":"fe2d2ff4-45f8-4b19-8e1b-72d1c4914360",
+      "Navn":"Belysning",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":55,
+      "uuid":"e9a98855-5a44-59c8-a27b-783359e1f4f2",
+      "Navn":"Kantine",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":56,
+      "uuid":"8bf0c4ce-816e-41f9-99fe-057e0592d86d",
+      "Navn":"IT-Support",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":57,
+      "uuid":"cf4daae1-4812-41f1-8c47-63a99e26aadf",
+      "Navn":"Kloakering",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":58,
+      "uuid":"ec127e78-3c17-5fe6-84cb-7f19dad9fb85",
+      "Navn":"Kantine",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":59,
+      "uuid":"1a477478-41b4-4806-ac3a-e220760a0c89",
+      "Navn":"Park og vej",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":60,
+      "uuid":"dac3b1ef-3d36-4464-9839-f611a4215cb5",
+      "Navn":"Renovation",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    },
+    {
+      "index":61,
+      "uuid":"4e805460-01e1-5d89-a266-d139bca98221",
+      "Navn":"Kantine",
+      "Enhedtype UUID":"9d2ac723-d5e5-4e7f-9c7f-b207bd223bc2",
+      "Gyldig fra":"1960-01-01",
+      "Gyldig til":null,
+      "Enhedstype Titel":"Afdeling"
+    }
+  ]
+}
