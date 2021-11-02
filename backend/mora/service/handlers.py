@@ -14,7 +14,6 @@ import asyncio
 
 from structlog import get_logger
 
-from mora.async_util import async_to_sync
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -64,9 +63,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         HANDLERS_BY_ROLE_TYPE[cls.role_type] = cls
 
-    def __init__(
-        self, request: dict, request_type: RequestType, sync_construct: bool = True
-    ):
+    def __init__(self, request: dict, request_type: RequestType):
         """
         Initialize a request, and perform all required validation.
 
@@ -87,8 +84,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.ROLE_TYPE: self.role_type,
             Trigger.EVENT_TYPE: EventType.ON_BEFORE,
         }
-        if sync_construct:
-            self._sync_construct()
 
     @staticmethod
     def get_virkning_for_terminate(request) -> dict:
@@ -116,28 +111,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
                 obj=request,
             )
 
-    def _sync_construct(self):
-        if self.request_type == RequestType.CREATE:
-            self.prepare_create(self.request)
-        elif self.request_type == RequestType.EDIT:
-            self.prepare_edit(self.request)
-        elif self.request_type == RequestType.TERMINATE:
-            self.prepare_terminate(self.request)
-        elif self.request_type == RequestType.REFRESH:
-            self.prepare_refresh(self.request)
-        else:
-            raise NotImplementedError
-
-        self.trigger_dict.update(
-            {Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid}
-        )
-        self.trigger_results_before = None
-        if not util.get_args_flag("triggerless"):
-            self.trigger_results_before = async_to_sync(Trigger.run)(self.trigger_dict)
-
     @classmethod
     async def construct(cls, *args, **kwargs):
-        obj = cls(*args, **kwargs, sync_construct=False)
+        obj = cls(*args, **kwargs)
 
         if obj.request_type == RequestType.CREATE:
             await obj.aprepare_create(obj.request)
