@@ -52,13 +52,13 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
 
     if q == ["all"]:
         return [
-            json.load(open(directory / file.name))
-            for file in directory.iterdir()
-            if (directory / file.name).is_file()
+            json.loads(path.read_text())
+            for path in directory.iterdir()
+            if (directory / path.name).is_file()
         ]
     else:
         return [
-            json.load(open(directory / query_file))
+            json.loads((directory / query_file).read_text())
             for query_file in q
             if (directory / query_file).is_file()
         ]
@@ -74,7 +74,7 @@ async def get_insight_filenames() -> List[str]:
         logger.error("No file directory found in ", directory=directory)
         return []
 
-    return [file.name for file in directory.iterdir() if file.is_file()]
+    return [path.name for path in directory.iterdir() if path.is_file()]
 
 
 @router.get("/insight/download", response_class=StreamingResponse)
@@ -86,12 +86,12 @@ async def download_csv():
     if not directory.is_dir():
         logger.error("No file directory found in ", directory=directory)
 
-    list_of_files = list(filter(lambda file: file.is_file(), directory.iterdir()))
+    list_of_files = list(filter(lambda path: path.is_file(), directory.iterdir()))
 
     def read_jsonfile_from_disc(file: Path) -> Dict:
-        return json.load(open(file))
+        return json.loads(file.read_text())
 
-    list_of_json = map(read_jsonfile_from_disc, list_of_files)
+    iter_of_json = map(read_jsonfile_from_disc, list_of_files)
 
     def json_to_csv(content: Dict[str, Any]) -> StringIO:
         output = StringIO()
@@ -101,16 +101,15 @@ async def download_csv():
 
         writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
         writer.writeheader()
-        for row in content["data"]:
-            writer.writerow(row)
+        writer.writerows(content["data"])
 
         return output
 
-    list_of_csv = map(json_to_csv, list_of_json)
+    iter_of_csv = map(json_to_csv, iter_of_json)
 
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, "w") as zip_file:
-        for file, csv_file in zip(list_of_files, list_of_csv):
+        for file, csv_file in zip(list_of_files, iter_of_csv):
             zip_file.writestr(file.stem + ".csv", csv_file.getvalue())
     zip_buffer.seek(0)
 
