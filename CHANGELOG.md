@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.3.0 - 2021-11-04
+------------------
+
+[#46741] Add from_simplified_fields to ITSystemBinding
+
 3.2.0 - 2021-10-25
 ------------------
 
