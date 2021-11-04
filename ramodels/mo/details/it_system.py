@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from typing import Literal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import Field
 
@@ -16,6 +17,7 @@ from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Validity
+
 
 # --------------------------------------------------------------------------------------
 # IT Systems
@@ -39,3 +41,32 @@ class ITSystemBinding(MOBase):
     validity: Validity = Field(
         description="Validity of the created IT system binding object."
     )
+
+    @classmethod
+    def from_simplified_fields(
+        cls,
+        user_key: str,
+        itsystem_uuid: UUID,
+        from_date: str,
+        uuid: Optional[UUID] = None,
+        to_date: Optional[str] = None,
+        person_uuid: Optional[UUID] = None,
+        org_unit_uuid: Optional[UUID] = None,
+    ) -> "ITSystemBinding":
+        """
+        Create an IT System Binding from simplified fields.
+        """
+
+        it_system = ITSystemRef(uuid=itsystem_uuid)
+        person = PersonRef(uuid=person_uuid) if person_uuid else None
+        org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
+        validity = Validity(from_date=from_date, to_date=to_date)
+
+        return cls(
+            uuid=uuid,
+            user_key=user_key,
+            itsystem=it_system,
+            person=person,
+            org_unit=org_unit,
+            validity=validity,
+        )
