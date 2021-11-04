@@ -23,6 +23,7 @@ from . import org
 from . import orgunit
 from . import related  # noqa
 from . import role  # noqa
+from . import shimmed  # noqa
 from .validation import validate
 
 routers = {
