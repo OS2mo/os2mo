@@ -229,14 +229,17 @@ services:
       start_period: 300s
 
   keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:2.3.0
+    image: magentaaps/os2mo-keycloak-realm-builder:2.4.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
       KEYCLOAK_SSL_REQUIRED_MO: external
+      KEYCLOAK_SSL_REQUIRED_LORA: external
       KEYCLOAK_LORA_REALM_ENABLED: "true"
       KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
       KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      KEYCLOAK_LORA_DIPEX_CLIENT_ENABLED: "true"
+      KEYCLOAK_LORA_DIPEX_CLIENT_SECRET: "a091ed82-6e82-4efc-a8f0-001e2b127853"
       KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5000/*", "http://localhost:5001/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5000", "http://localhost:5001"]'
       KEYCLOAK_RBAC_ENABLED: "true"
