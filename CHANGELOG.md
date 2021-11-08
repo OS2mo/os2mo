@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.4.0 - 2021-11-08
+------------------
+
+[#46851] Make Address.from_simplified_fields UUID optional
+
 3.3.0 - 2021-11-04
 ------------------
 
