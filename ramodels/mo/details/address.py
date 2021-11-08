@@ -64,10 +64,10 @@ class Address(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         value: str,
         address_type_uuid: UUID,
         from_date: str,
+        uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
         value2: Optional[str] = None,
         person_uuid: Optional[UUID] = None,
