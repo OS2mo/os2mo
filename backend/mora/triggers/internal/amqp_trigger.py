@@ -158,7 +158,7 @@ async def get_connection_pools() -> Tuple[Pool, Pool]:
     return connection_pool, exchange_pool
 
 
-def register(app) -> bool:
+async def register(app) -> bool:
     """Register an ON_AFTER triggers for all ROLE_TYPEs and RequestTypes.
 
     This method:
