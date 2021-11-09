@@ -110,7 +110,9 @@ async def download_csv():
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, "w") as zip_file:
         for file, csv_file in zip(list_of_files, iter_of_csv):
-            zip_file.writestr(file.stem + ".csv", csv_file.getvalue())
+            zip_file.writestr(
+                file.stem + ".csv", csv_file.getvalue().encode("utf-8-sig")
+            )
     zip_buffer.seek(0)
 
     return StreamingResponse(
