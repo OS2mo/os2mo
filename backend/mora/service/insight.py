@@ -52,13 +52,11 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
 
     if q == ["all"]:
         return [
-            json.loads(path.read_text())
-            for path in directory.iterdir()
-            if (directory / path.name).is_file()
+            read_json_from_disc(path) for path in directory.iterdir() if path.is_file()
         ]
     else:
         return [
-            json.loads((directory / query_file).read_text())
+            read_json_from_disc(directory / query_file)
             for query_file in q
             if (directory / query_file).is_file()
         ]
@@ -78,7 +76,7 @@ async def get_insight_filenames() -> List[str]:
 
 
 @router.get("/insight/download", response_class=StreamingResponse)
-async def download_csv():
+async def download_csv() -> StreamingResponse:
     """Exports locally stored JSONs as a streamed ZIP of CSVs"""
     export_dir = config.get_settings().query_export_dir
     directory = Path(export_dir) / "json_reports"
@@ -88,20 +86,17 @@ async def download_csv():
 
     list_of_files = list(filter(lambda path: path.is_file(), directory.iterdir()))
 
-    def read_jsonfile_from_disc(file: Path) -> Dict:
-        return json.loads(file.read_text())
+    iter_of_json = map(read_json_from_disc, list_of_files)
 
-    iter_of_json = map(read_jsonfile_from_disc, list_of_files)
-
-    def json_to_csv(content: Dict[str, Any]) -> StringIO:
+    def json_to_csv(json_data: Dict[str, Any]) -> StringIO:
         output = StringIO()
 
-        content_fields = content["schema"]["fields"]
+        content_fields = json_data["schema"]["fields"]
         fieldnames = [field["name"] for field in content_fields]
 
         writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
         writer.writeheader()
-        writer.writerows(content["data"])
+        writer.writerows(json_data["data"])
 
         return output
 
@@ -120,3 +115,7 @@ async def download_csv():
         media_type="application/zip",
         headers={"content-disposition": "attachment; filename=insights.zip"},
     )
+
+
+def read_json_from_disc(file: Path):
+    return json.loads(file.read_text())
