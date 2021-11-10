@@ -10,6 +10,8 @@ from ._shared import MOBase
 from .employee import Employee
 from .facet import FacetClass
 from .organisation_unit import OrganisationUnit
+from .organisation_unit import OrganisationUnitRead
+from .organisation_unit import OrganisationUnitWrite
 
 # --------------------------------------------------------------------------------------
 # All
@@ -20,4 +22,6 @@ __all__ = [
     "Employee",
     "FacetClass",
     "OrganisationUnit",
+    "OrganisationUnitRead",
+    "OrganisationUnitWrite",
 ]

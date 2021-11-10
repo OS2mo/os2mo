@@ -13,8 +13,12 @@ from ramodels.mo._shared import OrgUnitHierarchy
 from ramodels.mo._shared import OrgUnitLevel
 from ramodels.mo._shared import OrgUnitType
 from ramodels.mo._shared import ParentRef
+from ramodels.mo._shared import TimePlanning
 from ramodels.mo._shared import Validity
 from ramodels.mo.organisation_unit import OrganisationUnit
+from ramodels.mo.organisation_unit import OrganisationUnitBase
+from ramodels.mo.organisation_unit import OrganisationUnitRead
+from ramodels.mo.organisation_unit import OrganisationUnitWrite
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
@@ -42,6 +46,50 @@ def valid_details(draw):
         | role_strat()
     )
     return draw(details_strat)
+
+
+@st.composite
+def base_strat(draw):
+    required = {
+        "validity": st.builds(Validity),
+        "name": st.text(),
+    }
+    optional = {
+        "type": st.just("org_unit"),
+        "user_key": st.none() | st.text(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def read_strat(draw):
+    base_dict = draw(base_strat())
+    optional = {
+        "parent": st.uuids(),
+        "org_unit_hierarchy": st.uuids(),
+        "org_unit_type": st.uuids(),
+        "org_unit_level": st.uuids(),
+        "time_planning": st.uuids(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries({}, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
+
+
+@st.composite
+def write_start(draw):
+    base_dict = draw(base_strat())
+    optional = {
+        "parent": st.builds(ParentRef),
+        "org_unit_hierarchy": st.builds(OrgUnitHierarchy),
+        "org_unit_type": st.builds(OrgUnitType),
+        "org_unit_level": st.builds(OrgUnitLevel),
+        "time_planning": st.builds(TimePlanning),
+    }
+    st_dict = draw(st.fixed_dictionaries({}, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
 
 
 @st.composite
@@ -85,17 +133,30 @@ def organisation_unit_fsf_strat(draw):
 
 
 class TestOrganisationUnit:
+    # backwards compatibility
     @given(organisation_unit_strat())
     def test_init(self, model_dict):
-        # Required
         assert OrganisationUnit(**model_dict)
-
-    @given(organisation_unit_strat(), not_from_regex(r"^org_unit$"))
-    def test_validators(self, model_dict, invalid_type):
-        with unexpected_value_error():
-            model_dict["type"] = invalid_type
-            OrganisationUnit(**model_dict)
 
     @given(organisation_unit_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         assert OrganisationUnit.from_simplified_fields(**simp_fields_dict)
+
+    # New tests
+    @given(base_strat())
+    def test_base(self, model_dict):
+        assert OrganisationUnitBase(**model_dict)
+
+    @given(read_strat())
+    def test_read(self, model_dict):
+        assert OrganisationUnitRead(**model_dict)
+
+    @given(write_start())
+    def test_write(self, model_dict):
+        assert OrganisationUnitWrite(**model_dict)
+
+    @given(base_strat(), not_from_regex(r"^org_unit$"))
+    def test_validators(self, model_dict, invalid_type):
+        with unexpected_value_error():
+            model_dict["type"] = invalid_type
+            OrganisationUnitBase(**model_dict)

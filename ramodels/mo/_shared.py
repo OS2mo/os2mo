@@ -66,121 +66,85 @@ class MORef(RABase):
 class AddressType(MORef):
     """Address type reference."""
 
-    pass
-
 
 class EngagementAssociationType(MORef):
     """Engagement Association type reference."""
-
-    pass
 
 
 class EngagementRef(MORef):
     """Engagement reference."""
 
-    pass
-
 
 class EngagementType(MORef):
     """Engagement type reference."""
-
-    pass
 
 
 class AssociationType(MORef):
     """Association type reference."""
 
-    pass
-
 
 class ITSystemRef(MORef):
     """IT System reference."""
-
-    pass
 
 
 class JobFunction(MORef):
     """Job function reference."""
 
-    pass
-
 
 class LeaveType(MORef):
     """Leave type reference."""
-
-    pass
 
 
 class ManagerLevel(MORef):
     """Manager level reference."""
 
-    pass
-
 
 class ManagerType(MORef):
     """Manager type reference."""
-
-    pass
 
 
 class OrganisationRef(MORef):
     """Organisation reference."""
 
-    pass
-
 
 class OrgUnitHierarchy(MORef):
     """Organisation unit hierarchy reference."""
-
-    pass
 
 
 class OrgUnitLevel(MORef):
     """Organisation unit level reference."""
 
-    pass
-
 
 class OrgUnitRef(MORef):
     """Organisation unit reference."""
-
-    pass
 
 
 class OrgUnitType(MORef):
     """Organisation unit type."""
 
-    pass
-
 
 class ParentRef(MORef):
     """Parent reference."""
-
-    pass
 
 
 class PersonRef(MORef):
     """Person reference."""
 
-    pass
-
 
 class Primary(MORef):
     """Primary type reference."""
-
-    pass
 
 
 class Responsibility(MORef):
     """Responsibility type reference."""
 
-    pass
-
 
 class RoleType(MORef):
     """Role type reference."""
 
-    pass
+
+class TimePlanning(MORef):
+    """Time planning reference"""
 
 
 class Validity(RABase):

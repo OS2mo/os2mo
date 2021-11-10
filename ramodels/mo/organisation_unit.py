@@ -18,12 +18,63 @@ from ._shared import OrgUnitHierarchy
 from ._shared import OrgUnitLevel
 from ._shared import OrgUnitType
 from ._shared import ParentRef
+from ._shared import TimePlanning
 from ._shared import Validity
 from .details import OrgUnitDetails
 
 # --------------------------------------------------------------------------------------
 # Organisation Unit model
 # --------------------------------------------------------------------------------------
+
+
+class OrganisationUnitBase(MOBase):
+    """A MO organisation unit object."""
+
+    type_: Literal["org_unit"] = Field(
+        "org_unit", alias="type", description="The object type."
+    )
+    name: str = Field(description="Name of the created organisation unit.")
+    user_key: Optional[str] = Field(description="Short, unique key.")
+    validity: Validity = Field(description="Validity of the created organisation unit.")
+
+
+class OrganisationUnitRead(OrganisationUnitBase):
+    parent: Optional[UUID] = Field(description="UUID of the parent organisation unit.")
+    org_unit_hierarchy: Optional[UUID] = Field(
+        description="UUID of the organisation unit hierarchy."
+    )
+    org_unit_type: Optional[UUID] = Field(
+        description="UUID of the organisation unit type."
+    )
+    org_unit_level: Optional[UUID] = Field(
+        description="UUID of the organisation unit level."
+    )
+    time_planning: Optional[UUID] = Field(
+        description="UUID of the time planning object."
+    )
+
+
+class OrganisationUnitWrite(OrganisationUnitBase):
+    parent: Optional[ParentRef] = Field(
+        description="Reference to the parent organisation unit."
+    )
+    org_unit_hierarchy: Optional[OrgUnitHierarchy] = Field(
+        description="Reference to the organisation unit hierarchy type."
+    )
+    org_unit_type: Optional[OrgUnitType] = Field(
+        description="Reference to the organisation unit type."
+    )
+    org_unit_level: Optional[OrgUnitLevel] = Field(
+        description="Reference to the organisation unit level type."
+    )
+    time_planning: Optional[TimePlanning] = Field(
+        description="Reference to the time planning type."
+    )
+    details: Optional[List[OrgUnitDetails]] = Field(
+        description="Details to be created for the organisation unit. "
+        "Note that when this is used, the organisation unit reference "
+        "is implicit in the payload."
+    )
 
 
 class OrganisationUnit(MOBase):
