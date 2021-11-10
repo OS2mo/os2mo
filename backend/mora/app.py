@@ -276,7 +276,10 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     # Flask automatically adds a static view that takes a path relative to the
     # `flaskr/static` directory.
     serviceplatformen.check_config()
-    triggers.register(app)
+
+    @app.on_event("startup")
+    async def register_triggers():
+        await triggers.register(app)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

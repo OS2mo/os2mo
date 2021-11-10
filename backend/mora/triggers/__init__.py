@@ -14,7 +14,7 @@ from ..mapping import RequestType
 logger = get_logger()
 
 
-def register(app):
+async def register(app):
     """Call register on our internal trigger modules."""
     from mora.triggers.internal import amqp_trigger
     from mora.triggers.internal import http_trigger
@@ -24,7 +24,7 @@ def register(app):
     for trigger_module in trigger_modules:
         logger.debug("Registering trigger", trigger_module=trigger_module)
         try:
-            trigger_module.register(app)
+            await trigger_module.register(app)
         except Exception:
             logger.exception(
                 "Exception during register call", trigger_module=trigger_module
