@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.5.0 - 2021-11-11
+------------------
+
+[#46693] Add Organisation Unit base/read/write models
+
 3.4.0 - 2021-11-08
 ------------------
 
