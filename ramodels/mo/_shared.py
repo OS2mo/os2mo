@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import re
 import warnings
 from datetime import date
 from datetime import datetime
@@ -161,7 +162,7 @@ class TimePlanning(MORef):
 
 
 class OpenValidity(RABase):
-    """Validity of a MO object."""
+    """Validity of a MO object with optional `from_date`."""
 
     from_date: Optional[datetime] = Field(
         alias="from", description="Start date of the validity."
@@ -186,12 +187,15 @@ class OpenValidity(RABase):
         cmp_from_dt = _from_dt if _from_dt else datetime.min.replace(tzinfo=UTC)
         cmp_to_dt = _to_dt if _to_dt else datetime.max.replace(tzinfo=UTC)
         if all([cmp_from_dt, cmp_to_dt]) and not (cmp_from_dt <= cmp_to_dt):
-            raise ValueError("from_date must be less than or equal to to_date")
+            raise ValueError(
+                f"from_date {cmp_from_dt} must be less than "
+                f"or equal to to_date {cmp_to_dt}"
+            )
         return values
 
 
 class Validity(OpenValidity):
-    """Validity of a MO object."""
+    """Validity of a MO object with required `from_date`."""
 
     from_date: datetime = Field(alias="from", description="Start date of the validity.")
 
@@ -229,7 +233,7 @@ def split_name(name: str) -> Tuple[str, str]:
 def validate_names(
     values: DictStrAny, name_key: str, givenname_key: str, surname_key: str
 ) -> DictStrAny:
-    """Validate a name valies from a dictionary. Used in the Employee model validator.
+    """Validate a name value from a dictionary. Used in the Employee model validator.
 
     Args:
         values: Value dict to validate.
@@ -278,7 +282,9 @@ def validate_cpr(cpr_no: Optional[str]) -> Optional[str]:
     if cpr_no is None:
         return None
 
-    # The string is validated with regex first, so we know this works
+    if not re.match(r"^\d{10}$", cpr_no):
+        raise ValueError("CPR string is invalid.")
+
     # We only obtain the most significant digit of the code part, since it's
     # what we need for century calculations,
     # cf. https://da.wikipedia.org/wiki/CPR-nummer

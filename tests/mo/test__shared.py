@@ -9,15 +9,21 @@
 from datetime import datetime
 
 import pytest
+from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
 
+from ramodels.mo._shared import deprecation
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import MORef
 from ramodels.mo._shared import OpenValidity
+from ramodels.mo._shared import split_name
+from ramodels.mo._shared import validate_cpr
+from ramodels.mo._shared import validate_names
 from ramodels.mo._shared import Validity
 from tests.conftest import from_date_strat
+from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 
 # --------------------------------------------------------------------------------------
@@ -115,7 +121,8 @@ class TestOpenValidity:
         # from_date > to_date should fail
         from_dt, to_dt = dt_tup
         with pytest.raises(
-            ValidationError, match="from_date must be less than or equal to to_date"
+            ValidationError,
+            match="from_date .* must be less than or equal to to_date .*",
         ):
             OpenValidity(from_date=from_dt, to_date=to_dt)
 
@@ -131,3 +138,45 @@ class TestValidity:
         # We test this because it's allowed in Validity's super class
         with pytest.raises(ValidationError, match="none is not an allowed value"):
             Validity(from_date=from_date)
+
+
+@st.composite
+def invalid_name_combo(draw):
+    name_strats = st.just("givenname"), st.just("surname")
+    name_dict = draw(
+        st.dictionaries(keys=st.one_of(*name_strats), values=st.text(), min_size=1)
+    )
+    name_dict["name"] = draw(st.text())
+    return name_dict
+
+
+class TestValidatorFunctions:
+    def test_deprecation(self):
+        msg = "Deprecated"
+        with pytest.deprecated_call(match=msg):
+            deprecation(msg)
+
+    @given(st.text())
+    def test_split_name(self, name):
+        assert len(split_name(name)) == 2
+
+    @given(invalid_name_combo(), st.text())
+    def test_validate_names(self, invalid_name_dict, name):
+        # Test dict with mutually exclusive keys
+        with pytest.raises(ValueError, match="mutually exclusive"):
+            validate_names(invalid_name_dict, "name", "givenname", "surname")
+        # A dict with only name raises a deprecation warning
+        with pytest.deprecated_call(match="will be deprecated in a future version"):
+            validate_names({"name": name}, "name", "givenname", "surname")
+
+    @given(not_from_regex(r"^\d{10}$"), st.from_regex(r"^[3-9][2-9]\d{8}$"))
+    @example("", "3201012101")
+    @example("", "3201014101")
+    @example("", "3201559101")
+    @example("", "3201016101")
+    @example("", "3201767101")
+    def test_cpr_validation(self, invalid_regex, invalid_cpr):
+        with pytest.raises(ValueError, match="string is invalid"):
+            validate_cpr(invalid_regex)
+        with pytest.raises(ValueError, match="number is invalid"):
+            validate_cpr(invalid_cpr)
