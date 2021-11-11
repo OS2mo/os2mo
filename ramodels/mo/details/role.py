@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Literal
-from typing import Optional
 
 from pydantic import Field
 
@@ -24,7 +23,6 @@ from .._shared import Validity
 
 class Role(MOBase):
     type_: Literal["role"] = Field("role", alias="type", description="The object type.")
-    user_key: Optional[str] = Field(description="Short, unique key.")
     role_type: RoleType = Field(description="Reference to the role type facet")
     person: PersonRef = Field(
         description="Reference to the person object for which the role should "

@@ -15,6 +15,7 @@ from pydantic import ValidationError
 
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import MORef
+from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
@@ -36,6 +37,7 @@ class TestMOBase:
             pass
 
         assert MOSub.__fields__.get("uuid")
+        assert MOSub.__fields__.get("user_key")
 
     @given(st.uuids())
     def test_validators(self, ht_uuid):
@@ -49,6 +51,11 @@ class TestMOBase:
         # But we should also be able to set them explicitly
         mo_sub_with_uuid = MOSub(uuid=ht_uuid)
         assert mo_sub_with_uuid.uuid == ht_uuid
+
+        # User key must default to UUID
+        assert mo_sub.user_key == str(mo_sub.uuid)
+        # But we should also be able to set it explicitly
+        assert MOSub(user_key="test").user_key == "test"
 
 
 # --------------------------------------------------------------------------------------
@@ -72,6 +79,14 @@ class TestMORef:
 # --------------------------------------------------------------------------------------
 # Validity
 # --------------------------------------------------------------------------------------
+@st.composite
+def open_validity_strat(draw):
+    optional = {
+        "from_date": st.none() | from_date_strat(),
+        "to_date": st.none() | to_date_strat(),
+    }
+    st_dict = draw(st.fixed_dictionaries({}, optional=optional))  # type: ignore
+    return st_dict
 
 
 @st.composite
@@ -82,10 +97,10 @@ def validity_strat(draw):
     return st_dict
 
 
-class TestValidity:
-    @given(validity_strat())
+class TestOpenValidity:
+    @given(open_validity_strat())
     def test_init(self, model_dict):
-        assert Validity(**model_dict)
+        assert OpenValidity(**model_dict)
 
     @given(
         st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
@@ -93,7 +108,7 @@ class TestValidity:
     )
     def test_validators(self, dt_tup, from_date_no_tz):
         # tz unaware date becomes tz aware datetime
-        validity = Validity(from_date=from_date_no_tz)
+        validity = OpenValidity(from_date=from_date_no_tz)
         assert isinstance(validity.from_date, datetime)
         assert validity.from_date.tzinfo
 
@@ -102,4 +117,17 @@ class TestValidity:
         with pytest.raises(
             ValidationError, match="from_date must be less than or equal to to_date"
         ):
-            Validity(from_date=from_dt, to_date=to_dt)
+            OpenValidity(from_date=from_dt, to_date=to_dt)
+
+
+class TestValidity:
+    @given(validity_strat())
+    def test_init(self, model_dict):
+        assert Validity(**model_dict)
+
+    @given(st.none())
+    def test_none_date(self, from_date):
+        # from_date is not allowed to be None
+        # We test this because it's allowed in Validity's super class
+        with pytest.raises(ValidationError, match="none is not an allowed value"):
+            Validity(from_date=from_date)

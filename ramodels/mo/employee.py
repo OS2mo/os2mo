@@ -106,7 +106,6 @@ class Employee(MOBase):
         regex=r"^\d{10}$", description="CPR number of the employee."
     )
     seniority: Optional[datetime] = Field(description="Seniority of the employee.")
-    user_key: Optional[str] = Field(description="Short, unique key.")
     org: Optional[OrganisationRef] = Field(
         description="Organisation reference. "
         "MO only supports one main organisation, so this is rarely used."
