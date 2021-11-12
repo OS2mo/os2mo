@@ -14,6 +14,7 @@ from mora import config
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import rbac
 from mora.auth.exceptions import AuthorizationError
+from mora.graphapi.middleware import is_graphql_shim
 
 
 class IsAuthenticated(BasePermission):
@@ -23,6 +24,9 @@ class IsAuthenticated(BasePermission):
         """Checks if a valid OIDC token was sent in the Authorization header."""
         # Auth disabled -> Full access
         if not config.get_settings().graphql_auth:
+            return True
+
+        if is_graphql_shim():
             return True
 
         request: Union[Request, WebSocket] = info.context["request"]

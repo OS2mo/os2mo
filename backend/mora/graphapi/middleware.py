@@ -42,3 +42,34 @@ class StarletteContextExtension(Extension):
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""
     return context.get("is_graphql", False)
+
+
+class GraphQLIsShimPlugin(Plugin):
+    """Starlette Plugin to create the `is_graphql_shim` context variable.
+
+    The variable is used to toggle GraphQL authentication within the
+    GraphQL shim.
+
+    The variable is `False` by default as to keep everything unaffected by default,
+    and is only switched to `True` when a GraphQL query is being executed. This changed
+    is trigger by the Starberry GraphQL extension: StarletteContextExtension.
+
+    After all reading code is implemented using GraphQL / shimming this plugin and the
+    corresponding extension can be eliminated.
+    """
+
+    key = "is_graphql_shim"
+
+    async def process_request(
+        self, request: Union[Request, HTTPConnection]
+    ) -> Optional[Any]:
+        return False
+
+
+def set_is_shim() -> None:
+    context["is_graphql_shim"] = True
+
+
+def is_graphql_shim() -> bool:
+    """Determine if we are currently in the GraphQL shim"""
+    return context.get("is_graphql_shim", False)
