@@ -34,7 +34,6 @@ class OrganisationUnitBase(MOBase):
         "org_unit", alias="type", description="The object type."
     )
     name: str = Field(description="Name of the created organisation unit.")
-    user_key: Optional[str] = Field(description="Short, unique key.")
     validity: Validity = Field(description="Validity of the created organisation unit.")
 
 

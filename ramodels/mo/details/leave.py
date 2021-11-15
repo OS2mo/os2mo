@@ -26,7 +26,6 @@ class Leave(MOBase):
     type_: Literal["leave"] = Field(
         "leave", alias="type", description="The object type."
     )
-    user_key: Optional[str] = Field(description="Short, unique key.")
     leave_type: LeaveType = Field(description="Reference to the leave type facet")
     person: PersonRef = Field(
         description="Reference to the person object for which the role should "
