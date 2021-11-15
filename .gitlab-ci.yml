@@ -1,99 +1,86 @@
-# ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# Global
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  PRE_COMMIT_HOME: "$CI_PROJECT_DIR/.cache/pre-commit"
-
-cache:
-  key: "${CI_JOB_NAME}"
-  paths:
-    - .venv/
-    - .cache/pip
-    - .cache/pre-commit
+# Stages
+################################################################################
 
 stages:
+  - install
   - lint
   - test
+  - coverage
   - prepare-release
   - release
 
-# ---------------------------------------------------------------------------
-# Templates
-# ---------------------------------------------------------------------------
-.install-deps-template: &install-deps
+# Reusables
+################################################################################
+
+.install-deps: &install-deps
+  variables:
+    POETRY_VERSION: "1.1.11"
+    POETRY_VIRTUALENVS_CREATE: "true"
+    POETRY_VIRTUALENVS_IN_PROJECT: "true"
   before_script:
-    - pip install poetry
-    - poetry --version
-    - poetry config virtualenvs.in-project true
-    - poetry install -vv
-    - poetry run pre-commit install
+    - pip install --no-cache-dir poetry==${POETRY_VERSION}
+    - poetry install
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - .venv/
 
-.lint-template: &lint
-  <<: *install-deps
-  image: python:3.8
-  stage: lint
+.source-venv: &source-venv
+  image: python:3.8-slim
+  needs: [Install]
+  before_script:
+    - source .venv/bin/activate
 
-.test-template: &test # Coverage needed too
+# Jobs
+################################################################################
+Install:
   <<: *install-deps
-  needs: []
-  stage: test
+  image: python:3.8-slim
+  stage: install
   script:
-    - poetry run pytest
-      --junitxml=report.xml
+    - poetry --version
+
+Lint Project:
+  <<: *source-venv
+  stage: lint
+  image: python:3.8
+  script:
+    - pre-commit install
+    - pre-commit run --all-files
+
+Test:
+  <<: *source-venv
+  stage: test
+  variables:
+    HYPOTHESIS_PROFILE: ci
+  parallel: 8
+  script:
+    - pytest
       --cov=ramodels
       --cov-report=html
-      --cov-fail-under=100
-      -n auto
+      --shard-id=$(($CI_NODE_INDEX - 1))
+      --num-shards=$CI_NODE_TOTAL
+    - mv .coverage ".coverage.$(($CI_NODE_INDEX - 1))"
   artifacts:
     when: always
     paths:
-      - htmlcov/
-    reports:
-      junit: report.xml
-  variables:
-    HYPOTHESIS_PROFILE: ci
+      - ".coverage.$(($CI_NODE_INDEX - 1))"
 
-.prep-release-template: &prep-release
+Check coverage:
+  stage: coverage
+  image: python:3.8-slim
+  needs: [Test]
+  before_script:
+    - pip install coverage
+    - coverage combine
+  script:
+    - coverage report -m --fail-under=100
+
+Autopub:
   stage: prepare-release
   needs: []
   image: python:3.8
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
-
-.release-template: &release
-  <<: *install-deps
-  image: python:3.8
-  stage: release
-  rules:
-    # Matches <version core> from SemVer 2.0.0 BNF grammar.
-    # Ex. 2.3.4, but not 2.3.4-rc
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-
-# ---------------------------------------------------------------------------
-# Lint
-# ---------------------------------------------------------------------------
-Lint Project:
-  <<: *lint
-  script:
-    - poetry run pre-commit run --all-files
-
-# ---------------------------------------------------------------------------
-# Test
-# ---------------------------------------------------------------------------
-Test on Python 3.8:
-  <<: *test
-  image: python:3.8
-
-Test on Python 3.9:
-  <<: *test
-  image: python:3.9
-
-# ---------------------------------------------------------------------------
-# Release
-# ---------------------------------------------------------------------------
-Autopub:
-  <<: *prep-release
   variables:
     PROJECT_ROOT: .
   tags:
@@ -113,22 +100,25 @@ Autopub:
     - pip install toml
   script:
     - bash .gitlab/autopub.sh
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master"
 
 Release to PyPI:
-  <<: *release
-  script: poetry publish --build -u OS2mo -p $PYPI_PWD
-
-# ---------------------------------------------------------------------------
-# Build pages
-# ---------------------------------------------------------------------------
-pages:
   <<: *install-deps
-  image: python:3.8
   stage: release
-  needs: []
+  image: python:3.8-slim
+  script: poetry publish --build -u OS2mo -p $PYPI_PWD
+  rules:
+    # Matches <version core> from SemVer 2.0.0 BNF grammar.
+    # Ex. 2.3.4, but not 2.3.4-rc
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+
+pages:
+  <<: *source-venv
+  stage: release
   script:
-    - poetry run python docs/generate_schemas.py
-    - poetry run mkdocs build --strict --site-dir public
+    - python docs/generate_schemas.py
+    - mkdocs build --strict --site-dir public
   artifacts:
     paths:
       - public
