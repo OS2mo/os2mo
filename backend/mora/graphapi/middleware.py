@@ -51,8 +51,8 @@ class GraphQLIsShimPlugin(Plugin):
     GraphQL shim.
 
     The variable is `False` by default as to keep everything unaffected by default,
-    and is only switched to `True` when a GraphQL query is being executed. This changed
-    is trigger by the Starberry GraphQL extension: StarletteContextExtension.
+    and is only switched to `True` when query is being executed via the GraphQL
+    shim.
 
     After all reading code is implemented using GraphQL / shimming this plugin and the
     corresponding extension can be eliminated.
