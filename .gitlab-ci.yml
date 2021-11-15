@@ -22,6 +22,11 @@ stages:
   - release
   - deploy
 
+include:
+  project: 'labs/salt-automation'
+  ref: 'feature/46450_os2mo_gitlab_ci_template'
+  file: '/gitlab-ci-templates/project/os2mo/autopub.yml'
+
 variables:
   # Project variables
   RELEASE_REGISTRY: docker.io
@@ -38,6 +43,7 @@ variables:
   IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}
 
   POETRY_VERSION: 1.1.8
+  PYPROJECT_ROOT: backend
 
 # Only run pipeline when pushing a tag or a branch.
 # This is a workaround for a bug causing detached pipelines on MRs
@@ -427,48 +433,6 @@ Vue-unit-test:
 
 Check Autopub:
   <<: *manual-rules
-  stage: prepare-release
-  needs: []
-  image: python:3
-  variables:
-    PROJECT_ROOT: .
-  tags:
-    - docker
-  before_script:
-    # Prepare autopub
-    - pip install autopub
-    - pip install poetry
-  script:
-    - cd backend
-    - autopub check
-
-Autopub:
-  stage: prepare-release
-  needs: []
-  image: python:3
-  variables:
-    PROJECT_ROOT: .
-  tags:
-    - docker
-  before_script:
-    # Setup git
-    - mkdir -p ~/.ssh
-    - cat .gitlab/gitlab-known-hosts >> ~/.ssh/known_hosts
-    - apt-get update -y && apt-get install -y git
-    - git clone https://$AUTOPUB_USER:$AUTOPUB_TOKEN@git.magenta.dk/rammearkitektur/os2mo.git
-    - cd os2mo
-    - git checkout master
-    - git config --global user.name "MagentaBot"
-    - git config --global user.email "info@magenta.dk"
-    # Prepare autopub
-    - pip install autopub
-    - pip install poetry
-    - pip install toml
-  script:
-    - cd backend
-    - ../.gitlab/autopub.sh
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
 
 Generate release tags:
   stage: prepare-release
