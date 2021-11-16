@@ -27,6 +27,77 @@ from .._shared import Validity
 # --------------------------------------------------------------------------------------
 
 
+class EngagementBase(MOBase):
+    """A MO engagement object."""
+
+    type_: Literal["engagement"] = Field(
+        "engagement", alias="type", description="The object type."
+    )
+    validity: Validity = Field(description="Validity of the engagement object.")
+    fraction: Optional[int] = Field(
+        description="Indication of contribution to the "
+        "collection of engagements for the given employee."
+    )
+    extension_1: Optional[str] = Field(description="Optional extra information.")
+    extension_2: Optional[str] = Field(description="Optional extra information.")
+    extension_3: Optional[str] = Field(description="Optional extra information.")
+    extension_4: Optional[str] = Field(description="Optional extra information.")
+    extension_5: Optional[str] = Field(description="Optional extra information.")
+    extension_6: Optional[str] = Field(description="Optional extra information.")
+    extension_7: Optional[str] = Field(description="Optional extra information.")
+    extension_8: Optional[str] = Field(description="Optional extra information.")
+    extension_9: Optional[str] = Field(description="Optional extra information.")
+    extension_10: Optional[str] = Field(description="Optional extra information.")
+
+
+class EngagementRead(EngagementBase):
+    """A MO engagement read object."""
+
+    org_unit: UUID = Field(
+        description="UUID of the organisation unit related to the engagement."
+    )
+    person: UUID = Field(description="UUID of the person related to the engagement.")
+    engagement_type: UUID = Field(
+        description="UUID of the engagement type klasse of the engagement."
+    )
+    job_function: UUID = Field(
+        description="UUID of the job function klasse of the engagement."
+    )
+    primary: Optional[UUID] = Field(
+        description="UUID of the primary klasse of the engagement."
+    )
+    is_primary: Optional[bool] = Field(
+        description="Indication of whether this engagement is the primary."
+    )
+
+
+class EngagementWrite(EngagementBase):
+    """A MO engagement write object."""
+
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit "
+        "for which the engagement should be created."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person "
+        "for which the engagement should be created."
+    )
+    engagement_type: EngagementType = Field(
+        description="Reference to the engagement type klasse "
+        "for the created engagement object."
+    )
+    # NOTE: Job function is set to optional in the current MO write code,
+    # but that's an error. If payloads without a job function are posted,
+    # MO fails spectacularly when reading the resulting engagement objects.
+    job_function: JobFunction = Field(
+        description="Reference to the job function klasse "
+        "for the created engagement object."
+    )
+    primary: Optional[Primary] = Field(
+        description="Reference to the primary klasse for the created engagement object."
+    )
+
+
 class Engagement(MOBase):
     """A MO engagement object."""
 
