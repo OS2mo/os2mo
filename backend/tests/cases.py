@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import json
 import pprint
-from asyncio import AbstractEventLoop
 from time import sleep
 from unittest.case import TestCase
 from unittest.mock import patch
@@ -51,21 +49,6 @@ async def fake_auth():
     }
 
 
-class AlwaysCreateLoopEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
-    def get_event_loop(self) -> AbstractEventLoop:
-        """
-        Asyncio's DefaultEventLoopPolicy, but creates loops in non-main threads.
-        This nasty hack is needed because many of our tests are using async_to_sync
-        wrappers. Does not affect production code.
-        """
-        try:
-            return super().get_event_loop()
-        except RuntimeError:
-            loop = self.new_event_loop()
-            self.set_event_loop(loop)
-            return loop
-
-
 class _BaseTestCase(TestCase):
     """
     Base class for MO testcases w/o LoRA access.
@@ -77,7 +60,6 @@ class _BaseTestCase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        asyncio.set_event_loop_policy(AlwaysCreateLoopEventLoopPolicy())
 
     def setUp(self):
         super().setUp()
