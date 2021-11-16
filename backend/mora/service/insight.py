@@ -14,7 +14,7 @@ from pathlib import Path
 from starlette.responses import StreamingResponse
 
 from structlog import get_logger
-from .. import config
+from .. import config, exceptions
 
 
 router = APIRouter()
@@ -45,10 +45,7 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
     """
     export_dir = config.get_settings().query_export_dir
     directory = Path(export_dir) / "json_reports"
-
-    if not directory.is_dir():
-        logger.error("No file directory found in ", directory=directory)
-        return []
+    directory_exists(directory)
 
     if q == ["all"]:
         return [
@@ -67,10 +64,7 @@ async def get_insight_filenames() -> List[str]:
     """Lists all available files"""
     export_dir = config.get_settings().query_export_dir
     directory = Path(export_dir) / "json_reports"
-
-    if not directory.is_dir():
-        logger.error("No file directory found in ", directory=directory)
-        return []
+    directory_exists(directory)
 
     return [path.name for path in directory.iterdir() if path.is_file()]
 
@@ -80,27 +74,14 @@ async def download_csv() -> StreamingResponse:
     """Exports locally stored JSONs as a streamed ZIP of CSVs"""
     export_dir = config.get_settings().query_export_dir
     directory = Path(export_dir) / "json_reports"
-
-    if not directory.is_dir():
-        logger.error("No file directory found in ", directory=directory)
+    directory_exists(directory)
 
     list_of_files = list(filter(lambda path: path.is_file(), directory.iterdir()))
-
     iter_of_json = map(read_json_from_disc, list_of_files)
-
-    def json_to_csv(json_data: Dict[str, Any]) -> StringIO:
-        output = StringIO()
-
-        content_fields = json_data["schema"]["fields"]
-        fieldnames = [field["name"] for field in content_fields]
-
-        writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
-        writer.writeheader()
-        writer.writerows(json_data["data"])
-
-        return output
-
-    iter_of_csv = map(json_to_csv, iter_of_json)
+    iter_of_csv = (
+        json_to_csv(json_file, extract_fieldnames(json_file))
+        for json_file in iter_of_json
+    )
 
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, "w") as zip_file:
@@ -119,3 +100,23 @@ async def download_csv() -> StreamingResponse:
 
 def read_json_from_disc(file: Path):
     return json.loads(file.read_text())
+
+
+def json_to_csv(json_data: Dict[str, Any], fieldnames: List[str]) -> StringIO:
+    output = StringIO()
+
+    writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
+    writer.writeheader()
+    writer.writerows(json_data["data"])
+
+    return output
+
+
+def extract_fieldnames(json_data: Dict[str, Any]) -> List[str]:
+    return [field["name"] for field in json_data["schema"]["fields"]]
+
+
+def directory_exists(directory: Path):
+    if not directory.is_dir():
+        logger.error("No file directory found in ", directory=directory)
+        exceptions.ErrorCodes.E_DIR_NOT_FOUND(directory=str(directory))
