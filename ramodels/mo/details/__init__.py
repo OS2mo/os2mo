@@ -9,6 +9,8 @@
 from typing import Union
 
 from .address import Address
+from .address import AddressRead
+from .address import AddressWrite
 from .association import Association
 from .association import AssociationBase
 from .association import AssociationRead
@@ -40,6 +42,8 @@ __all__ = [
     "EmployeeDetails",
     "OrgUnitDetails",
     "Address",
+    "AddressRead",
+    "AddressWrite",
     "Association",
     "AssociationBase",
     "AssociationRead",

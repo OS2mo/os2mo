@@ -19,6 +19,7 @@ from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import MORef
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import split_name
+from ramodels.mo._shared import UUIDBase
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo._shared import validate_names
 from ramodels.mo._shared import Validity
@@ -27,41 +28,53 @@ from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
 
 # --------------------------------------------------------------------------------------
-# MOBase
+# Base models
 # --------------------------------------------------------------------------------------
 
 
+class TestUUIDBase:
+    class UUIDSub(UUIDBase):
+        pass
+
+    def test_init(self):
+        # UUIDBase cannot be instantiated.
+        with pytest.raises(TypeError, match="may not be instantiated"):
+            UUIDBase()
+
+    def test_fields(self):
+        # Subclasses of UUIDBase should have a UUID field
+        assert self.UUIDSub.__fields__.get("uuid")
+
+    @given(st.uuids())
+    def test_validators(self, ht_uuid):
+        # UUIDs should be auto-generated
+        assert self.UUIDSub().uuid.version == 4
+
+        # But we should also be able to set them explicitly
+        assert self.UUIDSub(uuid=ht_uuid).uuid == ht_uuid
+
+
 class TestMOBase:
+    class MOSub(MOBase):
+        pass
+
     def test_init(self):
         # MOBase cannot be instantiated
         with pytest.raises(TypeError, match="may not be instantiated"):
             MOBase()
 
     def test_fields(self):
-        # Subclasses of MOBase should have a UUID field
-        class MOSub(MOBase):
-            pass
-
-        assert MOSub.__fields__.get("uuid")
-        assert MOSub.__fields__.get("user_key")
+        # Subclasses of MOBase should have a user_key field
+        assert self.MOSub.__fields__.get("user_key")
 
     @given(st.uuids())
     def test_validators(self, ht_uuid):
-        class MOSub(MOBase):
-            pass
-
-        # UUIDs should be auto-generated
-        mo_sub = MOSub()
-        assert mo_sub.uuid.version == 4
-
-        # But we should also be able to set them explicitly
-        mo_sub_with_uuid = MOSub(uuid=ht_uuid)
-        assert mo_sub_with_uuid.uuid == ht_uuid
 
         # User key must default to UUID
+        mo_sub = self.MOSub()
         assert mo_sub.user_key == str(mo_sub.uuid)
         # But we should also be able to set it explicitly
-        assert MOSub(user_key="test").user_key == "test"
+        assert self.MOSub(user_key="test").user_key == "test"
 
 
 # --------------------------------------------------------------------------------------

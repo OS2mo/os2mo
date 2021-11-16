@@ -6,8 +6,10 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+from pydantic import ValidationError
 
 from ramodels.mo._shared import AddressType
 from ramodels.mo._shared import EngagementRef
@@ -17,6 +19,9 @@ from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.address import AddressBase
+from ramodels.mo.details.address import AddressRead
+from ramodels.mo.details.address import AddressWrite
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
@@ -25,6 +30,53 @@ from tests.conftest import unexpected_value_error
 # ---------------------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------------------
+
+
+@st.composite
+def base_strat(draw):
+    required = {"value": st.text(), "validity": st.builds(Validity)}
+    optional = {"type": st.just("address"), "value2": st.none() | st.text()}
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def read_strat(draw):
+    base_dict = draw(base_strat())
+    required = {"address_type": st.uuids()}
+    optional = {
+        "person": st.none() | st.uuids(),
+        "org_unit": st.none() | st.uuids(),
+        "engagement": st.none() | st.uuids(),
+        "visibility": st.none() | st.uuids(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
+
+
+@st.composite
+def write_strat(draw):
+    base_dict = draw(base_strat())
+    required = {"address_type": st.builds(AddressType)}
+    person = st.fixed_dictionaries({"person": st.builds(PersonRef)})
+    org_unit = st.fixed_dictionaries({"org_unit": st.builds(OrgUnitRef)})
+    engagement = st.fixed_dictionaries({"engagement": st.builds(EngagementRef)})
+    optional = {
+        "visibility": st.none() | st.builds(Visibility),
+    }
+    ref_dict = draw(st.one_of(person, org_unit, engagement))
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict, **ref_dict}
+
+
+def ref_check_strat():
+    required = {
+        "person": st.builds(PersonRef),
+        "org_unit": st.builds(OrgUnitRef),
+        "engagement": st.builds(EngagementRef),
+    }
+    return st.fixed_dictionaries(required)  # type: ignore
 
 
 @st.composite
@@ -84,3 +136,25 @@ class TestAddress:
     @given(address_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         assert Address.from_simplified_fields(**simp_fields_dict)
+
+    @given(base_strat())
+    def test_base(self, model_dict):
+        assert AddressBase(**model_dict)
+
+    @given(read_strat())
+    def test_read(self, model_dict):
+        assert AddressRead(**model_dict)
+
+    @given(write_strat(), ref_check_strat())
+    def test_write(self, model_dict, refs_dict):
+        assert AddressWrite(**model_dict)
+        # Too many references given.
+        too_many_refs = {**model_dict, **refs_dict}
+        with pytest.raises(ValidationError, match="Too many references"):
+            AddressWrite(**too_many_refs)
+        # Not enough references given.
+        too_few_refs = model_dict
+        for k in refs_dict:
+            too_few_refs.pop(k, None)
+        with pytest.raises(ValidationError, match="A reference must"):
+            AddressWrite(**too_few_refs)
