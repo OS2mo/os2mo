@@ -17,8 +17,11 @@ from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
-from ramodels.mo.details import Engagement
 from ramodels.mo.details import EngagementAssociation
+from ramodels.mo.details.engagement import Engagement
+from ramodels.mo.details.engagement import EngagementBase
+from ramodels.mo.details.engagement import EngagementRead
+from ramodels.mo.details.engagement import EngagementWrite
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
@@ -27,6 +30,62 @@ from tests.conftest import unexpected_value_error
 # -----------------------------------------------------------------------------
 # Tests
 # -----------------------------------------------------------------------------
+
+
+@st.composite
+def base_strat(draw):
+    required = {"validity": st.builds(Validity)}
+    optional = {
+        "type": st.just("engagement"),
+        "fraction": st.none() | st.integers(),
+        "extension_1": st.none() | st.text(),
+        "extension_2": st.none() | st.text(),
+        "extension_3": st.none() | st.text(),
+        "extension_4": st.none() | st.text(),
+        "extension_5": st.none() | st.text(),
+        "extension_6": st.none() | st.text(),
+        "extension_7": st.none() | st.text(),
+        "extension_8": st.none() | st.text(),
+        "extension_9": st.none() | st.text(),
+        "extension_10": st.none() | st.text(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def read_strat(draw):
+    base_dict = draw(base_strat())
+    required = {
+        "org_unit": st.uuids(),
+        "person": st.uuids(),
+        "engagement_type": st.uuids(),
+        "job_function": st.uuids(),
+    }
+    optional = {
+        "primary": st.none() | st.uuids(),
+        "is_primary": st.none() | st.booleans(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
+
+
+@st.composite
+def write_strat(draw):
+    base_dict = draw(base_strat())
+    required = {
+        "org_unit": st.builds(OrgUnitRef),
+        "person": st.builds(PersonRef),
+        "engagement_type": st.builds(EngagementType),
+        "job_function": st.builds(JobFunction),
+    }
+    optional = {
+        "primary": st.none() | st.builds(Primary),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
 
 
 @st.composite
@@ -100,6 +159,18 @@ class TestEngagement:
     @given(engagement_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         assert Engagement.from_simplified_fields(**simp_fields_dict)
+
+    @given(base_strat())
+    def test_base(self, model_dict):
+        assert EngagementBase(**model_dict)
+
+    @given(read_strat())
+    def test_read(self, model_dict):
+        assert EngagementRead(**model_dict)
+
+    @given(write_strat())
+    def test_write(self, model_dict):
+        assert EngagementWrite(**model_dict)
 
 
 @st.composite

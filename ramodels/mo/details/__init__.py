@@ -15,6 +15,8 @@ from .association import AssociationRead
 from .association import AssociationWrite
 from .engagement import Engagement
 from .engagement import EngagementAssociation
+from .engagement import EngagementRead
+from .engagement import EngagementWrite
 from .it_system import ITSystemBinding
 from .leave import Leave
 from .manager import Manager
@@ -38,6 +40,8 @@ __all__ = [
     "AssociationRead",
     "AssociationWrite",
     "Engagement",
+    "EngagementRead",
+    "EngagementWrite",
     "EngagementAssociation",
     "ITSystemBinding",
     "Manager",
