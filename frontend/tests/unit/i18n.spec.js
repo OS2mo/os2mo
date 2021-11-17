@@ -43,7 +43,7 @@ describe('i18n.js:loadLocaleMessages', () => {
           // If value is itself another object (e.g. a nested dictionary),
           // recurse into it.
           if (typeof value === 'object') {
-            visit(value, key)
+            visit(value, `${prefix}.${key}`)
           }
           keys.push(`${prefix}.${key}`)
         }

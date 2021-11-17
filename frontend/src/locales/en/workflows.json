@@ -11,6 +11,7 @@
       "engagement": "Employment",
       "it_system": "@:shared.it_system",
       "manager": "@:shared.manager",
+      "owner": "@:shared.owner",
       "role": "@:shared.role"
     },
     "messages": {
