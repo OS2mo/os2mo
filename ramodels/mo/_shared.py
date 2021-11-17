@@ -97,6 +97,10 @@ class AssociationType(MORef):
     """Association type reference."""
 
 
+class DynamicClasses(MORef):
+    """Attached classes reference."""
+
+
 class ITSystemRef(MORef):
     """IT System reference."""
 
