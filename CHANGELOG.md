@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.8.0 - 2021-11-17
+------------------
+
+[#46683] Add Engagement base/read/write models
+
 3.7.0 - 2021-11-17
 ------------------
 
