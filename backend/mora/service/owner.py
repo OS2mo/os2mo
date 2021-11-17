@@ -159,10 +159,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 owner, validity_from, validity_to
             )
 
-    def prepare_create(self, req: Dict):
-        raise NotImplementedError("Use prepare_create instead")
-
-    async def aprepare_create(self, req: Dict):
+    async def prepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 
@@ -221,10 +218,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         func_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

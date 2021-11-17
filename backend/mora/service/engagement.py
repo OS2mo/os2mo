@@ -30,10 +30,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ENGAGEMENT
     function_key = mapping.ENGAGEMENT_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
@@ -103,19 +100,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
             {Trigger.EMPLOYEE_UUID: employee_uuid, Trigger.ORG_UNIT_UUID: org_unit_uuid}
         )
 
-    def submit(self):
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self):
+    async def submit(self):
         if hasattr(self, "addresses"):
             for addr in self.addresses:
-                await addr.asubmit()
-        return await super().asubmit()
+                await addr.submit()
+        return await super().submit()
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         engagement_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

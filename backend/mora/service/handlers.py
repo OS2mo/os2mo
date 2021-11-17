@@ -116,13 +116,13 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         obj = cls(*args, **kwargs)
 
         if obj.request_type == RequestType.CREATE:
-            await obj.aprepare_create(obj.request)
+            await obj.prepare_create(obj.request)
         elif obj.request_type == RequestType.EDIT:
-            await obj.aprepare_edit(obj.request)
+            await obj.prepare_edit(obj.request)
         elif obj.request_type == RequestType.TERMINATE:
-            await obj.aprepare_terminate(obj.request)
+            await obj.prepare_terminate(obj.request)
         elif obj.request_type == RequestType.REFRESH:
-            await obj.aprepare_refresh(obj.request)
+            await obj.prepare_refresh(obj.request)
         else:
             raise NotImplementedError
 
@@ -212,10 +212,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         # Default it noop
         pass
 
-    def submit(self) -> str:
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self) -> str:
+    async def submit(self) -> str:
         """Submit the request to LoRa.
 
         :return: A string containing the result from submitting the
@@ -273,10 +270,7 @@ class OrgFunkRequestHandler(RequestHandler):
         HANDLERS_BY_FUNCTION_KEY[cls.function_key] = cls
         FUNCTION_KEYS[cls.role_type] = cls.function_key
 
-    def prepare_terminate(self, request: dict):
-        raise NotImplementedError("Use aprepare_terminate instead")
-
-    async def aprepare_terminate(self, request: dict):
+    async def prepare_terminate(self, request: dict):
         self.uuid = util.get_uuid(request)
         virkning = RequestHandler.get_virkning_for_terminate(request)
         from_date = virkning["from"]
@@ -320,10 +314,7 @@ class OrgFunkRequestHandler(RequestHandler):
                 Trigger.ORG_UNIT_UUID
             ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
-    def submit(self) -> str:
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self) -> str:
+    async def submit(self) -> str:
         c = lora.Connector()
 
         method = None
@@ -332,7 +323,7 @@ class OrgFunkRequestHandler(RequestHandler):
         else:
             method = c.organisationfunktion.update
         self.result = await method(self.payload, self.uuid)
-        return await super().asubmit()
+        return await super().submit()
 
 
 def get_key_for_function(obj: dict) -> str:
@@ -361,13 +352,7 @@ def get_handler_for_role_type(role_type: str):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(type=role_type)
 
 
-def generate_requests(
-    requests: typing.List[dict], request_type: RequestType
-) -> typing.List[RequestHandler]:
-    raise NotImplementedError("Use agenerate_requests instead")
-
-
-async def agenerate_requests(
+async def generate_requests(
     requests: typing.List[dict], request_type: RequestType
 ) -> typing.List[RequestHandler]:
     operations = {req.get("type") for req in requests}
@@ -398,4 +383,4 @@ async def agenerate_requests(
 
 
 async def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
-    return await asyncio.gather(*(request.asubmit() for request in requests))
+    return await asyncio.gather(*(request.submit() for request in requests))

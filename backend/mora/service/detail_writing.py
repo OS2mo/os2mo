@@ -37,7 +37,7 @@ async def handle_requests(
     else:
         exceptions.ErrorCodes.E_INVALID_INPUT(request=reqs)
 
-    requests = await handlers.agenerate_requests(reqs, request_type)
+    requests = await handlers.generate_requests(reqs, request_type)
 
     uuids = await handlers.submit_requests(requests)
     if is_single_request:

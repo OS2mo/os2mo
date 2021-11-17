@@ -37,10 +37,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)
@@ -98,10 +95,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             {Trigger.EMPLOYEE_UUID: employee_uuid, Trigger.ORG_UNIT_UUID: org_unit_uuid}
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change

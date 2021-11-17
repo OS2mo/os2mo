@@ -779,10 +779,7 @@ async def get_all_classes(
 class ClassRequestHandler(handlers.RequestHandler):
     role_type = "class"
 
-    def prepare_create(self, request: dict):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, request: dict):
+    async def prepare_create(self, request: dict):
         valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 
@@ -805,10 +802,7 @@ class ClassRequestHandler(handlers.RequestHandler):
         self.payload = clazz
         self.uuid = mo_class.uuid or str(uuid4())
 
-    def submit(self) -> str:
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self) -> str:
+    async def submit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
@@ -816,7 +810,7 @@ class ClassRequestHandler(handlers.RequestHandler):
         else:
             self.result = await c.klasse.update(self.payload, self.uuid)
 
-        return await super().asubmit()
+        return await super().submit()
 
 
 @router.post("/f/{facet}/")
@@ -832,7 +826,7 @@ async def create_or_update_class(
     """
     req = {"facet": facet, "class_model": class_model}
     request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
-    return await request.asubmit()
+    return await request.submit()
 
 
 @router.get("/f/{facet}/children")
