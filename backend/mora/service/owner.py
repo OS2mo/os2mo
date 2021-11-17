@@ -118,17 +118,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         OwnerRequestHandler.raise_unexpected_input(req)
 
     @staticmethod
-    def validate(
-        validity_from: datetime,
-        validity_to: datetime,
-        org_unit: Optional[Dict[str, Any]],
-        owned_person: Optional[Dict[str, Any]],
-        owner: Optional[Dict[str, Any]],
-    ):
-        raise NotImplementedError("Use avalidate instead")
-
-    @staticmethod
-    async def avalidate(
+    async def validate(
         validity_from: datetime,
         validity_to: datetime,
         org_unit: Optional[Dict[str, Any]],
@@ -185,7 +175,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
-        await self.avalidate(
+        await self.validate(
             org_unit=org_unit,
             owned_person=owned_person,
             owner=owner,

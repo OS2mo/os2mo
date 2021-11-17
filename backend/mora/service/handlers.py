@@ -144,15 +144,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
 
-    async def aprepare_create(self, request: dict):
-        """
-        Initialize a 'create' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-        """
-        raise NotImplementedError("aprepare_create not implemented")
-
     def prepare_edit(self, request: dict):
         """
         Initialize an 'edit' request. Performs validation and all
@@ -161,15 +152,6 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :param request: A dict containing a request
         """
         raise NotImplementedError("Use POST with a matching UUID instead (PUT)")
-
-    async def aprepare_edit(self, request: dict):
-        """
-        Initialize an 'edit' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-        """
-        raise NotImplementedError("aprepare_edit not implemented")
 
     def prepare_terminate(self, request: dict):
         """
@@ -180,28 +162,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         """
         raise NotImplementedError
 
-    async def aprepare_terminate(self, request: dict):
-        """
-        Initialize a 'termination' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-
-        """
-        raise NotImplementedError("aprepare_terminate not implemented")
-
     def prepare_refresh(self, request: dict):
-        """
-        Initialize a 'refresh' request. Performs validation and all
-        necessary processing
-
-        :param request: A dict containing a request
-
-        """
-        # Default it noop
-        pass
-
-    async def aprepare_refresh(self, request: dict):
         """
         Initialize a 'refresh' request. Performs validation and all
         necessary processing
