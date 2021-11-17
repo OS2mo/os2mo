@@ -25,10 +25,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ROLE
     function_key = mapping.ROLE_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
@@ -70,10 +67,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
             {"employee_uuid": employee_uuid, "org_unit_uuid": org_unit_uuid}
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         role_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

@@ -23,10 +23,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.MANAGER
     function_key = mapping.MANAGER_KEY
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead.")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         """To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid"""
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
@@ -85,10 +82,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             {Trigger.EMPLOYEE_UUID: employee_uuid, Trigger.ORG_UNIT_UUID: org_unit_uuid}
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         manager_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -228,10 +222,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    def prepare_terminate(self, request: dict):
-        raise NotImplementedError("Use prepare_terminate instead")
-
-    async def aprepare_terminate(self, request: dict):
+    async def prepare_terminate(self, request: dict):
         """Initialize a 'termination' request. Performs validation and all
         necessary processing
 
@@ -247,4 +238,4 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_field = mapping.USER_FIELD
             self.termination_value = {}
 
-        await super().aprepare_terminate(request)
+        await super().prepare_terminate(request)

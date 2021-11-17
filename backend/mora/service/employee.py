@@ -59,10 +59,7 @@ class EmployeeDetails(enum.Enum):
 class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "", required=False)
         surname = util.checked_get(req, mapping.SURNAME, "", required=False)
@@ -127,16 +124,13 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         details = util.checked_get(req, "details", [])
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
         # Validate the creation requests
-        self.details_requests = await handlers.agenerate_requests(
+        self.details_requests = await handlers.generate_requests(
             details_with_persons, mapping.RequestType.CREATE
         )
 
         self.payload = user
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
-
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
 
     def _handle_nickname(self, obj: Dict[Union[str, Any], Any]):
         nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
@@ -153,7 +147,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         return nickname_givenname, nickname_surname
 
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
         data = util.checked_get(req, "data", {}, required=True)
         userid = util.get_uuid(req, required=False)
@@ -270,10 +264,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
-    def submit(self):
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self):
+    async def submit(self):
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
@@ -283,10 +274,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         # process subrequests, if any
         await asyncio.gather(
-            *(r.asubmit() for r in getattr(self, "details_requests", []))
+            *(r.submit() for r in getattr(self, "details_requests", []))
         )
 
-        return await super().asubmit()
+        return await super().submit()
 
 
 async def __get_employee_from_cache(
@@ -590,7 +581,7 @@ async def terminate_employee(
         await Trigger.run(trigger_dict)
 
     for handler in request_handlers:
-        await handler.asubmit()
+        await handler.submit()
 
     result = uuid
 
@@ -677,7 +668,7 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
 
     """
     request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
-    return await request.asubmit()
+    return await request.submit()
 
 
 def _inject_persons(details, employee_uuid, valid_from, valid_to):

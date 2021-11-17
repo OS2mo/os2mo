@@ -40,10 +40,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             return False
 
-    def prepare_create(self, req: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_create instead")
-
-    async def aprepare_create(self, req: Dict[Any, Any]):
+    async def prepare_create(self, req: Dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
@@ -120,10 +117,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    def prepare_edit(self, req: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: Dict[Any, Any]):
+    async def prepare_edit(self, req: Dict[Any, Any]):
         """
         To edit into a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
@@ -289,10 +283,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    def prepare_terminate(self, request: Dict[Any, Any]):
-        raise NotImplementedError("Use aprepare_terminate instead.")
-
-    async def aprepare_terminate(self, request: Dict[Any, Any]):
+    async def prepare_terminate(self, request: Dict[Any, Any]):
         """Initialize a 'termination' request. Performs validation and all
         necessary processing
 
@@ -308,4 +299,4 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_field = mapping.USER_FIELD
             self.termination_value = {}
 
-        await super().aprepare_terminate(request)
+        await super().prepare_terminate(request)

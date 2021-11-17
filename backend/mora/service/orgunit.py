@@ -88,10 +88,7 @@ class UnitDetails(enum.Enum):
 class OrgUnitRequestHandler(handlers.RequestHandler):
     role_type = "org_unit"
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create() instead")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         name = util.checked_get(req, mapping.NAME, "", required=True)
 
         integration_data = util.checked_get(
@@ -157,7 +154,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             details, unitid, valid_from, valid_to
         )
 
-        self.details_requests = await handlers.agenerate_requests(
+        self.details_requests = await handlers.generate_requests(
             details_with_org_units, mapping.RequestType.CREATE
         )
 
@@ -165,10 +162,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         original_data = util.checked_get(req, "original", {}, required=False)
         data = util.checked_get(req, "data", {}, required=True)
 
@@ -310,10 +304,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def prepare_terminate(self, request: dict):
-        raise NotImplementedError("Use aprepare_terminate instead")
-
-    async def aprepare_terminate(self, request: dict):
+    async def prepare_terminate(self, request: dict):
         virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
 
         obj_path = ("tilstande", "organisationenhedgyldighed")
@@ -329,15 +320,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         self.uuid = util.get_uuid(request)
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = self.uuid
 
-    async def aprepare_refresh(self, request: dict):
+    async def prepare_refresh(self, request: dict):
         unitid = request[mapping.UUID]
         self.uuid = unitid
         self.trigger_dict[Trigger.ORG_UNIT_UUID] = unitid
 
-    def submit(self):
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self) -> str:
+    async def submit(self) -> str:
         c = lora.Connector()
 
         if self.request_type == mapping.RequestType.CREATE:
@@ -345,21 +333,21 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
 
             if self.details_requests:
                 for r in self.details_requests:
-                    await r.asubmit()
+                    await r.submit()
 
         elif self.request_type == mapping.RequestType.REFRESH:
             pass
         else:
             self.result = await c.organisationenhed.update(self.payload, self.uuid)
 
-        asubmit = await super().asubmit()
+        submit = await super().submit()
         if self.request_type == mapping.RequestType.REFRESH:
             return {
                 "message": "\n".join(
                     map(str, self.trigger_results_before + self.trigger_results_after)
                 )
             }
-        return asubmit
+        return submit
 
 
 def _inject_org_units(details, org_unit_uuid, valid_from, valid_to):
@@ -1056,7 +1044,7 @@ async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = F
     handler = await OrgUnitRequestHandler.construct(
         request, mapping.RequestType.REFRESH
     )
-    result = await handler.asubmit()
+    result = await handler.submit()
     return result
 
 
@@ -1350,7 +1338,7 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
 
     request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
 
-    return await request.asubmit()
+    return await request.submit()
 
 
 async def terminate_org_unit_validation(unitid, request):
@@ -1495,4 +1483,4 @@ async def terminate_org_unit(
     handler = await OrgUnitRequestHandler.construct(
         request, mapping.RequestType.TERMINATE
     )
-    return await handler.asubmit()
+    return await handler.submit()

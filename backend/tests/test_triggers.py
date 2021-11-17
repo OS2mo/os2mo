@@ -14,29 +14,17 @@ class MockHandler(RequestHandler):
     role_type = "mock"
     result = "okidoki"
 
-    def prepare_edit(self, req):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req):
+    async def prepare_edit(self, req):
         self.uuid = "edit"
 
-    def prepare_create(self, req):
-        raise NotImplementedError("Use aprepare_create")
-
-    async def aprepare_create(self, req):
+    async def prepare_create(self, req):
         self.uuid = "create"
 
-    def prepare_terminate(self, req):
-        raise NotImplementedError("Use aprepare_terminate")
-
-    async def aprepare_terminate(self, req):
+    async def prepare_terminate(self, req):
         self.uuid = "terminate"
 
-    def submit(self):
-        raise NotImplementedError("Use asubmit instead")
-
-    async def asubmit(self):
-        await super().asubmit()
+    async def submit(self):
+        await super().submit()
 
 
 class Tests(tests.cases.MockRequestContextTestCase):
@@ -130,7 +118,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
         mora.async_util.async_to_sync(
             mora.async_util.async_to_sync(MockHandler.construct)(
                 {}, RequestType.EDIT
-            ).asubmit
+            ).submit
         )()
         self.assertTrue(self.trigger_called)
 
@@ -171,7 +159,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
         mora.async_util.async_to_sync(
             mora.async_util.async_to_sync(MockHandler.construct)(
                 {}, RequestType.CREATE
-            ).asubmit
+            ).submit
         )()
         self.assertTrue(self.trigger_called)
 
@@ -212,7 +200,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
         mora.async_util.async_to_sync(
             mora.async_util.async_to_sync(MockHandler.construct)(
                 {}, RequestType.TERMINATE
-            ).asubmit
+            ).submit
         )()
         self.assertTrue(self.trigger_called)
 

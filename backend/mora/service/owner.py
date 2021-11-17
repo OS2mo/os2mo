@@ -118,17 +118,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         OwnerRequestHandler.raise_unexpected_input(req)
 
     @staticmethod
-    def validate(
-        validity_from: datetime,
-        validity_to: datetime,
-        org_unit: Optional[Dict[str, Any]],
-        owned_person: Optional[Dict[str, Any]],
-        owner: Optional[Dict[str, Any]],
-    ):
-        raise NotImplementedError("Use avalidate instead")
-
-    @staticmethod
-    async def avalidate(
+    async def validate(
         validity_from: datetime,
         validity_to: datetime,
         org_unit: Optional[Dict[str, Any]],
@@ -159,10 +149,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 owner, validity_from, validity_to
             )
 
-    def prepare_create(self, req: Dict):
-        raise NotImplementedError("Use prepare_create instead")
-
-    async def aprepare_create(self, req: Dict):
+    async def prepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 
@@ -188,7 +175,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         # Validation
-        await self.avalidate(
+        await self.validate(
             org_unit=org_unit,
             owned_person=owned_person,
             owner=owner,
@@ -221,10 +208,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )
 
-    def prepare_edit(self, req: dict):
-        raise NotImplementedError("Use aprepare_edit instead")
-
-    async def aprepare_edit(self, req: dict):
+    async def prepare_edit(self, req: dict):
         func_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
