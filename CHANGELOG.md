@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.7.0 - 2021-11-17
+------------------
+
+[#46682] Add Association base/read/write models
+
 3.6.0 - 2021-11-15
 ------------------
 
