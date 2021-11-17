@@ -10,6 +10,9 @@ from typing import Union
 
 from .address import Address
 from .association import Association
+from .association import AssociationBase
+from .association import AssociationRead
+from .association import AssociationWrite
 from .engagement import Engagement
 from .engagement import EngagementAssociation
 from .it_system import ITSystemBinding
@@ -31,6 +34,9 @@ __all__ = [
     "OrgUnitDetails",
     "Address",
     "Association",
+    "AssociationBase",
+    "AssociationRead",
+    "AssociationWrite",
     "Engagement",
     "EngagementAssociation",
     "ITSystemBinding",

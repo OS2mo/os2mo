@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -13,14 +14,67 @@ from uuid import UUID
 from pydantic import Field
 
 from .._shared import AssociationType
+from .._shared import DynamicClasses
 from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
+from .._shared import Primary
 from .._shared import Validity
 
 # --------------------------------------------------------------------------------------
 # Engagement models
 # --------------------------------------------------------------------------------------
+
+
+class AssociationBase(MOBase):
+    """A MO association object."""
+
+    type_: Literal["association"] = Field(
+        "association", alias="type", description="The object type."
+    )
+    validity: Validity = Field(description="Validity of the association object.")
+    dynamic_classes: Optional[List[DynamicClasses]] = Field(
+        description="Attached classes"
+    )
+
+
+class AssociationRead(AssociationBase):
+    """A MO AssociationRead object."""
+
+    org_unit: UUID = Field(
+        description="UUID of the organisation unit related to the association."
+    )
+    person: UUID = Field(description="UUID of the person related to the association.")
+    association_type: UUID = Field(description="UUID of the association type.")
+    primary: Optional[UUID] = Field(
+        description="UUID of the primary type of the association."
+    )
+    substitute: Optional[UUID] = Field(
+        description="UUID of the substitute for the person in the association."
+    )
+
+
+class AssociationWrite(AssociationBase):
+    """A MO AssociationWrite object."""
+
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit for the association."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person for which the engagement should be "
+        "created."
+    )
+    association_type: AssociationType = Field(
+        description="Reference to the association type klasse."
+    )
+    primary: Optional[Primary] = Field(
+        description="Reference to the primary klasse for the created association "
+        "object."
+    )
+    substitute: Optional[PersonRef] = Field(
+        description="Reference to the substitute for the person in the association "
+        "object."
+    )
 
 
 class Association(MOBase):
