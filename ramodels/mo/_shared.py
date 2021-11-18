@@ -123,6 +123,27 @@ class LeaveType(MORef):
     """Leave type reference."""
 
 
+class KLENumberRef(MORef):
+    """KLE number reference.
+
+    The klasse for the number facet have up to three levels
+    - main group
+    - group
+    - topic
+    as defined in http://www.kle-online.dk/emneplan/
+    """
+
+
+class KLEAspectRef(MORef):
+    """KLE aspect reference.
+
+    The klasse for the aspect facet can be one of three predefined strings
+    - "Executive"
+    - "Responsible"
+    - "Insight"
+    """
+
+
 class ManagerLevel(MORef):
     """Manager level reference."""
 
