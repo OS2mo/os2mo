@@ -10,14 +10,18 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from more_itertools import one
 from pydantic import Field
+from pydantic import root_validator
 
 from .._shared import AddressType
+from .._shared import DictStrAny
 from .._shared import EngagementRef
 from .._shared import MOBase
 from .._shared import OrganisationRef
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
+from .._shared import UUIDBase
 from .._shared import Validity
 from .._shared import Visibility
 
@@ -25,6 +29,85 @@ from .._shared import Visibility
 # --------------------------------------------------------------------------------------
 # Address model
 # --------------------------------------------------------------------------------------
+
+
+class AddressBase(UUIDBase):
+    """
+    A MO address object.
+    """
+
+    type_: Literal["address"] = Field(
+        "address", alias="type", description="The object type."
+    )
+    value: str = Field(description="Value of the address, e.g. street or phone number.")
+    value2: Optional[str] = Field(description="Optional second value of the address.")
+    validity: Validity = Field(description="Validity of the address object.")
+
+
+class AddressRead(AddressBase):
+    """
+    A MO address read object.
+    Note that one and only one of {person, org_unit, engagement} are given at any time.
+    """
+
+    address_type: UUID = Field(description="UUID of the address type klasse.")
+    person: Optional[UUID] = Field(
+        description="UUID of the person related to the address."
+    )
+    org_unit: Optional[UUID] = Field(
+        description="UUID of the organisation unit related to the address."
+    )
+    engagement: Optional[UUID] = Field("UUID of the engagement related to the address.")
+    visibility: Optional[UUID] = Field("UUID of the visibility klasse of the address.")
+
+    # NOTE: The one and only one of {person, org_unit, engagement} invariant
+    # is not validated here because reads are assumed to originate from valid data.
+
+
+class AddressWrite(AddressBase):
+    """
+    A MO address write object.
+    Note that one and only one of {person, org_unit, engagement} can be given.
+    """
+
+    address_type: AddressType = Field(
+        description="Reference to the address type klasse."
+    )
+    person: Optional[PersonRef] = Field(
+        description="Reference to the person for which the address should "
+        "be created."
+    )
+    org_unit: Optional[OrgUnitRef] = Field(
+        description="Reference to the organisation unit for which the address should "
+        "be created."
+    )
+    engagement: Optional[EngagementRef] = Field(
+        description="Reference to the engagement for which the address should "
+        "be created."
+    )
+    visibility: Optional[Visibility] = Field(
+        description="Reference to the Visibility klasse of the created address object."
+    )
+
+    # NOTE: This is not optimal handling of variability. In a perfect world,
+    # we'd have an object_ref: Union[PersonRef, OrgUnitRef, EngagementRef] field so that
+    # we do not have to check it like this.
+    @root_validator
+    def validate_references(cls, values: DictStrAny) -> DictStrAny:
+        references = (
+            values.get("person"),
+            values.get("org_unit"),
+            values.get("engagement"),
+        )
+        too_short = ValueError("A reference must be specified")
+        too_long = ValueError("Too many references specified.")
+        one(
+            filter(lambda ref: ref is not None, references),
+            too_short=too_short,
+            too_long=too_long,
+        )
+
+        return values
 
 
 class Address(MOBase):
