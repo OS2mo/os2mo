@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from typing import Literal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import Field
 
@@ -20,6 +21,38 @@ from .._shared import Validity
 # --------------------------------------------------------------------------------------
 # Role
 # --------------------------------------------------------------------------------------
+
+
+class LeaveBase(MOBase):
+    """A MO leave object."""
+
+    type_: Literal["leave"] = Field(
+        "leave", alias="type", description="The object type."
+    )
+    validity: Validity = Field(description="Validity of the leave object.")
+
+
+class LeaveRead(LeaveBase):
+    """A MO leave read object."""
+
+    person: UUID = Field(description="UUID of the person related to the leave.")
+    leave_type: UUID = Field(description="UUID of the leave type klasse.")
+    engagement: Optional[UUID] = Field(
+        description="UUID of the engagement related to the leave."
+    )
+
+
+class LeaveWrite(LeaveBase):
+    """A MO leave write object."""
+
+    leave_type: LeaveType = Field(description="Reference to the leave type klasse.")
+    person: PersonRef = Field(
+        description="Reference to the person for which the leave should be created."
+    )
+    engagement: Optional[EngagementRef] = Field(
+        description="Reference to the engagement for which the leave should be "
+        "created."
+    )
 
 
 class Leave(MOBase):

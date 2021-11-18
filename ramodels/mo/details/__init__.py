@@ -19,6 +19,9 @@ from .engagement import EngagementRead
 from .engagement import EngagementWrite
 from .it_system import ITSystemBinding
 from .leave import Leave
+from .leave import LeaveBase
+from .leave import LeaveRead
+from .leave import LeaveWrite
 from .manager import Manager
 from .role import Role
 
@@ -47,4 +50,7 @@ __all__ = [
     "Manager",
     "Role",
     "Leave",
+    "LeaveBase",
+    "LeaveRead",
+    "LeaveWrite",
 ]
