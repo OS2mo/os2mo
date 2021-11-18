@@ -31,6 +31,51 @@ from .._shared import Validity
 # --------------------------------------------------------------------------------------
 
 
+class ManagerBase(MOBase):
+    """A MO manager object."""
+
+    type_: Literal["manager"] = Field(
+        "manager", alias="type", description="The object type."
+    )
+    validity: Validity = Field(description="Validity of the manager object.")
+
+
+class ManagerRead(ManagerBase):
+    """A MO ManagerRead object."""
+
+    org_unit: UUID = Field(
+        description="UUID of the organisation unit related to the manager."
+    )
+    person: Optional[UUID] = Field(
+        description="UUID of the person related to the manager."
+    )
+    manager_type: Optional[UUID] = Field(description="UUID of the manager type.")
+    manager_level: Optional[UUID] = Field(description="UUID of the manager level.")
+    responsibility: Optional[List[UUID]] = Field(
+        description="List of UUID's of the responsibilities."
+    )
+
+
+class ManagerWrite(ManagerBase):
+    """A MO ManagerWrite object."""
+
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit for the manager."
+    )
+    person: Optional[PersonRef] = Field(
+        description="Reference to the person that will be the resulting manager."
+    )
+    manager_level: Optional[ManagerLevel] = Field(
+        description="Reference to the manager level klasse for the created manager."
+    )
+    manager_type: Optional[ManagerType] = Field(
+        description="Reference to the manager type klasse for the created manager."
+    )
+    responsibility: Optional[List[Responsibility]] = Field(
+        description="List of manager responsibility objects."
+    )
+
+
 class Manager(MOBase):
     """A MO manager object."""
 

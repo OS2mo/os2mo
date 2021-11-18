@@ -27,6 +27,9 @@ from .leave import LeaveBase
 from .leave import LeaveRead
 from .leave import LeaveWrite
 from .manager import Manager
+from .manager import ManagerBase
+from .manager import ManagerRead
+from .manager import ManagerWrite
 from .role import Role
 
 # --------------------------------------------------------------------------------------
@@ -56,6 +59,9 @@ __all__ = [
     "ITSystemBindingRead",
     "ITSystemBindingWrite",
     "Manager",
+    "ManagerBase",
+    "ManagerRead",
+    "ManagerWrite",
     "Role",
     "Leave",
     "LeaveBase",
