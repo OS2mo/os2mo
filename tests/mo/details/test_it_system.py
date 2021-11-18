@@ -13,7 +13,10 @@ from ramodels.mo._shared import ITSystemRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
-from ramodels.mo.details import ITSystemBinding
+from ramodels.mo.details.it_system import ITSystemBinding
+from ramodels.mo.details.it_system import ITSystemBindingBase
+from ramodels.mo.details.it_system import ITSystemBindingRead
+from ramodels.mo.details.it_system import ITSystemBindingWrite
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
@@ -26,6 +29,49 @@ from tests.conftest import unexpected_value_error
 
 
 @st.composite
+def base_strat(draw):
+    required = {
+        "validity": st.builds(Validity),
+    }
+    optional = {
+        "type": st.just("it"),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def read_strat(draw):
+    base_dict = draw(base_strat())
+    required = {
+        "itsystem": st.uuids(),
+    }
+    optional = {
+        "org_unit": st.none() | st.uuids(),
+        "person": st.none() | st.uuids(),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
+
+
+@st.composite
+def write_strat(draw):
+    base_dict = draw(base_strat())
+    required = {
+        "itsystem": st.builds(ITSystemRef),
+    }
+    optional = {
+        "org_unit": st.none() | st.builds(OrgUnitRef),
+        "person": st.none() | st.builds(PersonRef),
+    }
+
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return {**base_dict, **st_dict}
+
+
+@st.composite
 def it_system_strat(draw):
     required = {
         "user_key": st.text(),
@@ -34,8 +80,8 @@ def it_system_strat(draw):
     }
     optional = {
         "type": st.just("it"),
-        "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "org_unit": st.none() | st.builds(OrgUnitRef),
+        "person": st.none() | st.builds(PersonRef),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -51,10 +97,10 @@ def it_system_fsf_strat(draw):
     }
 
     optional = {
-        "uuid": st.uuids(),
+        "uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
-        "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "org_unit_uuid": st.none() | st.uuids(),
+        "person_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -76,3 +122,15 @@ class TestITSystemBinding:
     def test_from_simplified_fields(self, simp_fields_dict):
         # Required
         assert ITSystemBinding.from_simplified_fields(**simp_fields_dict)
+
+    @given(base_strat())
+    def test_base(self, model_dict):
+        assert ITSystemBindingBase(**model_dict)
+
+    @given(read_strat())
+    def test_read(self, model_dict):
+        assert ITSystemBindingRead(**model_dict)
+
+    @given(write_strat())
+    def test_write(self, model_dict):
+        assert ITSystemBindingWrite(**model_dict)
