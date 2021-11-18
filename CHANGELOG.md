@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.11.0 - 2021-11-18
+-------------------
+
+[#46681] Add Address base/read/write models
+
 3.10.0 - 2021-11-18
 -------------------
 
