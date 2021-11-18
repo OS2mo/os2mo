@@ -7,13 +7,13 @@ from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from starlette.requests import Request
 from starlette.websockets import WebSocket
-from strawberry.types import Info
 from strawberry.permission import BasePermission
+from strawberry.types import Info
 
 from mora import config
+from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import rbac
-from mora.auth.exceptions import AuthorizationError
 from mora.graphapi.middleware import is_graphql_shim
 
 

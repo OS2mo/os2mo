@@ -6,8 +6,8 @@ from typing import Union
 
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
-from starlette_context.plugins import Plugin
 from starlette_context import context
+from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
 
 
