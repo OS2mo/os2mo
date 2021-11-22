@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.13.0 - 2021-11-22
+-------------------
+
+[#46686] Add KLE base/read/write models
+
 3.12.0 - 2021-11-22
 -------------------
 
