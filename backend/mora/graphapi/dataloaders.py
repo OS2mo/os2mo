@@ -1,27 +1,26 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
-from uuid import UUID
 from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import TypeVar
+from uuid import UUID
 
-from strawberry.dataloader import DataLoader
-
-from mora.api.v1.reading_endpoints import role_type_search_factory
-from mora.api.v1.reading_endpoints import role_type_uuid_factory
-from mora.api.v1.reading_endpoints import EMPLOYEE_ROLE_TYPE
-from mora.api.v1.reading_endpoints import ORG_UNIT_ROLE_TYPE
-from mora.api.v1.reading_endpoints import CommonQueryParams
 from mora.common import get_connector
-from mora.handler.reading import get_handler_for_type
-from mora.api.v1.reading_endpoints import _extract_search_params
-from mora.service import org
+from mora.graphapi.readers import _extract_search_params
+from mora.graphapi.readers import CommonQueryParams
+from mora.graphapi.readers import role_type_search_factory
+from mora.graphapi.readers import role_type_uuid_factory
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
+from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
+from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
+from mora.handler.reading import get_handler_for_type
+from mora.service import org
+from strawberry.dataloader import DataLoader
 
 
 RoleType = TypeVar("RoleType")

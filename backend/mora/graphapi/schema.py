@@ -1,15 +1,14 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from uuid import UUID
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from uuid import UUID
 
 import strawberry
+from ramodels.mo._shared import Validity
 from strawberry.types import Info
-
-from mora.api.v1.models import Validity
 
 
 class Constructable:
