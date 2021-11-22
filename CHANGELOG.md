@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.14.0 - 2021-11-22
+-------------------
+
+[#46691] Add Role base/read/write models
+
 3.13.0 - 2021-11-22
 -------------------
 
