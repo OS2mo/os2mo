@@ -170,3 +170,55 @@ version af Docker og docker-compose på Ubuntu:
 
    sudo apt-get update
    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+
+
+
+.. _troubleshooting:
+
+---------------
+Troubleshooting
+---------------
+
+
+Container ``os2mo_mo_1`` fejler
+-------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  mo_1          | rabbitmq is unavailable - attempt 120/120
+  os2mo_mo_1 exited with code 1
+
+**Mulig løsning**
+Prøv at fjerne gamle images med ``docker system prune``, genstart Docker og forsøg igen.
+
+
+Container ``os2mo_frontend_1`` fejler med timeout
+-------------------------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  ERROR: for os2mo_frontend_1  UnixHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=60)
+
+**Mulig løsning**
+Prøv at justere miljøvariablen for timeout og forsøg igen. F.eks. med:
+... code-block:: bash
+
+  env COMPOSE_HTTP_TIMEOUT=300 docker-compose up -d --build
+
+
+Opstart fejler ved ``Building mo``
+----------------------------------
+
+Du har forsøgt at bygge og starte services med ``docker-compose up``, men processen fejler med denne besked:
+... code-block:: bash
+
+  ERROR [internal] load metadata for docker.io/tiangolo/uvicorn-gunicorn-fastapi:python3.8
+
+**Mulige løsninger**
+Det kan skyldes et netværksproblem. Check forbindelse og prøv igen.
+
+Hvis din host maskine er macOS 11.0+, kan det skyldes at Docker er sat op til at benytte ``virtualization.framework``.
+Open instillinger for Docker Desktop og fjern afkrydsning ved "Use new virtualization framework" under "Experimental Features".
+Genstart Docker og forsøg igen.

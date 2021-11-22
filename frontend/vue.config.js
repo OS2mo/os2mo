@@ -41,7 +41,8 @@ module.exports = {
           }
         }
       }
-    }
+    },
+    stats: 'errors-warnings'
   },
   transpileDependencies: [
     /\bvue-awesome\b/
@@ -57,6 +58,7 @@ module.exports = {
     }
   },
   devServer: {
+    progress: false,
     proxy: {
       '/openapi.json': {
         target: process.env.BASE_URL || 'http://localhost:5000/',
