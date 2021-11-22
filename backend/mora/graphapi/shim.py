@@ -9,4 +9,6 @@ async def execute_graphql(*args, **kwargs):
 
     set_is_shim()
 
-    return await get_schema().execute(*args, **kwargs, context_value=get_loaders())
+    loaders = await get_loaders()
+
+    return await get_schema().execute(*args, **kwargs, context_value=loaders)

@@ -251,10 +251,16 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             tags=["Service." + name],
             dependencies=[Depends(auth)],
         )
+
+    if settings.graphql_enable:
+        gql_router = setup_graphql()
+        app.include_router(gql_router, prefix="/graphql", dependencies=[Depends(auth)])
+
     if settings.v1_api_enable:
         app.include_router(
             reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
         )
+
     app.include_router(
         keycloak_router(),
         prefix="/service",
@@ -296,9 +302,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     if not is_under_test():
         app = setup_instrumentation(app)
         setup_metrics(app)
-
-    if settings.graphql_enable:
-        app = setup_graphql(app)
 
     # Adds pretty printed logs for development
     if settings.environment is Environment.DEVELOPMENT:

@@ -1,29 +1,24 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
-from uuid import UUID
-from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Union
+from uuid import UUID
 
 import strawberry
-from starlette.requests import Request
-from starlette.websockets import WebSocket
-from strawberry.asgi import GraphQL
-from strawberry.schema.config import StrawberryConfig
 from strawberry.extensions.tracing import OpenTelemetryExtension
+from strawberry.fastapi import GraphQLRouter
+from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
 from mora.graphapi.auth import IsAuthenticated
+from mora.graphapi.dataloaders import get_employees
+from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.dataloaders import get_org_units
+from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
-from mora.graphapi.dataloaders import get_employees
-from mora.graphapi.dataloaders import get_org_units
-from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.middleware import StarletteContextExtension
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -78,17 +73,6 @@ class Query:
         return await get_employees()
 
 
-class MOGraphQL(GraphQL):
-    # Subclass as done here:
-    # * https://strawberry.rocks/docs/guides/dataloaders#usage-with-context
-
-    async def get_context(
-        self, request: Union[Request, WebSocket], response: Any
-    ) -> Dict[str, Any]:
-        # Add our dataloaders to the context, such that they are available everywhere
-        return {"request": request, "response": response, **get_loaders()}
-
-
 def get_schema():
     schema = strawberry.Schema(
         query=Query,
@@ -110,14 +94,13 @@ def get_schema():
     return schema
 
 
-def setup_graphql(app):
+def setup_graphql():
     schema = get_schema()
-    graphql_app = MOGraphQL(schema)
+    gql_router = GraphQLRouter(schema, context_getter=get_loaders)
 
-    app.add_route("/graphql", graphql_app)
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically
     # updated with changes from other users.
     # For now however; it is left uncommented and unimplemented.
     # app.add_websocket_route("/subscriptions", graphql_app)
-    return app
+    return gql_router
