@@ -34,6 +34,9 @@ from .manager import ManagerBase
 from .manager import ManagerRead
 from .manager import ManagerWrite
 from .role import Role
+from .role import RoleBase
+from .role import RoleRead
+from .role import RoleWrite
 
 # --------------------------------------------------------------------------------------
 # All
@@ -69,6 +72,9 @@ __all__ = [
     "ManagerRead",
     "ManagerWrite",
     "Role",
+    "RoleBase",
+    "RoleRead",
+    "RoleWrite",
     "Leave",
     "LeaveBase",
     "LeaveRead",

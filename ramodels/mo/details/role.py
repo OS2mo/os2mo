@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Literal
+from uuid import UUID
 
 from pydantic import Field
 
@@ -19,6 +20,35 @@ from .._shared import Validity
 # --------------------------------------------------------------------------------------
 # Role
 # --------------------------------------------------------------------------------------
+
+
+class RoleBase(MOBase):
+    """A MO role object."""
+
+    type_: Literal["role"] = Field("role", alias="type", description="The object type.")
+    validity: Validity = Field(description="Validity of the role object.")
+
+
+class RoleRead(RoleBase):
+    """A MO role read object."""
+
+    org_unit: UUID = Field(
+        description="UUID of the organisation unit related to the association."
+    )
+    person: UUID = Field(description="UUID of the person related to the role.")
+    role_type: UUID = Field(description="UUID of the role type klasse.")
+
+
+class RoleWrite(RoleBase):
+    """A MO role write object."""
+
+    org_unit: OrgUnitRef = Field(
+        description="Reference to the organisation unit for the role."
+    )
+    person: PersonRef = Field(
+        description="Reference to the person for which the role should be created."
+    )
+    role_type: RoleType = Field(description="Reference to the role type klasse.")
 
 
 class Role(MOBase):
