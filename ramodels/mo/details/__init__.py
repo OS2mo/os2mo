@@ -22,6 +22,9 @@ from .engagement import EngagementWrite
 from .it_system import ITSystemBinding
 from .it_system import ITSystemBindingRead
 from .it_system import ITSystemBindingWrite
+from .kle import KLEBase
+from .kle import KLERead
+from .kle import KLEWrite
 from .leave import Leave
 from .leave import LeaveBase
 from .leave import LeaveRead
@@ -58,6 +61,9 @@ __all__ = [
     "ITSystemBinding",
     "ITSystemBindingRead",
     "ITSystemBindingWrite",
+    "KLEBase",
+    "KLERead",
+    "KLEWrite",
     "Manager",
     "ManagerBase",
     "ManagerRead",
