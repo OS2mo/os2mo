@@ -33,6 +33,9 @@ from .manager import Manager
 from .manager import ManagerBase
 from .manager import ManagerRead
 from .manager import ManagerWrite
+from .related_unit import RelatedUnitBase
+from .related_unit import RelatedUnitRead
+from .related_unit import RelatedUnitWrite
 from .role import Role
 from .role import RoleBase
 from .role import RoleRead
@@ -71,6 +74,9 @@ __all__ = [
     "ManagerBase",
     "ManagerRead",
     "ManagerWrite",
+    "RelatedUnitBase",
+    "RelatedUnitRead",
+    "RelatedUnitWrite",
     "Role",
     "RoleBase",
     "RoleRead",
