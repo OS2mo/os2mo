@@ -10,6 +10,9 @@ from typing import List, Union, Optional, Dict, Any
 from pydantic import BaseModel, Extra
 from fastapi import APIRouter, Query
 from pathlib import Path
+from asyncio import gather
+from itertools import starmap
+from functools import partial
 
 from starlette.responses import StreamingResponse
 
@@ -83,12 +86,15 @@ async def download_csv() -> StreamingResponse:
         for json_file in iter_of_json
     )
 
+    async def zip_writestr(zip_file: ZipFile, file: Path, csv_file: StringIO):
+        zip_file.writestr(file.stem + ".csv", csv_file.getvalue().encode("utf-8-sig"))
+
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, "w") as zip_file:
-        for file, csv_file in zip(list_of_files, iter_of_csv):
-            zip_file.writestr(
-                file.stem + ".csv", csv_file.getvalue().encode("utf-8-sig")
-            )
+        zip_writestr_with_buffer = partial(zip_writestr, zip_file)
+        tasks = starmap(zip_writestr_with_buffer, zip(list_of_files, iter_of_csv))
+        await gather(*tasks)
+
     zip_buffer.seek(0)
 
     return StreamingResponse(
