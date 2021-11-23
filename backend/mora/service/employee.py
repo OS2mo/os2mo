@@ -95,10 +95,17 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
 
-        try:
-            valid_from = util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
-        except ValueError as exc:
-            exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
+        if cpr:
+            try:
+                valid_from = util.get_cpr_birthdate(cpr)
+            except ValueError as exc:
+                settings = config.get_settings()
+                if settings.cpr_validate_birthdate:
+                    exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
+                else:
+                    valid_from = util.NEGATIVE_INFINITY
+        else:
+            valid_from = util.NEGATIVE_INFINITY
 
         valid_to = util.POSITIVE_INFINITY
 

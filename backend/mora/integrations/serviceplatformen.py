@@ -7,8 +7,10 @@ import requests
 
 from structlog import get_logger
 
-from .. import util, config
+from .. import config
 from .. import exceptions
+from .. import util
+
 
 logger = get_logger()
 
@@ -213,11 +215,14 @@ def _get_citizen_stub(cpr):
     # Seed random with CPR number to ensure consistent output
     random.seed(cpr)
 
-    # disallow future CPR numbers and people too old to occur
-    # (interestingly, the latter also avoids weirdness related to
-    # Denmark using Copenhagen solar time in the 19th century...)
-    if not EARLIEST_BIRTHDATE < util.get_cpr_birthdate(cpr) < util.now():
-        raise KeyError("CPR not found")
+    # If feature flag is set, check birthdate encoded in CPR number
+    settings = config.get_settings()
+    if settings.cpr_validate_birthdate:
+        # disallow future CPR numbers and people too old to occur
+        # (interestingly, the latter also avoids weirdness related to
+        # Denmark using Copenhagen solar time in the 19th century...)
+        if not EARLIEST_BIRTHDATE < util.get_cpr_birthdate(cpr) < util.now():
+            raise KeyError("CPR not found")
 
     if (int(cpr[-1]) % 2) == 0:
         first_name = random.choice(FEMALE_FIRST_NAMES)

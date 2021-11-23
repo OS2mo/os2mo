@@ -157,6 +157,9 @@ class Settings(BaseSettings):
     # matching organisation unit.
     confdb_autocomplete_attrs_orgunit: Optional[List[UUID]]
 
+    # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
+    cpr_validate_birthdate: bool = True
+
 
 @lru_cache()
 def get_settings(*args, **kwargs) -> Settings:
