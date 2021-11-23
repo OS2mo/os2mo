@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
     dummy_mode: bool = False
-    query_export_dir: Optional[str] = "/queries"
+    query_export_dir: str = "/queries"
     navlinks: List[NavLink] = []
     os2mo_auth: bool = True
 
