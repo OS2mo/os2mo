@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.15.0 - 2021-11-23
+-------------------
+
+[#46690] RelatedUnit base/read/write models.
+
 3.14.0 - 2021-11-22
 -------------------
 
