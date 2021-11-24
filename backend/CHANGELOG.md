@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.5.1 - 2021-11-24
+------------------
+
+[#43398] Fix legacy auth support supporting too few concurrent SQLalchemy connections
+
 3.5.0 - 2021-11-23
 ------------------
 
