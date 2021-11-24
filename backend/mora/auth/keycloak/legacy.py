@@ -49,7 +49,7 @@ def _get_engine():
     connection_url = _get_connection_url()
     logger.debug("Open connection to database")
     try:
-        engine = create_engine(connection_url)
+        engine = create_engine(connection_url, pool_size=30, max_overflow=60)
         return engine
     except Exception:
         logger.error("Database connection error")
