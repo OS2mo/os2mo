@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.6.0 - 2021-11-24
+------------------
+
+[#47144] Add `cpr_validate_birthdate` feature flag which can disable the default validation of CPR birthdates
+
 3.5.1 - 2021-11-24
 ------------------
 
