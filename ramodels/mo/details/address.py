@@ -36,9 +36,7 @@ class AddressBase(UUIDBase):
     A MO address object.
     """
 
-    type_: Literal["address"] = Field(
-        "address", alias="type", description="The object type."
-    )
+    type_: str = Field("address", alias="type", description="The object type.")
     value: str = Field(description="Value of the address, e.g. street or phone number.")
     value2: Optional[str] = Field(description="Optional second value of the address.")
     validity: Validity = Field(description="Validity of the address object.")

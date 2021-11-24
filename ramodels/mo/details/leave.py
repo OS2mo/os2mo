@@ -26,9 +26,7 @@ from .._shared import Validity
 class LeaveBase(MOBase):
     """A MO leave object."""
 
-    type_: Literal["leave"] = Field(
-        "leave", alias="type", description="The object type."
-    )
+    type_: str = Field("leave", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the leave object.")
 
 

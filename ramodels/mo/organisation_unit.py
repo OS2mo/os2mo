@@ -30,9 +30,7 @@ from .details import OrgUnitDetails
 class OrganisationUnitBase(MOBase):
     """A MO organisation unit object."""
 
-    type_: Literal["org_unit"] = Field(
-        "org_unit", alias="type", description="The object type."
-    )
+    type_: str = Field("org_unit", alias="type", description="The object type.")
     name: str = Field(description="Name of the created organisation unit.")
     validity: Validity = Field(description="Validity of the created organisation unit.")
 

@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import List
-from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
@@ -24,9 +23,7 @@ from .._shared import Validity
 class RelatedUnitBase(MOBase):
     """A MO relatedUnit object."""
 
-    type_: Literal["related_unit"] = Field(
-        "related_unit", alias="type", description="The object type."
-    )
+    type_: str = Field("related_unit", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the relatedUnit object.")
 
 

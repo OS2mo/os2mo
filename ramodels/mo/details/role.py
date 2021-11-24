@@ -25,7 +25,7 @@ from .._shared import Validity
 class RoleBase(MOBase):
     """A MO role object."""
 
-    type_: Literal["role"] = Field("role", alias="type", description="The object type.")
+    type_: str = Field("role", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the role object.")
 
 

@@ -36,9 +36,7 @@ DictStrAny = Dict[str, Any]
 class EmployeeBase(MOBase):
     """A MO employee object."""
 
-    type_: Literal["employee"] = Field(
-        "employee", alias="type", description="The object type"
-    )
+    type_: str = Field("employee", alias="type", description="The object type")
     cpr_no: Optional[str] = Field(
         regex=r"^\d{10}$", description="CPR number of the employee."
     )
