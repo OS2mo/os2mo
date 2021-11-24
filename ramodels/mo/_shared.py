@@ -73,6 +73,15 @@ class MOBase(UUIDBase):
     def set_user_key(cls, user_key: Optional[Any], values: DictStrAny) -> str:
         return user_key or str(values["uuid"])
 
+    @root_validator
+    def validate_type(cls, values: DictStrAny) -> DictStrAny:
+        if "type_" in cls.__fields__ and "type_" in values:
+            field = cls.__fields__["type_"]
+
+            if not field.required and values["type_"] != field.default:
+                raise ValueError(f"type may only be its default: '{field.default}'")
+        return values
+
 
 # --------------------------------------------------------------------------------------
 # Shared models

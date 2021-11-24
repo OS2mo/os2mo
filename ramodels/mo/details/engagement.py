@@ -30,9 +30,7 @@ from .._shared import Validity
 class EngagementBase(MOBase):
     """A MO engagement object."""
 
-    type_: Literal["engagement"] = Field(
-        "engagement", alias="type", description="The object type."
-    )
+    type_: str = Field("engagement", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the engagement object.")
     fraction: Optional[int] = Field(
         description="Indication of contribution to the "

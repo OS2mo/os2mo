@@ -9,6 +9,7 @@
 from datetime import datetime
 
 import pytest
+from hypothesis import assume
 from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
@@ -67,14 +68,35 @@ class TestMOBase:
         # Subclasses of MOBase should have a user_key field
         assert self.MOSub.__fields__.get("user_key")
 
-    @given(st.uuids())
-    def test_validators(self, ht_uuid):
-
+    def test_validators(self):
         # User key must default to UUID
         mo_sub = self.MOSub()
         assert mo_sub.user_key == str(mo_sub.uuid)
         # But we should also be able to set it explicitly
         assert self.MOSub(user_key="test").user_key == "test"
+
+    @given(st.text(), st.text())
+    def test_type_validator(self, type_1, type_2):
+        # Things should work with no type_ present in the model
+        assert self.MOSub()
+
+        # And when type_ is required:
+        class MOTypeRequired(MOBase):
+            type_: str
+
+        assert MOTypeRequired(type_=type_1)
+
+        # Things should work when setting the default value
+        class MOType(MOBase):
+            type_: str = type_1
+
+        # assert MOType()
+        assert MOType(type_=type_1)
+
+        # But not when setting anything else
+        assume(type_1 != type_2)
+        with pytest.raises(ValidationError):
+            MOType(type_=type_2)
 
 
 # --------------------------------------------------------------------------------------

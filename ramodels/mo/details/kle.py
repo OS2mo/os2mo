@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import List
-from typing import Literal
 from typing import Optional
 from uuid import UUID
 
@@ -31,7 +30,7 @@ class KLEBase(MOBase):
     http://www.kle-online.dk/emneplan
     """
 
-    type_: Literal["kle"] = Field("kle", alias="type", description="The object type.")
+    type_: str = Field("kle", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the kle object.")
 
 

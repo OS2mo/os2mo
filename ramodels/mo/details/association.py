@@ -29,9 +29,7 @@ from .._shared import Validity
 class AssociationBase(MOBase):
     """A MO association object."""
 
-    type_: Literal["association"] = Field(
-        "association", alias="type", description="The object type."
-    )
+    type_: str = Field("association", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the association object.")
     dynamic_classes: Optional[List[DynamicClasses]] = Field(
         description="Attached classes"

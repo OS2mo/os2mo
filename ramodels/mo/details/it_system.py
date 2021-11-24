@@ -27,7 +27,7 @@ from .._shared import Validity
 class ITSystemBindingBase(MOBase):
     """A MO IT system binding object."""
 
-    type_: Literal["it"] = Field("it", alias="type", description="The object type.")
+    type_: str = Field("it", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the IT system binding object.")
 
 

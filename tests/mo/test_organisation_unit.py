@@ -20,9 +20,7 @@ from ramodels.mo.organisation_unit import OrganisationUnitBase
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 from ramodels.mo.organisation_unit import OrganisationUnitWrite
 from tests.conftest import from_date_strat
-from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
-from tests.conftest import unexpected_value_error
 from tests.mo.details.test_association import association_strat
 from tests.mo.details.test_engagement import engagement_assoc_strat
 from tests.mo.details.test_engagement import engagement_strat
@@ -154,9 +152,3 @@ class TestOrganisationUnit:
     @given(write_start())
     def test_write(self, model_dict):
         assert OrganisationUnitWrite(**model_dict)
-
-    @given(base_strat(), not_from_regex(r"^org_unit$"))
-    def test_validators(self, model_dict, invalid_type):
-        with unexpected_value_error():
-            model_dict["type"] = invalid_type
-            OrganisationUnitBase(**model_dict)

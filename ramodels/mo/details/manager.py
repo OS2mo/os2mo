@@ -34,9 +34,7 @@ from .._shared import Validity
 class ManagerBase(MOBase):
     """A MO manager object."""
 
-    type_: Literal["manager"] = Field(
-        "manager", alias="type", description="The object type."
-    )
+    type_: str = Field("manager", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the manager object.")
 
 
