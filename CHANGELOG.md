@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.15.1 - 2021-11-24
+-------------------
+
+[#47202] Change use of Literals to str with custom validator
+
 3.15.0 - 2021-11-23
 -------------------
 
