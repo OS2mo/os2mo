@@ -1,133 +1,88 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import freezegun
-import notsouid
+from uuid import UUID
 
+import freezegun
 import mora.async_util
+import notsouid
 import tests.cases
-from . import util
 from mora import lora
+from mora.config import Settings
+from parameterized import parameterized
+
+from . import util
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    def test_create_employee(self):
+    @parameterized.expand(
+        [
+            # flag, CPR, expected "valid_from"
+            (True, "0101501234", "1950-01-01 00:00:00+01"),
+            (False, "0101501234", "1950-01-01 00:00:00+01"),
+            (False, "0171501234", "-infinity"),
+        ]
+    )
+    def test_create_employee(
+        self, cpr_validate_birthdate: bool, cpr: str, valid_from: str
+    ):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
+        first_name = "Torkild"
+        last_name = "von Testperson"
 
         payload = {
-            "givenname": "Torkild",
-            "surname": "von Testperson",
+            "givenname": first_name,
+            "surname": last_name,
             "nickname_givenname": "Torkild",
             "nickname_surname": "Sejfyr",
             "seniority": "2017-01-01",
-            "cpr_no": "0101501234",
+            "cpr_no": cpr,
             "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
         }
 
-        with notsouid.freeze_uuid(mock_uuid):
+        with notsouid.freeze_uuid(mock_uuid), util.override_config(
+            Settings(cpr_validate_birthdate=cpr_validate_birthdate)
+        ):
             r = self.request("/service/e/create", json=payload)
+
         userid = r.json()
 
-        expected = {
-            "livscykluskode": "Importeret",
-            "note": "Oprettet i MO",
-            "attributter": {
-                "brugeregenskaber": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "1950-01-01 00:00:00+01",
-                        },
-                        "brugervendtnoegle": mock_uuid,
-                        "integrationsdata": "{}",
-                    }
-                ],
-                "brugerudvidelser": [
-                    {
-                        "fornavn": "Torkild",
-                        "efternavn": "von Testperson",
-                        "kaldenavn_fornavn": "Torkild",
-                        "kaldenavn_efternavn": "Sejfyr",
-                        "seniority": "2017-01-01",
-                        "virkning": {
-                            "from": "1950-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "infinity",
-                            "to_included": False,
-                        },
-                    }
-                ],
-            },
-            "relationer": {
-                "tilhoerer": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "1950-01-01 00:00:00+01",
-                        },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    }
-                ],
-                "tilknyttedepersoner": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "1950-01-01 00:00:00+01",
-                        },
-                        "urn": "urn:dk:cpr:person:0101501234",
-                    }
-                ],
-            },
-            "tilstande": {
-                "brugergyldighed": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "infinity",
-                            "from_included": True,
-                            "from": "1950-01-01 00:00:00+01",
-                        },
-                        "gyldighed": "Aktiv",
-                    }
-                ]
-            },
-        }
-
+        expected = self._get_expected_response(first_name, last_name, cpr, valid_from)
         actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
+
+        # Make sure the bvn is a valid UUID
+        bvn = actual["attributter"]["brugeregenskaber"][0].pop("brugervendtnoegle")
+        assert UUID(bvn) == UUID(userid)
 
         self.assertRegistrationsEqual(expected, actual)
 
+        expected_employee = {
+            "givenname": first_name,
+            "surname": last_name,
+            "name": f"{first_name} {last_name}",
+            "nickname_givenname": "Torkild",
+            "nickname_surname": "Sejfyr",
+            "nickname": "Torkild Sejfyr",
+            "seniority": "2017-01-01",
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "user_key": bvn,
+            "cpr_no": cpr,
+            "uuid": userid,
+        }
+
         self.assertRequestResponse(
             "/service/e/{}/".format(userid),
-            {
-                "givenname": "Torkild",
-                "surname": "von Testperson",
-                "name": "Torkild von Testperson",
-                "nickname_givenname": "Torkild",
-                "nickname_surname": "Sejfyr",
-                "nickname": "Torkild Sejfyr",
-                "seniority": "2017-01-01",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "user_key": mock_uuid,
-                "cpr_no": "0101501234",
-                "uuid": userid,
-            },
+            expected_employee,
             amqp_topics={"employee.employee.create": 1},
         )
 
@@ -914,3 +869,79 @@ class Tests(tests.cases.LoRATestCase):
             },
             amqp_topics={"employee.employee.update": 1},
         )
+
+    def _get_expected_response(self, first_name, last_name, cpr, valid_from):
+        expected = {
+            "livscykluskode": "Importeret",
+            "note": "Oprettet i MO",
+            "attributter": {
+                "brugeregenskaber": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": valid_from,
+                        },
+                        "integrationsdata": "{}",
+                    }
+                ],
+                "brugerudvidelser": [
+                    {
+                        "fornavn": first_name,
+                        "efternavn": last_name,
+                        "kaldenavn_fornavn": "Torkild",
+                        "kaldenavn_efternavn": "Sejfyr",
+                        "seniority": "2017-01-01",
+                        "virkning": {
+                            "from": valid_from,
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False,
+                        },
+                    }
+                ],
+            },
+            "relationer": {
+                "tilhoerer": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": valid_from,
+                        },
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    }
+                ],
+            },
+            "tilstande": {
+                "brugergyldighed": [
+                    {
+                        "virkning": {
+                            "to_included": False,
+                            "to": "infinity",
+                            "from_included": True,
+                            "from": valid_from,
+                        },
+                        "gyldighed": "Aktiv",
+                    }
+                ]
+            },
+        }
+
+        if cpr:
+            tilknyttedepersoner = [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "infinity",
+                        "from_included": True,
+                        "from": valid_from,
+                    },
+                    "urn": "urn:dk:cpr:person:%s" % cpr,
+                }
+            ]
+            expected["relationer"]["tilknyttedepersoner"] = tilknyttedepersoner
+
+        return expected

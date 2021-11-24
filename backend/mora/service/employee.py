@@ -23,13 +23,15 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+import mora.async_util
 from fastapi import APIRouter
 from fastapi import Body
+from mora.request_scoped.bulking import request_wide_bulk
 
-import mora.async_util
 from . import handlers
 from . import org
 from .. import common
+from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -37,7 +39,6 @@ from .. import util
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation import validator
-from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 
@@ -93,10 +94,17 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
 
-        try:
-            valid_from = util.get_cpr_birthdate(cpr) if cpr else util.NEGATIVE_INFINITY
-        except ValueError as exc:
-            exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
+        if cpr:
+            try:
+                valid_from = util.get_cpr_birthdate(cpr)
+            except ValueError as exc:
+                settings = config.get_settings()
+                if settings.cpr_validate_birthdate:
+                    exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
+                else:
+                    valid_from = util.NEGATIVE_INFINITY
+        else:
+            valid_from = util.NEGATIVE_INFINITY
 
         valid_to = util.POSITIVE_INFINITY
 

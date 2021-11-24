@@ -72,6 +72,9 @@ class Settings(BaseSettings):
     keycloak_realm: str = "mo"
     keycloak_signing_alg: str = "RS256"
 
+    # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
+    cpr_validate_birthdate: bool = True
+
 
 @lru_cache()
 def get_settings() -> Settings:
