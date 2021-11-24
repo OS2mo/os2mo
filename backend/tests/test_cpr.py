@@ -119,6 +119,14 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
+    def test_birthdate_validation_disabled(self, m):
+        """Validation of CPR birthdate can be disabled by a feature flag"""
+        with util.override_config(Settings(cpr_validate_birthdate=False)):
+            self.assertRequestResponse(
+                "/service/e/cpr_lookup/?q=0121501234",
+                {"name": "Naja Hansen", "cpr_no": "0121501234"},
+            )
+
 
 class TestConfig(tests.cases.TestCase):
     def _sp_config(self, **overrides):
