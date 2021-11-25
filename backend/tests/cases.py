@@ -22,23 +22,23 @@ logger = get_logger()
 
 async def fake_auth():
     return {
-        'acr': '1',
-        'allowed-origins': ['http://localhost:5001'],
-        'azp': 'vue',
-        'email': 'bruce@kung.fu',
-        'email_verified': False,
-        'exp': 1621779689,
-        'family_name': 'Lee',
-        'given_name': 'Bruce',
-        'iat': 1621779389,
-        'iss': 'http://localhost:8081/auth/realms/mo',
-        'jti': '25dbb58d-b3cb-4880-8b51-8b92ada4528a',
-        'name': 'Bruce Lee',
-        'preferred_username': 'bruce',
-        'scope': 'email profile',
-        'session_state': 'd94f8dc3-d930-49b3-a9dd-9cdc1893b86a',
-        'sub': 'c420894f-36ba-4cd5-b4f8-1b24bd8c53db',
-        'typ': 'Bearer'
+        "acr": "1",
+        "allowed-origins": ["http://localhost:5001"],
+        "azp": "vue",
+        "email": "bruce@kung.fu",
+        "email_verified": False,
+        "exp": 1621779689,
+        "family_name": "Lee",
+        "given_name": "Bruce",
+        "iat": 1621779389,
+        "iss": "http://localhost:8081/auth/realms/mo",
+        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+        "name": "Bruce Lee",
+        "preferred_username": "bruce",
+        "scope": "email profile",
+        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+        "typ": "Bearer",
     }
 
 
@@ -75,21 +75,28 @@ class _BaseTestCase(TestCase):
         to the MO backend.
         """
         r = requests.post(
-            'http://keycloak:8080'
-            '/auth/realms/mo/protocol/openid-connect/token',
+            "http://keycloak:8080" "/auth/realms/mo/protocol/openid-connect/token",
             data={
-                'grant_type': 'password',
-                'client_id': 'mo',
-                'username': 'bruce',
-                'password': 'bruce'
-            }
+                "grant_type": "password",
+                "client_id": "mo",
+                "username": "bruce",
+                "password": "bruce",
+            },
         )
-        return r.json()['access_token']
+        return r.json()["access_token"]
 
-    def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), amqp_topics=(), set_auth_header=False,
-                      **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequest(
+        self,
+        path,
+        status_code=None,
+        message=None,
+        *,
+        drop_keys=(),
+        amqp_topics=(),
+        set_auth_header=False,
+        **kwargs,
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -102,17 +109,17 @@ class _BaseTestCase(TestCase):
         :return: The result of the request, as a string or object, if
                  JSON.
 
-        '''
+        """
 
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
-            kwargs.setdefault('headers', dict()).update(
-                {'Authorization': 'bearer ' + self.get_token()}
+            kwargs.setdefault("headers", dict()).update(
+                {"Authorization": "bearer " + self.get_token()}
             )
 
         r = self.request(path, **kwargs)
 
-        if r.headers.get('content-type') == 'application/json':
+        if r.headers.get("content-type") == "application/json":
             actual = r.json()
         else:
             print(r.headers, r.content, r.raw)
@@ -126,7 +133,7 @@ class _BaseTestCase(TestCase):
 
         if status_code is None:
             if message is None:
-                message = 'status of {!r} was {}, not 2xx'.format(
+                message = "status of {!r} was {}, not 2xx".format(
                     path,
                     r.status_code,
                 )
@@ -138,7 +145,7 @@ class _BaseTestCase(TestCase):
 
         else:
             if message is None:
-                message = 'status of {!r} was {}, not {}'.format(
+                message = "status of {!r} was {}, not {}".format(
                     path,
                     r.status_code,
                     status_code,
@@ -146,7 +153,7 @@ class _BaseTestCase(TestCase):
 
             if r.status_code != status_code:
                 ppa = pprint.pformat(actual)
-                print(f'actual response:\n{ppa}')
+                print(f"actual response:\n{ppa}")
 
                 self.fail(message)
 
@@ -158,9 +165,16 @@ class _BaseTestCase(TestCase):
 
         return actual
 
-    def assertRequestResponse(self, path, expected, message=None,
-                              amqp_topics=(), set_auth_header=False, **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequestResponse(
+        self,
+        path,
+        expected,
+        message=None,
+        amqp_topics=(),
+        set_auth_header=False,
+        **kwargs,
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -170,21 +184,25 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        actual = self.assertRequest(path, message=message,
-                                    amqp_topics=amqp_topics,
-                                    set_auth_header=set_auth_header,
-                                    **kwargs)
+        actual = self.assertRequest(
+            path,
+            message=message,
+            amqp_topics=amqp_topics,
+            set_auth_header=set_auth_header,
+            **kwargs,
+        )
 
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
 
         self.assertEqual(expected, actual, message)
 
-    def assertRequestFails(self, path, code, message=None,
-                           set_auth_header=False, **kwargs):
-        '''Issue a request and assert that it fails with the given status.
+    def assertRequestFails(
+        self, path, code, message=None, set_auth_header=False, **kwargs
+    ):
+        """Issue a request and assert that it fails with the given status.
 
         ``**kwargs`` is passed directly to the test client -- see the
         documentation for :py:class:`werkzeug.test.EnvironBuilder` for
@@ -193,21 +211,26 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        self.assertRequest(path, message=message, status_code=code,
-                           set_auth_header=set_auth_header, **kwargs)
+        self.assertRequest(
+            path,
+            message=message,
+            status_code=code,
+            set_auth_header=set_auth_header,
+            **kwargs,
+        )
 
     def request(self, path, **kwargs):
-        if 'json' in kwargs:
+        if "json" in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data'})
+            assert kwargs.keys().isdisjoint({"method", "data"})
 
             # kwargs['method'] = 'POST'
-            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs.setdefault('headers', dict()).update(
-                {'Content-Type': 'application/json'}
+            kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
+            kwargs.setdefault("headers", dict()).update(
+                {"Content-Type": "application/json"}
             )
             return self.client.post(path, **kwargs)
 
@@ -223,10 +246,7 @@ class _BaseTestCase(TestCase):
 
         """
         if isinstance(obj, dict):
-            return {
-                k: TestCase.__sort_inner_lists(v)
-                for k, v in obj.items()
-            }
+            return {k: TestCase.__sort_inner_lists(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return sorted(
                 map(TestCase.__sort_inner_lists, obj),
@@ -238,7 +258,7 @@ class _BaseTestCase(TestCase):
     def assertRegistrationsEqual(self, expected, actual, message=None):
 
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -253,7 +273,7 @@ class _BaseTestCase(TestCase):
 
     def assertRegistrationsNotEqual(self, expected, actual, message=None):
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -277,9 +297,9 @@ class TestCase(_BaseTestCase):
 
 
 class LoRATestCase(_BaseTestCase):
-    '''Base class for LoRA testcases; the test creates an empty LoRA
+    """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
-    '''
+    """
 
     def load_sample_structures(self, minimal=False):
         func = async_to_sync(load_sample_structures)
@@ -309,8 +329,8 @@ class LoRATestCase(_BaseTestCase):
     @async_to_sync
     async def tearDown(self):
         if (
-            hasattr(_local_cache, "async_session") and
-            _local_cache.async_session is not None
+            hasattr(_local_cache, "async_session")
+            and _local_cache.async_session is not None
         ):
             await _local_cache.async_session.close()
             _local_cache.async_session = None
@@ -321,7 +341,7 @@ class ConfigTestCase(LoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
-        conf_db.set_configuration({'org_units': dict(conf)})
+        conf_db.set_configuration({"org_units": dict(conf)})
 
     @classmethod
     def setUpClass(cls):

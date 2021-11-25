@@ -61,11 +61,12 @@ class __BulkBookkeeper:
 
         self.__class__.connector = property(get_conn)
 
-        async def get_sinlge_non_cache(self, type_: LoraObjectType,
-                                       uuid: str) -> Optional[LORA_OBJ]:
-            return dict(
-                await self.__raw_get_all(type_=type_, uuids={uuid})
-            ).get(uuid, None)
+        async def get_sinlge_non_cache(
+            self, type_: LoraObjectType, uuid: str
+        ) -> Optional[LORA_OBJ]:
+            return dict(await self.__raw_get_all(type_=type_, uuids={uuid})).get(
+                uuid, None
+            )
 
         self.__class__.get_lora_object = get_sinlge_non_cache
 
@@ -75,10 +76,11 @@ class __BulkBookkeeper:
 
     @property
     def __processed_cache(self) -> Dict[LoraObjectType, Dict[UUID, Optional[LORA_OBJ]]]:
-        return self.__raw_cache.setdefault(self.__class__.__name__ + '_processed', {})
+        return self.__raw_cache.setdefault(self.__class__.__name__ + "_processed", {})
 
-    async def __raw_get_all(self, type_: LoraObjectType,
-                            uuids: Set[str]) -> Iterable[Tuple[UUID, LORA_OBJ]]:
+    async def __raw_get_all(
+        self, type_: LoraObjectType, uuids: Set[str]
+    ) -> Iterable[Tuple[UUID, LORA_OBJ]]:
         """
         get without all the caching.
         NOTE: Passing a uuid to this DOES NOT guarantee it to also be in the result.
@@ -111,12 +113,12 @@ class __BulkBookkeeper:
 
     def __add(self, type_: LoraObjectType, uuid: str):
         """
-         adds an uuid to the cache
+        adds an uuid to the cache
 
-         :param type_: type of object the uuid refers
-         :param uuid:
-         :return:
-         """
+        :param type_: type of object the uuid refers
+        :param uuid:
+        :return:
+        """
         # if already processed, skip
         if uuid in self.__processed_cache.setdefault(type_, {}):
             return
@@ -130,7 +132,7 @@ class __BulkBookkeeper:
         get used / 'current' connector
         :return:
         """
-        key = self.__class__.__name__ + '_connector'
+        key = self.__class__.__name__ + "_connector"
         # manually checking avoids creating unneeded connectors
         if key in self.__raw_cache:
             return self.__raw_cache.get(key)

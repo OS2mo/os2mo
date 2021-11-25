@@ -54,23 +54,24 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(config.get_settings().lora_url +
-                 "organisation/organisation?"
-                 "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
-                 payload={"results": [[]]},
-                 )
+        mock.get(
+            config.get_settings().lora_url + "organisation/organisation?"
+            "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
+            payload={"results": [[]]},
+        )
         actual = health.dataset()
 
         self.assertEqual(False, actual)
 
     @aioresponses()
     def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get((config.get_settings().lora_url +
-                  "organisation/organisation"
-                  "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
-                  ),
-                 payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
-                 )
+        mock.get(
+            (
+                config.get_settings().lora_url + "organisation/organisation"
+                "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
+            ),
+            payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
+        )
 
         actual = health.dataset()
 

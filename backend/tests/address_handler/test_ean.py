@@ -11,26 +11,21 @@ from . import base
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {'uuid': y}
+    return {"uuid": y}
 
 
-@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
+@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
 class EANAddressHandlerTests(base.AddressHandlerTestCase):
     handler = ean.EANAddressHandler
-    value = '1234567890123'
-    visibility = '1f6295e8-9000-43ec-b694-4d288fa158bb'
+    value = "1234567890123"
+    visibility = "1f6295e8-9000-43ec-b694-4d288fa158bb"
 
     def test_from_effect(self):
         # Arrange
         effect = {
-            'relationer': {
-                'adresser': [{
-                    'urn': 'urn:magenta.dk:ean:{}'.format(self.value)
-                }],
-                'opgaver': [{
-                    'objekttype': 'synlighed',
-                    'uuid': self.visibility
-                }]
+            "relationer": {
+                "adresser": [{"urn": "urn:magenta.dk:ean:{}".format(self.value)}],
+                "opgaver": [{"objekttype": "synlighed", "uuid": self.visibility}],
             }
         }
 
@@ -46,11 +41,9 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '1234567890123'
+        value = "1234567890123"
 
-        request = {
-            'value': value
-        }
+        request = {"value": value}
         address_handler = self.handler.from_request(request)
 
         # Act
@@ -62,15 +55,15 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
     @mora.async_util.async_to_sync
     async def test_get_mo_address(self):
         # Arrange
-        value = '1234567890123'
+        value = "1234567890123"
         address_handler = self.handler(self.value, self.visibility)
 
         expected = {
-            'href': None,
-            'name': value,
-            'value': value,
-            'value2': None,
-            'visibility': {'uuid': '1f6295e8-9000-43ec-b694-4d288fa158bb'}
+            "href": None,
+            "name": value,
+            "value": value,
+            "value2": None,
+            "visibility": {"uuid": "1f6295e8-9000-43ec-b694-4d288fa158bb"},
         }
 
         # Act
@@ -81,13 +74,10 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '1234567890123'
+        value = "1234567890123"
         address_handler = self.handler(self.value, None)
 
-        expected = {
-            'objekttype': 'EAN',
-            'urn': 'urn:magenta.dk:ean:{}'.format(value)
-        }
+        expected = {"objekttype": "EAN", "urn": "urn:magenta.dk:ean:{}".format(value)}
 
         # Act
         actual = address_handler.get_lora_address()
@@ -97,10 +87,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        invalid_values = [
-            '1234',
-            '12341234123412341234'
-        ]  # Not a valid EAN
+        invalid_values = ["1234", "12341234123412341234"]  # Not a valid EAN
 
         # Act & Assert
         for value in invalid_values:
@@ -109,9 +96,7 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
-        valid_values = [
-            "1234123412341"
-        ]
+        valid_values = ["1234123412341"]
 
         # Act & Assert
         for value in valid_values:
@@ -120,8 +105,8 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_validation_succeeds_with_force(self):
         # Arrange
-        value = 'GARBAGEGARBAGE'  # Not a valid EAN
+        value = "GARBAGEGARBAGE"  # Not a valid EAN
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with current_query.context_args({"force": "1"}):
             self.handler.validate_value(value)

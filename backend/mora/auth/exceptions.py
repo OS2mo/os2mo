@@ -6,7 +6,6 @@ from jwt.exceptions import InvalidTokenError
 
 
 class AuthError(Exception):
-
     def __init__(self, exc: Exception):
         self.__exc = exc
 
@@ -21,7 +20,9 @@ class AuthError(Exception):
         """
         if isinstance(self.__exc, InvalidTokenError):
             return True
-        if isinstance(self.__exc, HTTPException) and \
-                self.__exc.status_code == HTTP_401_UNAUTHORIZED:
+        if (
+            isinstance(self.__exc, HTTPException)
+            and self.__exc.status_code == HTTP_401_UNAUTHORIZED
+        ):
             return True
         return False

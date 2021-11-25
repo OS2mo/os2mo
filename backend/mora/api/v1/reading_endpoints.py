@@ -335,7 +335,7 @@ async def search_owner_unit(
     return await orgfunk_endpoint(
         orgfunk_type=MoOrgFunk.OWNER,
         query_args={"at": at, "validity": validity},
-        changed_since=changed_since
+        changed_since=changed_since,
     )
 
 

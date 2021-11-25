@@ -13,9 +13,9 @@ class NavLink(BaseSettings):
 
 
 class Environment(str, Enum):
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
+
     lora_url: AnyHttpUrl = "http://mox/"
 
     # Config database settings

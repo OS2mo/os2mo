@@ -82,7 +82,9 @@ class Reading(TestCase):
                     )
                     self.assertEqual(changed_since, dict(changed_since=None))
 
-    def test_search_endpoint2(self, ):
+    def test_search_endpoint2(
+        self,
+    ):
         """
         tests that endpoint query params is parsed properly, and
         put into the appropriate reader classes
@@ -105,9 +107,7 @@ class Reading(TestCase):
                     assert len(call_args) == 1
                     (connector, search_params), changed_since = call_args[0]
                     assert isinstance(connector, Connector)
-                    self.assertEqual(
-                        search_params, search_params
-                    )
+                    self.assertEqual(search_params, search_params)
                     self.assertEqual(changed_since, dict(changed_since=None))
 
     def test_uuid_endpoint(self):

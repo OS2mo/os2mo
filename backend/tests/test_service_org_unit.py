@@ -16,7 +16,9 @@ from mora.handler.impl.association import AssociationReader
 from mora.request_scoped.query_args import current_query
 from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
 from mora.service.orgunit import (
-    get_children, get_orgunit, get_unit_ancestor_tree,
+    get_children,
+    get_orgunit,
+    get_unit_ancestor_tree,
 )
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException, register
@@ -145,8 +147,8 @@ class TestAddressLookup(tests.cases.TestCase):
         mock.get(
             "http://mox/organisation/organisationenhed"
             "?uuid=" + unitid + "&virkningtil=2018-03-15T00%3A00%3A00%2B01%3A00"
-                                "&virkningfra=-infinity"
-                                "&konsolider=True",
+            "&virkningfra=-infinity"
+            "&konsolider=True",
             payload={
                 "results": [
                     [
@@ -314,24 +316,24 @@ class TestGetCountRelated(tests.cases.TestCase):
         self._multiple = {"association", "engagement"}
 
     def test_valid_name(self):
-        with current_query.context_args(ImmutableMultiDict({'count': 'association'})):
+        with current_query.context_args(ImmutableMultiDict({"count": "association"})):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_valid_name_repeated(self):
         with current_query.context_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'association')])
+            ImmutableMultiDict([("count", "association"), ("count", "association")])
         ):
             self.assertSetEqual(self._simple, _get_count_related())
 
     def test_multiple_valid_names(self):
         with current_query.context_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'engagement')])
+            ImmutableMultiDict([("count", "association"), ("count", "engagement")])
         ):
             self.assertSetEqual(self._multiple, _get_count_related())
 
     def test_invalid_name(self):
         with current_query.context_args(
-            ImmutableMultiDict([('count', 'association'), ('count', 'foobar')])
+            ImmutableMultiDict([("count", "association"), ("count", "foobar")])
         ):
             with self.assertRaises(HTTPException):
                 _get_count_related()
@@ -406,8 +408,9 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
 
     def test_count_association(self):
         with current_query.context_args(ImmutableMultiDict({"count": "association"})):
-            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
-                                                           only_primary_uuid=False)
+            result = async_to_sync(get_unit_ancestor_tree)(
+                self._orgunit_uuid, only_primary_uuid=False
+            )
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
@@ -416,8 +419,9 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
 
     def test_count_engagement(self):
         with current_query.context_args(ImmutableMultiDict({"count": "engagement"})):
-            result = async_to_sync(get_unit_ancestor_tree)(self._orgunit_uuid,
-                                                           only_primary_uuid=False)
+            result = async_to_sync(get_unit_ancestor_tree)(
+                self._orgunit_uuid, only_primary_uuid=False
+            )
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",

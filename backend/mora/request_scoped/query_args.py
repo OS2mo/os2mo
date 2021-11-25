@@ -7,6 +7,7 @@ from starlette.datastructures import ImmutableMultiDict
 
 # I'm a singleton
 
+
 class _QueryArgs:
     def __init__(self):
         self.__query_args: ImmutableMultiDict = ImmutableMultiDict()

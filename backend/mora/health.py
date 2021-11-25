@@ -70,8 +70,9 @@ def oio_rest():
         if r.status_code == 200:
             return True
         else:
-            logger.critical("oio_rest returned status code",
-                            request_status_code=r.status_code)
+            logger.critical(
+                "oio_rest returned status code", request_status_code=r.status_code
+            )
             return False
     except RequestException as e:
         logger.exception("oio_rest returned", exception=e)

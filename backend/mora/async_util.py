@@ -32,8 +32,7 @@ def async_session() -> ClientSession:
     """
     global _local_cache
     # Start a session if needed.
-    if (not hasattr(_local_cache,
-                    "async_session") or _local_cache.async_session is None):
+    if not hasattr(_local_cache, "async_session") or _local_cache.async_session is None:
         _local_cache.async_session = ClientSession(headers=headers)
     return _local_cache.async_session
 
@@ -55,8 +54,10 @@ async def __session_context_helper(awaitable) -> typing.Any:
         # clean-up of global, shared session
         global _local_cache
         # if session was started by the awaitable
-        if (hasattr(_local_cache,
-                    "async_session") and _local_cache.async_session is not None):
+        if (
+            hasattr(_local_cache, "async_session")
+            and _local_cache.async_session is not None
+        ):
             await _local_cache.async_session.close()
             _local_cache.async_session = None
     return ret

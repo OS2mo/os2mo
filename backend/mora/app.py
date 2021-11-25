@@ -85,8 +85,8 @@ async def fallback_handler(*args, **kwargs):
     # look for exception
     if len(args) in [2, 3] and isinstance(args[-1], Exception):
         exc = args[-1]
-    elif 'exc' in kwargs and isinstance(kwargs['exc'], Exception):
-        exc = kwargs['exc']
+    elif "exc" in kwargs and isinstance(kwargs["exc"], Exception):
+        exc = kwargs["exc"]
     else:  # desperate fallback
         err = ErrorCodes.E_UNKNOWN.to_http_exception(
             message=f"Error details:\nargs: {args}\nkwargs: {kwargs}"
@@ -98,9 +98,7 @@ async def fallback_handler(*args, **kwargs):
     return http_exception_to_json_response(exc=err)
 
 
-async def request_validation_handler(
-    request: Request, exc: RequestValidationError
-):
+async def request_validation_handler(request: Request, exc: RequestValidationError):
     """
     Ensure a nicely formatted json response, with
 
@@ -171,13 +169,9 @@ def create_app():
 
     for router in service.routers:
         app.include_router(
-            router, prefix="/service", tags=["Service"],
-            dependencies=[Depends(auth)]
+            router, prefix="/service", tags=["Service"], dependencies=[Depends(auth)]
         )
-    app.include_router(
-        reading_endpoints.router,
-        dependencies=[Depends(auth)]
-    )
+    app.include_router(reading_endpoints.router, dependencies=[Depends(auth)])
     app.include_router(
         meta_router(),
         tags=["Meta"],
@@ -194,13 +188,12 @@ def create_app():
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning('No dist directory to serve', distdir=distdir)
+        logger.warning("No dist directory to serve", distdir=distdir)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
-    app.add_exception_handler(RequestValidationError,
-                              request_validation_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_handler)
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthError, auth_exception_handler)
 

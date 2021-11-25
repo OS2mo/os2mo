@@ -25,24 +25,39 @@ class KLEReader(reading.OrgFunkReadingHandler):
         address_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
 
         kle_types = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
-        only_primary_uuid = current_query.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get("only_primary_uuid")
 
         # via tasks, await request_bulked_get_one_class_full, then prepare a gather of
         # those (resulting) promises for later collection
-        kle_aspect = gather(*await gather(
-            *[create_task(facet.request_bulked_get_one_class_full(
-                obj_uuid, only_primary_uuid=only_primary_uuid)) for obj_uuid in
-                kle_types]))
-        kle_number_task = create_task(facet.request_bulked_get_one_class_full(
-            address_type, only_primary_uuid=only_primary_uuid))
+        kle_aspect = gather(
+            *await gather(
+                *[
+                    create_task(
+                        facet.request_bulked_get_one_class_full(
+                            obj_uuid, only_primary_uuid=only_primary_uuid
+                        )
+                    )
+                    for obj_uuid in kle_types
+                ]
+            )
+        )
+        kle_number_task = create_task(
+            facet.request_bulked_get_one_class_full(
+                address_type, only_primary_uuid=only_primary_uuid
+            )
+        )
 
         org_unit_task = create_task(
-            orgunit.request_bulked_get_one_orgunit(org_unit,
-                                                   details=orgunit.UnitDetails.MINIMAL,
-                                                   only_primary_uuid=only_primary_uuid))
+            orgunit.request_bulked_get_one_orgunit(
+                org_unit,
+                details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         r = {
             **await base_obj,

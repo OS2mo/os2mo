@@ -9,114 +9,114 @@ import typing
 from os2mo_http_trigger_protocol import EventType, RequestType  # noqa: F401
 
 # Common
-VALID_FROM = 'valid_from'
-VALID_TO = 'valid_to'
-TO = 'to'
-FROM = 'from'
-NAME = 'name'
-GIVENNAME = 'givenname'
-SURNAME = 'surname'
-NICKNAME = 'nickname'
-NICKNAME_GIVENNAME = 'nickname_givenname'
-NICKNAME_SURNAME = 'nickname_surname'
-USER_KEY = 'user_key'
-VALUE = 'value'
-VALUE2 = 'value2'
-HREF = 'href'
-UUID = 'uuid'
-URN = 'urn'
-VALIDITY = 'validity'
-ORG = 'org'
-ORG_UNIT = 'org_unit'
-PERSON = 'person'
-JOB_FUNCTION = 'job_function'
-ITSYSTEM = 'itsystem'
-ADDRESS = 'address'
-ITSYSTEM_KEY = 'IT-system'
+VALID_FROM = "valid_from"
+VALID_TO = "valid_to"
+TO = "to"
+FROM = "from"
+NAME = "name"
+GIVENNAME = "givenname"
+SURNAME = "surname"
+NICKNAME = "nickname"
+NICKNAME_GIVENNAME = "nickname_givenname"
+NICKNAME_SURNAME = "nickname_surname"
+USER_KEY = "user_key"
+VALUE = "value"
+VALUE2 = "value2"
+HREF = "href"
+UUID = "uuid"
+URN = "urn"
+VALIDITY = "validity"
+ORG = "org"
+ORG_UNIT = "org_unit"
+PERSON = "person"
+JOB_FUNCTION = "job_function"
+ITSYSTEM = "itsystem"
+ADDRESS = "address"
+ITSYSTEM_KEY = "IT-system"
 EMPLOYEE = "employee"
-LOCATION = 'location'
-ERROR = 'error'
-USER_SETTINGS = 'user_settings'
-INTEGRATION_DATA = 'integration_data'
-PRIMARY = 'primary'
-IS_PRIMARY = 'is_primary'
-SENIORITY = 'seniority'
+LOCATION = "location"
+ERROR = "error"
+USER_SETTINGS = "user_settings"
+INTEGRATION_DATA = "integration_data"
+PRIMARY = "primary"
+IS_PRIMARY = "is_primary"
+SENIORITY = "seniority"
 
 # Address
-ADDRESS_KEY = 'Adresse'
-ADDRESS_TYPE = 'address_type'
-VISIBILITY = 'visibility'
+ADDRESS_KEY = "Adresse"
+ADDRESS_TYPE = "address_type"
+VISIBILITY = "visibility"
 
 # KLE
-KLE_KEY = 'KLE'
-KLE_ASPECT = 'kle_aspect'
-KLE_NUMBER = 'kle_number'
+KLE_KEY = "KLE"
+KLE_ASPECT = "kle_aspect"
+KLE_NUMBER = "kle_number"
 
 # Employee
-CPR_NO = 'cpr_no'
+CPR_NO = "cpr_no"
 
 # Engagement
-ENGAGEMENT_KEY = 'Engagement'
-ENGAGEMENT_TYPE = 'engagement_type'
-FRACTION = 'fraction'
-ENGAGEMENT = 'engagement'
+ENGAGEMENT_KEY = "Engagement"
+ENGAGEMENT_TYPE = "engagement_type"
+FRACTION = "fraction"
+ENGAGEMENT = "engagement"
 
 # Extensions
-EXTENSION_1 = 'udvidelse_1'
+EXTENSION_1 = "udvidelse_1"
 
 EXTENSION_ATTRIBUTE_MAPPING = [
-    ('extension_1', EXTENSION_1),
-    ('extension_2', 'udvidelse_2'),
-    ('extension_3', 'udvidelse_3'),
-    ('extension_4', 'udvidelse_4'),
-    ('extension_5', 'udvidelse_5'),
-    ('extension_6', 'udvidelse_6'),
-    ('extension_7', 'udvidelse_7'),
-    ('extension_8', 'udvidelse_8'),
-    ('extension_9', 'udvidelse_9'),
-    ('extension_10', 'udvidelse_10')
+    ("extension_1", EXTENSION_1),
+    ("extension_2", "udvidelse_2"),
+    ("extension_3", "udvidelse_3"),
+    ("extension_4", "udvidelse_4"),
+    ("extension_5", "udvidelse_5"),
+    ("extension_6", "udvidelse_6"),
+    ("extension_7", "udvidelse_7"),
+    ("extension_8", "udvidelse_8"),
+    ("extension_9", "udvidelse_9"),
+    ("extension_10", "udvidelse_10"),
 ]
 
 # Association
-ASSOCIATION = 'association'
-ASSOCIATION_KEY = 'Tilknytning'
-ASSOCIATION_TYPE = 'association_type'
-SUBSTITUTE = 'substitute'
-CLASSES = 'dynamic_classes'
+ASSOCIATION = "association"
+ASSOCIATION_KEY = "Tilknytning"
+ASSOCIATION_TYPE = "association_type"
+SUBSTITUTE = "substitute"
+CLASSES = "dynamic_classes"
 
 # Related units
-RELATED_UNIT_KEY = 'Relateret Enhed'
+RELATED_UNIT_KEY = "Relateret Enhed"
 
 # Role type
-ROLE_KEY = 'Rolle'
-ROLE_TYPE = 'role_type'
+ROLE_KEY = "Rolle"
+ROLE_TYPE = "role_type"
 
 # Leave
-LEAVE_KEY = 'Orlov'
-LEAVE_TYPE = 'leave_type'
+LEAVE_KEY = "Orlov"
+LEAVE_TYPE = "leave_type"
 
 # Manager
-MANAGER_KEY = 'Leder'
-MANAGER = 'manager'
-MANAGER_TYPE = 'manager_type'
-MANAGER_LEVEL = 'manager_level'
-RESPONSIBILITY = 'responsibility'
+MANAGER_KEY = "Leder"
+MANAGER = "manager"
+MANAGER_TYPE = "manager_type"
+MANAGER_LEVEL = "manager_level"
+RESPONSIBILITY = "responsibility"
 
 # Engagement association
-ENGAGEMENT_ASSOCIATION_KEY = 'engagement_association'
-ENGAGEMENT_ASSOCIATION_TYPE = 'engagement_association_type'
+ENGAGEMENT_ASSOCIATION_KEY = "engagement_association"
+ENGAGEMENT_ASSOCIATION_TYPE = "engagement_association_type"
 
 # Org unit
-ORG_UNIT_TYPE = 'org_unit_type'
-TIME_PLANNING = 'time_planning'
-PARENT = 'parent'
-ADDRESSES = 'addresses'
-ORG_UNIT_LEVEL = 'org_unit_level'
-ORG_UNIT_HIERARCHY = 'org_unit_hierarchy'
+ORG_UNIT_TYPE = "org_unit_type"
+TIME_PLANNING = "time_planning"
+PARENT = "parent"
+ADDRESSES = "addresses"
+ORG_UNIT_LEVEL = "org_unit_level"
+ORG_UNIT_HIERARCHY = "org_unit_hierarchy"
 
 # Owner
-OWNER = 'owner'
-OWNER_INFERENCE_PRIORITY = 'owner_inference_priority'
+OWNER = "owner"
+OWNER_INFERENCE_PRIORITY = "owner_inference_priority"
 
 
 class OwnerInferencePriority(enum.Enum):
@@ -125,20 +125,21 @@ class OwnerInferencePriority(enum.Enum):
 
 
 # LoRa names for org unit keys
-ORG_UNIT_HIERARCHY_KEY = 'opmærkning'
-ORG_UNIT_NAME_KEY = 'enhedsnavn'
+ORG_UNIT_HIERARCHY_KEY = "opmærkning"
+ORG_UNIT_NAME_KEY = "enhedsnavn"
 
-IT = 'it'
-KLE = 'kle'
-ROLE = 'role'
-LEAVE = 'leave'
-RELATED_UNIT = 'related_unit'
+IT = "it"
+KLE = "kle"
+ROLE = "role"
+LEAVE = "leave"
+RELATED_UNIT = "related_unit"
 
 
 class MoOrgFunk(enum.Enum):
     """
     Implemented MO-organisation functions. With non-trivial mapping to LoRa objs.
     """
+
     ENGAGEMENT = ENGAGEMENT
     ASSOCIATION = ASSOCIATION
     IT = IT
@@ -165,12 +166,13 @@ RELATION_TRANSLATIONS = {
     RELATED_UNIT: RELATED_UNIT_KEY.lower(),
 }
 
-OBJECTTYPE = 'objekttype'
+OBJECTTYPE = "objekttype"
 
 
 #
 # TYPES
 #
+
 
 @enum.unique
 class FieldTypes(enum.IntEnum):
@@ -180,18 +182,23 @@ class FieldTypes(enum.IntEnum):
           as ZERO_TO_ONE field, and implements the necessary trickery to make
           it all appear correctly.
     """
+
     ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
 
 
 class FieldTuple(object):
     __slots__ = (
-        '__path',
-        '__type',
-        '__filter_fn',
+        "__path",
+        "__type",
+        "__filter_fn",
     )
 
-    def __init__(self, path: typing.Tuple[str, str], type: FieldTypes,
-                 filter_fn: typing.Callable[[dict], bool] = None):
+    def __init__(
+        self,
+        path: typing.Tuple[str, str],
+        type: FieldTypes,
+        filter_fn: typing.Callable[[dict], bool] = None,
+    ):
         self.__path = path
         self.__type = type
         self.__filter_fn = filter_fn
@@ -214,13 +221,13 @@ class FieldTuple(object):
                 pass
 
     def get_uuids(self, obj):
-        return self._get_elems(obj, 'uuid')
+        return self._get_elems(obj, "uuid")
 
     def get_uuid(self, obj):
         return next(self.get_uuids(obj), None)
 
     def get_urns(self, obj):
-        return self._get_elems(obj, 'urn')
+        return self._get_elems(obj, "urn")
 
     def get_urn(self, obj):
         return next(self.get_urns(obj), None)
@@ -238,7 +245,7 @@ class FieldTuple(object):
         return self.__filter_fn
 
     def __repr__(self):
-        return '{}({!r}, FieldTypes.{}, {!r})'.format(
+        return "{}({!r}, FieldTypes.{}, {!r})".format(
             type(self).__name__,
             self.path,
             self.type.name,
@@ -252,187 +259,183 @@ class FieldTuple(object):
 
 
 ORG_FUNK_GYLDIGHED_FIELD = FieldTuple(
-    path=('tilstande', 'organisationfunktiongyldighed'),
+    path=("tilstande", "organisationfunktiongyldighed"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_FUNK_EGENSKABER_FIELD = FieldTuple(
-    path=('attributter', 'organisationfunktionegenskaber'),
+    path=("attributter", "organisationfunktionegenskaber"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_FUNK_UDVIDELSER_FIELD = FieldTuple(
-    path=('attributter', 'organisationfunktionudvidelser'),
+    path=("attributter", "organisationfunktionudvidelser"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 JOB_FUNCTION_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
+    path=("relationer", "opgaver"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ORG_FUNK_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'organisatoriskfunktionstype'),
+    path=("relationer", "organisatoriskfunktionstype"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_FUNK_CLASSES_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeklasser'),
+    path=("relationer", "tilknyttedeklasser"),
     type=FieldTypes.ZERO_TO_MANY,
 )
 
 ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeenheder'),
+    path=("relationer", "tilknyttedeenheder"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ASSOCIATED_FUNCTION_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedefunktioner'),
+    path=("relationer", "tilknyttedefunktioner"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ASSOCIATED_MANAGER_ADDRESSES_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedefunktioner'),
-    type=FieldTypes.ZERO_TO_MANY
+    path=("relationer", "tilknyttedefunktioner"), type=FieldTypes.ZERO_TO_MANY
 )
 
 ASSOCIATED_ORG_UNITS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeenheder'),
+    path=("relationer", "tilknyttedeenheder"),
     type=FieldTypes.ZERO_TO_MANY,
 )
 
 ASSOCIATED_ORG_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeorganisationer'),
+    path=("relationer", "tilknyttedeorganisationer"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ORG_UNIT_GYLDIGHED_FIELD = FieldTuple(
-    path=('tilstande', 'organisationenhedgyldighed'),
+    path=("tilstande", "organisationenhedgyldighed"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_UNIT_EGENSKABER_FIELD = FieldTuple(
-    path=('attributter', 'organisationenhedegenskaber'),
+    path=("attributter", "organisationenhedegenskaber"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_UNIT_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'enhedstype'),
+    path=("relationer", "enhedstype"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_UNIT_LEVEL_FIELD = FieldTuple(
-    path=('relationer', 'niveau'),
+    path=("relationer", "niveau"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_UNIT_HIERARCHY_FIELD = FieldTuple(
-    path=('relationer', 'opmærkning'),
+    path=("relationer", "opmærkning"),
     type=FieldTypes.ZERO_TO_MANY,
 )
 
 PARENT_FIELD = FieldTuple(
-    path=('relationer', 'overordnet'),
+    path=("relationer", "overordnet"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 PARENT_CLASS_FIELD = FieldTuple(
-    path=('relationer', 'overordnetklasse'),
+    path=("relationer", "overordnetklasse"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 BELONGS_TO_FIELD = FieldTuple(
-    path=('relationer', 'tilhoerer'),
+    path=("relationer", "tilhoerer"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 USER_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedebrugere'),
+    path=("relationer", "tilknyttedebrugere"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ADDRESSES_FIELD = FieldTuple(
-    path=('relationer', 'adresser'),
+    path=("relationer", "adresser"),
     type=FieldTypes.ZERO_TO_MANY,
 )
 
 SINGLE_ADDRESS_FIELD = FieldTuple(
-    path=('relationer', 'adresser'),
+    path=("relationer", "adresser"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 FUNCTION_ADDRESS_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedefunktioner'),
+    path=("relationer", "tilknyttedefunktioner"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 ADDRESS_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'organisatoriskfunktionstype'),
+    path=("relationer", "organisatoriskfunktionstype"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 MANAGER_TYPE_FIELD = FieldTuple(
-    path=('relationer', 'organisatoriskfunktionstype'),
+    path=("relationer", "organisatoriskfunktionstype"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 KLE_ASPECT_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
-    type=FieldTypes.ADAPTED_ZERO_TO_MANY)
+    path=("relationer", "opgaver"), type=FieldTypes.ADAPTED_ZERO_TO_MANY
+)
 
 RESPONSIBILITY_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
+    path=("relationer", "opgaver"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'lederansvar'
+    filter_fn=lambda x: x["objekttype"] == "lederansvar",
 )
 
 MANAGER_LEVEL_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
+    path=("relationer", "opgaver"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'lederniveau'
+    filter_fn=lambda x: x["objekttype"] == "lederniveau",
 )
 
 VISIBILITY_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
+    path=("relationer", "opgaver"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'synlighed'
+    filter_fn=lambda x: x["objekttype"] == "synlighed",
 )
 
 SINGLE_ITSYSTEM_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedeitsystemer'),
+    path=("relationer", "tilknyttedeitsystemer"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 EMPLOYEE_PERSON_FIELD = FieldTuple(
-    path=('relationer', 'tilknyttedepersoner'),
+    path=("relationer", "tilknyttedepersoner"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
 EMPLOYEE_EGENSKABER_FIELD = FieldTuple(
-    path=('attributter', 'brugeregenskaber'),
+    path=("attributter", "brugeregenskaber"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 EMPLOYEE_UDVIDELSER_FIELD = FieldTuple(
-    path=('attributter', 'brugerudvidelser'),
+    path=("attributter", "brugerudvidelser"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 EMPLOYEE_GYLDIGHED_FIELD = FieldTuple(
-    path=('tilstande', 'brugergyldighed'),
+    path=("tilstande", "brugergyldighed"),
     type=FieldTypes.ZERO_TO_ONE,
 )
 
 ORG_UNIT_TIME_PLANNING_FIELD = FieldTuple(
-    path=('relationer', 'opgaver'),
+    path=("relationer", "opgaver"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-    filter_fn=lambda x: x['objekttype'] == 'tidsregistrering'
+    filter_fn=lambda x: x["objekttype"] == "tidsregistrering",
 )
 
-PRIMARY_FIELD = FieldTuple(
-    path=('relationer', 'primær'),
-    type=FieldTypes.ZERO_TO_ONE
-)
+PRIMARY_FIELD = FieldTuple(path=("relationer", "primær"), type=FieldTypes.ZERO_TO_ONE)
 
 EMPLOYEE_FIELDS = {
     EMPLOYEE_PERSON_FIELD,
@@ -545,7 +548,7 @@ ADDRESS_FIELDS = {
     USER_FIELD,
     ADDRESS_TYPE_FIELD,
     # Hard-coded here for now
-    VISIBILITY_FIELD
+    VISIBILITY_FIELD,
 }
 
 KLE_FIELDS = {

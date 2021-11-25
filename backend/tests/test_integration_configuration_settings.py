@@ -12,41 +12,43 @@ from mora.conf_db import set_configuration
 class Tests(ConfigTestCase):
     def setUp(self):
         super().setUp()
-        set_configuration({
-            "org_units": {
-                "show_location": True,
-                "show_user_key": True,
-                "show_roles": True,
+        set_configuration(
+            {
+                "org_units": {
+                    "show_location": True,
+                    "show_user_key": True,
+                    "show_roles": True,
+                }
             }
-        })
+        )
 
     def test_global_user_settings_read(self):
         """
         Test that it is possible to correctly read default global settings.
         """
-        url = '/service/configuration'
+        url = "/service/configuration"
         user_settings = self.assertRequest(url)
-        self.assertTrue('show_location' in user_settings)
-        self.assertTrue('show_user_key' in user_settings)
-        self.assertTrue('show_roles' in user_settings)
-        self.assertTrue(user_settings['show_location'] is True)
+        self.assertTrue("show_location" in user_settings)
+        self.assertTrue("show_user_key" in user_settings)
+        self.assertTrue("show_roles" in user_settings)
+        self.assertTrue(user_settings["show_location"] is True)
 
     def test_global_user_settings_write(self):
         """
         Test that it is possible to write a global setting and read it back.
         """
 
-        url = '/service/configuration'
+        url = "/service/configuration"
 
         payload = {"org_units": {"show_roles": "False"}}
         self.assertRequest(url, json=payload)
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_roles'] is False)
+        self.assertTrue(user_settings["show_roles"] is False)
 
         payload = {"org_units": {"show_roles": "True"}}
         self.assertRequest(url, json=payload)
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_roles'] is True)
+        self.assertTrue(user_settings["show_roles"] is True)
 
     def test_ou_user_settings(self):
         """
@@ -54,14 +56,14 @@ class Tests(ConfigTestCase):
         """
 
         self.load_sample_structures()
-        uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
         payload = {"org_units": {"show_user_key": "True"}}
-        url = '/service/ou/{}/configuration'.format(uuid)
+        url = "/service/ou/{}/configuration".format(uuid)
         self.assertRequest(url, json=payload)
 
         user_settings = self.assertRequest(url)
-        self.assertTrue(user_settings['show_user_key'] is True)
+        self.assertTrue(user_settings["show_user_key"] is True)
 
     def test_ou_service_response(self):
         """
@@ -70,19 +72,19 @@ class Tests(ConfigTestCase):
         the magic strings 'True' and 'False' into boolean values.
         """
         self.load_sample_structures()
-        uuid = 'b688513d-11f7-4efc-b679-ab082a2055d0'
+        uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
-        url = '/service/ou/{}/configuration'.format(uuid)
+        url = "/service/ou/{}/configuration".format(uuid)
         payload = {"org_units": {"show_user_key": "True"}}
         self.assertRequest(url, json=payload)
         payload = {"org_units": {"show_location": "False"}}
         self.assertRequest(url, json=payload)
 
-        service_url = '/service/ou/{}/'.format(uuid)
+        service_url = "/service/ou/{}/".format(uuid)
         response = self.assertRequest(service_url)
-        user_settings = response['user_settings']['orgunit']
-        self.assertTrue(user_settings['show_user_key'])
-        self.assertFalse(user_settings['show_location'])
+        user_settings = response["user_settings"]["orgunit"]
+        self.assertTrue(user_settings["show_user_key"])
+        self.assertFalse(user_settings["show_location"])
 
 
 class TestNavLink(ConfigTestCase):
@@ -92,7 +94,7 @@ class TestNavLink(ConfigTestCase):
 
     def setUp(self):
         super().setUp()
-        self.url = '/service/navlinks'
+        self.url = "/service/navlinks"
 
     def test_empty_list(self):
         empty_list = self.assertRequest(self.url)

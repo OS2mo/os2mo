@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''Management utility for MORA.
+"""Management utility for MORA.
 
 Please note that each command below also takes a ``--help`` argument
 which describes its arguments and options.
 
-'''
+"""
 
 import os
 import sys
@@ -33,9 +33,12 @@ _SLEEPING_TIME = 0.25
 
 
 @group.command()
-@click.option("--wait", default=_SLEEPING_TIME, type=int,
-              help="Wait up to n seconds for the database connection before"
-                   " exiting.")
+@click.option(
+    "--wait",
+    default=_SLEEPING_TIME,
+    type=int,
+    help="Wait up to n seconds for the database connection before" " exiting.",
+)
 def initdb(wait):
     """Initialize database.
 
@@ -46,9 +49,12 @@ def initdb(wait):
 
 
 @group.command()
-@click.option("--wait", default=_SLEEPING_TIME, type=int,
-              help="Wait up to n seconds for the database connection before"
-                   " exiting.")
+@click.option(
+    "--wait",
+    default=_SLEEPING_TIME,
+    type=int,
+    help="Wait up to n seconds for the database connection before" " exiting.",
+)
 def checkdb(wait):
     """Check that database is online."""
 
@@ -56,8 +62,7 @@ def checkdb(wait):
         with conf_db._get_session() as session:
             session.execute("SELECT 1")
 
-    _wait_for_service("Database is up", check_db,
-                      sqlalchemy.exc.OperationalError, wait)
+    _wait_for_service("Database is up", check_db, sqlalchemy.exc.OperationalError, wait)
 
 
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):
@@ -67,8 +72,7 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
             wait_fn()
             return int(wait - (i * _SLEEPING_TIME))
         except unavailable_exception:
-            click.echo(
-                "%s is unavailable - attempt %s/%s" % (name, i, attempts))
+            click.echo("%s is unavailable - attempt %s/%s" % (name, i, attempts))
             if i >= attempts:
                 sys.exit(1)
             time.sleep(_SLEEPING_TIME)
@@ -85,8 +89,12 @@ def check_configuration_db_status():
 
 
 @group.command()
-@click.option("--seconds", default=_SLEEPING_TIME, type=int,
-              help="Wait up to n seconds for rabbitmq.")
+@click.option(
+    "--seconds",
+    default=_SLEEPING_TIME,
+    type=int,
+    help="Wait up to n seconds for rabbitmq.",
+)
 def wait_for_rabbitmq(seconds):
     settings = config.get_settings()
     if not settings.amqp_enable:
@@ -114,5 +122,5 @@ def wait_for_rabbitmq(seconds):
     return 8
 
 
-if __name__ == '__main__':
-    group(prog_name=os.getenv('FLASK_PROG_NAME', sys.argv[0]))
+if __name__ == "__main__":
+    group(prog_name=os.getenv("FLASK_PROG_NAME", sys.argv[0]))

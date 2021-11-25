@@ -34,14 +34,14 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.OWNER
 
     @classmethod
-    async def get_from_type(cls, c, type, object_id,
-                            changed_since=Optional[datetime]):
+    async def get_from_type(cls, c, type, object_id, changed_since=Optional[datetime]):
 
         if util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
-        return await super().get_from_type(c, type, object_id,
-                                           changed_since=changed_since)
+        return await super().get_from_type(
+            c, type, object_id, changed_since=changed_since
+        )
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):
@@ -127,9 +127,9 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if not candidates:  # nothing to do
             return None
         elif len(candidates) > 1:  # sort if multiple
-            priorities = dict(await get_sorted_primary_class_list(
-                c=request_wide_bulk.connector
-            ))
+            priorities = dict(
+                await get_sorted_primary_class_list(c=request_wide_bulk.connector)
+            )
             sort_func = partial(cls.__owner_priority, primary_priorities=priorities)
             best_candidate = max(candidates, key=sort_func)
         else:  # nothing to infer
@@ -151,7 +151,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         # even when inheriting, no owners can be found
         if not org_unit_owners:
             return None
-        return org_unit_owners[0]['owner']
+        return org_unit_owners[0]["owner"]
 
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, funcid):

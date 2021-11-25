@@ -12,10 +12,7 @@ class AddressHandlerTestCase(tests.cases.TestCase):
         # Arrange
         address_handler = self.handler(self.value, self.visibility)
 
-        expected = [{
-            'objekttype': 'synlighed',
-            'uuid': self.visibility
-        }]
+        expected = [{"objekttype": "synlighed", "uuid": self.visibility}]
 
         # Act
         actual = address_handler.get_lora_properties()
