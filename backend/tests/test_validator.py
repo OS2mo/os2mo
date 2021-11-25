@@ -53,11 +53,11 @@ class TestIsDateRangeValid(tests.cases.TestCase):
                                                     {
                                                         "gyldighed": v,
                                                         "virkning": {
-                                                            "from": mora_util.to_lora_time(
+                                                            "from": mora_util.to_lora_time(  # noqa
                                                                 t1,
                                                             ),
                                                             "from_included": True,
-                                                            "to": mora_util.to_lora_time(
+                                                            "to": mora_util.to_lora_time(  # noqa
                                                                 t2,
                                                             ),
                                                             "to_included": False,

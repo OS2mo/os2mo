@@ -6,7 +6,7 @@ import operator
 import typing
 
 from os2mo_http_trigger_protocol import EventType  # noqa: F401
-from os2mo_http_trigger_protocol import RequestType
+from os2mo_http_trigger_protocol import RequestType  # noqa: F401
 
 # Common
 VALID_FROM = "valid_from"
