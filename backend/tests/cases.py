@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
-from mora.config import Settings
 from time import sleep
 from unittest.case import TestCase
 
@@ -11,11 +10,17 @@ from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 from structlog import get_logger
 
-from mora import app, conf_db, service, config
-from mora.async_util import _local_cache, async_to_sync
+from mora import app
+from mora import conf_db
+from mora import config
+from mora import service
+from mora.async_util import _local_cache
+from mora.async_util import async_to_sync
 from mora.auth.keycloak.oidc import auth
+from mora.config import Settings
 from mora.request_scoped.bulking import request_wide_bulk
-from tests.util import _mox_testing_api, load_sample_structures
+from tests.util import _mox_testing_api
+from tests.util import load_sample_structures
 
 logger = get_logger()
 

@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-
-
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import io
 import os
 import re
 
 import setuptools
-
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 __init___path = os.path.join(BACKEND_DIR, "mora", "__init__.py")

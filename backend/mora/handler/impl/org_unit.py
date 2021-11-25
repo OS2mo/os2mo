@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from datetime import datetime
 from typing import Optional
+
+from structlog import get_logger
 
 from .. import reading
 from ... import common

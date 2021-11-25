@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import collections
 from asyncio import create_task
-from queue import Empty, Queue
+from queue import Empty
+from queue import Queue
 from typing import Dict
 
 from ..lora import Scope

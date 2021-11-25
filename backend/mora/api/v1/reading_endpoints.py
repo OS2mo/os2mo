@@ -1,18 +1,26 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Union
+from datetime import date
+from datetime import datetime
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter, Query
-from mora import common, mapping
+from fastapi import APIRouter
+from fastapi import Query
+from starlette.datastructures import ImmutableMultiDict
+
+from mora import common
+from mora import mapping
 from mora.handler.impl.employee import ROLE_TYPE as EMPLOYEE_ROLE_TYPE
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector
 from mora.mapping import MoOrgFunk
 from mora.util import date_to_datetime
-from starlette.datastructures import ImmutableMultiDict
 
 router = APIRouter(prefix="/api/v1")
 

@@ -7,10 +7,11 @@ from aioresponses import aioresponses
 
 import mora.async_util
 import tests.cases
-from mora import exceptions, config
+from . import util
+from mora import config
+from mora import exceptions
 from mora import lora
 from mora import util as mora_util
-from . import util
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)

@@ -5,8 +5,6 @@ import json
 import os
 import re
 from copy import deepcopy
-
-from mora.config import Settings
 from typing import Union
 from unittest.mock import MagicMock
 from urllib.parse import parse_qsl
@@ -19,7 +17,10 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from yarl import URL
 
-from mora import conf_db, lora, config
+from mora import conf_db
+from mora import config
+from mora import lora
+from mora.config import Settings
 from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)

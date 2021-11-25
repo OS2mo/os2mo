@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora.config import Settings, NavLink
-
-from tests import util
-
-from tests.cases import ConfigTestCase
-
 from mora.conf_db import set_configuration
+from mora.config import NavLink
+from mora.config import Settings
+from tests import util
+from tests.cases import ConfigTestCase
 
 
 class Tests(ConfigTestCase):

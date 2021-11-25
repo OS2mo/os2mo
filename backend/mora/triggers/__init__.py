@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from structlog import get_logger
 
 from .. import util
 from ..exceptions import ErrorCodes
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 
 logger = get_logger()
 

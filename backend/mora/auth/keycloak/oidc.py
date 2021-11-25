@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
+import jwt.exceptions
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
-import jwt.exceptions
-from mora.auth.exceptions import AuthError
+from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from structlog import get_logger
+
 from mora import config
+from mora.auth.exceptions import AuthError
 
 SCHEMA = config.get_settings().keycloak_schema
 HOST = config.get_settings().keycloak_host

@@ -5,7 +5,8 @@ from uuid import UUID
 
 import freezegun
 
-from mora.handler.impl import employee, org_unit
+from mora.handler.impl import employee
+from mora.handler.impl import org_unit
 from mora.lora import Connector
 from tests.cases import TestCase
 

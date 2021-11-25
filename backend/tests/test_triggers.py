@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora.config import Settings
-
-from tests import util
-
 import freezegun
 from aioresponses import aioresponses
 
 import tests.cases
 from mora.async_util import async_to_sync
+from mora.config import Settings
 from mora.exceptions import HTTPException
-from mora.mapping import EventType, RequestType
+from mora.mapping import EventType
+from mora.mapping import RequestType
 from mora.service.handlers import RequestHandler
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import register
+from tests import util
 
 
 class MockHandler(RequestHandler):

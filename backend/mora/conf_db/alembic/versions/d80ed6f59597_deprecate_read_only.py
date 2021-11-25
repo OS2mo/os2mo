@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """deprecate read_only.
 
 Revision ID: d80ed6f59597
@@ -9,12 +8,10 @@ Create Date: 2021-02-17 15:10:08.227829
 """
 from alembic import op
 
-# revision identifiers, used by Alembic.
-from mora.conf_db.alembic.helpers.new_defaults import (
-    add_default_fields,
-    remove_default_fields,
-)
+from mora.conf_db.alembic.helpers.new_defaults import add_default_fields
+from mora.conf_db.alembic.helpers.new_defaults import remove_default_fields
 from mora.conf_db.alembic.helpers.session import get_session
+# revision identifiers, used by Alembic.
 
 revision = "d80ed6f59597"
 down_revision = "52a970a92d7d"

@@ -1,25 +1,22 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Management utility for MORA.
 
 Please note that each command below also takes a ``--help`` argument
 which describes its arguments and options.
 
 """
-
 import os
 import sys
 import time
 
 import click
 import sqlalchemy
-
 from structlog import get_logger
 
+from . import conf_db
+from . import config
 from mora.conf_db import create_db_table
-
-from . import conf_db, config
 
 logger = get_logger()
 

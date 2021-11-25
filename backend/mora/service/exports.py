@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import os
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
-from .. import exceptions, config
+from .. import config
+from .. import exceptions
 
 router = APIRouter()
 

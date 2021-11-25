@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from fastapi.exceptions import HTTPException
-from starlette.status import HTTP_401_UNAUTHORIZED
 from jwt.exceptions import InvalidTokenError
+from starlette.status import HTTP_401_UNAUTHORIZED
 
 
 class AuthError(Exception):

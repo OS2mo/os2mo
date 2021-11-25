@@ -1,27 +1,30 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora.config import Settings
 from uuid import UUID
 
 import freezegun
-from mock import call, patch
+from mock import call
+from mock import patch
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
 import tests.cases
-from mora import lora, mapping
+from mora import lora
+from mora import mapping
 from mora.async_util import async_to_sync
+from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
 from mora.request_scoped.query_args import current_query
-from mora.service.orgunit import UnitDetails, _get_count_related, get_one_orgunit
-from mora.service.orgunit import (
-    get_children,
-    get_orgunit,
-    get_unit_ancestor_tree,
-)
+from mora.service.orgunit import _get_count_related
+from mora.service.orgunit import get_children
+from mora.service.orgunit import get_one_orgunit
+from mora.service.orgunit import get_orgunit
+from mora.service.orgunit import get_unit_ancestor_tree
+from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
-from mora.triggers.internal.http_trigger import HTTPTriggerException, register
+from mora.triggers.internal.http_trigger import HTTPTriggerException
+from mora.triggers.internal.http_trigger import register
 from tests import util
 
 

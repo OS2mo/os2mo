@@ -1,22 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from datetime import datetime
 import unittest.mock
+from datetime import datetime
 
+import jwt
+from cryptography.hazmat.primitives import serialization
 from fastapi import Request
 from fastapi.exceptions import HTTPException
-import jwt
-from jwt.exceptions import (
-    InvalidSignatureError,
-    InvalidTokenError,
-    ExpiredSignatureError,
-    PyJWTError,
-)
-from cryptography.hazmat.primitives import serialization
-
+from jwt.exceptions import ExpiredSignatureError
+from jwt.exceptions import InvalidSignatureError
+from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import PyJWTError
 from starlette.datastructures import Headers
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 import mora.auth.keycloak.oidc as oidc
 from mora.auth.exceptions import AuthError

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Associations
 ------------
@@ -9,16 +8,18 @@ This section describes how to interact with employee associations.
 
 """
 import uuid
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
 import mora.async_util
 from . import handlers
 from . import org
-from .validation import validator
-from .. import common, conf_db
+from .. import common
+from .. import conf_db
 from .. import lora
 from .. import mapping
 from .. import util
+from .validation import validator
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):

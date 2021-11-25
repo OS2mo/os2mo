@@ -1,16 +1,18 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
 from asyncio import create_task
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
-from mora.request_scoped.query_args import current_query
+from structlog import get_logger
 
+from .. import reading
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
-from ...service import facet, orgunit
-from .. import reading
+from ...service import facet
+from ...service import orgunit
 from .engagement import get_engagement
+from mora.request_scoped.query_args import current_query
 
 ROLE_TYPE = mapping.ENGAGEMENT_ASSOCIATION_KEY
 

@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 import requests
 from fastapi import APIRouter
 from pika.exceptions import AMQPError
@@ -9,7 +7,9 @@ from requests.exceptions import RequestException
 from structlog import get_logger
 
 import mora.async_util
-from mora import conf_db, lora, config
+from mora import conf_db
+from mora import config
+from mora import lora
 from mora.exceptions import HTTPException
 from mora.triggers.internal import amqp_trigger
 

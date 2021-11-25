@@ -5,7 +5,8 @@ import collections
 import datetime
 import functools
 import typing
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 
 from more_itertools import pairwise
 

@@ -1,28 +1,37 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from asyncio import create_task
 from datetime import datetime
 from functools import partial
 from math import inf
-from typing import Any, Awaitable, Dict, List, Optional, Tuple
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 from uuid import UUID
 
 from starlette.datastructures import MultiDict
+from structlog import get_logger
 
-from .association import AssociationReader
-from .engagement import EngagementReader
 from .. import reading
-from ... import mapping, util
+from ... import mapping
+from ... import util
 from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
-from ...mapping import EXTENSION_1, OwnerInferencePriority, PRIMARY
+from ...mapping import EXTENSION_1
+from ...mapping import OwnerInferencePriority
+from ...mapping import PRIMARY
 from ...request_scoped.bulking import request_wide_bulk
 from ...request_scoped.query_args import current_query
-from ...service import employee, orgunit
+from ...service import employee
+from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
-from ...util import get_uuid, get_valid_from
+from ...util import get_uuid
+from ...util import get_valid_from
+from .association import AssociationReader
+from .engagement import EngagementReader
 
 ROLE_TYPE = mapping.OWNER
 

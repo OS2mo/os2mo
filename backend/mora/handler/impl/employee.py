@@ -1,11 +1,17 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
+
+from structlog import get_logger
 
 from .. import reading
-from ... import common, exceptions, mapping, util
+from ... import common
+from ... import exceptions
+from ... import mapping
+from ... import util
 from ...lora import Connector
 from ...request_scoped.query_args import current_query
 from ...service import employee

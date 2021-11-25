@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from __future__ import generator_stop
 
 import asyncio
@@ -8,20 +7,24 @@ import math
 import re
 import typing
 import uuid
-from structlog import get_logger
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from datetime import datetime
-from enum import Enum, unique
-
-from aiohttp import ClientSession
+from enum import Enum
+from enum import unique
 from functools import partial
 from itertools import starmap
 
 import lora_utils
+from aiohttp import ClientSession
 from more_itertools import chunked
+from structlog import get_logger
 
-from . import exceptions, config, util
-from .util import DEFAULT_TIMEZONE, from_iso_time
+from . import config
+from . import exceptions
+from . import util
+from .util import DEFAULT_TIMEZONE
+from .util import from_iso_time
 
 logger = get_logger()
 

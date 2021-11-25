@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import json
-import pika
 
+import pika
 from structlog import get_logger
 
-from mora import exceptions, config
-from mora import util
+from mora import config
+from mora import exceptions
 from mora import mapping
 from mora import triggers
+from mora import util
 
 logger = get_logger()
 _amqp_connection = {}

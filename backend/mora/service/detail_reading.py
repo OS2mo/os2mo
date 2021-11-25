@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Reading details
 ---------------
 
@@ -16,14 +15,14 @@ creating and editing relations for employees and organisational units:
 
 
 """
-
 from __future__ import generator_stop
 
 import collections
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
+from typing import Optional
 from uuid import UUID
 
-from datetime import datetime
 from fastapi import APIRouter
 
 from . import handlers

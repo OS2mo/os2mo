@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-import requests
 import uuid
 
+import requests
 from structlog import get_logger
 
 from . import base
-from ..validation.validator import forceable
 from ... import exceptions
+from ..validation.validator import forceable
 
 session = requests.Session()
 session.headers = {

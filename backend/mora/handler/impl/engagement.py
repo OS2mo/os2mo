@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
-from asyncio import create_task, gather
-from typing import Any, Dict, Optional
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Dict
+from typing import Optional
 from typing import Union
 from uuid import UUID
 
-from mora.request_scoped.bulking import request_wide_bulk
+from structlog import get_logger
+
 from .. import reading
 from ... import lora
 from ... import mapping
@@ -16,6 +19,7 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
+from mora.request_scoped.bulking import request_wide_bulk
 
 ROLE_TYPE = "engagement"
 

@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import mora.async_util
+from . import base
+from .. import util
 from mora import exceptions
 from mora.request_scoped.query_args import current_query
 from mora.service.address_handler import dar
-from . import base
-from .. import util
 
 
 @util.mock("dawa-addresses.json", allow_mox=True, real_http=True)

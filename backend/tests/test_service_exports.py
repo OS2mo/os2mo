@@ -1,12 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import mock
-from tests import util
-
-from mora.config import Settings
 
 import tests.cases
+from mora.config import Settings
+from tests import util
 
 
 class Tests(tests.cases.TestCase):

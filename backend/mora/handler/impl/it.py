@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import create_task
 
 from structlog import get_logger
-from asyncio import create_task
 
 from .. import reading
 from ... import mapping

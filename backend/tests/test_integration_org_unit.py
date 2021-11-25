@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import unittest
 from unittest.mock import patch
 
@@ -10,8 +9,8 @@ from parameterized import parameterized
 
 import mora.async_util
 import tests.cases
-from mora import lora
 from . import util
+from mora import lora
 
 mock_uuid = "f494ad89-039d-478e-91f2-a63566554bd6"
 

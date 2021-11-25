@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """show_owner.
 
 Revision ID: 80ad47778b09
@@ -9,12 +8,10 @@ Create Date: 2021-04-28 14:04:33.725858
 """
 from alembic import op
 
-# revision identifiers, used by Alembic.
-from mora.conf_db.alembic.helpers.new_defaults import (
-    add_default_fields,
-    remove_default_fields,
-)
+from mora.conf_db.alembic.helpers.new_defaults import add_default_fields
+from mora.conf_db.alembic.helpers.new_defaults import remove_default_fields
 from mora.conf_db.alembic.helpers.session import get_session
+# revision identifiers, used by Alembic.
 
 revision = "80ad47778b09"
 down_revision = "d879327dade8"

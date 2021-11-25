@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class MOClass(BaseModel):

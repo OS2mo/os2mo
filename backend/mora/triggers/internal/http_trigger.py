@@ -1,19 +1,22 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import asyncio
-from structlog import get_logger
 from functools import partial
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
 import aiohttp
-from mora import config
-from mora.async_util import async_session, async_to_sync, in_separate_thread
-from mora.triggers import Trigger
-from os2mo_http_trigger_protocol import MOTriggerPayload, MOTriggerRegister
-from pydantic import parse_obj_as
 from fastapi.encoders import jsonable_encoder
+from os2mo_http_trigger_protocol import MOTriggerPayload
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from pydantic import parse_obj_as
+from structlog import get_logger
 
+from mora import config
+from mora.async_util import async_session
+from mora.async_util import async_to_sync
+from mora.async_util import in_separate_thread
+from mora.triggers import Trigger
 
 logger = get_logger()
 

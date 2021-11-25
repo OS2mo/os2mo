@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 from enum import Enum
 from functools import lru_cache
-from pydantic import BaseSettings, AnyHttpUrl
+from typing import List
+from typing import Optional
+
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
 from pydantic.types import UUID
-from typing import List, Optional
 
 
 class NavLink(BaseSettings):

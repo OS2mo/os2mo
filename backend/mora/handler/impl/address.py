@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from asyncio import create_task
 
-from .engagement import get_engagement
+from structlog import get_logger
+
 from .. import reading
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
@@ -13,6 +12,7 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.address_handler import base
+from .engagement import get_engagement
 
 ROLE_TYPE = "address"
 

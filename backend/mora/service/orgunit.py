@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Organisational units
 --------------------
@@ -13,30 +12,33 @@ units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 """
 import copy
 import enum
-import logging
 import locale
+import logging
 import operator
 import uuid
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from datetime import date
 from itertools import chain
-from typing import Any, Awaitable, Dict, List
+from typing import Any
+from typing import Awaitable
+from typing import Dict
 from typing import Iterable
+from typing import List
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 from fastapi import Query
 from more_itertools import unzip
 
 import mora.async_util
-from mora.request_scoped.bulking import request_wide_bulk
 from . import facet
 from . import handlers
 from . import org
-from .tree_helper import prepare_ancestor_tree
-from .validation import validator
-from .. import common, conf_db
+from .. import common
+from .. import conf_db
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -45,6 +47,9 @@ from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..request_scoped.query_args import current_query
 from ..triggers import Trigger
+from .tree_helper import prepare_ancestor_tree
+from .validation import validator
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 

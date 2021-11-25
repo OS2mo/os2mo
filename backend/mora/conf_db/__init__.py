@@ -1,20 +1,27 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from contextlib import contextmanager
 from functools import lru_cache
 from itertools import starmap
 from pathlib import Path
 
 from alembic.config import Config as AlembicConfig
-from sqlalchemy import Column, Integer, String, Text, create_engine
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import select
-from sqlalchemy_utils import UUIDType, create_database, database_exists, drop_database
+from sqlalchemy_utils import create_database
+from sqlalchemy_utils import database_exists
+from sqlalchemy_utils import drop_database
+from sqlalchemy_utils import UUIDType
+from structlog import get_logger
 
-from mora import exceptions, config
+from mora import config
+from mora import exceptions
 
 logger = get_logger()
 

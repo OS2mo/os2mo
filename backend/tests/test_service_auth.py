@@ -3,11 +3,12 @@
 import unittest
 
 import fastapi.routing
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_200_OK
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_401_UNAUTHORIZED
 
+import tests.cases
 from mora import main
 from mora.auth.keycloak.oidc import auth
-import tests.cases
 
 
 class TestServiceAuth(unittest.TestCase):

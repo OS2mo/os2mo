@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import requests_mock
 from aioresponses import aioresponses
 from mock import patch
 from requests.exceptions import RequestException
 
 import tests.cases
-from mora import health, config
+from mora import config
+from mora import health
 from tests import util
 
 

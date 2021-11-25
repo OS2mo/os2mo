@@ -1,17 +1,16 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import freezegun
 from yarl import URL
 
 import mora.async_util
 import tests.cases
+from . import util
 from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util as mora_util
-from . import util
 
 
 class TestClass(tests.cases.TestCase):
