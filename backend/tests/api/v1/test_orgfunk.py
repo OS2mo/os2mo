@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from copy import deepcopy
 from unittest.mock import patch
 from uuid import UUID
 
 import freezegun
+
 from mora.api.v1.reading_endpoints import _extract_search_params
 from mora.mapping import MoOrgFunk
 from tests.cases import TestCase

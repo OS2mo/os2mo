@@ -1,17 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
+import jwt.exceptions
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
 from starlette.responses import JSONResponse
-from starlette.status import (
-    HTTP_401_UNAUTHORIZED,
-    HTTP_500_INTERNAL_SERVER_ERROR
-)
-import jwt.exceptions
-from mora.auth.exceptions import AuthError
+from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from structlog import get_logger
+
 from mora import config
+from mora.auth.exceptions import AuthError
 
 SCHEMA = config.get_settings().keycloak_schema
 HOST = config.get_settings().keycloak_host
@@ -20,14 +18,15 @@ REALM = config.get_settings().keycloak_realm
 ALG = config.get_settings().keycloak_signing_alg
 
 # URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
-JWKS_URI = f'{SCHEMA}://{HOST}:{PORT}' \
-           f'/auth/realms/{REALM}/protocol/openid-connect/certs'
+JWKS_URI = (
+    f"{SCHEMA}://{HOST}:{PORT}" f"/auth/realms/{REALM}/protocol/openid-connect/certs"
+)
 
 
 logger = get_logger()
 
 # For getting and parsing the Authorization header
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='unused')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="unused")
 
 # JWKS client for fetching and caching JWKS
 jwks_client = jwt.PyJWKClient(JWKS_URI)
@@ -96,17 +95,14 @@ async def auth(request: Request) -> dict:
 # Exception handler to be used by the FastAPI app object
 def auth_exception_handler(request: Request, err: AuthError) -> JSONResponse:
     if err.is_client_side_error():
-        logger.debug('Client side authentication error', exception=err.exc)
+        logger.debug("Client side authentication error", exception=err.exc)
         return JSONResponse(
-            status_code=HTTP_401_UNAUTHORIZED,
-            content={'msg': 'Unauthorized'}
+            status_code=HTTP_401_UNAUTHORIZED, content={"msg": "Unauthorized"}
         )
 
-    logger.error(
-        'Problem communicating with the Keycloak server', exception=err.exc
-    )
+    logger.error("Problem communicating with the Keycloak server", exception=err.exc)
 
     return JSONResponse(
         status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-        content={'msg': 'A server side authentication error occurred'}
+        content={"msg": "A server side authentication error occurred"},
     )

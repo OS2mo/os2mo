@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import requests_mock
 from aioresponses import aioresponses
 from mock import patch
 from requests.exceptions import RequestException
 
 import tests.cases
-from mora import health, config
+from mora import config
+from mora import health
 from tests import util
 
 
@@ -54,23 +54,24 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(config.get_settings().lora_url +
-                 "organisation/organisation?"
-                 "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
-                 payload={"results": [[]]},
-                 )
+        mock.get(
+            config.get_settings().lora_url + "organisation/organisation?"
+            "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
+            payload={"results": [[]]},
+        )
         actual = health.dataset()
 
         self.assertEqual(False, actual)
 
     @aioresponses()
     def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get((config.get_settings().lora_url +
-                  "organisation/organisation"
-                  "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
-                  ),
-                 payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
-                 )
+        mock.get(
+            (
+                config.get_settings().lora_url + "organisation/organisation"
+                "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
+            ),
+            payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
+        )
 
         actual = health.dataset()
 

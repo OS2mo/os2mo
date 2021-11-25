@@ -1,28 +1,37 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from asyncio import create_task
 from datetime import datetime
 from functools import partial
 from math import inf
-from typing import Any, Awaitable, Dict, List, Optional, Tuple
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 from uuid import UUID
 
 from starlette.datastructures import MultiDict
+from structlog import get_logger
 
-from .association import AssociationReader
-from .engagement import EngagementReader
 from .. import reading
-from ... import mapping, util
+from ... import mapping
+from ... import util
 from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
-from ...mapping import EXTENSION_1, OwnerInferencePriority, PRIMARY
+from ...mapping import EXTENSION_1
+from ...mapping import OwnerInferencePriority
+from ...mapping import PRIMARY
 from ...request_scoped.bulking import request_wide_bulk
 from ...request_scoped.query_args import current_query
-from ...service import employee, orgunit
+from ...service import employee
+from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
-from ...util import get_uuid, get_valid_from
+from ...util import get_uuid
+from ...util import get_valid_from
+from .association import AssociationReader
+from .engagement import EngagementReader
 
 ROLE_TYPE = mapping.OWNER
 
@@ -34,14 +43,14 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.OWNER
 
     @classmethod
-    async def get_from_type(cls, c, type, object_id,
-                            changed_since=Optional[datetime]):
+    async def get_from_type(cls, c, type, object_id, changed_since=Optional[datetime]):
 
         if util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
-        return await super().get_from_type(c, type, object_id,
-                                           changed_since=changed_since)
+        return await super().get_from_type(
+            c, type, object_id, changed_since=changed_since
+        )
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):
@@ -127,9 +136,9 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if not candidates:  # nothing to do
             return None
         elif len(candidates) > 1:  # sort if multiple
-            priorities = dict(await get_sorted_primary_class_list(
-                c=request_wide_bulk.connector
-            ))
+            priorities = dict(
+                await get_sorted_primary_class_list(c=request_wide_bulk.connector)
+            )
             sort_func = partial(cls.__owner_priority, primary_priorities=priorities)
             best_candidate = max(candidates, key=sort_func)
         else:  # nothing to infer
@@ -151,7 +160,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         # even when inheriting, no owners can be found
         if not org_unit_owners:
             return None
-        return org_unit_owners[0]['owner']
+        return org_unit_owners[0]["owner"]
 
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, funcid):

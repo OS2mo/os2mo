@@ -1,33 +1,34 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
-'''
+"""
 IT Systems
 ----------
 
 This section describes how to interact with IT systems.
 
-'''
-
+"""
 import itertools
-from typing import Any, Awaitable, Dict, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 from fastapi import APIRouter
 
 import mora.async_util
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from mora.request_scoped.bulking import request_wide_bulk
 from ..triggers import Trigger
+from .validation import validator
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 
@@ -53,8 +54,11 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+        org_uuid = (
+            mora.async_util.async_to_sync(org.get_configured_organisation)(
+                util.get_mapping_uuid(req, mapping.ORG, required=False)
+            )
+        )["uuid"]
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -64,15 +68,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation
         if org_unit:
             mora.async_util.async_to_sync(validator.is_date_range_in_org_unit_range)(
-                org_unit,
-                valid_from,
-                valid_to)
+                org_unit, valid_from, valid_to
+            )
 
         if employee:
             mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-                employee,
-                valid_from,
-                valid_to)
+                employee, valid_from, valid_to
+            )
 
         # TODO: validate that the date range is in
         # the validity of the IT system!
@@ -91,69 +93,74 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         self.payload = func
         self.uuid = func_id
-        self.trigger_dict.update({
-            Trigger.EMPLOYEE_UUID: employee_uuid,
-            Trigger.ORG_UNIT_UUID: org_unit_uuid
-        })
+        self.trigger_dict.update(
+            {Trigger.EMPLOYEE_UUID: employee_uuid, Trigger.ORG_UNIT_UUID: org_unit_uuid}
+        )
 
     def prepare_edit(self, req: dict):
         function_uuid = util.get_uuid(req)
 
         # Get the current org-funktion which the user wants to change
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=function_uuid)
+            uuid=function_uuid
+        )
 
         if not original:
             exceptions.ErrorCodes.E_NOT_FOUND()
 
-        data = req.get('data')
+        data = req.get("data")
         new_from, new_to = util.get_validities(data)
 
         payload = {
-            'note': 'Rediger IT-system',
+            "note": "Rediger IT-system",
         }
 
-        original_data = req.get('original')
+        original_data = req.get("original")
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
-                old_from, old_to, new_from, new_to, payload,
-                ('tilstande', 'organisationfunktiongyldighed')
+                old_from,
+                old_to,
+                new_from,
+                new_to,
+                payload,
+                ("tilstande", "organisationfunktiongyldighed"),
             )
 
         update_fields = [
             # Always update gyldighed
-            (
-                mapping.ORG_FUNK_GYLDIGHED_FIELD,
-                {'gyldighed': "Aktiv"}
-            ),
+            (mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}),
         ]
 
         if mapping.ITSYSTEM in data:
-            update_fields.append((
-                mapping.SINGLE_ITSYSTEM_FIELD,
-                {'uuid': util.get_mapping_uuid(data, mapping.ITSYSTEM)},
-            ))
+            update_fields.append(
+                (
+                    mapping.SINGLE_ITSYSTEM_FIELD,
+                    {"uuid": util.get_mapping_uuid(data, mapping.ITSYSTEM)},
+                )
+            )
 
         if data.get(mapping.PERSON):
-            update_fields.append((
-                mapping.USER_FIELD,
-                {
-                    'uuid':
-                        util.get_mapping_uuid(data, mapping.PERSON),
-                },
-            ))
+            update_fields.append(
+                (
+                    mapping.USER_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.PERSON),
+                    },
+                )
+            )
 
         if data.get(mapping.ORG_UNIT):
-            update_fields.append((
-                mapping.ASSOCIATED_ORG_UNIT_FIELD,
-                {
-                    'uuid':
-                        util.get_mapping_uuid(data, mapping.ORG_UNIT),
-                },
-            ))
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_ORG_UNIT_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.ORG_UNIT),
+                    },
+                )
+            )
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
@@ -162,43 +169,47 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes['brugervendtnoegle'] = util.checked_get(
-                data, mapping.USER_KEY, "")
+            new_attributes["brugervendtnoegle"] = util.checked_get(
+                data, mapping.USER_KEY, ""
+            )
 
         if new_attributes:
-            update_fields.append((
-                mapping.ORG_FUNK_EGENSKABER_FIELD,
-                {
-                    **attributes,
-                    **new_attributes
-                },
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_FUNK_EGENSKABER_FIELD,
+                    {**attributes, **new_attributes},
+                )
+            )
 
-        payload = common.update_payload(new_from, new_to, update_fields,
-                                        original,
-                                        payload)
+        payload = common.update_payload(
+            new_from, new_to, update_fields, original, payload
+        )
 
-        bounds_fields = list(mapping.ITSYSTEM_FIELDS.difference(
-            {x[0] for x in update_fields},
-        ))
-        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                       original,
-                                       payload)
+        bounds_fields = list(
+            mapping.ITSYSTEM_FIELDS.difference(
+                {x[0] for x in update_fields},
+            )
+        )
+        payload = common.ensure_bounds(
+            new_from, new_to, bounds_fields, original, payload
+        )
 
         self.payload = payload
         self.uuid = function_uuid
-        self.trigger_dict.update({
-            Trigger.ORG_UNIT_UUID: (
-                mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
-            ),
-            Trigger.EMPLOYEE_UUID: (
-                util.get_mapping_uuid(data, mapping.PERSON) or
-                mapping.USER_FIELD.get_uuid(original)
-            )
-        })
+        self.trigger_dict.update(
+            {
+                Trigger.ORG_UNIT_UUID: (
+                    mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
+                ),
+                Trigger.EMPLOYEE_UUID: (
+                    util.get_mapping_uuid(data, mapping.PERSON)
+                    or mapping.USER_FIELD.get_uuid(original)
+                ),
+            }
+        )
 
 
-@router.get('/o/{orgid}/it/')
+@router.get("/o/{orgid}/it/")
 # @util.restrictargs('at')
 async def list_it_systems(orgid: UUID):
     """List the IT systems available within the given organisation.
@@ -239,38 +250,42 @@ async def list_it_systems(orgid: UUID):
     c = common.get_connector()
 
     def convert(systemid, system):
-        attrs = system['attributter']['itsystemegenskaber'][0]
+        attrs = system["attributter"]["itsystemegenskaber"][0]
 
         return {
-            'uuid': systemid,
-            'name': attrs.get('itsystemnavn'),
-            'system_type': attrs.get('itsystemtype'),
-            'user_key': attrs['brugervendtnoegle'],
+            "uuid": systemid,
+            "name": attrs.get("itsystemnavn"),
+            "system_type": attrs.get("itsystemtype"),
+            "user_key": attrs["brugervendtnoegle"],
         }
 
-    return list(itertools.starmap(
-        convert, await c.itsystem.get_all(tilhoerer=orgid)
-    ))
+    return list(itertools.starmap(convert, await c.itsystem.get_all(tilhoerer=orgid)))
 
 
-async def __get_itsystem_from_cache(systemid: str,
-                                    only_primary_uuid: bool = False) -> MO_OBJ_TYPE:
+async def __get_itsystem_from_cache(
+    systemid: str, only_primary_uuid: bool = False
+) -> MO_OBJ_TYPE:
     """
     Get org unit from cache and process it
     :param systemid: uuid of it-system
     :param only_primary_uuid:
     :return: A processed system
     """
-    return await get_one_itsystem(c=request_wide_bulk.connector, systemid=systemid,
-                                  system=await request_wide_bulk.get_lora_object(
-                                      type_=LoraObjectType.it_system,
-                                      uuid=systemid) if not only_primary_uuid else None,
-                                  only_primary_uuid=only_primary_uuid)
+    return await get_one_itsystem(
+        c=request_wide_bulk.connector,
+        systemid=systemid,
+        system=await request_wide_bulk.get_lora_object(
+            type_=LoraObjectType.it_system, uuid=systemid
+        )
+        if not only_primary_uuid
+        else None,
+        only_primary_uuid=only_primary_uuid,
+    )
 
 
-async def request_bulked_get_one_itsystem(systemid: str,
-                                          only_primary_uuid: bool = False
-                                          ) -> Awaitable[MO_OBJ_TYPE]:
+async def request_bulked_get_one_itsystem(
+    systemid: str, only_primary_uuid: bool = False
+) -> Awaitable[MO_OBJ_TYPE]:
     """
     EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
     result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
@@ -281,12 +296,14 @@ async def request_bulked_get_one_itsystem(systemid: str,
     """
     if not only_primary_uuid:
         await request_wide_bulk.add(type_=LoraObjectType.it_system, uuid=systemid)
-    return __get_itsystem_from_cache(systemid=systemid,
-                                     only_primary_uuid=only_primary_uuid)
+    return __get_itsystem_from_cache(
+        systemid=systemid, only_primary_uuid=only_primary_uuid
+    )
 
 
-async def get_one_itsystem(c: lora.Connector, systemid, system=None,
-                           only_primary_uuid=False) -> Optional[MO_OBJ_TYPE]:
+async def get_one_itsystem(
+    c: lora.Connector, systemid, system=None, only_primary_uuid=False
+) -> Optional[MO_OBJ_TYPE]:
     """Obtain the list of engagements corresponding to a user.
 
     .. :quickref: IT system; Get by user
@@ -358,9 +375,7 @@ async def get_one_itsystem(c: lora.Connector, systemid, system=None,
     """
 
     if only_primary_uuid:
-        return {
-            mapping.UUID: systemid
-        }
+        return {mapping.UUID: systemid}
 
     if not system:
         system = await c.itsystem.get(systemid)
@@ -368,17 +383,15 @@ async def get_one_itsystem(c: lora.Connector, systemid, system=None,
         if not system or not util.is_reg_valid(system):
             return None
 
-    system_attrs = system['attributter']['itsystemegenskaber'][0]
+    system_attrs = system["attributter"]["itsystemegenskaber"][0]
 
     return {
         "uuid": systemid,
-
-        "name": system_attrs.get('itsystemnavn'),
-        "reference": system_attrs.get('konfigurationreference'),
-        "system_type": system_attrs.get('itsystemtype'),
-        "user_key": system_attrs.get('brugervendtnoegle'),
-
+        "name": system_attrs.get("itsystemnavn"),
+        "reference": system_attrs.get("konfigurationreference"),
+        "system_type": system_attrs.get("itsystemtype"),
+        "user_key": system_attrs.get("brugervendtnoegle"),
         mapping.VALIDITY: util.get_effect_validity(
-            system['tilstande']['itsystemgyldighed'][0],
+            system["tilstande"]["itsystemgyldighed"][0],
         ),
     }

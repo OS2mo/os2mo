@@ -1,19 +1,22 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import asyncio
-from structlog import get_logger
 from functools import partial
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
 import aiohttp
-from mora import config
-from mora.async_util import async_session, async_to_sync, in_separate_thread
-from mora.triggers import Trigger
-from os2mo_http_trigger_protocol import MOTriggerPayload, MOTriggerRegister
-from pydantic import parse_obj_as
 from fastapi.encoders import jsonable_encoder
+from os2mo_http_trigger_protocol import MOTriggerPayload
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from pydantic import parse_obj_as
+from structlog import get_logger
 
+from mora import config
+from mora.async_util import async_session
+from mora.async_util import async_to_sync
+from mora.async_util import in_separate_thread
+from mora.triggers import Trigger
 
 logger = get_logger()
 
@@ -43,16 +46,21 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
 
             None is returned if no exceptions occur.
     """
-    logger.debug("http_sender called", trigger_url=trigger_url,
-                 trigger_dict=trigger_dict, timeout=timeout)
+    logger.debug(
+        "http_sender called",
+        trigger_url=trigger_url,
+        trigger_dict=trigger_dict,
+        timeout=timeout,
+    )
     timeout = aiohttp.ClientTimeout(total=timeout)
     async with async_session() as session:
         # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
         payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
         async with session.post(trigger_url, timeout=timeout, json=payload) as response:
             payload = await response.json()
-            logger.debug("http_sender received",
-                         payload=payload, trigger_url=trigger_url)
+            logger.debug(
+                "http_sender received", payload=payload, trigger_url=trigger_url
+            )
             if response.status != 200:
                 raise HTTPTriggerException(payload["detail"])
             return payload
@@ -100,8 +108,9 @@ async def fetch_endpoint_trigger(
                 )
                 return trigger_configuration
             except aiohttp.client_exceptions.ContentTypeError:
-                logger.error("Unable to parse response from (not JSON?)",
-                             full_url=full_url)
+                logger.error(
+                    "Unable to parse response from (not JSON?)", full_url=full_url
+                )
                 logger.error(reponse_text=await response.text())
     except asyncio.exceptions.TimeoutError:
         logger.error("Timeout while connecting to", full_url=full_url)
@@ -156,8 +165,9 @@ def register(app) -> bool:
 
     # Fetch configured triggers for all endpoints
     endpoint_trigger_dict = fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)
-    logger.debug("Got endpoint_trigger_dict",
-                 endpoint_trigger_dict=endpoint_trigger_dict)
+    logger.debug(
+        "Got endpoint_trigger_dict", endpoint_trigger_dict=endpoint_trigger_dict
+    )
 
     # Register http_sender for all the events found.
     for endpoint, trigger_configuration in endpoint_trigger_dict.items():

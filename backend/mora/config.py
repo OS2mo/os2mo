@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 from enum import Enum
 from functools import lru_cache
-from pydantic import BaseSettings, AnyHttpUrl
+from typing import List
+from typing import Optional
+
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
 from pydantic.types import UUID
-from typing import List, Optional
 
 
 class NavLink(BaseSettings):
@@ -13,9 +16,9 @@ class NavLink(BaseSettings):
 
 
 class Environment(str, Enum):
-    DEVELOPMENT = 'development'
-    TESTING = 'testing'
-    PRODUCTION = 'production'
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
 
 
 class Settings(BaseSettings):
@@ -24,6 +27,7 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. LORA_URL == lora_url
     """
+
     lora_url: AnyHttpUrl = "http://mox/"
 
     # Config database settings
@@ -67,6 +71,9 @@ class Settings(BaseSettings):
     keycloak_port: int = 443
     keycloak_realm: str = "mo"
     keycloak_signing_alg: str = "RS256"
+
+    # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
+    cpr_validate_birthdate: bool = True
 
 
 @lru_cache()

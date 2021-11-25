@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from logging.config import fileConfig
 
 from alembic import context
-from mora.conf_db import Base, _get_connection_url
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from mora.conf_db import _get_connection_url
+from mora.conf_db import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -52,7 +54,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
-        process_revision_directives=process_revision_directives  # prevent empty
+        process_revision_directives=process_revision_directives,  # prevent empty
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -74,7 +76,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
-            process_revision_directives=process_revision_directives  # prevent empty
+            process_revision_directives=process_revision_directives,  # prevent empty
         )
         with context.begin_transaction():
             context.run_migrations()

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from unittest.mock import patch
 
 import mora.async_util
@@ -11,24 +10,22 @@ from mora.service.address_handler import pnumber
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {'uuid': y}
+    return {"uuid": y}
 
 
-@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
+@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
 class PNumberAddressHandlerTests(tests.cases.TestCase):
     handler = pnumber.PNumberAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = '1234567890'
+    value = "1234567890"
 
     def test_from_effect(self):
         # Arrange
-        value = '1234567890'
+        value = "1234567890"
 
         effect = {
-            'relationer': {
-                'adresser': [{
-                    'urn': 'urn:dk:cvr:produktionsenhed:{}'.format(value)
-                }]
+            "relationer": {
+                "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value)}]
             }
         }
 
@@ -42,11 +39,9 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = '1234567890'
+        value = "1234567890"
 
-        request = {
-            'value': value
-        }
+        request = {"value": value}
         address_handler = self.handler.from_request(request)
 
         # Act
@@ -58,15 +53,15 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
     @mora.async_util.async_to_sync
     async def test_get_mo_address(self):
         # Arrange
-        value = '1234567890'
+        value = "1234567890"
         address_handler = self.handler(value, self.visibility)
 
         expected = {
-            'href': None,
-            'name': '1234567890',
-            'value': '1234567890',
-            'value2': None,
-            'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
+            "href": None,
+            "name": "1234567890",
+            "value": "1234567890",
+            "value2": None,
+            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
         }
 
         # Act
@@ -77,12 +72,12 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '1234567890'
+        value = "1234567890"
         address_handler = self.handler(value, None)
 
         expected = {
-            'objekttype': 'PNUMBER',
-            'urn': 'urn:dk:cvr:produktionsenhed:{}'.format(value)
+            "objekttype": "PNUMBER",
+            "urn": "urn:dk:cvr:produktionsenhed:{}".format(value),
         }
 
         # Act
@@ -93,10 +88,7 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        invalid_values = [
-            '1234',
-            '12341234123412341234'
-        ]  # Not a valid P-number
+        invalid_values = ["1234", "12341234123412341234"]  # Not a valid P-number
 
         # Act & Assert
         for value in invalid_values:
@@ -105,9 +97,7 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
-        valid_values = [
-            '1234123412'
-        ]
+        valid_values = ["1234123412"]
 
         # Act & Assert
         for value in valid_values:
@@ -116,8 +106,8 @@ class PNumberAddressHandlerTests(tests.cases.TestCase):
 
     def test_validation_succeeds_with_force(self):
         # Arrange
-        value = 'GARBAGEGARBAGE'  # Not a valid P-number
+        value = "GARBAGEGARBAGE"  # Not a valid P-number
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with current_query.context_args({"force": "1"}):
             self.handler.validate_value(value)

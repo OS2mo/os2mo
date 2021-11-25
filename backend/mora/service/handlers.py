@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-'''This module provides infrastructure for registering and invoking
+"""This module provides infrastructure for registering and invoking
 handlers for the various detail types.
 
-'''
-
+"""
 import abc
 import inspect
 import typing
@@ -18,7 +16,8 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active
@@ -31,9 +30,7 @@ logger = get_logger()
 
 
 class _RequestHandlerMeta(abc.ABCMeta):
-    '''Metaclass for automatically registering handlers
-
-    '''
+    """Metaclass for automatically registering handlers"""
 
     @staticmethod
     def __new__(mcls, name, bases, namespace):
@@ -46,15 +43,16 @@ class _RequestHandlerMeta(abc.ABCMeta):
 
 
 class RequestHandler(metaclass=_RequestHandlerMeta):
-    '''Abstract base class for automatically registering handlers for
+    """Abstract base class for automatically registering handlers for
     details. Subclass are automatically registered once they
     implements all relevant methods, i.e. they're no longer abstract.
 
-    '''
+    """
+
     role_type = None
-    '''
+    """
     The `role_type` for corresponding details to this attribute.
-    '''
+    """
 
     @classmethod
     def _register(cls):
@@ -82,7 +80,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             Trigger.REQUEST_TYPE: request_type,
             Trigger.REQUEST: request,
             Trigger.ROLE_TYPE: self.role_type,
-            Trigger.EVENT_TYPE: EventType.ON_BEFORE
+            Trigger.EVENT_TYPE: EventType.ON_BEFORE,
         }
 
         if request_type == RequestType.CREATE:
@@ -96,9 +94,9 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        self.trigger_dict.update({
-            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
-        })
+        self.trigger_dict.update(
+            {Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid}
+        )
         self.trigger_results_before = Trigger.run(self.trigger_dict)
 
     @abc.abstractmethod
@@ -117,7 +115,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         :param request: A dict containing a request
         """
-        raise NotImplementedError('Use POST with a matching UUID instead (PUT)')
+        raise NotImplementedError("Use POST with a matching UUID instead (PUT)")
 
     def prepare_terminate(self, request: dict):
         """
@@ -146,41 +144,43 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         :return: A string containing the result from submitting the
                  request to LoRa, typically a UUID.
         """
-        self.trigger_dict.update({
-            Trigger.RESULT: getattr(self, Trigger.RESULT, None),
-            Trigger.EVENT_TYPE: EventType.ON_AFTER,
-            Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid
-        })
+        self.trigger_dict.update(
+            {
+                Trigger.RESULT: getattr(self, Trigger.RESULT, None),
+                Trigger.EVENT_TYPE: EventType.ON_AFTER,
+                Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid,
+            }
+        )
         self.trigger_results_after = Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
 
 
 class OrgFunkRequestHandler(RequestHandler):
-    '''Abstract base class for automatically registering
-    `organisationsfunktion`-based handlers.'''
+    """Abstract base class for automatically registering
+    `organisationsfunktion`-based handlers."""
 
     function_key = None
-    '''
+    """
     When set, automatically register this class as a writing handler
     for `organisationsfunktion` objects with the corresponding
     ``funktionsnavn``.
-    '''
+    """
 
     termination_field = mapping.ORG_FUNK_GYLDIGHED_FIELD
-    '''The relation to change when terminating an employee tied to to an
+    """The relation to change when terminating an employee tied to to an
     ``organisationsfunktion`` objects tied for `organisationsfunktion`
     objects with the corresponding ``funktionsnavn``.
 
-    '''
+    """
 
     termination_value = {
-        'gyldighed': 'Inaktiv',
+        "gyldighed": "Inaktiv",
     }
-    '''On termination, the value to assign to the relation specified by
+    """On termination, the value to assign to the relation specified by
     :py:attr:`termination_field`.
 
-    '''
+    """
 
     @classmethod
     def _register(cls):
@@ -199,12 +199,13 @@ class OrgFunkRequestHandler(RequestHandler):
         date = util.get_valid_to(request, required=True)
 
         original = mora.async_util.async_to_sync(
-            lora.Connector(effective_date=date).organisationfunktion.get)(self.uuid)
+            lora.Connector(effective_date=date).organisationfunktion.get
+        )(self.uuid)
 
         if (
-            original is None or
-            util.is_reg_valid(original) and
-            get_key_for_function(original) != self.function_key
+            original is None
+            or util.is_reg_valid(original)
+            and get_key_for_function(original) != self.function_key
         ):
             exceptions.ErrorCodes.E_NOT_FOUND(
                 uuid=self.uuid,
@@ -214,20 +215,22 @@ class OrgFunkRequestHandler(RequestHandler):
         self.payload = common.update_payload(
             date,
             util.POSITIVE_INFINITY,
-            [(
-                self.termination_field,
-                self.termination_value,
-            )],
+            [
+                (
+                    self.termination_field,
+                    self.termination_value,
+                )
+            ],
             original,
             {
-                'note': "Afsluttet",
+                "note": "Afsluttet",
             },
         )
 
         if self.trigger_dict.get(Trigger.EMPLOYEE_UUID, None) is None:
-            self.trigger_dict[
-                Trigger.EMPLOYEE_UUID
-            ] = mapping.USER_FIELD.get_uuid(original)
+            self.trigger_dict[Trigger.EMPLOYEE_UUID] = mapping.USER_FIELD.get_uuid(
+                original
+            )
         if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
             self.trigger_dict[
                 Trigger.ORG_UNIT_UUID
@@ -238,36 +241,35 @@ class OrgFunkRequestHandler(RequestHandler):
 
         if self.request_type == RequestType.CREATE:
             self.result = mora.async_util.async_to_sync(c.organisationfunktion.create)(
-                self.payload,
-                self.uuid)
+                self.payload, self.uuid
+            )
         else:
             self.result = mora.async_util.async_to_sync(c.organisationfunktion.update)(
-                self.payload,
-                self.uuid)
+                self.payload, self.uuid
+            )
 
         return super().submit()
 
 
 def get_key_for_function(obj: dict) -> str:
-    '''Obtain the function key class corresponding to the given LoRA object'''
+    """Obtain the function key class corresponding to the given LoRA object"""
 
     # use unpacking to ensure that the set contains just one element
     (key,) = {
-        attrs['funktionsnavn']
-        for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
+        attrs["funktionsnavn"] for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
     }
 
     return key
 
 
 def get_handler_for_function(obj: dict):
-    '''Obtain the handler class corresponding to the given LoRA object'''
+    """Obtain the handler class corresponding to the given LoRA object"""
 
     return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
 
 
 def get_handler_for_role_type(role_type: str):
-    '''Obtain the handler class corresponding to given role_type'''
+    """Obtain the handler class corresponding to given role_type"""
 
     try:
         return HANDLERS_BY_ROLE_TYPE[role_type]
@@ -276,10 +278,9 @@ def get_handler_for_role_type(role_type: str):
 
 
 def generate_requests(
-    requests: typing.List[dict],
-    request_type: RequestType
+    requests: typing.List[dict], request_type: RequestType
 ) -> typing.List[RequestHandler]:
-    operations = {req.get('type') for req in requests}
+    operations = {req.get("type") for req in requests}
 
     if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
         exceptions.ErrorCodes.E_UNKNOWN_ROLE_TYPE(
@@ -287,8 +288,7 @@ def generate_requests(
         )
 
     return [
-        HANDLERS_BY_ROLE_TYPE[req.get('type')](req, request_type)
-        for req in requests
+        HANDLERS_BY_ROLE_TYPE[req.get("type")](req, request_type) for req in requests
     ]
 
 

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-'''Reading details
+"""Reading details
 ---------------
 
 This section describes how to read employee and
@@ -15,15 +14,15 @@ creating and editing relations for employees and organisational units:
 * http:post:`/service/details/edit`
 
 
-'''
-
+"""
 from __future__ import generator_stop
 
 import collections
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
+from typing import Optional
 from uuid import UUID
 
-from datetime import datetime
 from fastapi import APIRouter
 
 from . import handlers
@@ -31,20 +30,23 @@ from .. import common
 
 router = APIRouter()
 
-DetailType = collections.namedtuple('DetailType', [
-    'search',
-    'scope',
-])
+DetailType = collections.namedtuple(
+    "DetailType",
+    [
+        "search",
+        "scope",
+    ],
+)
 
 DETAIL_TYPES = {
-    'e': DetailType('tilknyttedebrugere', 'bruger'),
-    'ou': DetailType('tilknyttedeenheder', 'organisationenhed'),
+    "e": DetailType("tilknyttedebrugere", "bruger"),
+    "ou": DetailType("tilknyttedeenheder", "organisationenhed"),
 }
 
 
-@router.get('/{type}/{id}/details/')
+@router.get("/{type}/{id}/details/")
 async def list_details(type, id: UUID):
-    '''List the available 'detail' types under this entry.
+    """List the available 'detail' types under this entry.
 
     .. :quickref: Detail; List
 
@@ -64,11 +66,10 @@ async def list_details(type, id: UUID):
 
     The value above informs you that at least one entry exists for each of
     'engagement' and 'leave' either in the past, present or future.
-    '''
+    """
     id = str(id)
 
-    c = common.get_connector(virkningfra='-infinity',
-                             virkningtil='infinity')
+    c = common.get_connector(virkningfra="-infinity", virkningtil="infinity")
 
     info = DETAIL_TYPES[type]
     search = {
@@ -85,26 +86,29 @@ async def list_details(type, id: UUID):
 
     reg = await scope.get(id)
 
-    r['org_unit'] = bool(scope.path == 'organisation/organisationenhed' and reg)
+    r["org_unit"] = bool(scope.path == "organisation/organisationenhed" and reg)
 
     return r
 
 
 @router.get(
-    '/{type}/{id}/details/{function}',
+    "/{type}/{id}/details/{function}",
 )
 # @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
 #                  'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
-async def get_detail(type, id: UUID, function,
-                     at: Optional[Any] = None,
-                     validity: Optional[Any] = None,
-                     inherit_manager: Optional[Any] = None,
-                     calculate_primary: Optional[Any] = None,
-                     only_primary_uuid: Optional[Any] = None,
-                     first_party_perspective: Optional[Any] = None,
-                     changed_since: Optional[datetime] = None,
-                     ):
-    '''Obtain the list of engagements, associations, roles, etc.
+async def get_detail(
+    type,
+    id: UUID,
+    function,
+    at: Optional[Any] = None,
+    validity: Optional[Any] = None,
+    inherit_manager: Optional[Any] = None,
+    calculate_primary: Optional[Any] = None,
+    only_primary_uuid: Optional[Any] = None,
+    first_party_perspective: Optional[Any] = None,
+    changed_since: Optional[datetime] = None,
+):
+    """Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
     http:get:`/service/(any:type)/(uuid:id)/details/` for the
     available list of endpoints.
@@ -653,7 +657,7 @@ b6c11152-0645-4712-a207-ba2c53b391ab Tilknytning",
        }
      ]
 
-    '''
+    """
     id = str(id)
     c = common.get_connector()
 

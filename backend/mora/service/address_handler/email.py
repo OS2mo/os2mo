@@ -1,16 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import validators
 
 from . import base
-from ..validation.validator import forceable
 from ... import exceptions
+from ..validation.validator import forceable
 
 
 class EmailAddressHandler(base.AddressHandler):
-    scope = 'EMAIL'
-    prefix = 'urn:mailto:'
+    scope = "EMAIL"
+    prefix = "urn:mailto:"
 
     @property
     def href(self):

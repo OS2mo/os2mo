@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import os
 
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
-from .. import exceptions, config
+from .. import config
+from .. import exceptions
 
 router = APIRouter()
 
 
-@router.get('/exports/')
+@router.get("/exports/")
 # @util.restrictargs()
 def list_export_files():
     """
@@ -36,13 +36,12 @@ def list_export_files():
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
     dir_contents = os.listdir(export_dir)
     files = [
-        file for file in dir_contents if
-        os.path.isfile(os.path.join(export_dir, file))
+        file for file in dir_contents if os.path.isfile(os.path.join(export_dir, file))
     ]
     return files
 
 
-@router.get('/exports/{file_name}')
+@router.get("/exports/{file_name}")
 # @util.restrictargs()
 def get_export_file(file_name: str):
     """

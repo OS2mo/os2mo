@@ -8,9 +8,9 @@ from ... import util
 
 
 class MultifieldTextAddressHandler(base.AddressHandler):
-    scope = 'MULTIFIELD_TEXT'
-    prefix = 'urn:multifield_text:'
-    prefix2 = 'urn:multifield_text2:'
+    scope = "MULTIFIELD_TEXT"
+    prefix = "urn:multifield_text:"
+    prefix2 = "urn:multifield_text2:"
 
     @property
     def name(self):
@@ -23,10 +23,10 @@ class MultifieldTextAddressHandler(base.AddressHandler):
     @staticmethod
     def _value_from_effect(effect, prefix: str):
         def unquote_value(urn):
-            quoted_value = urn[len(prefix):]
+            quoted_value = urn[len(prefix) :]
             return util.urnunquote(quoted_value)
 
-        urns = [x.get('urn') for x in mapping.ADDRESSES_FIELD(effect)]
+        urns = [x.get("urn") for x in mapping.ADDRESSES_FIELD(effect)]
         urns = filter(lambda urn: prefix in urn, urns)
         urns = map(unquote_value, urns)
         return first(urns, None)
@@ -39,7 +39,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
         value2 = cls._value_from_effect(effect, cls.prefix2)
 
         visibility_field = mapping.VISIBILITY_FIELD(effect)
-        visibility = visibility_field[0]['uuid'] if visibility_field else None
+        visibility = visibility_field[0]["uuid"] if visibility_field else None
         return cls(value, visibility, value2=value2)
 
     @staticmethod
@@ -54,9 +54,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
         cls.validate_value(value)
         cls.validate_value(value2)
 
-        visibility = util.get_mapping_uuid(
-            request, mapping.VISIBILITY, required=False
-        )
+        visibility = util.get_mapping_uuid(request, mapping.VISIBILITY, required=False)
 
         return cls(value, visibility, value2=value2)
 
@@ -71,10 +69,13 @@ class MultifieldTextAddressHandler(base.AddressHandler):
             'urn': 'urn:magenta.dk:telefon:+4512345678'
           }
         """
-        return [{
-            'objekttype': self.scope,
-            'urn': prefix + util.urnquote(value),
-        } for (prefix, value) in [
-            (self.prefix, self._value),
-            (self.prefix2, self._value2)
-        ]]
+        return [
+            {
+                "objekttype": self.scope,
+                "urn": prefix + util.urnquote(value),
+            }
+            for (prefix, value) in [
+                (self.prefix, self._value),
+                (self.prefix2, self._value2),
+            ]
+        ]

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from unittest.mock import patch
 
 import mora.async_util
@@ -11,26 +10,20 @@ from mora.service.address_handler import email
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {'uuid': y}
+    return {"uuid": y}
 
 
-@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
+@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
 class EmailAddressHandlerTests(tests.cases.TestCase):
     handler = email.EmailAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = 'mail@mail.dk'
+    value = "mail@mail.dk"
 
     def test_from_effect(self):
         # Arrange
-        value = 'mail@mail.dk'
+        value = "mail@mail.dk"
 
-        effect = {
-            'relationer': {
-                'adresser': [{
-                    'urn': 'urn:mailto:{}'.format(value)
-                }]
-            }
-        }
+        effect = {"relationer": {"adresser": [{"urn": "urn:mailto:{}".format(value)}]}}
 
         address_handler = self.handler.from_effect(effect)
 
@@ -42,11 +35,9 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
 
     def test_from_request(self):
         # Arrange
-        value = 'mail@mail.dk'
+        value = "mail@mail.dk"
 
-        request = {
-            'value': value
-        }
+        request = {"value": value}
         address_handler = self.handler.from_request(request)
 
         # Act
@@ -61,11 +52,11 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
         address_handler = self.handler(self.value, self.visibility)
 
         expected = {
-            'href': 'mailto:mail@mail.dk',
-            'name': 'mail@mail.dk',
-            'value': 'mail@mail.dk',
-            'value2': None,
-            'visibility': {'uuid': 'dd5699af-b233-44ef-9107-7a37016b2ed1'}
+            "href": "mailto:mail@mail.dk",
+            "name": "mail@mail.dk",
+            "value": "mail@mail.dk",
+            "value2": None,
+            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
         }
 
         # Act
@@ -76,13 +67,10 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = 'mail@mail.dk'
+        value = "mail@mail.dk"
         address_handler = self.handler(value, None)
 
-        expected = {
-            'objekttype': 'EMAIL',
-            'urn': 'urn:mailto:{}'.format(value)
-        }
+        expected = {"objekttype": "EMAIL", "urn": "urn:mailto:{}".format(value)}
 
         # Act
         actual = address_handler.get_lora_address()
@@ -92,7 +80,7 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
 
     def test_fails_on_invalid_value(self):
         # Arrange
-        value = 'asdasd'  # Not a valid email address
+        value = "asdasd"  # Not a valid email address
 
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
@@ -100,11 +88,7 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
-        valid_values = [
-            'test@test.com',
-            'test+hest@test.com',
-            't.e.s.t@test.com'
-        ]
+        valid_values = ["test@test.com", "test+hest@test.com", "t.e.s.t@test.com"]
 
         # Act & Assert
         for value in valid_values:
@@ -113,8 +97,8 @@ class EmailAddressHandlerTests(tests.cases.TestCase):
 
     def test_validation_succeeds_with_force(self):
         # Arrange
-        value = 'GARBAGEGARBAGE'  # Not a valid email address
+        value = "GARBAGEGARBAGE"  # Not a valid email address
 
         # Act & Assert
-        with current_query.context_args({'force': '1'}):
+        with current_query.context_args({"force": "1"}):
             self.handler.validate_value(value)

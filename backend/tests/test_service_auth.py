@@ -3,14 +3,12 @@
 import unittest
 
 import fastapi.routing
-from starlette.status import (
-    HTTP_401_UNAUTHORIZED,
-    HTTP_200_OK
-)
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_401_UNAUTHORIZED
 
+import tests.cases
 from mora import main
 from mora.auth.keycloak.oidc import auth
-import tests.cases
 
 
 class TestServiceAuth(unittest.TestCase):
@@ -23,24 +21,24 @@ class TestServiceAuth(unittest.TestCase):
     # all excluded endpoints must be explicitly specified in the list
 
     NO_AUTH_ENDPOINTS = (
-        '/health/amqp',
-        '/health/oio_rest',
-        '/health/configuration_database',
-        '/health/dataset',
-        '/health/dar',
-        '/health/',
-        '/version/',
-        '/forespoergsler/',
-        '/organisationssammenkobling/',
-        '/medarbejder/{path:path}',
-        '/medarbejder/',
-        '/organisation/{path:path}',
-        '/organisation/',
-        '/',
-        '/favicon.ico',
-        '/service/{rest_of_path:path}',
-        '/testing/testcafe-db-setup',
-        '/testing/testcafe-db-teardown'
+        "/health/amqp",
+        "/health/oio_rest",
+        "/health/configuration_database",
+        "/health/dataset",
+        "/health/dar",
+        "/health/",
+        "/version/",
+        "/forespoergsler/",
+        "/organisationssammenkobling/",
+        "/medarbejder/{path:path}",
+        "/medarbejder/",
+        "/organisation/{path:path}",
+        "/organisation/",
+        "/",
+        "/favicon.ico",
+        "/service/{rest_of_path:path}",
+        "/testing/testcafe-db-setup",
+        "/testing/testcafe-db-teardown",
     )
 
     @staticmethod
@@ -58,13 +56,11 @@ class TestServiceAuth(unittest.TestCase):
 
         # Skip the starlette.routing.Route's (defined by the framework)
         routes = filter(
-            lambda route: isinstance(route, fastapi.routing.APIRoute),
-            main.app.routes
+            lambda route: isinstance(route, fastapi.routing.APIRoute), main.app.routes
         )
         # Only check endpoints not in the NO_AUTH_ENDPOINTS list
         routes = filter(
-            lambda route: route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS,
-            routes
+            lambda route: route.path not in TestServiceAuth.NO_AUTH_ENDPOINTS, routes
         )
 
         has_auth = map(TestServiceAuth.lookup_auth_dependency, routes)
@@ -73,7 +69,7 @@ class TestServiceAuth(unittest.TestCase):
     def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(self):
         no_auth_routes = filter(
             lambda route: route.path in TestServiceAuth.NO_AUTH_ENDPOINTS,
-            main.app.routes
+            main.app.routes,
         )
 
         has_auth = map(TestServiceAuth.lookup_auth_dependency, no_auth_routes)
@@ -81,7 +77,6 @@ class TestServiceAuth(unittest.TestCase):
 
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
-
     def setUp(self):
         super().setUp()
         # Enable the real OIDC auth function
@@ -89,59 +84,47 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
     def test_auth_service_address(self):
         self.assertRequestFails(
-            '/service/e/00000000-0000-0000-0000-000000000000/details/address',
-            HTTP_401_UNAUTHORIZED
+            "/service/e/00000000-0000-0000-0000-000000000000/details/address",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_cpr(self):
-        self.assertRequestFails(
-            '/service/e/cpr_lookup/?q=1234',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/e/cpr_lookup/?q=1234", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_details_reading(self):
         self.assertRequestFails(
-            '/service/e/00000000-0000-0000-0000-000000000000/details/',
-            HTTP_401_UNAUTHORIZED
+            "/service/e/00000000-0000-0000-0000-000000000000/details/",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_details_writing(self):
         self.assertRequestResponse(
-            '/service/details/create',
-            {'msg': 'Unauthorized'},
+            "/service/details/create",
+            {"msg": "Unauthorized"},
             status_code=HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_service_employee(self):
         self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/e/',
-            HTTP_401_UNAUTHORIZED
+            "/service/o/00000000-0000-0000-0000-000000000000/e/", HTTP_401_UNAUTHORIZED
         )
 
     def test_auth_service_exports(self):
-        self.assertRequestFails(
-            '/service/exports/not-important',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/exports/not-important", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_facets(self):
-        self.assertRequestFails(
-            '/service/c/ancestor-tree',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_integration_data(self):
         self.assertRequestFails(
-            '/service/ou'
-            '/00000000-0000-0000-0000-000000000000/integration-data',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou" "/00000000-0000-0000-0000-000000000000/integration-data",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_itsystem(self):
         self.assertRequestFails(
-            '/service/o/00000000-0000-0000-0000-000000000000/it/',
-            HTTP_401_UNAUTHORIZED
+            "/service/o/00000000-0000-0000-0000-000000000000/it/", HTTP_401_UNAUTHORIZED
         )
 
     def test_auth_service_kle(self):
@@ -149,42 +132,36 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         pass
 
     def test_auth_service_org(self):
-        self.assertRequestFails(
-            '/service/o/',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/service/o/", HTTP_401_UNAUTHORIZED)
 
     def test_auth_service_orgunit(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/children',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou/00000000-0000-0000-0000-000000000000/children",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_related(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/map',
+            "/service/ou/00000000-0000-0000-0000-000000000000/map",
             HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_service_configuration(self):
         self.assertRequestFails(
-            '/service/ou/00000000-0000-0000-0000-000000000000/configuration',
-            HTTP_401_UNAUTHORIZED
+            "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
+            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_validate(self):
         self.assertRequestFails(
-            '/service/validate/org-unit/',
+            "/service/validate/org-unit/",
             HTTP_401_UNAUTHORIZED,
-            json=[{'not': 'important'}]
+            json=[{"not": "important"}],
         )
 
     def test_auth_api_v1(self):
-        self.assertRequestFails(
-            '/api/v1/it',
-            HTTP_401_UNAUTHORIZED
-        )
+        self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
 
 
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
@@ -201,15 +178,7 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
 
     def test_auth_service_org(self):
         self.load_sample_structures(minimal=True)
-        self.assertRequest(
-            '/service/o/',
-            HTTP_200_OK,
-            set_auth_header=True
-        )
+        self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
     def test_auth_api_v1(self):
-        self.assertRequest(
-            '/api/v1/it',
-            HTTP_200_OK,
-            set_auth_header=True
-        )
+        self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)

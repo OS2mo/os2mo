@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from structlog import get_logger
 
 from .. import util
 from ..exceptions import ErrorCodes
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 
 logger = get_logger()
 
@@ -20,8 +20,9 @@ def register(app):
         try:
             trigger_module.register(app)
         except Exception:
-            logger.exception("Exception during register call",
-                             trigger_module=trigger_module)
+            logger.exception(
+                "Exception during register call", trigger_module=trigger_module
+            )
             raise
 
 

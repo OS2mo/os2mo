@@ -1,9 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import gather
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
+from typing import TypeVar
+from typing import Union
 
 from structlog import get_logger
-from asyncio import gather
-from typing import Any, Awaitable, Dict, Iterable, TypeVar, Union
 
 from .. import reading
 from ... import mapping
@@ -14,7 +19,7 @@ ROLE_TYPE = "related_unit"
 
 logger = get_logger()
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @reading.register(ROLE_TYPE)
@@ -30,24 +35,26 @@ class RoleReader(reading.OrgFunkReadingHandler):
         """
 
         parsed_org_units = await gather(*aws)
-        sorted_org_units = sorted(parsed_org_units, key=lambda x: x.get('name'))
+        sorted_org_units = sorted(parsed_org_units, key=lambda x: x.get("name"))
         return sorted_org_units
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end,
-                                         funcid) -> Dict[str, Union[Awaitable, Any]]:
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid
+    ) -> Dict[str, Union[Awaitable, Any]]:
         org_units = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
-        only_primary_uuid = current_query.args.get('only_primary_uuid')
+        only_primary_uuid = current_query.args.get("only_primary_uuid")
 
         org_unit_awaitables = [
             await orgunit.request_bulked_get_one_orgunit(
                 unitid=org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid
+                only_primary_uuid=only_primary_uuid,
             )
-            for org_unit_uuid in org_units]
+            for org_unit_uuid in org_units
+        ]
 
         r = {
             **base_obj,
