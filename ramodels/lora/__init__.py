@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from ._shared import LoraBase
 from .facet import Facet
+from .itsystem import ITSystem
 from .klasse import Klasse
 from .organisation import Organisation
 
@@ -15,4 +16,4 @@ from .organisation import Organisation
 # All
 # --------------------------------------------------------------------------------------
 
-__all__ = ["LoraBase", "Facet", "Klasse", "Organisation"]
+__all__ = ["LoraBase", "Facet", "Klasse", "Organisation", "ITSystem"]

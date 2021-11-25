@@ -67,3 +67,10 @@ You can use the flags `-vx` where `v` prints the test & `x` makes the test stop 
 Pre-commit must either be used via your virtual environment or globally.
 If you want to pre-commit globally, the following extra dependencies are needed:  
 `pip install mypy pydantic`  
+
+
+### Models
+
+## LoRa
+`LoRa` implements the OIO standard version 1.1. The [standard](https://digitaliser.dk/resource/1569113) with
+[specification](https://www.digitaliser.dk/resource/1569113/artefact/Specifikationafserviceinterfacefororganisation-OIO-Godkendt%5bvs.1.1%5d.pdf?artefact=true&PID=1569586)
