@@ -296,32 +296,32 @@ Vue-unit-test:
     reports:
       cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
-e2e-test:
-  <<: *test-default
-  allow_failure: true
-  image:
-    name: magentalabs/testcafe:latest
-    entrypoint: ["/bin/sh", "-c"]
-  services:
-    - name: magentaaps/postgres-os2mo:9.6.15-2-test
-      alias: mox-db
-    - name: magentaaps/lora:dev
-      alias: mox
-    - name: ${IMAGE_SHA}
-      alias: mo
-  script:
-    - cd /
-    - /opt/testcafe/docker/testcafe-docker.sh
-        chromium:headless
-        $CI_PROJECT_DIR/frontend/e2e-tests
-        --selector-timeout 30000
-        --screenshot $CI_PROJECT_DIR/artifacts
-        --video $CI_PROJECT_DIR/artifacts
-
-  artifacts:
-    when: always
-    paths:
-      - $CI_PROJECT_DIR/artifacts
+#e2e-test:
+#  <<: *test-default
+#  allow_failure: true
+#  image:
+#    name: magentalabs/testcafe:latest
+#    entrypoint: ["/bin/sh", "-c"]
+#  services:
+#    - name: magentaaps/postgres-os2mo:9.6.15-2-test
+#      alias: mox-db
+#    - name: magentaaps/lora:dev
+#      alias: mox
+#    - name: ${IMAGE_SHA}
+#      alias: mo
+#  script:
+#    - cd /
+#    - /opt/testcafe/docker/testcafe-docker.sh
+#        chromium:headless
+#        $CI_PROJECT_DIR/frontend/e2e-tests
+#        --selector-timeout 30000
+#        --screenshot $CI_PROJECT_DIR/artifacts
+#        --video $CI_PROJECT_DIR/artifacts
+#
+#  artifacts:
+#    when: always
+#    paths:
+#      - $CI_PROJECT_DIR/artifacts
 
 
 # Release stage
@@ -329,7 +329,7 @@ e2e-test:
 
 .release-default: &release-default
   stage: release
-  needs: ["Unit-test", "e2e-test"]
+  needs: ["Unit-test"]  # e2e-test
   image: alpine:3.13
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -338,42 +338,7 @@ e2e-test:
   before_script:
     - apk add skopeo=1.2.1-r0
 
-Release feature branch:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^feature\/.+$/
-  script:
-    - export IMAGE_FEATURE=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//_/g')
-    - echo "Releasing ${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      "docker://${IMAGE_SHA}"
-      "docker://${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
-
-Release dev:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "development"
-  script:
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_DEV}"
-
-Release rc:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^release\/.+$/
-  script:
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_RC}"
-
-Release master:
+Release version:
   <<: *release-default
   rules:
       # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
@@ -384,35 +349,3 @@ Release master:
       --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
       "docker://${IMAGE_SHA}"
       "docker://${IMAGE_VERSION}"
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_LATEST}"
-
-
-Create MR to deploy to test servers:
-  stage: deploy
-  needs: ["Release master"]
-  image: alpine
-  variables:
-    GIT_STRATEGY: none # We do not need the source code
-  rules:
-      # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-      - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
-  script:
-    - apk add git
-    - git config --global user.email "labs@magenta-aps.dk"
-    - git config --global user.name "OS2MO Config Updater"
-    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
-    - cd salt-automation
-    - git checkout -b "cd/os2mo-$CI_COMMIT_TAG-deploy-test"
-    - 'sed -i "s/OS2MO_SERVICE_OS2MO_DOCKER_IMAGE.*/OS2MO_SERVICE_OS2MO_DOCKER_IMAGE: magentaaps\/os2mo:$CI_COMMIT_TAG/g" salt/pillar/projects/os2mo/test_config.sls'
-    - git add salt/pillar/projects/os2mo/test_config.sls
-    - git commit -m "[cd] Deploy OS2MO $CI_COMMIT_TAG to test servers"
-    - git push -o merge_request.create
-               -o merge_request.target='master'
-               -o merge_request.assign='christoffer'
-               -u origin "cd/os2mo-$CI_COMMIT_TAG-deploy-test"
