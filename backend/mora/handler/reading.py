@@ -43,7 +43,9 @@ def get_handler_for_type(object_type) -> "ReadingHandler":
 class ReadingHandler:
     @classmethod
     @abc.abstractmethod
-    async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
+    async def get(
+        cls, c, search_fields, changed_since: Optional[datetime] = None
+    ) -> List[Dict]:
         """
         Read a list of objects based on the given search parameters
 
