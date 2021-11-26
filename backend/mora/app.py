@@ -4,7 +4,10 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,19 +16,27 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
-from mora import __version__, health, log
-from mora.auth import base, saml_sso
-from mora.integrations import serviceplatformen
-from mora.request_scoped.bulking import request_wide_bulk
-from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
-from tests.util import setup_test_routing
-from . import exceptions, lora, service
+from . import exceptions
+from . import lora
+from . import service
 from . import triggers
 from .api.v1 import read_orgfunk
 from .auth.saml_sso import check_saml_authentication
 from .auth.saml_sso.session import SessionInterface
-from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config, app_config
+from .exceptions import ErrorCodes
+from .exceptions import http_exception_to_json_response
+from .exceptions import HTTPException
+from .settings import app_config
+from .settings import config
+from mora import __version__
+from mora import health
+from mora import log
+from mora.auth import base
+from mora.auth import saml_sso
+from mora.integrations import serviceplatformen
+from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
+from tests.util import setup_test_routing
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -82,9 +93,7 @@ async def fallback_handler(request, exc):
     return http_exception_to_json_response(exc=err)
 
 
-async def request_validation_handler(
-    request: Request, exc: RequestValidationError
-):
+async def request_validation_handler(request: Request, exc: RequestValidationError):
     """
     Ensure a nicely formatted json response, with
 
@@ -119,12 +128,7 @@ def create_app():
     Create and return a FastApi app instance for MORA.
     """
     log.init()
-    middleware = [
-        Middleware(
-            RawContextMiddleware,
-            plugins=(QueryArgContextPlugin(),)
-        )
-    ]
+    middleware = [Middleware(RawContextMiddleware, plugins=(QueryArgContextPlugin(),))]
     app = FastAPI(
         middleware=middleware,
     )
@@ -146,8 +150,10 @@ def create_app():
 
     # router include order matters
     app.include_router(
-        base.router, prefix="/service", tags=["Service"],
-        dependencies=[Depends(check_saml_authentication)]
+        base.router,
+        prefix="/service",
+        tags=["Service"],
+        dependencies=[Depends(check_saml_authentication)],
     )
 
     app.include_router(
@@ -158,12 +164,13 @@ def create_app():
 
     for router in service.routers:
         app.include_router(
-            router, prefix="/service", tags=["Service"],
-            dependencies=[Depends(check_saml_authentication)]
+            router,
+            prefix="/service",
+            tags=["Service"],
+            dependencies=[Depends(check_saml_authentication)],
         )
     app.include_router(
-        read_orgfunk.router,
-        dependencies=[Depends(check_saml_authentication)]
+        read_orgfunk.router, dependencies=[Depends(check_saml_authentication)]
     )
     app.include_router(
         meta_router(),
@@ -171,7 +178,7 @@ def create_app():
     )
     saml_sso.init_app(app)
 
-    if config['ENV'] in ['testing', 'development']:
+    if config["ENV"] in ["testing", "development"]:
         app = setup_test_routing(app)
 
     # We serve index.html and favicon.ico here. For the other static files,
@@ -182,7 +189,7 @@ def create_app():
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
     else:
-        logger.warning(f'No dist directory to serve! (Missing: {distdir})')
+        logger.warning(f"No dist directory to serve! (Missing: {distdir})")
 
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
@@ -190,7 +197,8 @@ def create_app():
     app.add_exception_handler(HTTPException, http_exception_handler)
 
     if app_config["SAML_AUTH_ENABLE"]:
-        @app.middleware('http')
+
+        @app.middleware("http")
         async def session_middleware(request: Request, call_next):
             """
             Adds a server-side SQL session to the request

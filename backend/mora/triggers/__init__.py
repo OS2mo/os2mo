@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import importlib
 import logging
 from itertools import chain
 
 from .. import util
 from ..exceptions import ErrorCodes
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 from ..settings import app_config
 
 logger = logging.getLogger("triggers")

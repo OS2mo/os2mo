@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
+from fastapi import Request
 from fastapi_sqlalchemy import DBSessionMiddleware
 from sqlalchemy import create_engine
 
-from mora import exceptions
 from . import session
 from . import sso
 from ...settings import app_config
+from mora import exceptions
 
 
 def init_app(app: FastAPI):

@@ -9,11 +9,11 @@ from starlette.responses import JSONResponse
 
 from mora import settings
 
-TRACEBACK_HEADER_KEY = 'os2mo_tb'
+TRACEBACK_HEADER_KEY = "os2mo_tb"
 
 
 class ErrorCodes(Enum):
-    '''This enumeration describes the possible errors codes returned by
+    """This enumeration describes the possible errors codes returned by
     the application. Each item in the enumeration consists of three
     values:
 
@@ -27,7 +27,7 @@ class ErrorCodes(Enum):
     means that an unknown, internal error occurred within the
     application. This is most likely a bug.
 
-    '''
+    """
 
     @property
     def description(self):
@@ -38,10 +38,10 @@ class ErrorCodes(Enum):
         return self.value[0]
 
     def __call__(self, *args, **kwargs):
-        '''Raise an :py:class:`HTTPException` for this error code'''
+        """Raise an :py:class:`HTTPException` for this error code"""
         raise self.to_http_exception(*args, **kwargs)
 
-    def to_http_exception(self, *args, **kwargs) -> 'HTTPException':
+    def to_http_exception(self, *args, **kwargs) -> "HTTPException":
         return HTTPException(self, *args, **kwargs)
 
     # Validation errors
@@ -52,35 +52,47 @@ class ErrorCodes(Enum):
     V_EXISTING_CPR = 409, "Person with CPR number already exists."
     V_NO_PERSON_FOR_CPR = 404, "No person found for given CPR number."
     V_CPR_NOT_VALID = 400, "Not a valid CPR number."
-    V_ORG_UNIT_MOVE_TO_CHILD = \
-        400, "Org unit cannot be moved to one of its own child units"
-    V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES = \
-        400, "Cannot terminate unit with active children and roles."
-    V_TERMINATE_UNIT_WITH_CHILDREN = \
-        400, "Cannot terminate unit with active children."
-    V_TERMINATE_UNIT_WITH_ROLES = \
-        400, "Cannot terminate unit with active roles."
-    V_DATE_OUTSIDE_ORG_UNIT_RANGE = \
-        400, "Date range exceeds validity range of associated org unit."
-    V_DATE_OUTSIDE_EMPL_RANGE = \
-        400, "Date range exceeds validity range of associated employee."
-    V_CANNOT_MOVE_ROOT_ORG_UNIT = \
-        400, "Moving the root org unit is not allowed"
-    V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL = \
-        400, "Moving an org unit to the root level is not allowed"
-    V_MORE_THAN_ONE_ASSOCIATION = \
-        400, "The employee already has an active association with the given " \
-             "org unit."
-    V_MORE_THAN_ONE_PRIMARY = \
-        400, "Employee already has another active and primary function."
-    V_NO_ACTIVE_ENGAGEMENT = \
-        400, "Employee must have an active engagement."
-    V_UNIT_OUTSIDE_ORG = \
-        400, "Unit belongs to an organisation different from the current one."
-    V_PARENT_NOT_FOUND = \
-        404, "Corresponding parent unit or organisation not found."
-    V_DUPLICATED_RESPONSIBILITY = \
-        400, "Manager has the same responsibility more than once."
+    V_ORG_UNIT_MOVE_TO_CHILD = (
+        400,
+        "Org unit cannot be moved to one of its own child units",
+    )
+    V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES = (
+        400,
+        "Cannot terminate unit with active children and roles.",
+    )
+    V_TERMINATE_UNIT_WITH_CHILDREN = 400, "Cannot terminate unit with active children."
+    V_TERMINATE_UNIT_WITH_ROLES = 400, "Cannot terminate unit with active roles."
+    V_DATE_OUTSIDE_ORG_UNIT_RANGE = (
+        400,
+        "Date range exceeds validity range of associated org unit.",
+    )
+    V_DATE_OUTSIDE_EMPL_RANGE = (
+        400,
+        "Date range exceeds validity range of associated employee.",
+    )
+    V_CANNOT_MOVE_ROOT_ORG_UNIT = 400, "Moving the root org unit is not allowed"
+    V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL = (
+        400,
+        "Moving an org unit to the root level is not allowed",
+    )
+    V_MORE_THAN_ONE_ASSOCIATION = (
+        400,
+        "The employee already has an active association with the given " "org unit.",
+    )
+    V_MORE_THAN_ONE_PRIMARY = (
+        400,
+        "Employee already has another active and primary function.",
+    )
+    V_NO_ACTIVE_ENGAGEMENT = 400, "Employee must have an active engagement."
+    V_UNIT_OUTSIDE_ORG = (
+        400,
+        "Unit belongs to an organisation different from the current one.",
+    )
+    V_PARENT_NOT_FOUND = 404, "Corresponding parent unit or organisation not found."
+    V_DUPLICATED_RESPONSIBILITY = (
+        400,
+        "Manager has the same responsibility more than once.",
+    )
     V_CANNOT_SUBSTITUTE_SELF = 400, "Cannot substitute for oneself"
     V_INVALID_ADDRESS_DAR = 400, "Invalid address"
     V_INVALID_ADDRESS_EAN = 400, "Invalid EAN"
@@ -130,12 +142,14 @@ class HTTPException(fastapiHTTPException):
     def code(self):
         return self.key.code
 
-    def __init__(self,
-                 error_key: typing.Optional[ErrorCodes] = None,
-                 message: typing.Optional[str] = None,
-                 *,
-                 cause=None,
-                 **extras) -> None:
+    def __init__(
+        self,
+        error_key: typing.Optional[ErrorCodes] = None,
+        message: typing.Optional[str] = None,
+        *,
+        cause=None,
+        **extras
+    ) -> None:
 
         if error_key is not None:
             self.key = error_key
@@ -144,15 +158,15 @@ class HTTPException(fastapiHTTPException):
         self.stack: typing.Optional[typing.List[str]] = None
 
         body = {
-            'error': True,
-            'description': message or self.key.description,
-            'status': self.key.code,
-            'error_key': self.key.name,
+            "error": True,
+            "description": message or self.key.description,
+            "status": self.key.code,
+            "error_key": self.key.name,
             **extras,
         }
 
         # used to have this kind of debug option, easy to get it back
-        if settings.config['ENV'] in ['testing', 'development']:
+        if settings.config["ENV"] in ["testing", "development"]:
             if cause is None:
                 cause = self.__cause__ or self
 
@@ -166,6 +180,7 @@ class HTTPException(fastapiHTTPException):
 
 class ImproperlyConfigured(Exception):
     """MO is somehow improperly configured."""
+
     pass
 
 

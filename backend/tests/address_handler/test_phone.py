@@ -1,38 +1,33 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from tests import util
 from unittest.mock import patch
 
 import mora.async_util
+from . import base
 from mora import exceptions
 from mora.service.address_handler import phone
-from . import base
+from tests import util
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {'uuid': y}
+    return {"uuid": y}
 
 
-@patch('mora.service.facet.get_one_class', new=async_facet_get_one_class)
+@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
 class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
     handler = phone.PhoneAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = '+4512345678'
+    value = "+4512345678"
 
     def test_from_effect(self):
         # Arrange
         visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-        value = '+4512345678'
+        value = "+4512345678"
 
         effect = {
-            'relationer': {
-                'adresser': [{
-                    'urn': 'urn:magenta.dk:telefon:+4512345678'
-                }],
-                'opgaver': [{
-                    'objekttype': 'synlighed',
-                    'uuid': visibility
-                }]
+            "relationer": {
+                "adresser": [{"urn": "urn:magenta.dk:telefon:+4512345678"}],
+                "opgaver": [{"objekttype": "synlighed", "uuid": visibility}],
             }
         }
 
@@ -48,16 +43,11 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_from_request(self):
         # Arrange
-        visibility = '0261fdd3-4aa3-4c9b-9542-8163a1184738'
-        request = {
-            'value': '12345678',
-            'visibility': {
-                'uuid': visibility
-            }
-        }
+        visibility = "0261fdd3-4aa3-4c9b-9542-8163a1184738"
+        request = {"value": "12345678", "visibility": {"uuid": visibility}}
         address_handler = self.handler.from_request(request)
 
-        expected_value = '12345678'
+        expected_value = "12345678"
 
         # Act
         actual_value = address_handler._value
@@ -70,18 +60,16 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
     @mora.async_util.async_to_sync
     async def test_get_mo_address(self):
         # Arrange
-        value = '12345678'
-        visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
+        value = "12345678"
+        visibility = "d99b500c-34b4-4771-9381-5c989eede969"
         address_handler = self.handler(value, visibility)
 
         expected = {
-            'href': 'tel:12345678',
-            'name': '12345678',
-            'value': '12345678',
-            'value2': None,
-            'visibility': {
-                'uuid': visibility
-            }
+            "href": "tel:12345678",
+            "name": "12345678",
+            "value": "12345678",
+            "value2": None,
+            "visibility": {"uuid": visibility},
         }
 
         # Act
@@ -92,14 +80,11 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_get_lora_address(self):
         # Arrange
-        value = '12345678'
-        visibility = 'd99b500c-34b4-4771-9381-5c989eede969'
+        value = "12345678"
+        visibility = "d99b500c-34b4-4771-9381-5c989eede969"
         address_handler = self.handler(value, visibility)
 
-        expected = {
-            'objekttype': 'PHONE',
-            'urn': 'urn:magenta.dk:telefon:12345678'
-        }
+        expected = {"objekttype": "PHONE", "urn": "urn:magenta.dk:telefon:12345678"}
 
         # Act
         actual = address_handler.get_lora_address()
@@ -112,15 +97,11 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
         # Act & Assert
         with self.assertRaises(exceptions.HTTPException):
             # Not a valid phone number
-            self.handler.validate_value('asdasd')
+            self.handler.validate_value("asdasd")
 
     def test_validation_succeeds_on_correct_values(self):
         # Arrange
-        valid_values = [
-            '+4520931217'
-            '12341234'
-            '123'
-        ]
+        valid_values = ["+4520931217" "12341234" "123"]
 
         # Act & Assert
         for value in valid_values:
@@ -129,8 +110,8 @@ class PhoneAddressHandlerTests(base.AddressHandlerTestCase):
 
     def test_validation_succeeds_with_force(self):
         # Arrange
-        value = 'GARBAGEGARBAGE'  # Not a valid phone number
+        value = "GARBAGEGARBAGE"  # Not a valid phone number
 
         # Act & Assert
-        with util.patch_query_args({'force': '1'}):
+        with util.patch_query_args({"force": "1"}):
             self.handler.validate_value(value)

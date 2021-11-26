@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-'''
+"""
 Integration data
 ----------------
 
@@ -15,7 +14,7 @@ an ERP-system.
 Inserting/editing integration data is done using the endpoints for
 inserting/updating organisational units and employees
 
-'''
+"""
 import json
 from typing import Optional
 from uuid import UUID
@@ -31,11 +30,10 @@ from .. import mapping
 router = APIRouter()
 
 
-@router.get('/ou/{unitid}/integration-data')
+@router.get("/ou/{unitid}/integration-data")
 # @util.restrictargs('at')
 async def get_org_unit_integration_data(
-    unitid: UUID,
-    only_primary_uuid: Optional[bool] = None
+    unitid: UUID, only_primary_uuid: Optional[bool] = None
 ):
     """Get organisational unit with integration data
 
@@ -71,9 +69,12 @@ async def get_org_unit_integration_data(
     unitid = str(unitid)
     c = common.get_connector()
 
-    r = await orgunit.get_one_orgunit(c, unitid,
-                                      details=orgunit.UnitDetails.INTEGRATION,
-                                      only_primary_uuid=only_primary_uuid)
+    r = await orgunit.get_one_orgunit(
+        c,
+        unitid,
+        details=orgunit.UnitDetails.INTEGRATION,
+        only_primary_uuid=only_primary_uuid,
+    )
 
     if not r:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
@@ -86,11 +87,10 @@ async def get_org_unit_integration_data(
     return r
 
 
-@router.get('/e/{employeeid}/integration-data')
+@router.get("/e/{employeeid}/integration-data")
 # @util.restrictargs('at')
 async def get_employee_integration_data(
-    employeeid: UUID,
-    only_primary_uuid: Optional[bool] = None
+    employeeid: UUID, only_primary_uuid: Optional[bool] = None
 ):
     """Get employee with integration data
 
@@ -120,9 +120,12 @@ async def get_employee_integration_data(
     employeeid = str(employeeid)
     c = common.get_connector()
 
-    r = await employee.get_one_employee(c, employeeid,
-                                        details=employee.EmployeeDetails.INTEGRATION,
-                                        only_primary_uuid=only_primary_uuid)
+    r = await employee.get_one_employee(
+        c,
+        employeeid,
+        details=employee.EmployeeDetails.INTEGRATION,
+        only_primary_uuid=only_primary_uuid,
+    )
 
     if not r:
         exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=employeeid)

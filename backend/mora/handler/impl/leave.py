@@ -3,12 +3,13 @@
 import logging
 from asyncio import create_task
 
-from mora import lora, util
-from .engagement import get_engagement
 from .. import reading
 from ... import mapping
 from ...service import employee
 from ...service import facet
+from .engagement import get_engagement
+from mora import lora
+from mora import util
 
 ROLE_TYPE = "leave"
 
@@ -26,17 +27,21 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
-                person,
-                only_primary_uuid=only_primary_uuid))
+                person, only_primary_uuid=only_primary_uuid
+            )
+        )
 
-        leave_type_task = create_task(facet.request_bulked_get_one_class(
-            leave_type,
-            only_primary_uuid=only_primary_uuid))
+        leave_type_task = create_task(
+            facet.request_bulked_get_one_class(
+                leave_type, only_primary_uuid=only_primary_uuid
+            )
+        )
 
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}

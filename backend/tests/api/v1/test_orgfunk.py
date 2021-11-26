@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from copy import deepcopy
-
 from unittest.mock import patch
 
 import freezegun
@@ -74,5 +72,5 @@ class Reading(TestCase):
                                 "2f16d140-d743-4c9f-9e0e-361da91a06f6",
                                 "3e702dd1-4103-4116-bb2d-b150aebe807d",
                             ],
-                        }
+                        },
                     )

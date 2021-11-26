@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
     settings.py
     ~~~~~~~~~~~
@@ -21,25 +20,18 @@
     $OS2MO_SYSTEM_CONFIG_PATH: config for system environment e.g. docker.
     $OS2MO_USER_CONFIG_PATH: this is where you write your configuration.
 """
-
 import copy
 import json
-
 import logging
-import pprint
 import os
+import pprint
 import sys
 
 import toml
 
 logger = logging.getLogger(__name__)
 
-DEPRECATED_SETTINGS = {
-    'log': {
-        'activity_log_path': "",
-        'trace_log_path': ""
-    }
-}
+DEPRECATED_SETTINGS = {"log": {"activity_log_path": "", "trace_log_path": ""}}
 
 
 def read_config(config_path):
@@ -125,7 +117,8 @@ def check_deprecated_settings(configuration: dict):
     intersection = dict_key_intersection(DEPRECATED_SETTINGS, configuration)
     if intersection:
         logger.warning(
-            "Deprecated key(s) in config: {}".format(json.dumps(intersection)))
+            "Deprecated key(s) in config: {}".format(json.dumps(intersection))
+        )
 
 
 def check_invalid_settings(configuration: dict):
@@ -171,30 +164,24 @@ log_config(config)
 app_config = {
     "QUERY_EXPORT_DIR": config["query_export"]["directory"],
     "TRIGGER_MODULES": config["triggers"]["modules"],
-
     # Set to 'None' specifically if unset to retain default behavior in flask
     "SERVER_NAME": config["server_name"] or None,
     "ENABLE_CORS": config["enable_cors"] or False,
-
     # serviceplatformen
     "DUMMY_MODE": config["dummy_mode"],
-    "SP_SERVICE_UUID": config['service_platformen']['uuid'],
-    "SP_SERVICE_AGREEMENT_UUID":
-        config['service_platformen']['agreement_uuid'],
-    "SP_MUNICIPALITY_UUID": config['service_platformen']['municipality_uuid'],
-    "SP_SYSTEM_UUID": config['service_platformen']['system_uuid'],
-    "SP_CERTIFICATE_PATH": config['service_platformen']['certificate_path'],
-
+    "SP_SERVICE_UUID": config["service_platformen"]["uuid"],
+    "SP_SERVICE_AGREEMENT_UUID": config["service_platformen"]["agreement_uuid"],
+    "SP_MUNICIPALITY_UUID": config["service_platformen"]["municipality_uuid"],
+    "SP_SYSTEM_UUID": config["service_platformen"]["system_uuid"],
+    "SP_CERTIFICATE_PATH": config["service_platformen"]["certificate_path"],
     # amqp
     "ENABLE_AMQP": config["amqp"]["enable"],
     "AMQP_OS2MO_EXCHANGE": config["amqp"]["os2mo_exchange"],
     "AMQP_HOST": config["amqp"]["host"],
     "AMQP_PORT": config["amqp"]["port"],
-
     # These two are *not* used by flask_saml_sso:
     "SAML_USERNAME_FROM_NAMEID": config["saml_sso"]["username_from_nameid"],
     "SAML_USERNAME_ATTR": config["saml_sso"]["username_attr"],
-
     # The remaining key/value pairs are for flask_saml_sso. flask_saml_sso has
     # many configuration parameters. The module reads its' configuration from
     # keys on the app.config object. Here is the mapping between the module's
@@ -207,12 +194,11 @@ app_config = {
     "SAML_SP_DOMAIN": config["saml_sso"]["sp_domain"],
     "SAML_NAME_ID_FORMAT": config["saml_sso"]["name_id_format"],
     "SAML_WANT_NAME_ID": config["saml_sso"]["want_name_id"],
-    "SAML_WANT_ATTRIBUTE_STATEMENT":
-        config["saml_sso"]["want_attribute_statement"],
-    "SAML_REQUESTED_AUTHN_CONTEXT":
-        config["saml_sso"]["requested_authn_context"],
-    "SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON":
-        config["saml_sso"]["requested_authn_context_comparison"],
+    "SAML_WANT_ATTRIBUTE_STATEMENT": config["saml_sso"]["want_attribute_statement"],
+    "SAML_REQUESTED_AUTHN_CONTEXT": config["saml_sso"]["requested_authn_context"],
+    "SAML_REQUESTED_AUTHN_CONTEXT_COMPARISON": config["saml_sso"][
+        "requested_authn_context_comparison"
+    ],
     "SAML_LOWERCASE_URLENCODING": config["saml_sso"]["lowercase_urlencoding"],
     "SAML_REQUESTS_SIGNED": config["saml_sso"]["requests_signed"],
     "SAML_CERT_FILE": config["saml_sso"]["cert_file"],
@@ -223,8 +209,7 @@ app_config = {
     "SAML_IDP_METADATA_FILE": config["saml_sso"]["idp_metadata_file"],
     "SAML_DUPLICATE_ATTRIBUTES": config["saml_sso"]["duplicate_attributes"],
     "SQLALCHEMY_DATABASE_URI": config["session"]["database"]["sqlalchemy_uri"],
-    "SESSION_SQLALCHEMY_TABLE":
-        config["session"]["database"]["sqlalchemy_table"],
+    "SESSION_SQLALCHEMY_TABLE": config["session"]["database"]["sqlalchemy_table"],
     "SESSIONS_DB_USER": config["session"]["database"]["user"],
     "SESSIONS_DB_PASSWORD": config["session"]["database"]["password"],
     "SESSIONS_DB_HOST": config["session"]["database"]["host"],
@@ -232,14 +217,11 @@ app_config = {
     "SESSIONS_DB_NAME": config["session"]["database"]["name"],
     "SESSION_PERMANENT": config["session"]["permanent"],
     "PERMANENT_SESSION_LIFETIME": config["session"]["permanent_lifetime"],
-    "SAML_SERVICE_SESSION_LIFETIME":
-        config["session"]["service_session_lifetime"],
+    "SAML_SERVICE_SESSION_LIFETIME": config["session"]["service_session_lifetime"],
     "SESSION_COOKIE_NAME": config["session"]["cookie_name"],
     "SAML_API_TOKEN_RESTRICT": config["saml_sso"]["api_token_restrict"],
-    "SAML_API_TOKEN_RESTRICT_ATTR":
-        config["saml_sso"]["api_token_restrict_attr"],
-    "SAML_API_TOKEN_RESTRICT_VALUE":
-        config["saml_sso"]["api_token_restrict_value"],
+    "SAML_API_TOKEN_RESTRICT_ATTR": config["saml_sso"]["api_token_restrict_attr"],
+    "SAML_API_TOKEN_RESTRICT_VALUE": config["saml_sso"]["api_token_restrict_value"],
 }
 
 # All these variables are kept for backward compatibility / to change the least
@@ -248,46 +230,45 @@ app_config = {
 # although it might be non-trivial, especially for the test suite.
 
 
-LORA_URL = config['lora']['url']
+LORA_URL = config["lora"]["url"]
 # CA_BUNDLE = config['ca_bundle']  DEPRECATED
-AUTOCOMPLETE_ACCESS_ADDRESS_COUNT = (
-    config['autocomplete']['access_address_count'])
-AUTOCOMPLETE_ADDRESS_COUNT = config['autocomplete']['address_count']
-ORGANISATION_NAME = config['organisation']['name']
-ORGANISATION_USER_KEY = config['organisation']['user_key']
-ORGANISATION_UUID = config['organisation']['uuid']
-SQLALCHEMY_DATABASE_URI = config['session']['database']['sqlalchemy_uri']
-SESSION_SQLALCHEMY_TABLE = config['session']['database']['sqlalchemy_table']
-SESSION_PERMANENT = config['session']['permanent']
-PERMANENT_SESSION_LIFETIME = config['session']['permanent_lifetime']
-SESSIONS_DB_NAME = config['session']['database']['name']
-SESSIONS_DB_USER = config['session']['database']['user']
-SESSIONS_DB_PASSWORD = config['session']['database']['password']
-SESSIONS_DB_HOST = config['session']['database']['host']
-SESSIONS_DB_PORT = config['session']['database']['port']
-SAML_AUTH_ENABLE = config['saml_sso']['enable']
-SAML_IDP_METADATA_URL = config['saml_sso']['idp_metadata_url']
-SAML_IDP_METADATA_FILE = config['saml_sso']['idp_metadata_file']
-SAML_IDP_INSECURE = config['saml_sso']['idp_insecure']
-SAML_USERNAME_FROM_NAMEID = config['saml_sso']['username_from_nameid']
-SAML_USERNAME_ATTR = config['saml_sso']['username_attr']
-SAML_KEY_FILE = config['saml_sso']['key_file']
-SAML_CERT_FILE = config['saml_sso']['cert_file']
-SAML_REQUESTS_SIGNED = config['saml_sso']['requests_signed']
-SAML_DUPLICATE_ATTRIBUTES = config['saml_sso']['duplicate_attributes']
-SAML_API_TOKEN_RESTRICT = config['saml_sso']['api_token_restrict']
-SAML_API_TOKEN_RESTRICT_ATTR = config['saml_sso']['api_token_restrict_attr']
-SAML_API_TOKEN_RESTRICT_VALUE = config['saml_sso']['api_token_restrict_value']
-SP_SERVICE_UUID = config['service_platformen']['uuid']
-SP_SERVICE_AGREEMENT_UUID = config['service_platformen']['agreement_uuid']
-SP_MUNICIPALITY_UUID = config['service_platformen']['municipality_uuid']
-SP_SYSTEM_UUID = config['service_platformen']['system_uuid']
-SP_CERTIFICATE_PATH = config['service_platformen']['certificate_path']
-DUMMY_MODE = config['dummy_mode']
-HIDE_CPR_NUMBERS = config['hide_cpr_numbers']
-QUERY_EXPORT_DIR = config['query_export']['directory']
-ENABLE_AMQP = config['amqp']['enable']
-AMQP_OS2MO_EXCHANGE = config['amqp']['os2mo_exchange']
-AMQP_HOST = config['amqp']['host']
-AMQP_PORT = config['amqp']['port']
-TRIGGER_MODULES = config['triggers']['modules']
+AUTOCOMPLETE_ACCESS_ADDRESS_COUNT = config["autocomplete"]["access_address_count"]
+AUTOCOMPLETE_ADDRESS_COUNT = config["autocomplete"]["address_count"]
+ORGANISATION_NAME = config["organisation"]["name"]
+ORGANISATION_USER_KEY = config["organisation"]["user_key"]
+ORGANISATION_UUID = config["organisation"]["uuid"]
+SQLALCHEMY_DATABASE_URI = config["session"]["database"]["sqlalchemy_uri"]
+SESSION_SQLALCHEMY_TABLE = config["session"]["database"]["sqlalchemy_table"]
+SESSION_PERMANENT = config["session"]["permanent"]
+PERMANENT_SESSION_LIFETIME = config["session"]["permanent_lifetime"]
+SESSIONS_DB_NAME = config["session"]["database"]["name"]
+SESSIONS_DB_USER = config["session"]["database"]["user"]
+SESSIONS_DB_PASSWORD = config["session"]["database"]["password"]
+SESSIONS_DB_HOST = config["session"]["database"]["host"]
+SESSIONS_DB_PORT = config["session"]["database"]["port"]
+SAML_AUTH_ENABLE = config["saml_sso"]["enable"]
+SAML_IDP_METADATA_URL = config["saml_sso"]["idp_metadata_url"]
+SAML_IDP_METADATA_FILE = config["saml_sso"]["idp_metadata_file"]
+SAML_IDP_INSECURE = config["saml_sso"]["idp_insecure"]
+SAML_USERNAME_FROM_NAMEID = config["saml_sso"]["username_from_nameid"]
+SAML_USERNAME_ATTR = config["saml_sso"]["username_attr"]
+SAML_KEY_FILE = config["saml_sso"]["key_file"]
+SAML_CERT_FILE = config["saml_sso"]["cert_file"]
+SAML_REQUESTS_SIGNED = config["saml_sso"]["requests_signed"]
+SAML_DUPLICATE_ATTRIBUTES = config["saml_sso"]["duplicate_attributes"]
+SAML_API_TOKEN_RESTRICT = config["saml_sso"]["api_token_restrict"]
+SAML_API_TOKEN_RESTRICT_ATTR = config["saml_sso"]["api_token_restrict_attr"]
+SAML_API_TOKEN_RESTRICT_VALUE = config["saml_sso"]["api_token_restrict_value"]
+SP_SERVICE_UUID = config["service_platformen"]["uuid"]
+SP_SERVICE_AGREEMENT_UUID = config["service_platformen"]["agreement_uuid"]
+SP_MUNICIPALITY_UUID = config["service_platformen"]["municipality_uuid"]
+SP_SYSTEM_UUID = config["service_platformen"]["system_uuid"]
+SP_CERTIFICATE_PATH = config["service_platformen"]["certificate_path"]
+DUMMY_MODE = config["dummy_mode"]
+HIDE_CPR_NUMBERS = config["hide_cpr_numbers"]
+QUERY_EXPORT_DIR = config["query_export"]["directory"]
+ENABLE_AMQP = config["amqp"]["enable"]
+AMQP_OS2MO_EXCHANGE = config["amqp"]["os2mo_exchange"]
+AMQP_HOST = config["amqp"]["host"]
+AMQP_PORT = config["amqp"]["port"]
+TRIGGER_MODULES = config["triggers"]["modules"]

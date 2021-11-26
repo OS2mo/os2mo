@@ -1,11 +1,18 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from asyncio import Lock
 from contextlib import asynccontextmanager
-from typing import Any, Dict, Iterable, Optional, Set, Tuple
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Optional
+from typing import Set
+from typing import Tuple
 
 from mora.common import get_connector
-from mora.lora import Connector, LoraObjectType
+from mora.lora import Connector
+from mora.lora import LoraObjectType
 
 LORA_OBJ = Dict[Any, Any]
 UUID = str
@@ -28,13 +35,11 @@ class __BulkBookkeeper:
 
         :return:
         """
-        try:
-            for lock in self.__locks.values():
-                await lock.acquire()
-
+        async with self.__global_lock:
+            locks = self.__locks.values()
+            await asyncio.gather(*(lock.acquire() for lock in locks))
             self.__raw_cache.clear()
-        finally:
-            for lock in self.__locks.values():
+            for lock in locks:
                 lock.release()
 
     async def __get_lock(self, type_: LoraObjectType) -> Lock:
@@ -61,11 +66,12 @@ class __BulkBookkeeper:
 
         self.__class__.connector = property(get_conn)
 
-        async def get_sinlge_non_cache(self, type_: LoraObjectType,
-                                       uuid: str) -> Optional[LORA_OBJ]:
-            return dict(
-                await self.__raw_get_all(type_=type_, uuids={uuid})
-            ).get(uuid, None)
+        async def get_sinlge_non_cache(
+            self, type_: LoraObjectType, uuid: str
+        ) -> Optional[LORA_OBJ]:
+            return dict(await self.__raw_get_all(type_=type_, uuids={uuid})).get(
+                uuid, None
+            )
 
         self.__class__.get_lora_object = get_sinlge_non_cache
 
@@ -75,10 +81,11 @@ class __BulkBookkeeper:
 
     @property
     def __processed_cache(self) -> Dict[LoraObjectType, Dict[UUID, Optional[LORA_OBJ]]]:
-        return self.__raw_cache.setdefault(self.__class__.__name__ + '_processed', {})
+        return self.__raw_cache.setdefault(self.__class__.__name__ + "_processed", {})
 
-    async def __raw_get_all(self, type_: LoraObjectType,
-                            uuids: Set[str]) -> Iterable[Tuple[UUID, LORA_OBJ]]:
+    async def __raw_get_all(
+        self, type_: LoraObjectType, uuids: Set[str]
+    ) -> Iterable[Tuple[UUID, LORA_OBJ]]:
         """
         get without all the caching.
         NOTE: Passing a uuid to this DOES NOT guarantee it to also be in the result.
@@ -111,12 +118,12 @@ class __BulkBookkeeper:
 
     def __add(self, type_: LoraObjectType, uuid: str):
         """
-         adds an uuid to the cache
+        adds an uuid to the cache
 
-         :param type_: type of object the uuid refers
-         :param uuid:
-         :return:
-         """
+        :param type_: type of object the uuid refers
+        :param uuid:
+        :return:
+        """
         # if already processed, skip
         if uuid in self.__processed_cache.setdefault(type_, {}):
             return
@@ -130,7 +137,7 @@ class __BulkBookkeeper:
         get used / 'current' connector
         :return:
         """
-        key = self.__class__.__name__ + '_connector'
+        key = self.__class__.__name__ + "_connector"
         # manually checking avoids creating unneeded connectors
         if key in self.__raw_cache:
             return self.__raw_cache.get(key)

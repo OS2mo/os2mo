@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from unittest.mock import patch
 
 import freezegun
@@ -9,11 +8,11 @@ import mora.async_util
 import tests.cases
 from mora import lora
 
-mock_uuid = '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5'
+mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
-@freezegun.freeze_time('2018-01-01', tz_offset=1)
-@patch('uuid.uuid4', new=lambda: mock_uuid)
+@freezegun.freeze_time("2018-01-01", tz_offset=1)
+@patch("uuid.uuid4", new=lambda: mock_uuid)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
@@ -31,12 +30,8 @@ class Tests(tests.cases.LoRATestCase):
                 "person": {
                     "uuid": userid,
                 },
-                "leave_type": {
-                    'uuid': leave_type
-                },
-                "engagement": {
-                    'uuid': engagement_uuid
-                },
+                "leave_type": {"uuid": leave_type},
+                "engagement": {"uuid": engagement_uuid},
                 "user_key": "1234",
                 "validity": {
                     "from": "2017-12-01",
@@ -45,25 +40,27 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        expected = [{
-            'engagement': {'uuid': 'd000591f-8705-4324-897a-075e3623f37b'},
-            'leave_type': {'uuid': '62ec821f-4179-4758-bfdf-134529d186e9'},
-            'person': {'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'},
-            'user_key': '1234',
-            'uuid': '1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5',
-            'validity': {'from': '2017-12-01', 'to': None}
-        }]
+        expected = [
+            {
+                "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
+                "leave_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "user_key": "1234",
+                "uuid": "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5",
+                "validity": {"from": "2017-12-01", "to": None},
+            }
+        ]
 
         self.assertRequest(
-            '/service/details/create',
+            "/service/details/create",
             json=payload,
-            amqp_topics={'employee.leave.create': 1},
+            amqp_topics={"employee.leave.create": 1},
         )
 
         actual = self.assertRequest(
-            '/service/e/{}/details/leave?only_primary_uuid=1'.format(userid),
+            "/service/e/{}/details/leave?only_primary_uuid=1".format(userid),
             amqp_topics={
-                'employee.leave.create': 1,
+                "employee.leave.create": 1,
             },
         )
 
@@ -79,14 +76,14 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/details/create',
+            "/service/details/create",
             {
-                'description': 'Missing person',
-                'error': True,
-                'error_key': 'V_MISSING_REQUIRED_VALUE',
-                'key': 'person',
-                'obj': payload[0],
-                'status': 400,
+                "description": "Missing person",
+                "error": True,
+                "error_key": "V_MISSING_REQUIRED_VALUE",
+                "key": "person",
+                "obj": payload[0],
+                "status": 400,
             },
             json=payload,
             status_code=400,
@@ -107,8 +104,7 @@ class Tests(tests.cases.LoRATestCase):
                 "person": {
                     "uuid": userid,
                 },
-                "leave_type": {
-                    'uuid': leave_type},
+                "leave_type": {"uuid": leave_type},
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -117,45 +113,43 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/details/create',
+            "/service/details/create",
             {
-                'description': 'Employee must have an active engagement.',
-                'employee': '6ee24785-ee9a-4502-81c2-7697009c9053',
-                'error': True,
-                'error_key': 'V_NO_ACTIVE_ENGAGEMENT',
-                'status': 400
+                "description": "Employee must have an active engagement.",
+                "employee": "6ee24785-ee9a-4502-81c2-7697009c9053",
+                "error": True,
+                "error_key": "V_NO_ACTIVE_ENGAGEMENT",
+                "status": 400,
             },
             json=payload,
-            status_code=400
+            status_code=400,
         )
 
     def test_edit_leave_no_overwrite(self):
         self.load_sample_structures()
 
-        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
+        leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
-        req = [{
-            "type": "leave",
-            "uuid": leave_uuid,
-            "data": {
-                "user_key": "koflagerske",
-                "leave_type": {
-                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+        req = [
+            {
+                "type": "leave",
+                "uuid": leave_uuid,
+                "data": {
+                    "user_key": "koflagerske",
+                    "leave_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+                    "engagement": {"uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"},
+                    "validity": {
+                        "from": "2018-04-01",
+                    },
                 },
-                "engagement": {
-                    'uuid': "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"
-                },
-                "validity": {
-                    "from": "2018-04-01",
-                },
-            },
-        }]
+            }
+        ]
 
         self.assertRequestResponse(
-            '/service/details/edit',
+            "/service/details/edit",
             [leave_uuid],
             json=req,
-            amqp_topics={'employee.leave.update': 1},
+            amqp_topics={"employee.leave.update": 1},
         )
 
         expected_leave = {
@@ -168,8 +162,8 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
-                        }
+                            "to": "infinity",
+                        },
                     },
                     {
                         "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
@@ -177,32 +171,29 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02"
-                        }
+                            "to": "2018-04-01 00:00:00+02",
+                        },
                     },
                 ],
-                'tilknyttedefunktioner': [
+                "tilknyttedefunktioner": [
                     {
-                        'uuid': 'd000591f-8705-4324-897a-075e3623f37b',
-                        'virkning': {
-                            'from': '2017-01-01 '
-                                    '00:00:00+01',
-                            'from_included': True,
-                            'to': '2018-04-01 '
-                                  '00:00:00+02',
-                            'to_included': False
-                        }
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2018-04-01 " "00:00:00+02",
+                            "to_included": False,
+                        },
                     },
                     {
-                        'uuid': 'd3028e2e-1d7a-48c1-ae01-d4c64e64bbab',
-                        'virkning': {
-                            'from': '2018-04-01 '
-                                    '00:00:00+02',
-                            'from_included': True,
-                            'to': 'infinity',
-                            'to_included': False
-                        }
-                    }
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "virkning": {
+                            "from": "2018-04-01 " "00:00:00+02",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False,
+                        },
+                    },
                 ],
                 "tilknyttedeorganisationer": [
                     {
@@ -211,8 +202,8 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
+                            "to": "infinity",
+                        },
                     }
                 ],
                 "tilknyttedebrugere": [
@@ -222,10 +213,10 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
+                            "to": "infinity",
+                        },
                     }
-                ]
+                ],
             },
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -236,8 +227,8 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "to_included": False,
                             "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity"
-                        }
+                            "to": "infinity",
+                        },
                     }
                 ]
             },
@@ -251,80 +242,81 @@ class Tests(tests.cases.LoRATestCase):
                             "to": "2018-04-01 00:00:00+02",
                         },
                         "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Orlov"
+                        "funktionsnavn": "Orlov",
                     },
                     {
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
                             "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity"
+                            "to": "infinity",
                         },
                         "brugervendtnoegle": "koflagerske",
-                        "funktionsnavn": "Orlov"
-                    }
+                        "funktionsnavn": "Orlov",
+                    },
                 ]
             },
         }
 
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            leave_uuid)
+            leave_uuid
+        )
 
         # drop lora-generated timestamps & users
-        del actual_leave['fratidspunkt'], actual_leave[
-            'tiltidspunkt'], actual_leave[
-            'brugerref']
+        del (
+            actual_leave["fratidspunkt"],
+            actual_leave["tiltidspunkt"],
+            actual_leave["brugerref"],
+        )
 
         self.assertEqual(expected_leave, actual_leave)
 
     def test_edit_leave(self):
         self.load_sample_structures()
 
-        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
+        leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
-        user_id = '236e0a78-11a0-4ed9-8545-6286bb8611c7'
-        req = [{
-            "type": "leave",
-            "uuid": leave_uuid,
-            "data": {
-                "leave_type": {
-                    "uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe"
+        user_id = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
+        req = [
+            {
+                "type": "leave",
+                "uuid": leave_uuid,
+                "data": {
+                    "leave_type": {"uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe"},
+                    "engagement": {"uuid": "301a906b-ef51-4d5c-9c77-386fb8410459"},
+                    "person": {"uuid": user_id},
+                    "user_key": "whatever",
+                    "validity": {
+                        "from": "2017-01-01",
+                    },
                 },
-                "engagement": {
-                    "uuid": '301a906b-ef51-4d5c-9c77-386fb8410459'
-                },
-                "person": {
-                    "uuid": user_id
-                },
-                "user_key": "whatever",
-                "validity": {
-                    "from": "2017-01-01",
-                },
-            },
-        }]
+            }
+        ]
 
         self.assertRequest(
-            '/service/details/edit',
+            "/service/details/edit",
             json=req,
-            amqp_topics={'employee.leave.update': 1},
+            amqp_topics={"employee.leave.update": 1},
         )
 
         actual = self.assertRequest(
-            '/service/e/{}/details/leave?only_primary_uuid=1'.format(user_id),
+            "/service/e/{}/details/leave?only_primary_uuid=1".format(user_id),
             amqp_topics={
-                'employee.leave.update': 1,
+                "employee.leave.update": 1,
             },
         )
 
-        expected = [{
-            'engagement': {'uuid': '301a906b-ef51-4d5c-9c77-386fb8410459'},
-            'leave_type': {'uuid': '3c791935-2cfa-46b5-a12e-66f7f54e70fe'},
-            'person': {'uuid': '236e0a78-11a0-4ed9-8545-6286bb8611c7'},
-            'user_key': 'whatever',
-            'uuid': 'b807628c-030c-4f5f-a438-de41c1f26ba5',
-            'validity': {'from': '2017-01-01', 'to': None}
-        }]
+        expected = [
+            {
+                "engagement": {"uuid": "301a906b-ef51-4d5c-9c77-386fb8410459"},
+                "leave_type": {"uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe"},
+                "person": {"uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7"},
+                "user_key": "whatever",
+                "uuid": "b807628c-030c-4f5f-a438-de41c1f26ba5",
+                "validity": {"from": "2017-01-01", "to": None},
+            }
+        ]
 
         # drop lora-generated timestamps & users
 
@@ -333,33 +325,33 @@ class Tests(tests.cases.LoRATestCase):
     def test_edit_leave_fails_when_no_active_engagement(self):
         self.load_sample_structures()
 
-        leave_uuid = 'b807628c-030c-4f5f-a438-de41c1f26ba5'
+        leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
-        req = [{
-            "type": "leave",
-            "uuid": leave_uuid,
-            "data": {
-                "leave_type": {
-                    'uuid': "bcd05828-cc10-48b1-bc48-2f0d204859b2"
+        req = [
+            {
+                "type": "leave",
+                "uuid": leave_uuid,
+                "data": {
+                    "leave_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+                    "validity": {
+                        "from": "2016-04-01",
+                        "to": "2016-04-01",
+                    },
                 },
-                "validity": {
-                    "from": "2016-04-01",
-                    "to": "2016-04-01",
-                },
-            },
-        }]
+            }
+        ]
 
         self.assertRequestResponse(
-            '/service/details/edit',
+            "/service/details/edit",
             {
-                'description': 'Employee must have an active engagement.',
-                'employee': '53181ed2-f1de-4c4a-a8fd-ab358c2c454a',
-                'error': True,
-                'error_key': 'V_NO_ACTIVE_ENGAGEMENT',
-                'status': 400
+                "description": "Employee must have an active engagement.",
+                "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "error": True,
+                "error_key": "V_NO_ACTIVE_ENGAGEMENT",
+                "status": 400,
             },
             json=req,
-            status_code=400
+            status_code=400,
         )
 
     def test_terminate_leave(self):
@@ -367,47 +359,43 @@ class Tests(tests.cases.LoRATestCase):
 
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
-        payload = {
-            "validity": {
-                "to": "2017-11-30"
-            }
-        }
+        payload = {"validity": {"to": "2017-11-30"}}
 
         self.assertRequestResponse(
-            '/service/e/{}/terminate'.format(userid),
+            "/service/e/{}/terminate".format(userid),
             userid,
             json=payload,
             amqp_topics={
-                'employee.address.delete': 1,
-                'employee.association.delete': 1,
-                'employee.engagement.delete': 1,
-                'employee.employee.delete': 1,
-                'employee.it.delete': 1,
-                'employee.leave.delete': 1,
-                'employee.manager.delete': 1,
-                'employee.role.delete': 1,
-                'org_unit.association.delete': 1,
-                'org_unit.engagement.delete': 1,
-                'org_unit.manager.delete': 1,
-                'org_unit.role.delete': 1,
+                "employee.address.delete": 1,
+                "employee.association.delete": 1,
+                "employee.engagement.delete": 1,
+                "employee.employee.delete": 1,
+                "employee.it.delete": 1,
+                "employee.leave.delete": 1,
+                "employee.manager.delete": 1,
+                "employee.role.delete": 1,
+                "org_unit.association.delete": 1,
+                "org_unit.engagement.delete": 1,
+                "org_unit.manager.delete": 1,
+                "org_unit.role.delete": 1,
             },
         )
 
         actual = self.assertRequest(
-            '/service/e/{}/details/leave?only_primary_uuid=1'.format(userid),
+            "/service/e/{}/details/leave?only_primary_uuid=1".format(userid),
             amqp_topics={
-                'employee.address.delete': 1,
-                'employee.association.delete': 1,
-                'employee.engagement.delete': 1,
-                'employee.employee.delete': 1,
-                'employee.it.delete': 1,
-                'employee.leave.delete': 1,
-                'employee.manager.delete': 1,
-                'employee.role.delete': 1,
-                'org_unit.association.delete': 1,
-                'org_unit.engagement.delete': 1,
-                'org_unit.manager.delete': 1,
-                'org_unit.role.delete': 1,
+                "employee.address.delete": 1,
+                "employee.association.delete": 1,
+                "employee.engagement.delete": 1,
+                "employee.employee.delete": 1,
+                "employee.it.delete": 1,
+                "employee.leave.delete": 1,
+                "employee.manager.delete": 1,
+                "employee.role.delete": 1,
+                "org_unit.association.delete": 1,
+                "org_unit.engagement.delete": 1,
+                "org_unit.manager.delete": 1,
+                "org_unit.role.delete": 1,
             },
         )
 
@@ -423,10 +411,9 @@ class Tests(tests.cases.LoRATestCase):
         payload = [
             {
                 "type": "leave",
-                "person": {'uuid': userid},
-                "org_unit": {'uuid': unitid},
-                "leave_type": {
-                    'uuid': "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "person": {"uuid": userid},
+                "org_unit": {"uuid": unitid},
+                "leave_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "validity": {
                     "from": "2017-12-01",
                     "to": "2017-12-01",
@@ -435,13 +422,13 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            '/service/details/create',
+            "/service/details/create",
             {
-                'description': 'User not found.',
-                'employee_uuid': '00000000-0000-0000-0000-000000000000',
-                'error': True,
-                'error_key': 'E_USER_NOT_FOUND',
-                'status': 404,
+                "description": "User not found.",
+                "employee_uuid": "00000000-0000-0000-0000-000000000000",
+                "error": True,
+                "error_key": "E_USER_NOT_FOUND",
+                "status": 404,
             },
             json=payload,
             status_code=404,

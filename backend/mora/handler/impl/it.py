@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
 import logging
 from asyncio import create_task
 
@@ -9,6 +8,7 @@ from ... import mapping
 from ...service import employee
 from ...service import itsystem
 from ...service import orgunit
+from mora import util
 
 ROLE_TYPE = "it"
 
@@ -26,26 +26,33 @@ class RoleReader(reading.OrgFunkReadingHandler):
         it_system = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
 
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
-        it_system_task = create_task(itsystem.request_bulked_get_one_itsystem(
-            it_system, only_primary_uuid=only_primary_uuid))
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
+        it_system_task = create_task(
+            itsystem.request_bulked_get_one_itsystem(
+                it_system, only_primary_uuid=only_primary_uuid
+            )
+        )
 
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(
-                    person,
-                    only_primary_uuid=only_primary_uuid))
+                    person, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         if org_unit:
-            org_unit_task = await create_task(orgunit.request_bulked_get_one_orgunit(
-                org_unit, details=orgunit.UnitDetails.MINIMAL,
-                only_primary_uuid=only_primary_uuid
-            ))
+            org_unit_task = await create_task(
+                orgunit.request_bulked_get_one_orgunit(
+                    org_unit,
+                    details=orgunit.UnitDetails.MINIMAL,
+                    only_primary_uuid=only_primary_uuid,
+                )
+            )
 
-        r = {**await base_obj,
-             mapping.ITSYSTEM: await it_system_task}
+        r = {**await base_obj, mapping.ITSYSTEM: await it_system_task}
 
         if person:
             r[mapping.PERSON] = await person_task

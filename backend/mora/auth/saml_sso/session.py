@@ -1,16 +1,19 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-import enum
-
 import datetime
+import enum
 import logging
 import pickle
 import uuid
+from functools import partial
+
 from fastapi_sqlalchemy import db
 from flask_session.sessions import SqlAlchemySession
-from functools import partial
-from sqlalchemy import Column, Integer, String, LargeBinary, DateTime
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Integer
+from sqlalchemy import LargeBinary
+from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
 from starlette.requests import Request
 

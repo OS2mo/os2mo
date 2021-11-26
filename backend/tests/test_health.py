@@ -47,7 +47,7 @@ class SessionDatabaseHealthTests(tests.cases.TestCase):
 
     @pytest.mark.xfail(reason="need auth")
     @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.session_database_health', new=lambda x: True)
+    @patch("mora.health.session_database_health", new=lambda x: True)
     def test_session_database_returns_true_if_health_check_succeeds(self):
         actual = health.session_database()
 
@@ -55,7 +55,7 @@ class SessionDatabaseHealthTests(tests.cases.TestCase):
 
     @pytest.mark.xfail(reason="need auth")
     @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.session_database_health', new=lambda x: False)
+    @patch("mora.health.session_database_health", new=lambda x: False)
     def test_session_database_returns_false_if_health_check_fails(self):
         actual = health.session_database()
 
@@ -79,23 +79,24 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 class DatasetHealthTests(tests.cases.TestCase):
     @aioresponses()
     def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(config["lora"]["url"] +
-                 "organisation/organisation?"
-                 "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
-                 payload={"results": [[]]},
-                 )
+        mock.get(
+            config["lora"]["url"] + "organisation/organisation?"
+            "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
+            payload={"results": [[]]},
+        )
         actual = health.dataset()
 
         self.assertEqual(False, actual)
 
     @aioresponses()
     def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get((config["lora"]["url"] +
-                  "organisation/organisation"
-                  "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
-                  ),
-                 payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
-                 )
+        mock.get(
+            (
+                config["lora"]["url"] + "organisation/organisation"
+                "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
+            ),
+            payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
+        )
 
         actual = health.dataset()
 
@@ -136,7 +137,7 @@ class IdPHealthTests(tests.cases.TestCase):
 
     @pytest.mark.xfail(reason="need auth")
     @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.idp_health', new=lambda x: True)
+    @patch("mora.health.idp_health", new=lambda x: True)
     def test_idp_returns_true_if_idp_reachable(self, rq_mock):
         actual = health.idp()
 
@@ -144,7 +145,7 @@ class IdPHealthTests(tests.cases.TestCase):
 
     @pytest.mark.xfail(reason="need auth")
     @util.override_config({"saml_sso": {"enable": True}})
-    @patch('mora.health.idp_health', new=lambda x: False)
+    @patch("mora.health.idp_health", new=lambda x: False)
     def test_idp_returns_false_if_request_exception(self, rq_mock):
         actual = health.idp()
 

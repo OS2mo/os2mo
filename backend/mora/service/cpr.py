@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 CPR
 ---
@@ -8,7 +7,6 @@ CPR
 This section describes functionality for retrieving information about people
 based on their CPR number.
 """
-
 from fastapi import APIRouter
 
 from .. import exceptions
@@ -18,7 +16,7 @@ from ..integrations.serviceplatformen import get_citizen
 router = APIRouter()
 
 
-@router.get('/e/cpr_lookup/')
+@router.get("/e/cpr_lookup/")
 # @util.restrictargs(required=['q'])
 def search_cpr(q: str):
     """
@@ -53,14 +51,11 @@ def search_cpr(q: str):
 
 
 def format_cpr_response(sp_data: dict, cpr: str):
-    first_name = sp_data.get('fornavn')
-    middle_name = sp_data.get('mellemnavn')
-    last_name = sp_data.get('efternavn')
+    first_name = sp_data.get("fornavn")
+    middle_name = sp_data.get("mellemnavn")
+    last_name = sp_data.get("efternavn")
 
     # Filter empty name components, and construct full name string
-    name = ' '.join(filter(None, [first_name, middle_name, last_name]))
+    name = " ".join(filter(None, [first_name, middle_name, last_name]))
 
-    return {
-        mapping.NAME: name,
-        mapping.CPR_NO: cpr
-    }
+    return {mapping.NAME: name, mapping.CPR_NO: cpr}

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """extension_field_ui_names.
 
 Revision ID: 4b81d9a86c80
@@ -9,13 +8,13 @@ Create Date: 2021-03-11 15:43:07.495180
 """
 from alembic import op
 
-from mora.conf_db.alembic.helpers.new_defaults import (add_default_fields,
-                                                       remove_default_fields)
+from mora.conf_db.alembic.helpers.new_defaults import add_default_fields
+from mora.conf_db.alembic.helpers.new_defaults import remove_default_fields
 from mora.conf_db.alembic.helpers.session import get_session
 
 # revision identifiers, used by Alembic.
-revision = '4b81d9a86c80'
-down_revision = 'd80ed6f59597'
+revision = "4b81d9a86c80"
+down_revision = "d80ed6f59597"
 branch_labels = None
 depends_on = None
 

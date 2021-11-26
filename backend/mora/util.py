@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """"
 Utility methods
 ---------------
@@ -9,7 +8,6 @@ This module contains various utility methods, i.e. a collection of
 various small functions used in many places.
 
 """
-
 import collections
 import copy
 import datetime
@@ -27,14 +25,14 @@ import typing
 import urllib.parse
 import uuid
 
-from starlette_context import context
-
 import dateutil.parser
 import dateutil.tz
-
 from mora import conf_db
+from starlette_context import context
+
 from . import exceptions
 from . import mapping
+from . import settings
 
 PLACEHOLDER = "\u2014"
 
@@ -47,7 +45,7 @@ MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
 ONE_DAY = datetime.timedelta(days=1)
 
 # TODO: the default timezone should be configurable, shouldn't it?
-DEFAULT_TIMEZONE = dateutil.tz.gettz('Europe/Copenhagen')
+DEFAULT_TIMEZONE = dateutil.tz.gettz("Europe/Copenhagen")
 
 _tzinfos = {
     None: DEFAULT_TIMEZONE,
@@ -68,7 +66,8 @@ def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
 
         if not isinstance(dt, datetime.datetime):
             dt = datetime.datetime.combine(
-                dt, datetime.time(),
+                dt,
+                datetime.time(),
             )
 
         if not dt.tzinfo:
@@ -76,15 +75,15 @@ def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
 
         return dt
 
-    elif s == 'infinity':
+    elif s == "infinity":
         return POSITIVE_INFINITY
-    elif s == '-infinity':
+    elif s == "-infinity":
         return NEGATIVE_INFINITY
 
-    if ' ' in s:
+    if " " in s:
         # the frontend doesn't escape the 'plus' in ISO 8601 dates, so
         # we get it as a space
-        s = re.sub(r' (?=\d\d:\d\d$)', '+', s)
+        s = re.sub(r" (?=\d\d:\d\d$)", "+", s)
 
     try:
         return from_iso_time(s)
@@ -97,9 +96,7 @@ def parsedatetime(s: str, default=_sentinel) -> datetime.datetime:
         if default is not _sentinel:
             return default
         else:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                'cannot parse {!r}'.format(s)
-            )
+            exceptions.ErrorCodes.E_INVALID_INPUT("cannot parse {!r}".format(s))
 
     if dt.date() == POSITIVE_INFINITY.date():
         return POSITIVE_INFINITY
@@ -117,20 +114,20 @@ def to_lora_time(s):
     dt = parsedatetime(s)
 
     if dt == POSITIVE_INFINITY:
-        return 'infinity'
+        return "infinity"
     elif dt == NEGATIVE_INFINITY:
-        return '-infinity'
+        return "-infinity"
     else:
         return dt.isoformat()
 
 
 def to_iso_time(s):
-    '''Return an ISO 8601 string representing the time and date given by `s`.
+    """Return an ISO 8601 string representing the time and date given by `s`.
 
     We always localise this to our ‘default’ timezone, since LoRA
     might be running under something silly such as UTC.
 
-    '''
+    """
     dt = parsedatetime(s)
 
     return (
@@ -141,7 +138,7 @@ def to_iso_time(s):
 
 
 def to_iso_date(s, is_end: bool = False):
-    '''Return an ISO 8601 string representing date given by ``s``.
+    """Return an ISO 8601 string representing date given by ``s``.
 
     We round times up or down, depending on whether ``is_end`` is set.
     Since the dates are *inclusive*, we round *down* for start
@@ -167,7 +164,7 @@ def to_iso_date(s, is_end: bool = False):
         >>> to_iso_date(POSITIVE_INFINITY, is_end=True)
         >>> to_iso_date(NEGATIVE_INFINITY)
 
-    '''
+    """
     dt = parsedatetime(s)
 
     if is_end and dt == POSITIVE_INFINITY:
@@ -199,7 +196,7 @@ def from_iso_time(s):
 
 
 def now() -> datetime.datetime:
-    '''Get the current time, localized to the current time zone.'''
+    """Get the current time, localized to the current time zone."""
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
@@ -266,7 +263,7 @@ def now() -> datetime.datetime:
 
 
 def is_urn(v):
-    return v and isinstance(v, str) and v.startswith('urn:')
+    return v and isinstance(v, str) and v.startswith("urn:")
 
 
 def is_uuid(v):
@@ -277,15 +274,25 @@ def is_uuid(v):
         return False
 
 
-def is_cpr_number(v):
-    try:
-        return v and len(v) == 10 and bool(get_cpr_birthdate(v))
-    except ValueError:
-        return False
+def is_cpr_number(v) -> bool:
+    config = settings.config
+    # First, check length of value given
+    len_ok = v and len(v) == 10
+
+    # Then, check birthdate
+    if config["cpr_validate_birthdate"]:
+        try:
+            birthdate_ok = bool(get_cpr_birthdate(v))
+        except (TypeError, ValueError):
+            birthdate_ok = False
+    else:
+        birthdate_ok = True
+
+    return len_ok and birthdate_ok
 
 
 def uniqueify(xs):
-    '''return the contents of xs as a list, but stable'''
+    """return the contents of xs as a list, but stable"""
     # TODO: is this fast?
     return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())
 
@@ -321,7 +328,7 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
     rest, day = divmod(rest, 100)
 
     if rest:
-        raise ValueError('invalid CPR number {}'.format(number))
+        raise ValueError("invalid CPR number {}".format(number))
 
     # see https://da.wikipedia.org/wiki/CPR-nummer :(
     if code < 4000:
@@ -334,10 +341,9 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
         century = 2000 if year <= 36 else 1900
 
     try:
-        return datetime.datetime(century + year, month, day,
-                                 tzinfo=DEFAULT_TIMEZONE)
+        return datetime.datetime(century + year, month, day, tzinfo=DEFAULT_TIMEZONE)
     except ValueError:
-        raise ValueError('invalid CPR number {}'.format(number))
+        raise ValueError("invalid CPR number {}".format(number))
 
 
 def cached(func):
@@ -348,7 +354,7 @@ def cached(func):
         except KeyError:
             wrapper.cache[args] = result = func(*args)
 
-            with open(wrapper.cache_file, 'wb') as fp:
+            with open(wrapper.cache_file, "wb") as fp:
                 marshal.dump(wrapper.cache, fp, marshal.version)
 
             return result
@@ -358,17 +364,18 @@ def cached(func):
 
     wrapper.cache_file = os.path.join(
         tempfile.gettempdir(),
-        '-'.join(
-            func.__module__.split('.') +
-            [
+        "-".join(
+            func.__module__.split(".")
+            + [
                 func.__name__,
                 str(os.getuid()),
             ],
-        ) + '.data',
+        )
+        + ".data",
     )
 
     try:
-        with open(wrapper.cache_file, 'rb') as fp:
+        with open(wrapper.cache_file, "rb") as fp:
             wrapper.cache = marshal.load(fp)
     except (IOError, EOFError):
         wrapper.cache = {}
@@ -376,13 +383,11 @@ def cached(func):
     return wrapper
 
 
-URN_SAFE = frozenset(b'abcdefghijklmnopqrstuvwxyz'
-                     b'0123456789'
-                     b'+')
+URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz" b"0123456789" b"+")
 
 
 def urnquote(s):
-    '''Quote the given string so that it may safely pass through
+    """Quote the given string so that it may safely pass through
     case-insensitive URN handling.
 
     Strictly speaking, the resulting string is not valid for a URN, as
@@ -390,25 +395,25 @@ def urnquote(s):
     digits. We add '+' and '%' to the mix so that we can roundtrip
     arbitrary text. Meh.
 
-    '''
+    """
 
     if not s:
         return ""
 
-    with io.StringIO('w') as buf:
-        for character in s.encode('utf-8'):
+    with io.StringIO("w") as buf:
+        for character in s.encode("utf-8"):
             if character in URN_SAFE:
                 buf.write(chr(character))
             else:
-                buf.write('%{:02x}'.format(character))
+                buf.write("%{:02x}".format(character))
 
         return buf.getvalue()
 
 
 # provide an alias for consistency
 urnunquote = urllib.parse.unquote
-K = typing.TypeVar('K', bound=typing.Hashable)
-V = typing.TypeVar('V')
+K = typing.TypeVar("K", bound=typing.Hashable)
+V = typing.TypeVar("V")
 D = typing.Dict[K, V]
 
 
@@ -440,7 +445,7 @@ def checked_get(
     except (LookupError, TypeError):
         exc = exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-            message='Missing {}'.format(key),
+            message="Missing {}".format(key),
             key=key,
             obj=mapping,
         )
@@ -464,7 +469,7 @@ def checked_get(
                 return default
             else:
                 exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                    message='Missing {}'.format(key),
+                    message="Missing {}".format(key),
                     key=key,
                     obj=mapping,
                 )
@@ -472,8 +477,10 @@ def checked_get(
         expected = type(default).__name__
         actual = v
         exceptions.ErrorCodes.E_INVALID_TYPE(
-            message='Invalid {!r}, expected {}, got: {}'.format(
-                key, expected, json.dumps(actual),
+            message="Invalid {!r}, expected {}, got: {}".format(
+                key,
+                expected,
+                json.dumps(actual),
             ),
             key=key,
             expected=expected,
@@ -496,16 +503,15 @@ def get_uuid(
     fallback: D = None,
     *,
     required: bool = True,
-    key: typing.Hashable = mapping.UUID
+    key: typing.Hashable = mapping.UUID,
 ) -> typing.Optional[str]:
-    v = checked_get(mapping, key, '', fallback=fallback, required=required)
+    v = checked_get(mapping, key, "", fallback=fallback, required=required)
 
     if not v and not required:
         return None
     elif not is_uuid(v):
         exceptions.ErrorCodes.E_INVALID_UUID(
-            message='Invalid uuid for {!r}: {!r}'.format(key, v),
-            obj=mapping
+            message="Invalid uuid for {!r}: {!r}".format(key, v), obj=mapping
         )
 
     return v
@@ -533,17 +539,13 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
 
 
 def get_urn(
-    mapping: D,
-    fallback: D = None,
-    *,
-    key: typing.Hashable = mapping.URN
+    mapping: D, fallback: D = None, *, key: typing.Hashable = mapping.URN
 ) -> str:
-    v = checked_get(mapping, key, '', fallback=fallback, required=True)
+    v = checked_get(mapping, key, "", fallback=fallback, required=True)
 
     if not is_urn(v):
         exceptions.ErrorCodes.E_INVALID_URN(
-            message='invalid urn for {!r}: {!r}'.format(key, v),
-            obj=mapping
+            message="invalid urn for {!r}: {!r}".format(key, v), obj=mapping
         )
 
     return v
@@ -568,13 +570,15 @@ def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
     return obj_copy
 
 
-T = typing.TypeVar('T')
+T = typing.TypeVar("T")
 
 
-def get_obj_value(obj,
-                  path: typing.Tuple[str, str],
-                  filter_fn: typing.Callable[[dict], bool] = None,
-                  default: T = None) -> typing.Optional[T]:
+def get_obj_value(
+    obj,
+    path: typing.Tuple[str, str],
+    filter_fn: typing.Callable[[dict], bool] = None,
+    default: T = None,
+) -> typing.Optional[T]:
     try:
         props = functools.reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):
@@ -592,11 +596,11 @@ def get_obj_uuid(obj, path: tuple):
 
 
 def get_effect_from(effect: dict) -> datetime.datetime:
-    return parsedatetime(effect['virkning']['from'])
+    return parsedatetime(effect["virkning"]["from"])
 
 
 def get_effect_to(effect: dict) -> datetime.datetime:
-    return parsedatetime(effect['virkning']['to'])
+    return parsedatetime(effect["virkning"]["to"])
 
 
 def get_effect_validity(effect):
@@ -646,7 +650,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
             if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                    "{!r} is not at midnight!".format(dt.isoformat()),
                 )
 
             return dt
@@ -658,7 +662,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
 
 def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
-    '''Extract the end of the validity interval in ``obj``, or otherwise
+    """Extract the end of the validity interval in ``obj``, or otherwise
     ``fallback``, and return it as a timestamp delimiting the
     corresponding interval. If neither specifies an end, assume a
     timestamp far in the future — practically infinite, in fact.
@@ -687,7 +691,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
       mora.exceptions.HTTPException: \
       400 Bad Request: '1999-12-31T13:00:00+01:00' is not at midnight!
 
-    '''
+    """
     sentinel = object()
     validity = obj.get(mapping.VALIDITY, sentinel)
 
@@ -702,7 +706,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
 
             if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    '{!r} is not at midnight!'.format(dt.isoformat()),
+                    "{!r} is not at midnight!".format(dt.isoformat()),
                 )
 
             # this is the reverse of to_iso_date, and an end date
@@ -716,14 +720,15 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         return POSITIVE_INFINITY
     else:
         exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            message='Missing {}'.format(mapping.VALIDITY),
+            message="Missing {}".format(mapping.VALIDITY),
             key=mapping.VALIDITY,
             obj=obj,
         )
 
 
-def get_validities(obj, fallback=None) -> typing.Tuple[datetime.datetime,
-                                                       datetime.datetime]:
+def get_validities(
+    obj, fallback=None
+) -> typing.Tuple[datetime.datetime, datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:
@@ -732,15 +737,11 @@ def get_validities(obj, fallback=None) -> typing.Tuple[datetime.datetime,
 
 
 def get_validity_object(start, end):
-    return {
-        mapping.FROM: to_iso_date(start),
-        mapping.TO: to_iso_date(
-            end, is_end=True)
-    }
+    return {mapping.FROM: to_iso_date(start), mapping.TO: to_iso_date(end, is_end=True)}
 
 
 def get_states(reg):
-    for tilstand in reg.get('tilstande', {}).values():
+    for tilstand in reg.get("tilstande", {}).values():
         yield from tilstand
 
 
@@ -752,18 +753,15 @@ def is_reg_valid(reg):
     :param reg: A registration object
     """
 
-    return any(
-        state.get('gyldighed') == 'Aktiv'
-        for state in get_states(reg)
-    )
+    return any(state.get("gyldighed") == "Aktiv" for state in get_states(reg))
 
 
 def is_substitute_allowed(association_type_uuid: str) -> bool:
     """
     checks whether the chosen association needs a substitute
     """
-    substitute_roles: str = conf_db.get_configuration()['substitute_roles']
-    if association_type_uuid in substitute_roles.split(','):
+    substitute_roles: str = conf_db.get_configuration()["substitute_roles"]
+    if association_type_uuid in substitute_roles.split(","):
         # chosen role does need substitute
         return True
     else:
@@ -771,7 +769,7 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
 
 
 def get_query_args():
-    return copy.deepcopy(context.get('query_args'))
+    return copy.deepcopy(context.get("query_args"))
 
 
 def get_args_flag(name: str):
@@ -783,9 +781,9 @@ def get_args_flag(name: str):
 
     """
     query_args = context.get("query_args")
-    v = query_args.get(name, '')
+    v = query_args.get(name, "")
 
-    if v.lower() in ('', '0', 'no', 'n', 'false'):
+    if v.lower() in ("", "0", "no", "n", "false"):
         return False
     else:
         return bool(v)

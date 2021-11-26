@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import logging
-from asyncio import create_task, gather
-from typing import Any, Awaitable, Dict, Iterable
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
 
 from .. import reading
 from ... import mapping
@@ -32,17 +35,17 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     @classmethod
     async def get_inherited_manager(cls, c, type, object_id):
 
-        search_fields = {
-            cls.SEARCH_FIELDS[type]: object_id
-        }
+        search_fields = {cls.SEARCH_FIELDS[type]: object_id}
 
         manager = list(await super().get(c, search_fields))
 
         if not manager:
-            only_primary_uuid = util.get_args_flag('only_primary_uuid')
+            only_primary_uuid = util.get_args_flag("only_primary_uuid")
             ou = await orgunit.get_one_orgunit(
-                c, object_id, details=orgunit.UnitDetails.FULL,
-                only_primary_uuid=only_primary_uuid
+                c,
+                object_id,
+                details=orgunit.UnitDetails.FULL,
+                only_primary_uuid=only_primary_uuid,
             )
             try:
                 parent_id = ou[mapping.PARENT][mapping.UUID]
@@ -63,36 +66,49 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
         base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(
-                    person,
-                    only_primary_uuid=only_primary_uuid))
+                    person, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         if manager_type:
             manager_type_task = create_task(
                 facet.request_bulked_get_one_class_full(
-                    manager_type,
-                    only_primary_uuid=only_primary_uuid))
+                    manager_type, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         if manager_level:
             manager_level_task = create_task(
                 facet.request_bulked_get_one_class_full(
-                    manager_level,
-                    only_primary_uuid=only_primary_uuid))
+                    manager_level, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         resp_tasks: Iterable[Awaitable] = await gather(
-            *[create_task(facet.request_bulked_get_one_class_full(
-                obj_uuid, only_primary_uuid=only_primary_uuid))
-                for obj_uuid in responsibilities])
+            *[
+                create_task(
+                    facet.request_bulked_get_one_class_full(
+                        obj_uuid, only_primary_uuid=only_primary_uuid
+                    )
+                )
+                for obj_uuid in responsibilities
+            ]
+        )
 
-        org_unit_task = create_task(orgunit.request_bulked_get_one_orgunit(
-            org_unit, details=orgunit.UnitDetails.MINIMAL,
-            only_primary_uuid=only_primary_uuid
-        ))
+        org_unit_task = create_task(
+            orgunit.request_bulked_get_one_orgunit(
+                org_unit,
+                details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         func: Dict[Any, Any] = {
             **await base_obj,

@@ -1,8 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
-from asyncio import create_task, gather
-from typing import Any, Dict, List, Optional, Tuple, Union
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 from uuid import UUID
 
 from .. import reading
@@ -10,10 +16,10 @@ from ... import lora
 from ... import mapping
 from ... import util
 from ...exceptions import ErrorCodes
-from mora.request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from mora.request_scoped.bulking import request_wide_bulk
 
 ROLE_TYPE = "engagement"
 
@@ -38,36 +44,50 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         fraction = extensions.get("fraktion", None)
 
         base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid))
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
+            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        )
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
-                userid=person,
-                only_primary_uuid=only_primary_uuid))
+                userid=person, only_primary_uuid=only_primary_uuid
+            )
+        )
 
-        org_unit_task = create_task(orgunit.request_bulked_get_one_orgunit(
-            unitid=org_unit,
-            details=orgunit.UnitDetails.MINIMAL,
-            only_primary_uuid=only_primary_uuid))
+        org_unit_task = create_task(
+            orgunit.request_bulked_get_one_orgunit(
+                unitid=org_unit,
+                details=orgunit.UnitDetails.MINIMAL,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         job_function_task = create_task(
-            facet.request_bulked_get_one_class_full(job_function,
-                                                    only_primary_uuid=only_primary_uuid)
+            facet.request_bulked_get_one_class_full(
+                job_function, only_primary_uuid=only_primary_uuid
+            )
         )
         engagement_type_task = create_task(
-            facet.request_bulked_get_one_class_full(engagement_type,
-                                                    only_primary_uuid=only_primary_uuid)
+            facet.request_bulked_get_one_class_full(
+                engagement_type, only_primary_uuid=only_primary_uuid
+            )
         )
 
         if primary:
-            primary_task = create_task(facet.request_bulked_get_one_class_full(
-                primary,
-                only_primary_uuid=only_primary_uuid))
+            primary_task = create_task(
+                facet.request_bulked_get_one_class_full(
+                    primary, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         is_primary_task = create_task(
-            cls._is_primary(request_wide_bulk.connector, person, primary,
-                            only_primary_uuid=only_primary_uuid))
+            cls._is_primary(
+                request_wide_bulk.connector,
+                person,
+                primary,
+                only_primary_uuid=only_primary_uuid,
+            )
+        )
 
         r = {
             **await base_obj,
@@ -98,10 +118,13 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         }
 
     @classmethod
-    async def _is_primary(cls, c: lora.Connector, person: str,
-                          primary: str,
-                          only_primary_uuid: bool = False
-                          ) -> Union[bool, None]:
+    async def _is_primary(
+        cls,
+        c: lora.Connector,
+        person: str,
+        primary: str,
+        only_primary_uuid: bool = False,
+    ) -> Union[bool, None]:
         """
         Calculate whether a given primary class is _the_ primary class for a
         person.
@@ -122,16 +145,22 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         if not util.get_args_flag("calculate_primary"):
             return None
 
-        objs = [obj for _, obj in
-                await cls._get_lora_object(c, {'tilknyttedebrugere': person})]
+        objs = [
+            obj
+            for _, obj in await cls._get_lora_object(c, {"tilknyttedebrugere": person})
+        ]
 
-        effect_tuples_list = await gather(*[create_task(cls._get_effects(c, obj))
-                                            for obj in objs])
+        effect_tuples_list = await gather(
+            *[create_task(cls._get_effects(c, obj)) for obj in objs]
+        )
 
         # flatten and filter
-        engagements = [effect for effect_tuples in effect_tuples_list
-                       for _, _, effect in
-                       effect_tuples if util.is_reg_valid(effect)]
+        engagements = [
+            effect
+            for effect_tuples in effect_tuples_list
+            for _, _, effect in effect_tuples
+            if util.is_reg_valid(effect)
+        ]
 
         # If only engagement
         if len(engagements) <= 1:
@@ -142,8 +171,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         ]
 
         sorted_classes = await cls._get_sorted_primary_class_list(
-            c,
-            only_primary_uuid=only_primary_uuid
+            c, only_primary_uuid=only_primary_uuid
         )
 
         for class_id, _ in sorted_classes:
@@ -151,9 +179,9 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 return class_id == primary
 
     @classmethod
-    async def _get_sorted_primary_class_list(cls, c: lora.Connector,
-                                             only_primary_uuid: bool = False
-                                             ) -> List[Tuple[str, int]]:
+    async def _get_sorted_primary_class_list(
+        cls, c: lora.Connector, only_primary_uuid: bool = False
+    ) -> List[Tuple[str, int]]:
         """
         Return a list of primary classes, sorted by priority in the "scope"
         field
@@ -163,24 +191,33 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         :return A sorted list of tuples of (uuid, scope) for all available
         primary classes
         """
-        facet_id = (await c.facet.fetch(bvn='primary_type'))[0]
+        facet_id = (await c.facet.fetch(bvn="primary_type"))[0]
 
-        classes = await gather(*[
-            create_task(facet.get_one_class_full(c, class_id, class_obj,
-                                                 only_primary_uuid=only_primary_uuid))
-            for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
-        ])
+        classes = await gather(
+            *[
+                create_task(
+                    facet.get_one_class_full(
+                        c, class_id, class_obj, only_primary_uuid=only_primary_uuid
+                    )
+                )
+                for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
+            ]
+        )
 
         # We always expect the scope value to be an int, for sorting
         try:
-            parsed_classes = [(clazz['uuid'], int(clazz['scope'])) for clazz in classes]
+            parsed_classes = [(clazz["uuid"], int(clazz["scope"])) for clazz in classes]
         except ValueError:
             raise ErrorCodes.E_INTERNAL_ERROR(
                 message="Unable to parse scope value as integer"
             )
 
         # Sort based on scope values, higher is better
-        sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True, )
+        sorted_classes = sorted(
+            parsed_classes,
+            key=lambda x: x[1],
+            reverse=True,
+        )
 
         return sorted_classes
 
@@ -192,17 +229,13 @@ async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, An
     :param uuid: uuid of engagement
     :return: First, engagement found (or None)
     """
-    engagements_task = create_task(EngagementReader.get(
-        c, {"uuid": [uuid]}
-    ))
+    engagements_task = create_task(EngagementReader.get(c, {"uuid": [uuid]}))
     engagements = await engagements_task
     if len(engagements) == 0:
         logger.warning(f"Engagement {uuid} returned no results")
         return None
 
     if len(engagements) > 1:
-        logger.warning(
-            f"Engagement {uuid} returned more than one result"
-        )
+        logger.warning(f"Engagement {uuid} returned more than one result")
 
     return engagements[0]

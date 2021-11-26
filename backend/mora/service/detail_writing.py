@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
-'''
+"""
 Writing details
 ---------------
 
@@ -13,10 +11,11 @@ For more information regarding reading relations, refer to:
 
 * http:get:`/service/(any:type)/(uuid:id)/details/`
 
-'''
+"""
 import typing
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 
 from . import handlers
 from .. import exceptions
@@ -27,7 +26,7 @@ router = APIRouter()
 
 def handle_requests(
     reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
-    request_type: mapping.RequestType
+    request_type: mapping.RequestType,
 ):
     if isinstance(reqs, dict):
         is_single_request = True
@@ -45,7 +44,7 @@ def handle_requests(
     return uuids
 
 
-@router.post('/details/create', status_code=201)
+@router.post("/details/create", status_code=201)
 # @util.restrictargs('force', 'triggerless')
 def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Creates new relations on employees and units
@@ -421,7 +420,7 @@ def create(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)
     return handle_requests(reqs, mapping.RequestType.CREATE)
 
 
-@router.post('/details/edit')
+@router.post("/details/edit")
 # @util.restrictargs('force', 'triggerless')
 def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     """Edits a relation or attribute on an employee or unit
@@ -931,10 +930,10 @@ def edit(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
     return handle_requests(reqs, mapping.RequestType.EDIT)
 
 
-@router.post('/details/terminate')
+@router.post("/details/terminate")
 # @util.restrictargs('force', 'triggerless')
 def terminate(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...)):
-    '''Terminate a relation as of a given day.
+    """Terminate a relation as of a given day.
 
     .. :quickref: Writing; Terminate relation
 
@@ -974,6 +973,6 @@ def terminate(reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(.
 
       "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
 
-    '''
+    """
 
     return handle_requests(reqs, mapping.RequestType.TERMINATE)

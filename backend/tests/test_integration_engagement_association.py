@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import copy
 
 import freezegun
@@ -184,9 +183,9 @@ class Tests(LoRATestCase):
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
-        actual_association = mora.async_util.async_to_sync(
-            c.organisationfunktion.get
-        )(associationid)
+        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+            associationid
+        )
 
         self.assertRegistrationsEqual(expected, actual_association)
 
@@ -224,7 +223,7 @@ class Tests(LoRATestCase):
             "/service/details/create",
             {
                 "description": "The employee already has an active "
-                               "association with the given org unit.",
+                "association with the given org unit.",
                 "error": True,
                 "error_key": "V_MORE_THAN_ONE_ASSOCIATION",
                 "existing": [
@@ -263,9 +262,11 @@ class Tests(LoRATestCase):
         #  ##### EDIT
         engagement_association_type_uuid2 = "51cc63b8-d8d1-4b74-95df-7c105c9c88dd"
         payload_data = payload[0]
-        edit_payload = {"type": payload_data.pop("type"),
-                        "uuid": payload_data.pop("uuid"),
-                        "data": payload_data}
+        edit_payload = {
+            "type": payload_data.pop("type"),
+            "uuid": payload_data.pop("uuid"),
+            "data": payload_data,
+        }
         payload_data["engagement_association_type"] = {
             "example": None,
             "name": "k2",
@@ -332,9 +333,7 @@ class Tests(LoRATestCase):
         payload = {
             "type": "engagement_association",
             "uuid": association_uuid,
-            "validity": {
-                "to": new_valid_to
-            }
+            "validity": {"to": new_valid_to},
         }
 
         # ### TERMINATE
