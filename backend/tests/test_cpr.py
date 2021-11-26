@@ -12,6 +12,7 @@ from . import util
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @util.mock(real_http=True)
+@util.override_app_config(cpr_validate_birthdate=True)
 class Tests(tests.cases.TestCase):
     maxDiff = None
 
