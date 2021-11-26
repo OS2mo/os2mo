@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Organisation
 ------------
 
 This section describes how to interact with organisations.
 """
-
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from uuid import UUID
 
 from fastapi import APIRouter

@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """
 Writing details
 ---------------
@@ -16,7 +14,8 @@ For more information regarding reading relations, refer to:
 """
 import typing
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 
 from . import handlers
 from .. import exceptions

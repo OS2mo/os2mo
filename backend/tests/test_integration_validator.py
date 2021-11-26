@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import datetime
 
 from mock import patch
-from tests import util
 
 import mora.async_util
 import tests.cases
@@ -12,6 +10,7 @@ from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
+from tests import util
 
 
 class TestHelper(tests.cases.LoRATestCase):

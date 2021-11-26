@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import logging
-from asyncio import create_task, gather
-from typing import Any, Awaitable, Dict, Iterable
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
 
 from .. import reading
 from ... import mapping

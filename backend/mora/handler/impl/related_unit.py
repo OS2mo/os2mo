@@ -1,13 +1,18 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
 import logging
 from asyncio import gather
-from typing import Any, Awaitable, Dict, Iterable, TypeVar, Union
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
+from typing import TypeVar
+from typing import Union
 
 from .. import reading
 from ... import mapping
 from ...service import orgunit
+from mora import util
 
 ROLE_TYPE = "related_unit"
 

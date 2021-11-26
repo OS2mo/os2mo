@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Authentication
 --------------
@@ -10,6 +9,7 @@ progress.
 
 """
 import os
+
 from fastapi import APIRouter
 from starlette.requests import Request
 

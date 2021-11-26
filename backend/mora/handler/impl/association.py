@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
-from asyncio import create_task, gather
-from typing import Any, Dict, Iterable, List
-
-from mora import exceptions
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import List
 
 from .. import reading
 from ... import mapping
@@ -12,6 +14,7 @@ from ... import util
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from mora import exceptions
 
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}

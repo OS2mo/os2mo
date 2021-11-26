@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import datetime
 import unittest
 
@@ -9,11 +8,11 @@ import yarl
 
 import mora.async_util
 import tests.cases
+from . import util
 from mora import lora
 from mora import settings
 from mora import util as mora_util
 from mora.service.validation import validator
-from . import util
 
 
 class TestIsDateRangeValid(tests.cases.TestCase):

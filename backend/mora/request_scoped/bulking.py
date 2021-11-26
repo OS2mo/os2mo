@@ -2,10 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Lock
 from contextlib import asynccontextmanager
-from typing import Any, Dict, Iterable, Optional, Set, Tuple
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Optional
+from typing import Set
+from typing import Tuple
 
 from mora.common import get_connector
-from mora.lora import Connector, LoraObjectType
+from mora.lora import Connector
+from mora.lora import LoraObjectType
 
 LORA_OBJ = Dict[Any, Any]
 UUID = str

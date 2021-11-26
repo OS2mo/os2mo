@@ -2,17 +2,20 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
-from unittest.mock import patch
-
 from time import sleep
 from unittest.case import TestCase
+from unittest.mock import patch
 
 from starlette.testclient import TestClient
 
-from mora import app, conf_db, service, settings
+from mora import app
+from mora import conf_db
+from mora import service
+from mora import settings
 from mora.async_util import async_to_sync
 from mora.request_scoped.bulking import request_wide_bulk
-from tests.util import _mox_testing_api, load_sample_structures
+from tests.util import _mox_testing_api
+from tests.util import load_sample_structures
 
 
 class _BaseTestCase(TestCase):

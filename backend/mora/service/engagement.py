@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """Engagements
 -----------
 
@@ -12,18 +10,20 @@ employees and organisational units.
 import uuid
 from itertools import chain
 
-from more_itertools import partition, repeatfunc, take
+from more_itertools import partition
+from more_itertools import repeatfunc
+from more_itertools import take
 
 import mora.async_util
 from . import handlers
 from . import org
-from .address import AddressRequestHandler
-from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger
+from .address import AddressRequestHandler
+from .validation import validator
 
 
 class EngagementRequestHandler(handlers.OrgFunkRequestHandler):

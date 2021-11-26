@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """This module provides infrastructure for registering and invoking
 handlers for the various detail types.
 
 """
-
 import abc
 import inspect
 import logging
@@ -17,7 +15,8 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..mapping import EventType, RequestType
+from ..mapping import EventType
+from ..mapping import RequestType
 from ..triggers import Trigger
 
 # The handler mappings are populated by each individual active

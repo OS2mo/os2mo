@@ -4,7 +4,10 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, FastAPI, HTTPException as FastAPIHTTPException, Depends
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -13,19 +16,27 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 
-from mora import __version__, health, log
-from mora.auth import base, saml_sso
-from mora.integrations import serviceplatformen
-from mora.request_scoped.bulking import request_wide_bulk
-from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
-from tests.util import setup_test_routing
-from . import exceptions, lora, service
+from . import exceptions
+from . import lora
+from . import service
 from . import triggers
 from .api.v1 import read_orgfunk
 from .auth.saml_sso import check_saml_authentication
 from .auth.saml_sso.session import SessionInterface
-from .exceptions import ErrorCodes, HTTPException, http_exception_to_json_response
-from .settings import config, app_config
+from .exceptions import ErrorCodes
+from .exceptions import http_exception_to_json_response
+from .exceptions import HTTPException
+from .settings import app_config
+from .settings import config
+from mora import __version__
+from mora import health
+from mora import log
+from mora.auth import base
+from mora.auth import saml_sso
+from mora.integrations import serviceplatformen
+from mora.request_scoped.bulking import request_wide_bulk
+from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
+from tests.util import setup_test_routing
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")

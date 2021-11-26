@@ -1,14 +1,18 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from typing import Any, Dict, Union
-from typing import List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from fastapi import APIRouter
 from starlette.datastructures import ImmutableMultiDict
 
-from mora import common, mapping, util
+from mora import common
+from mora import mapping
+from mora import util
 from mora.exceptions import ErrorCodes
 from mora.handler.reading import get_handler_for_type
 from mora.lora import Connector

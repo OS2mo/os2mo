@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-import logging
 import json
+import logging
+
 import pika
+
 from mora import exceptions
-from mora import util
 from mora import mapping
 from mora import settings
 from mora import triggers
+from mora import util
 
 logger = logging.getLogger("amqp")
 _amqp_connection = {}

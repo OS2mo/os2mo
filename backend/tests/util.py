@@ -19,7 +19,9 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from yarl import URL
 
-from mora import conf_db, lora, settings
+from mora import conf_db
+from mora import lora
+from mora import settings
 from mora.exceptions import ImproperlyConfigured
 
 TESTS_DIR = os.path.dirname(__file__)

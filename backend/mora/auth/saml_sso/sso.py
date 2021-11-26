@@ -1,18 +1,19 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from urllib import parse
-
 import contextlib
 import logging
 import os
-from fastapi import APIRouter, Request
+from urllib import parse
+
+from fastapi import APIRouter
+from fastapi import Request
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.constants import OneLogin_Saml2_Constants
 from onelogin.saml2.response import OneLogin_Saml2_Response
 from onelogin.saml2.settings import OneLogin_Saml2_Settings
 from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import RedirectResponse
+from starlette.responses import Response
 
 from . import session
 from . import settings

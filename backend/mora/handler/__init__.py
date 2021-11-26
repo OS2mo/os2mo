@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from .impl import address  # noqa
 from .impl import association  # noqa
 from .impl import employee  # noqa

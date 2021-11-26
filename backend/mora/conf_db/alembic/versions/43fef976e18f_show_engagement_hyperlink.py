@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """show_engagement_hyperlink.
 
 Revision ID: 43fef976e18f
@@ -9,10 +8,8 @@ Create Date: 2021-03-16 14:50:32.842955
 """
 from alembic import op
 
-from mora.conf_db.alembic.helpers.new_defaults import (
-    add_default_fields,
-    remove_default_fields,
-)
+from mora.conf_db.alembic.helpers.new_defaults import add_default_fields
+from mora.conf_db.alembic.helpers.new_defaults import remove_default_fields
 from mora.conf_db.alembic.helpers.session import get_session
 
 # revision identifiers, used by Alembic.

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import logging
+
 from fastapi_sqlalchemy import db
 from requests import RequestException
 from sqlalchemy.exc import SQLAlchemyError

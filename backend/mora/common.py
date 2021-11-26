@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Common LoRA logic
 -----------------
 
@@ -10,7 +9,6 @@ similar to py:module:`mora.util`, they aren't mere utility methods, and
 can have deep knowledge of how we expect LoRA to behave.
 
 """
-
 import collections
 import copy
 import datetime

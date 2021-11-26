@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import enum
 import functools
 import operator
 import typing
 
-from os2mo_http_trigger_protocol import EventType, RequestType  # noqa: F401
+from os2mo_http_trigger_protocol import EventType
+from os2mo_http_trigger_protocol import RequestType
 
 # Common
 

@@ -1,23 +1,22 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from __future__ import generator_stop
-
-import math
 
 import asyncio
 import logging
+import math
 import re
 import typing
 import uuid
-from asyncio import create_task, gather
-from enum import Enum, unique
-
-from aiohttp import ClientSession
+from asyncio import create_task
+from asyncio import gather
+from enum import Enum
+from enum import unique
 from functools import partial
 from itertools import starmap
 
 import lora_utils
+from aiohttp import ClientSession
 from more_itertools import chunked
 
 from . import exceptions

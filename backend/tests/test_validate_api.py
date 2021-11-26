@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from mock import MagicMock, patch
+from mock import MagicMock
+from mock import patch
 
 import tests.cases
 from mora import util as mora_util

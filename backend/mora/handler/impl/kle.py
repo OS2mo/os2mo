@@ -1,13 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
 import logging
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 
 from .. import reading
 from ... import mapping
 from ...service import facet
 from ...service import orgunit
+from mora import util
 
 ROLE_TYPE = "kle"
 

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
     settings.py
     ~~~~~~~~~~~
@@ -21,13 +20,11 @@
     $OS2MO_SYSTEM_CONFIG_PATH: config for system environment e.g. docker.
     $OS2MO_USER_CONFIG_PATH: this is where you write your configuration.
 """
-
 import copy
 import json
-
 import logging
-import pprint
 import os
+import pprint
 import sys
 
 import toml

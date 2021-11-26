@@ -1,21 +1,21 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import collections
 import re
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 from uuid import UUID
 
 import requests
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
+from fastapi import Query
 
 import mora.async_util
 from . import facet
 from . import handlers
 from . import org
-from .address_handler import base
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -24,6 +24,8 @@ from .. import settings
 from .. import util
 from ..triggers import Trigger
 from ..util import ensure_list
+from .address_handler import base
+from .validation import validator
 
 session = requests.Session()
 session.headers = {

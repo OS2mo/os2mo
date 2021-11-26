@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """
 IT Systems
 ----------
@@ -9,25 +7,28 @@ IT Systems
 This section describes how to interact with IT systems.
 
 """
-
 import itertools
-from typing import Any, Awaitable, Dict, Optional
-from uuid import UUID, uuid4
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 from fastapi import APIRouter
 
 import mora.async_util
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
-from mora.request_scoped.bulking import request_wide_bulk
 from ..triggers import Trigger
+from .validation import validator
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 

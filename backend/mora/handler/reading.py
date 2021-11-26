@@ -1,15 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import abc
 import json
 import logging
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from inspect import isawaitable
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Tuple
 
-from .. import exceptions, util
+from .. import exceptions
 from .. import mapping
+from .. import util
 from ..lora import Connector
 
 logger = logging.getLogger(__name__)

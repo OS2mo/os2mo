@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """
 Employees
 ---------
@@ -16,18 +14,21 @@ import copy
 import enum
 import uuid
 from functools import partial
-from operator import contains, itemgetter
-from typing import Any, Awaitable, Dict, Union
+from operator import contains
+from operator import itemgetter
+from typing import Any
+from typing import Awaitable
+from typing import Dict
 from typing import Optional
+from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 
 import mora.async_util
-from mora.request_scoped.bulking import request_wide_bulk
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -36,6 +37,8 @@ from .. import util
 from ..lora import LoraObjectType
 from ..settings import app_config
 from ..triggers import Trigger
+from .validation import validator
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 

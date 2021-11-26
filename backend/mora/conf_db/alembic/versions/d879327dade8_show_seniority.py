@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """show_seniority.
 
 Revision ID: d879327dade8
@@ -9,10 +8,8 @@ Create Date: 2021-03-31 12:33:30.208757
 """
 from alembic import op
 
-from mora.conf_db.alembic.helpers.new_defaults import (
-    add_default_fields,
-    remove_default_fields,
-)
+from mora.conf_db.alembic.helpers.new_defaults import add_default_fields
+from mora.conf_db.alembic.helpers.new_defaults import remove_default_fields
 from mora.conf_db.alembic.helpers.session import get_session
 
 # revision identifiers, used by Alembic.

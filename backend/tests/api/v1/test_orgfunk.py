@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from copy import deepcopy
-
 from unittest.mock import patch
 
 import freezegun

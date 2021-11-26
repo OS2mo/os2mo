@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-
-
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import io
 import os
 import re

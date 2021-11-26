@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
 import logging
 from asyncio import create_task
 
-from .engagement import get_engagement
 from .. import reading
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
@@ -12,6 +10,8 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.address_handler import base
+from .engagement import get_engagement
+from mora import util
 
 ROLE_TYPE = "address"
 

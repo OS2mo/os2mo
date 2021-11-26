@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from tests.cases import ConfigTestCase
-
 from mora import settings
 from mora.conf_db import set_configuration
+from tests.cases import ConfigTestCase
 
 
 class Tests(ConfigTestCase):

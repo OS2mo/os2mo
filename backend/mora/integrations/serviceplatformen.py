@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
+import pathlib
 import random
 
-import service_person_stamdata_udvidet
-import pathlib
 import requests
-from .. import util
+import service_person_stamdata_udvidet
+
 from .. import exceptions
 from .. import settings
+from .. import util
 
 logger = logging.getLogger(__name__)
 

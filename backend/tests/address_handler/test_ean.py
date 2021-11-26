@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from tests import util
 from unittest.mock import patch
 
 import mora.async_util
+from . import base
 from mora import exceptions
 from mora.service.address_handler import ean
-from . import base
+from tests import util
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
