@@ -39,9 +39,17 @@ class _BaseTestCase(TestCase):
     def lora_url(self):
         return settings.LORA_URL
 
-    def assertRequest(self, path, status_code=None, message=None, *,
-                      drop_keys=(), amqp_topics=(), **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequest(
+        self,
+        path,
+        status_code=None,
+        message=None,
+        *,
+        drop_keys=(),
+        amqp_topics=(),
+        **kwargs,
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -54,10 +62,10 @@ class _BaseTestCase(TestCase):
         :return: The result of the request, as a string or object, if
                  JSON.
 
-        '''
+        """
         r = self.request(path, **kwargs)
 
-        if r.headers.get('content-type') == 'application/json':
+        if r.headers.get("content-type") == "application/json":
             actual = r.json()
         else:
             print(r.headers, r.content, r.raw)
@@ -71,7 +79,7 @@ class _BaseTestCase(TestCase):
 
         if status_code is None:
             if message is None:
-                message = 'status of {!r} was {}, not 2xx'.format(
+                message = "status of {!r} was {}, not 2xx".format(
                     path,
                     r.status_code,
                 )
@@ -83,7 +91,7 @@ class _BaseTestCase(TestCase):
 
         else:
             if message is None:
-                message = 'status of {!r} was {}, not {}'.format(
+                message = "status of {!r} was {}, not {}".format(
                     path,
                     r.status_code,
                     status_code,
@@ -91,7 +99,7 @@ class _BaseTestCase(TestCase):
 
             if r.status_code != status_code:
                 ppa = pprint.pformat(actual)
-                print(f'actual response:\n{ppa}')
+                print(f"actual response:\n{ppa}")
 
                 self.fail(message)
 
@@ -103,9 +111,10 @@ class _BaseTestCase(TestCase):
 
         return actual
 
-    def assertRequestResponse(self, path, expected, message=None,
-                              amqp_topics=(), **kwargs):
-        '''Issue a request and assert that it succeeds (and does not
+    def assertRequestResponse(
+        self, path, expected, message=None, amqp_topics=(), **kwargs
+    ):
+        """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -115,10 +124,11 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        actual = self.assertRequest(path, message=message,
-                                    amqp_topics=amqp_topics, **kwargs)
+        actual = self.assertRequest(
+            path, message=message, amqp_topics=amqp_topics, **kwargs
+        )
 
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
@@ -126,7 +136,7 @@ class _BaseTestCase(TestCase):
         self.assertEqual(expected, actual, message)
 
     def assertRequestFails(self, path, code, message=None, **kwargs):
-        '''Issue a request and assert that it fails with the given status.
+        """Issue a request and assert that it fails with the given status.
 
         ``**kwargs`` is passed directly to the test client -- see the
         documentation for :py:class:`werkzeug.test.EnvironBuilder` for
@@ -135,20 +145,19 @@ class _BaseTestCase(TestCase):
         One addition is that we support a ``json`` argument that
         automatically posts the given JSON data.
 
-        '''
+        """
 
-        self.assertRequest(path, message=message, status_code=code,
-                           **kwargs)
+        self.assertRequest(path, message=message, status_code=code, **kwargs)
 
     def request(self, path, **kwargs):
-        if 'json' in kwargs:
+        if "json" in kwargs:
             # "In the face of ambiguity, refuse the temptation to guess."
             # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({'method', 'data', 'headers'})
+            assert kwargs.keys().isdisjoint({"method", "data", "headers"})
 
             # kwargs['method'] = 'POST'
-            kwargs['data'] = json.dumps(kwargs.pop('json'), indent=2)
-            kwargs['headers'] = {'Content-Type': 'application/json'}
+            kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
+            kwargs["headers"] = {"Content-Type": "application/json"}
             return self.client.post(path, **kwargs)
 
         return self.client.get(path, **kwargs)
@@ -163,10 +172,7 @@ class _BaseTestCase(TestCase):
 
         """
         if isinstance(obj, dict):
-            return {
-                k: TestCase.__sort_inner_lists(v)
-                for k, v in obj.items()
-            }
+            return {k: TestCase.__sort_inner_lists(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return sorted(
                 map(TestCase.__sort_inner_lists, obj),
@@ -178,7 +184,7 @@ class _BaseTestCase(TestCase):
     def assertRegistrationsEqual(self, expected, actual, message=None):
 
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -193,7 +199,7 @@ class _BaseTestCase(TestCase):
 
     def assertRegistrationsNotEqual(self, expected, actual, message=None):
         # drop lora-generated timestamps & users
-        for k in 'fratidspunkt', 'tiltidspunkt', 'brugerref':
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
             expected.pop(k, None)
             actual.pop(k, None)
 
@@ -222,16 +228,16 @@ class MockRequestContextTestCase(TestCase):
         # take place in a request
         # It looks iffy, and it is, but the _real_ solution would be to rewrite the
         # relevant code to not depend on a global request context
-        patcher = patch('mora.util.context', new={'query_args': {}})
+        patcher = patch("mora.util.context", new={"query_args": {}})
         patcher.start()
         self.addCleanup(patcher.stop)
         super().setUp()
 
 
 class LoRATestCase(_BaseTestCase):
-    '''Base class for LoRA testcases; the test creates an empty LoRA
+    """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
-    '''
+    """
 
     @async_to_sync
     async def load_sample_structures(self, minimal=False):
@@ -258,7 +264,7 @@ class ConfigTestCase(LoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
-        conf_db.set_configuration({'org_units': dict(conf)})
+        conf_db.set_configuration({"org_units": dict(conf)})
 
     @classmethod
     def setUpClass(cls):

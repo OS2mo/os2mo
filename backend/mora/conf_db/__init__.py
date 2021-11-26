@@ -19,7 +19,7 @@ from mora.settings import config
 
 logger = logging.getLogger("mo_configuration")
 
-SUBSTITUTE_ROLES = 'substitute_roles'
+SUBSTITUTE_ROLES = "substitute_roles"
 
 Base = declarative_base()
 
@@ -101,8 +101,8 @@ def create_db_table():
 
     # Set up Alembic config
     base_path = Path("backend/mora/conf_db")
-    ini = Path('alembic.ini')
-    alembic_dir = Path('alembic')
+    ini = Path("alembic.ini")
+    alembic_dir = Path("alembic")
     ini_path = base_path / ini
     alembic_path = base_path / alembic_dir
     alembic_cfg = AlembicConfig(file_=str(ini_path))
@@ -140,22 +140,16 @@ def get_configuration(unitid=None):
         return setting, value
 
     with _get_session() as session:
-        query = select([Config.setting, Config.value]).where(
-            Config.object == unitid
-        )
+        query = select([Config.setting, Config.value]).where(Config.object == unitid)
         result = session.execute(query)
         result = starmap(convert_bool, result)
         configuration = dict(result)
-        logger.debug(
-            "Read: Unit: {}, configuration: {}".format(unitid, configuration)
-        )
+        logger.debug("Read: Unit: {}, configuration: {}".format(unitid, configuration))
         return configuration
 
 
 def set_configuration(configuration, unitid=None):
-    logger.debug(
-        "Write: Unit: {}, configuration: {}".format(unitid, configuration)
-    )
+    logger.debug("Write: Unit: {}, configuration: {}".format(unitid, configuration))
     configuration = configuration["org_units"]
 
     with _get_session() as session:

@@ -215,14 +215,16 @@ def uuid_func_factory(orgfunk: MoOrgFunk):
         validity: Optional[Any] = None,
         only_primary_uuid: Optional[Any] = None,
     ):
-        if not set(util.get_query_args()) <= {"at", "validity", mapping.UUID,
-                                              "only_primary_uuid"}:
+        if not set(util.get_query_args()) <= {
+            "at",
+            "validity",
+            mapping.UUID,
+            "only_primary_uuid",
+        }:
             raise ErrorCodes.E_INVALID_INPUT()
         args = to_dict(util.get_query_args())
         args[mapping.UUID] = ensure_list(args[mapping.UUID])
-        return await orgfunk_endpoint(
-            orgfunk_type=orgfunk, query_args=args
-        )
+        return await orgfunk_endpoint(orgfunk_type=orgfunk, query_args=args)
 
     get_orgfunk_by_uuid.__name__ = f"get_{orgfunk.value}_by_uuid"
     return get_orgfunk_by_uuid

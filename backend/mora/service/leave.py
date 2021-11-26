@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''
+"""
 Leave
 -----
 
 This section describes how to interact with employee leave.
 
-'''
+"""
 import uuid
 
 import mora.async_util
@@ -30,11 +30,13 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
-        org_uuid = (mora.async_util.async_to_sync(org.get_configured_organisation)(
-            util.get_mapping_uuid(req, mapping.ORG, required=False)))["uuid"]
+        org_uuid = (
+            mora.async_util.async_to_sync(org.get_configured_organisation)(
+                util.get_mapping_uuid(req, mapping.ORG, required=False)
+            )
+        )["uuid"]
 
-        leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE,
-                                                required=True)
+        leave_type_uuid = util.get_mapping_uuid(req, mapping.LEAVE_TYPE, required=True)
 
         engagement_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT)
         valid_from, valid_to = util.get_validities(req)
@@ -44,13 +46,11 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-            employee,
-            valid_from,
-            valid_to)
+            employee, valid_from, valid_to
+        )
         mora.async_util.async_to_sync(validator.does_employee_have_active_engagement)(
-            employee_uuid,
-            valid_from,
-            valid_to)
+            employee_uuid, valid_from, valid_to
+        )
 
         leave = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.LEAVE_KEY,
@@ -69,34 +69,36 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = employee_uuid
 
     def prepare_edit(self, req: dict):
-        leave_uuid = req.get('uuid')
+        leave_uuid = req.get("uuid")
         # Get the current org-funktion which the user wants to change
-        c = lora.Connector(virkningfra='-infinity', virkningtil='infinity')
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=leave_uuid)
+            uuid=leave_uuid
+        )
 
-        data = req.get('data')
+        data = req.get("data")
         new_from, new_to = util.get_validities(data)
 
         payload = dict()
-        payload['note'] = 'Rediger orlov'
+        payload["note"] = "Rediger orlov"
 
-        original_data = req.get('original')
+        original_data = req.get("original")
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
             payload = common.inactivate_old_interval(
-                old_from, old_to, new_from, new_to, payload,
-                ('tilstande', 'organisationfunktiongyldighed')
+                old_from,
+                old_to,
+                new_from,
+                new_to,
+                payload,
+                ("tilstande", "organisationfunktiongyldighed"),
             )
 
         update_fields = list()
 
         # Always update gyldighed
-        update_fields.append((
-            mapping.ORG_FUNK_GYLDIGHED_FIELD,
-            {'gyldighed': "Aktiv"}
-        ))
+        update_fields.append((mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
@@ -105,61 +107,66 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes['brugervendtnoegle'] = util.checked_get(
-                data, mapping.USER_KEY, "")
+            new_attributes["brugervendtnoegle"] = util.checked_get(
+                data, mapping.USER_KEY, ""
+            )
 
         if new_attributes:
-            update_fields.append((
-                mapping.ORG_FUNK_EGENSKABER_FIELD,
-                {
-                    **attributes,
-                    **new_attributes
-                },
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_FUNK_EGENSKABER_FIELD,
+                    {**attributes, **new_attributes},
+                )
+            )
 
         if mapping.LEAVE_TYPE in data:
-            update_fields.append((
-                mapping.ORG_FUNK_TYPE_FIELD,
-                {'uuid': util.get_mapping_uuid(data, mapping.LEAVE_TYPE)},
-            ))
+            update_fields.append(
+                (
+                    mapping.ORG_FUNK_TYPE_FIELD,
+                    {"uuid": util.get_mapping_uuid(data, mapping.LEAVE_TYPE)},
+                )
+            )
 
         if mapping.ENGAGEMENT in data:
-            update_fields.append((
-                mapping.ASSOCIATED_FUNCTION_FIELD,
-                {'uuid': util.get_mapping_uuid(data, mapping.ENGAGEMENT)},
-            ))
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    {"uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT)},
+                )
+            )
 
         if mapping.PERSON in data:
             employee = data.get(mapping.PERSON)
             employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
 
-            update_fields.append((
-                mapping.USER_FIELD,
-                {'uuid': employee_uuid},
-            ))
+            update_fields.append(
+                (
+                    mapping.USER_FIELD,
+                    {"uuid": employee_uuid},
+                )
+            )
         else:
-            employee = util.get_obj_value(
-                original, mapping.USER_FIELD.path)[-1]
-            employee_uuid = util.get_obj_uuid(original,
-                                              mapping.USER_FIELD.path)
+            employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
+            employee_uuid = util.get_obj_uuid(original, mapping.USER_FIELD.path)
 
-        payload = common.update_payload(new_from, new_to, update_fields,
-                                        original,
-                                        payload)
+        payload = common.update_payload(
+            new_from, new_to, update_fields, original, payload
+        )
 
         bounds_fields = list(
-            mapping.LEAVE_FIELDS.difference({x[0] for x in update_fields}))
-        payload = common.ensure_bounds(new_from, new_to, bounds_fields,
-                                       original, payload)
+            mapping.LEAVE_FIELDS.difference({x[0] for x in update_fields})
+        )
+        payload = common.ensure_bounds(
+            new_from, new_to, bounds_fields, original, payload
+        )
 
         mora.async_util.async_to_sync(validator.is_date_range_in_employee_range)(
-            employee,
-            new_from,
-            new_to)
+            employee, new_from, new_to
+        )
 
         mora.async_util.async_to_sync(validator.does_employee_have_active_engagement)(
-            employee_uuid, new_from,
-            new_to)
+            employee_uuid, new_from, new_to
+        )
 
         self.payload = payload
         self.uuid = leave_uuid

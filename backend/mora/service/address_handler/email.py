@@ -9,8 +9,8 @@ from ... import exceptions
 
 
 class EmailAddressHandler(base.AddressHandler):
-    scope = 'EMAIL'
-    prefix = 'urn:mailto:'
+    scope = "EMAIL"
+    prefix = "urn:mailto:"
 
     @property
     def href(self):

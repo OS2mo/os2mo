@@ -13,7 +13,7 @@ logger = logging.getLogger("mo_configuration")
 router = APIRouter()
 
 
-@router.post('/ou/{unitid}/configuration')
+@router.post("/ou/{unitid}/configuration")
 def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
     """Set a configuration setting for an ou.
 
@@ -39,7 +39,7 @@ def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)):
     return conf_db.set_configuration(configuration, unitid)
 
 
-@router.get('/ou/{unitid}/configuration')
+@router.get("/ou/{unitid}/configuration")
 def get_org_unit_configuration(unitid: UUID):
     """Read configuration settings for an ou.
 
@@ -56,7 +56,7 @@ def get_org_unit_configuration(unitid: UUID):
     return configuration
 
 
-@router.post('/configuration')
+@router.post("/configuration")
 def set_global_configuration(configuration: dict = Body(...)):
     """Set or modify a gloal configuration setting.
 
@@ -79,7 +79,7 @@ def set_global_configuration(configuration: dict = Body(...)):
     return conf_db.set_configuration(configuration)
 
 
-@router.get('/configuration')
+@router.get("/configuration")
 def get_global_configuration():
     """Read configuration settings for an ou.
 
@@ -95,7 +95,7 @@ def get_global_configuration():
     return configuration
 
 
-@router.get('/navlinks')
+@router.get("/navlinks")
 def get_navlinks():
     """Retrieve nav links.
 

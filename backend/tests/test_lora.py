@@ -14,56 +14,60 @@ from mora import util as mora_util
 from . import util
 
 
-@freezegun.freeze_time('2010-06-01', tz_offset=2)
+@freezegun.freeze_time("2010-06-01", tz_offset=2)
 class Tests(tests.cases.TestCase):
-
     @util.MockAioresponses()
     def test_get_effects(self, m):
         URL = (
-            settings.LORA_URL + 'organisation/organisationenhed?'
-                                'uuid=00000000-0000-0000-0000-000000000000'
-                                '&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00'
-                                '&virkningtil=infinity&konsolider=True'
+            settings.LORA_URL + "organisation/organisationenhed?"
+            "uuid=00000000-0000-0000-0000-000000000000"
+            "&virkningfra=2010-06-01T02%3A00%3A00%2B02%3A00"
+            "&virkningtil=infinity&konsolider=True"
         )
         m.get(
             URL,
             payload={
-                "results":
-                    [[{
-                        "id": "00000000-0000-0000-0000-000000000000",
-                        "registreringer": [{
-                            "tilstande": {
-                                "organisationenhedgyldighed": [
-                                    {
-                                        "gyldighed": v,
-                                        "virkning": {
-                                            "from": mora_util.to_lora_time(
-                                                t1,
-                                            ),
-                                            "from_included": True,
-                                            "to": mora_util.to_lora_time(
-                                                t2,
-                                            ),
-                                            "to_included": False
-                                        }
-                                    }
-                                    for t1, t2, v in [
-                                        ('01-01-1950', '01-01-2100', 'Aktiv'),
-                                        ('01-01-2100', '01-01-2300', 'Inaktiv'),
-                                        ('01-01-2300', '01-01-2500', 'Aktiv'),
-                                        ('01-01-2500', '01-01-2700', 'Inaktiv'),
-                                        ('01-01-2700', '01-01-2900', 'Aktiv'),
-                                        ('01-01-2900', '01-01-3100', 'Inaktiv'),
-                                        ('01-01-3100', '01-01-3300', 'Aktiv'),
-                                    ]
-                                ]
-                            },
-                        }]
-                    }]]
+                "results": [
+                    [
+                        {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "registreringer": [
+                                {
+                                    "tilstande": {
+                                        "organisationenhedgyldighed": [
+                                            {
+                                                "gyldighed": v,
+                                                "virkning": {
+                                                    "from": mora_util.to_lora_time(
+                                                        t1,
+                                                    ),
+                                                    "from_included": True,
+                                                    "to": mora_util.to_lora_time(
+                                                        t2,
+                                                    ),
+                                                    "to_included": False,
+                                                },
+                                            }
+                                            for t1, t2, v in [
+                                                ("01-01-1950", "01-01-2100", "Aktiv"),
+                                                ("01-01-2100", "01-01-2300", "Inaktiv"),
+                                                ("01-01-2300", "01-01-2500", "Aktiv"),
+                                                ("01-01-2500", "01-01-2700", "Inaktiv"),
+                                                ("01-01-2700", "01-01-2900", "Aktiv"),
+                                                ("01-01-2900", "01-01-3100", "Inaktiv"),
+                                                ("01-01-3100", "01-01-3300", "Aktiv"),
+                                            ]
+                                        ]
+                                    },
+                                }
+                            ],
+                        }
+                    ]
+                ]
             },
         )
 
-        c = lora.Connector(validity='future')
+        c = lora.Connector(validity="future")
 
         self.assertEqual(
             [
@@ -79,12 +83,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2100-01-01T00:00:00+01:00",
-                                        "to": "2300-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2300-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2300-01-01 00:00:00+01:00",
@@ -98,12 +102,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2300-01-01T00:00:00+01:00",
-                                        "to": "2500-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2500-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2500-01-01 00:00:00+01:00",
@@ -117,12 +121,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2500-01-01T00:00:00+01:00",
-                                        "to": "2700-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2700-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2700-01-01 00:00:00+01:00",
@@ -136,12 +140,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2700-01-01T00:00:00+01:00",
-                                        "to": "2900-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2900-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2900-01-01 00:00:00+01:00",
@@ -155,12 +159,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2900-01-01T00:00:00+01:00",
-                                        "to": "3100-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "3100-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "3100-01-01 00:00:00+01:00",
@@ -174,43 +178,43 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "3100-01-01T00:00:00+01:00",
-                                        "to": "3300-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "3300-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
-                )
+                    },
+                ),
             ],
             [
                 (str(start), str(end), entry)
-                for start, end, entry in
-                (mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
-                    '00000000-0000-0000-0000-000000000000',
-                    relevant={
-                        'tilstande': (
-                            'organisationenhedgyldighed',
-                        ),
-                    },
-                ))
+                for start, end, entry in (
+                    mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
+                        "00000000-0000-0000-0000-000000000000",
+                        relevant={
+                            "tilstande": ("organisationenhedgyldighed",),
+                        },
+                    )
+                )
             ],
         )
 
     @util.MockAioresponses()
     def test_errors(self, m):
         for status_in, status_out, error_key in (
-            (400, 400, 'E_INVALID_INPUT'),
-            (401, 401, 'E_UNAUTHORIZED'),
-            (403, 403, 'E_FORBIDDEN'),
-            (426, 500, 'E_UNKNOWN'),
-            (500, 500, 'E_UNKNOWN'),
+            (400, 400, "E_INVALID_INPUT"),
+            (401, 401, "E_UNAUTHORIZED"),
+            (403, 403, "E_FORBIDDEN"),
+            (426, 500, "E_UNKNOWN"),
+            (500, 500, "E_UNKNOWN"),
         ):
             c = lora.Connector()
 
-            with self.subTest('{} - json'.format(status_in)):
+            with self.subTest("{} - json".format(status_in)):
                 m.get(
                     re.compile(
-                        r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
+                        r"http://mox/organisation/organisationenhed\?.*uuid=42.*"
+                    ),
                     payload={
                         "message": "go away",
                     },
@@ -218,34 +222,36 @@ class Tests(tests.cases.TestCase):
                 )
 
                 with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    mora.async_util.async_to_sync(c.organisationenhed.get)('42')
+                    mora.async_util.async_to_sync(c.organisationenhed.get)("42")
 
                 self.assertEqual(
                     {
-                        'error': True,
-                        'status': status_out,
-                        'error_key': error_key,
-                        'description': 'go away',
+                        "error": True,
+                        "status": status_out,
+                        "error_key": error_key,
+                        "description": "go away",
                     },
                     ctxt.exception.detail,
                 )
 
-            with self.subTest('{} - text'.format(status_in)):
-                m.get(re.compile(
-                    r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
+            with self.subTest("{} - text".format(status_in)):
+                m.get(
+                    re.compile(
+                        r"http://mox/organisation/organisationenhed\?.*uuid=42.*"
+                    ),
                     body="I hate you",
                     status=status_in,
                 )
 
                 with self.assertRaises(exceptions.HTTPException) as ctxt:
-                    mora.async_util.async_to_sync(c.organisationenhed.get)('42')
+                    mora.async_util.async_to_sync(c.organisationenhed.get)("42")
 
                 self.assertEqual(
                     {
-                        'error': True,
-                        'status': status_out,
-                        'error_key': error_key,
-                        'description': 'I hate you',
+                        "error": True,
+                        "status": status_out,
+                        "error_key": error_key,
+                        "description": "I hate you",
                     },
                     ctxt.exception.detail,
                 )
@@ -254,7 +260,7 @@ class Tests(tests.cases.TestCase):
     def test_error_debug(self, m):
         with util.override_lora_url():
             m.get(
-                re.compile(r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
+                re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
                 payload={
                     "message": "go away",
                     "something": "other",
@@ -264,14 +270,15 @@ class Tests(tests.cases.TestCase):
 
             with self.assertRaises(exceptions.HTTPException) as ctxt:
                 mora.async_util.async_to_sync(lora.Connector().organisationenhed.get)(
-                    '42')
+                    "42"
+                )
 
             self.assertEqual(
                 {
-                    'error': True,
-                    'status': 500,
-                    'error_key': 'E_UNKNOWN',
-                    'description': 'go away',
+                    "error": True,
+                    "status": 500,
+                    "error_key": "E_UNKNOWN",
+                    "description": "go away",
                 },
                 ctxt.exception.detail,
             )
@@ -280,64 +287,73 @@ class Tests(tests.cases.TestCase):
     def test_finding_nothing(self, m):
         c = lora.Connector()
 
-        m.get(re.compile(r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
-              payload={'results': []})
+        m.get(
+            re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
+            payload={"results": []},
+        )
 
-        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)('42'))
+        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)("42"))
 
-        m.get(re.compile(r'http://mox/organisation/organisationenhed\?.*uuid=42.*'),
-              payload={'results': []})
+        m.get(
+            re.compile(r"http://mox/organisation/organisationenhed\?.*uuid=42.*"),
+            payload={"results": []},
+        )
 
-        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)('42'))
+        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)("42"))
 
-    @freezegun.freeze_time('2001-01-01', tz_offset=1)
+    @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @aioresponses()
     def test_get_effects_2(self, m):
         URL = (
-            settings.LORA_URL + 'organisation/organisationenhed?'
-                                'uuid=00000000-0000-0000-0000-000000000000'
-                                '&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00'
-                                '&virkningtil=infinity&konsolider=True'
+            settings.LORA_URL + "organisation/organisationenhed?"
+            "uuid=00000000-0000-0000-0000-000000000000"
+            "&virkningfra=2001-01-01T01%3A00%3A00%2B01%3A00"
+            "&virkningtil=infinity&konsolider=True"
         )
         m.get(
             URL,
             payload={
-                "results":
-                    [[{
-                        "id": "00000000-0000-0000-0000-000000000000",
-                        "registreringer": [{
-                            "tilstande": {
-                                "organisationenhedgyldighed": [
-                                    {
-                                        "gyldighed": v,
-                                        "virkning": {
-                                            "from": mora_util.to_lora_time(
-                                                t1,
-                                            ),
-                                            "from_included": True,
-                                            "to": mora_util.to_lora_time(
-                                                t2,
-                                            ),
-                                            "to_included": False
-                                        }
-                                    }
-                                    for t1, t2, v in [
-                                        ('01-01-1950', '01-01-2100', 'Aktiv'),
-                                        ('01-01-2100', '01-01-2300', 'Inaktiv'),
-                                        ('01-01-2300', '01-01-2500', 'Aktiv'),
-                                        ('01-01-2500', '01-01-2700', 'Inaktiv'),
-                                        ('01-01-2700', '01-01-2900', 'Aktiv'),
-                                        ('01-01-2900', '01-01-3100', 'Inaktiv'),
-                                        ('01-01-3100', '01-01-3300', 'Aktiv'),
-                                    ]
-                                ]
-                            },
-                        }]
-                    }]]
+                "results": [
+                    [
+                        {
+                            "id": "00000000-0000-0000-0000-000000000000",
+                            "registreringer": [
+                                {
+                                    "tilstande": {
+                                        "organisationenhedgyldighed": [
+                                            {
+                                                "gyldighed": v,
+                                                "virkning": {
+                                                    "from": mora_util.to_lora_time(
+                                                        t1,
+                                                    ),
+                                                    "from_included": True,
+                                                    "to": mora_util.to_lora_time(
+                                                        t2,
+                                                    ),
+                                                    "to_included": False,
+                                                },
+                                            }
+                                            for t1, t2, v in [
+                                                ("01-01-1950", "01-01-2100", "Aktiv"),
+                                                ("01-01-2100", "01-01-2300", "Inaktiv"),
+                                                ("01-01-2300", "01-01-2500", "Aktiv"),
+                                                ("01-01-2500", "01-01-2700", "Inaktiv"),
+                                                ("01-01-2700", "01-01-2900", "Aktiv"),
+                                                ("01-01-2900", "01-01-3100", "Inaktiv"),
+                                                ("01-01-3100", "01-01-3300", "Aktiv"),
+                                            ]
+                                        ]
+                                    },
+                                }
+                            ],
+                        }
+                    ]
+                ]
             },
         )
 
-        c = lora.Connector(validity='future')
+        c = lora.Connector(validity="future")
 
         self.assertEqual(
             [
@@ -353,12 +369,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2100-01-01T00:00:00+01:00",
-                                        "to": "2300-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2300-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2300-01-01 00:00:00+01:00",
@@ -372,12 +388,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2300-01-01T00:00:00+01:00",
-                                        "to": "2500-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2500-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2500-01-01 00:00:00+01:00",
@@ -391,12 +407,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2500-01-01T00:00:00+01:00",
-                                        "to": "2700-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2700-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2700-01-01 00:00:00+01:00",
@@ -410,12 +426,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2700-01-01T00:00:00+01:00",
-                                        "to": "2900-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "2900-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "2900-01-01 00:00:00+01:00",
@@ -429,12 +445,12 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "2900-01-01T00:00:00+01:00",
-                                        "to": "3100-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "3100-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
+                    },
                 ),
                 (
                     "3100-01-01 00:00:00+01:00",
@@ -448,25 +464,24 @@ class Tests(tests.cases.TestCase):
                                         "from_included": True,
                                         "to_included": False,
                                         "from": "3100-01-01T00:00:00+01:00",
-                                        "to": "3300-01-01T00:00:00+01:00"
-                                    }
+                                        "to": "3300-01-01T00:00:00+01:00",
+                                    },
                                 }
                             ]
                         }
-                    }
-                )
+                    },
+                ),
             ],
             [
                 (str(start), str(end), entry)
-                for start, end, entry in
-                (mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
-                    '00000000-0000-0000-0000-000000000000',
-                    relevant={
-                        'tilstande': (
-                            'organisationenhedgyldighed',
-                        ),
-                    },
-                ))
+                for start, end, entry in (
+                    mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
+                        "00000000-0000-0000-0000-000000000000",
+                        relevant={
+                            "tilstande": ("organisationenhedgyldighed",),
+                        },
+                    )
+                )
             ],
         )
 
@@ -485,12 +500,12 @@ class Tests(tests.cases.TestCase):
             lora.raise_on_status(status_code, msg_other)
         self.assertEqual(
             {
-                'error': True,
-                'status': status_code,
-                'error_key': 'E_INVALID_INPUT',
-                'description': msg_other,
+                "error": True,
+                "status": status_code,
+                "error_key": "E_INVALID_INPUT",
+                "description": msg_other,
             },
-            ctxt.exception.detail
+            ctxt.exception.detail,
         )
 
     @util.MockAioresponses()
@@ -501,11 +516,10 @@ class Tests(tests.cases.TestCase):
         m.patch(
             re.compile(r".*/organisation/bruger/" + uuid),
             payload={
-                'message':
-                    "ERROR:  Aborted updating bruger with id "
-                    "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-                    "not give raise to a new registration. Aborted reg: ..."
-            }
+                "message": "ERROR:  Aborted updating bruger with id "
+                "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+                "not give raise to a new registration. Aborted reg: ..."
+            },
         )
         # Assert that `Scope.update` tolerates the missing 'uuid' key in the
         # LoRa response, and instead just returns the original UUID back to its
@@ -519,10 +533,7 @@ class Tests(tests.cases.TestCase):
         # A normal update in LoRa returns a response with a 'uuid' key which
         # matches the object that was updated.
         uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        m.patch(
-            re.compile(r".*/organisation/bruger/" + uuid),
-            payload={"uuid": uuid}
-        )
+        m.patch(re.compile(r".*/organisation/bruger/" + uuid), payload={"uuid": uuid})
         # Assert that `Scope.update` parses the JSON response and returns the
         # value of the 'uuid' key to its caller.
         c = lora.Connector()

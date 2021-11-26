@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-'''
+"""
 Related Units
 -------------
 
 This section describes how to interact with related units.
 
-'''
+"""
 from asyncio import create_task, gather
 from uuid import UUID
 
@@ -24,13 +24,14 @@ router = APIRouter()
 
 
 class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
-    '''This is a dummy handler that exists to enable reading related units.
+    """This is a dummy handler that exists to enable reading related units.
 
     Eventually, we'll do that in the handlers, but for now we use
     their _existence_ to allow reading.
 
-    '''
-    role_type = 'related_unit'
+    """
+
+    role_type = "related_unit"
     function_key = mapping.RELATED_UNIT_KEY
 
     def prepare_create(self, req: dict):
@@ -40,11 +41,8 @@ class RelatedUnitRequestHandler(handlers.OrgFunkRequestHandler):
         raise NotImplementedError
 
 
-@router.post('/ou/{origin}/map')
-async def map_org_units(
-    origin: UUID,
-    req: dict = Body(...)
-):
+@router.post("/ou/{origin}/map")
+async def map_org_units(origin: UUID, req: dict = Body(...)):
     """Mark the given organisational units as related.
 
     .. :quickref: Unit; Map
@@ -107,8 +105,7 @@ async def map_org_units(
 
     date = util.get_valid_from(req)
     c = lora.Connector(effective_date=date)
-    destinations = set(util.checked_get(req, 'destination', [],
-                                        required=True))
+    destinations = set(util.checked_get(req, "destination", [], required=True))
 
     wanted_units = {origin} | destinations
     units = dict(await c.organisationenhed.get_all_by_uuid(uuids=sorted(wanted_units)))
@@ -122,8 +119,8 @@ async def map_org_units(
         unitid
         for unitid, unit in units.items()
         for state in util.get_states(unit)
-        if util.get_effect_to(state) == util.POSITIVE_INFINITY and state[
-            'gyldighed'] == 'Aktiv'
+        if util.get_effect_to(state) == util.POSITIVE_INFINITY
+        and state["gyldighed"] == "Aktiv"
     }
 
     if wanted_units - good:
@@ -131,14 +128,14 @@ async def map_org_units(
             org_unit_uuid=sorted(wanted_units - good),
         )
 
-    orgid, = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])
+    (orgid,) = mapping.BELONGS_TO_FIELD.get_uuids(units[origin])
 
     preexisting = {
         unitid: funcid
         for funcid, func in await c.organisationfunktion.get_all(
             funktionsnavn=mapping.RELATED_UNIT_KEY,
             tilknyttedeenheder=origin,
-            gyldighed='Aktiv',
+            gyldighed="Aktiv",
         )
         for unitid in mapping.ASSOCIATED_ORG_UNITS_FIELD.get_uuids(func)
         if unitid != origin
@@ -147,7 +144,7 @@ async def map_org_units(
     edits = {
         funcid: common.inactivate_org_funktion_payload(
             date,
-            'Fjern relateret organisation',
+            "Fjern relateret organisation",
         )
         for unitid, funcid in preexisting.items()
         if unitid not in destinations
@@ -156,12 +153,15 @@ async def map_org_units(
     creations = [
         common.create_organisationsfunktion_payload(
             mapping.RELATED_UNIT_KEY,
-            date, util.POSITIVE_INFINITY,
-            '{} <-> {}'.format(
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])
-                [0]['brugervendtnoegle'],
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])
-                [0]['brugervendtnoegle']
+            date,
+            util.POSITIVE_INFINITY,
+            "{} <-> {}".format(
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
+                    "brugervendtnoegle"
+                ],
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])[0][
+                    "brugervendtnoegle"
+                ],
             ),
             tilknyttedebrugere=[],
             tilknyttedeorganisationer=[orgid],
@@ -172,13 +172,18 @@ async def map_org_units(
     ]
 
     return {
-        'deleted': sorted(
-            await gather(*[create_task(c.organisationfunktion.update(req, funcid))
-                           for funcid, req in edits.items()])
+        "deleted": sorted(
+            await gather(
+                *[
+                    create_task(c.organisationfunktion.update(req, funcid))
+                    for funcid, req in edits.items()
+                ]
+            )
         ),
-        'added': sorted(
-            await gather(*[create_task(c.organisationfunktion.create(req))
-                           for req in creations])
+        "added": sorted(
+            await gather(
+                *[create_task(c.organisationfunktion.create(req)) for req in creations]
+            )
         ),
-        'unchanged': sorted(destinations & preexisting.keys())
+        "unchanged": sorted(destinations & preexisting.keys()),
     }

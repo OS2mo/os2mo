@@ -23,8 +23,13 @@ def queue_iterator(queue):
     yield from iter(stop_iteration_wait, None)
 
 
-async def prepare_ancestor_tree(connector_entry: Scope, mapping_parent: FieldTuple,
-                                uuids, get_children_args, with_siblings=False):
+async def prepare_ancestor_tree(
+    connector_entry: Scope,
+    mapping_parent: FieldTuple,
+    uuids,
+    get_children_args,
+    with_siblings=False,
+):
     """Return a tree helper structure, bounded by the given uuids.
 
     Args:
@@ -68,9 +73,9 @@ async def prepare_ancestor_tree(connector_entry: Scope, mapping_parent: FieldTup
         return objs
 
     async def get_children(uuid, parent_uuid) -> Dict:
-        children = dict(await connector_entry.get_all(
-            **get_children_args(uuid, parent_uuid, cache)
-        ))
+        children = dict(
+            await connector_entry.get_all(**get_children_args(uuid, parent_uuid, cache))
+        )
         cache.update(children)
         return children
 

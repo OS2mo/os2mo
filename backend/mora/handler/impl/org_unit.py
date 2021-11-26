@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 @reading.register(ROLE_TYPE)
 class OrgUnitReader(reading.ReadingHandler):
-
     @classmethod
     async def get(cls, c, search_fields):
         object_tuples = await c.organisationenhed.get_all(**search_fields)
@@ -35,7 +34,11 @@ class OrgUnitReader(reading.ReadingHandler):
         relevant = {
             "attributter": ("organisationenhedegenskaber",),
             "relationer": (
-                "enhedstype", "opgaver", "overordnet", "tilhoerer", "niveau"
+                "enhedstype",
+                "opgaver",
+                "overordnet",
+                "tilhoerer",
+                "niveau",
             ),
             "tilstande": ("organisationenhedgyldighed",),
         }
@@ -46,7 +49,7 @@ class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
         c = common.get_connector()
-        only_primary_uuid = util.get_args_flag('only_primary_uuid')
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         return await orgunit.get_one_orgunit(
             c,
@@ -57,5 +60,5 @@ class OrgUnitReader(reading.ReadingHandler):
                 mapping.FROM: util.to_iso_date(start),
                 mapping.TO: util.to_iso_date(end, is_end=True),
             },
-            only_primary_uuid=only_primary_uuid
+            only_primary_uuid=only_primary_uuid,
         )
