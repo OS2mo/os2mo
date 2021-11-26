@@ -259,7 +259,7 @@ e2e-test:
   services:
     - name: magentaaps/postgres-os2mo:9.6.15-2-test
       alias: mox-db
-    - name: magentaaps/lora:dev
+    - name: magentaaps/lora:1.12.1
       alias: mox
     - name: ${IMAGE_SHA}
       alias: mo

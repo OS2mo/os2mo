@@ -66,9 +66,9 @@ services:
       start_period: 40s
 
   mox:
-    image: magentaaps/lora:dev
+    image: magentaaps/lora:1.12.1
     # build:
-    #   context: ../mox
+    #   context: ../lora
     #   dockerfile: docker/Dockerfile
     volumes:
     #  - ../mox:/app
