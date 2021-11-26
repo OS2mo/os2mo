@@ -5,8 +5,8 @@ import functools
 import operator
 import typing
 
-from os2mo_http_trigger_protocol import EventType
-from os2mo_http_trigger_protocol import RequestType
+from os2mo_http_trigger_protocol import EventType  # noqa: F401
+from os2mo_http_trigger_protocol import RequestType  # noqa: F401
 
 # Common
 
@@ -166,7 +166,7 @@ class FieldTypes(enum.IntEnum):
     """The different kinds of fields we support.
 
     NOTE: ADAPTED_ZERO_TO_MANY is used whenever a ZERO_TO_MANY field is used as
-          as ZERO_TO_ONE field, and implements the neccessary trickery to make
+          as ZERO_TO_ONE field, and implements the necessary trickery to make
           it all appear correctly.
     """
 
