@@ -65,11 +65,11 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     optional = {
-        "parent": st.uuids(),
+        "parent_uuid": st.uuids(),
         "org_unit_hierarchy": st.uuids(),
-        "org_unit_type": st.uuids(),
-        "org_unit_level": st.uuids(),
-        "time_planning": st.uuids(),
+        "unit_type_uuid": st.uuids(),
+        "org_unit_level_uuid": st.uuids(),
+        "time_planning_uuid": st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries({}, optional=optional))  # type: ignore

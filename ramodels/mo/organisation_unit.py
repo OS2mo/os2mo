@@ -36,17 +36,19 @@ class OrganisationUnitBase(MOBase):
 
 
 class OrganisationUnitRead(OrganisationUnitBase):
-    parent: Optional[UUID] = Field(description="UUID of the parent organisation unit.")
+    parent_uuid: Optional[UUID] = Field(
+        description="UUID of the parent organisation unit."
+    )
     org_unit_hierarchy: Optional[UUID] = Field(
         description="UUID of the organisation unit hierarchy."
     )
-    org_unit_type: Optional[UUID] = Field(
+    unit_type_uuid: Optional[UUID] = Field(
         description="UUID of the organisation unit type."
     )
-    org_unit_level: Optional[UUID] = Field(
+    org_unit_level_uuid: Optional[UUID] = Field(
         description="UUID of the organisation unit level."
     )
-    time_planning: Optional[UUID] = Field(
+    time_planning_uuid: Optional[UUID] = Field(
         description="UUID of the time planning object."
     )
 
