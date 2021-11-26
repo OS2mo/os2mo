@@ -17,6 +17,9 @@ server_name = ""
 # should be enabled.
 enable_cors = false
 
+# MO allows "fictitious" birthdates in CPR numbers, if this is set to False
+cpr_validate_birthdate = true
+
 
 [lora]
 url = "http://localhost:80/"

@@ -16,3 +16,4 @@ pytest-cov
 aiohttp
 aioresponses
 os2mo-http-trigger-protocol
+parameterized

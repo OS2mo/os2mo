@@ -27,11 +27,12 @@ import uuid
 
 import dateutil.parser
 import dateutil.tz
+from mora import conf_db
 from starlette_context import context
 
 from . import exceptions
 from . import mapping
-from mora import conf_db
+from . import settings
 
 PLACEHOLDER = "\u2014"
 
@@ -273,11 +274,21 @@ def is_uuid(v):
         return False
 
 
-def is_cpr_number(v):
-    try:
-        return v and len(v) == 10 and bool(get_cpr_birthdate(v))
-    except ValueError:
-        return False
+def is_cpr_number(v) -> bool:
+    config = settings.config
+    # First, check length of value given
+    len_ok = v and len(v) == 10
+
+    # Then, check birthdate
+    if config["cpr_validate_birthdate"]:
+        try:
+            birthdate_ok = bool(get_cpr_birthdate(v))
+        except (TypeError, ValueError):
+            birthdate_ok = False
+    else:
+        birthdate_ok = True
+
+    return len_ok and birthdate_ok
 
 
 def uniqueify(xs):

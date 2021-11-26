@@ -3,11 +3,11 @@
 import tempfile
 
 import freezegun
-
 import tests.cases
-from . import util
 from mora import util as mora_util
 from mora.integrations import serviceplatformen
+
+from . import util
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -116,6 +116,14 @@ class Tests(tests.cases.TestCase):
             },
             status_code=400,
         )
+
+    def test_birthdate_validation_disabled(self, m):
+        """Validation of CPR birthdate can be disabled by a feature flag"""
+        with util.override_app_config(cpr_validate_birthdate=False):
+            self.assertRequestResponse(
+                "/service/e/cpr_lookup/?q=0121501234",
+                {"name": "Naja Hansen", "cpr_no": "0121501234"},
+            )
 
 
 class TestConfig(tests.cases.TestCase):
