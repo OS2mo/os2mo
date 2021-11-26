@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.15.2 - 2021-11-26
+-------------------
+
+[#47087] Fix field names in OrganisationUnitRead
+
 3.15.1 - 2021-11-24
 -------------------
 
