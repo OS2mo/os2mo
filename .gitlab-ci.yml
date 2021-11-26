@@ -211,7 +211,6 @@ Unit-test:
       alias: mox
   script:
     - pytest
-      -m "serial"
       --shard-id=$(($CI_NODE_INDEX - 1))
       --num-shards=$CI_NODE_TOTAL
       --cov=mora
