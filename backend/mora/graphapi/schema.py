@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+
 from typing import Any
 from typing import Dict
 from typing import List
@@ -8,6 +9,7 @@ from uuid import UUID
 
 import strawberry
 from ramodels.mo._shared import Validity
+from ramodels.mo.organisation_unit import OrganisationUnitRead
 from strawberry.types import Info
 
 
@@ -77,35 +79,33 @@ class Employee(Constructable):
         return cls(**obj)
 
 
-@strawberry.type(
+@strawberry.experimental.pydantic.type(
+    model=OrganisationUnitRead,
+    all_fields=True,
     description=(
-        "An Organisation Unit; the hierarchical unit creating the organisation tree."
-    )
+        "An Organisation Unit: the hierarchical unit creating the organisation tree."
+    ),
 )
-class OrganisationUnit(Constructable):
-    uuid: UUID
-    user_key: str
-    name: str
+class OrganisationUnitType:
+    @strawberry.field(description="The immediate ancestor in the organisation tree.")
+    async def parent(self, info: Info) -> Optional["OrganisationUnitType"]:
+        """Get the immediate ancestor in the organisation tree
 
-    unit_type_uuid: Optional[UUID]
-    time_planning_uuid: Optional[UUID]
-    org_unit_level_uuid: Optional[UUID]
-    parent_uuid: Optional[UUID]
+        Returns:
+            Optional[OrganisationUnitType]: The ancestor, if any.
+        """
+        if not self.parent_uuid:
+            return None
 
-    validity: QLValidity
+        return await info.context["org_unit_loader"].load(self.parent_uuid)
 
-    @strawberry.field(description="The parent organisation unit above this unit")
-    async def parent(self, info: Info) -> Optional["OrganisationUnit"]:
-        if self.parent_uuid:
-            if not isinstance(self.parent_uuid, UUID):
-                self.parent_uuid = UUID(self.parent_uuid)
-            return await info.context["org_unit_loader"].load(self.parent_uuid)
-        return None
+    @strawberry.field(description="The immediate descendants in the organisation tree.")
+    async def children(self, info: Info) -> List["OrganisationUnitType"]:
+        """Get the immediate descendants of the organistion unit.
 
-    @strawberry.field(
-        description="The list of children organisation units below this unit"
-    )
-    async def children(self, info: Info) -> List["OrganisationUnit"]:
+        Returns:
+            List[OrganisationUnitType]: List of descendants, if any.
+        """
         if not isinstance(self.uuid, UUID):
             self.parent_uuid = UUID(self.uuid)
         return await info.context["org_unit_children_loader"].load(self.uuid)

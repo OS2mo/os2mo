@@ -14,11 +14,11 @@ from strawberry.types import Info
 from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.dataloaders import get_org_units
+from mora.graphapi.dataloaders import get_mo
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Organisation
-from mora.graphapi.schema import OrganisationUnit
+from mora.graphapi.schema import OrganisationUnitType
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -50,12 +50,12 @@ class Query:
     )
     async def org_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[OrganisationUnit]:
+    ) -> List[OrganisationUnitType]:
         if uuids:
             tasks = map(info.context["org_unit_loader"].load, uuids)
             org_units = await gather(*tasks)
             return list(filter(lambda ou: ou is not None, org_units))
-        return await get_org_units()
+        return await get_mo("org_unit")
 
     # Employees
     # ---------

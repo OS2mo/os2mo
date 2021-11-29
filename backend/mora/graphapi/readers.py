@@ -129,7 +129,7 @@ def role_type_uuid_factory(role_type: str):
     async def get_role_type_by_uuid(
         uuid: List[UUID] = Query(...),
         common: CommonQueryParams = Depends(),
-    ):
+    ) -> List[Dict]:
         """
         As uuid is allowed, this cannot be expanded with general search
         parameters, a limitation posed by LoRa
@@ -152,3 +152,25 @@ def role_type_uuid_factory(role_type: str):
 
     get_role_type_by_uuid.__name__ = f"get_{role_type}_by_uuid"
     return get_role_type_by_uuid
+
+
+async def search_role_type(role_type: str):
+    connector = get_connector()
+    handler = get_handler_for_type(role_type)
+    return await handler.get(
+        c=connector,
+        search_fields=_extract_search_params(query_args={"at": None, "validity": None}),
+        changed_since=None,
+    )
+
+
+async def get_role_type_by_uuid(role_type: str, uuid: List[UUID]):
+    c = get_connector()
+    cls = get_handler_for_type(role_type)
+    return await cls.get(
+        c=c,
+        search_fields=_extract_search_params(
+            query_args={"at": None, "validity": None, "uuid": uuid}
+        ),
+        changed_since=None,
+    )
