@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.6.1 - 2021-11-29
+------------------
+
+[#47087] Update OrganisationUnit GraphQL implementation
+
 3.6.0 - 2021-11-24
 ------------------
 
