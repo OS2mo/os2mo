@@ -25,7 +25,6 @@ class __BulkBookkeeper:
     """
 
     def __init__(self):
-        self.__global_lock = Lock()
         self.__locks: Dict[LoraObjectType, Lock] = {}
         self.__raw_cache = {}
 
@@ -35,12 +34,11 @@ class __BulkBookkeeper:
 
         :return:
         """
-        async with self.__global_lock:
-            locks = self.__locks.values()
-            await asyncio.gather(*(lock.acquire() for lock in locks))
-            self.__raw_cache.clear()
-            for lock in locks:
-                lock.release()
+        locks = list(self.__locks.values())  # list to avoid auto-updating values view
+        await asyncio.gather(*(lock.acquire() for lock in locks))
+        self.__raw_cache.clear()
+        for lock in locks:
+            lock.release()
 
     async def __get_lock(self, type_: LoraObjectType) -> Lock:
         """
@@ -48,11 +46,10 @@ class __BulkBookkeeper:
         :param type_:
         :return: Asyncio(!) lock, not process/thread-safe locks
         """
-        async with self.__global_lock:
-            # manually checking avoids creating unneeded Locks
-            if type_ in self.__locks:
-                return self.__locks[type_]
-            return self.__locks.setdefault(type_, Lock())
+        # manually checking avoids creating unneeded Locks
+        if type_ in self.__locks:
+            return self.__locks[type_]
+        return self.__locks.setdefault(type_, Lock())
 
     def _disable_caching(self):
         """
