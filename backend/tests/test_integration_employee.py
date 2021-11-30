@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from uuid import UUID
 
 import freezegun
@@ -8,9 +7,9 @@ from parameterized import parameterized
 
 import mora.async_util
 import tests.cases
+from . import util
 from mora import lora
 from mora.config import Settings
-from . import util
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -265,7 +264,7 @@ class Tests(tests.cases.LoRATestCase):
                 "name": "Torkild Von Testperson",
                 "nickname_surname": "",
                 "nickname_givenname": "",
-                "seniority": "",
+                "seniority": None,
                 "nickname": "",
                 "org": {
                     "name": "Aarhus Universitet",
@@ -815,7 +814,7 @@ class Tests(tests.cases.LoRATestCase):
                 "nickname": "Daisy Duck",
                 "nickname_givenname": "Daisy",
                 "nickname_surname": "Duck",
-                "seniority": "",
+                "seniority": None,
                 "uuid": "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
             },
         )
@@ -863,7 +862,7 @@ class Tests(tests.cases.LoRATestCase):
                 "nickname": "Daisy Duck",
                 "nickname_givenname": "Daisy",
                 "nickname_surname": "Duck",
-                "seniority": "",
+                "seniority": None,
                 "uuid": employee_uuid,
             },
             amqp_topics={"employee.employee.update": 1},

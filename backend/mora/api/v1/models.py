@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
-from typing import Tuple
 from typing import get_args
 from typing import get_origin
+from typing import List
+from typing import Optional
+from typing import Tuple
 from typing import Type
+from typing import Union
 
 from pydantic import BaseModel
+from pydantic import create_model
 from pydantic.fields import Field
 from pydantic.fields import ModelField
-from pydantic import create_model
-
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import MORef
 from ramodels.mo._shared import Validity
@@ -51,7 +50,7 @@ class Person(MOBase):
     nickname_givenname: str
     nickname_surname: str
     nickname: str
-    seniority: str
+    seniority: Optional[str]
 
 
 class Manager(MOBase):
