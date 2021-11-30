@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.6.2 - 2021-11-30
+------------------
+
+Parse seniority as Optional[datetime]. Return None if applicable in read
+
 3.6.1 - 2021-11-29
 ------------------
 
