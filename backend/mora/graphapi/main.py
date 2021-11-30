@@ -14,9 +14,9 @@ from strawberry.types import Info
 from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.dataloaders import get_mo
+from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
-from mora.graphapi.schema import Employee
+from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -55,7 +55,7 @@ class Query:
             tasks = map(info.context["org_unit_loader"].load, uuids)
             org_units = await gather(*tasks)
             return list(filter(lambda ou: ou is not None, org_units))
-        return await get_mo("org_unit")
+        return await get_org_units()
 
     # Employees
     # ---------
@@ -65,7 +65,7 @@ class Query:
     )
     async def employees(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Employee]:
+    ) -> List[EmployeeType]:
         if uuids:
             tasks = map(info.context["employee_loader"].load, uuids)
             employees = await gather(*tasks)
