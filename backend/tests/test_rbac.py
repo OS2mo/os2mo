@@ -221,7 +221,7 @@ class TestGetAncestorOwners(object):
                     "nickname_surname": "Duck",
                     "nickname": "Donald Duck",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    "seniority": "",
+                    "seniority": None,
                 },
                 "org_unit": {
                     "name": "Humanistisk fakultet",

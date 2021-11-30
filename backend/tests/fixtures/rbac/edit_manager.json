@@ -143,7 +143,7 @@
       "nickname_surname": "Duck",
       "nickname": "Donald Duck",
       "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-      "seniority": ""
+      "seniority": null
     },
     "manager_type": {
       "uuid": "0d72900a-22a4-4390-a01e-fd65d0e0999d",

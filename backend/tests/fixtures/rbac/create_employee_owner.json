@@ -9,7 +9,7 @@
       "nickname_surname": "Duck",
       "nickname": "Donald Duck",
       "uuid": "<uuid>",
-      "seniority": "",
+      "seniority": null,
       "cpr_no": "0906340000",
       "org": {
         "name": "Aarhus Universitet",

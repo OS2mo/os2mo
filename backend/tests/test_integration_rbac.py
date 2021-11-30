@@ -147,7 +147,7 @@ class TestCommon(tests.cases.LoRATestCase):
                     "nickname_surname": "Duck",
                     "nickname": "Donald Duck",
                     "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    "seniority": "",
+                    "seniority": None,
                     "cpr_no": "0906340000",
                     "org": {
                         "name": "Aarhus Universitet",

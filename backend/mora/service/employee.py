@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """
 Employees
 ---------
@@ -12,34 +10,40 @@ For more information regarding reading relations involving employees, refer to
 http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
+import asyncio
 import copy
 import enum
 from functools import partial
-from operator import contains, itemgetter
-from typing import Any, Awaitable, Dict, Union
+from operator import contains
+from operator import itemgetter
+from typing import Any
+from typing import Awaitable
+from typing import Dict
 from typing import Optional
+from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-import asyncio
+from fastapi import APIRouter
+from fastapi import Body
+from fastapi import Depends
+from ramodels.base import tz_isodate
 
-from fastapi import APIRouter, Body, Depends
-
-from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import request_wide_bulk
 from . import autocomplete
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from ..triggers import Trigger
-from ..graphapi.middleware import is_graphql
+from .validation import validator
+from mora.auth.keycloak import oidc
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 
@@ -94,6 +98,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         userid = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, userid)
         seniority = req.get(mapping.SENIORITY, None)
+        # parse seniority
+        if seniority is not None:
+            seniority = tz_isodate(seniority).strftime("%Y-%m-%d")
 
         if cpr:
             try:
@@ -357,7 +364,7 @@ async def get_one_employee(
     efternavn = extensions.get("efternavn", "")
     kaldenavn_fornavn = extensions.get("kaldenavn_fornavn", "")
     kaldenavn_efternavn = extensions.get("kaldenavn_efternavn", "")
-    seniority = extensions.get(mapping.SENIORITY, "")
+    seniority = extensions.get(mapping.SENIORITY, None)
 
     r = {
         mapping.GIVENNAME: fornavn,
