@@ -18,6 +18,7 @@ def gen_employee(
     first_name: str = "first_name",
     last_name: str = "last_name",
     from_time: str = "1970-01-01 00:00:00+01",
+    seniority: Optional[str] = None,
 ) -> Dict[str, Any]:
     uuid = uuid or uuid4()
     virkning = {"from": from_time, "to": "infinity"}
@@ -34,6 +35,7 @@ def gen_employee(
                             "fornavn": first_name,
                             "efternavn": last_name,
                             "virkning": virkning,
+                            "seniority": seniority,
                         }
                     ],
                 },
@@ -51,8 +53,8 @@ def gen_employee(
     return employee
 
 
-def mock_employee(aioresponses, *args, repeat=False, **kwargs) -> UUID:
-    employee = gen_employee()
+def mock_employee(aioresponses, repeat=False, **kwargs) -> UUID:
+    employee = gen_employee(**kwargs)
     aioresponses.get(
         URL("http://mox/organisation/bruger"),
         payload={"results": [[employee]]},
@@ -80,6 +82,32 @@ async def test_query_employees(aioresponses):
             "user_key": "user_key",
             "givenname": "first_name",
             "surname": "last_name",
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_query_employees_with_seniority(aioresponses):
+    """Test that we are able to query our employee."""
+    uuid = mock_employee(aioresponses, seniority="1970-01-01")
+
+    query = (
+        "query { employees { uuid, cpr_no, user_key, givenname, surname, seniority }}"
+    )
+    result = await execute(query)
+
+    # We expect only one outgoing request to be done
+    assert sum(len(v) for v in aioresponses.requests.values()) == 1
+
+    assert result.errors is None
+    assert result.data["employees"] == [
+        {
+            "uuid": str(uuid),
+            "cpr_no": "0101700000",
+            "user_key": "user_key",
+            "givenname": "first_name",
+            "surname": "last_name",
+            "seniority": "1970-01-01",
         }
     ]
 
