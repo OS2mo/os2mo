@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.15.3 - 2021-12-01
+-------------------
+
+[#47088] Handle deprecated keys in EmployeeRead & fix seniority type
+
 3.15.2 - 2021-11-26
 -------------------
 
