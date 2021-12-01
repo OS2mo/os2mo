@@ -3,7 +3,6 @@
 
 from . import address
 from . import association  # noqa
-from . import configuration
 from . import cpr
 from . import detail_reading
 from . import detail_writing
@@ -41,6 +40,5 @@ routers = {
     "Organisation": org.router,
     "OrganisationUnit": orgunit.router,
     "Related": related.router,
-    "Configuration": configuration.router,
     "Validate": validate.router,
 }
