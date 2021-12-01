@@ -74,7 +74,7 @@ def base_strat(draw):
         "type": st.just("employee"),
         "cpr_no": st.none() | valid_cprs(),
         "user_key": st.none() | st.text(),
-        "seniority": st.none() | st.datetimes(),
+        "seniority": st.none() | st.dates(),
     }
     st_dict = st.fixed_dictionaries(required, optional=optional)  # type: ignore
     return draw(st_dict)
@@ -84,7 +84,10 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {"validity": st.builds(OpenValidity)}
-    st_dict = draw(st.fixed_dictionaries(required))
+    # To test that deprecated keys are removed properly
+    # They can be anything
+    optional = {"name": st.from_type(type), "nickname": st.from_type(type)}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
 
 
