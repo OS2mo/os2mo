@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.7.0 - 2021-12-01
+------------------
+
+[#46388] Added download insights as CSV to the frontend
+
 3.6.2 - 2021-11-30
 ------------------
 
