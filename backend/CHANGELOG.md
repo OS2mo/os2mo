@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.8.2 - 2021-12-01
+------------------
+
+[#47088] Update Employee GraphQL read implementation
+
 3.8.1 - 2021-12-01
 ------------------
 
