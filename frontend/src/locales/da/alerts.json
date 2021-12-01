@@ -48,9 +48,11 @@
     "V_INVALID_ADDRESS_PNUMBER": "Feltet skal indeholde 10 cifre.",
     "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en gyldig webadresse.",
     "E_UNKNOWN": "Uspecificeret fejl",
-    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}"
+    "E_INTEGRATION_ERROR": "Integrationsfejl, {description}",
+    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "Mappen er ikke opsat korrekt"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",
-  "fallback": "Der skete en ukendt fejl: “{description}” ({error_key})"
+  "fallback": "Der skete en ukendt fejl: “{description}” ({error_key})",
+  "contact_admin": "Kontakt venligst jeres systemadministrator"
 }

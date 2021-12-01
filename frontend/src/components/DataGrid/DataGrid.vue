@@ -12,17 +12,18 @@ SPDX-License-Identifier: MPL-2.0
             </div>
 
             <form class="datagrid-filter" @submit.prevent>
+                <a href="#" @click="downloadZip">{{ $t('buttons.download_csv') }}</a>
                 <label :for="`filter-field-${ componentId }`" 
                     title="Find i liste"
                     class="form-label">
-                    <span class="sr-only">Find i liste</span>
+                    <span class="sr-only">{{ $t('common.find_in_list') }}</span>
                 </label>
                 <input type="search"
                     class="form-control"
                     name="query"
                     v-model="filterKey"
                     :id="`filter-field-${ componentId }`"
-                    placeholder="Find i liste ..."
+                    :placeholder="$t('common.find_in_list')"
                     :disabled="dataList.length < 1 ? true : false">
             </form>
 
@@ -59,13 +60,14 @@ SPDX-License-Identifier: MPL-2.0
 
         <slot name="datagrid-footer"></slot>
 
-        <p v-if="filteredData.length < 1 && filterKey">Kan ikke finde nogen resultater, der matcher de valgte kriterier</p>
+        <p v-if="filteredData.length < 1 && filterKey">{{ $t('alerts.no_search_results') }}</p>
 
     </section>
 
 </template>
 
 <script>
+    import Service from '@/api/HttpCommon'
 
     export default {
 
@@ -123,7 +125,18 @@ SPDX-License-Identifier: MPL-2.0
                     this.sortKey = key
                     this.sortOrders[key] = this.sortOrders[key] * -1
                 }
-            }
+            },
+            downloadZip: function() {
+                Service.download('/insight/download')
+                .then((response) => {
+                    const url = window.URL.createObjectURL(new Blob([response.data]))
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.setAttribute('download', 'insights.zip')
+                    document.body.appendChild(link)
+                    link.click()
+                })
+            },
         },
         mounted: function() {
             this.componentId = this._uid

@@ -22,5 +22,8 @@
   "action": "Handling",
   "action_by": "Udført af",
   "placement": "Placering",
-  "unit_number": "Enhedsnr."
+  "unit_number": "Enhedsnr.",
+  "find_in_list": "Find i liste",
+  "no_files": "Ingen filer",
+  "no_data": "Ingen data"
 }

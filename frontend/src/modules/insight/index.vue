@@ -7,7 +7,7 @@ SPDX-License-Identifier: MPL-2.0
         <icon name="exchange-alt"/>
         {{$tc('shared.insight', 2)}}
       </h4>
-      <div v-if="query_files.length > 0">
+      <div v-if="query_files">
         <div v-for="(q, index) in query_files"
              :key="index">
           <input type="checkbox"
@@ -17,10 +17,10 @@ SPDX-License-Identifier: MPL-2.0
           <label :for="q">{{q}}</label>
         </div>
       </div>
-      <div v-if="query_files.length == 0">
-        <h5>No files</h5>
+      <div v-if="!query_files || !query_files.length">
+        <h5>{{ $t('common.no_files') }}</h5>
       </div>
-      <div v-if="query_files.length > 0">
+      <div v-if="query_files">
         <b-tabs content-class="mt-3">
           <b-tab
             v-for="(q, index) in query_data"
@@ -32,8 +32,8 @@ SPDX-License-Identifier: MPL-2.0
           </b-tab>
        </b-tabs>
       </div>
-      <div v-if="query_files.length == 0">
-        <p>No data</p>
+      <div v-if="!query_files || !query_files.length">
+        <p>{{ $t('common.no_data') }}</p>
       </div>
     </div>
   </div>
@@ -43,7 +43,7 @@ SPDX-License-Identifier: MPL-2.0
 import Service from '@/api/HttpCommon'
 import store from './_store'
 import { mapGetters } from 'vuex'
-import DataGrid from '../../components/Datagrid/DataGrid'
+import DataGrid from '../../components/DataGrid/DataGrid'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 
@@ -87,7 +87,7 @@ export default {
     downloadLink(file) {
       return "/service/exports/" + file
     },
-    update: function() {
+    getQueryString () {
       let file_query_string = ''
 
       if (this.chosen_files.length === 0) {
@@ -101,23 +101,60 @@ export default {
           }
         }
       }
-      Service.get(`/insight${file_query_string}`)
+      return file_query_string
+    },
+    update: function () {
+      this.insightFiles()
+      this.insightData(this.getQueryString())
+    },
+    handleError: function (error) {
+      let thisComponent = this
+
+      if (error.response.data.error_key === "E_DIR_NOT_FOUND") {
+        alert(
+          `${thisComponent.$t("alerts.error.E_DIRECTORY_NOT_SETUP_CORRECTLY")}
+          ${thisComponent.$t("alerts.contact_admin")}
+
+          ${error.response.data.description}
+          ${error.response.data.directory}`
+        )
+      }
+    },
+    getInsightFiles: function () {
+      return Service.get(`/insight/files`)
+    },
+    insightFiles: function () {
+      this.getInsightFiles()
       .then(response => {
-        this.query_data = []
-        let data = response.data
-        for (let i = 0; i < data.length; i++) {
-          this.query_data.push(data[i])
-        }
+        this.pushQueryFiles(response)
       })
-      Service.get(`/insight/files`)
+      .catch((error) => {
+        this.handleError(error)
+      })
+    },
+    pushQueryFiles: function (response) {
+      this.query_files = []
+      let data = response.data
+      for (let i = 0; i < data.length; i++) {
+        this.query_files.push(data[i])
+      }
+    },
+    getInsightData: function (query_string) {
+      return Service.get(`/insight${query_string}`)
+    },
+    insightData: function (file_query_string) {
+      this.getInsightData(file_query_string)
       .then(response => {
-        this.query_files = []
-        let data = response.data
-        for (let i = 0; i < data.length; i++) {
-          this.query_files.push(data[i])
-        }
+        this.pushQueryData(response)
       })
-    }
+    },
+    pushQueryData: function (response) {
+      this.query_data = []
+      let data = response.data
+      for (let i = 0; i < data.length; i++) {
+        this.query_data.push(data[i])
+      }
+    },
   }
 }
 </script>

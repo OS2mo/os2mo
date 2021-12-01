@@ -10,25 +10,17 @@ import keycloak from '@/main'
 
 const Service = axios.create({
   baseURL: '/service',
-  headers: {
-    'X-Requested-With': 'XMLHttpRequest',
-    'X-Client-Name': 'OS2mo-UI',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
-  },
   timeout: 60 * 1000,
+})
+
+const Download = axios.create({
+  baseURL: '/service',
+  // Needs a byte array, since the zipped file is binary and not the default JSON-format
+  responseType: 'arraybuffer',
 })
 
 const ApiV1 = axios.create({
   baseURL: '/api/v1',
-  headers: {
-    'X-Requested-With': 'XMLHttpRequest',
-    'X-Client-Name': 'OS2mo-UI',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, PUT'
-  }
 })
 
 Service.interceptors.response.use(
@@ -47,6 +39,11 @@ Service.interceptors.response.use(
 );
 
 Service.interceptors.request.use(function (config){
+  config.headers["Authorization"] = "Bearer " + keycloak.token
+  return config
+})
+
+Download.interceptors.request.use(function (config){
   config.headers["Authorization"] = "Bearer " + keycloak.token
   return config
 })
@@ -75,5 +72,6 @@ export default {
   post: Service.post,
   api_v1_get(url) {
     return get_by_axios(url, ApiV1)
-  }
+  },
+  download: Download.get,
 }
