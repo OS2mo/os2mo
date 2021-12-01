@@ -22,5 +22,8 @@
   "action": "Action",
   "action_by": "Performed by",
   "placement": "Placement",
-  "unit_number": "Unit number."
+  "unit_number": "Unit number.",
+  "find_in_list": "Find in list",
+  "no_files": "No files",
+  "no_data": "No data"
 }

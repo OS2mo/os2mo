@@ -48,9 +48,11 @@
     "V_INVALID_ADDRESS_PNUMBER": "10 digits are required.",
     "V_INVALID_ADDRESS_WWW": "A valid web address is required.",
     "E_UNKNOWN": "Unspecified error.",
-    "E_INTEGRATION_ERROR": "Integration error, {description}"
+    "E_INTEGRATION_ERROR": "Integration error, {description}",
+    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "The directory is not setup correctly"
   },
   "no_search_results": "No results match your search.",
   "page_not_found": "Page not found",
-  "fallback": "An unknown error occurred: “{description}” ({error_key})"
+  "fallback": "An unknown error occurred: “{description}” ({error_key})",
+  "contact_admin": "Please contact your system administrator"
 }

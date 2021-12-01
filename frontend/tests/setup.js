@@ -21,4 +21,5 @@ import 'vue-awesome/icons/spinner'
 import 'vue-awesome/icons/user-alt'
 import 'vue-awesome/icons/user'
 import 'vue-awesome/icons/users'
+import 'vue-awesome/icons/exchange-alt'
 Vue.component('icon', Icon)
