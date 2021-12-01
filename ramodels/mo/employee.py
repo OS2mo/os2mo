@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from datetime import date
 from datetime import datetime
 from typing import Any
 from typing import Dict
@@ -40,7 +41,7 @@ class EmployeeBase(MOBase):
     cpr_no: Optional[str] = Field(
         regex=r"^\d{10}$", description="CPR number of the employee."
     )
-    seniority: Optional[datetime] = Field(description="Seniority of the employee.")
+    seniority: Optional[date] = Field(description="Seniority of the employee.")
     givenname: str = Field(description="Given name of the employee.")
     surname: str = Field(description="Surname of the employee.")
     nickname_givenname: Optional[str] = Field(
@@ -53,6 +54,12 @@ class EmployeeBase(MOBase):
 
 class EmployeeRead(EmployeeBase):
     validity: OpenValidity = Field(description="Validity of the employee.")
+
+    @root_validator(pre=True)
+    def handle_deprecated_keys(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        values.pop("name", None)
+        values.pop("nickname", None)
+        return values
 
 
 class EmployeeWrite(EmployeeBase):
