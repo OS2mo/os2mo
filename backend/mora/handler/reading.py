@@ -44,7 +44,11 @@ class ReadingHandler:
     @classmethod
     @abc.abstractmethod
     async def get(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
+        cls,
+        c,
+        search_fields,
+        changed_since: Optional[datetime] = None,
+        flat: bool = False,
     ) -> List[Dict]:
         """
         Read a list of objects based on the given search parameters
@@ -87,7 +91,9 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, obj_id, flat: bool = False
+    ):
         """
         Convert an effect to a MO object
 
@@ -101,7 +107,7 @@ class ReadingHandler:
 
     @classmethod
     async def __async_get_mo_object_from_effect(
-        cls, c, function_id, function_obj
+        cls, c, function_id, function_obj, flat: bool = False
     ) -> List[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by
@@ -114,7 +120,9 @@ class ReadingHandler:
         return await gather(
             *[
                 create_task(
-                    cls._get_mo_object_from_effect(effect, start, end, function_id)
+                    cls._get_mo_object_from_effect(
+                        effect, start, end, function_id, flat
+                    )
                 )
                 for start, end, effect in (await cls._get_effects(c, function_obj))
                 if util.is_reg_valid(effect)
@@ -123,7 +131,10 @@ class ReadingHandler:
 
     @classmethod
     async def _get_obj_effects(
-        cls, c: Connector, object_tuples: Iterable[Tuple[str, Dict[Any, Any]]]
+        cls,
+        c: Connector,
+        object_tuples: Iterable[Tuple[str, Dict[Any, Any]]],
+        flat: bool = False,
     ) -> List[Dict[Any, Any]]:
         """
         Convert a list of LoRa objects into a list of MO objects
@@ -138,7 +149,7 @@ class ReadingHandler:
                 *[
                     create_task(
                         cls.__async_get_mo_object_from_effect(
-                            c, function_id, function_obj
+                            c, function_id, function_obj, flat
                         )
                     )
                     for function_id, function_obj in object_tuples
@@ -166,11 +177,21 @@ class OrgFunkReadingHandler(ReadingHandler):
         mapping[key] = await awaitable_value
 
     @classmethod
-    async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
+    async def get(
+        cls,
+        c,
+        search_fields,
+        changed_since: Optional[datetime] = None,
+        flat: bool = False,
+    ):
         object_tuples = await cls._get_lora_object(
             c, search_fields, changed_since=changed_since
         )
-        mo_objects = await cls._get_obj_effects(c, object_tuples)
+        mo_objects = await cls._get_obj_effects(c, object_tuples, flat)
+
+        # Return MO objects early if they are flat
+        if flat:
+            return mo_objects
 
         # Mutate objects by awaiting as needed. This delayed evaluation allows bulking.
         tasks = []
@@ -292,7 +313,7 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid
+        cls, effect, start, end, funcid, flat: bool = False
     ) -> Dict[str, Any]:
 
         properties = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
