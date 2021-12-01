@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.8.1 - 2021-12-01
+------------------
+
+[#47196] Fix auth check on configuration endpoints
+
 3.8.0 - 2021-12-01
 ------------------
 
