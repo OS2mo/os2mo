@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.8.0 - 2021-12-01
+------------------
+
+[#47360] Add possibility of returning flat objects from ReadingHandler'
+
 3.7.1 - 2021-12-01
 ------------------
 
