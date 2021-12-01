@@ -51,6 +51,9 @@ class TestEndpointAuthDependency(unittest.TestCase):
             "/service/keycloak.json",
             "/service/token",
             "/service/{rest_of_path:path}",
+            "/service/ou/{unitid}/configuration",
+            "/service/configuration",
+            "/service/navlinks",
             "/testing/testcafe-db-setup",
             "/testing/testcafe-db-teardown",
             "/metrics",
@@ -141,12 +144,6 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
             "/service/ou/00000000-0000-0000-0000-000000000000/map",
             HTTP_401_UNAUTHORIZED,
             json=[{"not": "important"}],
-        )
-
-    def test_auth_service_configuration(self):
-        self.assertRequestFails(
-            "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
-            HTTP_401_UNAUTHORIZED,
         )
 
     def test_auth_service_validate(self):

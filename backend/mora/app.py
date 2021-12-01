@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from mora import config
 from mora import health
 from mora import log
+from mora.service.configuration import router as configuration_router
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
@@ -261,6 +262,11 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
         )
 
+    app.include_router(
+        configuration_router,
+        prefix="/service",
+        tags=["Service"],
+    )
     app.include_router(
         keycloak_router(),
         prefix="/service",
