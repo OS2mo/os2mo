@@ -1,10 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import create_task
+from asyncio import gather
+from datetime import datetime
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
+from typing import Optional
 
 from structlog import get_logger
-from asyncio import create_task, gather
-from datetime import datetime
-from typing import Any, Awaitable, Dict, Iterable, Optional
 
 from .. import reading
 from ... import mapping
@@ -57,7 +62,9 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         return manager
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)

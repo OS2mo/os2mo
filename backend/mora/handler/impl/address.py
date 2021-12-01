@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
-from structlog import get_logger
 from asyncio import create_task
 
-from .engagement import get_engagement
+from structlog import get_logger
+
 from .. import reading
 from ... import mapping
 from ...request_scoped.bulking import request_wide_bulk
@@ -12,6 +11,8 @@ from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.address_handler import base
+from .engagement import get_engagement
+from mora import util
 
 ROLE_TYPE = "address"
 
@@ -23,7 +24,9 @@ class AddressReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ADDRESS_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)

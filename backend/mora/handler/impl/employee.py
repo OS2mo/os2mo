@@ -1,14 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
+
+from structlog import get_logger
 
 from .. import reading
-from ... import common, exceptions, mapping, util
+from ... import common
+from ... import exceptions
+from ... import mapping
+from ... import util
+from ...graphapi.middleware import is_graphql
 from ...lora import Connector
 from ...service import employee
-from ...graphapi.middleware import is_graphql
 
 ROLE_TYPE = "employee"
 
@@ -23,6 +29,7 @@ class EmployeeReader(reading.ReadingHandler):
         c: Connector,
         search_fields: Dict[Any, Any],
         changed_since: Optional[datetime] = None,
+        flat: bool = False,
     ):
         object_tuples = await cls._get_lora_object(
             c=c, search_fields=search_fields, changed_since=changed_since
@@ -66,7 +73,9 @@ class EmployeeReader(reading.ReadingHandler):
         return await c.bruger.get_effects(obj, relevant, {}, **params)
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, obj_id, flat: bool = False
+    ):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 

@@ -1,17 +1,23 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
 
-from mora import exceptions
+from structlog import get_logger
+
 from .. import reading
 from ... import mapping
 from ... import util
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from mora import exceptions
 
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}
@@ -98,12 +104,13 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         )
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
-
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
         need_sub = substitute_uuid and util.is_substitute_allowed(association_type)
         substitute = None
@@ -116,10 +123,23 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         classes = list(mapping.ORG_FUNK_CLASSES_FIELD.get_uuids(effect))
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
-        base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        # Await base object
+        base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
+        # Return early if flat model is desired
+        # Idea: return MORead data model here?
+        if flat:
+            return {
+                **base_obj,
+                "person_uuid": person,
+                "org_unit_uuid": org_unit,
+                "association_type_uuid": association_type,
+                "substitute_uuid": substitute_uuid if need_sub else None,
+                "dynamic_classes": classes,
+                "primary_uuid": primary,
+            }
+
+        # Create awaitables for bulky objects
         dynamic_classes_awaitable = cls.__dynamic_classes_helper(
             classes, only_primary_uuid=only_primary_uuid
         )
@@ -151,7 +171,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 )
             )
         r = {
-            **await base_obj,
+            **base_obj,
             mapping.PERSON: (await person_task) if person else None,
             mapping.ORG_UNIT: await org_unit_task,
             mapping.ASSOCIATION_TYPE: await association_type_task,
