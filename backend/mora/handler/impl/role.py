@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
-from structlog import get_logger
 from asyncio import create_task
+
+from structlog import get_logger
 
 from .. import reading
 from ... import mapping
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from mora import util
 
 ROLE_TYPE = "role"
 
@@ -20,7 +21,9 @@ class RoleReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ROLE_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         role_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)

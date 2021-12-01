@@ -1,20 +1,24 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from structlog import get_logger
-from asyncio import create_task, gather
-from typing import Any, Dict, Optional
+from asyncio import create_task
+from asyncio import gather
+from typing import Any
+from typing import Dict
+from typing import Optional
 from typing import Union
 from uuid import UUID
+
+from structlog import get_logger
 
 from .. import reading
 from ... import lora
 from ... import mapping
 from ... import util
-from mora.request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
+from mora.request_scoped.bulking import request_wide_bulk
 
 ROLE_TYPE = "engagement"
 
@@ -26,7 +30,9 @@ class EngagementReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)

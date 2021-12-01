@@ -1,25 +1,35 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from asyncio import create_task
 from datetime import datetime
 from functools import partial
 from math import inf
-from typing import Any, Awaitable, Dict, List, Optional, Tuple
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 from uuid import UUID
 
-from .association import AssociationReader
-from .engagement import EngagementReader
+from structlog import get_logger
+
 from .. import reading
-from ... import mapping, util
+from ... import mapping
+from ... import util
 from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
-from ...mapping import EXTENSION_1, OwnerInferencePriority, PRIMARY
+from ...mapping import EXTENSION_1
+from ...mapping import OwnerInferencePriority
+from ...mapping import PRIMARY
 from ...request_scoped.bulking import request_wide_bulk
-from ...service import employee, orgunit
+from ...service import employee
+from ...service import orgunit
 from ...service.facet import get_sorted_primary_class_list
-from ...util import get_uuid, get_valid_from
+from ...util import get_uuid
+from ...util import get_valid_from
+from .association import AssociationReader
+from .engagement import EngagementReader
 
 ROLE_TYPE = mapping.OWNER
 
@@ -154,7 +164,9 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         return org_unit_owners[0]["owner"]
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, funcid):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, funcid, flat: bool = False
+    ):
 
         owned_person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)

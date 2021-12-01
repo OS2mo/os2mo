@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from structlog import get_logger
 from datetime import datetime
 from typing import Optional
+
+from structlog import get_logger
 
 from .. import reading
 from ... import common
 from ... import exceptions
 from ... import mapping
 from ... import util
-from ...service import orgunit
 from ...graphapi.middleware import is_graphql
+from ...service import orgunit
 
 ROLE_TYPE = "org_unit"
 
@@ -70,7 +70,9 @@ class OrgUnitReader(reading.ReadingHandler):
         return await c.organisationenhed.get_effects(obj, relevant, also, **params)
 
     @classmethod
-    async def _get_mo_object_from_effect(cls, effect, start, end, obj_id):
+    async def _get_mo_object_from_effect(
+        cls, effect, start, end, obj_id, flat: bool = False
+    ):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 

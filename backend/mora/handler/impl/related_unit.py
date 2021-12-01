@@ -1,13 +1,19 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import util
-from structlog import get_logger
 from asyncio import gather
-from typing import Any, Awaitable, Dict, Iterable, TypeVar, Union
+from typing import Any
+from typing import Awaitable
+from typing import Dict
+from typing import Iterable
+from typing import TypeVar
+from typing import Union
+
+from structlog import get_logger
 
 from .. import reading
 from ... import mapping
 from ...service import orgunit
+from mora import util
 
 ROLE_TYPE = "related_unit"
 
@@ -34,7 +40,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid
+        cls, effect, start, end, funcid, flat: bool = False
     ) -> Dict[str, Union[Awaitable, Any]]:
         org_units = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
