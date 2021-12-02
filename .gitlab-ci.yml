@@ -34,6 +34,11 @@ stages:
 
 # Jobs
 ################################################################################
+include:
+  - project: 'labs/salt-automation'
+    ref: 'master'
+    file: '/gitlab-ci-templates/common/autopub.v1.yml'
+
 Install:
   <<: *install-deps
   image: python:3.8-slim
@@ -76,32 +81,6 @@ Check coverage:
     - coverage combine
   script:
     - coverage report -m --fail-under=100
-
-Autopub:
-  stage: prepare-release
-  needs: []
-  image: python:3.8
-  variables:
-    PROJECT_ROOT: .
-  tags:
-    - docker
-  before_script:
-    # Setup git
-    - mkdir -p ~/.ssh
-    - cat .gitlab/gitlab-known-hosts >> ~/.ssh/known_hosts
-    - git clone https://$AUTOPUB_USER:$AUTOPUB_TOKEN@git.magenta.dk/rammearkitektur/ra-data-models.git
-    - cd ra-data-models
-    - git checkout master
-    - git config --global user.name "MagentaBot"
-    - git config --global user.email "info@magenta.dk"
-    # Prepare autopub
-    - pip install autopub
-    - pip install poetry
-    - pip install toml
-  script:
-    - bash .gitlab/autopub.sh
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
 
 Release to PyPI:
   <<: *install-deps

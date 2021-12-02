@@ -1,6 +1,0 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-# SPDX-License-Identifier: MPL-2.0
-# Generated using ssh-keyscan git.magenta.dk
-git.magenta.dk ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCzTVhsrprsDWy0Fpc/JuqW1buGw/+3HcSQlCUuo3dZ0mYJ1e6hBANOikYVmeheejT89OnAXsCczCizurdadqNTUt1illrmHfCRTKK/IPmggTvjmOQmjdxBYlbtAekmE/16CiZOCh+AF7fKM8li3wjRyiPPdoaT24xv95QKUKIT99R6Q/LQ/Pb6mtAsGzDOPJEtE1l6y5324jeyfZmuTAWBL1ySmxkU5lmUZXn4i3SCRApvD9o+414JrU+QBOPSq4I39shHgmqRCa13u9KzkAbcRXvLlWeGm/P+BnLdKxf5gsSvlLsOX4PaZPGCN2Pl4n/nzRqbAx4lqbCpzC78gsJf
-git.magenta.dk ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBM7AqYfQfKFBg1PSjqaWmjcNGqFbGUyNv27aoShYM4RIm9w4/ARwSsoA6XXfxzrXCGLYg+hJwfQx2kLG+rrI9DE=
-git.magenta.dk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEyt2J5sJ8G7af0dAS7lLKm3jFTo+6vgJLJrTrjVhrGV
