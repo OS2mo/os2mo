@@ -1,5 +1,11 @@
-# SPDX-FileCopyrightText: 2021- Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from itertools import compress
 from typing import Any
 from typing import Dict
@@ -9,10 +15,99 @@ from uuid import uuid4
 
 import pytest
 from aioresponses import CallbackResult
+from fastapi.encoders import jsonable_encoder
+from hypothesis import given
+from hypothesis import strategies as st
 from more_itertools import unzip
+from pytest import MonkeyPatch
+from ramodels.mo import OrganisationUnitRead
 from yarl import URL
 
+import mora.graphapi.dataloaders as dataloaders
 from .util import execute
+
+
+# --------------------------------------------------------------------------------------
+# Tests
+# --------------------------------------------------------------------------------------
+
+
+class TestOrganisationUnitsQuery:
+    """Class collecting organisation unit query tests.
+
+    Data loaders are mocked to return specific values, generated via
+    Hypothesis.
+    MonkeyPatch.context is used as a context manager to achieve this,
+    because mocks are *not* reset between invocations of Hypothesis examples.
+    """
+
+    @given(test_data=st.lists(st.builds(OrganisationUnitRead)))
+    def test_query_all(self, test_data, graphapi_test, patch_loader):
+        """Test that we can query all our organisation units."""
+
+        # JSON encode test data
+        test_data = jsonable_encoder(test_data)
+
+        # Patch dataloader
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+            query = """
+                query {
+                    org_units {
+                        name user_key validity {from to}
+                    }
+                }
+            """
+            response = graphapi_test.post("/graphql", json={"query": query})
+
+        data, errors = response.json().get("data"), response.json().get("errors")
+        assert errors is None
+        assert data is not None
+        assert data["org_units"] == [
+            {
+                "name": org_unit["name"],
+                "user_key": org_unit["user_key"],
+                "validity": org_unit["validity"],
+            }
+            for org_unit in test_data
+        ]
+
+    @given(test_data=st.lists(st.builds(OrganisationUnitRead)), st_data=st.data())
+    def test_query_by_uuid(self, test_data, st_data, graphapi_test, patch_loader):
+        """Test that we can query organisation units by UUID."""
+
+        # Sample UUIDs
+        uuids = [str(model.uuid) for model in test_data]
+        test_uuids = st_data.draw(st.lists(st.sampled_from(uuids))) if uuids else []
+
+        # JSON encode test data
+        test_data = jsonable_encoder(test_data)
+
+        # Patch dataloader
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
+            query = """
+                    query TestQuery($uuids: [UUID!]) {
+                        org_units(uuids: $uuids) {
+                            uuid
+                        }
+                    }
+                """
+            response = graphapi_test.post(
+                "/graphql", json={"query": query, "variables": {"uuids": test_uuids}}
+            )
+
+        data, errors = response.json().get("data"), response.json().get("errors")
+        assert errors is None
+        assert data is not None
+
+        # Check UUID equivalence
+        result_uuids = [ou.get("uuid") for ou in data["org_units"]]
+        assert set(result_uuids) == set(test_uuids)
+        assert len(result_uuids) == len(set(test_uuids))
+
+
+# This is kept to check parent/children loaders
 
 
 def gen_organisation_unit(
@@ -66,121 +161,6 @@ def mock_organisation_unit(aioresponses, *args, **kwargs) -> UUID:
     )
 
     return organisation_unit["id"]
-
-
-@pytest.mark.asyncio
-async def test_query_organisation_units(aioresponses):
-    """Test that we are able to query our organisation unit."""
-    uuid = mock_organisation_unit(aioresponses)
-
-    query = "query { org_units { uuid, user_key, name, parent_uuid }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["org_units"] == [
-        {
-            "uuid": str(uuid),
-            "user_key": "user_key",
-            "name": "name",
-            "parent_uuid": None,
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_query_organisation_units_by_uuids(aioresponses):
-    """Test that we are able to query our organisation unit by UUID (bulk)."""
-    uuid = mock_organisation_unit(aioresponses)
-
-    query = """
-        query TestQuery($uuid: UUID!) {
-            org_units(uuids: [$uuid]) {
-                uuid, user_key, name, parent_uuid
-            }
-        }
-    """
-    result = await execute(query, {"uuid": str(uuid)})
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["org_units"] == [
-        {
-            "uuid": str(uuid),
-            "user_key": "user_key",
-            "name": "name",
-            "parent_uuid": None,
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_query_organisation_units_by_unknown_uuid(aioresponses):
-    """Test that we get an empty response when querying with an unknown uuid."""
-    mock_organisation_unit(aioresponses)
-
-    query = """
-        query TestQuery($uuid: UUID!) {
-            org_units(uuids: [$uuid]) {
-                uuid, user_key, name, parent_uuid
-            }
-        }
-    """
-    result = await execute(query, {"uuid": str(uuid4())})
-
-    # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
-
-    assert result.errors is None
-    assert result.data["org_units"] == []
-
-
-@pytest.mark.asyncio
-async def test_query_no_organisation_units(aioresponses):
-    """Test that we get an empty result if no organisation units exist."""
-    aioresponses.get(
-        URL("http://mox/organisation/organisationenhed"),
-        payload={"results": []},
-        repeat=True,
-    )
-    query = "query { org_units { uuid }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["org_units"] == []
-
-
-@pytest.mark.asyncio
-async def test_query_multiple_organisation_units(aioresponses):
-    """Test that we are able to query multiple organisation units at once."""
-    organisation_units = [
-        gen_organisation_unit(),
-        gen_organisation_unit(),
-        gen_organisation_unit(),
-    ]
-    aioresponses.get(
-        URL("http://mox/organisation/organisationenhed"),
-        payload={"results": [organisation_units]},
-        repeat=True,
-    )
-
-    query = "query { org_units { uuid }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["org_units"] == [
-        {"uuid": organisation_unit["id"]} for organisation_unit in organisation_units
-    ]
 
 
 def get_children_uuids(parent_map, parent_uuid):

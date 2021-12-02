@@ -1,22 +1,74 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import re
-from uuid import uuid4
-from uuid import UUID
+from typing import Any
+from typing import Dict
 from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
+from yarl import URL
 
 from mora import exceptions
-from mora.service.employee import get_one_employee
-from mora.service.employee import EmployeeDetails
-from mora.service.shimmed import get_employee
 from mora.common import get_connector
-
+from mora.service.employee import EmployeeDetails
+from mora.service.employee import get_one_employee
+from mora.service.shimmed import get_employee
 from tests.graphapi.test_organisation import mock_organisation
-from tests.graphapi.test_employees import mock_employee
 from tests.util import patch_is_graphql
 from tests.util import patch_query_args
+
+
+def gen_employee(
+    uuid: Optional[UUID] = None,
+    user_key: str = "user_key",
+    first_name: str = "first_name",
+    last_name: str = "last_name",
+    from_time: str = "1970-01-01 00:00:00+01",
+    seniority: Optional[str] = None,
+) -> Dict[str, Any]:
+    uuid = uuid or uuid4()
+    virkning = {"from": from_time, "to": "infinity"}
+    employee = {
+        "id": str(uuid),
+        "registreringer": [
+            {
+                "attributter": {
+                    "brugeregenskaber": [
+                        {"brugervendtnoegle": user_key, "virkning": virkning}
+                    ],
+                    "brugerudvidelser": [
+                        {
+                            "fornavn": first_name,
+                            "efternavn": last_name,
+                            "virkning": virkning,
+                            "seniority": seniority,
+                        }
+                    ],
+                },
+                "tilstande": {
+                    "brugergyldighed": [{"gyldighed": "Aktiv", "virkning": virkning}]
+                },
+                "relationer": {
+                    "tilknyttedepersoner": [
+                        {"urn": "urn:dk:cpr:person:0101700000", "virkning": virkning}
+                    ],
+                },
+            }
+        ],
+    }
+    return employee
+
+
+def mock_employee(aioresponses, repeat=False, **kwargs) -> UUID:
+    employee = gen_employee(**kwargs)
+    aioresponses.get(
+        URL("http://mox/organisation/bruger"),
+        payload={"results": [[employee]]},
+        repeat=repeat,
+    )
+    return employee["id"]
 
 
 async def old_get_employee(id: UUID, only_primary_uuid: Optional[bool] = None) -> dict:

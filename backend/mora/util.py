@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """"
 Utility methods
 ---------------
@@ -9,7 +8,6 @@ This module contains various utility methods, i.e. a collection of
 various small functions used in many places.
 
 """
-
 import collections
 import copy
 import datetime
@@ -24,22 +22,22 @@ import tempfile
 import typing
 import urllib.parse
 import uuid
-from starlette_context import context
-from structlog import get_logger
 from asyncio import iscoroutinefunction
 from datetime import date
-from functools import wraps
 from functools import reduce
+from functools import wraps
 from typing import Any
 from typing import Union
 
 import dateutil.parser
 import dateutil.tz
+from starlette_context import context
+from structlog import get_logger
 
-from mora import conf_db
 from . import config
 from . import exceptions
 from . import mapping
+from mora import conf_db
 
 # use this string rather than nothing or N/A in UI -- it's the em dash
 PLACEHOLDER = "\u2014"

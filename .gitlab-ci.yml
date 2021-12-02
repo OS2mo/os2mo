@@ -334,6 +334,7 @@ Unit-test:
       --show-capture=no
       --workers auto
       -m "not serial"
+      -k "not graphapi"
       backend/tests/
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:

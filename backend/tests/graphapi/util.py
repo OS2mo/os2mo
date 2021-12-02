@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Optional
 
+from strawberry.types import ExecutionResult
+
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.main import get_schema
-from strawberry.types import ExecutionResult
 from tests.util import patch_is_graphql
 from tests.util import patch_query_args
 

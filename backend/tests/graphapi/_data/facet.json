@@ -1,0 +1,1014 @@
+{
+  "results": [
+    [
+      {
+        "id": "182df2a8-2594-4a3f-9103-a9894d5e0c36",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.83499+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "engagement_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "2cc2dbc5-30dc-4955-8b9a-19fe32b41ce4",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.9562+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "visibility",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "35d5d061-5d19-4584-8c5e-796309b87dfb",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.936695+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "manager_level",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "3e71fe80-843c-4e21-ae7e-a7e54007ec9f",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.868039+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "role_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "403eb28f-e21e-bdd6-3612-33771b098a12",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:55.0279+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "org_unit_hierarchy",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "4afba2d2-4846-42df-981b-0a85ee8de8db",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:55.0119+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "primary_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "4e353b5a-003e-46eb-9c83-996afd7c4d57",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.99546+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "org_unit_level",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "598b261e-8bd4-4fa2-964a-7d9fa2f2713d",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.81984+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "org_unit_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "5b3a55b1-958c-416e-9054-606b2c9e4fcd",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.75195+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "employee_address_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "671291ba-98f4-4486-99ae-377619d36dc3",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.977073+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "time_planning",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "82155433-489f-4ddc-84f6-89911a454c7c",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.802545+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "engagement_job_function",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "9cbad2e8-8f3d-4549-b189-d10f745b912d",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.851004+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "association_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "acc867f1-b258-4825-aaed-a298452600c1",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.663975+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "org_unit_address_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "babe0bd0-d635-43a7-a937-07089da7fac6",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.769959+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "manager_address_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "e097b336-9c25-4297-83ed-d8a5e106e0de",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.919933+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "responsibility",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "e2b6894a-eab0-4c6c-ba42-8a86337d212c",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.884615+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "leave_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "ea236f68-4ffc-433e-bb2e-e750db5aaa29",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.786544+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "address_property",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "f4c55d37-63a4-4299-95fa-ee7ff7e0d0d8",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.902347+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "facetegenskaber": [
+                {
+                  "brugervendtnoegle": "manager_type",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "facetpubliceret": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "publiceret": "Publiceret"
+                }
+              ]
+            },
+            "relationer": {
+              "ansvarlig": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                  "objekttype": "organisation"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}
