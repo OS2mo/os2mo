@@ -168,7 +168,7 @@ async def test_non_existing_field_query(aioresponses):
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == (
-        "Cannot query field 'non_existing_field' on type 'Organisation'."
+        "Cannot query field 'non_existing_field' on type 'OrganisationType'."
     )
     assert result.data is None
 

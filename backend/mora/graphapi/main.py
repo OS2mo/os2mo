@@ -17,7 +17,7 @@ from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import EmployeeType
-from mora.graphapi.schema import Organisation
+from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
 
@@ -39,7 +39,7 @@ class Query:
             "This endpoint fails if not exactly one exists in LoRa."
         ),
     )
-    async def org(self, info: Info) -> Organisation:
+    async def org(self, info: Info) -> OrganisationType:
         return await info.context["org_loader"].load(0)
 
     # Organisational Units

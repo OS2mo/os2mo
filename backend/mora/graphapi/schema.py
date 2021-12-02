@@ -1,33 +1,16 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
 from uuid import UUID
 
 import strawberry
 from ramodels.mo import EmployeeRead
+from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from strawberry.types import Info
-
-
-class Constructable:
-    """Common interface to construct strawberry types from MO types."""
-
-    @classmethod
-    def construct(cls, obj: Dict[str, Any]) -> "Constructable":
-        """Construct the subclass strawberry type from the MO type object.
-
-        Args:
-            obj: The MO type object dictionary.
-
-        Returns:
-            The constructed subclass.
-        """
-        return cls(**obj)
 
 
 @strawberry.experimental.pydantic.type(model=Validity, all_fields=True)
@@ -40,13 +23,13 @@ class OpenValidityType:
     pass
 
 
-@strawberry.type(
-    description=("The root-organisation." "One and only one of these can exist.")
+@strawberry.experimental.pydantic.type(
+    model=OrganisationRead,
+    all_fields=True,
+    description=("The root-organisation." "One and only one of these can exist."),
 )
-class Organisation(Constructable):
-    uuid: UUID
-    name: str
-    user_key: str
+class OrganisationType:
+    pass
 
 
 @strawberry.experimental.pydantic.type(

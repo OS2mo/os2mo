@@ -16,7 +16,7 @@ from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
 from mora.graphapi.schema import EmployeeRead
-from mora.graphapi.schema import Organisation
+from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
@@ -63,7 +63,7 @@ get_org_units = partial(get_mo, model=OrganisationUnitRead)
 get_employees = partial(get_mo, model=EmployeeRead)
 
 
-async def load_org(keys: List[int]) -> List[Organisation]:
+async def load_org(keys: List[int]) -> List[OrganisationRead]:
     """Dataloader function to load Organisation.
 
     A dataloader is used even though only a single Organisation can ever exist, as the
@@ -76,7 +76,7 @@ async def load_org(keys: List[int]) -> List[Organisation]:
         raise ValueError("Only one organisation can exist!")
 
     obj = await org.get_configured_organisation()
-    return [Organisation.construct(obj)] * len(keys)
+    return [OrganisationRead.parse_obj(obj)] * len(keys)
 
 
 async def get_org_unit_children(parent_uuid: UUID) -> List[MOModel]:
