@@ -33,11 +33,16 @@ variables:
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak-db
 
-  IMAGE_DEV: ${RELEASE_REGISTRY_IMAGE}:dev
-  IMAGE_RC: ${RELEASE_REGISTRY_IMAGE}:rc
-  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}
-
   POETRY_VERSION: 1.1.8
+  PYPROJECT_ROOT: './backend'
+
+include:
+  - project: 'labs/salt-automation'
+    ref: 'master'
+    file: '/gitlab-ci-templates/common/autopub.v1.yml'
+  - project: 'labs/salt-automation'
+    ref: 'master'
+    file: '/gitlab-ci-templates/common/docker-release.v1.yml'
 
 # Only run pipeline when pushing a tag or a branch.
 # This is a workaround for a bug causing detached pipelines on MRs
@@ -53,19 +58,19 @@ workflow:
   - poetry config virtualenvs.create false
   - cd backend && poetry install --no-interaction
 
-.manual-rules: &manual-rules
+.master-rules: &master-rules
   rules:
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-      when: manual
+      when: never
     - if: $CI_COMMIT_REF_NAME == "master"
-      when: manual
+      when: never
     - when: always
 
 # Lint stage
 #############
 
 .lint-default: &lint-default
-  <<: *manual-rules
+  <<: *master-rules
   stage: lint
   interruptible: true
   needs: []
@@ -112,7 +117,7 @@ Lint shell scripts:
 #############
 
 Prebuild Keycloak-realm:
-  <<: *manual-rules
+  <<: *master-rules
   stage: prebuild
   interruptible: true
   needs: []
@@ -165,7 +170,7 @@ Build OS2MO:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build frontend:
-  <<: *manual-rules
+  <<: *master-rules
   stage: build
   interruptible: true
   needs: []
@@ -187,7 +192,7 @@ Build frontend:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build Keycloak:
-  <<: *manual-rules
+  <<: *master-rules
   stage: build
   interruptible: true
   needs: ["Prebuild Keycloak-realm"]
@@ -206,7 +211,7 @@ Build Keycloak:
       --destination=${KEYCLOAK_IMAGE_SHA}
 
 Build Keycloak DB:
-  <<: *manual-rules
+  <<: *master-rules
   stage: build
   needs: []
   image:
@@ -224,7 +229,7 @@ Build Keycloak DB:
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
 Build docs:
-  <<: *manual-rules
+  <<: *master-rules
   image: python:3.8
   interruptible: true
   stage: build
@@ -246,7 +251,7 @@ Build docs:
 ############
 
 .test-default: &test-default
-  <<: *manual-rules
+  <<: *master-rules
   stage: test
   interruptible: true
   needs:
@@ -424,116 +429,6 @@ Vue-unit-test:
 
 # Release stage
 ###############
-
-Check Autopub:
-  <<: *manual-rules
-  stage: prepare-release
-  needs: []
-  image: python:3
-  variables:
-    PROJECT_ROOT: .
-  tags:
-    - docker
-  before_script:
-    # Prepare autopub
-    - pip install autopub
-    - pip install poetry
-  script:
-    - cd backend
-    - autopub check
-
-Autopub:
-  stage: prepare-release
-  needs: []
-  image: python:3
-  variables:
-    PROJECT_ROOT: .
-  tags:
-    - docker
-  before_script:
-    # Setup git
-    - mkdir -p ~/.ssh
-    - cat .gitlab/gitlab-known-hosts >> ~/.ssh/known_hosts
-    - apt-get update -y && apt-get install -y git
-    - git clone https://$AUTOPUB_USER:$AUTOPUB_TOKEN@git.magenta.dk/rammearkitektur/os2mo.git
-    - cd os2mo
-    - git checkout master
-    - git config --global user.name "MagentaBot"
-    - git config --global user.email "info@magenta.dk"
-    # Prepare autopub
-    - pip install autopub
-    - pip install poetry
-    - pip install toml
-  script:
-    - cd backend
-    - ../.gitlab/autopub.sh
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
-
-Generate release tags:
-  stage: prepare-release
-  image: magentaaps/semantic-versioning-image-builder:latest
-  interruptible: true
-  script:
-    - python3 -m semvertool "${CI_COMMIT_TAG}" > tags.txt
-    - cat tags.txt
-  artifacts:
-    paths:
-      - tags.txt
-  needs: []
-  rules:
-    # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
-
-.release-default: &release-default
-  stage: release
-  needs: ["Build OS2MO"]
-  image: alpine:3.13
-  variables:
-    GIT_STRATEGY: none # We do not need the source code
-  tags:
-    - docker
-  before_script:
-    - apk add skopeo=1.2.1-r0
-
-Release feature branch:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME =~ /^feature\/.+$/
-  script:
-    - export IMAGE_FEATURE=$(echo "$CI_COMMIT_REF_NAME" | sed 's/\//_/g')
-    - echo "Releasing ${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      "docker://${IMAGE_SHA}"
-      "docker://${CI_REGISTRY_IMAGE}/feature:${IMAGE_FEATURE}"
-
-Release master:
-  <<: *release-default
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "master"
-  script:
-    - skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_DEV}"
-
-Release version:
-  <<: *release-default
-  needs: ["Build OS2MO", "Generate release tags"]
-  rules:
-    # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
-    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  script:
-    - cat tags.txt | xargs -I TAG skopeo copy
-      --src-creds=${CI_REGISTRY_USER}:${CI_BUILD_TOKEN}
-      --dest-creds=${RELEASE_REGISTRY_USER}:${RELEASE_REGISTRY_PASSWORD}
-      "docker://${IMAGE_SHA}"
-      "docker://${IMAGE_VERSION}:TAG"
 
 Update Flux Dev Version:
   stage: deploy
