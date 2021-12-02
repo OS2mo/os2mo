@@ -3,19 +3,23 @@
 import unittest.mock
 
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
-from pydantic import ValidationError, MissingError
-from pydantic.error_wrappers import ErrorWrapper
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_200_OK
 from os2mo_fastapi_utils.auth.test_helper import (
     ensure_endpoints_depend_on_oidc_auth_function,
+)
+from os2mo_fastapi_utils.auth.test_helper import (
     ensure_no_auth_endpoints_do_not_depend_on_auth_function,
 )
+from pydantic import MissingError
+from pydantic import ValidationError
+from pydantic.error_wrappers import ErrorWrapper
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_401_UNAUTHORIZED
 
+import tests.cases
 from mora import main
 from mora.auth.keycloak.models import KeycloakToken
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
-import tests.cases
 from mora.config import Settings
 from tests import util
 
@@ -71,7 +75,10 @@ class TestEndpointAuthDependency(unittest.TestCase):
 
 class TestAuthEndpointsReturn401(tests.cases.TestCase):
 
-    app_settings_overrides = {"v1_api_enable": True}
+    app_settings_overrides = {
+        "v1_api_enable": True,
+        "graphql_enable": True,
+    }
 
     def setUp(self):
         super().setUp()
@@ -159,6 +166,9 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
     def test_auth_api_v1(self):
         self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
 
+    def test_auth_graphql(self):
+        self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
+
 
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     """
@@ -180,6 +190,9 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
 
     def test_auth_api_v1(self):
         self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
+
+    def test_auth_graphql(self):
+        self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
 
     def test_client_secret_token(self):
         # Verify that a token obtained from a client secret (e.g. via the
