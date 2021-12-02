@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.16.0 - 2021-12-02
+-------------------
+
+[#47122] Add ITSystem base/read/write models.
+
 3.15.3 - 2021-12-01
 -------------------
 
