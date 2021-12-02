@@ -261,6 +261,32 @@ class FacetStates(RABase):
     )
 
 
+class Relation(RABase):
+    """Relation object for a model.
+
+    According to the OIO v.1.1 spec, Relation objects have different types, like
+    `OrgUnit`, `OrgFunction`, etc.. However they are all defined solely by an
+    `UUID` and `EffectiveTime`, and thus all Relations are of the same type here.
+
+    """
+
+    uuid: UUID = Field(description="UUID of the related object.")
+    effective_time: EffectiveTime = Field(alias="virkning")
+
+
+def get_relations(
+    uuids: Union[None, UUID, List[UUID]] = None,
+    effective_time: Optional[EffectiveTime] = None,
+) -> Optional[List[Relation]]:
+    """Returns a list of `Relation`s obtained from UUIDs or None if `uuids=None`"""
+
+    if uuids is None or effective_time is None:
+        return None
+    if isinstance(uuids, list):
+        return [Relation(uuid=uuid, effective_time=effective_time) for uuid in uuids]
+    return [Relation(uuid=uuids, effective_time=effective_time)]
+
+
 class Responsible(RABase):
     """
     Responsible object in LoRa.
@@ -299,6 +325,126 @@ class FacetRelations(RABase):
         min_items=1,
         max_items=1,
         description="The responsible object.",
+    )
+
+
+class ITSystemProperties(RABase):
+    """Properties for an ITSystem attribute."""
+
+    user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
+    effective_time: Optional[EffectiveTime] = Field(
+        alias="virkning", description="Effective time of the properties."
+    )
+    name: Optional[str] = Field(
+        alias="itsystemnavn", description="Official name for the ITSystem."
+    )
+    type: Optional[str] = Field(
+        alias="itsystemtype", description="Short description of the type of properties."
+    )
+    configuration_ref: Optional[List[str]] = Field(
+        alias="konfigurationsreference", description="One of ['Ja', 'Nej', 'Ved ikke']."
+    )
+
+
+class ITSystemAttributes(RABase):
+    """Attributes for an ITSystem
+
+    Referencing a list of `ITSystemProperties`."""
+
+    properties: List[ITSystemProperties] = Field(
+        alias="itsystemegenskaber", min_items=1, max_items=1
+    )
+
+
+class ITSystemValidState(RABase):
+    """State for an ITSystem."""
+
+    state: str = Field(
+        default="Aktiv",
+        alias="gyldighed",
+        description="State of the ITSystem. Can be `Aktiv` or `Inaktiv`",
+    )
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the state."
+    )
+
+
+class ITSystemStates(RABase):
+    """States for a ITSystem.
+
+    Referencing a list of `ITSystemValidState`
+    """
+
+    valid_state: List[ITSystemValidState] = Field(
+        alias="itsystemgyldighed", min_items=1, max_items=1
+    )
+
+
+class ITSystemRelations(RABase):
+    """Relations for a ITSystem"""
+
+    # The type of the relation is different for most of the relations (ie. org,
+    # org_unit, user, klasse, etc). But a relation only requires and UUID and
+    # effetive_time; thus they share type here.
+
+    # zero2one relation
+    belongs_to: Optional[List[Relation]] = Field(
+        alias="tilhoerer",
+        min_items=1,
+        max_items=1,
+        description="Reference to a organisation the ITSystem belongs to",
+    )
+    # zero2many relations
+    affiliated_orgs: Optional[List[Relation]] = Field(
+        alias="tilknyttedeorganisationer",
+        description="Reference to affiliated organisations",
+        min_items=1,
+    )
+    affiliated_units: Optional[List[Relation]] = Field(
+        alias="tilknyttedeenheder",
+        description="Reference to affiliated organisation units",
+        min_items=1,
+    )
+    affiliated_functions: Optional[List[Relation]] = Field(
+        alias="tilknyttedefunktioner",
+        description="Reference to affiliated organisation functions",
+        min_items=1,
+    )
+    affiliated_users: Optional[List[Relation]] = Field(
+        alias="tilknyttedebrugere",
+        description="Reference to affiliated users",
+        min_items=1,
+    )
+    affiliated_interests: Optional[List[Relation]] = Field(
+        alias="tilknyttedeinteressefaelleskaber",
+        description="Reference to affiliated common interest",
+        min_items=1,
+    )
+    affiliated_itsystems: Optional[List[Relation]] = Field(
+        alias="tilknyttedeitsystemer",
+        description="Reference to affiliated ITSystems",
+        min_items=1,
+    )
+    affiliated_persons: Optional[List[Relation]] = Field(
+        alias="tilknyttedepersoner",
+        description="Reference to affiliated persons",
+        min_items=1,
+    )
+    addresses: Optional[List[Relation]] = Field(
+        alias="adresser",
+        description="Affiliated addresses, like URL",
+        min_items=1,
+    )
+    # the two following are type Klasse
+    system_types: Optional[List[Relation]] = Field(
+        alias="systemtyper",
+        description="Reference to affiliated systemtypes, like STORM",
+        min_items=1,
+    )
+    tasks: Optional[List[Relation]] = Field(
+        alias="opgaver",
+        description="Reference to affiliated tasks, like FORM",
+        min_items=1,
     )
 
 

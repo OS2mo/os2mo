@@ -9,6 +9,7 @@
 import re
 from datetime import datetime
 from functools import partial
+from typing import cast
 
 import pytest
 from hypothesis import assume
@@ -26,7 +27,13 @@ from ramodels.lora._shared import FacetProperties
 from ramodels.lora._shared import FacetRef
 from ramodels.lora._shared import FacetRelations
 from ramodels.lora._shared import FacetStates
+from ramodels.lora._shared import get_relations
 from ramodels.lora._shared import InfiniteDatetime
+from ramodels.lora._shared import ITSystemAttributes
+from ramodels.lora._shared import ITSystemProperties
+from ramodels.lora._shared import ITSystemRelations
+from ramodels.lora._shared import ITSystemStates
+from ramodels.lora._shared import ITSystemValidState
 from ramodels.lora._shared import KlasseAttributes
 from ramodels.lora._shared import KlasseProperties
 from ramodels.lora._shared import KlasseRelations
@@ -38,6 +45,7 @@ from ramodels.lora._shared import OrganisationRelations
 from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
 from ramodels.lora._shared import Published
+from ramodels.lora._shared import Relation
 from ramodels.lora._shared import Responsible
 from tests.conftest import date_strat
 from tests.conftest import not_from_regex
@@ -522,6 +530,251 @@ class TestFacetRelations:
 def valid_facet_relations(draw):
     model_dict = draw(facet_relations_strat())
     return FacetRelations(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
+# ITSystemProperties
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def itsys_prop_strat(draw):
+    required = {"user_key": st.text(), "effective_time": valid_edt()}
+    optional = {
+        "name": st.text(),
+        "type": st.text(),
+        "configuration_ref": st.lists(st.text()),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    return st_dict
+
+
+class TestITSysProperties:
+    @given(itsys_prop_strat())
+    def test_init(self, model_dict):
+        assert ITSystemProperties(**model_dict)
+
+
+@st.composite
+def itsys_valid_prop(draw):
+    model_dict = draw(itsys_prop_strat())
+    return ITSystemProperties(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
+# ITSystemAttributes
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def itsys_attr_strat(draw):
+    required = {"properties": st.lists(itsys_valid_prop(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def invalid_itsys_attr_strat(draw):
+    required = {
+        "properties": (
+            st.lists(itsys_valid_prop(), max_size=0)
+            | st.lists(itsys_valid_prop(), min_size=2, max_size=5)
+        )
+    }
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestITSysAttributes:
+    @given(itsys_attr_strat())
+    def test_init(self, model_dict):
+        assert ITSystemAttributes(**model_dict)
+
+    @given(invalid_itsys_attr_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            ITSystemAttributes(**invalid_model_dict)
+
+
+@st.composite
+def valid_itsys_attr(draw):
+    model_dict = draw(itsys_attr_strat())
+    return ITSystemAttributes(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
+# Relation
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def relation_strat(draw):
+    required = {"uuid": st.uuids(), "effective_time": valid_edt()}
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestRelation:
+    @given(relation_strat())
+    def test_init(self, model_dict):
+        assert Relation(**model_dict)
+
+
+@st.composite
+def valid_relation(draw):
+    model_dict = draw(relation_strat())
+    return Relation(**model_dict)
+
+
+@st.composite
+def get_relations_strat(draw):
+    required = {
+        "uuids": st.none() | st.uuids() | st.lists(st.uuids(), min_size=1),
+        "effective_time": valid_edt(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestGetRelations:
+    @given(get_relations_strat())
+    def test_get_relations(self, params):
+        uuids = params.get("uuids")
+        if uuids is None:
+            assert get_relations(**params) is None
+        elif isinstance(uuids, list):
+            assert len(cast(list, get_relations(**params))) == len(uuids)
+        else:
+            # single UUID
+            assert len(cast(list, get_relations(**params))) == 1
+
+
+# --------------------------------------------------------------------------------------
+# ITSystemRelations
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def itsys_relations_strat(draw):
+    optional = {
+        "belongs_to": st.none() | st.lists(valid_relation(), min_size=1, max_size=1),
+        "affiliated_orgs": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_units": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_functions": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_users": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_interests": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_itsystems": st.none() | st.lists(valid_relation(), min_size=1),
+        "affiliated_persons": st.none() | st.lists(valid_relation(), min_size=1),
+        "addresses": st.none() | st.lists(valid_relation(), min_size=1),
+        "system_types": st.none() | st.lists(valid_relation(), min_size=1),
+        "tasks": st.none() | st.lists(valid_relation(), min_size=1),
+    }
+    st_dict = draw(st.fixed_dictionaries({}, optional=optional))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def invalid_itsys_relations_strat(draw):
+    required = {
+        "belongs_to": (
+            st.lists(valid_relation(), max_size=0)
+            | st.lists(valid_relation(), min_size=2, max_size=5)
+        ),
+        "affiliated_orgs": st.lists(valid_relation(), max_size=0),
+        "affiliated_units": st.lists(valid_relation(), max_size=0),
+        "affiliated_functions": st.lists(valid_relation(), max_size=0),
+        "affiliated_users": st.lists(valid_relation(), max_size=0),
+        "affiliated_interests": st.lists(valid_relation(), max_size=0),
+        "affiliated_itsystems": st.lists(valid_relation(), max_size=0),
+        "affiliated_persons": st.lists(valid_relation(), max_size=0),
+        "addresses": st.lists(valid_relation(), max_size=0),
+        "system_types": st.lists(valid_relation(), max_size=0),
+        "tasks": st.lists(valid_relation(), max_size=0),
+    }
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestITSysRelations:
+    @given(itsys_relations_strat())
+    def test_init(self, model_dict):
+        assert ITSystemRelations(**model_dict)
+
+    @given(invalid_itsys_relations_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            ITSystemRelations(**invalid_model_dict)
+
+
+@st.composite
+def valid_itsys_relations(draw):
+    model_dict = draw(itsys_relations_strat())
+    return ITSystemRelations(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
+# ITSystemValidState
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def itsys_valid_state_strat(draw):
+    required = {"state": st.text(), "effective_time": valid_edt()}
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestITSysValidState:
+    @given(itsys_valid_state_strat())
+    def test_init(self, model_dict):
+        assert ITSystemValidState(**model_dict)
+
+
+@st.composite
+def itsys_valid_state(draw):
+    model_dict = draw(itsys_valid_state_strat())
+    return ITSystemValidState(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
+# ITSystemStates
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def itsys_states_strat(draw):
+    required = {"valid_state": st.lists(itsys_valid_state(), min_size=1, max_size=1)}
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+@st.composite
+def invalid_itsys_states_strat(draw):
+    required = {
+        "valid_state": (
+            st.lists(itsys_valid_state(), max_size=0)
+            | st.lists(itsys_valid_state(), min_size=2, max_size=5)
+        )
+    }
+    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    return st_dict
+
+
+class TestITSysStates:
+    @given(itsys_states_strat())
+    def test_init(self, model_dict):
+        assert ITSystemStates(**model_dict)
+
+    @given(invalid_itsys_states_strat())
+    def test_validators(self, invalid_model_dict):
+        with single_item_error():
+            ITSystemStates(**invalid_model_dict)
+
+
+@st.composite
+def valid_itsys_states(draw):
+    model_dict = draw(itsys_states_strat())
+    return ITSystemStates(**model_dict)
 
 
 # --------------------------------------------------------------------------------------
