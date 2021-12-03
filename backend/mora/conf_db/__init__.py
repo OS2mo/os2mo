@@ -182,7 +182,7 @@ def get_db_configuration(unitid=None):
 def get_settings_configuration():
     settings = config.get_settings()
     settings_configuration = {
-        key.removeprefix("confdb_"): value
+        key.lstrip("confdb_"): value
         for key, value in settings.dict().items()
         if key.startswith("confdb_")
     }
