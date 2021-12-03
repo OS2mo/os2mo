@@ -20,6 +20,7 @@
   "job_function": "Job title",
   "leave_type": "Leave type",
   "manager": "Manager | Managers",
+  "owner": "Owner | Owners",
   "manager_level": "Manager level",
   "manager_type": "Manager type",
   "name": "Name",
@@ -53,5 +54,8 @@
   "it": "IT",
   "main_organisation": "Main organization",
   "engagement_id": "ID",
+  "entire_organisation": "Entire organisation",
+  "belongs_to": "Belongs to",
+  "seniority": "Seniority",
   "none": "None"
 }

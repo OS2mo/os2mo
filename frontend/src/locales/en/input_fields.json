@@ -2,6 +2,7 @@
   "current_super_unit": "Current parent unit",
   "account_name": "Account name",
   "association_type": "@:shared.association_type",
+  "engagement_association_type": "@:shared.engagement_association_type",
   "visibility": "Visibility",
   "employee": "@:shared.employee",
   "employee_optional": "Specify employee (Optional)",
@@ -47,5 +48,6 @@
   "search_for_name_or_cpr": "Search for employee (name)",
   "kle_aspect": "@:shared.kle_aspect",
   "kle_number": "@:shared.kle_number",
-  "date": "@:shared.date.date"
+  "date": "@:shared.date.date",
+  "owner_inference_priority": "Infer using"
 }
