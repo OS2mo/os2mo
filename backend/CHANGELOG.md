@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.9.0 - 2021-12-03
+------------------
+
+[#47415] Update Organisation GraphQL implementation to use datamodel from `ramodels`
+
 3.8.4 - 2021-12-03
 ------------------
 
