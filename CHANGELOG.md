@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.17.0 - 2021-12-03
+-------------------
+
+[#47415] Add OrganisationRead model.
+
 3.16.0 - 2021-12-02
 -------------------
 
