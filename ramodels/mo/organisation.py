@@ -6,28 +6,17 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from pydantic import Field
+
 from ._shared import MOBase
-from .employee import Employee
-from .employee import EmployeeRead
-from .employee import EmployeeWrite
-from .facet import FacetClass
-from .organisation import OrganisationRead
-from .organisation_unit import OrganisationUnit
-from .organisation_unit import OrganisationUnitRead
-from .organisation_unit import OrganisationUnitWrite
 
 # --------------------------------------------------------------------------------------
-# All
+# Organisation model
 # --------------------------------------------------------------------------------------
 
-__all__ = [
-    "MOBase",
-    "Employee",
-    "EmployeeRead",
-    "EmployeeWrite",
-    "FacetClass",
-    "OrganisationRead",
-    "OrganisationUnit",
-    "OrganisationUnitRead",
-    "OrganisationUnitWrite",
-]
+
+class OrganisationRead(MOBase):
+    """A MO organisation object."""
+
+    type_: str = Field("organisation", alias="type", description="The object type")
+    name: str = Field(description="Name of the organisation.")
