@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from uuid import UUID
@@ -11,7 +13,6 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from mora.graphapi.auth import IsAuthenticated
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_org_units
@@ -33,7 +34,6 @@ class Query:
     # Root Organisation
     # -----------------
     @strawberry.field(
-        permission_classes=[IsAuthenticated],
         description=(
             "Get the root-organisation. "
             "This endpoint fails if not exactly one exists in LoRa."
@@ -45,7 +45,6 @@ class Query:
     # Organisational Units
     # --------------------
     @strawberry.field(
-        permission_classes=[IsAuthenticated],
         description="Get a list of all organisation units, optionally by uuid(s)",
     )
     async def org_units(
@@ -60,7 +59,6 @@ class Query:
     # Employees
     # ---------
     @strawberry.field(
-        permission_classes=[IsAuthenticated],
         description="Get a list of all employees, optionally by uuid(s)",
     )
     async def employees(
@@ -94,9 +92,14 @@ def get_schema():
     return schema
 
 
+async def get_context() -> Dict[str, Any]:
+    loaders = await get_loaders()
+    return {**loaders}
+
+
 def setup_graphql():
     schema = get_schema()
-    gql_router = GraphQLRouter(schema, context_getter=get_loaders)
+    gql_router = GraphQLRouter(schema, context_getter=get_context)
 
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically

@@ -3,14 +3,16 @@
 import os
 from enum import Enum
 from functools import lru_cache
-from pydantic import AnyHttpUrl
-from pydantic import BaseSettings
-from pydantic import root_validator
-from pydantic.types import UUID, PositiveInt
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+from pydantic import AnyHttpUrl
+from pydantic import BaseSettings
+from pydantic import root_validator
+from pydantic.types import PositiveInt
+from pydantic.types import UUID
 
 
 class NavLink(BaseSettings):
@@ -60,7 +62,6 @@ class Settings(BaseSettings):
 
     # GraphQL settings
     graphql_enable: bool = False
-    graphql_auth: bool = True
 
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
