@@ -17,7 +17,6 @@ import './icons.js'
 import 'bootstrap/dist/css/bootstrap.css'
 import './assets/css/global.css'
 import 'moment/locale/da'  // TODO: do we need to load other locales?
-import axios from 'axios'
 
 import '@/views/employee/install'
 import '@/views/organisation/install'
@@ -28,64 +27,45 @@ sync(store, router)
 
 Vue.config.productionTip = false
 
+let keycloak = Keycloak(window.location.origin + '/service/keycloak.json')
 
-let keycloak = init_keycloak()
+keycloak.init({ onLoad: 'login-required' }).then((auth) => {
+  if (!auth) {
+    window.location.reload();
+  } else {
+    console.log("Authenticated")
 
-async function init_keycloak() {
-  let dynamic_keycloak_url = (await axios.get('/service/configuration')).data.dynamic_keycloak_url
-  if (dynamic_keycloak_url) {
-    let keycloak_data = (await axios.get('/service/keycloak.json')).data
-    let keycloak_config = {
-      "url": window.location.origin + '/auth/',
-      "realm": keycloak_data.realm,
-      "clientId": keycloak_data.resource,
-    }
-    console.log(keycloak_data)
-    keycloak = Keycloak(keycloak_config)
+    Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
+    Vue.use(VueSplit)
+    Vue.use(FlagIcon)
+    Vue.use(Router)
+
+    new Vue({
+      router,
+      store,
+      i18n,
+      render: h => h(App)
+    }).$mount('#app')
+
   }
-  else {
-    keycloak = Keycloak(window.location.origin + '/service/keycloak.json')
-  }
 
-  keycloak.init({ onLoad: 'login-required' }).then((auth) => {
-    if (!auth) {
-      window.location.reload();
-    } else {
-      console.log("Authenticated")
+  // Token refresh
+  setInterval(() => {
+    keycloak.updateToken(15).then((refreshed) => {
+      if (refreshed) {
+        console.debug('Token refreshed')
+        console.debug(keycloak.tokenParsed)
+      } else {
+        console.debug('Token not refreshed, valid for '
+          + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
+      }
+    }).catch(() => {
+      console.error('Failed to refresh token')
+    });
+  }, 5000)
 
-      Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
-      Vue.use(VueSplit)
-      Vue.use(FlagIcon)
-      Vue.use(Router)
-
-      new Vue({
-        router,
-        store,
-        i18n,
-        render: h => h(App)
-      }).$mount('#app')
-
-    }
-
-    // Token refresh
-    setInterval(() => {
-      keycloak.updateToken(15).then((refreshed) => {
-        if (refreshed) {
-          console.debug('Token refreshed')
-          console.debug(keycloak.tokenParsed)
-        } else {
-          console.debug('Token not refreshed, valid for '
-            + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
-        }
-      }).catch(() => {
-        console.error('Failed to refresh token')
-      });
-    }, 5000)
-  return keycloak
-
-  }).catch(() => {
-    console.error("Authenticated Failed")
-  });
-}
+}).catch(() => {
+  console.error("Authenticated Failed")
+});
 
 export default keycloak

@@ -146,7 +146,6 @@ class Settings(BaseSettings):
     confdb_show_engagement_hyperlink: bool = False
     confdb_show_seniority: bool = False
     confdb_show_owner: bool = False
-    confdb_dynamic_keycloak_url: bool = False
 
     # Autocomplete: use new API? Requires LoRa 1.13 or later.
     # See #38239.
