@@ -116,6 +116,8 @@ services:
     depends_on:
       mo:
         condition: service_healthy
+    profiles:
+      - init
 
   mox:
     image: magentaaps/lora:2.1.2
@@ -360,5 +362,21 @@ services:
       timeout: 5s
       retries: 3
       start_period: 300s
+
+  fixture-loader:
+    image: magentaaps/os2mo-kolding-fixture:latest
+    environment:
+      POSTGRES_HOST: mox-db
+      POSTGRES_NAME: mox
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    depends_on:
+      mox-db-init:
+        condition: service_completed_successfully
+      mox-db:
+        condition: service_healthy
+    profiles:
+      - kolding
+
 volumes:
   keycloak-volume:
