@@ -12,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
             </div>
 
             <form class="datagrid-filter" @submit.prevent>
-                <a href="#" @click="downloadZip">{{ $t('buttons.download_csv') }}</a>
+                <!-- TODO: Add download single file as CSV -->
                 <label :for="`filter-field-${ componentId }`" 
                     title="Find i liste"
                     class="form-label">
@@ -125,17 +125,6 @@ SPDX-License-Identifier: MPL-2.0
                     this.sortKey = key
                     this.sortOrders[key] = this.sortOrders[key] * -1
                 }
-            },
-            downloadZip: function() {
-                Service.download('/insight/download')
-                .then((response) => {
-                    const url = window.URL.createObjectURL(new Blob([response.data]))
-                    const link = document.createElement('a')
-                    link.href = url
-                    link.setAttribute('download', 'insights.zip')
-                    document.body.appendChild(link)
-                    link.click()
-                })
             },
         },
         mounted: function() {
