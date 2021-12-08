@@ -57,13 +57,13 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "org_unit": st.uuids(),
-        "person": st.uuids(),
-        "engagement_type": st.uuids(),
-        "job_function": st.uuids(),
+        "org_unit_uuid": st.uuids(),
+        "person_uuid": st.uuids(),
+        "engagement_type_uuid": st.uuids(),
+        "job_function_uuid": st.uuids(),
     }
     optional = {
-        "primary": st.none() | st.uuids(),
+        "primary_uuid": st.none() | st.uuids(),
         "is_primary": st.none() | st.booleans(),
     }
 
