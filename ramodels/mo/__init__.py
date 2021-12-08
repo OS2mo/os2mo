@@ -7,6 +7,9 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from ._shared import MOBase
+from ._shared import MORef
+from ._shared import OpenValidity
+from ._shared import Validity
 from .employee import Employee
 from .employee import EmployeeRead
 from .employee import EmployeeWrite
@@ -21,13 +24,16 @@ from .organisation_unit import OrganisationUnitWrite
 # --------------------------------------------------------------------------------------
 
 __all__ = [
-    "MOBase",
     "Employee",
     "EmployeeRead",
     "EmployeeWrite",
     "FacetClass",
+    "MOBase",
+    "MORef",
+    "OpenValidity",
     "OrganisationRead",
     "OrganisationUnit",
     "OrganisationUnitRead",
     "OrganisationUnitWrite",
+    "Validity",
 ]
