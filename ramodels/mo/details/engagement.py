@@ -51,17 +51,19 @@ class EngagementBase(MOBase):
 class EngagementRead(EngagementBase):
     """A MO engagement read object."""
 
-    org_unit: UUID = Field(
+    org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the engagement."
     )
-    person: UUID = Field(description="UUID of the person related to the engagement.")
-    engagement_type: UUID = Field(
+    person_uuid: UUID = Field(
+        description="UUID of the person related to the engagement."
+    )
+    engagement_type_uuid: UUID = Field(
         description="UUID of the engagement type klasse of the engagement."
     )
-    job_function: UUID = Field(
+    job_function_uuid: UUID = Field(
         description="UUID of the job function klasse of the engagement."
     )
-    primary: Optional[UUID] = Field(
+    primary_uuid: Optional[UUID] = Field(
         description="UUID of the primary klasse of the engagement."
     )
     is_primary: Optional[bool] = Field(
