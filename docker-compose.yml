@@ -28,12 +28,6 @@ services:
         condition: service_healthy
     ports:
       - "5001:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://frontend:8080"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   mo:
     build:
@@ -90,12 +84,6 @@ services:
         condition: service_healthy
       otel-collector:
         condition: service_started
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://mo:80"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   mo-init:
     image: magentaaps/os2mo-init:0.1.1
@@ -146,23 +134,11 @@ services:
         condition: service_healthy
       otel-collector:
         condition: service_started
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://mox:80/site-map"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   mox-db:
     image: postgres:11
     environment:
       POSTGRES_PASSWORD: mysecretpassword
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
     # The following will mount the database data directory to RAM. It
     # significantly speeds up the database at the cost of dataloss on shutdown.
     # This is useful for running tests, but should never be used if you want to
@@ -201,12 +177,6 @@ services:
     ports:
       - "5672:5672"    # amqp port
       - "15672:15672"  # management port
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   keycloak:
     image: quay.io/keycloak/keycloak:14.0.0
@@ -243,12 +213,6 @@ services:
         condition: service_healthy
     volumes:
       - keycloak-volume:/srv/:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://keycloak:8080/auth/"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   keycloak-gen:
     image: magentaaps/os2mo-keycloak-realm-builder:2.4.0
@@ -315,12 +279,6 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "keycloak"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   otel-collector:
     image: otel/opentelemetry-collector:0.31.0
@@ -344,24 +302,12 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://grafana:3000/api/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   tempo:
     image: grafana/tempo:latest
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - ./dev-environment/tempo.yml:/etc/tempo.yaml
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://tempo:3200/ready"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 300s
 
   fixture-loader:
     image: magentaaps/os2mo-kolding-fixture:latest
