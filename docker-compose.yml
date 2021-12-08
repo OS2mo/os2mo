@@ -23,9 +23,6 @@ services:
     volumes:
       - .:/app/
       - /app/frontend/node_modules
-    depends_on:
-      mo:
-        condition: service_healthy
     ports:
       - "5001:8080"
 
@@ -75,15 +72,7 @@ services:
       JAEGER_SERVICE: OS2mo
     ports:
       - "5000:80"
-    depends_on:
-      mox:
-        condition: service_healthy
-      msg_broker:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
+    restart: unless-stopped
 
   mo-init:
     image: magentaaps/os2mo-init:0.1.1
@@ -101,9 +90,6 @@ services:
     #  - type: bind
     #    source: ./init.config.yml
     #    target: /config.yml
-    depends_on:
-      mo:
-        condition: service_healthy
     profiles:
       - init
 
@@ -127,13 +113,6 @@ services:
       JAEGER_SERVICE: LoRa
     ports:
       - "8080:80"
-    depends_on:
-      mox-db-init:
-        condition: service_completed_successfully
-      mox-db:
-        condition: service_healthy
-      otel-collector:
-        condition: service_started
 
   mox-db:
     image: postgres:11
@@ -159,9 +138,6 @@ services:
       DB_NAME: mox
       DB_USER: mox
       DB_PASSWORD: mox
-    depends_on:
-      mox-db:
-        condition: service_healthy
 
   msg_broker:
     # Normally, we expect the `rabbitmq` image. The -management images come
@@ -206,11 +182,6 @@ services:
       # PROXY_ADDRESS_FORWARDING: 'true'
       # KEYCLOAK_FRONTEND_URL: https://proxy/auth
       # KEYCLOAK_LOGLEVEL: DEBUG
-    depends_on:
-      keycloak-gen:
-        condition: service_completed_successfully
-      keycloak-db:
-        condition: service_healthy
     volumes:
       - keycloak-volume:/srv/:ro
 
@@ -285,9 +256,6 @@ services:
     command: "--config /etc/otel-collector/config.yaml"
     volumes:
       - ./dev-environment/otel-config.yml:/etc/otel-collector/config.yaml
-    depends_on:
-      tempo:
-        condition: service_healthy
 
   grafana:
     image: grafana/grafana
@@ -297,9 +265,6 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-    depends_on:
-      tempo:
-        condition: service_healthy
     ports:
       - "3000:3000"
 
@@ -316,11 +281,6 @@ services:
       POSTGRES_NAME: mox
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
-    depends_on:
-      mox-db-init:
-        condition: service_completed_successfully
-      mox-db:
-        condition: service_healthy
     profiles:
       - kolding
 
