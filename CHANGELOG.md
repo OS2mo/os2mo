@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.18.0 - 2021-12-08
+-------------------
+
+[#47094] `_uuid` suffix for `EngagementRead` attributes
+
 3.17.0 - 2021-12-03
 -------------------
 
