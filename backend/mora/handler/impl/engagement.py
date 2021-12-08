@@ -44,10 +44,24 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
+        if flat:
+            base_obj.pop("integration_data", None)
+            return {
+                **base_obj,
+                "org_unit_uuid": org_unit,
+                "person_uuid": person,
+                "engagement_type_uuid": engagement_type,
+                "job_function_uuid": job_function,
+                "primary_uuid": primary or None,
+                "is_primary": None, #is_primary_task,
+                "fraction": fraction,
+                **cls._get_extension_fields(extensions),
+            }
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -86,7 +100,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         )
 
         r = {
-            **await base_obj,
+            **base_obj,
             mapping.PERSON: await person_task,
             mapping.ORG_UNIT: await org_unit_task,
             mapping.JOB_FUNCTION: await job_function_task,
