@@ -3,6 +3,7 @@
 
 server:
   http_listen_port: 3200
+  log_level: warn
 
 ingester:
   trace_idle_period: 20s               # the length of time after a trace has not received spans to consider it complete and flush it
