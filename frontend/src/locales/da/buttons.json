@@ -3,5 +3,6 @@
   "edit": "Rediger",
   "save": "Gem",
   "select_another_date": "Vælg anden dato",
-  "download_csv": "Download som CSV"
+  "download_csv": "Download som CSV",
+  "download_zip": "Download alle (Zip)"
 }

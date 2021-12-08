@@ -16,6 +16,7 @@ SPDX-License-Identifier: MPL-2.0
                  v-model="chosen_files">
           <label :for="q">{{q}}</label>
         </div>
+        <a href="#" @click="downloadZip">{{ $t('buttons.download_zip') }}</a>
       </div>
       <div v-if="!query_files || !query_files.length">
         <h5>{{ $t('common.no_files') }}</h5>
@@ -154,6 +155,17 @@ export default {
       for (let i = 0; i < data.length; i++) {
         this.query_data.push(data[i])
       }
+    },
+    downloadZip: function() {
+      Service.download('/insight/download')
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'insights.zip')
+        document.body.appendChild(link)
+        link.click()
+      })
     },
   }
 }
