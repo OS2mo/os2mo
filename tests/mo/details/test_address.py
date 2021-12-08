@@ -44,12 +44,12 @@ def base_strat(draw):
 @st.composite
 def read_strat(draw):
     base_dict = draw(base_strat())
-    required = {"address_type": st.uuids()}
+    required = {"address_type_uuid": st.uuids()}
     optional = {
-        "person": st.none() | st.uuids(),
-        "org_unit": st.none() | st.uuids(),
-        "engagement": st.none() | st.uuids(),
-        "visibility": st.none() | st.uuids(),
+        "person_uuid": st.none() | st.uuids(),
+        "org_unit_uuid": st.none() | st.uuids(),
+        "engagement_uuid": st.none() | st.uuids(),
+        "visibility_uuid": st.none() | st.uuids(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
