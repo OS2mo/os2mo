@@ -89,8 +89,10 @@ class MOBase(UUIDBase):
 
 
 class MORef(RABase):
-    """
-    Reference base.
+    """Reference base.
+
+    Yes, this is a weird layer of indirection. It is simply modelled
+    after how MO's API for writing is and not out of necessity.
     """
 
     uuid: UUID = Field(description="The UUID of the reference.")
