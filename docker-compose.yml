@@ -65,7 +65,6 @@ services:
       CONF_DB_PASSWORD: "mox"
 
       GRAPHQL_ENABLE: "true"
-      GRAPHQL_AUTH: "false"
 
       LORA_URL: "http://mox/"
 
