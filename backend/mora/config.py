@@ -78,7 +78,10 @@ class Settings(BaseSettings):
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
     graphql_rbac: bool = False
+<<<<<<< HEAD
     log_level: LogLevel = LogLevel.INFO
+=======
+>>>>>>> 8fd9c0bd ([#47564] Introduce GraphQL read permissions)
 
     @root_validator
     def graphql_rbac_dependencies(cls, values: Dict[str, Any]) -> Dict[str, Any]:

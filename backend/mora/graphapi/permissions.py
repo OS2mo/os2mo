@@ -56,6 +56,7 @@ def gen_role_permission(role_name: str, message: str = None) -> Type[BasePermiss
 PERMISSIONS = {
     f"read_{collection_name}"
     for collection_name in {
+<<<<<<< HEAD
         "addresses",
         "associations",
         "classes",
@@ -76,6 +77,28 @@ PERMISSIONS = {
         "related_units",
         "roles",
         "version",
+=======
+        "classes",
+        "employees",
+        "org_units",
+        "itusers",
+        "facets",
+        "engagements",
+        "managers",
+        "addresses",
+        "leaves",
+        "associations",
+        "roles",
+        "engagement_associations",
+        "kles",
+        "related_units",
+        "itsystems",
+        "org",
+        "version",
+        "healths",
+        "files",
+        "configuration",
+>>>>>>> 8fd9c0bd ([#47564] Introduce GraphQL read permissions)
     }
 }
 
