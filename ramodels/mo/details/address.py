@@ -48,15 +48,19 @@ class AddressRead(AddressBase):
     Note that one and only one of {person, org_unit, engagement} are given at any time.
     """
 
-    address_type: UUID = Field(description="UUID of the address type klasse.")
-    person: Optional[UUID] = Field(
+    address_type_uuid: UUID = Field(description="UUID of the address type klasse.")
+    person_uuid: Optional[UUID] = Field(
         description="UUID of the person related to the address."
     )
-    org_unit: Optional[UUID] = Field(
+    org_unit_uuid: Optional[UUID] = Field(
         description="UUID of the organisation unit related to the address."
     )
-    engagement: Optional[UUID] = Field("UUID of the engagement related to the address.")
-    visibility: Optional[UUID] = Field("UUID of the visibility klasse of the address.")
+    engagement_uuid: Optional[UUID] = Field(
+        "UUID of the engagement related to the address."
+    )
+    visibility_uuid: Optional[UUID] = Field(
+        "UUID of the visibility klasse of the address."
+    )
 
     # NOTE: The one and only one of {person, org_unit, engagement} invariant
     # is not validated here because reads are assumed to originate from valid data.
