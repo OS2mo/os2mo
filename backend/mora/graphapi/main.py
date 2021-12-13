@@ -74,8 +74,16 @@ class Query:
 
     # Engagement
     # ----------
-    @strawberry.field(description="Get a list of all engagements")
-    async def engagement(self, info: Info) -> List[EngagementType]:
+    @strawberry.field(
+        description="Get a list of all engagements, optionally by uuid(s)"
+    )
+    async def engagement(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[EngagementType]:
+        if uuids:
+            tasks = map(info.context["engagement_loader"].load, uuids)
+            engagements = await gather(*tasks)
+            return list(filter(lambda eng: eng is not None, engagements))
         return await get_engagements()
 
 
