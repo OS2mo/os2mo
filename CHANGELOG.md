@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.18.1 - 2021-12-13
+-------------------
+
+[#47091] Append AddressRead fields with _uuid
+
 3.18.0 - 2021-12-08
 -------------------
 
