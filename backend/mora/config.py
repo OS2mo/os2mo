@@ -69,6 +69,20 @@ class Settings(BaseSettings):
     navlinks: List[NavLink] = []
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
+    graphql_rbac: bool = False
+
+    @root_validator
+    def graphql_rbac_dependencies(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if not values["graphql_rbac"]:
+            return values
+
+        dependencies = {"os2mo_auth", "keycloak_rbac_enabled"}
+        for dependency in dependencies:
+            if not values[dependency]:
+                raise ValueError(
+                    f"'{dependency}' must be true when graphql_rbac is enabled"
+                )
+        return values
 
     # airgapped options
     enable_dar: bool = True

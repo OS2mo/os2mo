@@ -13,6 +13,7 @@ from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import Token
+from mora.graphapi.permissions import PERMISSIONS
 
 logger = get_logger()
 
@@ -22,7 +23,7 @@ async def noauth() -> Token:
     return Token(
         azp="mo-frontend",
         uuid="00000000-0000-0000-0000-000000000000",
-        realm_access=RealmAccess(roles={"admin"}),
+        realm_access=RealmAccess(roles={"admin", "owner"}.union(PERMISSIONS)),
     )
 
 

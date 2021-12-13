@@ -16,6 +16,7 @@ from typing import Optional
 from uuid import UUID
 
 import strawberry
+from fastapi import Depends
 from pydantic import parse_obj_as
 from pydantic import ValidationError
 from strawberry.arguments import UNSET
@@ -25,6 +26,8 @@ from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import auth
 from mora.config import get_public_settings
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
@@ -39,6 +42,7 @@ from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.org_unit import trigger_org_unit_refresh
+from mora.graphapi.permissions import gen_read_permission
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
@@ -235,6 +239,7 @@ class Query:
     addresses: list[Response[Address]] = strawberry.field(
         resolver=Resolver("address_getter", "address_loader").resolve,
         description="Get a list of all addresses, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("addresses")],
     )
 
     # Associations
@@ -242,6 +247,7 @@ class Query:
     associations: list[Response[Association]] = strawberry.field(
         resolver=Resolver("association_getter", "association_loader").resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("associations")],
     )
 
     # Classes
@@ -249,6 +255,7 @@ class Query:
     classes: list[Class] = strawberry.field(
         resolver=StaticResolver("class_getter", "class_loader").resolve,
         description="Get a list of all classes, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("classes")],
     )
 
     # Employees
@@ -256,6 +263,7 @@ class Query:
     employees: list[Response[Employee]] = strawberry.field(
         resolver=EmployeeResolver().resolve,
         description="Get a list of all employees, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("employees")],
     )
 
     # Engagements
@@ -263,6 +271,7 @@ class Query:
     engagements: list[Response[Engagement]] = strawberry.field(
         resolver=Resolver("engagement_getter", "engagement_loader").resolve,
         description="Get a list of all engagements, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("engagements")],
     )
 
     # EngagementsAssociations
@@ -272,6 +281,7 @@ class Query:
             "engagement_association_getter", "engagement_association_loader"
         ).resolve,
         description="Get a list of engagement associations",
+        permission_classes=[gen_read_permission("engagement_associations")],
     )
 
     # Facets
@@ -279,6 +289,7 @@ class Query:
     facets: list[Facet] = strawberry.field(
         resolver=StaticResolver("facet_getter", "facet_loader").resolve,
         description="Get a list of all facets, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("facets")],
     )
 
     # ITSystems
@@ -286,6 +297,7 @@ class Query:
     itsystems: list[ITSystem] = strawberry.field(
         resolver=StaticResolver("itsystem_getter", "itsystem_loader").resolve,
         description="Get a list of all ITSystems, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("itsystems")],
     )
 
     # ITUsers
@@ -293,6 +305,7 @@ class Query:
     itusers: list[Response[ITUser]] = strawberry.field(
         resolver=Resolver("ituser_getter", "ituser_loader").resolve,
         description="Get a list of all ITUsers, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("itusers")],
     )
 
     # KLEs
@@ -300,6 +313,7 @@ class Query:
     kles: list[Response[KLE]] = strawberry.field(
         resolver=Resolver("kle_getter", "kle_loader").resolve,
         description="Get a list of all KLE's, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("kles")],
     )
 
     # Leave
@@ -307,6 +321,7 @@ class Query:
     leaves: list[Response[Leave]] = strawberry.field(
         resolver=Resolver("leave_getter", "leave_loader").resolve,
         description="Get a list of all leaves, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("leaves")],
     )
 
     # Managers
@@ -314,6 +329,7 @@ class Query:
     managers: list[Response[Manager]] = strawberry.field(
         resolver=Resolver("manager_getter", "manager_loader").resolve,
         description="Get a list of all managers, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("managers")],
     )
 
     # Root Organisation
@@ -323,6 +339,7 @@ class Query:
             "Get the root-organisation. "
             "This endpoint fails if not exactly one exists in LoRa."
         ),
+        permission_classes=[gen_read_permission("org")],
     )
     async def org(self, info: Info) -> Organisation:
         return await info.context["org_loader"].load(0)
@@ -332,6 +349,7 @@ class Query:
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
         resolver=Resolver("org_unit_getter", "org_unit_loader").resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("org_units")],
     )
 
     # Related Units
@@ -339,6 +357,7 @@ class Query:
     related_units: list[Response[RelatedUnit]] = strawberry.field(
         resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
         description="Get a list of related organisation units, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("related_units")],
     )
 
     # Roles
@@ -346,12 +365,14 @@ class Query:
     roles: list[Response[Role]] = strawberry.field(
         resolver=Resolver("role_getter", "role_loader").resolve,
         description="Get a list of all roles, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("roles")],
     )
 
     # Version
     # -------
     @strawberry.field(
         description="Get component versions",
+        permission_classes=[gen_read_permission("version")],
     )
     async def version(self) -> Version:
         return Version()
@@ -360,6 +381,7 @@ class Query:
     # ------
     @strawberry.field(
         description="Get a list of all health checks, optionally by identifier(s)",
+        permission_classes=[gen_read_permission("healths")],
     )
     async def healths(self, identifiers: Optional[list[str]] = None) -> list[Health]:
         healthchecks = set(health_map.keys())
@@ -377,6 +399,7 @@ class Query:
     # -----
     @strawberry.field(
         description="Get a list of all files, optionally by filename(s)",
+        permission_classes=[gen_read_permission("files")],
     )
     async def files(
         self, file_store: FileStore, file_names: Optional[list[str]] = None
@@ -396,6 +419,7 @@ class Query:
     # -------------
     @strawberry.field(
         description="Get a list of configuration variables.",
+        permission_classes=[gen_read_permission("configuration")],
     )
     async def configuration(
         self, identifiers: Optional[list[str]] = None
@@ -490,9 +514,9 @@ def get_schema() -> strawberry.Schema:
     return schema
 
 
-async def get_context() -> dict[str, Any]:
+async def get_context(token: Token = Depends(auth)) -> dict[str, Any]:
     loaders = await get_loaders()
-    return {**loaders}
+    return {**loaders, "token": token}
 
 
 def setup_graphql(enable_graphiql: bool = False) -> GraphQLRouter:

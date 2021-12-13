@@ -90,7 +90,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
             }
 
         r = httpx.post(
-            "http://keycloak:8080" "/auth/realms/mo/protocol/openid-connect/token",
+            "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
             data=data,
         )
 
@@ -355,7 +355,7 @@ class _BaseTestCase(TestCase):
             }
 
         r = requests.post(
-            "http://keycloak:8080" "/auth/realms/mo/protocol/openid-connect/token",
+            "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
             data=data,
         )
 
