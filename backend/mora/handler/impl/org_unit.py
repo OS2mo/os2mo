@@ -21,7 +21,9 @@ logger = get_logger()
 @reading.register(ROLE_TYPE)
 class OrgUnitReader(reading.ReadingHandler):
     @classmethod
-    async def get(cls, c, search_fields, changed_since: Optional[datetime] = None):
+    async def get(
+        cls, c, search_fields, changed_since: Optional[datetime] = None, flat=False
+    ):
         object_tuples = await cls._get_lora_object(
             c=c, search_fields=search_fields, changed_since=changed_since
         )
