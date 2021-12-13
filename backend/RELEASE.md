@@ -1,3 +1,3 @@
 Release type: minor
 
-[#47091] implement address reading in graphQL
+[#47091] Implement address reading in GraphQL

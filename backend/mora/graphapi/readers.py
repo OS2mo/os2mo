@@ -161,7 +161,6 @@ async def search_role_type(role_type: str):
         c=connector,
         search_fields=_extract_search_params(query_args={"at": None, "validity": None}),
         changed_since=None,
-        flat=True,
     )
 
 
@@ -174,5 +173,4 @@ async def get_role_type_by_uuid(role_type: str, uuid: List[UUID]):
             query_args={"at": None, "validity": None, "uuid": uuid}
         ),
         changed_since=None,
-        flat=True,
     )

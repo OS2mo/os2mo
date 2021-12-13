@@ -6,6 +6,7 @@ from structlog import get_logger
 
 from .. import reading
 from ... import mapping
+from ...graphapi.middleware import is_graphql
 from ...request_scoped.bulking import request_wide_bulk
 from ...service import employee
 from ...service import facet
@@ -27,16 +28,11 @@ class AddressReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
-        # base
-        value = mapping.VALUE
-        value2 = mapping.VALUE2
-
-        #
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
-        # visibility = mapping.USER_FIELD.get_uuid(effect)
+        visibility = mapping.USER_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
@@ -45,22 +41,33 @@ class AddressReader(reading.OrgFunkReadingHandler):
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
+        address_task = create_task(
+            handler.get_mo_address_and_properties(only_primary_uuid)
         )
 
         # Return early if flat model is desired
-        if flat:
+        if is_graphql():
+            base_obj = await base_obj_task
+            del base_obj["user_key"]
+
+            address_obj = await address_task
+            print(address_obj)
+
             return {
                 **base_obj,
-                "person_uuid": person,
-                "address_type_uuid": address_type,
-                "org_unit_uuid": org_unit,
-                "engagement_uuid": engagement_uuid,
+
+                "value": address_obj[mapping.VALUE],
+                "value2": address_obj[mapping.VALUE2],
+                # **address_obj
+
+                "address_type": address_type,
+                "person": person,
+                "org_unit": org_unit,
+                "engagement": engagement_uuid,
+                "visibility": visibility,
             }
-
-
-        only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         facet_task = create_task(
             facet.request_bulked_get_one_class_full(
@@ -68,9 +75,6 @@ class AddressReader(reading.OrgFunkReadingHandler):
             )
         )
 
-        address_task = create_task(
-            handler.get_mo_address_and_properties(only_primary_uuid)
-        )
         if person:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(
@@ -88,20 +92,23 @@ class AddressReader(reading.OrgFunkReadingHandler):
             )
 
         if engagement_uuid is not None:
-            if only_primary_uuid:
-                engagement = {mapping.UUID: engagement_uuid}
-            else:
+            engagement = {mapping.UUID: engagement_uuid}
+            if not only_primary_uuid:
                 engagement = await get_engagement(
                     request_wide_bulk.connector, uuid=engagement_uuid
                 )
 
         r = {
-            **base_obj,
-            **await address_task,
+            **await base_obj_task,
             mapping.ADDRESS_TYPE: await facet_task,
-            mapping.PERSON: (await person_task) if person else None,
-            mapping.ORG_UNIT: (await org_unit_task) if org_unit else None,
-            mapping.ENGAGEMENT: engagement if engagement_uuid else None,
+            **await address_task,
         }
+
+        if person:
+            r[mapping.PERSON] = await person_task
+        if org_unit:
+            r[mapping.ORG_UNIT] = await org_unit_task
+        if engagement_uuid is not None:
+            r[mapping.ENGAGEMENT] = engagement
 
         return r

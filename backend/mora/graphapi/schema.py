@@ -38,7 +38,7 @@ class KLEType:
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     all_fields=True,
-    description=("The Address; storing address information for models."),
+    description=("An Address; storing address information for an identity or organisation unit."),
 )
 class AddressType:
     pass
