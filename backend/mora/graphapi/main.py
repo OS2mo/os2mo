@@ -15,11 +15,13 @@ from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
+from mora.graphapi.dataloaders import get_leaves
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
+from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -85,6 +87,20 @@ class Query:
             engagements = await gather(*(load(uuid) for uuid in uuids))
             return engagements
         return await get_engagements()
+
+    # Leave
+    # -----
+    @strawberry.field(
+        description="Get a list of all leaves, optionally by uuid(s)"
+    )
+    async def leave(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[LeaveType]:
+        if uuids:
+            load = info.context["leave_loader"].load
+            leaves = await gather(*(load(uuid) for uuid in uuids))
+            return leaves
+        return await get_leaves()
 
 
 def get_schema():
