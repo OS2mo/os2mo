@@ -33,9 +33,9 @@ class LeaveBase(MOBase):
 class LeaveRead(LeaveBase):
     """A MO leave read object."""
 
-    person: UUID = Field(description="UUID of the person related to the leave.")
-    leave_type: UUID = Field(description="UUID of the leave type klasse.")
-    engagement: Optional[UUID] = Field(
+    person_uuid: UUID = Field(description="UUID of the person related to the leave.")
+    leave_type_uuid: UUID = Field(description="UUID of the leave type klasse.")
+    engagement_uuid: Optional[UUID] = Field(
         description="UUID of the engagement related to the leave."
     )
 
