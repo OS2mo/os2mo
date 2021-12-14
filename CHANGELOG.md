@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.18.2 - 2021-12-14
+-------------------
+
+[#47097] `_uuid` suffix for `LeaveRead` attributes
+
 3.18.1 - 2021-12-13
 -------------------
 
