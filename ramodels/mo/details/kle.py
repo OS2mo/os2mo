@@ -37,9 +37,9 @@ class KLEBase(MOBase):
 class KLERead(KLEBase):
     """A MO KLERead object."""
 
-    kle_number: UUID = Field(description="UUID of the KLE number.")
-    kle_aspect: List[UUID] = Field(description="List of UUIDs of the KLE aspect.")
-    org_unit: Optional[UUID] = Field(
+    kle_number_uuid: UUID = Field(description="UUID of the KLE number.")
+    kle_aspect_uuid: List[UUID] = Field(description="List of UUIDs of the KLE aspect.")
+    org_unit_uuid: Optional[UUID] = Field(
         description="UUID of the organisation unit related to the KLE."
     )
 
