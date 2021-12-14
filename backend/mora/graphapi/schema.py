@@ -8,6 +8,7 @@ import strawberry
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import KLERead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import EngagementRead
@@ -21,6 +22,15 @@ class ValidityType:
 
 @strawberry.experimental.pydantic.type(model=OpenValidity, all_fields=True)
 class OpenValidityType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=KLERead,
+    all_fields=True,
+    description=("Get KLE's; Kommunernes Landsforenings Emnesystematik."),
+)
+class KLEType:
     pass
 
 
