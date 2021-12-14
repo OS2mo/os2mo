@@ -28,11 +28,11 @@ class AddressReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
-        person = mapping.USER_FIELD.get_uuid(effect)
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
-        address_type = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
+        person_uuid = mapping.USER_FIELD.get_uuid(effect)
+        org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
+        address_type_uuid = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
-        visibility = mapping.USER_FIELD.get_uuid(effect)
+        visibility_uuid = mapping.USER_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
@@ -50,42 +50,38 @@ class AddressReader(reading.OrgFunkReadingHandler):
         # Return early if flat model is desired
         if is_graphql():
             base_obj = await base_obj_task
-            del base_obj["user_key"]
 
             address_obj = await address_task
             print(address_obj)
 
             return {
                 **base_obj,
-
                 "value": address_obj[mapping.VALUE],
                 "value2": address_obj[mapping.VALUE2],
-                # **address_obj
-
-                "address_type": address_type,
-                "person": person,
-                "org_unit": org_unit,
-                "engagement": engagement_uuid,
-                "visibility": visibility,
+                "address_type_uuid": address_type_uuid,
+                "person_uuid": person_uuid,
+                "org_unit_uuid": org_unit_uuid,
+                "engagement_uuid": engagement_uuid,
+                "visibility_uuid": visibility_uuid,
             }
 
         facet_task = create_task(
             facet.request_bulked_get_one_class_full(
-                address_type, only_primary_uuid=only_primary_uuid
+                address_type_uuid, only_primary_uuid=only_primary_uuid
             )
         )
 
-        if person:
+        if person_uuid:
             person_task = create_task(
                 employee.request_bulked_get_one_employee(
-                    person, only_primary_uuid=only_primary_uuid
+                    person_uuid, only_primary_uuid=only_primary_uuid
                 )
             )
 
-        if org_unit:
+        if org_unit_uuid:
             org_unit_task = create_task(
                 orgunit.request_bulked_get_one_orgunit(
-                    org_unit,
+                    org_unit_uuid,
                     details=orgunit.UnitDetails.MINIMAL,
                     only_primary_uuid=only_primary_uuid,
                 )
@@ -104,9 +100,9 @@ class AddressReader(reading.OrgFunkReadingHandler):
             **await address_task,
         }
 
-        if person:
+        if person_uuid:
             r[mapping.PERSON] = await person_task
-        if org_unit:
+        if org_unit_uuid:
             r[mapping.ORG_UNIT] = await org_unit_task
         if engagement_uuid is not None:
             r[mapping.ENGAGEMENT] = engagement

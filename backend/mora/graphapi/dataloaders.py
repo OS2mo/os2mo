@@ -26,8 +26,7 @@ from mora.handler.reading import get_handler_for_type
 from mora.service import org
 
 MOModel = TypeVar(
-    "MOModel", OrganisationUnitRead, EmployeeRead, EngagementRead, KLERead,
-    AddressRead
+    "MOModel", OrganisationUnitRead, EmployeeRead, EngagementRead, KLERead, AddressRead
 )
 RoleType = TypeVar("RoleType")
 
