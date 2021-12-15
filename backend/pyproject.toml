@@ -48,6 +48,7 @@ aio-pika = "^6.8.0"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 strawberry-graphql = {extras = ["fastapi", "opentelemetry"], version = "^0.89.2"}
+hypercorn = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

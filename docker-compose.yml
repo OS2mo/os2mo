@@ -51,7 +51,7 @@ services:
       # For reload
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
-    command: ["/start-reload.sh"]
+    # command: ["/start-reload.sh"]
     environment:
       AMQP_ENABLE: "true"
 
@@ -64,12 +64,13 @@ services:
       CONF_DB_USER: "mox"
       CONF_DB_PASSWORD: "mox"
 
+      OS2MO_AUTH: "false"
       GRAPHQL_ENABLE: "true"
       GRAPHQL_AUTH: "false"
 
       LORA_URL: "http://mox/"
 
-      OS2MO_LOG_LEVEL: "DEBUG"
+      OS2MO_LOG_LEVEL: "INFO"
 
       QUERY_EXPORT_DIR: "/queries"
 
@@ -80,7 +81,7 @@ services:
       JAEGER_HOSTNAME: "otel-collector"
       JAEGER_SERVICE: OS2mo
     ports:
-      - "5000:80"
+      - "5000:5000"
     depends_on:
       mox:
         condition: service_healthy
