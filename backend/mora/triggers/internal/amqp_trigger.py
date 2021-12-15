@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import json
 from datetime import datetime
 from itertools import product
@@ -190,10 +191,16 @@ async def amqp_sender(trigger_dict: Dict) -> None:
             (mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
         )
 
+    loop = asyncio.get_running_loop()
     for service, service_uuid in amqp_messages:
-        loop.call_soon(
-            publish_message,
-            service, object_type, action, service_uuid, object_uuid, datetime
+        logger.debug(
+            "Registering AMQP publish message task",
+            service=service, object_type=object_type, action=action
+        )
+        asyncio.create_task(
+            publish_message(
+                service, object_type, action, service_uuid, object_uuid, datetime
+            )
         )
 
 
