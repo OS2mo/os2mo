@@ -2,21 +2,22 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import json
+from dataclasses import dataclass
 from datetime import datetime
 from itertools import product
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 import aio_pika
 from aio_pika.pool import Pool
-from structlog import get_logger
-
 from mora import config
 from mora import exceptions
 from mora import mapping
 from mora import triggers
 from mora import util
+from structlog import get_logger
 
 logger = get_logger()
 
@@ -38,6 +39,16 @@ _OBJECT_TYPES = (
 _ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
 
 
+@dataclass
+class Pools:
+    connection_pool: Optional[Pool] = None
+    channel_pool: Optional[Pool] = None
+    exchange_pool: Optional[Pool] = None
+
+
+pools = Pools()
+
+
 async def get_connection():
     return await aio_pika.connect_robust(
         host=config.get_settings().amqp_host,
@@ -46,53 +57,48 @@ async def get_connection():
 
 
 async def get_channel() -> aio_pika.Channel:
-    async with connection_pool.acquire() as connection:
+    async with pools.connection_pool.acquire() as connection:
         return await connection.channel()
 
 
 async def get_exchange() -> aio_pika.Exchange:
-    async with channel_pool.acquire() as channel:
+    async with pools.channel_pool.acquire() as channel:
         return await channel.declare_exchange(
             name=config.get_settings().amqp_os2mo_exchange,
             type="topic",
         )
 
 
-connection_pool = Pool(get_connection, max_size=2)
-channel_pool = Pool(get_channel, max_size=10)
-exchange_pool = Pool(get_exchange, max_size=10)
-
-
 async def get_connection_pools() -> Tuple[Pool, Pool]:
-    return connection_pool, exchange_pool
+    return pools.connection_pool, pools.exchange_pool
 
 
 async def close_amqp():
-    if exchange_pool.is_closed is False:
+    if pools.exchange_pool.is_closed is False:
         logger.debug("Closing AMQP Exchange Pool")
         try:
-            await exchange_pool.close()
-        except Exception as exp:
+            await pools.exchange_pool.close()
+        except Exception:
             logger.exception(
                 "Failed to close AMQP Exchange Pool",
                 exc_info=True,
             )
 
-    if channel_pool.is_closed is False:
+    if pools.channel_pool.is_closed is False:
         logger.debug("Closing AMQP Channel Pool")
         try:
-            await channel_pool.close()
-        except:
+            await pools.channel_pool.close()
+        except Exception:
             logger.exception(
                 "Failed to close AMQP Channel Pool",
                 exc_info=True,
             )
 
-    if connection_pool.is_closed is False:
+    if pools.connection_pool.is_closed is False:
         logger.debug("Closing AMQP Connection Pool")
         try:
-            await connection_pool.close()
-        except:
+            await pools.connection_pool.close()
+        except Exception:
             logger.exception(
                 "Failed to close AMQP Connection Pool",
                 exc_info=True,
@@ -143,8 +149,8 @@ async def publish_message(
     # We should not throw a HTTPError in the case where lora writing is
     # successful, but amqp is down. Therefore, the try/except block.
     try:
-        _, exchange_pool = await get_connection_pools()
-        async with exchange_pool.acquire() as exchange:
+        _, pools.exchange_pool = await get_connection_pools()
+        async with pools.exchange_pool.acquire() as exchange:
             logger.debug(
                 "Publishing AMQP message",
                 message=message_dict,
@@ -191,11 +197,12 @@ async def amqp_sender(trigger_dict: Dict) -> None:
             (mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
         )
 
-    loop = asyncio.get_running_loop()
     for service, service_uuid in amqp_messages:
         logger.debug(
             "Registering AMQP publish message task",
-            service=service, object_type=object_type, action=action
+            service=service,
+            object_type=object_type,
+            action=action,
         )
         asyncio.create_task(
             publish_message(
@@ -215,6 +222,10 @@ async def register(app) -> bool:
     if not config.get_settings().amqp_enable:
         logger.debug("AMQP Triggers not enabled!")
         return False
+
+    pools.connection_pool = Pool(get_connection, max_size=2)
+    pools.channel_pool = Pool(get_channel, max_size=10)
+    pools.exchange_pool = Pool(get_exchange, max_size=10)
 
     # Register trigger on everything
     ROLE_TYPES = [
