@@ -12,12 +12,13 @@ from typing import Tuple
 
 import aio_pika
 from aio_pika.pool import Pool
+from structlog import get_logger
+
 from mora import config
 from mora import exceptions
 from mora import mapping
 from mora import triggers
 from mora import util
-from structlog import get_logger
 
 logger = get_logger()
 
@@ -49,6 +50,12 @@ class Pools:
 pools = Pools()
 
 
+async def setup_pools() -> None:
+    pools.connection_pool = Pool(get_connection, max_size=2)
+    pools.channel_pool = Pool(get_channel, max_size=10)
+    pools.exchange_pool = Pool(get_exchange, max_size=10)
+
+
 async def get_connection():
     return await aio_pika.connect_robust(
         host=config.get_settings().amqp_host,
@@ -67,10 +74,6 @@ async def get_exchange() -> aio_pika.Exchange:
             name=config.get_settings().amqp_os2mo_exchange,
             type="topic",
         )
-
-
-async def get_connection_pools() -> Tuple[Pool, Pool]:
-    return pools.connection_pool, pools.exchange_pool
 
 
 async def close_amqp():
@@ -149,7 +152,6 @@ async def publish_message(
     # We should not throw a HTTPError in the case where lora writing is
     # successful, but amqp is down. Therefore, the try/except block.
     try:
-        _, pools.exchange_pool = await get_connection_pools()
         async with pools.exchange_pool.acquire() as exchange:
             logger.debug(
                 "Publishing AMQP message",
@@ -223,9 +225,7 @@ async def register(app) -> bool:
         logger.debug("AMQP Triggers not enabled!")
         return False
 
-    pools.connection_pool = Pool(get_connection, max_size=2)
-    pools.channel_pool = Pool(get_channel, max_size=10)
-    pools.exchange_pool = Pool(get_exchange, max_size=10)
+    await setup_pools()
 
     # Register trigger on everything
     ROLE_TYPES = [
