@@ -54,7 +54,8 @@ class Query:
             tasks = map(info.context["org_unit_loader"].load, uuids)
             org_units = await gather(*tasks)
             return list(filter(lambda ou: ou is not None, org_units))
-        return await get_org_units()
+        from mora.graphapi.readers import get_all_org_units
+        return await get_all_org_units()
 
     # Employees
     # ---------

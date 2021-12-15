@@ -154,6 +154,38 @@ def role_type_uuid_factory(role_type: str):
     return get_role_type_by_uuid
 
 
+from mora.graphapi.schema import OrganisationUnitRead
+from pydantic import parse_obj_as
+from more_itertools import only
+from datetime import datetime
+import json
+
+
+def org_unit_lora_to_mo(org_unit: dict) -> dict:
+    return {
+        "name": only(org_unit[1]["attributter"]["organisationenhedegenskaber"]).get("enhedsnavn"),
+        "validity": {
+            "from_date": datetime.now(),
+            "to_date": None,
+        },
+        "parent_uuid": only(org_unit[1]["relationer"]["overordnet"], {}).get("uuid"),
+        "org_unit_hierarchy": only(org_unit[1]["relationer"]["tilhoerer"], {}).get("uuid"),
+        "unit_type_uuid": only(org_unit[1]["relationer"]["enhedstype"], {}).get("uuid"),
+        "org_unit_level_uuid": only(org_unit[1]["relationer"]["niveau"], {}).get("uuid"),
+        "time_planning_uuid": only(org_unit[1]["relationer"]["opgaver"], {}).get("uuid"),
+    }
+
+def org_units_lora_to_mo(org_units: List[dict]) -> List[dict]:
+   return list(map(org_unit_lora_to_mo, org_units))
+
+
+async def get_all_org_units() -> List[OrganisationUnitRead]:
+    connector = get_connector()
+    org_units = list(await connector.organisationenhed.get_all())
+    results = org_units_lora_to_mo(org_units)
+    return parse_obj_as(List[OrganisationUnitRead], results)
+
+
 async def search_role_type(role_type: str):
     connector = get_connector()
     handler = get_handler_for_type(role_type)
