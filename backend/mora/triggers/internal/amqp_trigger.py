@@ -37,6 +37,67 @@ _OBJECT_TYPES = (
 _ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
 
 
+async def get_connection():
+    return await aio_pika.connect_robust(
+        host=config.get_settings().amqp_host,
+        port=config.get_settings().amqp_port,
+    )
+
+
+async def get_channel() -> aio_pika.Channel:
+    async with connection_pool.acquire() as connection:
+        return await connection.channel()
+
+
+async def get_exchange() -> aio_pika.Exchange:
+    async with channel_pool.acquire() as channel:
+        return await channel.declare_exchange(
+            name=config.get_settings().amqp_os2mo_exchange,
+            type="topic",
+        )
+
+
+connection_pool = Pool(get_connection, max_size=2)
+channel_pool = Pool(get_channel, max_size=10)
+exchange_pool = Pool(get_exchange, max_size=10)
+
+
+async def get_connection_pools() -> Tuple[Pool, Pool]:
+    return connection_pool, exchange_pool
+
+
+async def close_amqp():
+    if exchange_pool.is_closed is False:
+        logger.debug("Closing AMQP Exchange Pool")
+        try:
+            await exchange_pool.close()
+        except Exception as exp:
+            logger.exception(
+                "Failed to close AMQP Exchange Pool",
+                exc_info=True,
+            )
+
+    if channel_pool.is_closed is False:
+        logger.debug("Closing AMQP Channel Pool")
+        try:
+            await channel_pool.close()
+        except:
+            logger.exception(
+                "Failed to close AMQP Channel Pool",
+                exc_info=True,
+            )
+
+    if connection_pool.is_closed is False:
+        logger.debug("Closing AMQP Connection Pool")
+        try:
+            await connection_pool.close()
+        except:
+            logger.exception(
+                "Failed to close AMQP Connection Pool",
+                exc_info=True,
+            )
+
+
 async def publish_message(
     service: str,
     object_type: str,
@@ -68,13 +129,13 @@ async def publish_message(
         )
 
     topic = "{}.{}.{}".format(service, object_type, action)
-    message = {
+    message_dict = {
         "uuid": service_uuid,
         "object_uuid": object_uuid,
         "time": datetime.isoformat(),
     }
 
-    message = aio_pika.Message(body=json.dumps(message).encode("utf-8"))
+    message = aio_pika.Message(body=json.dumps(message_dict).encode("utf-8"))
 
     # Message publishing is a secondary task to writing to lora.
     #
@@ -83,15 +144,20 @@ async def publish_message(
     try:
         _, exchange_pool = await get_connection_pools()
         async with exchange_pool.acquire() as exchange:
+            logger.debug(
+                "Publishing AMQP message",
+                message=message_dict,
+                routing_key=topic,
+            )
             await exchange.publish(
                 message=message,
                 routing_key=topic,
             )
     except aio_pika.exceptions.AMQPError:
-        logger.error(
+        logger.exception(
             "Failed to publish AMQP message",
             topic=topic,
-            message=message,
+            message=message_dict,
             exc_info=True,
         )
 
@@ -125,37 +191,10 @@ async def amqp_sender(trigger_dict: Dict) -> None:
         )
 
     for service, service_uuid in amqp_messages:
-        await publish_message(
+        loop.call_soon(
+            publish_message,
             service, object_type, action, service_uuid, object_uuid, datetime
         )
-
-
-async def get_connection_pools() -> Tuple[Pool, Pool]:
-    # TODO: Our connection pools should be global when async_to_sync issues are fixed
-    async def get_connection():
-        return await aio_pika.connect_robust(
-            host=config.get_settings().amqp_host,
-            port=config.get_settings().amqp_port,
-        )
-
-    connection_pool = Pool(get_connection, max_size=2)
-
-    async def get_channel() -> aio_pika.Channel:
-        async with connection_pool.acquire() as connection:
-            return await connection.channel()
-
-    channel_pool = Pool(get_channel, max_size=10)
-
-    async def get_exchange() -> aio_pika.Exchange:
-        async with channel_pool.acquire() as channel:
-            return await channel.declare_exchange(
-                name=config.get_settings().amqp_os2mo_exchange,
-                type="topic",
-            )
-
-    exchange_pool = Pool(get_exchange, max_size=10)
-
-    return connection_pool, exchange_pool
 
 
 async def register(app) -> bool:
