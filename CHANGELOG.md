@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.18.3 - 2021-12-16
+-------------------
+
+[#47096] Append uuid to KLERead model
+
 3.18.2 - 2021-12-14
 -------------------
 
