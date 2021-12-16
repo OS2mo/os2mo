@@ -19,8 +19,6 @@ from structlog import get_logger
 from ra_utils.async_to_sync import async_to_sync
 
 from mora.conf_db import create_db_table
-from mora.triggers.internal.amqp_trigger import pools
-from mora.triggers.internal.amqp_trigger import setup_pools
 
 from . import conf_db, config
 
@@ -117,6 +115,8 @@ def wait_for_rabbitmq(seconds):
     #            (non-strict) subclass of the metaclasses of all its bases.
     # Fun!
     from mora.triggers.internal import amqp_trigger  # noqa
+    from mora.triggers.internal.amqp_trigger import pools
+    from mora.triggers.internal.amqp_trigger import setup_pools
 
     @async_to_sync
     async def connector():
