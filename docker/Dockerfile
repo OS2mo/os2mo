@@ -79,6 +79,7 @@ COPY NEWS.md .
 COPY LICENSE .
 COPY backend/mora/main.py .
 COPY docker/prestart.sh /app/prestart.sh
+COPY docker/start.sh /app/start.sh
 # Install the application as editable. This makes it possible to mount
 # `/app/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
@@ -93,5 +94,4 @@ RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora
-ENTRYPOINT ["hypercorn"]
-CMD ["--bind", "0.0.0.0:5000", "--worker-class", "uvloop", "mora.app:create_app()"]
+CMD ["/app/start.sh"]

@@ -51,7 +51,7 @@ services:
       # For reload
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
-    command: ["--bind", "0.0.0.0:5000", "--worker-class", "uvloop", "--reload", "mora.app:create_app()"]
+    command: ["/app/start.sh", "--reload"]
     environment:
       AMQP_ENABLE: "true"
 
