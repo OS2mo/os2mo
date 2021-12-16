@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.18.4 - 2021-12-16
+-------------------
+
+[#47091] Update Address model to include user_key
+
 3.18.3 - 2021-12-16
 -------------------
 
