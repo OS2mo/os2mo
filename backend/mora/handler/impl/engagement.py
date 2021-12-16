@@ -14,6 +14,7 @@ from .. import reading
 from ... import lora
 from ... import mapping
 from ... import util
+from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -44,10 +45,29 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
+        # TODO this should only be done in graphql when requested
+        is_primary = await create_task(
+            cls._is_primary(request_wide_bulk.connector, person, primary)
+        )
+
+        if is_graphql():
+            base_obj.pop("integration_data", None)
+            return {
+                **base_obj,
+                "org_unit_uuid": org_unit,
+                "person_uuid": person,
+                "engagement_type_uuid": engagement_type,
+                "job_function_uuid": job_function,
+                "primary_uuid": primary or None,
+                "is_primary": is_primary,
+                "fraction": fraction,
+                **cls._get_extension_fields(extensions),
+            }
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -81,18 +101,14 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 )
             )
 
-        is_primary_task = create_task(
-            cls._is_primary(request_wide_bulk.connector, person, primary)
-        )
-
         r = {
-            **await base_obj,
+            **base_obj,
             mapping.PERSON: await person_task,
             mapping.ORG_UNIT: await org_unit_task,
             mapping.JOB_FUNCTION: await job_function_task,
             mapping.ENGAGEMENT_TYPE: await engagement_type_task,
             mapping.PRIMARY: (await primary_task) if primary else None,
-            mapping.IS_PRIMARY: await is_primary_task,
+            mapping.IS_PRIMARY: is_primary,
             mapping.FRACTION: fraction,
             **cls._get_extension_fields(extensions),
         }

@@ -10,6 +10,7 @@ from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
+from ramodels.mo.details import EngagementRead
 from strawberry.types import Info
 
 
@@ -81,3 +82,8 @@ class OrganisationUnitType:
         if not isinstance(root.uuid, UUID):
             root.parent_uuid = UUID(root.uuid)
         return await info.context["org_unit_children_loader"].load(root.uuid)
+
+
+@strawberry.experimental.pydantic.type(model=EngagementRead, all_fields=True)
+class EngagementType:
+    pass

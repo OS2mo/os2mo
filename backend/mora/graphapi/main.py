@@ -14,10 +14,12 @@ from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_employees
+from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import EmployeeType
+from mora.graphapi.schema import EngagementType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -69,6 +71,20 @@ class Query:
             employees = await gather(*tasks)
             return list(filter(lambda empl: empl is not None, employees))
         return await get_employees()
+
+    # Engagement
+    # ----------
+    @strawberry.field(
+        description="Get a list of all engagements, optionally by uuid(s)"
+    )
+    async def engagement(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[EngagementType]:
+        if uuids:
+            tasks = map(info.context["engagement_loader"].load, uuids)
+            engagements = await gather(*tasks)
+            return list(filter(lambda eng: eng is not None, engagements))
+        return await get_engagements()
 
 
 def get_schema():

@@ -16,13 +16,14 @@ from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
 from mora.graphapi.schema import EmployeeRead
+from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
 
-MOModel = TypeVar("MOModel", OrganisationUnitRead, EmployeeRead)
+MOModel = TypeVar("MOModel", OrganisationUnitRead, EmployeeRead, EngagementRead)
 
 RoleType = TypeVar("RoleType")
 
@@ -61,6 +62,7 @@ async def load_mo(uuids: List[UUID], model: MOModel) -> List[Optional[MOModel]]:
 
 get_org_units = partial(get_mo, model=OrganisationUnitRead)
 get_employees = partial(get_mo, model=EmployeeRead)
+get_engagements = partial(get_mo, model=EngagementRead)
 
 
 async def load_org(keys: List[int]) -> List[OrganisationRead]:
@@ -114,4 +116,5 @@ async def get_loaders() -> Dict[str, DataLoader]:
         ),
         "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
+        "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
     }
