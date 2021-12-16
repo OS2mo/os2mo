@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qsl
 from starlette_context import _request_scope_context_storage
 from starlette_context import context
+from strawberry.dataloader import DataLoader
 
 import aioresponses
 import jinja2
@@ -24,7 +25,7 @@ from yarl import URL
 
 from mora import lora, config
 from mora.exceptions import ImproperlyConfigured
-from mora.service.address_handler.dar import create_address_loader
+from mora.service.address_handler.dar import load_addresses
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -374,7 +375,7 @@ def patch_query_args(query_args=None):
 @contextlib.contextmanager
 def dar_loader():
     with starlette_context() as context:
-        context["dar_loader"] = lambda: create_address_loader()
+        context["dar_loader"] = DataLoader(load_fn=load_addresses)
         yield context
 
 

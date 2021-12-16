@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from functools import lru_cache
 from typing import Any
 from typing import List
 from typing import Optional
@@ -33,23 +32,11 @@ async def load_addresses(keys: List[UUID]) -> List[Optional[dict]]:
     return list(map(addresses.get, keys))
 
 
-def create_address_loader():
-    return DataLoader(load_fn=load_addresses)
-
-
 class DARLoaderPlugin(Plugin):
     key = "dar_loader"
 
     async def process_request(self, _: Any) -> Optional[Any]:
-        # TODO: Lazily constructed to work around an async_to_sync issue:
-        #       RuntimeError: Non-thread-safe operation invoked on an event loop other
-        #                     than the current one.
-        #       Should be removed when async_to_sync is gone
-        @lru_cache
-        def create():
-            return create_address_loader()
-
-        return create
+        return DataLoader(load_fn=load_addresses)
 
 
 class DARAddressHandler(base.AddressHandler):
@@ -67,7 +54,7 @@ class DARAddressHandler(base.AddressHandler):
         # Cut off the prefix
         handler = await super().from_effect(effect)
 
-        dar_loader = context["dar_loader"]()
+        dar_loader = context["dar_loader"]
         address_object = await dar_loader.load(UUID(handler.value))
         if address_object is None:
             logger.warning("address lookup failed", handler_value=handler.value)
@@ -143,7 +130,7 @@ class DARAddressHandler(base.AddressHandler):
     @forceable
     async def validate_value(value):
         """Values should be UUID in DAR"""
-        dar_loader = context["dar_loader"]()
+        dar_loader = context["dar_loader"]
         try:
             address_object = await dar_loader.load(UUID(value))
             if address_object is None:
