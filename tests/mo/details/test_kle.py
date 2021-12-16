@@ -38,11 +38,11 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "kle_number": st.uuids(),
-        "kle_aspect": st.lists(st.uuids()),
+        "kle_number_uuid": st.uuids(),
+        "kle_aspect_uuid": st.lists(st.uuids()),
     }
     optional = {
-        "org_unit": st.none() | st.uuids(),
+        "org_unit_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
