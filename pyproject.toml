@@ -13,7 +13,6 @@ keywords = ["os2mo", "data models"]
 python = "^3.8"
 pydantic = "^1.8.2"
 "backports.zoneinfo" = { version = "^0.2.1", python = "<3.9" }
-datamodel-code-generator = "^0.11.14"
 more-itertools = "^8.11.0"
 
 [tool.poetry.dev-dependencies]
