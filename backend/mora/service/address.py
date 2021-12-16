@@ -4,11 +4,14 @@
 import collections
 import re
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 from uuid import UUID
 
-import requests
-from fastapi import APIRouter, Query
+import httpx
+from fastapi import APIRouter
+from fastapi import Query
 
 from . import facet
 from . import handlers
@@ -23,10 +26,11 @@ from .. import util
 from ..triggers import Trigger
 from ..util import ensure_list
 
-session = requests.Session()
-session.headers = {
-    "User-Agent": "MORA/0.1",
-}
+client = httpx.AsyncClient(
+    headers={
+        "User-Agent": "MORA/0.1",
+    }
+)
 
 MUNICIPALITY_CODE_PATTERN = re.compile(r"urn:dk:kommune:(\d+)")
 
@@ -121,30 +125,42 @@ async def address_autocomplete(
     # apartments etc.
     #
 
+    async def get_access_addreses() -> list[dict]:
+        params = {
+            "per_side": 5,
+            "noformat": "1",
+            "q": q,
+        }
+        if code is not None:
+            params["kommunekode"] = code
+
+        r = await client.get(
+            "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
+            params=params,
+        )
+        return r.json()
+
     addrs = collections.OrderedDict(
         (addr["tekst"], addr["adgangsadresse"]["id"])
-        for addr in session.get(
-            "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
-            # use a list to work around unordered dicts in Python < 3.6
-            params=[
-                ("per_side", 5),
-                ("noformat", "1"),
-                ("kommunekode", code),
-                ("q", q),
-            ],
-        ).json()
+        for addr in await get_access_addreses()
     )
 
-    for addr in session.get(
-        "https://api.dataforsyningen.dk/adresser/autocomplete",
-        # use a list to work around unordered dicts in Python < 3.6
-        params=[
-            ("per_side", 10),
-            ("noformat", "1"),
-            ("kommunekode", code),
-            ("q", q),
-        ],
-    ).json():
+    async def get_addresses() -> list[dict]:
+        params = {
+            "per_side": 10,
+            "noformat": "1",
+            "q": q,
+        }
+        if code is not None:
+            params["kommunekode"] = code
+
+        r = await client.get(
+            "https://api.dataforsyningen.dk/adresser/autocomplete",
+            params=params,
+        )
+        return r.json()
+
+    for addr in await get_addresses():
         addrs.setdefault(addr["tekst"], addr["adresse"]["id"])
 
     return [
