@@ -14,6 +14,7 @@ from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_addresses
+from mora.graphapi.dataloaders import get_associations
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_leaves
@@ -26,6 +27,7 @@ from mora.graphapi.schema import EngagementType
 from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import LeaveType
+from mora.graphapi.schema import AssociationType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -63,6 +65,20 @@ class Query:
             org_units = await gather(*tasks)
             return list(filter(lambda ou: ou is not None, org_units))
         return await get_org_units()
+
+    # Associations
+    # ---------
+    @strawberry.field(
+        description="Get a list of all Associations, optionally by uuid(s)",
+    )
+    async def associations(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[AssociationType]:
+        if uuids:
+            tasks = map(info.context["association_loader"].load, uuids)
+            associations = await gather(*tasks)
+            return list(filter(lambda ass: ass is not None, associations))
+        return await get_associations()
 
     # Employees
     # ---------

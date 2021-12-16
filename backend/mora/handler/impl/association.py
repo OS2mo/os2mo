@@ -14,6 +14,7 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ... import util
+from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -113,22 +114,13 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         substitute_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
         need_sub = substitute_uuid and util.is_substitute_allowed(association_type)
-        substitute = None
-        if need_sub:
-            substitute = create_task(
-                employee.request_bulked_get_one_employee(
-                    substitute_uuid, only_primary_uuid=only_primary_uuid
-                )
-            )
         classes = list(mapping.ORG_FUNK_CLASSES_FIELD.get_uuids(effect))
         primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
         # Await base object
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
-        # Return early if flat model is desired
-        # Idea: return MORead data model here?
-        if flat:
+        if is_graphql():
             return {
                 **base_obj,
                 "person_uuid": person,
@@ -138,6 +130,14 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 "dynamic_classes": classes,
                 "primary_uuid": primary,
             }
+
+        substitute = None
+        if need_sub:
+            substitute = create_task(
+                employee.request_bulked_get_one_employee(
+                    substitute_uuid, only_primary_uuid=only_primary_uuid
+                )
+            )
 
         # Create awaitables for bulky objects
         dynamic_classes_awaitable = cls.__dynamic_classes_helper(
