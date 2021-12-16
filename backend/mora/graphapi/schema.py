@@ -14,6 +14,8 @@ from ramodels.mo.details import KLERead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo._shared import DynamicClasses
+from ramodels.mo.details import RoleRead
+from ramodels.mo.details import ITUserRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from strawberry.types import Info
@@ -44,6 +46,17 @@ class KLEType:
 
 
 @strawberry.experimental.pydantic.type(
+    model=RoleRead,
+    all_fields=True,
+    description=(
+        "A role; Describing the relationsship between an org_unit and a person."
+    ),
+)
+class RoleType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
     model=AddressRead,
     all_fields=True,
     description=(
@@ -60,6 +73,15 @@ class AddressType:
     description=("An Association; connected to an org_unit and a person."),
 )
 class AssociationType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=ITUserRead,
+    all_fields=True,
+    description=("An ITUser; storing information for an IT user."),
+)
+class ITUserType:
     pass
 
 
