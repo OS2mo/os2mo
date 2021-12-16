@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-################################################################################
-# Changes to this file requires approval from Labs. Please add a person from   #
-# Labs as required approval to your MR if you have any changes.                #
-################################################################################
-
-# For `docker push` to work, the following envionment variables have to set in
+# For `docker push` to work, the following environment variables have to set in
 # the Gitlab UI.
 # RELEASE_REGISTRY_USER
 # RELEASE_REGISTRY_PASSWORD
+
+# For the Review App, the following environment variables have to be set in the
+# GitLab UI:
+# REVIEW_KEYCLOAK_ADMIN_PASSWORD
+# REVIEW_TEMPOTEST_CLIENT_SECRET
 
 stages:
   - lint
@@ -31,17 +31,21 @@ variables:
   RELEASE_REGISTRY: docker.io
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
-  KANIKO_VERSION: v1.3.0
+  KANIKO_VERSION: v1.3.0-debug
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}
   FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend-test:${CI_COMMIT_SHA}
+  TEMPOTEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/tempotest:${CI_COMMIT_SHA}
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
   PYPROJECT_ROOT: "./backend"
 
   LORA_IMAGE: magentaaps/lora:4.2.1
+
+  REVIEW_URL: "https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
+  REVIEW_TERRAFORM_STATE_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-mr$CI_MERGE_REQUEST_IID"
 
 include:
   - project: "labs/salt-automation"
@@ -81,14 +85,19 @@ workflow:
   needs: []
   image: python:3.9
   services: []
-  tags:
-    - docker
 
-Lint Python:
+Pre-commit:
   extends: .lint-default
   before_script:
     - pip install pre-commit pydocstyle
     - pre-commit install
+    # Fetch terraform
+    - TERRAFORM_VERSION="1.1.6"
+    - TERRAFORM_DOWNLOAD_URL=https://releases.hashicorp.com/terraform
+    - TERRAFORM_URL=${TERRAFORM_DOWNLOAD_URL}/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - curl -o terraform_linux_amd64.zip -sL ${TERRAFORM_URL}
+    - unzip terraform_linux_amd64.zip -d /usr/bin/
+    - chmod +x /usr/bin/terraform
   script:
     - pre-commit run --all-files
     - pydocstyle backend/mora/graphapi/ --convention=google --add-ignore=D1
@@ -161,10 +170,8 @@ Build OS2MO:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -186,10 +193,8 @@ Build test frontend:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -208,10 +213,8 @@ Build frontend:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -226,6 +229,20 @@ Build frontend:
       when: never
     - when: on_success
 
+Build Tempotest:
+  stage: build
+  needs: []
+  image:
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR/tempotest
+      --dockerfile=$CI_PROJECT_DIR/tempotest/Dockerfile
+      --destination=$TEMPOTEST_IMAGE_SHA
+
 Build Keycloak:
   extends: .master-rules
   stage: build
@@ -233,10 +250,8 @@ Build Keycloak:
   needs: ["Prebuild Keycloak-realm"]
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -251,10 +266,8 @@ Build Keycloak DB:
   needs: []
   image:
     # We use kaniko v0.16.0 as both v0.17.0, v0.17.1, v0.18.0 and v0.19.0 contains fatal bugs.
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}-debug
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
     entrypoint: [""]
-  tags:
-    - docker
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
@@ -267,9 +280,6 @@ Build Keycloak DB:
 # Services Template
 ###################
 .services:
-  tags:
-    - docker
-    - network-per-build
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
       alias: mox-db
@@ -448,6 +458,7 @@ Vue-unit-test:
     # reports:
     #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
+# TODO: Move to QA / use cluster services?
 # e2e-test:
 #   extends: .test-default
 #   image:
@@ -491,28 +502,39 @@ deploy_review:
   image: debian:bullseye
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  tags:
-    - docker
   before_script:
-    - apt-get update && apt-get install -y git j2cli curl
+    - apt-get update && apt-get install -y git j2cli curl jq
   script:
     - git config --global user.email "labs@magenta-aps.dk"
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
-    - ./template.sh os2mo-mr$CI_MERGE_REQUEST_IID $CI_COMMIT_SHA
+    - |
+      extra_config="
+      ---
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+      kind: HelmRelease
+      metadata:
+        name: os2mo
+      spec:
+        values:
+          os2mo:
+            image:
+              repository: reg.magenta.dk/rammearkitektur/os2mo
+              tag: $CI_COMMIT_SHA
+              pullSecret: gitlab-os2mo-pull-secret
+          keycloak:
+            admin_password: \"$REVIEW_KEYCLOAK_ADMIN_PASSWORD\""  # TODO: Not great
+    - ./template.sh os2mo-mr$CI_MERGE_REQUEST_IID "$extra_config"
     - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
     - git status
     - git commit -m "[cd] Deploy OS2MO MR$CI_MERGE_REQUEST_IID to flux CI cluster" || true
     - git push || true
-    - curl https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk/version/
-      --fail
-      --retry-all-errors
-      --retry-delay 5
-      --retry 120
+    - until $(curl "$REVIEW_URL/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
     name: review/$CI_MERGE_REQUEST_IID
-    url: https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk
+    # Cannot use $REVIEW_URL for the url because GitLab
+    url: "https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
     on_stop: stop_review
     auto_stop_in: 1 week
   rules:
@@ -526,8 +548,6 @@ stop_review:
   image: debian:bullseye
   variables:
     GIT_STRATEGY: none # We do not need the source code
-  tags:
-    - docker
   before_script:
     - apt-get update && apt-get install -y git j2cli
   script:
@@ -547,6 +567,54 @@ stop_review:
     - if: $CI_MERGE_REQUEST_ID
       when: manual
       allow_failure: true
+
+Delete Review Terraform State:
+  stage: review
+  needs: ["stop_review"]
+  image: curlimages/curl:7.81.0
+  script:
+    - 'curl --header "Private-Token: $REVIEW_TERRAFORM_STATE_CI_TOKEN" --request DELETE "$REVIEW_TERRAFORM_STATE_ADDRESS"'
+
+
+# QA Stage
+###################
+Create Performance Test Keycloak Token:
+  stage: qa
+  needs: ["deploy_review"]
+  image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  variables:
+    TF_ADDRESS: $REVIEW_TERRAFORM_STATE_ADDRESS
+    TF_VAR_keycloak_admin_password: $REVIEW_KEYCLOAK_ADMIN_PASSWORD
+    TF_VAR_keycloak_url: $REVIEW_URL
+    TF_VAR_keycloak_tempotest_client_secret: $REVIEW_TEMPOTEST_CLIENT_SECRET
+  before_script:
+    - cd tempotest/
+    - gitlab-terraform init
+    - gitlab-terraform validate
+  script:
+    - gitlab-terraform plan
+    - gitlab-terraform plan-json
+    - gitlab-terraform apply
+
+
+Performance Tests:
+  stage: qa
+  needs: ["Create Performance Test Keycloak Token"]
+  image:
+    name: $TEMPOTEST_IMAGE_SHA
+    entrypoint: [""]
+  tags:
+    - high-mem  # we don't want other jobs impacting the test results
+  script: "/k6 run /script.js --summary-export=load-performance.json"
+  variables:
+    MO_URL: "$REVIEW_URL"
+    AUTH_SERVER: "$REVIEW_URL/auth"
+    CLIENT_ID: "tempotest"
+    CLIENT_SECRET: "$REVIEW_TEMPOTEST_CLIENT_SECRET"
+  artifacts:
+    when: always
+    reports:
+      load_performance: load-performance.json
 
 
 # Release stage
@@ -575,6 +643,7 @@ Release Frontend version:
     CI_IMAGE: ${FRONTEND_IMAGE_SHA}
     RELEASE_IMAGE: ${FRONTEND_RELEASE_REGISTRY_IMAGE}
 
+
 # Deploy stage
 ##############
 
@@ -587,8 +656,6 @@ Release to Dev:
   rules:
     # Matches <version core> from SemVer 2.0.0 BNF grammar. Ex. 2.3.4, but not 2.3.4-rc
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
-  tags:
-    - docker
   script:
     - curl --silent http://ipinfo.io/ip
     - curl --silent --request POST --user $CONFIG_UPDATER_USERNAME:$CONFIG_UPDATER_PASSWORD https://config-updater.magentahosted.dk/os2mo/flux/update-dev?tag=$CI_COMMIT_TAG

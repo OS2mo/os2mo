@@ -14,3 +14,16 @@ repos:
     hooks:
       - id: mypy
         args: [--config-file=backend/pyproject.toml]
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.64.0
+    hooks:
+      - id: terraform_fmt
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.9.0
+    hooks:
+      - id: eslint
+        files: tempotest
+        additional_dependencies:
+          - eslint
+          - eslint-config-airbnb-base
+          - eslint-plugin-import
