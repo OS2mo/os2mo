@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.20.0 - 2021-12-16
+-------------------
+
+[#47093] Append uuid to attributes for AssociationRead model
+
 3.19.0 - 2021-12-16
 -------------------
 
