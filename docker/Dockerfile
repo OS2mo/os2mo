@@ -93,4 +93,5 @@ RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora
-CMD ["hypercorn", "-b", "0.0.0.0:5000", "-k", "uvloop", "mora.app:create_app()"]
+ENTRYPOINT ["hypercorn"]
+CMD ["--bind", "0.0.0.0:5000", "--worker-class", "uvloop", "mora.app:create_app()"]
