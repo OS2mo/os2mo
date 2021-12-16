@@ -2,18 +2,20 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 
+from aio_pika.exceptions import AMQPError
 from fastapi import APIRouter
 from httpx import HTTPStatusError
-from aio_pika.exceptions import AMQPError
+from os2mo_dar_client import AsyncDARClient
 from pydantic import AnyUrl
 from requests.exceptions import RequestException
 from structlog import get_logger
-from os2mo_dar_client import AsyncDARClient
 
-from mora import conf_db, lora, config
+from mora import conf_db
+from mora import config
+from mora import lora
 from mora.exceptions import HTTPException
 from mora.http import client
-from mora.triggers.internal import amqp_trigger
+from mora.triggers.internal.amqp_trigger import pools
 
 router = APIRouter()
 
@@ -62,8 +64,7 @@ async def amqp():
         return None
 
     try:
-        connection_pool, _ = await amqp_trigger.get_connection_pools()
-        async with connection_pool.acquire() as connection:
+        async with pools.connection_pool.acquire() as connection:
             if not connection:
                 logger.critical("AMQP connection not found")
                 return False

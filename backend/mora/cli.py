@@ -114,12 +114,14 @@ def wait_for_rabbitmq(seconds):
     # TypeError: metaclass conflict: the metaclass of a derived class must be a
     #            (non-strict) subclass of the metaclasses of all its bases.
     # Fun!
-    from mora.triggers.internal import amqp_trigger
+    from mora.triggers.internal import amqp_trigger  # noqa
+    from mora.triggers.internal.amqp_trigger import pools
+    from mora.triggers.internal.amqp_trigger import setup_pools
 
     @async_to_sync
     async def connector():
-        connection_pool, _ = await amqp_trigger.get_connection_pools()
-        async with connection_pool.acquire() as connection:
+        await setup_pools()
+        async with pools.connection_pool.acquire() as connection:
             if not connection:
                 raise ValueError("AMQP connection not found")
             if connection.is_closed:
