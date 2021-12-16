@@ -39,15 +39,17 @@ class AssociationBase(MOBase):
 class AssociationRead(AssociationBase):
     """A MO AssociationRead object."""
 
-    org_unit: UUID = Field(
+    org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the association."
     )
-    person: UUID = Field(description="UUID of the person related to the association.")
-    association_type: UUID = Field(description="UUID of the association type.")
-    primary: Optional[UUID] = Field(
+    person_uuid: UUID = Field(
+        description="UUID of the person related to the association."
+    )
+    association_type_uuid: UUID = Field(description="UUID of the association type.")
+    primary_uuid: Optional[UUID] = Field(
         description="UUID of the primary type of the association."
     )
-    substitute: Optional[UUID] = Field(
+    substitute_uuid: Optional[UUID] = Field(
         description="UUID of the substitute for the person in the association."
     )
 
