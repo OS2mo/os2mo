@@ -393,6 +393,19 @@ services:
     profiles:
       - amqp-metrics
 
+  amqp-consumer:
+    image: magentaaps/os2mo-amqp-trigger-example:latest
+    environment:
+      AMQP_HOST: msg_broker
+      AMQP_PASSWORD: guest
+      AMQP_ROUTING_KEYS: "*.*.*"
+    depends_on:
+      mo:
+        condition: service_healthy
+      msg_broker:
+        condition: service_healthy
+    profiles:
+      - amqp-consumer
 
 volumes:
   keycloak-volume:
