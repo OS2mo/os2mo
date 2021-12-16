@@ -46,13 +46,13 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "org_unit": st.uuids(),
+        "org_unit_uuid": st.uuids(),
     }
     optional = {
-        "person": st.none() | st.uuids(),
-        "manager_type": st.none() | st.uuids(),
-        "manager_level": st.none() | st.uuids(),
-        "responsibility": st.none() | st.lists(st.uuids()),
+        "person_uuid": st.none() | st.uuids(),
+        "manager_type_uuid": st.none() | st.uuids(),
+        "manager_level_uuid": st.none() | st.uuids(),
+        "responsibility_uuids": st.none() | st.lists(st.uuids()),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
