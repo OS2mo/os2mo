@@ -1,0 +1,63 @@
+{
+  "fratidspunkt": {
+    "tidsstempeldatotid": "2019-12-18T12:54:46.28018+00:00",
+    "graenseindikator": true
+  },
+  "tiltidspunkt": {
+    "tidsstempeldatotid": "infinity"
+  },
+  "livscykluskode": "Opstaaet",
+  "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+  "attributter": {
+    "facetegenskaber": [
+      {
+        "brugervendtnoegle": "engagement_type",
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "facetpubliceret": [
+      {
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        },
+        "publiceret": "Publiceret"
+      }
+    ]
+  },
+  "relationer": {
+    "ansvarlig": [
+      {
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        },
+        "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+        "objekttype": "organisation"
+      }
+    ],
+    "facettilhoerer": [
+      {
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        },
+        "uuid": "c8a8935e-6f0e-4ca3-b1ea-79556f9b6317",
+        "objekttype": "klassifikation"
+      }
+    ]
+  }
+}

@@ -322,6 +322,20 @@ class ClassRef(RABase):
     )
 
 
+class ParentClassification(RABase):
+    """
+    ParentClassification object in LoRa.
+    """
+
+    object_type: Literal["klassifikation"] = Field(
+        "klassifikation", alias="objekttype", description="Object type."
+    )
+    uuid: UUID = Field(description="UUID of the object.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the object."
+    )
+
+
 class FacetRef(RABase):
     """
     Reference to given LoRa facets.
@@ -346,6 +360,12 @@ class FacetRelations(RABase):
         min_items=1,
         max_items=1,
         description="The responsible object.",
+    )
+    parent: Optional[List[ParentClassification]] = Field(
+        alias="facettilhoerer",
+        min_items=1,
+        max_items=1,
+        description="The parent classification.",
     )
 
 
