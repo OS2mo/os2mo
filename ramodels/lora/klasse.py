@@ -19,6 +19,7 @@ from ._shared import KlasseRelations
 from ._shared import KlasseStates
 from ._shared import LoraBase
 from ._shared import Published
+from ._shared import RegistrationTime
 from ._shared import Responsible
 
 
@@ -82,3 +83,18 @@ class Klasse(LoraBase):
             relations=relations,
             uuid=uuid,
         )
+
+
+class KlasseRead(Klasse):
+    from_time: RegistrationTime = Field(
+        alias="fratidspunkt", description="The klasse registration from time."
+    )
+    to_time: RegistrationTime = Field(
+        alias="tiltidspunkt", description="The klasse registration to time."
+    )
+    life_cycle_code: str = Field(
+        alias="livscykluskode", description="The klasse registation life cycle code."
+    )
+    user_ref: UUID = Field(
+        alias="brugerref", description="The klasse registration user."
+    )

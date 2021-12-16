@@ -18,6 +18,7 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
+from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -180,8 +181,14 @@ class EffectiveTime(RABase):
     from_date: InfiniteDatetime = Field(
         alias="from", description="Start of the effective time interval."
     )
+    from_included: Optional[bool] = Field(
+        description="Whether from_date is included in the interval."
+    )
     to_date: InfiniteDatetime = Field(
         alias="to", description="End of the effective time interval."
+    )
+    to_included: Optional[bool] = Field(
+        description="Whether to_date is included in the interval."
     )
 
     @root_validator
@@ -298,6 +305,20 @@ class Responsible(RABase):
     uuid: UUID = Field(description="UUID of the object.")
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the object."
+    )
+
+
+class ClassRef(RABase):
+    """
+    Reference to given LoRa class.
+    """
+
+    object_type: Literal["klasse"] = Field(
+        "klasse", alias="objekttype", description="Object type."
+    )
+    uuid: UUID = Field(description="UUID of the reference.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the reference."
     )
 
 
@@ -477,6 +498,12 @@ class KlasseRelations(RABase):
     facet: List[FacetRef] = Field(
         min_items=1, max_items=1, description="Facet reference."
     )
+    parent: Optional[List[ClassRef]] = Field(
+        alias="overordnetklasse",
+        min_items=1,
+        max_items=1,
+        description="The parent class object.",
+    )
 
 
 class KlasseAttributes(RABase):
@@ -570,4 +597,13 @@ class OrganisationRelations(RABase):
         min_items=1,
         max_items=1,
         description="Authority object denoting the relations.",
+    )
+
+
+class RegistrationTime(BaseModel):
+    timestamp_datetime: InfiniteDatetime = Field(
+        alias="tidsstempeldatotid", description="The registration timestamp"
+    )
+    limit_indicator: Optional[bool] = Field(
+        alias="graenseindikator", description="The registration limit indicator"
     )
