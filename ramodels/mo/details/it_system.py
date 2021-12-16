@@ -34,11 +34,11 @@ class ITSystemBindingBase(MOBase):
 class ITSystemBindingRead(ITSystemBindingBase):
     """A MO IT system binding read object."""
 
-    itsystem: UUID = Field(description="UUID of the IT system of the binding.")
-    person: Optional[UUID] = Field(
+    itsystem_uuid: UUID = Field(description="UUID of the IT system of the binding.")
+    person_uuid: Optional[UUID] = Field(
         description="Reference to the person related to the binding."
     )
-    org_unit: Optional[UUID] = Field(
+    org_unit_uuid: Optional[UUID] = Field(
         description="Reference to the organisation unit related to the binding."
     )
 

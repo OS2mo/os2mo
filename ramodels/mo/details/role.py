@@ -32,11 +32,11 @@ class RoleBase(MOBase):
 class RoleRead(RoleBase):
     """A MO role read object."""
 
-    org_unit: UUID = Field(
+    org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the association."
     )
-    person: UUID = Field(description="UUID of the person related to the role.")
-    role_type: UUID = Field(description="UUID of the role type klasse.")
+    person_uuid: UUID = Field(description="UUID of the person related to the role.")
+    role_type_uuid: UUID = Field(description="UUID of the role type klasse.")
 
 
 class RoleWrite(RoleBase):
