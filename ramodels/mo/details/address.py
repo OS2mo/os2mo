@@ -21,7 +21,6 @@ from .._shared import MOBase
 from .._shared import OrganisationRef
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
-from .._shared import UUIDBase
 from .._shared import Validity
 from .._shared import Visibility
 
@@ -31,7 +30,7 @@ from .._shared import Visibility
 # --------------------------------------------------------------------------------------
 
 
-class AddressBase(UUIDBase):
+class AddressBase(MOBase):
     """
     A MO address object.
     """
