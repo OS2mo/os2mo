@@ -6,6 +6,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import json
+from pathlib import Path
+
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -13,6 +16,7 @@ from .test__shared import valid_org_attrs
 from .test__shared import valid_org_relations
 from .test__shared import valid_org_states
 from ramodels.lora import Organisation
+from ramodels.lora import OrganisationRead
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
 
@@ -59,3 +63,8 @@ class TestOrganisation:
     @given(organisation_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         assert Organisation.from_simplified_fields(**simp_fields_dict)
+
+    def test_fixture(self):
+        content = Path("tests/fixture/lora/organisation.json").read_text()
+        payload = json.loads(content)
+        assert OrganisationRead(**payload)

@@ -1,0 +1,51 @@
+{
+  "fratidspunkt": {
+    "tidsstempeldatotid": "2019-12-18T12:54:46.080198+00:00",
+    "graenseindikator": true
+  },
+  "tiltidspunkt": {
+    "tidsstempeldatotid": "infinity"
+  },
+  "livscykluskode": "Opstaaet",
+  "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+  "attributter": {
+    "organisationegenskaber": [
+      {
+        "brugervendtnoegle": "Kolding Kommune",
+        "organisationsnavn": "Kolding Kommune",
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        }
+      }
+    ]
+  },
+  "tilstande": {
+    "organisationgyldighed": [
+      {
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        },
+        "gyldighed": "Aktiv"
+      }
+    ]
+  },
+  "relationer": {
+    "myndighed": [
+      {
+        "virkning": {
+          "from": "1900-01-01 00:00:00+00",
+          "to": "infinity",
+          "from_included": true,
+          "to_included": false
+        },
+        "urn": "urn:dk:kommune:0621"
+      }
+    ]
+  }
+}
