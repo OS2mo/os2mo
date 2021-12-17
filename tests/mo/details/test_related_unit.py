@@ -36,7 +36,7 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "org_unit": st.lists(st.uuids()),
+        "org_unit_uuid": st.lists(st.uuids()),
     }
 
     st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
