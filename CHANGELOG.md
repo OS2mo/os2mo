@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.26.0 - 2021-12-17
+-------------------
+
+[#47099] Append uuid to attributes for RelatedUnitRead
+
 3.25.0 - 2021-12-17
 -------------------
 
