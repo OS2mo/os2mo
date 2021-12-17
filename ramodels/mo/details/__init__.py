@@ -19,9 +19,9 @@ from .engagement import Engagement
 from .engagement import EngagementAssociation
 from .engagement import EngagementRead
 from .engagement import EngagementWrite
-from .it_system import ITSystemBinding
-from .it_system import ITSystemBindingRead
-from .it_system import ITSystemBindingWrite
+from .it_system import ITUser
+from .it_system import ITUserRead
+from .it_system import ITUserWrite
 from .kle import KLEBase
 from .kle import KLERead
 from .kle import KLEWrite
@@ -44,9 +44,7 @@ from .role import RoleWrite
 # --------------------------------------------------------------------------------------
 # All
 # --------------------------------------------------------------------------------------
-Details = Union[
-    Association, Engagement, EngagementAssociation, Manager, ITSystemBinding, Role
-]
+Details = Union[Association, Engagement, EngagementAssociation, Manager, ITUser, Role]
 EmployeeDetails = Union[Details, Address, Leave]
 OrgUnitDetails = Details
 
@@ -64,9 +62,9 @@ __all__ = [
     "EngagementRead",
     "EngagementWrite",
     "EngagementAssociation",
-    "ITSystemBinding",
-    "ITSystemBindingRead",
-    "ITSystemBindingWrite",
+    "ITUser",
+    "ITUserRead",
+    "ITUserWrite",
     "KLEBase",
     "KLERead",
     "KLEWrite",
