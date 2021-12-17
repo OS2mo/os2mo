@@ -24,17 +24,21 @@ from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_managers
 from mora.graphapi.dataloaders import get_org_units
+from mora.graphapi.dataloaders import get_classes
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.schema import AddressType
+from mora.graphapi.schema import AssociationType
+from mora.graphapi.schema import ClassType
 from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
+from mora.graphapi.schema import ITUserType
 from mora.graphapi.schema import KLEType
-from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import AssociationType
 from mora.graphapi.schema import ManagerType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
-from mora.graphapi.schema import RoleType, ITUserType
+from mora.graphapi.schema import RoleType
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -194,6 +198,20 @@ class Query:
             managers = await gather(*tasks)
             return list(filter(lambda man: man is not None, managers))
         return await get_managers()
+
+    # Classes
+    # -------
+    @strawberry.field(
+        description="Get a list of all classes, optionally by uuid(s)",
+    )
+    async def classes(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[ClassType]:
+        if uuids:
+            tasks = map(info.context["class_loader"].load, uuids)
+            classes = await gather(*tasks)
+            return list(filter(lambda clazz: clazz is not None, classes))
+        return await get_classes()
 
 
 def get_schema():

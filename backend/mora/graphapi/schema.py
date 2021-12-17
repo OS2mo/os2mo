@@ -17,6 +17,7 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo._shared import DynamicClasses
 from ramodels.mo.details import RoleRead
 from ramodels.mo.details import ITUserRead
+from mora.graphapi.models import ClassRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from strawberry.types import Info
@@ -158,4 +159,13 @@ class LeaveType:
 
 @strawberry.experimental.pydantic.type(model=ManagerRead, all_fields=True)
 class ManagerType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=ClassRead,
+    all_fields=True,
+    description=("A Class: the value component of the class/facet choice setup."),
+)
+class ClassType:
     pass
