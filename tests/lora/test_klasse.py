@@ -6,6 +6,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import json
+from pathlib import Path
+
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -13,6 +16,7 @@ from .test__shared import valid_klasse_attrs
 from .test__shared import valid_klasse_relations
 from .test__shared import valid_klasse_states
 from ramodels.lora import Klasse
+from ramodels.lora import KlasseRead
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
 
@@ -61,3 +65,8 @@ class TestKlasse:
     @given(klasse_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         assert Klasse.from_simplified_fields(**simp_fields_dict)
+
+    def test_fixture(self):
+        content = Path("tests/fixture/lora/klasse.json").read_text()
+        payload = json.loads(content)
+        assert KlasseRead(**payload)

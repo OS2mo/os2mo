@@ -9,6 +9,7 @@
 from datetime import datetime
 from typing import Any
 
+from dateutil.parser import isoparse
 from pydantic import BaseModel
 from pydantic import Extra
 
@@ -73,10 +74,16 @@ def tz_isodate(dt: Any) -> datetime:
 
         Note that the default {DEFAULT_TZ} is used.
     """
+    # Using isoparse as fromisoformat does not handle all valid ISO-8601
+    # Using datetime.fromisoformat as isoparse does not handle fractional timezones
+    # It is a mess, but this way we get really close to covering our bases
     try:
-        iso_dt = datetime.fromisoformat(str(dt))
+        iso_dt = isoparse(str(dt))
     except ValueError:
-        raise ISOParseError(dt)
+        try:
+            iso_dt = datetime.fromisoformat(str(dt))
+        except ValueError:
+            raise ISOParseError(dt)
 
     iso_dt = iso_dt if iso_dt.tzinfo else iso_dt.replace(tzinfo=DEFAULT_TZ)
     return iso_dt
