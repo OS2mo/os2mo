@@ -41,15 +41,15 @@ class ManagerBase(MOBase):
 class ManagerRead(ManagerBase):
     """A MO ManagerRead object."""
 
-    org_unit: UUID = Field(
+    org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the manager."
     )
-    person: Optional[UUID] = Field(
+    person_uuid: Optional[UUID] = Field(
         description="UUID of the person related to the manager."
     )
-    manager_type: Optional[UUID] = Field(description="UUID of the manager type.")
-    manager_level: Optional[UUID] = Field(description="UUID of the manager level.")
-    responsibility: Optional[List[UUID]] = Field(
+    manager_type_uuid: Optional[UUID] = Field(description="UUID of the manager type.")
+    manager_level_uuid: Optional[UUID] = Field(description="UUID of the manager level.")
+    responsibility_uuids: Optional[List[UUID]] = Field(
         description="List of UUID's of the responsibilities."
     )
 
