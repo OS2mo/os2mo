@@ -8,20 +8,22 @@ import strawberry
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
-from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import KLERead
-from ramodels.mo.details import ManagerRead
-from ramodels.mo.details import EngagementRead
-from ramodels.mo.details import LeaveRead
 from ramodels.mo._shared import DynamicClasses
-from ramodels.mo.details import RoleRead
-from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import ITUserRead
-from mora.graphapi.models import ClassRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
+from ramodels.mo.details import AddressRead
+from ramodels.mo.details import AssociationRead
+from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITUserRead
+from ramodels.mo.details import KLERead
+from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RelatedUnitRead
+from ramodels.mo.details import RoleRead
 from strawberry.types import Info
+
+from mora.graphapi.models import ClassRead
+from mora.graphapi.models import FacetRead
 
 
 @strawberry.experimental.pydantic.type(model=DynamicClasses, all_fields=True)
@@ -178,4 +180,13 @@ class ManagerType:
     description=("A Class: the value component of the class/facet choice setup."),
 )
 class ClassType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=FacetRead,
+    all_fields=True,
+    description=("A Facet: the key component of the class/facet choice setup."),
+)
+class FacetType:
     pass

@@ -26,3 +26,20 @@ class ClassRead(MOBase):
         description="UUID of the organisation for which the class should be created."
     )
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
+
+
+class FacetRead(MOBase):
+    """Payload model for facets."""
+
+    type_: str = Field("facet", alias="type", description="The object type")
+    user_key: str = Field(description="Short, unique key.")
+    validity: Validity = Field(description="Validity of the class object.")
+
+    published: Optional[str] = Field(description="Published state of the class object.")
+
+    org_uuid: UUID = Field(
+        description="UUID of the organisation for which is responsible."
+    )
+    parent_uuid: Optional[UUID] = Field(
+        description="UUID of the parent classification."
+    )

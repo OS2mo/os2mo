@@ -26,12 +26,14 @@ from mora.graphapi.dataloaders import get_managers
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.dataloaders import get_classes
 from mora.graphapi.dataloaders import get_related_units
+from mora.graphapi.dataloaders import get_facets
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import AssociationType
 from mora.graphapi.schema import ClassType
 from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
+from mora.graphapi.schema import FacetType
 from mora.graphapi.schema import ITUserType
 from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import LeaveType
@@ -228,6 +230,20 @@ class Query:
             related_units = await gather(*tasks)
             return list(filter(lambda unit: unit is not None, related_units))
         return await get_related_units()
+
+    # Facets
+    # ------
+    @strawberry.field(
+        description="Get a list of all facets, optionally by uuid(s)",
+    )
+    async def facets(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[FacetType]:
+        if uuids:
+            tasks = map(info.context["facet_loader"].load, uuids)
+            facets = await gather(*tasks)
+            return list(filter(lambda facet: facet is not None, facets))
+        return await get_facets()
 
 
 def get_schema():
