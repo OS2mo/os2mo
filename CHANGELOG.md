@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.23.0 - 2021-12-17
+-------------------
+
+[#47100] Rename ITSystemBinding to ITUser
+
 3.22.0 - 2021-12-17
 -------------------
 
