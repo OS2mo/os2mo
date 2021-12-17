@@ -34,7 +34,6 @@ from mora.graphapi.schema import EngagementType
 from mora.graphapi.schema import ITUserType
 from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import LeaveType
-from mora.graphapi.schema import AssociationType
 from mora.graphapi.schema import ManagerType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
