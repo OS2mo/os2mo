@@ -13,6 +13,7 @@ from .itsystem import ITSystem
 from .klasse import Klasse
 from .klasse import KlasseRead
 from .organisation import Organisation
+from .organisation import OrganisationRead
 
 # --------------------------------------------------------------------------------------
 # All
@@ -25,5 +26,6 @@ __all__ = [
     "Klasse",
     "KlasseRead",
     "Organisation",
+    "OrganisationRead",
     "ITSystem",
 ]
