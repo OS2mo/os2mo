@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.15.1 - 2021-12-17
+-------------------
+
+[#45051] Remove DAR multiloop dataloader workaround
+
 3.15.0 - 2021-12-17
 -------------------
 
