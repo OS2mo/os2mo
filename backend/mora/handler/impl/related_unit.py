@@ -12,6 +12,7 @@ from structlog import get_logger
 
 from .. import reading
 from ... import mapping
+from ...graphapi.middleware import is_graphql
 from ...service import orgunit
 from mora import util
 
@@ -42,9 +43,15 @@ class RoleReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ) -> Dict[str, Union[Awaitable, Any]]:
-        org_units = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
+        org_units_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
+        if is_graphql():
+            return {
+                **base_obj,
+                "org_unit_uuid": org_units_uuid,
+            }
+
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         org_unit_awaitables = [
@@ -53,7 +60,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
-            for org_unit_uuid in org_units
+            for org_unit_uuid in org_units_uuid
         ]
 
         r = {

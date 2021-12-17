@@ -1276,7 +1276,7 @@ headers = ["pydantic (>=1.8.2,<2.0.0)", "requests (>=2.26.0,<3.0.0)", "types-req
 
 [[package]]
 name = "ramodels"
-version = "3.25.0"
+version = "3.26.0"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -2702,8 +2702,8 @@ ra-utils = [
     {file = "ra_utils-0.4.0-py3-none-any.whl", hash = "sha256:93441f4302710ff5f75d9e0451e6ead81186c2fd47124c879098216d4e5d5db4"},
 ]
 ramodels = [
-    {file = "ramodels-3.25.0-py3-none-any.whl", hash = "sha256:35aedabe0868fc738a873b0c03d363d3c6ad993e09ed4aa30c18beb0dfb9cc61"},
-    {file = "ramodels-3.25.0.tar.gz", hash = "sha256:75ca28d78b8406a2ee81f84a292ec431557cdd44de1c0d12b7c3ccff63779baf"},
+    {file = "ramodels-3.26.0-py3-none-any.whl", hash = "sha256:521bf296c9b04b05d4872eb8525b94cb95359a9e3400f0bed423700d0cfa89b8"},
+    {file = "ramodels-3.26.0.tar.gz", hash = "sha256:e5f9252eedcc52e4dbc30d00ad2c912f10cee88aaa6d5680954c05258a5f7e1c"},
 ]
 requests = [
     {file = "requests-2.26.0-py2.py3-none-any.whl", hash = "sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24"},
