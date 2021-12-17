@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.15.0 - 2021-12-17
+-------------------
+
+[#7100] Implement Role- and ITUser reading in GraphQL
+
 3.14.0 - 2021-12-17
 -------------------
 
