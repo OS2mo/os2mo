@@ -22,6 +22,7 @@ from mora.graphapi.dataloaders import get_itusers
 from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_kles
+from mora.graphapi.dataloaders import get_managers
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import EmployeeType
@@ -30,6 +31,7 @@ from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import AssociationType
+from mora.graphapi.schema import ManagerType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 from mora.graphapi.schema import RoleType, ITUserType
@@ -178,6 +180,20 @@ class Query:
             roles = await gather(*tasks)
             return list(filter(lambda role: role is not None, roles))
         return await get_roles()
+
+    # Manager
+    # -------
+    @strawberry.field(
+        description="Get a list of all managers, optionally by uuid(s)",
+    )
+    async def managers(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[ManagerType]:
+        if uuids:
+            tasks = map(info.context["manager_loader"].load, uuids)
+            managers = await gather(*tasks)
+            return list(filter(lambda man: man is not None, managers))
+        return await get_managers()
 
 
 def get_schema():

@@ -14,6 +14,7 @@ from structlog import get_logger
 from .. import reading
 from ... import mapping
 from ... import util
+from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
@@ -72,9 +73,20 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
+
+        if is_graphql():
+            return {
+                **base_obj,
+                "person_uuid": person,
+                "manager_type_uuid": manager_type,
+                "manager_level_uuid": manager_level,
+                "responsibility_uuids": responsibilities,
+                "org_unit_uuid": org_unit,
+            }
+
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if person:
@@ -118,7 +130,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         )
 
         func: Dict[Any, Any] = {
-            **await base_obj,
+            **base_obj,
             mapping.RESPONSIBILITY: gather(*resp_tasks),
             mapping.ORG_UNIT: await org_unit_task,
         }

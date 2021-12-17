@@ -11,6 +11,7 @@ from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import KLERead
+from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo._shared import DynamicClasses
@@ -152,4 +153,9 @@ class EngagementType:
 
 @strawberry.experimental.pydantic.type(model=LeaveRead, all_fields=True)
 class LeaveType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(model=ManagerRead, all_fields=True)
+class ManagerType:
     pass
