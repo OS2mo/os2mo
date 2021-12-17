@@ -21,6 +21,8 @@ from mora.graphapi.schema import EmployeeRead
 from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import LeaveRead
 from mora.graphapi.schema import KLERead
+from mora.graphapi.schema import ITUserRead
+from mora.graphapi.schema import RoleRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
@@ -36,6 +38,8 @@ MOModel = TypeVar(
     AddressRead,
     LeaveRead,
     AssociationRead,
+    RoleRead,
+    ITUserRead,
 )
 RoleType = TypeVar("RoleType")
 
@@ -80,6 +84,8 @@ get_kles = partial(get_mo, model=KLERead)
 get_addresses = partial(get_mo, model=AddressRead)
 get_leaves = partial(get_mo, model=LeaveRead)
 get_associations = partial(get_mo, model=AssociationRead)
+get_roles = partial(get_mo, model=RoleRead)
+get_itusers = partial(get_mo, model=ITUserRead)
 
 
 async def load_org(keys: List[int]) -> List[OrganisationRead]:
@@ -140,4 +146,6 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "association_loader": DataLoader(
             load_fn=partial(load_mo, model=AssociationRead)
         ),
+        "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
+        "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
     }

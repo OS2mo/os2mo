@@ -18,6 +18,8 @@ from mora.graphapi.dataloaders import get_associations
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_leaves
+from mora.graphapi.dataloaders import get_itusers
+from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_org_units
@@ -30,6 +32,7 @@ from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import AssociationType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
+from mora.graphapi.schema import RoleType, ITUserType
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -147,6 +150,34 @@ class Query:
             leaves = await gather(*tasks)
             return list(filter(lambda leave: leave is not None, leaves))
         return await get_leaves()
+
+    # ITUser
+    # ---------
+    @strawberry.field(
+        description="Get a list of all ITUsers, optionally by uuid(s)",
+    )
+    async def ituser(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[ITUserType]:
+        if uuids:
+            tasks = map(info.context["ituser_loader"].load, uuids)
+            itusers = await gather(*tasks)
+            return list(filter(lambda it: it is not None, itusers))
+        return await get_itusers()
+
+    # Roles
+    # ---------
+    @strawberry.field(
+        description="Get a list of all roles, optionally by uuid(s)",
+    )
+    async def roles(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[RoleType]:
+        if uuids:
+            tasks = map(info.context["role_loader"].load, uuids)
+            roles = await gather(*tasks)
+            return list(filter(lambda role: role is not None, roles))
+        return await get_roles()
 
 
 def get_schema():
