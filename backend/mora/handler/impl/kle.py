@@ -7,6 +7,7 @@ from structlog import get_logger
 
 from .. import reading
 from ... import mapping
+from ...graphapi.middleware import is_graphql
 from ...service import facet
 from ...service import orgunit
 from mora import util
@@ -24,14 +25,22 @@ class KLEReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
-        org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
-        address_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
+        address_type_uuid = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        kle_types_uuid = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
 
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
 
-        kle_types = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
+        if is_graphql():
+            return {
+                **base_obj,
+                "org_unit_uuid": org_unit_uuid,
+                "address_type_uuid": address_type_uuid,
+                "kle_types_uuid": kle_types_uuid,
+            }
+
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         # via tasks, await request_bulked_get_one_class_full, then prepare a gather of
@@ -44,26 +53,26 @@ class KLEReader(reading.OrgFunkReadingHandler):
                             obj_uuid, only_primary_uuid=only_primary_uuid
                         )
                     )
-                    for obj_uuid in kle_types
+                    for obj_uuid in kle_types_uuid
                 ]
             )
         )
         kle_number_task = create_task(
             facet.request_bulked_get_one_class_full(
-                address_type, only_primary_uuid=only_primary_uuid
+                address_type_uuid, only_primary_uuid=only_primary_uuid
             )
         )
 
         org_unit_task = create_task(
             orgunit.request_bulked_get_one_orgunit(
-                org_unit,
+                org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
         )
 
         r = {
-            **await base_obj,
+            **base_obj,
             mapping.KLE_ASPECT: await kle_aspect,
             mapping.KLE_NUMBER: await kle_number_task,
             mapping.ORG_UNIT: await org_unit_task,

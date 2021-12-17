@@ -16,10 +16,12 @@ from strawberry.types import Info
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
+from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -85,6 +87,20 @@ class Query:
             engagements = await gather(*tasks)
             return list(filter(lambda eng: eng is not None, engagements))
         return await get_engagements()
+
+    # KLE
+    # ---------
+    @strawberry.field(
+        description="Get a list of all KLE's, optionally by uuid(s)",
+    )
+    async def kle(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[KLEType]:
+        if uuids:
+            tasks = map(info.context["kle_loader"].load, uuids)
+            kles = await gather(*tasks)
+            return list(filter(lambda kle: kle is not None, kles))
+        return await get_kles()
 
 
 def get_schema():
