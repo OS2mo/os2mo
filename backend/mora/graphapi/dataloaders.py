@@ -31,6 +31,7 @@ from mora.graphapi.schema import ManagerRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.graphapi.schema import RoleRead
+from mora.graphapi.schema import RelatedUnitRead
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
@@ -48,6 +49,7 @@ MOModel = TypeVar(
     ManagerRead,
     OrganisationUnitRead,
     RoleRead,
+    RelatedUnitRead,
 )
 
 RoleType = TypeVar("RoleType")
@@ -96,6 +98,7 @@ get_associations = partial(get_mo, model=AssociationRead)
 get_roles = partial(get_mo, model=RoleRead)
 get_itusers = partial(get_mo, model=ITUserRead)
 get_managers = partial(get_mo, model=ManagerRead)
+get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
 def lora_effective_time_to_validity(effective_time):
@@ -220,4 +223,5 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "class_loader": DataLoader(load_fn=load_classes),
+        "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
     }

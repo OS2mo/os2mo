@@ -25,6 +25,7 @@ from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_managers
 from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.dataloaders import get_classes
+from mora.graphapi.dataloaders import get_related_units
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import AssociationType
@@ -38,6 +39,7 @@ from mora.graphapi.schema import ManagerType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 from mora.graphapi.schema import RoleType
+from mora.graphapi.schema import RelatedUnitType
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -211,6 +213,21 @@ class Query:
             classes = await gather(*tasks)
             return list(filter(lambda clazz: clazz is not None, classes))
         return await get_classes()
+
+    # Relatedunits
+    # ---------
+    @strawberry.field(
+        description="Get a list of all related organisational units, optionally by "
+        "uuid(s)",
+    )
+    async def related_units(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[RelatedUnitType]:
+        if uuids:
+            tasks = map(info.context["rel_unit_loader"].load, uuids)
+            related_units = await gather(*tasks)
+            return list(filter(lambda unit: unit is not None, related_units))
+        return await get_related_units()
 
 
 def get_schema():

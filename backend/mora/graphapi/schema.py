@@ -16,6 +16,7 @@ from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo._shared import DynamicClasses
 from ramodels.mo.details import RoleRead
+from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import ITUserRead
 from mora.graphapi.models import ClassRead
 from ramodels.mo._shared import OpenValidity
@@ -84,6 +85,15 @@ class AssociationType:
     description=("An ITUser; storing information for an IT user."),
 )
 class ITUserType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=RelatedUnitRead,
+    all_fields=True,
+    description=("A RelatedUnit; storing a list of related organisational units."),
+)
+class RelatedUnitType:
     pass
 
 
