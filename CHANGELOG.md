@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.25.0 - 2021-12-17
+-------------------
+
+[#47090] Introduce LoRa OrganisationRead
+
 3.24.0 - 2021-12-17
 -------------------
 
