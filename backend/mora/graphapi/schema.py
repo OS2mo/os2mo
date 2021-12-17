@@ -8,13 +8,20 @@ import strawberry
 from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import KLERead
 from ramodels.mo.details import AddressRead
-from ramodels.mo._shared import OpenValidity
-from ramodels.mo._shared import Validity
+from ramodels.mo.details import AssociationRead
+from ramodels.mo.details import KLERead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import LeaveRead
+from ramodels.mo._shared import DynamicClasses
+from ramodels.mo._shared import OpenValidity
+from ramodels.mo._shared import Validity
 from strawberry.types import Info
+
+
+@strawberry.experimental.pydantic.type(model=DynamicClasses, all_fields=True)
+class DynamicClassesType:
+    pass
 
 
 @strawberry.experimental.pydantic.type(model=Validity, all_fields=True)
@@ -44,6 +51,15 @@ class KLEType:
     ),
 )
 class AddressType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=AssociationRead,
+    all_fields=True,
+    description=("An Association; connected to an org_unit and a person."),
+)
+class AssociationType:
     pass
 
 
