@@ -13,6 +13,7 @@ from ramodels.mo.details import AddressRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import LeaveRead
 from strawberry.types import Info
 
 
@@ -108,4 +109,9 @@ class OrganisationUnitType:
 
 @strawberry.experimental.pydantic.type(model=EngagementRead, all_fields=True)
 class EngagementType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(model=LeaveRead, all_fields=True)
+class LeaveType:
     pass

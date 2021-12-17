@@ -6,6 +6,7 @@ from structlog import get_logger
 
 from .. import reading
 from ... import mapping
+from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from .engagement import get_engagement
@@ -29,10 +30,18 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         leave_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
+        if is_graphql():
+            return {
+                **base_obj,
+                "person_uuid": person,
+                "leave_type_uuid": leave_type,
+                "engagement_uuid": engagement_uuid,
+            }
 
         person_task = create_task(
             employee.request_bulked_get_one_employee(
@@ -56,7 +65,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             engagement = await get_engagement(present_connector, uuid=engagement_uuid)
 
         r = {
-            **await base_obj,
+            **base_obj,
             mapping.PERSON: await person_task,
             mapping.LEAVE_TYPE: await leave_type_task,
             mapping.ENGAGEMENT: engagement,

@@ -16,6 +16,7 @@ from strawberry.types import Info
 from mora.graphapi.dataloaders import get_addresses
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
+from mora.graphapi.dataloaders import get_leaves
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_org_units
@@ -24,6 +25,7 @@ from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
 from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import AddressType
+from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 
@@ -117,6 +119,18 @@ class Query:
             addresses = await gather(*tasks)
             return list(filter(lambda addr: addr is not None, addresses))
         return await get_addresses()
+
+    # Leave
+    # -----
+    @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
+    async def leave(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[LeaveType]:
+        if uuids:
+            tasks = map(info.context["leave_loader"].load, uuids)
+            leaves = await gather(*tasks)
+            return list(filter(lambda leave: leave is not None, leaves))
+        return await get_leaves()
 
 
 def get_schema():
