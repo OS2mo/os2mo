@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.22.0 - 2021-12-17
+-------------------
+
+[#47090] Introduce LoRa KlasseRead
+
 3.21.0 - 2021-12-17
 -------------------
 
