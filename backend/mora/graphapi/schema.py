@@ -9,6 +9,7 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import KLERead
+from ramodels.mo.details import AddressRead
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import EngagementRead
@@ -31,6 +32,17 @@ class OpenValidityType:
     description=("Get KLE's; Kommunernes Landsforenings Emnesystematik."),
 )
 class KLEType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=AddressRead,
+    all_fields=True,
+    description=(
+        "An Address; storing address information for an identity or organisation unit."
+    ),
+)
+class AddressType:
     pass
 
 
