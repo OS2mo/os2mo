@@ -13,10 +13,10 @@ from ramodels.mo._shared import ITSystemRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
-from ramodels.mo.details.it_system import ITSystemBinding
-from ramodels.mo.details.it_system import ITSystemBindingBase
-from ramodels.mo.details.it_system import ITSystemBindingRead
-from ramodels.mo.details.it_system import ITSystemBindingWrite
+from ramodels.mo.details.it_system import ITUser
+from ramodels.mo.details.it_system import ITUserBase
+from ramodels.mo.details.it_system import ITUserRead
+from ramodels.mo.details.it_system import ITUserWrite
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat
@@ -107,30 +107,30 @@ def it_system_fsf_strat(draw):
     return st_dict
 
 
-class TestITSystemBinding:
+class TestITUser:
     @given(it_system_strat())
     def test_init(self, model_dict):
-        assert ITSystemBinding(**model_dict)
+        assert ITUser(**model_dict)
 
     @given(it_system_strat(), not_from_regex(r"^it$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type
-            ITSystemBinding(**model_dict)
+            ITUser(**model_dict)
 
     @given(it_system_fsf_strat())
     def test_from_simplified_fields(self, simp_fields_dict):
         # Required
-        assert ITSystemBinding.from_simplified_fields(**simp_fields_dict)
+        assert ITUser.from_simplified_fields(**simp_fields_dict)
 
     @given(base_strat())
     def test_base(self, model_dict):
-        assert ITSystemBindingBase(**model_dict)
+        assert ITUserBase(**model_dict)
 
     @given(read_strat())
     def test_read(self, model_dict):
-        assert ITSystemBindingRead(**model_dict)
+        assert ITUserRead(**model_dict)
 
     @given(write_strat())
     def test_write(self, model_dict):
-        assert ITSystemBindingWrite(**model_dict)
+        assert ITUserWrite(**model_dict)
