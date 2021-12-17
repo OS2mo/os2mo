@@ -17,6 +17,7 @@ from ._shared import FacetRelations
 from ._shared import FacetStates
 from ._shared import LoraBase
 from ._shared import Published
+from ._shared import RegistrationTime
 from ._shared import Responsible
 
 
@@ -68,3 +69,18 @@ class Facet(LoraBase):
             relations=relations,
             uuid=uuid,
         )
+
+
+class FacetRead(Facet):
+    from_time: RegistrationTime = Field(
+        alias="fratidspunkt", description="The facet registration from time."
+    )
+    to_time: RegistrationTime = Field(
+        alias="tiltidspunkt", description="The facet registration to time."
+    )
+    life_cycle_code: str = Field(
+        alias="livscykluskode", description="The facet registation life cycle code."
+    )
+    user_ref: UUID = Field(
+        alias="brugerref", description="The facet registration user."
+    )
