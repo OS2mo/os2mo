@@ -38,10 +38,10 @@ variables:
 
 include:
   - project: 'labs/salt-automation'
-    ref: 'master'
+    ref: 'feature/47608_release_cadence'
     file: '/gitlab-ci-templates/common/autopub.v1.yml'
   - project: 'labs/salt-automation'
-    ref: 'master'
+    ref: 'feature/47608_release_cadence'
     file: '/gitlab-ci-templates/common/docker-release.v1.yml'
 
 # Only run pipeline when pushing a tag or a branch.
@@ -64,7 +64,9 @@ workflow:
       when: never
     - if: $CI_COMMIT_REF_NAME == "master"
       when: never
-    - when: always
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
 
 # Lint stage
 #############
@@ -168,6 +170,10 @@ Build OS2MO:
       --destination=${IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
 
 Build frontend:
   <<: *master-rules
@@ -430,7 +436,7 @@ Vue-unit-test:
 # Release stage
 ###############
 
-Update Flux Dev Version:
+Release to Dev:
   stage: deploy
   needs: ["Release version"]
   image: alpine
@@ -452,4 +458,58 @@ Update Flux Dev Version:
     - yq e -i '.spec.values.os2mo.image.tag = strenv(CI_COMMIT_TAG)' flux/projects/os2mo/config/dev.yaml
     - git add flux/projects/os2mo/config/dev.yaml
     - git commit -m "[cd] Deploy OS2MO $CI_COMMIT_TAG to flux dev servers"
+    - git push
+
+Release to Test:
+  stage: deploy
+  needs: []
+  image: alpine
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  rules:
+    # Only run these on scheduled jobs
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE == "release_to_test"
+      when: on_success
+    - when: never
+  tags:
+    - docker
+  script:
+    - apk add git
+    - wget https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 -O /usr/bin/yq
+    - chmod +x /usr/bin/yq
+    - git config --global user.email "labs@magenta-aps.dk"
+    - git config --global user.name "OS2MO Config Updater"
+    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
+    - cd salt-automation
+    - export DEV_VERSION=$(yq e '.spec.values.os2mo.image.tag' flux/projects/os2mo/config/dev.yaml)
+    - yq e -i '.spec.values.os2mo.image.tag = strenv(DEV_VERSION)' flux/projects/os2mo/config/test.yaml
+    - git add flux/projects/os2mo/config/test.yaml
+    - git commit -m "[cd] Deploy OS2MO $DEV_VERSION to flux test servers"
+    - git push
+
+Release to Prod:
+  stage: deploy
+  needs: []
+  image: alpine
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  rules:
+    # Only run these on scheduled jobs
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE == "release_to_prod"
+      when: on_success
+    - when: never
+  tags:
+    - docker
+  script:
+    - apk add git
+    - wget https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 -O /usr/bin/yq
+    - chmod +x /usr/bin/yq
+    - git config --global user.email "labs@magenta-aps.dk"
+    - git config --global user.name "OS2MO Config Updater"
+    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
+    - cd salt-automation
+    - export TEST_VERSION=$(yq e '.spec.values.os2mo.image.tag' flux/projects/os2mo/config/test.yaml)
+    - yq e -i '.spec.values.os2mo.image.tag = strenv(TEST_VERSION)' flux/projects/os2mo/config/prod.yaml
+    - git add flux/projects/os2mo/config/prod.yaml
+    - git commit -m "[cd] Deploy OS2MO $TEST_VERSION to flux prod servers"
     - git push
