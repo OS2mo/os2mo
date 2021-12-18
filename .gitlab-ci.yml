@@ -38,10 +38,10 @@ variables:
 
 include:
   - project: 'labs/salt-automation'
-    ref: 'feature/47608_release_cadence'
+    ref: 'master'
     file: '/gitlab-ci-templates/common/autopub.v1.yml'
   - project: 'labs/salt-automation'
-    ref: 'feature/47608_release_cadence'
+    ref: 'master'
     file: '/gitlab-ci-templates/common/docker-release.v1.yml'
 
 # Only run pipeline when pushing a tag or a branch.
