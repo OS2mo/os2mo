@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+import time
 from typing import Callable
 
 from mora.health import dar, dataset, oio_rest, amqp, keycloak
-from prometheus_client import Info, Gauge
+from prometheus_client import Info, Gauge, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
 
@@ -23,6 +25,27 @@ def setup_metrics(app):
     instrumentator.add(dar_health())
 
     instrumentator.instrument(app).expose(app)
+
+    eventloop_metrics()
+
+
+def schedule_detect_time(metric):
+    loop = asyncio.get_running_loop()
+    loop.call_later(0.1, detect_time, metric, time.monotonic())
+
+
+def detect_time(metric, schedule_time):
+    run_time = time.monotonic()
+    delay = run_time - schedule_time - 0.1
+    if delay > 0.01:
+        metric.observe(delay)
+
+    schedule_detect_time(metric)
+
+
+def eventloop_metrics() -> Callable[[InstInfo], None]:
+    metric = Histogram("eventloop_delay", "Delay of the event-loop")
+    schedule_detect_time(metric)
 
 
 def os2mo_version() -> Callable[[InstInfo], None]:
