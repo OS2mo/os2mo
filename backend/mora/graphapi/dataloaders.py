@@ -14,12 +14,14 @@ from more_itertools import one
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
+from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
 from mora.common import get_connector
 from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
 from mora.graphapi.models import ClassRead
+from mora.graphapi.models import FacetRead
 from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import EmployeeRead
@@ -161,6 +163,54 @@ async def load_classes(uuids: List[UUID]) -> List[Optional[ClassRead]]:
     return list(map(uuid_map.get, uuids))
 
 
+def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
+    uuid, lora_facet = lora_tuple
+
+    facet_attributes = one(lora_facet.attributes.properties)
+    facet_state = one(lora_facet.states.published_state)
+    facet_relations = lora_facet.relations
+
+    mo_facet = {
+        "uuid": uuid,
+        "user_key": facet_attributes.user_key,
+        "published": facet_state.published,
+        "validity": lora_effective_time_to_validity(facet_attributes.effective_time),
+        "org_uuid": one(facet_relations.responsible).uuid,
+        "parent_uuid": one(facet_relations.parent).uuid,
+    }
+    return FacetRead(**mo_facet)
+
+
+def lora_facets_to_mo_facets(
+    lora_result: Iterator[Tuple[dict]],
+) -> Iterator[FacetRead]:
+    lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
+    return map(lora_facet_to_mo_facet, lora_result)
+
+
+async def get_facets() -> List[FacetRead]:
+    c = get_connector()
+    lora_result = await c.facet.get_all()
+    mo_models = lora_facets_to_mo_facets(lora_result)
+    return list(mo_models)
+
+
+async def load_facets(uuids: List[UUID]) -> List[Optional[FacetRead]]:
+    """Load MO models from LoRa by UUID.
+
+    Args:
+        uuids (List[UUID]): UUIDs to load.
+
+    Returns:
+        List[Optional[FacetRead]]: List of parsed MO facets.
+    """
+    c = get_connector()
+    lora_result = await c.facet.get_all_by_uuid(uuids)
+    mo_models = lora_facets_to_mo_facets(lora_result)
+    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
+    return list(map(uuid_map.get, uuids))
+
+
 async def load_org(keys: List[int]) -> List[OrganisationRead]:
     """Dataloader function to load Organisation.
 
@@ -224,4 +274,5 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "class_loader": DataLoader(load_fn=load_classes),
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
+        "facet_loader": DataLoader(load_fn=load_facets),
     }
