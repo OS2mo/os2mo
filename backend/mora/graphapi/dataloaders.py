@@ -11,6 +11,7 @@ from typing import TypeVar
 from uuid import UUID
 
 from more_itertools import one
+from more_itertools import bucket
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
@@ -106,7 +107,7 @@ get_related_units = partial(get_mo, model=RelatedUnitRead)
 def lora_effective_time_to_validity(effective_time):
     return {
         "from": None
-        if effective_time.from_date == "infinity"
+        if effective_time.from_date == "-infinity"
         else effective_time.from_date,
         "to": None if effective_time.to_date == "infinity" else effective_time.to_date,
     }
@@ -163,6 +164,14 @@ async def load_classes(uuids: List[UUID]) -> List[Optional[ClassRead]]:
     return list(map(uuid_map.get, uuids))
 
 
+async def load_class_children(parent_uuids: List[UUID]) -> List[ClassRead]:
+    c = get_connector()
+    lora_result = await c.klasse.get_all(overordnetklasse=list(map(str, parent_uuids)))
+    mo_models = lora_classes_to_mo_classes(lora_result)
+    buckets = bucket(mo_models, key=lambda model: model.parent_uuid)
+    return list(map(lambda key: buckets[key], parent_uuids))
+
+
 def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
     uuid, lora_facet = lora_tuple
 
@@ -209,6 +218,14 @@ async def load_facets(uuids: List[UUID]) -> List[Optional[FacetRead]]:
     mo_models = lora_facets_to_mo_facets(lora_result)
     uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
     return list(map(uuid_map.get, uuids))
+
+
+async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
+    c = get_connector()
+    lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
+    mo_models = lora_classes_to_mo_classes(lora_result)
+    buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
+    return list(map(lambda key: buckets[key], facet_uuids))
 
 
 async def load_org(keys: List[int]) -> List[OrganisationRead]:
@@ -274,5 +291,7 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "class_loader": DataLoader(load_fn=load_classes),
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
+        "class_children_loader": DataLoader(load_fn=load_class_children),
         "facet_loader": DataLoader(load_fn=load_facets),
+        "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
     }

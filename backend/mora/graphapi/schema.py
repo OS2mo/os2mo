@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from typing import List
 from typing import Optional
 from uuid import UUID
@@ -47,7 +48,17 @@ class OpenValidityType:
     description=("Get KLE's; Kommunernes Landsforenings Emnesystematik."),
 )
 class KLEType:
-    pass
+    @strawberry.field()
+    async def kle_number(self, root: KLERead, info: Info) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.kle_number)
+
+    @strawberry.field()
+    async def kle_aspect(self, root: KLERead, info: Info) -> List["ClassType"]:
+        if not root.kle_aspect_uuid:
+            return []
+
+        tasks = map(info.context["class_loader"].load, root.kle_aspect_uuid)
+        return await asyncio.gather(*tasks)
 
 
 @strawberry.experimental.pydantic.type(
@@ -58,7 +69,9 @@ class KLEType:
     ),
 )
 class RoleType:
-    pass
+    @strawberry.field()
+    async def role_type(self, root: RoleRead, info: Info) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.role_type_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -69,7 +82,18 @@ class RoleType:
     ),
 )
 class AddressType:
-    pass
+    @strawberry.field()
+    async def address_type(
+        self, root: AddressRead, info: Info
+    ) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.address_type_uuid)
+
+    @strawberry.field()
+    async def visibility(self, root: AddressRead, info: Info) -> Optional["ClassType"]:
+        if not root.visibility_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.visibility_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -78,7 +102,18 @@ class AddressType:
     description=("An Association; connected to an org_unit and a person."),
 )
 class AssociationType:
-    pass
+    @strawberry.field()
+    async def association_type(
+        self, root: AssociationRead, info: Info
+    ) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.association_type_uuid)
+
+    @strawberry.field()
+    async def primary(self, root: AssociationRead, info: Info) -> Optional["ClassType"]:
+        if not root.primary_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.primary_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -158,20 +193,103 @@ class OrganisationUnitType:
             root.parent_uuid = UUID(root.uuid)
         return await info.context["org_unit_children_loader"].load(root.uuid)
 
+    # TODO: Add UUID to RAModel and remove model prefix here
+    @strawberry.field()
+    async def org_unit_hierarchy_model(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.org_unit_hierarchy:
+            return None
+
+        return await info.context["class_loader"].load(root.org_unit_hierarchy)
+
+    @strawberry.field()
+    async def unit_type(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.unit_type_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.unit_type_uuid)
+
+    # TODO: Remove org prefix from RAModel and remove it here too
+    @strawberry.field()
+    async def org_unit_level(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.org_unit_level_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.org_unit_level_uuid)
+
+    @strawberry.field()
+    async def time_planning(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.time_planning_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.time_planning_uuid)
+
 
 @strawberry.experimental.pydantic.type(model=EngagementRead, all_fields=True)
 class EngagementType:
-    pass
+    @strawberry.field()
+    async def engagement_type(
+        self, root: EngagementRead, info: Info
+    ) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.engagement_type_uuid)
+
+    @strawberry.field()
+    async def job_function(
+        self, root: EngagementRead, info: Info
+    ) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.job_function_uuid)
+
+    @strawberry.field()
+    async def primary(self, root: EngagementRead, info: Info) -> Optional["ClassType"]:
+        if not root.primary_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.primary_uuid)
 
 
 @strawberry.experimental.pydantic.type(model=LeaveRead, all_fields=True)
 class LeaveType:
-    pass
+    @strawberry.field()
+    async def leave_type(self, root: LeaveRead, info: Info) -> Optional["ClassType"]:
+        return await info.context["class_loader"].load(root.leave_type_uuid)
 
 
 @strawberry.experimental.pydantic.type(model=ManagerRead, all_fields=True)
 class ManagerType:
-    pass
+    @strawberry.field()
+    async def manager_type(
+        self, root: ManagerRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.manager_type_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.manager_type_uuid)
+
+    @strawberry.field()
+    async def manager_level(
+        self, root: ManagerRead, info: Info
+    ) -> Optional["ClassType"]:
+        if not root.manager_level_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.manager_level_uuid)
+
+    @strawberry.field()
+    async def responsibilities(
+        self, root: ManagerRead, info: Info
+    ) -> List["ClassType"]:
+        if not root.responsibility_uuids:
+            return []
+
+        tasks = map(info.context["class_loader"].load, root.responsibility_uuids)
+        return await asyncio.gather(*tasks)
 
 
 @strawberry.experimental.pydantic.type(
@@ -180,7 +298,37 @@ class ManagerType:
     description=("A Class: the value component of the class/facet choice setup."),
 )
 class ClassType:
-    pass
+    @strawberry.field(description="The immediate parent class.")
+    async def parent(self, root: ClassRead, info: Info) -> Optional["ClassType"]:
+        """Get the immediate parent class.
+
+        Returns:
+            ClassType: Parent class
+        """
+        if not root.parent_uuid:
+            return None
+
+        return await info.context["class_loader"].load(root.parent_uuid)
+
+    @strawberry.field(description="The immediate descendants of the class.")
+    async def children(self, root: ClassRead, info: Info) -> List["ClassType"]:
+        """Get the immediate descendants of the class.
+
+        Returns:
+            List[ClassType]: List of descendants, if any.
+        """
+        if not isinstance(root.uuid, UUID):
+            root.parent_uuid = UUID(root.uuid)
+        return await info.context["class_children_loader"].load(root.uuid)
+
+    @strawberry.field(description="The associated facet.")
+    async def facet(self, root: ClassRead, info: Info) -> Optional["FacetType"]:
+        """Get the associated facet.
+
+        Returns:
+            The associated facet.
+        """
+        return await info.context["facet_loader"].load(root.facet_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -189,4 +337,11 @@ class ClassType:
     description=("A Facet: the key component of the class/facet choice setup."),
 )
 class FacetType:
-    pass
+    @strawberry.field(description="The associated classes.")
+    async def classes(self, root: FacetRead, info: Info) -> List["ClassType"]:
+        """Get the associated classes.
+
+        Returns:
+            The associated classes.
+        """
+        return await info.context["facet_classes_loader"].load(root.uuid)

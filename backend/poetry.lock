@@ -1674,7 +1674,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "65bc61f279324a9ee26232351faa202c03a2888df852ecdeaf2205587c9de300"
+content-hash = "61d9d61893515fc65707680b4abb50c3ea12ea478e536ce2a84352055434d293"
 
 [metadata.files]
 aio-pika = [
