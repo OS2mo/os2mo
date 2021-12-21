@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.18.1 - 2021-12-21
+-------------------
+
+[#47640] Only load unique UUIDs in main GraphQL schema
+
 3.18.0 - 2021-12-20
 -------------------
 
