@@ -89,7 +89,7 @@ class Query:
     async def org_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[OrganisationUnitType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["org_unit_loader"], uuids)
         return await get_org_units()
 
@@ -101,7 +101,7 @@ class Query:
     async def associations(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AssociationType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["association_loader"], uuids)
         return await get_associations()
 
@@ -113,7 +113,7 @@ class Query:
     async def employees(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EmployeeType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
         return await get_employees()
 
@@ -125,7 +125,7 @@ class Query:
     async def engagement(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EngagementType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
         return await get_engagements()
 
@@ -137,7 +137,7 @@ class Query:
     async def kle(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[KLEType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["kle_loader"], uuids)
         return await get_kles()
 
@@ -149,7 +149,7 @@ class Query:
     async def address(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AddressType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
         return await get_addresses()
 
@@ -159,7 +159,7 @@ class Query:
     async def leave(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[LeaveType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
         return await get_leaves()
 
@@ -171,7 +171,7 @@ class Query:
     async def ituser(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ITUserType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return await get_itusers()
 
@@ -183,7 +183,7 @@ class Query:
     async def roles(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[RoleType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["role_loader"], uuids)
         return await get_roles()
 
@@ -195,7 +195,7 @@ class Query:
     async def managers(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ManagerType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
         return await get_managers()
 
@@ -207,7 +207,7 @@ class Query:
     async def classes(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ClassType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
         return await get_classes()
 
@@ -220,7 +220,7 @@ class Query:
     async def related_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[RelatedUnitType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["rel_unit_loader"], uuids)
         return await get_related_units()
 
@@ -232,7 +232,7 @@ class Query:
     async def facets(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[FacetType]:
-        if uuids:
+        if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return await get_facets()
 
