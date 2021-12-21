@@ -157,6 +157,43 @@ class EmployeeType:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}"
 
+    @strawberry.field(description="Engagements for the employee")
+    async def engagement(
+        self, root: EmployeeRead, info: Info
+    ) -> List["EngagementType"]:
+        """Get the engagements for the employee
+
+        Returns:
+            List[EngagementType]: List of engagements, if any.
+        """
+        return await info.context["employee_engagement_loader"].load(root.uuid)
+
+    @strawberry.field(description="Managers for the employee")
+    async def manager(self, root: EmployeeRead, info: Info) -> List["ManagerType"]:
+        return await info.context["employee_manager_loader"].load(root.uuid)
+
+    @strawberry.field(description="Addresses for the employee")
+    async def address(self, root: EmployeeRead, info: Info) -> List["AddressType"]:
+        return await info.context["employee_address_loader"].load(root.uuid)
+
+    @strawberry.field(description="Leaves for the employee")
+    async def leave(self, root: EmployeeRead, info: Info) -> List["LeaveType"]:
+        return await info.context["employee_leave_loader"].load(root.uuid)
+
+    @strawberry.field(description="Associations for the employee")
+    async def association(
+        self, root: EmployeeRead, info: Info
+    ) -> List["AssociationType"]:
+        return await info.context["employee_association_loader"].load(root.uuid)
+
+    @strawberry.field(description="Roles for the employee")
+    async def role(self, root: EmployeeRead, info: Info) -> List["RoleType"]:
+        return await info.context["employee_role_loader"].load(root.uuid)
+
+    @strawberry.field(description="IT users for the employee")
+    async def ituser(self, root: EmployeeRead, info: Info) -> List["ITUserType"]:
+        return await info.context["employee_ituser_loader"].load(root.uuid)
+
 
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitRead,
