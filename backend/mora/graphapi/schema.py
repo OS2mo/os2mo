@@ -189,8 +189,6 @@ class OrganisationUnitType:
         Returns:
             List[OrganisationUnitType]: List of descendants, if any.
         """
-        if not isinstance(root.uuid, UUID):
-            root.parent_uuid = UUID(root.uuid)
         return await info.context["org_unit_children_loader"].load(root.uuid)
 
     # TODO: Add UUID to RAModel and remove model prefix here
