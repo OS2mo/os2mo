@@ -36,6 +36,13 @@ from mora.graphapi.schema import OrganisationUnitRead
 from mora.graphapi.schema import RoleRead
 from mora.graphapi.schema import RelatedUnitRead
 from mora.handler.impl.org_unit import ROLE_TYPE as ORG_UNIT_ROLE_TYPE
+from mora.handler.impl.manager import ROLE_TYPE as MANAGER_ROLE_TYPE
+from mora.handler.impl.address import ROLE_TYPE as ADDRESS_ROLE_TYPE
+from mora.handler.impl.engagement import ROLE_TYPE as ENGAGEMENT_ROLE_TYPE
+from mora.handler.impl.leave import ROLE_TYPE as LEAVE_ROLE_TYPE
+from mora.handler.impl.association import ROLE_TYPE as ASSOCIATION_ROLE_TYPE
+from mora.handler.impl.role import ROLE_TYPE as ROLE_ROLE_TYPE
+from mora.handler.impl.it import ROLE_TYPE as ITUSER_ROLE_TYPE
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
 
@@ -228,6 +235,35 @@ async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
     return list(map(lambda key: buckets[key], facet_uuids))
 
 
+async def get_employee_details(
+    employee_uuid: UUID, role_type: str
+) -> Optional[List[MOModel]]:
+    """Non-bulk loader for employee details"""
+    c = get_connector()
+    cls = get_handler_for_type(role_type)
+    result = await cls.get(
+        c=c,
+        search_fields=_extract_search_params(
+            query_args={
+                "at": None,
+                "validity": None,
+                "tilknyttedebrugere": str(employee_uuid),
+            }
+        ),
+        changed_since=None,
+    )
+    return parse_obj_as(List[MOModel], result)
+
+
+async def load_employee_details(
+    keys: List[UUID],
+    role_type: str,
+) -> List[List[MOModel]]:
+    """Non-bulk loader for employee details with bulk interface."""
+    tasks = map(partial(get_employee_details, role_type=role_type), keys)
+    return await gather(*tasks)
+
+
 async def load_org(keys: List[int]) -> List[OrganisationRead]:
     """Dataloader function to load Organisation.
 
@@ -279,6 +315,27 @@ async def get_loaders() -> Dict[str, DataLoader]:
         ),
         "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
+        "employee_manager_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=MANAGER_ROLE_TYPE)
+        ),
+        "employee_address_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=ADDRESS_ROLE_TYPE)
+        ),
+        "employee_engagement_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=ENGAGEMENT_ROLE_TYPE)
+        ),
+        "employee_leave_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=LEAVE_ROLE_TYPE)
+        ),
+        "employee_association_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=ASSOCIATION_ROLE_TYPE)
+        ),
+        "employee_role_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=ROLE_ROLE_TYPE)
+        ),
+        "employee_ituser_loader": DataLoader(
+            load_fn=partial(load_employee_details, role_type=ITUSER_ROLE_TYPE)
+        ),
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
