@@ -8,6 +8,7 @@ from typing import Optional
 from uuid import UUID
 
 import strawberry
+from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
@@ -15,18 +16,19 @@ from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_addresses
 from mora.graphapi.dataloaders import get_associations
+from mora.graphapi.dataloaders import get_classes
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
-from mora.graphapi.dataloaders import get_leaves
+from mora.graphapi.dataloaders import get_facets
 from mora.graphapi.dataloaders import get_itusers
-from mora.graphapi.dataloaders import get_roles
-from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_kles
+from mora.graphapi.dataloaders import get_leaves
+from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import get_managers
 from mora.graphapi.dataloaders import get_org_units
-from mora.graphapi.dataloaders import get_classes
 from mora.graphapi.dataloaders import get_related_units
-from mora.graphapi.dataloaders import get_facets
+from mora.graphapi.dataloaders import get_roles
+from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.schema import AddressType
 from mora.graphapi.schema import AssociationType
@@ -40,8 +42,23 @@ from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import ManagerType
 from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
-from mora.graphapi.schema import RoleType
 from mora.graphapi.schema import RelatedUnitType
+from mora.graphapi.schema import RoleType
+
+
+async def get_by_uuid(dataloader: DataLoader, uuids: List[UUID]) -> List[MOModel]:
+    """Get data by from a list of UUIDs. Only unique UUIDs are loaded.
+
+    Args:
+        dataloader (DataLoader): Strawberry dataloader to use.
+        uuids (List[UUID]): List of UUIDs to load.
+
+    Returns:
+        List[MOModel]: List of models found. We do not return None or duplicates.
+    """
+    tasks = map(dataloader.load, set(uuids))
+    results = await gather(*tasks)
+    return list(filter(lambda result: result is not None, results))
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -73,9 +90,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[OrganisationUnitType]:
         if uuids:
-            tasks = map(info.context["org_unit_loader"].load, uuids)
-            org_units = await gather(*tasks)
-            return list(filter(lambda ou: ou is not None, org_units))
+            return await get_by_uuid(info.context["org_unit_loader"], uuids)
         return await get_org_units()
 
     # Associations
@@ -87,9 +102,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AssociationType]:
         if uuids:
-            tasks = map(info.context["association_loader"].load, uuids)
-            associations = await gather(*tasks)
-            return list(filter(lambda ass: ass is not None, associations))
+            return await get_by_uuid(info.context["association_loader"], uuids)
         return await get_associations()
 
     # Employees
@@ -101,9 +114,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EmployeeType]:
         if uuids:
-            tasks = map(info.context["employee_loader"].load, uuids)
-            employees = await gather(*tasks)
-            return list(filter(lambda empl: empl is not None, employees))
+            return await get_by_uuid(info.context["employee_loader"], uuids)
         return await get_employees()
 
     # Engagement
@@ -115,9 +126,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EngagementType]:
         if uuids:
-            tasks = map(info.context["engagement_loader"].load, uuids)
-            engagements = await gather(*tasks)
-            return list(filter(lambda eng: eng is not None, engagements))
+            return await get_by_uuid(info.context["engagement_loader"], uuids)
         return await get_engagements()
 
     # KLE
@@ -129,9 +138,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[KLEType]:
         if uuids:
-            tasks = map(info.context["kle_loader"].load, uuids)
-            kles = await gather(*tasks)
-            return list(filter(lambda kle: kle is not None, kles))
+            return await get_by_uuid(info.context["kle_loader"], uuids)
         return await get_kles()
 
     # Addresses
@@ -143,9 +150,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AddressType]:
         if uuids:
-            tasks = map(info.context["address_loader"].load, uuids)
-            addresses = await gather(*tasks)
-            return list(filter(lambda addr: addr is not None, addresses))
+            return await get_by_uuid(info.context["address_loader"], uuids)
         return await get_addresses()
 
     # Leave
@@ -155,9 +160,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[LeaveType]:
         if uuids:
-            tasks = map(info.context["leave_loader"].load, uuids)
-            leaves = await gather(*tasks)
-            return list(filter(lambda leave: leave is not None, leaves))
+            return await get_by_uuid(info.context["leave_loader"], uuids)
         return await get_leaves()
 
     # ITUser
@@ -169,9 +172,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ITUserType]:
         if uuids:
-            tasks = map(info.context["ituser_loader"].load, uuids)
-            itusers = await gather(*tasks)
-            return list(filter(lambda it: it is not None, itusers))
+            return await get_by_uuid(info.context["ituser_loader"], uuids)
         return await get_itusers()
 
     # Roles
@@ -183,9 +184,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[RoleType]:
         if uuids:
-            tasks = map(info.context["role_loader"].load, uuids)
-            roles = await gather(*tasks)
-            return list(filter(lambda role: role is not None, roles))
+            return await get_by_uuid(info.context["role_loader"], uuids)
         return await get_roles()
 
     # Manager
@@ -197,9 +196,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ManagerType]:
         if uuids:
-            tasks = map(info.context["manager_loader"].load, uuids)
-            managers = await gather(*tasks)
-            return list(filter(lambda man: man is not None, managers))
+            return await get_by_uuid(info.context["manager_loader"], uuids)
         return await get_managers()
 
     # Classes
@@ -211,9 +208,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ClassType]:
         if uuids:
-            tasks = map(info.context["class_loader"].load, uuids)
-            classes = await gather(*tasks)
-            return list(filter(lambda clazz: clazz is not None, classes))
+            return await get_by_uuid(info.context["class_loader"], uuids)
         return await get_classes()
 
     # Relatedunits
@@ -226,9 +221,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[RelatedUnitType]:
         if uuids:
-            tasks = map(info.context["rel_unit_loader"].load, uuids)
-            related_units = await gather(*tasks)
-            return list(filter(lambda unit: unit is not None, related_units))
+            return await get_by_uuid(info.context["rel_unit_loader"], uuids)
         return await get_related_units()
 
     # Facets
@@ -240,9 +233,7 @@ class Query:
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[FacetType]:
         if uuids:
-            tasks = map(info.context["facet_loader"].load, uuids)
-            facets = await gather(*tasks)
-            return list(filter(lambda facet: facet is not None, facets))
+            return await get_by_uuid(info.context["facet_loader"], uuids)
         return await get_facets()
 
 
