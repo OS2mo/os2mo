@@ -5,8 +5,7 @@ import threading
 import typing
 from asyncio import set_event_loop
 from functools import wraps
-
-from aiohttp import ClientSession
+from httpx import AsyncClient
 
 # DROPPED: SAMLAuth() when switching to async (from requests to aiohttp)
 # session.auth = flask_saml_sso.SAMLAuth()
@@ -23,7 +22,7 @@ We use global variables to achieve
 _local_cache = threading.local()
 
 
-def async_session() -> ClientSession:
+def async_session() -> AsyncClient:
     """
     lazy (as to wait for someone to set the asyncio event loop), but memoized (global)
     @return:
@@ -31,14 +30,14 @@ def async_session() -> ClientSession:
     global _local_cache
     # Start a session if needed.
     if not hasattr(_local_cache, "async_session") or _local_cache.async_session is None:
-        _local_cache.async_session = ClientSession(headers=headers)
+        _local_cache.async_session = AsyncClient(headers=headers)
     return _local_cache.async_session
 
 
 async def __session_context_helper(awaitable) -> typing.Any:
     """
-    very defensive function, kills aiohttp sessions before exiting event loop
-    technically not needed - an aiohttp.ClientSession CAN survive while its loop is
+    very defensive function, kills httpx sessions before exiting event loop
+    technically not needed - an httpx.AsyncClient CAN survive while its loop is
     restarted, but things can get complicated.
 
     Also, leaking non-closed sessions is terrible for tests
