@@ -5,7 +5,6 @@ import threading
 import typing
 from asyncio import set_event_loop
 from functools import wraps
-
 from aiohttp import ClientSession
 
 # DROPPED: SAMLAuth() when switching to async (from requests to aiohttp)

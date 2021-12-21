@@ -76,6 +76,8 @@ services:
       KEYCLOAK_PORT: 8080
       KEYCLOAK_VERIFY_AUDIENCE: "false"
 
+      LORA_CLIENT_SECRET: "158a2075-aa8a-421c-94a4-2df35377014a"
+
       JAEGER_HOSTNAME: "otel-collector"
       JAEGER_SERVICE: OS2mo
     ports:
