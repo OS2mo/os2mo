@@ -50,9 +50,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         # Return early if flat model is desired
         if is_graphql():
             base_obj = await base_obj_task
-
             address_obj = await address_task
-            print(address_obj)
 
             return {
                 **base_obj,
