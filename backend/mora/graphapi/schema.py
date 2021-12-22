@@ -177,11 +177,6 @@ class EmployeeType:
     async def engagement(
         self, root: EmployeeRead, info: Info
     ) -> List["EngagementType"]:
-        """Get the engagements for the employee
-
-        Returns:
-            List[EngagementType]: List of engagements, if any.
-        """
         return await info.context["employee_engagement_loader"].load(root.uuid)
 
     @strawberry.field(description="Managers for the employee")
@@ -251,7 +246,6 @@ class OrganisationUnitType:
     ) -> Optional["ClassType"]:
         if not root.org_unit_hierarchy:
             return None
-
         return await info.context["class_loader"].load(root.org_unit_hierarchy)
 
     @strawberry.field()
@@ -260,7 +254,6 @@ class OrganisationUnitType:
     ) -> Optional["ClassType"]:
         if not root.unit_type_uuid:
             return None
-
         return await info.context["class_loader"].load(root.unit_type_uuid)
 
     # TODO: Remove org prefix from RAModel and remove it here too
@@ -270,7 +263,6 @@ class OrganisationUnitType:
     ) -> Optional["ClassType"]:
         if not root.org_unit_level_uuid:
             return None
-
         return await info.context["class_loader"].load(root.org_unit_level_uuid)
 
     @strawberry.field()
@@ -279,8 +271,55 @@ class OrganisationUnitType:
     ) -> Optional["ClassType"]:
         if not root.time_planning_uuid:
             return None
-
         return await info.context["class_loader"].load(root.time_planning_uuid)
+
+    @strawberry.field(description="Engagements for the organisational unit")
+    async def engagements(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["EngagementType"]:
+        return await info.context["org_unit_engagement_loader"].load(root.uuid)
+
+    @strawberry.field(description="Managers for the organisational unit")
+    async def managers(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["ManagerType"]:
+        return await info.context["org_unit_manager_loader"].load(root.uuid)
+
+    @strawberry.field(description="Addresses for the organisational unit")
+    async def addresses(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["AddressType"]:
+        return await info.context["org_unit_address_loader"].load(root.uuid)
+
+    @strawberry.field(description="Leaves for the organisational unit")
+    async def leaves(self, root: OrganisationUnitRead, info: Info) -> List["LeaveType"]:
+        return await info.context["org_unit_leave_loader"].load(root.uuid)
+
+    @strawberry.field(description="Associations for the organisational unit")
+    async def associations(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["AssociationType"]:
+        return await info.context["org_unit_association_loader"].load(root.uuid)
+
+    @strawberry.field(description="Roles for the organisational unit")
+    async def roles(self, root: OrganisationUnitRead, info: Info) -> List["RoleType"]:
+        return await info.context["org_unit_role_loader"].load(root.uuid)
+
+    @strawberry.field(description="IT users for the organisational unit")
+    async def itusers(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["ITUserType"]:
+        return await info.context["org_unit_ituser_loader"].load(root.uuid)
+
+    @strawberry.field(description="KLE's for the organisational unit")
+    async def kles(self, root: OrganisationUnitRead, info: Info) -> List["KLEType"]:
+        return await info.context["org_unit_kle_loader"].load(root.uuid)
+
+    @strawberry.field(description="Related units for the organisational unit")
+    async def related_units(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> List["RelatedUnitType"]:
+        return await info.context["org_unit_role_loader"].load(root.uuid)
 
 
 @strawberry.experimental.pydantic.type(model=EngagementRead, all_fields=True)
