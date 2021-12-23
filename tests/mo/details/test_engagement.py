@@ -13,6 +13,7 @@ from ramodels.mo._shared import EngagementAssociationType
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
+from ramodels.mo._shared import LeaveRef
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
@@ -63,6 +64,7 @@ def read_strat(draw):
         "job_function_uuid": st.uuids(),
     }
     optional = {
+        "leave_uuid": st.none() | st.uuids(),
         "primary_uuid": st.none() | st.uuids(),
         "is_primary": st.none() | st.booleans(),
     }
@@ -81,6 +83,7 @@ def write_strat(draw):
         "job_function": st.builds(JobFunction),
     }
     optional = {
+        "leave": st.none() | st.builds(LeaveRef),
         "primary": st.none() | st.builds(Primary),
     }
 
