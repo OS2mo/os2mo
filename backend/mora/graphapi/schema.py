@@ -174,35 +174,35 @@ class EmployeeType:
         return f"{root.nickname_givenname} {root.nickname_surname}"
 
     @strawberry.field(description="Engagements for the employee")
-    async def engagement(
+    async def engagements(
         self, root: EmployeeRead, info: Info
     ) -> List["EngagementType"]:
         return await info.context["employee_engagement_loader"].load(root.uuid)
 
     @strawberry.field(description="Managers for the employee")
-    async def manager(self, root: EmployeeRead, info: Info) -> List["ManagerType"]:
+    async def managers(self, root: EmployeeRead, info: Info) -> List["ManagerType"]:
         return await info.context["employee_manager_loader"].load(root.uuid)
 
     @strawberry.field(description="Addresses for the employee")
-    async def address(self, root: EmployeeRead, info: Info) -> List["AddressType"]:
+    async def addresses(self, root: EmployeeRead, info: Info) -> List["AddressType"]:
         return await info.context["employee_address_loader"].load(root.uuid)
 
     @strawberry.field(description="Leaves for the employee")
-    async def leave(self, root: EmployeeRead, info: Info) -> List["LeaveType"]:
+    async def leaves(self, root: EmployeeRead, info: Info) -> List["LeaveType"]:
         return await info.context["employee_leave_loader"].load(root.uuid)
 
     @strawberry.field(description="Associations for the employee")
-    async def association(
+    async def associations(
         self, root: EmployeeRead, info: Info
     ) -> List["AssociationType"]:
         return await info.context["employee_association_loader"].load(root.uuid)
 
     @strawberry.field(description="Roles for the employee")
-    async def role(self, root: EmployeeRead, info: Info) -> List["RoleType"]:
+    async def roles(self, root: EmployeeRead, info: Info) -> List["RoleType"]:
         return await info.context["employee_role_loader"].load(root.uuid)
 
     @strawberry.field(description="IT users for the employee")
-    async def ituser(self, root: EmployeeRead, info: Info) -> List["ITUserType"]:
+    async def itusers(self, root: EmployeeRead, info: Info) -> List["ITUserType"]:
         return await info.context["employee_ituser_loader"].load(root.uuid)
 
 
