@@ -10,9 +10,8 @@ This section describes how to interact with IT systems.
 
 """
 
-import itertools
 from typing import Any, Awaitable, Dict, Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from fastapi import APIRouter
 
@@ -202,59 +201,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             }
         )
-
-
-@router.get("/o/{orgid}/it/")
-# @util.restrictargs('at')
-async def list_it_systems(orgid: UUID):
-    """List the IT systems available within the given organisation.
-
-    :param orgid: Restrict search to this organisation.
-
-    .. :quickref: IT system; List available systems
-
-    :>jsonarr string uuid: The universally unique identifier of the system.
-    :>jsonarr string name: The name of the system.
-    :>jsonarr string system_type: The type of the system.
-    :>jsonarr string user_key: A human-readable unique key for the system.
-
-    :status 200: Always.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "Lokal Rammearkitektur",
-          "system_type": null,
-          "user_key": "LoRa",
-          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
-        },
-        {
-          "name": "Active Directory",
-          "system_type": null,
-          "user_key": "AD",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
-        }
-      ]
-
-    """
-    orgid = str(orgid)
-
-    c = common.get_connector()
-
-    def convert(systemid, system):
-        attrs = system["attributter"]["itsystemegenskaber"][0]
-
-        return {
-            "uuid": systemid,
-            "name": attrs.get("itsystemnavn"),
-            "system_type": attrs.get("itsystemtype"),
-            "user_key": attrs["brugervendtnoegle"],
-        }
-
-    return list(itertools.starmap(convert, await c.itsystem.get_all(tilhoerer=orgid)))
 
 
 async def __get_itsystem_from_cache(

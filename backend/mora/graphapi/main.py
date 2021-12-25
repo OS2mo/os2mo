@@ -22,6 +22,7 @@ from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_facets
 from mora.graphapi.dataloaders import get_itusers
+from mora.graphapi.dataloaders import get_itsystems
 from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_leaves
 from mora.graphapi.dataloaders import get_loaders
@@ -38,6 +39,7 @@ from mora.graphapi.schema import EmployeeType
 from mora.graphapi.schema import EngagementType
 from mora.graphapi.schema import FacetType
 from mora.graphapi.schema import ITUserType
+from mora.graphapi.schema import ITSystemType
 from mora.graphapi.schema import KLEType
 from mora.graphapi.schema import LeaveType
 from mora.graphapi.schema import ManagerType
@@ -180,6 +182,18 @@ class Query:
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return await get_itusers()
+
+    # ITSystem
+    # ---------
+    @strawberry.field(
+        description="Get a list of all ITSystems, optionally by uuid(s)",
+    )
+    async def itsystems(
+        self, info: Info, uuids: Optional[List[UUID]] = None
+    ) -> List[ITSystemType]:
+        if uuids is not None:
+            return await get_by_uuid(info.context["itsystem_loader"], uuids)
+        return await get_itsystems()
 
     # Roles
     # ---------
