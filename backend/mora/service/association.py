@@ -105,7 +105,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeklasser=dynamic_classes,
             tilknyttedefunktioner=[substitute_uuid] if substitute_uuid else [],
             funktionstype=association_type_uuid,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = association

@@ -121,12 +121,6 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
     def test_auth_service_facets(self):
         self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
 
-    def test_auth_service_integration_data(self):
-        self.assertRequestFails(
-            "/service/ou" "/00000000-0000-0000-0000-000000000000/integration-data",
-            HTTP_401_UNAUTHORIZED,
-        )
-
     def test_auth_service_itsystem(self):
         self.assertRequestFails(
             "/service/o/00000000-0000-0000-0000-000000000000/it/", HTTP_401_UNAUTHORIZED

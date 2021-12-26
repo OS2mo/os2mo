@@ -58,7 +58,6 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedefunktioner=[engagement_uuid] if engagement_uuid else None,
             funktionstype=leave_type_uuid,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = leave

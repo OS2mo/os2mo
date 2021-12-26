@@ -73,7 +73,6 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             funktionstype=manager_type_uuid,
             opgaver=opgaver,
-            integration_data=req.get(mapping.INTEGRATION_DATA),
         )
 
         self.payload = manager
