@@ -16,9 +16,9 @@ from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import _get_count_related
 from mora.service.orgunit import get_children
 from mora.service.orgunit import get_one_orgunit
-from mora.service.orgunit import get_orgunit
 from mora.service.orgunit import get_unit_ancestor_tree
 from mora.service.orgunit import UnitDetails
+from mora.service.shimmed import get_orgunit
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
