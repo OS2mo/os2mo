@@ -16,6 +16,7 @@ from .._shared import EngagementAssociationType
 from .._shared import EngagementRef
 from .._shared import EngagementType
 from .._shared import JobFunction
+from .._shared import LeaveRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
@@ -63,6 +64,9 @@ class EngagementRead(EngagementBase):
     job_function_uuid: UUID = Field(
         description="UUID of the job function klasse of the engagement."
     )
+    leave_uuid: Optional[UUID] = Field(
+        description="UUID of the leave related to the engagement."
+    )
     primary_uuid: Optional[UUID] = Field(
         description="UUID of the primary klasse of the engagement."
     )
@@ -92,6 +96,9 @@ class EngagementWrite(EngagementBase):
     job_function: JobFunction = Field(
         description="Reference to the job function klasse "
         "for the created engagement object."
+    )
+    leave: Optional[LeaveRef] = Field(
+        description="Reference to the leave for the created engagement."
     )
     primary: Optional[Primary] = Field(
         description="Reference to the primary klasse for the created engagement object."

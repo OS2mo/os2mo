@@ -134,6 +134,10 @@ class LeaveType(MORef):
     """Leave type reference."""
 
 
+class LeaveRef(MORef):
+    """Leave reference"""
+
+
 class KLENumberRef(MORef):
     """KLE number reference.
 
