@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+3.26.1 - 2022-01-03
+-------------------
+
+[#47101] Add Leave reference to Engagement
+
 3.26.0 - 2021-12-17
 -------------------
 
