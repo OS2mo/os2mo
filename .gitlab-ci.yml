@@ -234,7 +234,7 @@ Build Keycloak DB:
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.ci.keycloak-db
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
-Build docs:
+pages:
   <<: *master-rules
   image: python:3.8
   interruptible: true
@@ -248,10 +248,12 @@ Build docs:
     - poetry config virtualenvs.create false
     - cd docs && poetry install --no-interaction
   script:
-    - sphinx-build -n -W --keep-going . /doc-build
+    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/public
   artifacts:
     paths:
-      - /doc-build
+      - public/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
 
 # Test stage
 ############
