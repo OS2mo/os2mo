@@ -322,7 +322,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             new_from, new_to, bounds_fields, original, payload
         )
 
-        self.validate(
+        await self.validate(
             org_unit=org_unit,
             owned_person=owned_person,
             owner=owner,
