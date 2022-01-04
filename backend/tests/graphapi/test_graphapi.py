@@ -36,7 +36,7 @@ class TestGraphAPI:
         We expect the status code to always be 200, and that data is available in the
         response, while errors are None.
         """
-        response = graphapi_test().post("/graphql", json={"query": query})
+        response = graphapi_test.post("/graphql", json={"query": query})
         assert response.status_code == 200
         data, errors = response.json().get("data"), response.json().get("errors")
         assert data

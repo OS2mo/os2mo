@@ -37,4 +37,3 @@ If there are any changes to the context created within the API, it must *always*
 Some tests within this suite makes use of Hypothesis, a property based testing library for Python. When writing tests using Hypothesis, it is **very** important to have a concise and simple property to test. Usually, it is beneficial to write many small unit tests first, and then see if some can be consolidated by testing properties with Hypothesis instead.
 
 For example, our integration test in `test_graphapi` uses Hypothesis to generate all sorts of valid queries from the schema. We then state that, given a valid input, the API must always return status code 200 and no errors. Properties should not be much more complex than this, and if they are, seek immediate help - you risk getting lost in the test sauce.
-
