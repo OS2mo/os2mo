@@ -135,7 +135,40 @@ default:
   services:
     - !reference [".services:start-mox", services]
     - !reference [".services:start-keycloak", services]
+    - name: ${IMAGE_SHA}
+      alias: mo
 
+.services:start-mo:
+  extends:
+    - .services:start-all
+  needs:
+    - !reference [".services:start-all", needs]
+    - Build OS2MO
+  services:
+    - !reference [".services:start-all", services]
+    - name: ${IMAGE_SHA}
+      alias: mo
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+    LORA_URL: "http://mox/"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
+    GRAPHQL_AUTH: "false"
+    GRAPHQL_ENABLE: "true"
 
 .services:use-mo:
   needs:
@@ -373,6 +406,34 @@ Build Keycloak DB:
       --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
+# Services Template
+###################
+Schemathesis-GraphQL-test:
+  extends:
+    - .test-base:
+    - .services:start-mo
+  image:
+    name: schemathesis/schemathesis:stable
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    TESTCAFE_ENABLE: "false"
+  script:
+    - sleep 5
+    - schemathesis run --workers auto --hypothesis-deadline=None --hypothesis-suppress-health-check=too_slow --show-errors-tracebacks http://mo/graphql
+
+
+Schemathesis-OpenAPI-test:
+  extends:
+    - .test-base:
+    - .services:start-mo
+  image:
+    name: schemathesis/schemathesis:stable
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    TESTCAFE_ENABLE: "false"
+  script:
+    - sleep 5
+    - schemathesis run --workers auto --fixups=fast_api --stateful=links --checks all http://mo/openapi.json
 
 # Tests
 ########

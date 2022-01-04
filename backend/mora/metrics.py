@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Callable
 
-from mora.graphapi.health import dar, dataset, oio_rest, amqp, keycloak
+from fastapi.responses import PlainTextResponse
+from mora.health import dar, dataset, oio_rest, amqp, keycloak
 from prometheus_client import Info, Gauge
 from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
@@ -30,7 +31,7 @@ def setup_metrics(app):
     # instrumentator.add(dar_health())
     # instrumentator.add(keycloak_health())
 
-    instrumentator.instrument(app).expose(app)
+    instrumentator.instrument(app).expose(app, response_class=PlainTextResponse)
 
 
 def os2mo_version() -> Callable[[InstInfo], None]:
