@@ -2,7 +2,10 @@ SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-    <router-link class="logo col-1" :to="{ name: 'Landing'}"></router-link>
+    <router-link 
+      :class="show_custom_logo != '' ? 'logo ' + show_custom_logo + ' col-1' : 'logo col-1'" 
+      :to="{ name: 'Landing'}">
+    </router-link>
 
     <button
       class="navbar-toggler"
@@ -93,6 +96,7 @@ export default {
   },
 
   created () {
+      
     this.username = keycloak.idTokenParsed.preferred_username
     this.shortcuts = MoNavbar.getShortcuts()
 
@@ -101,6 +105,13 @@ export default {
         this.navlinks = this.$store.getters[Conf.getters.GET_NAVLINKS]
       }
     )
+  },
+
+  computed: {
+    show_custom_logo() {
+      let conf = this.$store.getters['conf/GET_CONF_DB']
+      return conf.show_custom_logo != '' ? 'custom_logo_' + conf.show_custom_logo : ''
+    },
   },
 
   methods: {

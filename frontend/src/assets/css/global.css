@@ -36,6 +36,11 @@ nav button.dropdown-toggle {
   margin-left: -1em;
 }
 
+.custom_logo_gir {
+  background-image: url('../logo/OS_GIR.png');
+  background-color:#ffffff;
+}
+
 .container-top-margin {
   margin-top: 60px;
 }
