@@ -33,7 +33,7 @@
   "leave": "Leave",
   "manager_function": "Manager function | Manager functions",
   "overview": "Overview",
-  "organisation_mapping": "Connecting organisations",
+  "organisation_mapping": "Connecting organizations",
   "org_unit": "Organization unit",
   "org_unit_level": "Unit level",
   "org_unit_type": "Unit type",
@@ -54,7 +54,7 @@
   "it": "IT",
   "main_organisation": "Main organization",
   "engagement_id": "ID",
-  "entire_organisation": "Entire organisation",
+  "entire_organisation": "Entire organization",
   "belongs_to": "Belongs to",
   "seniority": "Seniority",
   "none": "None"
