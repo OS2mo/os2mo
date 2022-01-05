@@ -466,9 +466,9 @@ class ITSystemRelations(RABase):
         description="Reference to affiliated ITSystems",
         min_items=1,
     )
-    affiliated_persons: Optional[List[Relation]] = Field(
+    affiliated_employees: Optional[List[Relation]] = Field(
         alias="tilknyttedepersoner",
-        description="Reference to affiliated persons",
+        description="Reference to affiliated employees",
         min_items=1,
     )
     addresses: Optional[List[Relation]] = Field(
