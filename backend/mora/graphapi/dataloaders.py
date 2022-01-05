@@ -5,24 +5,17 @@ from functools import partial
 from typing import Dict
 from typing import Iterator
 from typing import List
-from typing import Tuple
 from typing import Optional
+from typing import Tuple
 from typing import TypeVar
 from uuid import UUID
 
-from more_itertools import one
-from more_itertools import bucket
-from pydantic import parse_obj_as
-from strawberry.dataloader import DataLoader
-
-from ramodels.lora.facet import FacetRead as LFacetRead
-from ramodels.lora.klasse import KlasseRead
 from mora.common import get_connector
+from mora.graphapi.models import ClassRead
+from mora.graphapi.models import FacetRead
 from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
-from mora.graphapi.models import ClassRead
-from mora.graphapi.models import FacetRead
 from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import EmployeeRead
@@ -33,10 +26,16 @@ from mora.graphapi.schema import LeaveRead
 from mora.graphapi.schema import ManagerRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
-from mora.graphapi.schema import RoleRead
 from mora.graphapi.schema import RelatedUnitRead
+from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from more_itertools import bucket
+from more_itertools import one
+from pydantic import parse_obj_as
+from ramodels.lora.facet import FacetRead as LFacetRead
+from ramodels.lora.klasse import KlasseRead
+from strawberry.dataloader import DataLoader
 
 
 MOModel = TypeVar(

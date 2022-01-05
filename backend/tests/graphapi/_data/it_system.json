@@ -1,0 +1,286 @@
+{
+  "results": [
+    [
+      {
+        "id": "49d91308-67b0-4b8c-b787-1cd58e3039bd",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2019-12-18T13:54:48.930159+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Opstaaet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "itsystemegenskaber": [
+                {
+                  "brugervendtnoegle": "SAP",
+                  "itsystemnavn": "SAP",
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "itsystemgyldighed": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "5168dd45-4cb5-4932-b8a1-10dbe736fc5d",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2019-12-18T13:54:48.963514+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Opstaaet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "itsystemegenskaber": [
+                {
+                  "brugervendtnoegle": "Office365",
+                  "itsystemnavn": "Office365",
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "itsystemgyldighed": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "988dead8-7564-464a-8339-b7057bfa2665",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2019-12-18T13:54:48.995679+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Opstaaet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "itsystemegenskaber": [
+                {
+                  "brugervendtnoegle": "Plone",
+                  "itsystemnavn": "Plone",
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "itsystemgyldighed": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "a1608e69-c422-404f-a6cc-b873c50af111",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2019-12-18T13:54:48.899717+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Opstaaet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "itsystemegenskaber": [
+                {
+                  "brugervendtnoegle": "Active Directory",
+                  "itsystemnavn": "Active Directory",
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "itsystemgyldighed": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "db519bfd-0fdd-4e5d-9337-518d1dbdbfc9",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2019-12-18T13:54:49.030413+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Opstaaet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "itsystemegenskaber": [
+                {
+                  "brugervendtnoegle": "OpenDesk",
+                  "itsystemnavn": "OpenDesk",
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "itsystemgyldighed": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            },
+            "relationer": {
+              "tilhoerer": [
+                {
+                  "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

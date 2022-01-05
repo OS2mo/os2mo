@@ -1,0 +1,49 @@
+{
+  "results": [
+    [
+      {
+        "id": "3b866d97-0b1f-48e0-8078-686d96f430b3",
+        "registreringer": [
+          {
+            "fratidspunkt": {
+              "tidsstempeldatotid": "2021-12-03T11:05:54.081048+01:00",
+              "graenseindikator": true
+            },
+            "tiltidspunkt": {
+              "tidsstempeldatotid": "infinity"
+            },
+            "livscykluskode": "Rettet",
+            "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
+            "attributter": {
+              "organisationegenskaber": [
+                {
+                  "brugervendtnoegle": "root",
+                  "organisationsnavn": "root",
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  }
+                }
+              ]
+            },
+            "tilstande": {
+              "organisationgyldighed": [
+                {
+                  "virkning": {
+                    "from": "-infinity",
+                    "to": "infinity",
+                    "from_included": true,
+                    "to_included": false
+                  },
+                  "gyldighed": "Aktiv"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

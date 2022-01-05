@@ -1,203 +1,122 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
-from typing import Dict
-from typing import Optional
-from uuid import UUID
-from uuid import uuid4
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
+from fastapi.encoders import jsonable_encoder
+from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
+from hypothesis import strategies as st
+from hypothesis_graphql import strategies as gql_st
+from pytest import MonkeyPatch
+from ramodels.mo import EmployeeRead
 
-import pytest
-from yarl import URL
+import mora.graphapi.dataloaders as dataloaders
+from mora.graphapi.main import get_schema
 
-from .util import execute
+# --------------------------------------------------------------------------------------
+# Tests
+# --------------------------------------------------------------------------------------
+
+SCHEMA = str(get_schema())
 
 
-def gen_employee(
-    uuid: Optional[UUID] = None,
-    user_key: str = "user_key",
-    first_name: str = "first_name",
-    last_name: str = "last_name",
-    from_time: str = "1970-01-01 00:00:00+01",
-    seniority: Optional[str] = None,
-) -> Dict[str, Any]:
-    uuid = uuid or uuid4()
-    virkning = {"from": from_time, "to": "infinity"}
-    employee = {
-        "id": str(uuid),
-        "registreringer": [
+class TestEmployeesQuery:
+    """Class collecting employees query tests.
+
+    Data loaders are mocked to return specific values, generated via
+    Hypothesis.
+    MonkeyPatch.context is used as a context manager to achieve this,
+    because mocks are *not* reset between invocations of Hypothesis examples.
+    """
+
+    @given(test_data=st.lists(st.builds(EmployeeRead)))
+    def test_query_all(self, test_data, graphapi_test, patch_loader):
+        """Test that we can query all our employees."""
+
+        # JSON encode test data
+        test_data = jsonable_encoder(test_data)
+
+        # Patch dataloader
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+            query = """
+                query {
+                    employees {
+                        givenname surname seniority user_key validity {from to}
+                    }
+                }
+            """
+            response = graphapi_test.post("/graphql", json={"query": query})
+
+        data, errors = response.json().get("data"), response.json().get("errors")
+        assert errors is None
+        assert data is not None
+        assert data["employees"] == [
             {
-                "attributter": {
-                    "brugeregenskaber": [
-                        {"brugervendtnoegle": user_key, "virkning": virkning}
-                    ],
-                    "brugerudvidelser": [
-                        {
-                            "fornavn": first_name,
-                            "efternavn": last_name,
-                            "virkning": virkning,
-                            "seniority": seniority,
+                "givenname": employee["givenname"],
+                "surname": employee["surname"],
+                "seniority": employee["seniority"],
+                "user_key": employee["user_key"],
+                "validity": employee["validity"],
+            }
+            for employee in test_data
+        ]
+
+    @given(test_data=st.lists(st.builds(EmployeeRead)), st_data=st.data())
+    def test_query_by_uuid(self, test_data, st_data, graphapi_test, patch_loader):
+        """Test that we can query employees by UUID."""
+
+        # Sample UUIDs
+        uuids = [str(model.uuid) for model in test_data]
+        test_uuids = st_data.draw(st.lists(st.sampled_from(uuids))) if uuids else []
+
+        # JSON encode test data
+        test_data = jsonable_encoder(test_data)
+
+        # Patch dataloader
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "get_role_type_by_uuid", patch_loader(test_data))
+            query = """
+                    query TestQuery($uuids: [UUID!]) {
+                        employees(uuids: $uuids) {
+                            uuid
                         }
-                    ],
-                },
-                "tilstande": {
-                    "brugergyldighed": [{"gyldighed": "Aktiv", "virkning": virkning}]
-                },
-                "relationer": {
-                    "tilknyttedepersoner": [
-                        {"urn": "urn:dk:cpr:person:0101700000", "virkning": virkning}
-                    ],
-                },
-            }
-        ],
-    }
-    return employee
+                    }
+                """
+            response = graphapi_test.post(
+                "/graphql", json={"query": query, "variables": {"uuids": test_uuids}}
+            )
 
+        data, errors = response.json().get("data"), response.json().get("errors")
+        assert errors is None
+        assert data is not None
 
-def mock_employee(aioresponses, repeat=False, **kwargs) -> UUID:
-    employee = gen_employee(**kwargs)
-    aioresponses.get(
-        URL("http://mox/organisation/bruger"),
-        payload={"results": [[employee]]},
-        repeat=repeat,
-    )
-    return employee["id"]
+        # Check UUID equivalence
+        result_uuids = [empl.get("uuid") for empl in data["employees"]]
+        assert set(result_uuids) == set(test_uuids)
+        assert len(result_uuids) == len(set(test_uuids))
 
+    @settings(suppress_health_check=[HealthCheck.too_slow])
+    @given(query=gql_st.query(SCHEMA, fields=["employees"]))
+    def test_random_queries(self, query, graphapi_test, patch_loader):
+        """Test employee query permutations generated by Hypothesis GraphQL."""
 
-@pytest.mark.asyncio
-async def test_query_employees(aioresponses):
-    """Test that we are able to query our employee."""
-    uuid = mock_employee(aioresponses)
+        # Use fixed test data
+        test_data = [
+            EmployeeRead(
+                givenname="name",
+                surname="surname",
+                validity={"from": "2021-01-01"},
+            )
+        ]
+        test_data = jsonable_encoder(test_data)
 
-    query = "query { employees { uuid, cpr_no, user_key, givenname, surname }}"
-    result = await execute(query)
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+            response = graphapi_test.post("/graphql", json={"query": query})
 
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == [
-        {
-            "uuid": str(uuid),
-            "cpr_no": "0101700000",
-            "user_key": "user_key",
-            "givenname": "first_name",
-            "surname": "last_name",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_query_employees_with_seniority(aioresponses):
-    """Test that we are able to query our employee."""
-    uuid = mock_employee(aioresponses, seniority="1970-01-01")
-
-    query = (
-        "query { employees { uuid, cpr_no, user_key, givenname, surname, seniority }}"
-    )
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == [
-        {
-            "uuid": str(uuid),
-            "cpr_no": "0101700000",
-            "user_key": "user_key",
-            "givenname": "first_name",
-            "surname": "last_name",
-            "seniority": "1970-01-01",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_query_employees_by_uuids(aioresponses):
-    """Test that we are able to query our employee by UUID (bulk)."""
-    uuid = mock_employee(aioresponses)
-
-    query = """
-        query TestQuery($uuid: UUID!) {
-            employees(uuids: [$uuid]) {
-                uuid, cpr_no, user_key, givenname, surname
-            }
-        }
-    """
-    result = await execute(query, {"uuid": str(uuid)})
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == [
-        {
-            "uuid": str(uuid),
-            "cpr_no": "0101700000",
-            "user_key": "user_key",
-            "givenname": "first_name",
-            "surname": "last_name",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_query_employees_by_unknown_uuid(aioresponses):
-    """Test that we get an empty response when querying with an unknown uuid."""
-    mock_employee(aioresponses)
-
-    query = """
-        query TestQuery($uuid: UUID!) {
-            employees(uuids: [$uuid]) {
-                uuid
-            }
-        }
-    """
-    result = await execute(query, {"uuid": str(uuid4())})
-
-    # We expect only one outgoing request to be done
-    assert len(aioresponses.requests) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == []
-
-
-@pytest.mark.asyncio
-async def test_query_no_employees(aioresponses):
-    """Test that we are able to query our employees, and get an empty result."""
-    aioresponses.get(
-        URL("http://mox/organisation/bruger"),
-        payload={"results": []},
-        repeat=True,
-    )
-
-    query = "query { employees { uuid }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == []
-
-
-@pytest.mark.asyncio
-async def test_query_multiple_employees(aioresponses):
-    """Test that we are able to query multiple employees at once."""
-    employees = [gen_employee(), gen_employee(), gen_employee()]
-    aioresponses.get(
-        URL("http://mox/organisation/bruger"),
-        payload={"results": [employees]},
-        repeat=True,
-    )
-
-    query = "query { employees { uuid }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
-
-    assert result.errors is None
-    assert result.data["employees"] == [
-        {"uuid": employee["id"]} for employee in employees
-    ]
+        data, errors = response.json().get("data"), response.json().get("errors")
+        assert errors is None
+        assert data is not None

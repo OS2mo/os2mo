@@ -34,15 +34,15 @@ variables:
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak-db
 
   POETRY_VERSION: 1.1.8
-  PYPROJECT_ROOT: './backend'
+  PYPROJECT_ROOT: "./backend"
 
 include:
-  - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/autopub.v1.yml'
-  - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/docker-release.v1.yml'
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/autopub.v1.yml"
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/docker-release.v1.yml"
 
 # Only run pipeline when pushing a tag or a branch.
 # This is a workaround for a bug causing detached pipelines on MRs
@@ -334,7 +334,40 @@ Unit-test:
       --show-capture=no
       --workers auto
       -m "not serial"
+      -k "not graphapi"
       backend/tests/
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage-html
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+GraphAPI-test:
+  <<: *test-default
+  image:
+    name: ${IMAGE_SHA}
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test
+      alias: mox-db
+    - name: magentaaps/lora:3.0.0
+      alias: mox
+    - name: ${KEYCLOAK_DB_IMAGE_SHA}
+      alias: keycloak-db
+    - name: ${KEYCLOAK_IMAGE_SHA}
+      alias: keycloak
+  script:
+    - pytest
+      -k "graphapi"
+      --cov=backend/mora/graphapi
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      --cov-fail-under=60
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
