@@ -9,10 +9,10 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import ManagerLevel
 from ramodels.mo._shared import ManagerType
 from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Manager
@@ -49,7 +49,7 @@ def read_strat(draw):
         "org_unit_uuid": st.uuids(),
     }
     optional = {
-        "person_uuid": st.none() | st.uuids(),
+        "employee_uuid": st.none() | st.uuids(),
         "manager_type_uuid": st.none() | st.uuids(),
         "manager_level_uuid": st.none() | st.uuids(),
         "responsibility_uuids": st.none() | st.lists(st.uuids()),
@@ -65,7 +65,7 @@ def write_strat(draw):
         "org_unit": st.builds(OrgUnitRef),
     }
     optional = {
-        "person": st.none() | st.builds(PersonRef),
+        "employee": st.none() | st.builds(EmployeeRef),
         "manager_level": st.none() | st.builds(ManagerLevel),
         "manager_type": st.none() | st.builds(ManagerType),
         "responsibility": st.none() | st.lists(st.builds(Responsibility)),
@@ -78,7 +78,7 @@ def write_strat(draw):
 def manager_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "responsibility": st.lists(st.builds(Responsibility)),
         "manager_level": st.builds(ManagerLevel),
         "manager_type": st.builds(ManagerType),
@@ -95,7 +95,7 @@ def manager_fsf_strat(draw):
     required = {
         "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "responsibility_uuids": st.lists(st.uuids()),
         "manager_level_uuid": st.uuids(),
         "manager_type_uuid": st.uuids(),

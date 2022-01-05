@@ -9,8 +9,8 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import RoleType
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Role
@@ -42,7 +42,7 @@ def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "role_type_uuid": st.uuids(),
     }
 
@@ -55,7 +55,7 @@ def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "role_type": st.builds(RoleType),
     }
     st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
@@ -69,7 +69,7 @@ def role_strat(draw):
         "role_type": st.builds(RoleType),
         "validity": st.builds(Validity),
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
     }
     optional = {
         "type": st.just("role"),

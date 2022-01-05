@@ -12,10 +12,10 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from ramodels.mo._shared import AddressType
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import OrganisationRef
 from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
 from ramodels.mo.details.address import Address
@@ -46,7 +46,7 @@ def read_strat(draw):
     base_dict = draw(base_strat())
     required = {"address_type_uuid": st.uuids()}
     optional = {
-        "person_uuid": st.none() | st.uuids(),
+        "employee_uuid": st.none() | st.uuids(),
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
         "visibility_uuid": st.none() | st.uuids(),
@@ -59,20 +59,20 @@ def read_strat(draw):
 def write_strat(draw):
     base_dict = draw(base_strat())
     required = {"address_type": st.builds(AddressType)}
-    person = st.fixed_dictionaries({"person": st.builds(PersonRef)})
+    employee = st.fixed_dictionaries({"employee": st.builds(EmployeeRef)})
     org_unit = st.fixed_dictionaries({"org_unit": st.builds(OrgUnitRef)})
     engagement = st.fixed_dictionaries({"engagement": st.builds(EngagementRef)})
     optional = {
         "visibility": st.none() | st.builds(Visibility),
     }
-    ref_dict = draw(st.one_of(person, org_unit, engagement))
+    ref_dict = draw(st.one_of(employee, org_unit, engagement))
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict, **ref_dict}
 
 
 def ref_check_strat():
     required = {
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "org_unit": st.builds(OrgUnitRef),
         "engagement": st.builds(EngagementRef),
     }
@@ -90,7 +90,7 @@ def address_strat(draw):
     optional = {
         "type": st.just("address"),
         "value2": st.none() | st.text(),
-        "person": st.none() | st.builds(PersonRef),
+        "employee": st.none() | st.builds(EmployeeRef),
         "org_unit": st.none() | st.builds(OrgUnitRef),
         "engagement": st.none() | st.builds(EngagementRef),
         "visibility": st.none() | st.builds(Visibility),
@@ -111,7 +111,7 @@ def address_fsf_strat(draw):
     optional = {
         "to_date": st.none() | to_date_strat(),
         "value2": st.none() | st.text(),
-        "person_uuid": st.none() | st.uuids(),
+        "employee_uuid": st.none() | st.uuids(),
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
         "visibility_uuid": st.none() | st.uuids(),

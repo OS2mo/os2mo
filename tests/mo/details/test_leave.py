@@ -9,9 +9,9 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import LeaveType
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Leave
 from ramodels.mo.details import LeaveBase
@@ -42,7 +42,7 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "leave_type_uuid": st.uuids(),
     }
     optional = {
@@ -56,7 +56,7 @@ def read_strat(draw):
 def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "leave_type": st.builds(LeaveType),
     }
     optional = {
@@ -72,7 +72,7 @@ def leave_strat(draw):
         "user_key": st.text(),
         "leave_type": st.builds(LeaveType),
         "validity": st.builds(Validity),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
     }
     optional = {"type": st.just("leave"), "engagement": st.builds(EngagementRef)}
 
