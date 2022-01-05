@@ -8,3 +8,5 @@
 *schemas.md
 
 .hypothesis/
+venv/
+.python-version

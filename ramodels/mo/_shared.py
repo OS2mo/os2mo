@@ -191,8 +191,8 @@ class ParentRef(MORef):
     """Parent reference."""
 
 
-class PersonRef(MORef):
-    """Person reference."""
+class EmployeeRef(MORef):
+    """Employee reference."""
 
 
 class Primary(MORef):

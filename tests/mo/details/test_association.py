@@ -14,8 +14,8 @@ from hypothesis import strategies as st
 
 from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import DynamicClasses
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Association
@@ -51,7 +51,7 @@ def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "association_type_uuid": st.uuids(),
     }
     optional = {
@@ -68,12 +68,12 @@ def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "association_type": st.builds(AssociationType),
     }
     optional = {
         "primary": st.none() | st.builds(Primary),
-        "substitute": st.none() | st.builds(PersonRef),
+        "substitute": st.none() | st.builds(EmployeeRef),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
@@ -83,7 +83,7 @@ def write_strat(draw):
 def association_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "association_type": st.builds(AssociationType),
         "validity": st.builds(Validity),
     }
@@ -97,7 +97,7 @@ def association_fsf_strat(draw):
     required = {
         "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "association_type_uuid": st.uuids(),
         "from_date": from_date_strat(),
     }

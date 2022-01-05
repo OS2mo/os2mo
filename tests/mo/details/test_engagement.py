@@ -9,13 +9,13 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementAssociationType
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import LeaveRef
 from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import EngagementAssociation
@@ -59,7 +59,7 @@ def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "engagement_type_uuid": st.uuids(),
         "job_function_uuid": st.uuids(),
     }
@@ -78,7 +78,7 @@ def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "engagement_type": st.builds(EngagementType),
         "job_function": st.builds(JobFunction),
     }
@@ -95,7 +95,7 @@ def write_strat(draw):
 def engagement_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "person": st.builds(PersonRef),
+        "employee": st.builds(EmployeeRef),
         "job_function": st.builds(JobFunction),
         "engagement_type": st.builds(EngagementType),
         "validity": st.builds(Validity),
@@ -124,7 +124,7 @@ def engagement_fsf_strat(draw):
     required = {
         "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
-        "person_uuid": st.uuids(),
+        "employee_uuid": st.uuids(),
         "job_function_uuid": st.uuids(),
         "engagement_type_uuid": st.uuids(),
         "primary_uuid": st.uuids(),

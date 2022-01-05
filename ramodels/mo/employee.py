@@ -73,7 +73,7 @@ class EmployeeWrite(EmployeeBase):
     )
     details: Optional[List[EmployeeDetails]] = Field(
         description="Details to be created for the employee. "
-        "Note that when this is used, the person reference is implicit in the payload."
+        "Note that when this is used, the employee reference is implicit in the payload."
     )
 
     @root_validator(pre=True)
@@ -125,7 +125,7 @@ class Employee(MOBase):
     )
     details: Optional[List[EmployeeDetails]] = Field(
         description="Details to be created for the employee. "
-        "Note that when this is used, the person reference is implicit in the payload."
+        "Note that when this is used, the employee reference is implicit in the payload."
     )
 
     @root_validator(pre=True)

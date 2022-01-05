@@ -12,10 +12,10 @@ from uuid import UUID
 
 from pydantic import Field
 
+from .._shared import EmployeeRef
 from .._shared import ITSystemRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
-from .._shared import PersonRef
 from .._shared import Validity
 
 
@@ -35,8 +35,8 @@ class ITUserRead(ITUserBase):
     """A MO IT user read object."""
 
     itsystem_uuid: UUID = Field(description="UUID of the ITSystem related to the user.")
-    person_uuid: Optional[UUID] = Field(
-        description="UUID of the person related to the user."
+    employee_uuid: Optional[UUID] = Field(
+        description="UUID of the employee related to the user."
     )
     org_unit_uuid: Optional[UUID] = Field(
         description="UUID organisation unit related to the user."
@@ -49,8 +49,8 @@ class ITUserWrite(ITUserBase):
     itsystem: ITSystemRef = Field(
         description="Reference to the IT system for the IT user."
     )
-    person: Optional[PersonRef] = Field(
-        description="Reference to the person for the IT user."
+    employee: Optional[EmployeeRef] = Field(
+        description="Reference to the employee for the IT user."
     )
     org_unit: Optional[OrgUnitRef] = Field(
         description="Reference to the organisation unit for the IT user."
@@ -63,8 +63,8 @@ class ITUser(MOBase):
     itsystem: ITSystemRef = Field(
         description="Reference to the IT system for the IT user."
     )
-    person: Optional[PersonRef] = Field(
-        description="Reference to the person for the IT user."
+    employee: Optional[EmployeeRef] = Field(
+        description="Reference to the employee for the IT user."
     )
     org_unit: Optional[OrgUnitRef] = Field(
         description="Reference to the organisation unit for the IT user."
@@ -79,7 +79,7 @@ class ITUser(MOBase):
         from_date: str,
         uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
-        person_uuid: Optional[UUID] = None,
+        employee_uuid: Optional[UUID] = None,
         org_unit_uuid: Optional[UUID] = None,
     ) -> "ITUser":
         """
@@ -87,7 +87,7 @@ class ITUser(MOBase):
         """
 
         it_system = ITSystemRef(uuid=itsystem_uuid)
-        person = PersonRef(uuid=person_uuid) if person_uuid else None
+        employee = EmployeeRef(uuid=employee_uuid) if employee_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
 
@@ -95,7 +95,7 @@ class ITUser(MOBase):
             uuid=uuid,
             user_key=user_key,
             itsystem=it_system,
-            person=person,
+            employee=employee,
             org_unit=org_unit,
             validity=validity,
         )
