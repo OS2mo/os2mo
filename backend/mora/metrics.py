@@ -14,15 +14,21 @@ from .conf_db import health_check
 def setup_metrics(app):
     instrumentator = Instrumentator(should_instrument_requests_inprogress=True)
 
+    # Changes on every request
     instrumentator.add(default())
+
+    # Never changes
     instrumentator.add(os2mo_version())
-    instrumentator.add(confdb_health())
     instrumentator.add(amqp_enabled())
-    if get_settings().amqp_enable:
-        instrumentator.add(amqp_health())
-    instrumentator.add(oio_rest_health())
-    instrumentator.add(dataset_health())
-    instrumentator.add(dar_health())
+
+    # Could change periodically
+    # if get_settings().amqp_enable:
+    #     instrumentator.add(amqp_health())
+    # instrumentator.add(confdb_health())
+    # instrumentator.add(oio_rest_health())
+    # instrumentator.add(dataset_health())
+    # instrumentator.add(dar_health())
+    # instrumentator.add(keycloak_health())
 
     instrumentator.instrument(app).expose(app)
 
@@ -46,6 +52,7 @@ def confdb_health() -> Callable[[InstInfo], None]:
     settings = get_settings()
 
     def instrumentation(_: InstInfo) -> None:
+        # TODO: Should potentially use confdb healthcheck from health.py
         healthy, info = health_check()
 
         CONFDB_USE.set(settings.conf_db_use)
