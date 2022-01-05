@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.23.3 - 2022-01-05
+-------------------
+
+[#47699] Use employee consistently instead of mixing person and employee
+
 3.23.2 - 2022-01-05
 -------------------
 
