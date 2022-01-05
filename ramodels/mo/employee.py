@@ -64,16 +64,22 @@ class EmployeeRead(EmployeeBase):
 
 class EmployeeWrite(EmployeeBase):
     name: Optional[str] = Field(
-        description="The full name of the employee. "
-        "This is deprecated, please use givenname/surname."
+        description=(
+            "The full name of the employee. "
+            "This is deprecated, please use givenname/surname."
+        )
     )
     nickname: Optional[str] = Field(
-        description="Full nickname of the employee. "
-        "Deprecated, please use given name/surname parts if needed."
+        description=(
+            "Full nickname of the employee. "
+            "Deprecated, please use given name/surname parts if needed."
+        )
     )
     details: Optional[List[EmployeeDetails]] = Field(
-        description="Details to be created for the employee. "
-        "Note that when this is used, the employee reference is implicit in the payload."
+        description=(
+            "Details to be created for the employee. Note that when this is used, the"
+            " employee reference is implicit in the payload."
+        )
     )
 
     @root_validator(pre=True)
@@ -102,16 +108,20 @@ class Employee(MOBase):
     givenname: str = Field(None, description="Given name of the employee.")
     surname: str = Field(None, description="Surname of the employee.")
     name: Optional[str] = Field(
-        description="The full name of the employee. "
-        "This is deprecated, please use givenname/surname."
+        description=(
+            "The full name of the employee. "
+            "This is deprecated, please use givenname/surname."
+        )
     )
     cpr_no: Optional[str] = Field(
         regex=r"^\d{10}$", description="CPR number of the employee."
     )
     seniority: Optional[datetime] = Field(description="Seniority of the employee.")
     org: Optional[OrganisationRef] = Field(
-        description="Organisation reference. "
-        "MO only supports one main organisation, so this is rarely used."
+        description=(
+            "Organisation reference. "
+            "MO only supports one main organisation, so this is rarely used."
+        )
     )
     nickname_givenname: Optional[str] = Field(
         description="Given name part of nickname of the employee, if applicable."
@@ -120,12 +130,16 @@ class Employee(MOBase):
         description="Surname part of nickname of the employee, if applicable."
     )
     nickname: Optional[str] = Field(
-        description="Full nickname of the employee. "
-        "Deprecated, please use given name/surname parts if needed."
+        description=(
+            "Full nickname of the employee. "
+            "Deprecated, please use given name/surname parts if needed."
+        )
     )
     details: Optional[List[EmployeeDetails]] = Field(
-        description="Details to be created for the employee. "
-        "Note that when this is used, the employee reference is implicit in the payload."
+        description=(
+            "Details to be created for the employee. Note that when this is used, the"
+            " employee reference is implicit in the payload."
+        )
     )
 
     @root_validator(pre=True)

@@ -34,8 +34,10 @@ class EngagementBase(MOBase):
     type_: str = Field("engagement", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the engagement object.")
     fraction: Optional[int] = Field(
-        description="Indication of contribution to the "
-        "collection of engagements for the given employee."
+        description=(
+            "Indication of contribution to the "
+            "collection of engagements for the given employee."
+        )
     )
     extension_1: Optional[str] = Field(description="Optional extra information.")
     extension_2: Optional[str] = Field(description="Optional extra information.")
@@ -79,23 +81,28 @@ class EngagementWrite(EngagementBase):
     """A MO engagement write object."""
 
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit "
-        "for which the engagement should be created."
+        description=(
+            "Reference to the organisation unit "
+            "for which the engagement should be created."
+        )
     )
     employee: EmployeeRef = Field(
-        description="Reference to the employee "
-        "for which the engagement should be created."
+        description=(
+            "Reference to the employee for which the engagement should be created."
+        )
     )
     engagement_type: EngagementType = Field(
-        description="Reference to the engagement type klasse "
-        "for the created engagement object."
+        description=(
+            "Reference to the engagement type klasse for the created engagement object."
+        )
     )
     # NOTE: Job function is set to optional in the current MO write code,
     # but that's an error. If payloads without a job function are posted,
     # MO fails spectacularly when reading the resulting engagement objects.
     job_function: JobFunction = Field(
-        description="Reference to the job function klasse "
-        "for the created engagement object."
+        description=(
+            "Reference to the job function klasse for the created engagement object."
+        )
     )
     leave: Optional[LeaveRef] = Field(
         description="Reference to the leave for the created engagement."
@@ -112,20 +119,25 @@ class Engagement(MOBase):
         "engagement", alias="type", description="The object type."
     )
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit "
-        "for which the engagement should be created."
+        description=(
+            "Reference to the organisation unit "
+            "for which the engagement should be created."
+        )
     )
     employee: EmployeeRef = Field(
-        description="Reference to the employee "
-        "for which the engagement should be created."
+        description=(
+            "Reference to the employee for which the engagement should be created."
+        )
     )
     job_function: JobFunction = Field(
-        description="Reference to the job function klasse "
-        "for the created engagement object."
+        description=(
+            "Reference to the job function klasse for the created engagement object."
+        )
     )
     engagement_type: EngagementType = Field(
-        description="Reference to the engagement type klasse "
-        "for the created engagement object."
+        description=(
+            "Reference to the engagement type klasse for the created engagement object."
+        )
     )
     validity: Validity = Field(description="Validity of the created engagement object.")
     primary: Primary = Field(
@@ -202,16 +214,22 @@ class EngagementAssociation(MOBase):
         "engagement_association", alias="type", description="The object type."
     )
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit "
-        "for which the engagement association should be created."
+        description=(
+            "Reference to the organisation unit "
+            "for which the engagement association should be created."
+        )
     )
     engagement: EngagementRef = Field(
-        description="Reference to the engagement "
-        "for which the engagement association should be created."
+        description=(
+            "Reference to the engagement "
+            "for which the engagement association should be created."
+        )
     )
     engagement_association_type: EngagementAssociationType = Field(
-        description="Reference to the engagement association type klasse "
-        "for the created engagement association object."
+        description=(
+            "Reference to the engagement association type klasse "
+            "for the created engagement association object."
+        )
     )
     validity: Validity = Field(
         description="Validity of the created engagement association."

@@ -61,19 +61,22 @@ class AssociationWrite(AssociationBase):
         description="Reference to the organisation unit for the association."
     )
     employee: EmployeeRef = Field(
-        description="Reference to the employee for which the engagement should be "
-        "created."
+        description=(
+            "Reference to the employee for which the engagement should be created."
+        )
     )
     association_type: AssociationType = Field(
         description="Reference to the association type klasse."
     )
     primary: Optional[Primary] = Field(
-        description="Reference to the primary klasse for the created association "
-        "object."
+        description=(
+            "Reference to the primary klasse for the created association object."
+        )
     )
     substitute: Optional[EmployeeRef] = Field(
-        description="Reference to the substitute for the employee in the association "
-        "object."
+        description=(
+            "Reference to the substitute for the employee in the association object."
+        )
     )
 
 
@@ -86,12 +89,15 @@ class Association(MOBase):
         "association", alias="type", description="The object type."
     )
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit "
-        "for which the association should be created."
+        description=(
+            "Reference to the organisation unit "
+            "for which the association should be created."
+        )
     )
     employee: EmployeeRef = Field(
-        description="Reference to the employee "
-        "for which the association should be created."
+        description=(
+            "Reference to the employee for which the association should be created."
+        )
     )
     association_type: AssociationType = Field(
         description="Reference to the association type facet."

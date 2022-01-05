@@ -50,8 +50,7 @@ class LeaveWrite(LeaveBase):
         description="Reference to the employee for which the leave should be created."
     )
     engagement: Optional[EngagementRef] = Field(
-        description="Reference to the engagement for which the leave should be "
-        "created."
+        description="Reference to the engagement for which the leave should be created."
     )
 
 
@@ -61,11 +60,11 @@ class Leave(MOBase):
     )
     leave_type: LeaveType = Field(description="Reference to the leave type facet")
     employee: EmployeeRef = Field(
-        description="Reference to the employee object for which the role should "
-        "be created."
+        description=(
+            "Reference to the employee object for which the role should be created."
+        )
     )
     engagement: Optional[EngagementRef] = Field(
-        description="Reference to the engagement for which the role should "
-        "be created."
+        description="Reference to the engagement for which the role should be created."
     )
     validity: Validity = Field(description="Validity of the created role object.")

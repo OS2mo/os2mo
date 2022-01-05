@@ -55,11 +55,13 @@ class Role(MOBase):
     type_: Literal["role"] = Field("role", alias="type", description="The object type.")
     role_type: RoleType = Field(description="Reference to the role type facet")
     employee: EmployeeRef = Field(
-        description="Reference to the employee object for which the role should "
-        "be created."
+        description=(
+            "Reference to the employee object for which the role should be created."
+        )
     )
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit for which the role should "
-        "be created."
+        description=(
+            "Reference to the organisation unit for which the role should be created."
+        )
     )
     validity: Validity = Field(description="Validity of the created role object.")

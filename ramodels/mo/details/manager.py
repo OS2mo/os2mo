@@ -81,8 +81,10 @@ class Manager(MOBase):
         "manager", alias="type", description="The object type."
     )
     org_unit: OrgUnitRef = Field(
-        description="Reference to the organisation unit "
-        "for which the manager should be created."
+        description=(
+            "Reference to the organisation unit "
+            "for which the manager should be created."
+        )
     )
     employee: EmployeeRef = Field(
         description="Reference to the employee that will be the resulting manager."

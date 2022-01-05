@@ -70,9 +70,11 @@ class OrganisationUnitWrite(OrganisationUnitBase):
         description="Reference to the time planning type."
     )
     details: Optional[List[OrgUnitDetails]] = Field(
-        description="Details to be created for the organisation unit. "
-        "Note that when this is used, the organisation unit reference "
-        "is implicit in the payload."
+        description=(
+            "Details to be created for the organisation unit. "
+            "Note that when this is used, the organisation unit reference "
+            "is implicit in the payload."
+        )
     )
 
 
@@ -98,9 +100,11 @@ class OrganisationUnit(MOBase):
         description="Reference to the organisation unit level type."
     )
     details: Optional[List[OrgUnitDetails]] = Field(
-        description="Details to be created for the organisation unit. "
-        "Note that when this is used, the organisation unit reference "
-        "is implicit in the payload."
+        description=(
+            "Details to be created for the organisation unit. "
+            "Note that when this is used, the organisation unit reference "
+            "is implicit in the payload."
+        )
     )
 
     @classmethod

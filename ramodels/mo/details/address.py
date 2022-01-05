@@ -44,7 +44,8 @@ class AddressBase(MOBase):
 class AddressRead(AddressBase):
     """
     A MO address read object.
-    Note that one and only one of {employee, org_unit, engagement} are given at any time.
+    Note that one and only one of {employee, org_unit, engagement} are given at any
+    time.
     """
 
     address_type_uuid: UUID = Field(description="UUID of the address type klasse.")
@@ -75,24 +76,26 @@ class AddressWrite(AddressBase):
         description="Reference to the address type klasse."
     )
     employee: Optional[EmployeeRef] = Field(
-        description="Reference to the employee for which the address should "
-        "be created."
+        description="Reference to the employee for which the address should be created."
     )
     org_unit: Optional[OrgUnitRef] = Field(
-        description="Reference to the organisation unit for which the address should "
-        "be created."
+        description=(
+            "Reference to the organisation unit for which the address should "
+            "be created."
+        )
     )
     engagement: Optional[EngagementRef] = Field(
-        description="Reference to the engagement for which the address should "
-        "be created."
+        description=(
+            "Reference to the engagement for which the address should be created."
+        )
     )
     visibility: Optional[Visibility] = Field(
         description="Reference to the Visibility klasse of the created address object."
     )
 
     # NOTE: This is not optimal handling of variability. In a perfect world,
-    # we'd have an object_ref: Union[EmployeeRef, OrgUnitRef, EngagementRef] field so that
-    # we do not have to check it like this.
+    # we'd have an object_ref: Union[EmployeeRef, OrgUnitRef, EngagementRef]
+    # field so that we do not have to check it like this.
     @root_validator
     def validate_references(cls, values: DictStrAny) -> DictStrAny:
         references = (
@@ -125,20 +128,26 @@ class Address(MOBase):
         description="Reference to the address type facet."
     )
     org: Optional[OrganisationRef] = Field(
-        description="Reference to the organisation under which the address should "
-        "be created. MO only supports one organisation, so this is rarely used."
+        description=(
+            "Reference to the organisation under which the address should "
+            "be created. MO only supports one organisation, so this is rarely used."
+        )
     )
     employee: Optional[EmployeeRef] = Field(
-        description="Reference to the employee object for which the address should "
-        "be created."
+        description=(
+            "Reference to the employee object for which the address should be created."
+        )
     )
     org_unit: Optional[OrgUnitRef] = Field(
-        description="Reference to the organisation unit for which the address should "
-        "be created."
+        description=(
+            "Reference to the organisation unit for which the address should "
+            "be created."
+        )
     )
     engagement: Optional[EngagementRef] = Field(
-        description="Reference to the engagement for which the address should "
-        "be created."
+        description=(
+            "Reference to the engagement for which the address should be created."
+        )
     )
     validity: Validity = Field(description="Validity of the created address object.")
     visibility: Optional[Visibility] = Field(
