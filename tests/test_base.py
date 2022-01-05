@@ -9,6 +9,7 @@
 from datetime import datetime
 
 import pytest
+from dateutil.parser import isoparse
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import Field
@@ -60,7 +61,10 @@ def is_isodt_str(s):
     try:
         datetime.fromisoformat(s)
     except Exception:
-        return False
+        try:
+            isoparse(s)
+        except Exception:
+            return False
     return True
 
 
