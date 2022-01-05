@@ -60,7 +60,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
             return {
                 **base_obj,
                 "org_unit_uuid": org_unit,
-                "person_uuid": person,
+                "employee_uuid": person,
                 "engagement_type_uuid": engagement_type,
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,

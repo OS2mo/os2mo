@@ -123,7 +123,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "person_uuid": person,
+                "employee_uuid": person,
                 "org_unit_uuid": org_unit,
                 "association_type_uuid": association_type,
                 "substitute_uuid": substitute_uuid if need_sub else None,

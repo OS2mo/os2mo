@@ -80,7 +80,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "person_uuid": person,
+                "employee_uuid": person,
                 "manager_type_uuid": manager_type,
                 "manager_level_uuid": manager_level,
                 "responsibility_uuids": responsibilities,
