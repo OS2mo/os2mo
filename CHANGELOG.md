@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+4.0.0 - 2022-01-05
+------------------
+
+[#47699] Use employee consistently instead of mixing person and employee
+
 3.26.1 - 2022-01-03
 -------------------
 
