@@ -43,7 +43,7 @@ service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
 prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
 pydantic = {extras = ["email"], version = "^1.7.3"}
-ramodels = "^3.26.0"
+ramodels = "^4.0.0"
 aio-pika = "^6.8.0"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"

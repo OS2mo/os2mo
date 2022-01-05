@@ -72,7 +72,7 @@ class KLEType:
     model=RoleRead,
     all_fields=True,
     description=(
-        "A role; Describing the relationsship between an org_unit and a person."
+        "A role; Describing the relationsship between an org_unit and a employee."
     ),
 )
 class RoleType:
@@ -82,7 +82,7 @@ class RoleType:
 
     @strawberry.field()
     async def employee(self, root: RoleRead, info: Info) -> "EmployeeType":
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(self, root: RoleRead, info: Info) -> "OrganisationUnitType":
@@ -111,9 +111,9 @@ class AddressType:
 
     @strawberry.field()
     async def employee(self, root: AddressRead, info: Info) -> Optional["EmployeeType"]:
-        if not root.person_uuid:
+        if not root.employee_uuid:
             return None
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(
@@ -127,7 +127,7 @@ class AddressType:
 @strawberry.experimental.pydantic.type(
     model=AssociationRead,
     all_fields=True,
-    description=("An Association; connected to an org_unit and a person."),
+    description=("An Association; connected to an org_unit and a employee."),
 )
 class AssociationType:
     @strawberry.field()
@@ -144,7 +144,7 @@ class AssociationType:
 
     @strawberry.field()
     async def employee(self, root: AssociationRead, info: Info) -> "EmployeeType":
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(
@@ -161,9 +161,9 @@ class AssociationType:
 class ITUserType:
     @strawberry.field()
     async def employee(self, root: ITUserRead, info: Info) -> Optional["EmployeeType"]:
-        if not root.person_uuid:
+        if not root.employee_uuid:
             return None
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(
@@ -201,7 +201,7 @@ class OrganisationType:
 @strawberry.experimental.pydantic.type(
     model=EmployeeRead,
     all_fields=True,
-    description=("An Employee; containing personal information about an identity."),
+    description=("An Employee; containing employeeal information about an identity."),
 )
 class EmployeeType:
     @strawberry.field(description="Full name of the employee")
@@ -391,7 +391,7 @@ class EngagementType:
 
     @strawberry.field()
     async def employee(self, root: EngagementRead, info: Info) -> "EmployeeType":
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(
@@ -408,7 +408,7 @@ class LeaveType:
 
     @strawberry.field()
     async def employee(self, root: LeaveRead, info: Info) -> "EmployeeType":
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def engagement(
@@ -448,9 +448,9 @@ class ManagerType:
 
     @strawberry.field()
     async def employee(self, root: ManagerRead, info: Info) -> Optional["EmployeeType"]:
-        if not root.person_uuid:
+        if not root.employee_uuid:
             return None
-        return await info.context["employee_loader"].load(root.person_uuid)
+        return await info.context["employee_loader"].load(root.employee_uuid)
 
     @strawberry.field()
     async def org_unit(
