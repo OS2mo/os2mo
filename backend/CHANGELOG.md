@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.23.4 - 2022-01-05
+-------------------
+
+[#47759] Fix person_uuid -> employee_uuid in ReadingHandlers for GraphQL
+
 3.23.3 - 2022-01-05
 -------------------
 
