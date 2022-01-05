@@ -1,4 +1,4 @@
-# Stages
+# Workflow
 ################################################################################
 
 stages:
@@ -8,6 +8,12 @@ stages:
   - coverage
   - prepare-release
   - release
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
+
 
 # Reusables
 ################################################################################
@@ -34,6 +40,7 @@ stages:
 
 # Jobs
 ################################################################################
+
 include:
   - project: 'labs/salt-automation'
     ref: 'master'
