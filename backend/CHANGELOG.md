@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.23.0 - 2022-01-05
+-------------------
+
+[#47101] Connect details to organisational units with GraphQL
+
 3.22.0 - 2022-01-04
 -------------------
 
