@@ -373,7 +373,7 @@ async def get_loaders() -> Dict[str, DataLoader]:
             load_fn=partial(load_org_unit_details, role_type=RELATED_UNIT_ROLE_TYPE)
         ),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
-        "employee_manager_loader": DataLoader(
+        "employee_manager_role_loader": DataLoader(
             load_fn=partial(load_employee_details, role_type=MANAGER_ROLE_TYPE)
         ),
         "employee_address_loader": DataLoader(
