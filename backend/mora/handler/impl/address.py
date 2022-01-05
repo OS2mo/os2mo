@@ -57,7 +57,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "value": address_obj[mapping.VALUE],
                 "value2": address_obj[mapping.VALUE2],
                 "address_type_uuid": address_type_uuid,
-                "person_uuid": person_uuid,
+                "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
                 "engagement_uuid": engagement_uuid,
                 "visibility_uuid": visibility_uuid,

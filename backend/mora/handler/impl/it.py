@@ -36,7 +36,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "person_uuid": person_uuid,
+                "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
                 "itsystem_uuid": itsystem_uuid,
             }

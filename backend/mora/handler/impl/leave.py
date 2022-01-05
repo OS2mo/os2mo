@@ -38,7 +38,7 @@ class LeaveReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "person_uuid": person,
+                "employee_uuid": person,
                 "leave_type_uuid": leave_type,
                 "engagement_uuid": engagement_uuid,
             }
