@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+4.0.1 - 2022-01-06
+------------------
+
+[#45480] Make from_simplified_fields uuid optional.
+
 4.0.0 - 2022-01-05
 ------------------
 
