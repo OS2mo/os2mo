@@ -113,7 +113,6 @@ def organisation_unit_strat(draw):
 @st.composite
 def organisation_unit_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "user_key": st.text(),
         "name": st.text(),
         "org_unit_type_uuid": st.uuids(),
@@ -121,6 +120,7 @@ def organisation_unit_fsf_strat(draw):
         "from_date": from_date_strat(),
     }
     optional = {
+        "uuid": st.none() | st.uuids(),
         "parent_uuid": st.none() | st.uuids(),
         "org_unit_hierarchy_uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),

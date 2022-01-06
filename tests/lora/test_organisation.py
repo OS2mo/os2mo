@@ -39,11 +39,11 @@ def organisation_strat(draw):
 @st.composite
 def organisation_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "name": st.text(),
         "user_key": st.text(),
     }
     optional = {
+        "uuid": st.none() | st.uuids(),
         "municipality_code": st.none() | st.integers(),
         "from_date": from_date_strat(),
         "to_date": to_date_strat(),

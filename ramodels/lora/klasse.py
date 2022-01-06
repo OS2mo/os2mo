@@ -45,10 +45,10 @@ class Klasse(LoraBase):
     def from_simplified_fields(
         cls,
         facet_uuid: UUID,  # uuid
-        uuid: UUID,
         user_key: str,  # rarely used
         organisation_uuid: UUID,
         title: str,
+        uuid: Optional[UUID] = None,
         scope: Optional[str] = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",

@@ -103,7 +103,6 @@ class Manager(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         org_unit_uuid: UUID,
         employee_uuid: UUID,
         responsibility_uuids: List[UUID],
@@ -111,6 +110,7 @@ class Manager(MOBase):
         manager_type_uuid: UUID,
         from_date: str,
         to_date: Optional[str] = None,
+        uuid: Optional[UUID] = None,
     ) -> "Manager":
         """Create a manager from simplified fields."""
         employee = EmployeeRef(uuid=employee_uuid)

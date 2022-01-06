@@ -46,9 +46,9 @@ class Organisation(LoraBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         name: str,
         user_key: str,  # often == name,
+        uuid: Optional[UUID] = None,
         municipality_code: Optional[int] = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",

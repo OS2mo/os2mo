@@ -95,14 +95,16 @@ def association_strat(draw):
 @st.composite
 def association_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
         "employee_uuid": st.uuids(),
         "association_type_uuid": st.uuids(),
         "from_date": from_date_strat(),
     }
 
-    optional = {"to_date": st.none() | to_date_strat()}
+    optional = {
+        "uuid": st.none() | st.uuids(),
+        "to_date": st.none() | to_date_strat(),
+    }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
 
     from_date, to_date = st_dict.get("from_date"), st_dict.get("to_date")

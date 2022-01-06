@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -42,9 +43,9 @@ class Facet(LoraBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         user_key: str,
         organisation_uuid: UUID,
+        uuid: Optional[UUID] = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Facet":

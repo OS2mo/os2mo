@@ -93,7 +93,6 @@ def manager_strat(draw):
 @st.composite
 def manager_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
         "employee_uuid": st.uuids(),
         "responsibility_uuids": st.lists(st.uuids()),
@@ -102,7 +101,10 @@ def manager_fsf_strat(draw):
         "from_date": from_date_strat(),
     }
 
-    optional = {"to_date": st.none() | to_date_strat()}
+    optional = {
+        "uuid": st.none() | st.uuids(),
+        "to_date": st.none() | to_date_strat(),
+    }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
