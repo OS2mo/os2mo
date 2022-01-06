@@ -40,11 +40,14 @@ def facet_strat(draw):
 @st.composite
 def facet_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "user_key": st.text(),
         "organisation_uuid": st.uuids(),
     }
-    optional = {"from_date": from_date_strat(), "to_date": to_date_strat()}
+    optional = {
+        "uuid": st.none() | st.uuids(),
+        "from_date": from_date_strat(),
+        "to_date": to_date_strat(),
+    }
 
     # mypy has for some reason decided that required has an invalid type :(
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore

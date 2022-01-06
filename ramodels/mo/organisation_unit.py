@@ -110,12 +110,12 @@ class OrganisationUnit(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         user_key: str,
         name: str,
         org_unit_type_uuid: UUID,
         org_unit_level_uuid: UUID,
         from_date: str,
+        uuid: Optional[UUID] = None,
         parent_uuid: Optional[UUID] = None,
         org_unit_hierarchy_uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,

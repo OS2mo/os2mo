@@ -122,7 +122,6 @@ def engagement_strat(draw):
 @st.composite
 def engagement_fsf_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "org_unit_uuid": st.uuids(),
         "employee_uuid": st.uuids(),
         "job_function_uuid": st.uuids(),
@@ -132,6 +131,7 @@ def engagement_fsf_strat(draw):
         "from_date": from_date_strat(),
     }
     optional = {
+        "uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
         "extension_1": st.none() | st.text(),
         "extension_2": st.none() | st.text(),

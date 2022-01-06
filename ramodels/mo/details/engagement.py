@@ -158,7 +158,6 @@ class Engagement(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         org_unit_uuid: UUID,
         employee_uuid: UUID,
         job_function_uuid: UUID,
@@ -167,6 +166,7 @@ class Engagement(MOBase):
         user_key: str,
         from_date: str,
         to_date: Optional[str] = None,
+        uuid: Optional[UUID] = None,
         extension_1: Optional[str] = None,
         extension_2: Optional[str] = None,
         extension_3: Optional[str] = None,
@@ -238,12 +238,12 @@ class EngagementAssociation(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         org_unit_uuid: UUID,
         engagement_uuid: UUID,
         engagement_association_type_uuid: UUID,
         from_date: str,
         to_date: Optional[str] = None,
+        uuid: Optional[UUID] = None,
     ) -> "EngagementAssociation":
         """Create an engagement association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)

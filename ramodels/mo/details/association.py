@@ -109,12 +109,12 @@ class Association(MOBase):
     @classmethod
     def from_simplified_fields(
         cls,
-        uuid: UUID,
         org_unit_uuid: UUID,
         employee_uuid: UUID,
         association_type_uuid: UUID,
         from_date: str,
         to_date: Optional[str] = None,
+        uuid: Optional[UUID] = None,
     ) -> "Association":
         """Create a new association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)

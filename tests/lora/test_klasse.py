@@ -40,12 +40,12 @@ def klasse_strat(draw):
 def klasse_fsf_strat(draw):
     required = {
         "facet_uuid": st.uuids(),
-        "uuid": st.uuids(),
         "user_key": st.text(),
         "organisation_uuid": st.uuids(),
         "title": st.text(),
     }
     optional = {
+        "uuid": st.none() | st.uuids(),
         "scope": st.none() | st.text(),
         "from_date": from_date_strat(),
         "to_date": to_date_strat(),
