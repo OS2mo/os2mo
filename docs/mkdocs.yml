@@ -1,0 +1,82 @@
+site_name: OS2mo | MedarbejderOrganisation
+site_url: ""
+use_directory_urls: False
+site_description: Data models used by OS2mo
+repo_name: os2mo
+# TODO: Use the GitHub repo when it's ready
+repo_url: https://github.com/OS2mo/os2mo
+docs_dir: src/
+
+nav:
+  - Velkommen:
+      - OS2mo: index.md
+      - Release History: news.md
+  - Arkitektur og design:
+      - arkitektur-design/overview.md
+      - arkitektur-design/facets.md
+      - arkitektur-design/system.md
+  - Udvikler- og brugerguide:
+      - Getting started:
+          - guides/environment/docker.md
+          - guides/environment/install-source.md
+      - Tests: guides/tests.md
+      - Conventions: guides/conventions.md
+  - Drift og support:
+      - drift-support/auth.md
+      - drift-support/cookbook.md
+      - drift-support/manual.md
+      - drift-support/settings.md
+  - API Dokumentation:
+      - api-dokumentation/amqp.md
+      - api-dokumentation/triggers.md
+      - api-dokumentation/user-configuration.md
+
+theme:
+  name: "material"
+  palette:
+    - scheme:
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+  features:
+    - navigation.top
+    - navigation.tabs
+
+# Adds Magenta's colour scheme
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/mkdocstrings.css
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            docstring_options:
+              replace_admonitions: no
+          rendering:
+            members_order: source
+            show_signature_annotations: true
+            show_root_toc_entry: false
+      watch:
+        - ../backend/mora
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - toc:
+      toc_depth: 3
+      permalink: "#"

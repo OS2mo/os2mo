@@ -1,6 +1,0 @@
-# mo-workflow 
-
-## slots 
-
-- `default` 
-

@@ -22,7 +22,7 @@ Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
 
 
-Files: backend/poetry.lock docs/poetry.lock
+Files: *poetry.lock
 Copyright: 2017-2020 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
 
