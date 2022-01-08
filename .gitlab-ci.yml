@@ -21,6 +21,7 @@ stages:
   - prepare-release
   - release
   - deploy
+  - docs
 
 variables:
   # Project variables
@@ -233,27 +234,6 @@ Build Keycloak DB:
       --context=$CI_PROJECT_DIR
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.ci.keycloak-db
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
-
-pages:
-  <<: *master-rules
-  image: python:3.8
-  interruptible: true
-  stage: build
-  needs: []
-  services: []
-  tags:
-    - docker
-  before_script:
-    - pip3 install poetry==${POETRY_VERSION}
-    - poetry config virtualenvs.create false
-    - cd docs && poetry install --no-interaction
-  script:
-    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/public
-  artifacts:
-    paths:
-      - public/
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
 
 # Test stage
 ############
@@ -548,3 +528,42 @@ Release to Prod:
     - git add flux/projects/os2mo/config/prod.yaml
     - git commit -m "[cd] Deploy OS2MO $TEST_VERSION to flux prod servers"
     - git push
+
+# Docs stage
+############
+
+Export GQL Schema:
+  <<: *master-rules
+  image: ${IMAGE_SHA}
+  interruptible: true
+  needs: ["Build OS2MO"]
+  stage: docs
+  script:
+    - strawberry export-schema mora.graphapi.main:schema > $CI_PROJECT_DIR/gql_schema.sdl
+  artifacts:
+    paths:
+      - gql_schema.sdl
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+pages:
+  <<: *master-rules
+  image: python:3.8
+  interruptible: true
+  variables:
+    SDL: $CI_PROJECT_DIR/gql_schema.sdl
+    OUT: $CI_PROJECT_DIR/docs/src/voyager.html
+  needs: ["Export GQL Schema"]
+  stage: docs
+  before_script:
+    - pip3 install poetry==${POETRY_VERSION}
+    - poetry config virtualenvs.create false
+    - cd docs && poetry install --no-interaction
+  script:
+    - python parse_sdl.py
+    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/public
+  artifacts:
+    paths:
+      - public/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
