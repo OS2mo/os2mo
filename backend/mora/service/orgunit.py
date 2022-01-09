@@ -35,6 +35,7 @@ from fastapi import Query
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from more_itertools import unzip
+from ramodels.mo import OrganisationUnitWrite
 
 from . import autocomplete
 from . import facet
@@ -1288,7 +1289,7 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(req: OrganisationUnitWrite = Body(...), permissions=Depends(oidc.rbac_owner)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1336,7 +1337,7 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
 
     """
 
-    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await OrgUnitRequestHandler.construct(req.as_dict(by_alias=True), mapping.RequestType.CREATE)
 
     return await request.submit()
 
