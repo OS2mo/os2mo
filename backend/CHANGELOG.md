@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.23.6 - 2022-01-10
+-------------------
+
+[#47680] Remove validity from Klasser and Facetter in the GraphQL API
+
 3.23.5 - 2022-01-05
 -------------------
 
