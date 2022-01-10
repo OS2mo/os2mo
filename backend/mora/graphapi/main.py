@@ -146,7 +146,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all addresses, optionally by uuid(s)",
     )
-    async def address(
+    async def addresses(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AddressType]:
         if uuids is not None:
