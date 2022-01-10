@@ -156,7 +156,7 @@ class Query:
     # Leave
     # -----
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
-    async def leave(
+    async def leaves(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[LeaveType]:
         if uuids is not None:
