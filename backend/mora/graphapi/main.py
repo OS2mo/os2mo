@@ -122,7 +122,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all engagements, optionally by uuid(s)"
     )
-    async def engagement(
+    async def engagements(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EngagementType]:
         if uuids is not None:
