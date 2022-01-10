@@ -134,7 +134,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
-    async def kle(
+    async def kles(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[KLEType]:
         if uuids is not None:
