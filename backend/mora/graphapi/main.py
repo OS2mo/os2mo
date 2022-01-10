@@ -168,7 +168,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
-    async def ituser(
+    async def itusers(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ITUserType]:
         if uuids is not None:
