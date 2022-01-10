@@ -102,15 +102,6 @@ get_managers = partial(get_mo, model=ManagerRead)
 get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
-def lora_effective_time_to_validity(effective_time):
-    return {
-        "from": None
-        if effective_time.from_date == "-infinity"
-        else effective_time.from_date,
-        "to": None if effective_time.to_date == "infinity" else effective_time.to_date,
-    }
-
-
 def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
@@ -123,7 +114,6 @@ def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
         "name": class_attributes.title,
         "user_key": class_attributes.user_key,
         "scope": class_attributes.scope,
-        "validity": lora_effective_time_to_validity(class_attributes.effective_time),
         "published": class_state.published,
         "facet_uuid": one(class_relations.facet).uuid,
         "org_uuid": one(class_relations.responsible).uuid,
@@ -181,9 +171,12 @@ def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
         "uuid": uuid,
         "user_key": facet_attributes.user_key,
         "published": facet_state.published,
-        "validity": lora_effective_time_to_validity(facet_attributes.effective_time),
         "org_uuid": one(facet_relations.responsible).uuid,
-        "parent_uuid": one(facet_relations.parent).uuid,
+        "parent_uuid": (
+            one(facet_relations.parent).uuid
+            if facet_relations.parent is not None
+            else None
+        ),
     }
     return FacetRead(**mo_facet)
 

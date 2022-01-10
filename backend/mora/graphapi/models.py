@@ -4,7 +4,6 @@ from typing import Optional
 from uuid import UUID
 
 from ramodels.mo._shared import MOBase
-from ramodels.mo._shared import Validity
 from pydantic import Field
 
 
@@ -15,7 +14,6 @@ class ClassRead(MOBase):
     name: str = Field(description="Name/titel of the class.")
     user_key: str = Field(description="Short, unique key.")
     scope: Optional[str] = Field(description="Scope of the created class.")
-    validity: Validity = Field(description="Validity of the class object.")
 
     published: Optional[str] = Field(description="Published state of the class object.")
 
@@ -33,7 +31,6 @@ class FacetRead(MOBase):
 
     type_: str = Field("facet", alias="type", description="The object type")
     user_key: str = Field(description="Short, unique key.")
-    validity: Validity = Field(description="Validity of the class object.")
 
     published: Optional[str] = Field(description="Published state of the class object.")
 
