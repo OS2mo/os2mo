@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+4.0.2 - 2022-01-11
+------------------
+
+[#47764] Add missing description argument for some AddressRead attributes
+
 4.0.1 - 2022-01-06
 ------------------
 
