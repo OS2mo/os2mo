@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 from functools import partial
 from typing import cast
+from typing import Literal
 
 import pytest
 from hypothesis import assume
@@ -17,6 +18,7 @@ from hypothesis import example
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import BaseModel
+from pydantic import Field
 from pydantic import ValidationError
 
 from ramodels.exceptions import ISOParseError
@@ -79,7 +81,7 @@ class TestLoraBase:
         assert LoraSub.__fields__.get("uuid")
 
     @given(st.uuids())
-    def test_validators(self, hy_uuid):
+    def test_uuid_validator(self, hy_uuid):
         class LoraSub(LoraBase):
             pass
 
@@ -90,6 +92,17 @@ class TestLoraBase:
         # But we should also be able to set them explicitly
         lora_sub_with_uuid = LoraSub(uuid=hy_uuid)
         assert lora_sub_with_uuid.uuid == hy_uuid
+
+    def test_object_type_validator(self):
+        class LoRaSub(LoraBase):
+            object_type: Literal["my_type"] = Field("my_type")
+
+        assert LoRaSub()
+        assert LoRaSub(object_type="My_Type")  # type: ignore
+
+        # Test non-string object_type for coverage
+        with pytest.raises(ValidationError):
+            LoRaSub(object_type=123)  # type: ignore
 
 
 # --------------------------------------------------------------------------------------
