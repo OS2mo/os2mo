@@ -258,9 +258,6 @@ def get_schema():
     return schema
 
 
-schema = get_schema()
-
-
 async def get_context() -> Dict[str, Any]:
     loaders = await get_loaders()
     return {**loaders}

@@ -123,3 +123,7 @@ docker-compose.override.yml
 
 # Keycloak
 frontend/public/keycloak.json
+
+# Docs
+schema.sdl
+voyager.html
