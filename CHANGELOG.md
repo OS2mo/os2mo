@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+4.0.3 - 2022-01-11
+------------------
+
+[#47680] String.lower object_type literal for LoRa objects.
+
 4.0.2 - 2022-01-11
 ------------------
 
