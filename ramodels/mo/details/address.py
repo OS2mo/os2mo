@@ -56,10 +56,10 @@ class AddressRead(AddressBase):
         description="UUID of the organisation unit related to the address."
     )
     engagement_uuid: Optional[UUID] = Field(
-        "UUID of the engagement related to the address."
+        description="UUID of the engagement related to the address."
     )
     visibility_uuid: Optional[UUID] = Field(
-        "UUID of the visibility klasse of the address."
+        description="UUID of the visibility klasse of the address."
     )
 
     # NOTE: The one and only one of {employee, org_unit, engagement} invariant
