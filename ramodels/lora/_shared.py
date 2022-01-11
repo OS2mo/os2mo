@@ -64,6 +64,16 @@ class LoraBase(RABase):
     def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
         return _uuid or uuid4()
 
+    @validator("object_type", pre=True, check_fields=False)
+    def lower_object_type(cls, object_type: Optional[Any]) -> Any:
+        """
+        Lower the object_type before validating equality with the literal, as some LoRa
+        databases define the capitalised value, while others do not.
+        """
+        if isinstance(object_type, str):
+            return object_type.lower()
+        return object_type
+
 
 # --------------------------------------------------------------------------------------
 # Infinite Datetime
@@ -294,7 +304,7 @@ def get_relations(
     return [Relation(uuid=uuids, effective_time=effective_time)]
 
 
-class Responsible(RABase):
+class Responsible(LoraBase):
     """
     Responsible object in LoRa.
     """
@@ -308,7 +318,7 @@ class Responsible(RABase):
     )
 
 
-class ClassRef(RABase):
+class ClassRef(LoraBase):
     """
     Reference to given LoRa class.
     """
@@ -322,7 +332,7 @@ class ClassRef(RABase):
     )
 
 
-class ParentClassification(RABase):
+class ParentClassification(LoraBase):
     """
     ParentClassification object in LoRa.
     """
@@ -336,7 +346,7 @@ class ParentClassification(RABase):
     )
 
 
-class FacetRef(RABase):
+class FacetRef(LoraBase):
     """
     Reference to given LoRa facets.
     """
