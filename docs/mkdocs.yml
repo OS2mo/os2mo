@@ -30,7 +30,7 @@ nav:
       - api-dokumentation/amqp.md
       - api-dokumentation/triggers.md
       - api-dokumentation/user-configuration.md
-
+  - GraphQL: graphql/graphql.md
 theme:
   name: "material"
   palette:
@@ -48,23 +48,9 @@ theme:
 # Adds Magenta's colour scheme
 extra_css:
   - stylesheets/extra.css
-  - stylesheets/mkdocstrings.css
 
 plugins:
   - search
-  - autorefs
-  - mkdocstrings:
-      handlers:
-        python:
-          selection:
-            docstring_options:
-              replace_admonitions: no
-          rendering:
-            members_order: source
-            show_signature_annotations: true
-            show_root_toc_entry: false
-      watch:
-        - ../backend/mora
 
 markdown_extensions:
   - pymdownx.highlight
