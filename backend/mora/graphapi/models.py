@@ -12,7 +12,7 @@ class ClassRead(MOBase):
     """Payload model for classes to be created under the given facet."""
 
     type_: str = Field("class", alias="type", description="The object type")
-    name: str = Field(description="Name/titel of the class.")
+    name: str = Field(description="Name/title of the class.")
     user_key: str = Field(description="Short, unique key.")
     scope: Optional[str] = Field(description="Scope of the created class.")
 
