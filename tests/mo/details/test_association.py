@@ -16,6 +16,7 @@ from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import DynamicClasses
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Association
@@ -83,7 +84,7 @@ def write_strat(draw):
 def association_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
         "association_type": st.builds(AssociationType),
         "validity": st.builds(Validity),
     }
@@ -96,7 +97,7 @@ def association_strat(draw):
 def association_fsf_strat(draw):
     required = {
         "org_unit_uuid": st.uuids(),
-        "employee_uuid": st.uuids(),
+        "person_uuid": st.uuids(),
         "association_type_uuid": st.uuids(),
         "from_date": from_date_strat(),
     }

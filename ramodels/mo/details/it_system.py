@@ -16,6 +16,7 @@ from .._shared import EmployeeRef
 from .._shared import ITSystemRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import Validity
 
 
@@ -63,8 +64,8 @@ class ITUser(MOBase):
     itsystem: ITSystemRef = Field(
         description="Reference to the IT system for the IT user."
     )
-    employee: Optional[EmployeeRef] = Field(
-        description="Reference to the employee for the IT user."
+    person: Optional[PersonRef] = Field(
+        description="Reference to the person for the IT user."
     )
     org_unit: Optional[OrgUnitRef] = Field(
         description="Reference to the organisation unit for the IT user."
@@ -79,7 +80,7 @@ class ITUser(MOBase):
         from_date: str,
         uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
-        employee_uuid: Optional[UUID] = None,
+        person_uuid: Optional[UUID] = None,
         org_unit_uuid: Optional[UUID] = None,
     ) -> "ITUser":
         """
@@ -87,7 +88,7 @@ class ITUser(MOBase):
         """
 
         it_system = ITSystemRef(uuid=itsystem_uuid)
-        employee = EmployeeRef(uuid=employee_uuid) if employee_uuid else None
+        person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
 
@@ -95,7 +96,7 @@ class ITUser(MOBase):
             uuid=uuid,
             user_key=user_key,
             itsystem=it_system,
-            employee=employee,
+            person=person,
             org_unit=org_unit,
             validity=validity,
         )

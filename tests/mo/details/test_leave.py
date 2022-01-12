@@ -12,6 +12,7 @@ from hypothesis import strategies as st
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import LeaveType
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Leave
 from ramodels.mo.details import LeaveBase
@@ -72,7 +73,7 @@ def leave_strat(draw):
         "user_key": st.text(),
         "leave_type": st.builds(LeaveType),
         "validity": st.builds(Validity),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
     }
     optional = {"type": st.just("leave"), "engagement": st.builds(EngagementRef)}
 

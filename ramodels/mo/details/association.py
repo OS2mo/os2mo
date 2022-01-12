@@ -18,6 +18,7 @@ from .._shared import DynamicClasses
 from .._shared import EmployeeRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import Primary
 from .._shared import Validity
 
@@ -90,13 +91,13 @@ class Association(MOBase):
     )
     org_unit: OrgUnitRef = Field(
         description=(
-            "Reference to the organisation unit "
-            "for which the association should be created."
+            "Reference to the organisation unit for which the association should be "
+            "created."
         )
     )
-    employee: EmployeeRef = Field(
+    person: PersonRef = Field(
         description=(
-            "Reference to the employee for which the association should be created."
+            "Reference to the person for which the association should be created."
         )
     )
     association_type: AssociationType = Field(
@@ -110,7 +111,7 @@ class Association(MOBase):
     def from_simplified_fields(
         cls,
         org_unit_uuid: UUID,
-        employee_uuid: UUID,
+        person_uuid: UUID,
         association_type_uuid: UUID,
         from_date: str,
         to_date: Optional[str] = None,
@@ -119,12 +120,12 @@ class Association(MOBase):
         """Create a new association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
-        employee = EmployeeRef(uuid=employee_uuid)
+        person = PersonRef(uuid=person_uuid)
         association_type = AssociationType(uuid=association_type_uuid)
         return cls(
             uuid=uuid,
             org_unit=org_unit,
-            employee=employee,
+            person=person,
             association_type=association_type,
             validity=validity,
         )

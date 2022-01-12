@@ -18,6 +18,7 @@ from .._shared import ManagerLevel
 from .._shared import ManagerType
 from .._shared import MOBase
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import Responsibility
 from .._shared import Validity
 
@@ -86,8 +87,8 @@ class Manager(MOBase):
             "for which the manager should be created."
         )
     )
-    employee: EmployeeRef = Field(
-        description="Reference to the employee that will be the resulting manager."
+    person: PersonRef = Field(
+        description="Reference to the person that will be the resulting manager."
     )
     responsibility: List[Responsibility] = Field(
         description="Manager responsibility objects."
@@ -104,7 +105,7 @@ class Manager(MOBase):
     def from_simplified_fields(
         cls,
         org_unit_uuid: UUID,
-        employee_uuid: UUID,
+        person_uuid: UUID,
         responsibility_uuids: List[UUID],
         manager_level_uuid: UUID,
         manager_type_uuid: UUID,
@@ -113,7 +114,7 @@ class Manager(MOBase):
         uuid: Optional[UUID] = None,
     ) -> "Manager":
         """Create a manager from simplified fields."""
-        employee = EmployeeRef(uuid=employee_uuid)
+        person = PersonRef(uuid=person_uuid)
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
         responsibility = [
             Responsibility(uuid=r_uuid) for r_uuid in responsibility_uuids
@@ -125,7 +126,7 @@ class Manager(MOBase):
         return cls(
             uuid=uuid,
             org_unit=org_unit,
-            employee=employee,
+            person=person,
             responsibility=responsibility,
             manager_level=manager_level,
             manager_type=manager_type,

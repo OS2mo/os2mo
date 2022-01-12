@@ -16,6 +16,7 @@ from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import OrganisationRef
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo._shared import Visibility
 from ramodels.mo.details.address import Address
@@ -90,7 +91,7 @@ def address_strat(draw):
     optional = {
         "type": st.just("address"),
         "value2": st.none() | st.text(),
-        "employee": st.none() | st.builds(EmployeeRef),
+        "person": st.none() | st.builds(PersonRef),
         "org_unit": st.none() | st.builds(OrgUnitRef),
         "engagement": st.none() | st.builds(EngagementRef),
         "visibility": st.none() | st.builds(Visibility),
@@ -111,7 +112,7 @@ def address_fsf_strat(draw):
     optional = {
         "to_date": st.none() | to_date_strat(),
         "value2": st.none() | st.text(),
-        "employee_uuid": st.none() | st.uuids(),
+        "person_uuid": st.none() | st.uuids(),
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
         "visibility_uuid": st.none() | st.uuids(),

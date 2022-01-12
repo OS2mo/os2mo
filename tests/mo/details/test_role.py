@@ -11,6 +11,7 @@ from hypothesis import strategies as st
 
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import RoleType
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Role
@@ -69,7 +70,7 @@ def role_strat(draw):
         "role_type": st.builds(RoleType),
         "validity": st.builds(Validity),
         "org_unit": st.builds(OrgUnitRef),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
     }
     optional = {
         "type": st.just("role"),

@@ -16,6 +16,7 @@ from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import LeaveRef
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import EngagementAssociation
@@ -95,7 +96,7 @@ def write_strat(draw):
 def engagement_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
         "job_function": st.builds(JobFunction),
         "engagement_type": st.builds(EngagementType),
         "validity": st.builds(Validity),
@@ -123,7 +124,7 @@ def engagement_strat(draw):
 def engagement_fsf_strat(draw):
     required = {
         "org_unit_uuid": st.uuids(),
-        "employee_uuid": st.uuids(),
+        "person_uuid": st.uuids(),
         "job_function_uuid": st.uuids(),
         "engagement_type_uuid": st.uuids(),
         "primary_uuid": st.uuids(),
