@@ -5,6 +5,8 @@ from aioresponses import aioresponses
 from aiohttp import ClientError
 from httpx import Response, Request
 from mock import patch
+from starlette.status import HTTP_204_NO_CONTENT
+from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
 from mora import health, config
@@ -135,3 +137,36 @@ class DARHealthTests(tests.cases.TestCase):
         actual = await health.dar()
 
         self.assertEqual(True, actual)
+
+
+class TestKubernetesProbes(tests.cases.TestCase):
+    """
+    Test the Kubernetes liveness and readiness endpoints
+    """
+
+    def test_liveness(self):
+        self.assertRequest("/health/live", HTTP_204_NO_CONTENT)
+
+    @patch("mora.health._is_endpoint_reachable")
+    def test_readiness_everything_ready(self, mock_is_endpoint_reachable):
+        mock_is_endpoint_reachable.side_effect = [True, True]
+        self.assertRequest("/health/ready", HTTP_204_NO_CONTENT)
+
+    @patch("mora.health._is_endpoint_reachable")
+    @patch("mora.health.configuration_database")
+    def test_readiness_conf_db_not_ready(
+        self, mock_conf_db, mock_is_endpoint_reachable
+    ):
+        mock_conf_db.return_value = False
+        mock_is_endpoint_reachable.side_effect = [True, True]
+        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
+
+    @patch("mora.health._is_endpoint_reachable")
+    def test_readiness_lora_not_ready(self, mock_is_endpoint_reachable):
+        mock_is_endpoint_reachable.side_effect = [False, True]
+        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
+
+    @patch("mora.health._is_endpoint_reachable")
+    def test_readiness_keycloak_not_ready(self, mock_is_endpoint_reachable):
+        mock_is_endpoint_reachable.side_effect = [True, False]
+        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
