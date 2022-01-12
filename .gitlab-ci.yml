@@ -34,7 +34,6 @@ variables:
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak-db
 
-  POETRY_VERSION: 1.1.8
   PYPROJECT_ROOT: "./backend"
 
 include:
@@ -53,11 +52,6 @@ workflow:
   rules:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
-
-.poetry-install: &poetry-install
-  - pip3 install poetry==${POETRY_VERSION}
-  - poetry config virtualenvs.create false
-  - cd backend && poetry install --no-interaction
 
 .master-rules: &master-rules
   rules:
@@ -531,39 +525,37 @@ Release to Prod:
 
 # Docs stage
 ############
-
-Export GQL Schema:
+.docs-rules: &docs-rules
   <<: *master-rules
-  image: ${IMAGE_SHA}
   interruptible: true
-  needs: ["Build OS2MO"]
   stage: docs
-  script:
-    - strawberry export-schema mora.graphapi.main:schema > $CI_PROJECT_DIR/gql_schema.sdl
-  artifacts:
-    paths:
-      - gql_schema.sdl
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
 
-pages:
-  <<: *master-rules
-  image: python:3.8
-  interruptible: true
+Export GQL Schema:
+  <<: *docs-rules
+  image: ${IMAGE_SHA}
   variables:
-    SDL: $CI_PROJECT_DIR/gql_schema.sdl
-    OUT: $CI_PROJECT_DIR/docs/src/voyager.html
+    OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
+  needs: ["Build OS2MO"]
+  script:
+    - python docs/schema_to_voyager.py
+  artifacts:
+    paths:
+      - $OUT
+
+pages:
+  <<: *docs-rules
+  image: python:3.8
   needs: ["Export GQL Schema"]
-  stage: docs
+  variables:
+    POETRY_VERSION: 1.1.12
+    POETRY_VIRTUALENVS_CREATE: "false"
   before_script:
     - pip3 install poetry==${POETRY_VERSION}
-    - poetry config virtualenvs.create false
     - cd docs && poetry install --no-interaction
   script:
-    - python parse_sdl.py
     - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/public
   artifacts:
     paths:
       - public/
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"

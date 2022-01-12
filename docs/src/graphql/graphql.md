@@ -2,4 +2,4 @@
 title: GraphQL
 ---
 
-[OS2mo | GraphQL Voyager](../voyager.html)
+[OS2mo | GraphQL Voyager](voyager.html)

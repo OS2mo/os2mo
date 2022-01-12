@@ -1,7 +1,7 @@
 site_name: OS2mo | MedarbejderOrganisation
 site_url: ""
 use_directory_urls: False
-site_description: Data models used by OS2mo
+site_description: OS2mo dokumentation
 repo_name: os2mo
 # TODO: Use the GitHub repo when it's ready
 repo_url: https://github.com/OS2mo/os2mo
@@ -31,6 +31,7 @@ nav:
       - api-dokumentation/triggers.md
       - api-dokumentation/user-configuration.md
   - GraphQL: graphql/graphql.md
+
 theme:
   name: "material"
   palette:
@@ -44,6 +45,7 @@ theme:
   features:
     - navigation.top
     - navigation.tabs
+  favicon: static/favicon.ico
 
 # Adds Magenta's colour scheme
 extra_css:
