@@ -4,10 +4,13 @@ import asyncio
 
 from aio_pika.exceptions import AMQPError
 from fastapi import APIRouter
+from fastapi import Response
 from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
 from pydantic import AnyUrl
 from requests.exceptions import RequestException
+from starlette.status import HTTP_204_NO_CONTENT
+from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 from structlog import get_logger
 
 from mora import conf_db
@@ -155,6 +158,30 @@ async def root():
         for func in HEALTH_ENDPOINTS
     }
     return health
+
+
+@router.get("/live", status_code=HTTP_204_NO_CONTENT)
+async def liveness():
+    """
+    Endpoint to be used as a liveness probe for Kubernetes
+    """
+    return
+
+
+@router.get("/ready", status_code=HTTP_204_NO_CONTENT)
+async def readiness(response: Response):
+    """
+    Endpoint to be used as a readiness probe for Kubernetes.
+    If MO itself is ready (FastAPI is running) and LoRa, the
+    configuration database and Keycloak all are healthy then
+    MO is considered to be ready.
+    """
+
+    lora_ready, keycloak_ready = await asyncio.gather(oio_rest(), keycloak())
+    configuration_database_ready = configuration_database()
+
+    if not (lora_ready and configuration_database_ready and keycloak_ready):
+        response.status_code = HTTP_503_SERVICE_UNAVAILABLE
 
 
 def register_routes():
