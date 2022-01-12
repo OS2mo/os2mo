@@ -25,6 +25,7 @@ stages:
   - release
   - deploy
   - docs
+  - maintenance
 
 variables:
   # Project variables
@@ -728,3 +729,37 @@ pages:
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: never
     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+# Maintenance stage
+############
+.dependabot:
+  stage: maintenance
+  image:
+    name: docker.io/andrcuns/dependabot-gitlab:0.13.0
+    entrypoint: [""]
+  variables:
+    PACKAGE_MANAGER_SET: npm,pip
+    PROJECT_PATH: rammearkitektur/os2mo
+    GIT_STRATEGY: none
+    PACKAGE_MANAGER: $CI_JOB_NAME
+    RAILS_ENV: production
+    SETTINGS__GITLAB_ACCESS_TOKEN: $DEPENDABOT_TOKEN
+    SETTINGS__GITLAB_URL: "https://git.magenta.dk"
+    SETTINGS__STANDALONE: "true"
+  rules:
+    # Only run these on scheduled jobs
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE == "dependabot"
+  before_script:
+    - cd /home/dependabot/app
+  script:
+    - bundle exec rake "dependabot:update[$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME,$PACKAGE_MANAGER,$DIR]"
+
+pip:
+  variables:
+    DIR: '/backend'
+  extends: .dependabot
+
+# npm:
+#   variables:
+#     DIR: '/frontend'
+#   extends: .dependabot

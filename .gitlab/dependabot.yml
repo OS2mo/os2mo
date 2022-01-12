@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekday
+      hours: "9-17"
+    auto-merge: false
+
+  # - package-ecosystem: npm
+  #   directory: /frontend
+  #   schedule:
+  #     interval: weekday
+  #     hours: "9-17"
+  #   auto-merge: false
