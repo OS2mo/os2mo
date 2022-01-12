@@ -54,7 +54,7 @@ def itsystem_fsf_strat(draw):
         "affiliated_users": st.none() | st.lists(st.uuids(), min_size=1),
         "affiliated_interests": st.none() | st.lists(st.uuids(), min_size=1),
         "affiliated_itsystems": st.none() | st.lists(st.uuids(), min_size=1),
-        "affiliated_employees": st.none() | st.lists(st.uuids(), min_size=1),
+        "affiliated_persons": st.none() | st.lists(st.uuids(), min_size=1),
         "addresses": st.none() | st.lists(st.uuids(), min_size=1),
         "system_types": st.none() | st.lists(st.uuids(), min_size=1),
         "tasks": st.none() | st.lists(st.uuids(), min_size=1),
