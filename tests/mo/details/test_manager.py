@@ -13,6 +13,7 @@ from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import ManagerLevel
 from ramodels.mo._shared import ManagerType
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import Validity
 from ramodels.mo.details import Manager
@@ -78,7 +79,7 @@ def write_strat(draw):
 def manager_strat(draw):
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
         "responsibility": st.lists(st.builds(Responsibility)),
         "manager_level": st.builds(ManagerLevel),
         "manager_type": st.builds(ManagerType),
@@ -94,7 +95,7 @@ def manager_strat(draw):
 def manager_fsf_strat(draw):
     required = {
         "org_unit_uuid": st.uuids(),
-        "employee_uuid": st.uuids(),
+        "person_uuid": st.uuids(),
         "responsibility_uuids": st.lists(st.uuids()),
         "manager_level_uuid": st.uuids(),
         "manager_type_uuid": st.uuids(),

@@ -14,6 +14,7 @@ from pydantic import Field
 from .._shared import EmployeeRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import RoleType
 from .._shared import Validity
 
@@ -54,9 +55,9 @@ class RoleWrite(RoleBase):
 class Role(MOBase):
     type_: Literal["role"] = Field("role", alias="type", description="The object type.")
     role_type: RoleType = Field(description="Reference to the role type facet")
-    employee: EmployeeRef = Field(
+    person: PersonRef = Field(
         description=(
-            "Reference to the employee object for which the role should be created."
+            "Reference to the person object for which the role should be created."
         )
     )
     org_unit: OrgUnitRef = Field(

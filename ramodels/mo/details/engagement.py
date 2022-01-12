@@ -20,6 +20,7 @@ from .._shared import JobFunction
 from .._shared import LeaveRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import Primary
 from .._shared import Validity
 
@@ -124,9 +125,9 @@ class Engagement(MOBase):
             "for which the engagement should be created."
         )
     )
-    employee: EmployeeRef = Field(
+    person: PersonRef = Field(
         description=(
-            "Reference to the employee for which the engagement should be created."
+            "Reference to the person for which the engagement should be created."
         )
     )
     job_function: JobFunction = Field(
@@ -159,7 +160,7 @@ class Engagement(MOBase):
     def from_simplified_fields(
         cls,
         org_unit_uuid: UUID,
-        employee_uuid: UUID,
+        person_uuid: UUID,
         job_function_uuid: UUID,
         engagement_type_uuid: UUID,
         primary_uuid: UUID,
@@ -180,7 +181,7 @@ class Engagement(MOBase):
     ) -> "Engagement":
         """Create an engagement from simplified fields."""
         org_unit = OrgUnitRef(uuid=org_unit_uuid)
-        employee = EmployeeRef(uuid=employee_uuid)
+        person = PersonRef(uuid=person_uuid)
         job_function = JobFunction(uuid=job_function_uuid)
         engagement_type = EngagementType(uuid=engagement_type_uuid)
         validity = Validity(from_date=from_date, to_date=to_date)
@@ -188,7 +189,7 @@ class Engagement(MOBase):
         return cls(
             uuid=uuid,
             org_unit=org_unit,
-            employee=employee,
+            person=person,
             job_function=job_function,
             engagement_type=engagement_type,
             validity=validity,

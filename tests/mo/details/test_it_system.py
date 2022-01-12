@@ -12,6 +12,7 @@ from hypothesis import strategies as st
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import ITSystemRef
 from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.details.it_system import ITUserBase
@@ -81,7 +82,7 @@ def it_system_strat(draw):
     optional = {
         "type": st.just("it"),
         "org_unit": st.none() | st.builds(OrgUnitRef),
-        "employee": st.none() | st.builds(EmployeeRef),
+        "person": st.none() | st.builds(PersonRef),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
@@ -100,7 +101,7 @@ def it_system_fsf_strat(draw):
         "uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
         "org_unit_uuid": st.none() | st.uuids(),
-        "employee_uuid": st.none() | st.uuids(),
+        "person_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore

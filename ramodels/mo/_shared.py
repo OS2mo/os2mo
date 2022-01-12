@@ -102,6 +102,10 @@ class AddressType(MORef):
     """Address type reference."""
 
 
+class EmployeeRef(MORef):
+    """Employee reference."""
+
+
 class EngagementAssociationType(MORef):
     """Engagement Association type reference."""
 
@@ -191,8 +195,8 @@ class ParentRef(MORef):
     """Parent reference."""
 
 
-class EmployeeRef(MORef):
-    """Employee reference."""
+class PersonRef(MORef):
+    """Person reference."""
 
 
 class Primary(MORef):

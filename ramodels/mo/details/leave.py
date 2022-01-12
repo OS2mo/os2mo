@@ -16,6 +16,7 @@ from .._shared import EmployeeRef
 from .._shared import EngagementRef
 from .._shared import LeaveType
 from .._shared import MOBase
+from .._shared import PersonRef
 from .._shared import Validity
 
 # --------------------------------------------------------------------------------------
@@ -59,9 +60,9 @@ class Leave(MOBase):
         "leave", alias="type", description="The object type."
     )
     leave_type: LeaveType = Field(description="Reference to the leave type facet")
-    employee: EmployeeRef = Field(
+    person: PersonRef = Field(
         description=(
-            "Reference to the employee object for which the role should be created."
+            "Reference to the person object for which the role should be created."
         )
     )
     engagement: Optional[EngagementRef] = Field(

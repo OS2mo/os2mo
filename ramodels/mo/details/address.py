@@ -21,6 +21,7 @@ from .._shared import EngagementRef
 from .._shared import MOBase
 from .._shared import OrganisationRef
 from .._shared import OrgUnitRef
+from .._shared import PersonRef
 from .._shared import Validity
 from .._shared import Visibility
 
@@ -129,19 +130,19 @@ class Address(MOBase):
     )
     org: Optional[OrganisationRef] = Field(
         description=(
-            "Reference to the organisation under which the address should "
-            "be created. MO only supports one organisation, so this is rarely used."
+            "Reference to the organisation under which the address should be created. "
+            "MO only supports one organisation, so this is rarely used."
         )
     )
-    employee: Optional[EmployeeRef] = Field(
+    person: Optional[PersonRef] = Field(
         description=(
-            "Reference to the employee object for which the address should be created."
+            "Reference to the person object for which the address should be created."
         )
     )
     org_unit: Optional[OrgUnitRef] = Field(
         description=(
-            "Reference to the organisation unit for which the address should "
-            "be created."
+            "Reference to the organisation unit for which the address should be "
+            "created."
         )
     )
     engagement: Optional[EngagementRef] = Field(
@@ -163,7 +164,7 @@ class Address(MOBase):
         uuid: Optional[UUID] = None,
         to_date: Optional[str] = None,
         value2: Optional[str] = None,
-        employee_uuid: Optional[UUID] = None,
+        person_uuid: Optional[UUID] = None,
         org_unit_uuid: Optional[UUID] = None,
         engagement_uuid: Optional[UUID] = None,
         visibility_uuid: Optional[UUID] = None,
@@ -173,7 +174,7 @@ class Address(MOBase):
         address_type = AddressType(uuid=address_type_uuid)
         org = OrganisationRef(uuid=org_uuid) if org_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
-        employee = EmployeeRef(uuid=employee_uuid) if employee_uuid else None
+        person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
         engagement = EngagementRef(uuid=engagement_uuid) if engagement_uuid else None
         visibility = Visibility(uuid=visibility_uuid) if visibility_uuid else None
@@ -183,7 +184,7 @@ class Address(MOBase):
             value2=value2,
             address_type=address_type,
             org=org,
-            employee=employee,
+            person=person,
             org_unit=org_unit,
             engagement=engagement,
             visibility=visibility,
