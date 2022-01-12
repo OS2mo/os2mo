@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.0.0 - 2022-01-12
+------------------
+
+[#47912][#47699] Revert 'person' -> 'employee' for old MO and LoRa models.
+
 4.0.3 - 2022-01-11
 ------------------
 
