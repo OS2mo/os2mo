@@ -5,6 +5,7 @@ from typing import Any
 from typing import Dict
 from typing import Optional
 from uuid import UUID
+from fastapi import APIRouter
 
 from more_itertools import one
 
@@ -113,3 +114,56 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(r.data)
+
+
+def meta_router():
+    router = APIRouter()
+
+    @router.get("/version/")
+    async def version():
+        query = """
+        query VersionQuery {
+          version {
+            mo_hash
+            lora_version {
+              major
+              minor
+              patch
+            }
+            mo_version {
+              major
+              minor
+              patch
+            }
+          }
+        }
+        """
+
+        # Execute GraphQL query to fetch required data
+        r = await execute_graphql(query)
+        if r.errors:
+            raise ValueError(r.errors)
+
+        version = r.data["version"]
+
+        mo_version = ""
+        if version["mo_version"] is not None:
+            mo_version = ".".join(map(str, version["mo_version"].values()))
+
+        commit_sha = "" if version["mo_hash"] is None else version["mo_hash"]
+
+        lora_version = ""
+        if version["lora_version"] is not None:
+            lora_version = ".".join(map(str, version["lora_version"].values()))
+
+        return {
+            "mo_version": mo_version + "@" + commit_sha,
+            "lora_version": lora_version,
+        }
+
+    @router.get("/service/{rest_of_path:path}")
+    def no_such_endpoint(rest_of_path):
+        """Throw an error on unknown `/service/` endpoints."""
+        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
+    return router

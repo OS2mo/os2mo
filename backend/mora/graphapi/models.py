@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID
 
 from ramodels.mo._shared import MOBase
+from pydantic import BaseModel
 from pydantic import Field
 
 
@@ -40,3 +41,9 @@ class FacetRead(MOBase):
     parent_uuid: Optional[UUID] = Field(
         description="UUID of the parent classification."
     )
+
+
+class SemanticVersion(BaseModel):
+    major: int
+    minor: int
+    patch: int

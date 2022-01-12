@@ -28,6 +28,7 @@ from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
+from mora.service.shimmed import meta_router
 from more_itertools import only
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
@@ -42,8 +43,6 @@ from structlog.contextvars import merge_contextvars
 from structlog.processors import JSONRenderer
 from tests.util import setup_test_routing
 
-from . import exceptions
-from . import lora
 from . import service
 from . import triggers
 from .api.v1 import reading_endpoints
@@ -59,31 +58,6 @@ basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
 logger = get_logger()
-
-
-def meta_router():
-    router = APIRouter()
-
-    @router.get("/version/")
-    async def version():
-        settings = config.get_settings()
-
-        commit_tag = settings.commit_tag
-        commit_sha = settings.commit_sha
-        mo_version = f"{commit_tag}@{commit_sha}"
-
-        lora_version = await lora.get_version()
-        return {
-            "mo_version": mo_version,
-            "lora_version": lora_version,
-        }
-
-    @router.get("/service/{rest_of_path:path}")
-    def no_such_endpoint(rest_of_path):
-        """Throw an error on unknown `/service/` endpoints."""
-        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
-
-    return router
 
 
 def static_content_router():

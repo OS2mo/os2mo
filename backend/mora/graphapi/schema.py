@@ -23,8 +23,16 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 from strawberry.types import Info
 
+from mora import lora
+from mora import config
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
+from mora.graphapi.models import SemanticVersion
+
+
+@strawberry.experimental.pydantic.type(model=SemanticVersion, all_fields=True)
+class SemanticVersionType:
+    pass
 
 
 @strawberry.experimental.pydantic.type(model=DynamicClasses, all_fields=True)
@@ -514,3 +522,48 @@ class FacetType:
             The associated classes.
         """
         return await info.context["facet_classes_loader"].load(root.uuid)
+
+
+@strawberry.type(
+    description=("A version object."),
+)
+class VersionType:
+    @strawberry.field(description="OS2mo Version.")
+    async def mo_version(self) -> Optional[SemanticVersionType]:
+        """Get the mo version.
+
+        Returns:
+            The version.
+        """
+        settings = config.get_settings()
+        commit_tag = settings.commit_tag
+        if not commit_tag:
+            return None
+        major, minor, patch = commit_tag.split(".")
+        return SemanticVersion(major=major, minor=minor, patch=patch)
+
+    @strawberry.field(description="OS2mo commit hash.")
+    async def mo_hash(self) -> Optional[str]:
+        """Get the mo commit hash.
+
+        Returns:
+            The commit hash.
+        """
+        settings = config.get_settings()
+        commit_sha = settings.commit_sha
+        if not commit_sha:
+            return None
+        return commit_sha
+
+    @strawberry.field(description="LoRa version.")
+    async def lora_version(self) -> Optional[SemanticVersionType]:
+        """Get the lora version.
+
+        Returns:
+            The version.
+        """
+        commit_tag = await lora.get_version()
+        if not commit_tag:
+            return None
+        major, minor, patch = commit_tag.split(".")
+        return SemanticVersion(major=major, minor=minor, patch=patch)
