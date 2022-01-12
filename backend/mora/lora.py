@@ -41,7 +41,7 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
-from .http import lora_client
+from .http import create_lora_client, lora_client
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -400,6 +400,10 @@ class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.loaders: Dict[Tuple[str], DataLoader] = {}
+
+        if config.is_under_test():
+            global lora_client
+            lora_client = create_lora_client()
 
     def load(self, **params: Any) -> Awaitable[List[dict]]:
         """
