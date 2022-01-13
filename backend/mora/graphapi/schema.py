@@ -28,6 +28,8 @@ from mora import config
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import SemanticVersion
+from mora.graphapi.models import HealthRead
+from mora.graphapi.health import health_map
 
 
 @strawberry.experimental.pydantic.type(model=SemanticVersion, all_fields=True)
@@ -567,3 +569,14 @@ class VersionType:
             return None
         major, minor, patch = commit_tag.split(".")
         return SemanticVersion(major=major, minor=minor, patch=patch)
+
+
+@strawberry.experimental.pydantic.type(
+    model=HealthRead,
+    all_fields=True,
+    description=("A Healthcheck: whether a specific subsystem is working."),
+)
+class HealthType:
+    @strawberry.field(description="The healthcheck status")
+    async def status(self, root: HealthRead) -> bool:
+        return await health_map[root.identifier]()

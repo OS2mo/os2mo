@@ -9,12 +9,12 @@ from fastapi import APIRouter
 
 from more_itertools import one
 
-from mora.service.employee import router
+from mora.service.employee import router as employee_router
 from ..graphapi.shim import execute_graphql
 from .. import exceptions
 
 
-@router.get("/e/{id}/")
+@employee_router.get("/e/{id}/")
 async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
     """Retrieve an employee.
 

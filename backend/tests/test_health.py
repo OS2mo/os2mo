@@ -9,7 +9,8 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
-from mora import health, config
+from mora import config
+from mora.graphapi import health
 from tests import util
 
 pytestmark = pytest.mark.asyncio
@@ -38,15 +39,17 @@ class TestOIORestHealth:
 
 
 class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
-    @patch("mora.health.conf_db.health_check", new=lambda: (False, ""))
-    def test_configuration_database_returns_false_if_health_check_fails(self):
-        actual = health.configuration_database()
+    @pytest.mark.asyncio
+    @patch("mora.conf_db.health_check", new=lambda: (False, ""))
+    async def test_configuration_database_returns_false_if_health_check_fails(self):
+        actual = await health.configuration_database()
 
         self.assertEqual(False, actual)
 
-    @patch("mora.health.conf_db.health_check", new=lambda: (True, ""))
-    def test_configuration_database_returns_false_if_health_check_succeeds(self):
-        actual = health.configuration_database()
+    @pytest.mark.asyncio
+    @patch("mora.conf_db.health_check", new=lambda: (True, ""))
+    async def test_configuration_database_returns_false_if_health_check_succeeds(self):
+        actual = await health.configuration_database()
 
         self.assertEqual(True, actual)
 
@@ -136,26 +139,23 @@ class TestKubernetesProbes(tests.cases.TestCase):
     def test_liveness(self):
         self.assertRequest("/health/live", HTTP_204_NO_CONTENT)
 
-    @patch("mora.health._is_endpoint_reachable")
+    @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_everything_ready(self, mock_is_endpoint_reachable):
         mock_is_endpoint_reachable.side_effect = [True, True]
         self.assertRequest("/health/ready", HTTP_204_NO_CONTENT)
 
-    @patch("mora.health._is_endpoint_reachable")
-    @patch("mora.health.configuration_database")
-    def test_readiness_conf_db_not_ready(
-        self, mock_conf_db, mock_is_endpoint_reachable
-    ):
-        mock_conf_db.return_value = False
+    @patch("mora.graphapi.health._is_endpoint_reachable")
+    @patch("mora.conf_db.health_check", new=lambda: (False, ""))
+    def test_readiness_conf_db_not_ready(self, mock_is_endpoint_reachable):
         mock_is_endpoint_reachable.side_effect = [True, True]
         self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("mora.health._is_endpoint_reachable")
+    @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_lora_not_ready(self, mock_is_endpoint_reachable):
         mock_is_endpoint_reachable.side_effect = [False, True]
         self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch("mora.health._is_endpoint_reachable")
+    @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_keycloak_not_ready(self, mock_is_endpoint_reachable):
         mock_is_endpoint_reachable.side_effect = [True, False]
         self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
