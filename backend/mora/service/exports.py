@@ -11,7 +11,10 @@ from .. import exceptions, config
 router = APIRouter()
 
 
-@router.get("/exports/")
+@router.get(
+    "/exports/",
+    responses={"500": {"description": "Directory does not exist"}},
+)
 # @util.restrictargs()
 def list_export_files():
     """
@@ -41,7 +44,10 @@ def list_export_files():
     return files
 
 
-@router.get("/exports/{file_name}")
+@router.get(
+    "/exports/{file_name}",
+    responses={"500": {"description": "Directory does not exist"}},
+)
 # @util.restrictargs()
 def get_export_file(file_name: str):
     """

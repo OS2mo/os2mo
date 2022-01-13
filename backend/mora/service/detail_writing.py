@@ -45,7 +45,11 @@ async def handle_requests(
     return uuids
 
 
-@router.post("/details/create", status_code=HTTP_201_CREATED)
+@router.post(
+    "/details/create",
+    status_code=HTTP_201_CREATED,
+    responses={"400": {"description": "Unknown role type"}},
+)
 # @util.restrictargs('force', 'triggerless')
 async def create(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
@@ -423,7 +427,7 @@ async def create(
     return await handle_requests(reqs, mapping.RequestType.CREATE)
 
 
-@router.post("/details/edit")
+@router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})
 # @util.restrictargs('force', 'triggerless')
 async def edit(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
@@ -936,7 +940,9 @@ async def edit(
     return await handle_requests(reqs, mapping.RequestType.EDIT)
 
 
-@router.post("/details/terminate")
+@router.post(
+    "/details/terminate", responses={"400": {"description": "Unknown role type"}}
+)
 # @util.restrictargs('force', 'triggerless')
 async def terminate(
     reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),

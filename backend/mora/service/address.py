@@ -54,7 +54,10 @@ async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, 
     return await handler.get_mo_address_and_properties(only_primary_uuid)
 
 
-@router.get("/o/{orgid}/address_autocomplete/")
+@router.get(
+    "/o/{orgid}/address_autocomplete/",
+    responses={"400": {"description": "Invalid input"}},
+)
 # @util.restrictargs('global', required=['q'])
 async def address_autocomplete(
     orgid: UUID, q: str, global_lookup: Optional[bool] = Query(False, alias="global")
