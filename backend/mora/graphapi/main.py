@@ -44,6 +44,7 @@ from mora.graphapi.schema import OrganisationType
 from mora.graphapi.schema import OrganisationUnitType
 from mora.graphapi.schema import RelatedUnitType
 from mora.graphapi.schema import RoleType
+from mora.graphapi.schema import VersionType
 
 
 async def get_by_uuid(dataloader: DataLoader, uuids: List[UUID]) -> List[MOModel]:
@@ -235,6 +236,14 @@ class Query:
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return await get_facets()
+
+    # Version
+    # -------
+    @strawberry.field(
+        description="Get component versions",
+    )
+    async def version(self, info: Info) -> VersionType:
+        return VersionType()
 
 
 def get_schema():
