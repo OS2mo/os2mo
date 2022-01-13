@@ -818,7 +818,6 @@ class Tests(tests.cases.LoRATestCase):
                         },
                         "brugervendtnoegle": unitid,
                         "enhedsnavn": "Fake Corp",
-                        "integrationsdata": '{"fakekey": 42}',
                     }
                 ]
             },
@@ -1558,7 +1557,6 @@ class Tests(tests.cases.LoRATestCase):
                     {
                         "brugervendtnoegle": org_unit_uuid,
                         "enhedsnavn": "Fake Corp",
-                        "integrationsdata": "{}",
                         "virkning": {
                             "from": "2016-06-01 00:00:00+02",
                             "from_included": True,
@@ -3185,82 +3183,6 @@ class Tests(tests.cases.LoRATestCase):
             "/service/ou/{}".format(unitid) + "/details/org_unit?validity=future",
             [],
             amqp_topics={"org_unit.org_unit.delete": 1},
-        )
-
-    @freezegun.freeze_time("2016-01-01", tz_offset=2)
-    def test_get_integration_data(self):
-        self.load_sample_structures()
-        org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        self.assertRequestResponse(
-            "/service/ou/{}/integration-data".format(org_unit_uuid),
-            {
-                "integration_data": {},
-                "name": "Humanistisk fakultet",
-                "user_key": "hum",
-                "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                "validity": {"from": "2016-01-01", "to": None},
-            },
-        )
-
-    @freezegun.freeze_time("2016-01-01", tz_offset=2)
-    def test_edit_integration_data(self):
-        self.load_sample_structures()
-        org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        req = {
-            "type": "org_unit",
-            "data": {
-                "uuid": org_unit_uuid,
-                "integration_data": {"baywatchname": "Hasselhoff"},
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": "2016-01-02",
-                },
-            },
-        }
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            org_unit_uuid,
-            json=req,
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
-
-        expected_organisationenhedegenskaber = [
-            {
-                "brugervendtnoegle": "hum",
-                "enhedsnavn": "Humanistisk fakultet",
-                "integrationsdata": '{"baywatchname": "Hasselhoff"}',
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01",
-                    "from_included": True,
-                    "to": "2016-01-03 00:00:00+01",
-                    "to_included": False,
-                },
-            },
-            {
-                "brugervendtnoegle": "hum",
-                "enhedsnavn": "Humanistisk fakultet",
-                "integrationsdata": "{}",
-                "virkning": {
-                    "from": "2016-01-03 00:00:00+01",
-                    "from_included": True,
-                    "to": "infinity",
-                    "to_included": False,
-                },
-            },
-        ]
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual = mora.async_util.async_to_sync(c.organisationenhed.get)(org_unit_uuid)
-
-        self.assertEqual(
-            expected_organisationenhedegenskaber,
-            sorted(
-                actual["attributter"]["organisationenhedegenskaber"],
-                key=lambda attrs: attrs["virkning"]["from"],
-            ),
         )
 
     def test_tree(self):

@@ -13,7 +13,6 @@ from . import engagement_association  # noqa
 from . import exports
 from . import facet
 from . import insight
-from . import integration_data
 from . import itsystem
 from . import kle
 from . import leave  # noqa
@@ -35,7 +34,6 @@ routers = {
     "Exports": exports.router,
     "Facet": facet.router,
     "Insight": insight.router,
-    "IntegrationData": integration_data.router,
     "ITSystem": itsystem.router,
     "KLE": kle.router,
     "Organisation": org.router,

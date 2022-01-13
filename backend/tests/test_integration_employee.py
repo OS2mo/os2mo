@@ -796,78 +796,6 @@ class Tests(tests.cases.LoRATestCase):
             ),
         )
 
-    @freezegun.freeze_time("2016-01-01", tz_offset=2)
-    def test_get_integration_data(self):
-        self.load_sample_structures()
-        employee_uuid = "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24"
-        mora.async_util.async_to_sync(util.load_fixture)(
-            "organisation/bruger", "create_bruger_andersine.json", employee_uuid
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/integration-data".format(employee_uuid),
-            {
-                "integration_data": {"von-and-løn-id": "2468"},
-                "surname": "And",
-                "givenname": "Andersine",
-                "name": "Andersine And",
-                "nickname": "Daisy Duck",
-                "nickname_givenname": "Daisy",
-                "nickname_surname": "Duck",
-                "seniority": None,
-                "uuid": "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
-            },
-        )
-
-    @freezegun.freeze_time("2016-01-01", tz_offset=2)
-    def test_edit_integration_data(self):
-        self.load_sample_structures()
-        employee_uuid = "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24"
-        mora.async_util.async_to_sync(util.load_fixture)(
-            "organisation/bruger", "create_bruger_andersine.json", employee_uuid
-        )
-
-        req = {
-            "type": "employee",
-            "data": {
-                "uuid": employee_uuid,
-                "integration_data": {
-                    "von-and-løn-id": "2468",
-                    "bjørnebanden-hjælper-id": "sorte-slyngel",
-                },
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": "2016-01-02",
-                },
-            },
-        }
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            employee_uuid,
-            json=req,
-            amqp_topics={"employee.employee.update": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/e/" + employee_uuid + "/integration-data?at=2016-01-01",
-            {
-                "integration_data": {
-                    "bjørnebanden-hjælper-id": "sorte-slyngel",
-                    "von-and-løn-id": "2468",
-                },
-                "surname": "And",
-                "givenname": "Andersine",
-                "name": "Andersine And",
-                "nickname": "Daisy Duck",
-                "nickname_givenname": "Daisy",
-                "nickname_surname": "Duck",
-                "seniority": None,
-                "uuid": employee_uuid,
-            },
-            amqp_topics={"employee.employee.update": 1},
-        )
-
     def _get_expected_response(self, first_name, last_name, cpr, valid_from):
         expected = {
             "livscykluskode": "Importeret",
@@ -881,7 +809,6 @@ class Tests(tests.cases.LoRATestCase):
                             "from_included": True,
                             "from": valid_from,
                         },
-                        "integrationsdata": "{}",
                     }
                 ],
                 "brugerudvidelser": [

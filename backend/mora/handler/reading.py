@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import abc
-import json
 from asyncio import create_task
 from asyncio import gather
 from datetime import datetime
@@ -324,14 +323,5 @@ class OrgFunkReadingHandler(ReadingHandler):
             mapping.USER_KEY: user_key,
             mapping.VALIDITY: util.get_validity_object(start, end),
         }
-
-        if properties.get("integrationsdata") is not None:
-            try:
-                r[mapping.INTEGRATION_DATA] = json.loads(
-                    properties["integrationsdata"],
-                )
-            except json.JSONDecodeError:
-                logger.warning("invalid integration data for function", funcid=funcid)
-                r[mapping.INTEGRATION_DATA] = None
 
         return r

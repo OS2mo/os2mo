@@ -56,9 +56,6 @@ class EmployeeDetails(enum.Enum):
     # with everything except child count
     FULL = 1
 
-    # minimal and integration_data
-    INTEGRATION = 2
-
 
 class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
@@ -83,10 +80,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             )
 
         nickname_givenname, nickname_surname = self._handle_nickname(req)
-
-        integration_data = util.checked_get(
-            req, mapping.INTEGRATION_DATA, {}, required=False
-        )
 
         org_uuid = (
             await org.get_configured_organisation(
@@ -132,7 +125,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             brugervendtnoegle=bvn,
             tilhoerer=org_uuid,
             cpr=cpr,
-            integration_data=integration_data,
         )
 
         details = util.checked_get(req, "details", [])
@@ -235,11 +227,6 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             changed_extended_props["kaldenavn_efternavn"] = nickname_surname
         if seniority is not None:
             changed_extended_props["seniority"] = seniority
-
-        if mapping.INTEGRATION_DATA in data:
-            changed_props["integrationsdata"] = common.stable_json_dumps(
-                data[mapping.INTEGRATION_DATA],
-            )
 
         if changed_props:
             update_fields.append(
@@ -396,9 +383,6 @@ async def get_one_employee(
         r[mapping.USER_KEY] = props.get("brugervendtnoegle", "")
     elif details is EmployeeDetails.MINIMAL:
         pass  # already done
-    elif details is EmployeeDetails.INTEGRATION:
-        r[mapping.INTEGRATION_DATA] = props.get("integrationsdata")
-
     return r
 
 
