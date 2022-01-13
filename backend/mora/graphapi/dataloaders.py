@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
+from itertools import starmap
 from functools import partial
 from typing import Dict
 from typing import Iterator
@@ -13,6 +14,7 @@ from uuid import UUID
 from mora.common import get_connector
 from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
+from mora.graphapi.models import ITSystemRead
 from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
@@ -100,6 +102,37 @@ get_roles = partial(get_mo, model=RoleRead)
 get_itusers = partial(get_mo, model=ITUserRead)
 get_managers = partial(get_mo, model=ManagerRead)
 get_related_units = partial(get_mo, model=RelatedUnitRead)
+
+
+def lora_itsystem_to_mo_itsystem(
+    lora_result: Iterator[Tuple[dict]],
+) -> Iterator[ITSystemRead]:
+    def convert(systemid, system):
+        attrs = system["attributter"]["itsystemegenskaber"][0]
+
+        return {
+            "uuid": systemid,
+            "name": attrs.get("itsystemnavn"),
+            "system_type": attrs.get("itsystemtype"),
+            "user_key": attrs["brugervendtnoegle"],
+        }
+
+    objects = list(starmap(convert, lora_result))
+    return parse_obj_as(List[ITSystemRead], objects)
+
+
+async def get_itsystems() -> List[ITSystemRead]:
+    c = get_connector()
+    lora_result = await c.itsystem.get_all()
+    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
+    return list(mo_models)
+
+
+async def load_itsystems(uuids: List[UUID]) -> List[Optional[ITSystemRead]]:
+    c = get_connector()
+    lora_result = await c.itsystem.get_all_by_uuid(uuids)
+    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
+    return list(mo_models)
 
 
 def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
@@ -391,4 +424,5 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "class_children_loader": DataLoader(load_fn=load_class_children),
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
+        "itsystem_loader": DataLoader(load_fn=load_itsystems),
     }

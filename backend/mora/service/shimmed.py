@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from more_itertools import one
 
 from mora.service.employee import router as employee_router
+from mora.service.itsystem import router as it_router
 from ..graphapi.shim import execute_graphql
 from .. import exceptions
 
@@ -167,3 +168,58 @@ def meta_router():
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
     return router
+
+
+@it_router.get("/o/{orgid}/it/")
+async def list_it_systems(orgid: UUID):
+    """List the IT systems available within the given organisation.
+
+    :param orgid: Restrict search to this organisation.
+
+    .. :quickref: IT system; List available systems
+
+    :>jsonarr string uuid: The universally unique identifier of the system.
+    :>jsonarr string name: The name of the system.
+    :>jsonarr string system_type: The type of the system.
+    :>jsonarr string user_key: A human-readable unique key for the system.
+
+    :status 200: Always.
+
+    **Example Response**:
+
+    .. sourcecode:: json
+
+      [
+        {
+          "name": "Lokal Rammearkitektur",
+          "system_type": null,
+          "user_key": "LoRa",
+          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
+        },
+        {
+          "name": "Active Directory",
+          "system_type": null,
+          "user_key": "AD",
+          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
+        }
+      ]
+
+    """
+    orgid = str(orgid)
+
+    query = """
+    query ITSystemQuery {
+      itsystems {
+        uuid, name, system_type, user_key
+      }
+      org {
+        uuid
+      }
+    }
+    """
+    r = await execute_graphql(query)
+    if r.errors:
+        raise ValueError(r.errors)
+    if r.data["org"]["uuid"] != orgid:
+        return []
+    return r.data["itsystems"]

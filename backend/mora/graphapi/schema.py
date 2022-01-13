@@ -29,6 +29,7 @@ from mora.graphapi.models import ClassRead
 from mora.graphapi.models import FacetRead
 from mora.graphapi.models import SemanticVersion
 from mora.graphapi.models import HealthRead
+from mora.graphapi.models import ITSystemRead
 from mora.graphapi.health import health_map
 
 
@@ -580,3 +581,12 @@ class HealthType:
     @strawberry.field(description="The healthcheck status")
     async def status(self, root: HealthRead) -> bool:
         return await health_map[root.identifier]()
+
+
+@strawberry.experimental.pydantic.type(
+    model=ITSystemRead,
+    all_fields=True,
+    description=("An ITSystem: the object being connected to by it users."),
+)
+class ITSystemType:
+    pass

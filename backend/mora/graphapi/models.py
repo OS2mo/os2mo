@@ -53,3 +53,12 @@ class HealthRead(BaseModel):
     """Payload model for health."""
 
     identifier: str = Field(description="Short, unique key.")
+
+
+class ITSystemRead(MOBase):
+    """Payload model for itsystems."""
+
+    type_: str = Field("itsystem", alias="type", description="The object type")
+    name: str = Field(description="Name/titel of the itsystem.")
+    user_key: str = Field(description="Short, unique key.")
+    system_type: Optional[str] = Field(description="The ITSystem type.")
