@@ -10,9 +10,9 @@ from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
 from mora import health, config
-from mora.async_util import async_to_sync
 from tests import util
 
+pytestmark = pytest.mark.asyncio
 
 HTTPX_MOCK_RESPONSE = Response(
     status_code=404, request=Request("GET", "http://some-url.xyz")
@@ -20,17 +20,14 @@ HTTPX_MOCK_RESPONSE = Response(
 
 
 class TestOIORestHealth:
-    @pytest.mark.asyncio
     async def test_oio_rest_returns_true_if_reachable(self):
         assert await health.oio_rest()
 
-    @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_if_unreachable(self, mock_get):
         mock_get.return_value = HTTPX_MOCK_RESPONSE
         assert not await health.oio_rest()
 
-    @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
@@ -57,7 +54,6 @@ class ConfigurationDatabaseHealthTests(tests.cases.TestCase):
 class DatasetHealthTests(tests.cases.TestCase):
     @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
     @aioresponses()
-    @async_to_sync
     async def test_dataset_returns_false_if_no_data_found(self, mock):
         mock.get(
             config.get_settings().lora_url + "organisation/organisation?"
@@ -70,7 +66,6 @@ class DatasetHealthTests(tests.cases.TestCase):
 
     @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
     @aioresponses()
-    @async_to_sync
     async def test_dataset_returns_true_if_data_found(self, mock):
         mock.get(
             (
@@ -86,7 +81,6 @@ class DatasetHealthTests(tests.cases.TestCase):
 
 
 class TestKeycloakHealth:
-    @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_true_if_reachable(self, mock_get):
         mock_get.return_value = Response(
@@ -94,13 +88,11 @@ class TestKeycloakHealth:
         )
         assert await health.keycloak()
 
-    @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_if_unreachable(self, mock_get):
         mock_get.return_value = HTTPX_MOCK_RESPONSE
         assert not await health.keycloak()
 
-    @pytest.mark.asyncio
     @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
@@ -112,7 +104,6 @@ class TestKeycloakHealth:
 
 class DARHealthTests(tests.cases.TestCase):
     @util.darmock()
-    @async_to_sync
     async def test_dar_returns_false_if_unreachable(self, mock):
         mock.get("https://api.dataforsyningen.dk/autocomplete", status=404)
 
@@ -121,7 +112,6 @@ class DARHealthTests(tests.cases.TestCase):
         self.assertEqual(False, actual)
 
     @util.darmock()
-    @async_to_sync
     async def test_dar_returns_false_if_request_error(self, mock):
         mock.get("https://api.dataforsyningen.dk/autocomplete", exception=ClientError())
 
@@ -130,7 +120,6 @@ class DARHealthTests(tests.cases.TestCase):
         self.assertEqual(False, actual)
 
     @util.darmock()
-    @async_to_sync
     async def test_dar_returns_true_if_reachable(self, mock):
         mock.get("https://api.dataforsyningen.dk/autocomplete", status=200)
 
