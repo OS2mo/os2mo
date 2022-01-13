@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
+from unittest import IsolatedAsyncioTestCase
 from unittest.case import TestCase
 from unittest.mock import patch
 
@@ -331,6 +332,39 @@ class MockRequestContextTestCase(TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         super().setUp()
+
+
+@pytest.mark.serial
+class AsyncLoRATestCase(IsolatedAsyncioTestCase, _BaseTestCase):
+    """Base class for LoRA testcases; the test creates an empty LoRA
+    instance, and deletes all objects between runs.
+    """
+
+    async def load_sample_structures(self, minimal=False):
+        return await load_sample_structures(minimal)
+
+    @classmethod
+    def setUpClass(cls):
+        _mox_testing_api("db-setup")
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        _mox_testing_api("db-teardown")
+        super().tearDownClass()
+
+    def setUp(self):
+        _mox_testing_api("db-reset")
+        super().setUp()
+
+    async def asyncTearDown(self):
+        if (
+            hasattr(_local_cache, "async_session")
+            and _local_cache.async_session is not None
+        ):
+            await _local_cache.async_session.close()
+            _local_cache.async_session = None
+        super().asyncTearDown()
 
 
 @pytest.mark.serial
