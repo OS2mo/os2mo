@@ -2,13 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 import pprint
-from time import sleep
 from unittest.case import TestCase
 from unittest.mock import patch
 
 import pytest
 import requests
-from aiohttp import ClientOSError
 from starlette.testclient import TestClient
 from structlog import get_logger
 
@@ -343,13 +341,7 @@ class LoRATestCase(_BaseTestCase):
 
     def load_sample_structures(self, minimal=False):
         func = async_to_sync(load_sample_structures)
-        for _ in range(5):
-            try:
-                return func(minimal)
-            except ClientOSError:
-                sleep(0.2)
-                logger.exception("retrying")
-        raise Exception("unable to complete")
+        return func(minimal)
 
     @classmethod
     def setUpClass(cls):
