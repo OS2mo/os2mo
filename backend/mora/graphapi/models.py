@@ -47,3 +47,9 @@ class SemanticVersion(BaseModel):
     major: int
     minor: int
     patch: int
+
+
+class HealthRead(BaseModel):
+    """Payload model for health."""
+
+    identifier: str = Field(description="Short, unique key.")

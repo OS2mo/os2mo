@@ -35,15 +35,10 @@ class TestEndpointAuthDependency(unittest.TestCase):
 
     def setUp(self) -> None:
         self.no_auth_endpoints = (
-            "/health/amqp",
-            "/health/oio_rest",
-            "/health/configuration_database",
-            "/health/dataset",
-            "/health/dar",
-            "/health/keycloak",
+            "/health/",
             "/health/live",
             "/health/ready",
-            "/health/",
+            "/health/{identifier}",
             "/version/",
             "/forespoergsler/",
             "/organisationssammenkobling/",

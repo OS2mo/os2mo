@@ -13,6 +13,7 @@ from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
+from pydantic import parse_obj_as
 
 from mora.graphapi.dataloaders import get_addresses
 from mora.graphapi.dataloaders import get_associations
@@ -45,6 +46,10 @@ from mora.graphapi.schema import OrganisationUnitType
 from mora.graphapi.schema import RelatedUnitType
 from mora.graphapi.schema import RoleType
 from mora.graphapi.schema import VersionType
+from mora.graphapi.schema import HealthType
+
+from mora.graphapi.models import HealthRead
+from mora.graphapi.health import health_map
 
 
 async def get_by_uuid(dataloader: DataLoader, uuids: List[UUID]) -> List[MOModel]:
@@ -244,6 +249,24 @@ class Query:
     )
     async def version(self, info: Info) -> VersionType:
         return VersionType()
+
+    # Health
+    # ------
+    @strawberry.field(
+        description="Get a list of all health checks, optionally by identifier(s)",
+    )
+    async def healths(
+        self, info: Info, identifiers: Optional[List[str]] = None
+    ) -> List[HealthType]:
+        healthchecks = set(health_map.keys())
+        if identifiers is not None:
+            healthchecks = healthchecks.intersection(set(identifiers))
+
+        def construct(identifier):
+            return {"identifier": identifier}
+
+        healths = list(map(construct, healthchecks))
+        return parse_obj_as(List[HealthRead], healths)
 
 
 def get_schema():
