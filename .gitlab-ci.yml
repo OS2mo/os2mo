@@ -332,59 +332,59 @@ Build Keycloak DB:
     GRAPHQL_ENABLE: "true"
 
 
-Schemathesis-GraphQL-test:
-  <<: *master-rules
-  stage: test
-  interruptible: true
-  needs: ["Build OS2MO"]
-  tags:
-    - docker
-    - network-per-build
-  image:
-    name: schemathesis/schemathesis:stable
-    entrypoint: ["/bin/sh", "-c"]
-  services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
-      alias: mox-db
-    - name: magentaaps/lora:3.0.0
-      alias: mox
-    - name: ${IMAGE_SHA}
-      alias: mo
-  variables:
-    # Enable one docker network per job on the runner. This enables services to
-    # reach each other over the network. It requires a special runner with this
-    # feature. The feature is introduced in
-    # https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/1569, but not
-    # officially released in any Gitlab runner. It should hopefully be released
-    # with 12.6 on 2019-12-22.
-    FF_NETWORK_PER_BUILD: 1
-    # for postgres-os2mo service
-    DB_NAME: mox
-    DB_USER: mox
-    DB_PASSWORD: mox
-    # for mox service
-    MAX_WORKERS: "1"
-    TESTING_API: "false"
-    LORA_AUTH: "false"
-    DB_HOST: mox-db
-    DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
-    # for mo
-    DUMMY_MODE: "true"
-    ENVIRONMENT: "testing"
-    PYTHONASYNCIODEBUG: "1"
-    LORA_URL: "http://mox/"
-    AMQP_ENABLE: "false"
-    BASE_URL: http://mo:80
-    GRAPHQL_ENABLE: "true"
-    OS2MO_AUTH: "false"
-    TESTCAFE_ENABLE: "false"
-  script:
-    - sleep 5
-    - schemathesis run --workers auto --hypothesis-deadline=None --hypothesis-suppress-health-check=too_slow --show-errors-tracebacks http://mo/graphql
+#Schemathesis-GraphQL-test:
+#  extends: .master-rules
+#  stage: test
+#  interruptible: true
+#  needs: ["Build OS2MO"]
+#  tags:
+#    - docker
+#    - network-per-build
+#  image:
+#    name: schemathesis/schemathesis:stable
+#    entrypoint: ["/bin/sh", "-c"]
+#  services:
+#    - name: magentaaps/postgres-os2mo:10-11.7-test
+#      alias: mox-db
+#    - name: magentaaps/lora:3.0.0
+#      alias: mox
+#    - name: ${IMAGE_SHA}
+#      alias: mo
+#  variables:
+#    # Enable one docker network per job on the runner. This enables services to
+#    # reach each other over the network. It requires a special runner with this
+#    # feature. The feature is introduced in
+#    # https://gitlab.com/gitlab-org/gitlab-runner/merge_requests/1569, but not
+#    # officially released in any Gitlab runner. It should hopefully be released
+#    # with 12.6 on 2019-12-22.
+#    FF_NETWORK_PER_BUILD: 1
+#    # for postgres-os2mo service
+#    DB_NAME: mox
+#    DB_USER: mox
+#    DB_PASSWORD: mox
+#    # for mox service
+#    MAX_WORKERS: "1"
+#    TESTING_API: "false"
+#    LORA_AUTH: "false"
+#    DB_HOST: mox-db
+#    DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
+#    # for mo
+#    DUMMY_MODE: "true"
+#    ENVIRONMENT: "testing"
+#    PYTHONASYNCIODEBUG: "1"
+#    LORA_URL: "http://mox/"
+#    AMQP_ENABLE: "false"
+#    BASE_URL: http://mo:80
+#    GRAPHQL_ENABLE: "true"
+#    OS2MO_AUTH: "false"
+#    TESTCAFE_ENABLE: "false"
+#  script:
+#    - sleep 5
+#    - schemathesis run --workers auto --validate-schema=false --hypothesis-deadline=None --hypothesis-suppress-health-check=too_slow http://mo/graphql
 
 
 Schemathesis-OpenAPI-test:
-  <<: *master-rules
+  extends: .master-rules
   stage: test
   interruptible: true
   needs: ["Build OS2MO"]
@@ -430,8 +430,16 @@ Schemathesis-OpenAPI-test:
     OS2MO_AUTH: "false"
     TESTCAFE_ENABLE: "false"
   script:
-    - sleep 5
-    - schemathesis run --workers auto --fixups=fast_api --stateful=links --checks all http://mo/openapi.json
+    - until wget --quiet -O- "http://mo/version/"; do sleep 5; done
+    - schemathesis run --workers auto --fixups=fast_api --stateful=links --checks all
+      --endpoint '^/organisation/'
+      --endpoint '^/medarbejder/'
+      --endpoint '^/organisationssammenkobling'
+      --endpoint '^/forespoergsler'
+      --endpoint '^/indsigt/'
+      --endpoint '^/favicon.ico$'
+      http://mo/openapi.json
+  allow_failure: true
 
 
 # Test stage

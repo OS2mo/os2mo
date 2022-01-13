@@ -15,7 +15,7 @@ from ... import util
 _router = APIRouter()
 
 
-@_router.post("/org-unit/")
+@_router.post("/org-unit/", responses={"400": {"description": "Missing org unit"}})
 async def org_unit_validity(req: dict = Body(...)):
     """
     Verify that an org unit is valid within a given set of start/end dates
@@ -58,7 +58,7 @@ async def org_unit_validity(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/employee/")
+@_router.post("/employee/", responses={"400": {"description": "Missing employee"}})
 async def employee_validity(req: dict = Body(...)):
     """
     Verify that an employee is valid within a given set of start/end dates
@@ -96,7 +96,7 @@ async def employee_validity(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/cpr/")
+@_router.post("/cpr/", responses={"400": {"description": "Missing CPR number"}})
 async def check_cpr(req: dict = Body(...)):
     """
     Verify that an employee with the given CPR no. does not already exist
@@ -132,7 +132,9 @@ async def check_cpr(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/active-engagements/")
+@_router.post(
+    "/active-engagements/", responses={"400": {"description": "Missing person"}}
+)
 async def employee_engagements(req: dict = Body(...)):
     """
     Verify that an employee has active engagements
@@ -171,7 +173,9 @@ async def employee_engagements(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/existing-associations/")
+@_router.post(
+    "/existing-associations/", responses={"400": {"description": "Missing person"}}
+)
 async def employee_existing_associations(req: dict = Body(...)):
     """
     Verify that an employee does not have existing associations for a given
@@ -220,7 +224,9 @@ async def employee_existing_associations(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/movable-org-unit/")
+@_router.post(
+    "/movable-org-unit/", responses={"400": {"description": "Missing org unit"}}
+)
 async def movable_org_unit(req: dict = Body(...)):
     org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
 
@@ -229,7 +235,10 @@ async def movable_org_unit(req: dict = Body(...)):
     return {"success": True}
 
 
-@_router.post("/candidate-parent-org-unit/")
+@_router.post(
+    "/candidate-parent-org-unit/",
+    responses={"400": {"description": "Missing org unit"}},
+)
 async def candidate_parent_org_unit(req: dict = Body(...)):
     """
     Verify that a given parent is a suitable candidate for an org unit move,

@@ -25,7 +25,14 @@ async def liveness():
     return
 
 
-@router.get("/ready", status_code=HTTP_204_NO_CONTENT)
+@router.get(
+    "/ready",
+    status_code=HTTP_204_NO_CONTENT,
+    responses={
+        "204": {"description": "Ready"},
+        "503": {"description": "Not ready"},
+    },
+)
 async def readiness(response: Response):
     """
     Endpoint to be used as a readiness probe for Kubernetes.
