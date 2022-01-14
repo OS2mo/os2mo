@@ -130,7 +130,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all engagements, optionally by uuid(s)"
     )
-    async def engagement(
+    async def engagements(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[EngagementType]:
         if uuids is not None:
@@ -142,7 +142,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
-    async def kle(
+    async def kles(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[KLEType]:
         if uuids is not None:
@@ -154,7 +154,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all addresses, optionally by uuid(s)",
     )
-    async def address(
+    async def addresses(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[AddressType]:
         if uuids is not None:
@@ -164,7 +164,7 @@ class Query:
     # Leave
     # -----
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
-    async def leave(
+    async def leaves(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[LeaveType]:
         if uuids is not None:
@@ -176,7 +176,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
-    async def ituser(
+    async def itusers(
         self, info: Info, uuids: Optional[List[UUID]] = None
     ) -> List[ITUserType]:
         if uuids is not None:
