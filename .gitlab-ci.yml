@@ -333,17 +333,19 @@ GraphAPI-test:
       alias: keycloak-db
     - name: ${KEYCLOAK_IMAGE_SHA}
       alias: keycloak
+  parallel: 6
   script:
     - pytest
-      -k "graphapi"
       --cov=backend/mora/graphapi
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
-      --cov-fail-under=60
       -p no:cacheprovider
       --color=yes
       --show-capture=no
+      --splits=$CI_NODE_TOTAL
+      --group=$CI_NODE_INDEX
+      backend/tests/graphapi
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always

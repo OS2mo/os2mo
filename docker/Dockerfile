@@ -60,9 +60,9 @@ RUN set -ex \
 
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PYTHONPATH=/app:/app/backend \
-    POETRY_VERSION="1.1.8" \
-    POETRY_VIRTUALENVS_CREATE=false
+  PYTHONPATH=/app:/app/backend \
+  POETRY_VERSION="1.1.8" \
+  POETRY_VIRTUALENVS_CREATE=false
 
 # Install requirements
 RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
@@ -82,7 +82,7 @@ COPY docker/prestart.sh /app/prestart.sh
 # Install the application as editable. This makes it possible to mount
 # `/app/backend` to your host and edit the files during development.
 # hadolint ignore=DL3013
-RUN rm backend/pyproject.toml
+# RUN rm backend/pyproject.toml
 
 
 # Copy frontend code.
