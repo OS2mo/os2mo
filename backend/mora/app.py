@@ -68,8 +68,8 @@ def static_content_router():
     @router.get("/organisation/{path:path}")
     @router.get("/medarbejder/")
     @router.get("/medarbejder/{path:path}")
-    @router.get("/organisationssammenkobling/")
-    @router.get("/forespoergsler/")
+    @router.get("/organisationssammenkobling")
+    @router.get("/forespoergsler")
     @router.get("/indsigt")
     def index(path=""):
         """Serve index.html on `/` and unknown paths."""
