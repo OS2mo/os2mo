@@ -7,15 +7,20 @@ from aioresponses import aioresponses as aioresponses_
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
-from mora.api.v1.models import Validity
+from hypothesis.database import InMemoryExampleDatabase
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
+
+from mora.api.v1.models import Validity
 from tests.hypothesis_utils import validity_model_strat
 
-h_settings.register_profile("ci", max_examples=100, deadline=None)
-h_settings.register_profile("dev", max_examples=10)
-h_settings.register_profile("debug", max_examples=10, verbosity=Verbosity.verbose)
-h_settings.load_profile(os.getenv(u"HYPOTHESIS_PROFILE", "default"))
+h_db = InMemoryExampleDatabase()
+h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
+h_settings.register_profile("dev", max_examples=10, database=h_db)
+h_settings.register_profile(
+    "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
+)
+h_settings.load_profile(os.getenv(u"HYPOTHESIS_PROFILE", "dev"))
 
 
 def pytest_runtest_setup(item):
