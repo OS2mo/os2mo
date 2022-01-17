@@ -18,6 +18,7 @@ stages:
   - prebuild
   - build
   - test
+  - coverage
   - prepare-release
   - release
   - deploy
@@ -280,10 +281,11 @@ Build Keycloak DB:
     CONF_DB_PORT: "5432"
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
-    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage
     BASE_URL: http://mo:80
     GRAPHQL_ENABLE: "true"
     GRAPHQL_AUTH: "false"
+    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
+    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
 
 Unit-test:
   <<: *test-default
@@ -300,23 +302,18 @@ Unit-test:
       alias: keycloak
   script:
     - pytest
-      --cov=mora
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=50
       -p no:cacheprovider
-      --color=yes
-      --show-capture=no
-      --workers auto
       -m "not serial"
       -k "not graphapi"
-      backend/tests/
-  coverage: '/TOTAL.*\s+(\d+%)$/'
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --workers auto
   artifacts:
     when: always
     paths:
-      - $CI_PROJECT_DIR/coverage-html
+      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
@@ -336,19 +333,20 @@ GraphAPI-test:
   script:
     - pytest
       -k "graphapi"
-      --cov=backend/mora/graphapi
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=60
       -p no:cacheprovider
       --color=yes
       --show-capture=no
-  coverage: '/TOTAL.*\s+(\d+%)$/'
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=backend/mora/graphapi
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      --cov-fail-under=70
+      --workers auto
   artifacts:
     when: always
     paths:
       - $CI_PROJECT_DIR/coverage-html
+      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
@@ -369,32 +367,48 @@ Integration-test:
   script:
     - pytest
       -m "serial"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
       --splitting-algorithm least_duration
       --durations-path backend/tests/.test_durations
-      --cov=mora
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=60
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=no
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Coverage:
+  stage: coverage
+  image: python:3.8-slim
+  needs: [Unit-test, GraphAPI-test, Integration-test]
+  before_script:
+    - pip install coverage
+    - coverage combine
+  script:
+    - coverage report --fail-under=85 --skip-empty
+  after_script:
+    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
+    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
   coverage: '/TOTAL.*\s+(\d+%)$/'
   artifacts:
     when: always
     paths:
-      - $CI_PROJECT_DIR/coverage-html
+      - coverage-html
     reports:
-      junit: $CI_PROJECT_DIR/junit.xml
+      cobertura: $CI_PROJECT_DIR/coverage.xml
 
 Vue-unit-test:
   <<: *test-default
   image:
     name: ${FRONTEND_IMAGE_SHA}
   variables:
-    GIT_STRATEGY: none # We do not need the source code
+    GIT_STRATEGY: none
   script:
     - cd /app/frontend
     - yarn install --dev
