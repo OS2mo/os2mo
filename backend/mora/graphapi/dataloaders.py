@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
-from itertools import starmap
 from functools import partial
+from itertools import starmap
 from typing import Dict
 from typing import Iterator
 from typing import List
@@ -10,6 +10,13 @@ from typing import Optional
 from typing import Tuple
 from typing import TypeVar
 from uuid import UUID
+
+from more_itertools import bucket
+from more_itertools import one
+from pydantic import parse_obj_as
+from ramodels.lora.facet import FacetRead as LFacetRead
+from ramodels.lora.klasse import KlasseRead
+from strawberry.dataloader import DataLoader
 
 from mora.common import get_connector
 from mora.graphapi.models import ClassRead
@@ -32,12 +39,6 @@ from mora.graphapi.schema import RelatedUnitRead
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
-from more_itertools import bucket
-from more_itertools import one
-from pydantic import parse_obj_as
-from ramodels.lora.facet import FacetRead as LFacetRead
-from ramodels.lora.klasse import KlasseRead
-from strawberry.dataloader import DataLoader
 
 
 MOModel = TypeVar(
@@ -132,7 +133,8 @@ async def load_itsystems(uuids: List[UUID]) -> List[Optional[ITSystemRead]]:
     c = get_connector()
     lora_result = await c.itsystem.get_all_by_uuid(uuids)
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    return list(mo_models)
+    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
+    return list(map(uuid_map.get, uuids))
 
 
 def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
