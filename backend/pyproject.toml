@@ -69,9 +69,9 @@ hypothesis = "^6.17.4"
 pytest-parallel = "^0.1.0"
 pytest-asyncio = "^0.15.1"
 pip-tools = "^6.2.0"
-pytest-shard = "^0.1.2"
 pytest-xdist = "^2.4.0"
 hypothesis-graphql = "^0.5.1"
+pytest-split = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core"]
