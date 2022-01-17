@@ -1,5 +1,12 @@
-# SPDX-FileCopyrightText: 2021- Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+"""Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from asyncio import gather
 from functools import partial
 from itertools import starmap
@@ -40,6 +47,10 @@ from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
 
+
+# --------------------------------------------------------------------------------------
+# Dataloaders
+# --------------------------------------------------------------------------------------
 
 MOModel = TypeVar(
     "MOModel",
@@ -257,7 +268,7 @@ async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
 async def get_employee_details(
     employee_uuid: UUID, role_type: str
 ) -> Optional[List[MOModel]]:
-    """Non-bulk loader for employee details"""
+    """Non-bulk loader for employee details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
     result = await cls.get(
@@ -286,7 +297,7 @@ async def load_employee_details(
 async def get_org_unit_details(
     org_unit_uuid: UUID, role_type: str
 ) -> Optional[List[MOModel]]:
-    """Non-bulk loader for organisation unit details"""
+    """Non-bulk loader for organisation unit details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
     result = await cls.get(

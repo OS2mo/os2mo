@@ -1,5 +1,12 @@
-# SPDX-FileCopyrightText: 2021- Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+"""Starlette plugins to create context variables that can be used in the service app."""
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -9,6 +16,10 @@ from starlette.requests import Request
 from starlette_context import context
 from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
+
+# --------------------------------------------------------------------------------------
+# Middleware
+# --------------------------------------------------------------------------------------
 
 
 class GraphQLContextPlugin(Plugin):
@@ -71,5 +82,9 @@ def set_is_shim() -> None:
 
 
 def is_graphql_shim() -> bool:
-    """Determine if we are currently in the GraphQL shim"""
+    """Determine if we are currently in the GraphQL shim.
+
+    Returns:
+        bool: True if GraphQL shim. False if not.
+    """
     return context.get("is_graphql_shim", False)

@@ -1,5 +1,11 @@
-# SPDX-FileCopyrightText: 2021- Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from asyncio import gather
 from typing import Any
 from typing import Dict
@@ -8,12 +14,12 @@ from typing import Optional
 from uuid import UUID
 
 import strawberry
+from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
-from pydantic import parse_obj_as
 
 from mora.graphapi.dataloaders import get_addresses
 from mora.graphapi.dataloaders import get_associations
@@ -21,8 +27,8 @@ from mora.graphapi.dataloaders import get_classes
 from mora.graphapi.dataloaders import get_employees
 from mora.graphapi.dataloaders import get_engagements
 from mora.graphapi.dataloaders import get_facets
-from mora.graphapi.dataloaders import get_itusers
 from mora.graphapi.dataloaders import get_itsystems
+from mora.graphapi.dataloaders import get_itusers
 from mora.graphapi.dataloaders import get_kles
 from mora.graphapi.dataloaders import get_leaves
 from mora.graphapi.dataloaders import get_loaders
@@ -31,15 +37,18 @@ from mora.graphapi.dataloaders import get_org_units
 from mora.graphapi.dataloaders import get_related_units
 from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import MOModel
+from mora.graphapi.health import health_map
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import Facet
-from mora.graphapi.schema import ITUser
+from mora.graphapi.schema import Health
 from mora.graphapi.schema import ITSystem
+from mora.graphapi.schema import ITUser
 from mora.graphapi.schema import KLE
 from mora.graphapi.schema import Leave
 from mora.graphapi.schema import Manager
@@ -48,25 +57,11 @@ from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
-from mora.graphapi.schema import Health
-
-from mora.graphapi.models import HealthRead
-from mora.graphapi.health import health_map
 
 
-async def get_by_uuid(dataloader: DataLoader, uuids: List[UUID]) -> List[MOModel]:
-    """Get data by from a list of UUIDs. Only unique UUIDs are loaded.
-
-    Args:
-        dataloader (DataLoader): Strawberry dataloader to use.
-        uuids (List[UUID]): List of UUIDs to load.
-
-    Returns:
-        List[MOModel]: List of models found. We do not return None or duplicates.
-    """
-    tasks = map(dataloader.load, set(uuids))
-    results = await gather(*tasks)
-    return list(filter(lambda result: result is not None, results))
+# --------------------------------------------------------------------------------------
+# Reads Query
+# --------------------------------------------------------------------------------------
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -278,6 +273,26 @@ class Query:
 
         healths = list(map(construct, healthchecks))
         return parse_obj_as(List[HealthRead], healths)
+
+
+# --------------------------------------------------------------------------------------
+# Auxiliary functions
+# --------------------------------------------------------------------------------------
+
+
+async def get_by_uuid(dataloader: DataLoader, uuids: List[UUID]) -> List[MOModel]:
+    """Get data from a list of UUIDs. Only unique UUIDs are loaded.
+
+    Args:
+        dataloader (DataLoader): Strawberry dataloader to use.
+        uuids (List[UUID]): List of UUIDs to load.
+
+    Returns:
+        List[MOModel]: List of models found. We do not return None or duplicates.
+    """
+    tasks = map(dataloader.load, set(uuids))
+    results = await gather(*tasks)
+    return list(filter(lambda result: result is not None, results))
 
 
 def get_schema():
