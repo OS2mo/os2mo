@@ -32,23 +32,23 @@ from mora.graphapi.dataloaders import get_related_units
 from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.middleware import StarletteContextExtension
-from mora.graphapi.schema import AddressType
-from mora.graphapi.schema import AssociationType
-from mora.graphapi.schema import ClassType
-from mora.graphapi.schema import EmployeeType
-from mora.graphapi.schema import EngagementType
-from mora.graphapi.schema import FacetType
-from mora.graphapi.schema import ITUserType
-from mora.graphapi.schema import ITSystemType
-from mora.graphapi.schema import KLEType
-from mora.graphapi.schema import LeaveType
-from mora.graphapi.schema import ManagerType
-from mora.graphapi.schema import OrganisationType
-from mora.graphapi.schema import OrganisationUnitType
-from mora.graphapi.schema import RelatedUnitType
-from mora.graphapi.schema import RoleType
-from mora.graphapi.schema import VersionType
-from mora.graphapi.schema import HealthType
+from mora.graphapi.schema import Address
+from mora.graphapi.schema import Association
+from mora.graphapi.schema import Class
+from mora.graphapi.schema import Employee
+from mora.graphapi.schema import Engagement
+from mora.graphapi.schema import Facet
+from mora.graphapi.schema import ITUser
+from mora.graphapi.schema import ITSystem
+from mora.graphapi.schema import KLE
+from mora.graphapi.schema import Leave
+from mora.graphapi.schema import Manager
+from mora.graphapi.schema import Organisation
+from mora.graphapi.schema import OrganisationUnit
+from mora.graphapi.schema import RelatedUnit
+from mora.graphapi.schema import Role
+from mora.graphapi.schema import Version
+from mora.graphapi.schema import Health
 
 from mora.graphapi.models import HealthRead
 from mora.graphapi.health import health_map
@@ -86,7 +86,7 @@ class Query:
             "This endpoint fails if not exactly one exists in LoRa."
         ),
     )
-    async def org(self, info: Info) -> OrganisationType:
+    async def org(self, info: Info) -> Organisation:
         return await info.context["org_loader"].load(0)
 
     # Organisational Units
@@ -96,7 +96,7 @@ class Query:
     )
     async def org_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[OrganisationUnitType]:
+    ) -> List[OrganisationUnit]:
         if uuids is not None:
             return await get_by_uuid(info.context["org_unit_loader"], uuids)
         return await get_org_units()
@@ -108,7 +108,7 @@ class Query:
     )
     async def associations(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[AssociationType]:
+    ) -> List[Association]:
         if uuids is not None:
             return await get_by_uuid(info.context["association_loader"], uuids)
         return await get_associations()
@@ -120,7 +120,7 @@ class Query:
     )
     async def employees(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[EmployeeType]:
+    ) -> List[Employee]:
         if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
         return await get_employees()
@@ -132,7 +132,7 @@ class Query:
     )
     async def engagements(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[EngagementType]:
+    ) -> List[Engagement]:
         if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
         return await get_engagements()
@@ -142,9 +142,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
-    async def kles(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[KLEType]:
+    async def kles(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[KLE]:
         if uuids is not None:
             return await get_by_uuid(info.context["kle_loader"], uuids)
         return await get_kles()
@@ -156,7 +154,7 @@ class Query:
     )
     async def addresses(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[AddressType]:
+    ) -> List[Address]:
         if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
         return await get_addresses()
@@ -166,7 +164,7 @@ class Query:
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
     async def leaves(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[LeaveType]:
+    ) -> List[Leave]:
         if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
         return await get_leaves()
@@ -178,7 +176,7 @@ class Query:
     )
     async def itusers(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ITUserType]:
+    ) -> List[ITUser]:
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return await get_itusers()
@@ -190,7 +188,7 @@ class Query:
     )
     async def itsystems(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ITSystemType]:
+    ) -> List[ITSystem]:
         if uuids is not None:
             return await get_by_uuid(info.context["itsystem_loader"], uuids)
         return await get_itsystems()
@@ -200,9 +198,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all roles, optionally by uuid(s)",
     )
-    async def roles(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[RoleType]:
+    async def roles(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Role]:
         if uuids is not None:
             return await get_by_uuid(info.context["role_loader"], uuids)
         return await get_roles()
@@ -214,7 +210,7 @@ class Query:
     )
     async def managers(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ManagerType]:
+    ) -> List[Manager]:
         if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
         return await get_managers()
@@ -226,7 +222,7 @@ class Query:
     )
     async def classes(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ClassType]:
+    ) -> List[Class]:
         if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
         return await get_classes()
@@ -234,12 +230,13 @@ class Query:
     # Relatedunits
     # ---------
     @strawberry.field(
-        description="Get a list of all related organisational units, optionally by "
-        "uuid(s)",
+        description=(
+            "Get a list of all related organisational units, optionally by uuid(s)"
+        ),
     )
     async def related_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[RelatedUnitType]:
+    ) -> List[RelatedUnit]:
         if uuids is not None:
             return await get_by_uuid(info.context["rel_unit_loader"], uuids)
         return await get_related_units()
@@ -251,7 +248,7 @@ class Query:
     )
     async def facets(
         self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[FacetType]:
+    ) -> List[Facet]:
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return await get_facets()
@@ -261,8 +258,8 @@ class Query:
     @strawberry.field(
         description="Get component versions",
     )
-    async def version(self, info: Info) -> VersionType:
-        return VersionType()
+    async def version(self, info: Info) -> Version:
+        return Version()
 
     # Health
     # ------
@@ -271,7 +268,7 @@ class Query:
     )
     async def healths(
         self, info: Info, identifiers: Optional[List[str]] = None
-    ) -> List[HealthType]:
+    ) -> List[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
