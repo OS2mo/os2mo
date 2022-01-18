@@ -11,26 +11,8 @@ import tests.cases
 from . import util
 from mora import lora
 from mora.config import Settings
-from tests.util import _mox_testing_api, load_sample_structures
 
 pytestmark = pytest.mark.asyncio
-
-
-@pytest.fixture(scope="class")
-def mox_testing():
-    _mox_testing_api("db-setup")
-    yield
-    _mox_testing_api("db-teardown")
-
-
-@pytest.fixture
-async def load_lora_minimal():
-    await load_sample_structures(minimal=True)
-
-
-@pytest.fixture
-async def load_lora_full():
-    await load_sample_structures(minimal=False)
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)

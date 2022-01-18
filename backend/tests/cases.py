@@ -64,7 +64,7 @@ class _AsyncBaseTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.app = self.create_app()
-        self.client = httpx.AsyncClient(app=self.app)
+        self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
@@ -249,14 +249,15 @@ class _AsyncBaseTestCase(TestCase):
             assert kwargs.keys().isdisjoint({"method", "data"})
 
             # kwargs['method'] = 'POST'
-            kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
+            kwargs["content"] = json.dumps(kwargs.pop("json"), indent=2)
             kwargs.setdefault("headers", dict()).update(
                 {"Content-Type": "application/json"}
             )
-            path = f"http://localhost:5000{path}"  # TODO: Sorry not sorry
-            return await self.client.post(path, **kwargs)
+            async with self.client as ac:
+                return await ac.post(path, **kwargs)
 
-        return await self.client.get(path, **kwargs)
+        async with self.client as ac:
+            return await ac.get(path, **kwargs)
 
     @staticmethod
     def __sort_inner_lists(obj):
