@@ -384,6 +384,7 @@ Integration-test:
       junit: $CI_PROJECT_DIR/junit.xml
 
 Coverage:
+  <<: *master-rules
   stage: coverage
   image: python:3.8-slim
   needs: [Unit-test, GraphAPI-test, Integration-test]
