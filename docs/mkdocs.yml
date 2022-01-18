@@ -31,7 +31,9 @@ nav:
       - api-dokumentation/amqp.md
       - api-dokumentation/triggers.md
       - api-dokumentation/user-configuration.md
-  - GraphQL: graphql/graphql.md
+  - GraphQL:
+      - graphql/intro.md
+      - graphql/reads.md
 
 theme:
   name: "material"
