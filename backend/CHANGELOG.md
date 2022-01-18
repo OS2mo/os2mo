@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.29.6 - 2022-01-18
+-------------------
+
+[#47969] Update docstrings in GraphAPI related files
+
 3.29.5 - 2022-01-17
 -------------------
 
