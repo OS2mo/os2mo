@@ -80,10 +80,11 @@ workflow:
 Lint Python:
   <<: *lint-default
   before_script:
-    - pip install pre-commit
+    - pip install pre-commit pydocstyle
     - pre-commit install
   script:
     - pre-commit run --all-files
+    - pydocstyle backend/mora/graphapi/ --convention=google --add-ignore=D1
 
 Lint Dockerfiles:
   <<: *lint-default

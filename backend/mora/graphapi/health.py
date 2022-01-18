@@ -1,5 +1,14 @@
-# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+"""Endpoints for health checks."""
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
+from typing import Optional
+
 from aio_pika.exceptions import AMQPError
 from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
@@ -14,6 +23,11 @@ from mora.exceptions import HTTPException
 from mora.http import client
 from mora.triggers.internal.amqp_trigger import pools
 
+# --------------------------------------------------------------------------------------
+# Health endpoints
+# --------------------------------------------------------------------------------------
+
+
 logger = get_logger()
 
 health_map = {}
@@ -25,13 +39,14 @@ def register_health_endpoint(func):
 
 
 async def _is_endpoint_reachable(url: AnyUrl) -> bool:
-    """
-    Check if the url can be reached
+    """Check if a given endpoint is reachable.
 
-    :param url: the endpoint to check
-    :return: True if reachable. False if not
-    """
+    Args:
+        url (AnyUrl): The endpoint to check.
 
+    Returns:
+        bool: True if reachable. False if not.
+    """
     try:
         r = await client.get(url)
         r.raise_for_status()
@@ -45,11 +60,12 @@ async def _is_endpoint_reachable(url: AnyUrl) -> bool:
 
 
 @register_health_endpoint
-async def amqp():
+async def amqp() -> Optional[bool]:
     """Check if AMQP connection is open.
 
-    Return `True` if open. `False` if not open or an error occurs.
-    `None` if AMQP support is disabled.
+    Returns:
+        Optional[bool]: True if open, False if not open or an error occurs.
+            None if AMQP support is disabled.
     """
     if not config.get_settings().amqp_enable:
         return None
@@ -71,9 +87,10 @@ async def amqp():
 
 @register_health_endpoint
 async def oio_rest():
-    """
-    Check if the configured oio_rest can be reached
-    :return: True if reachable. False if not
+    """Check if the configured oio_rest can be reached.
+
+    Returns:
+        bool: True if reachable. False if not.
     """
     url = config.get_settings().lora_url + "site-map"
     return await _is_endpoint_reachable(url)
@@ -81,9 +98,10 @@ async def oio_rest():
 
 @register_health_endpoint
 async def configuration_database():
-    """
-    Check if configuration database is reachable and initialized with default data
-    :return: True if reachable and initialized. False if not.
+    """Check if configuration database is reachable and initialized with default data.
+
+    Returns:
+        bool: True if reachable and initialized. False if not.
     """
     healthy, msg = conf_db.health_check()
     if not healthy:
@@ -93,10 +111,12 @@ async def configuration_database():
 
 @register_health_endpoint
 async def dataset():
-    """
-    Check if LoRa contains data. We check this by determining if an organisation
-    exists in the system
-    :return: True if data. False if not.
+    """Check if LoRa contains data.
+
+    We check this by determining if an organisation exists in the system.
+
+    Returns:
+        bool: True if data. False if not.
     """
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     try:
@@ -117,9 +137,10 @@ async def dataset():
 
 @register_health_endpoint
 async def dar():
-    """
-    Check whether DAR can be reached
-    :return: True if reachable. False if not.
+    """Check whether DAR can be reached.
+
+    Returns:
+        bool: True if reachable. False if not.
     """
     adarclient = AsyncDARClient(timeout=2)
     async with adarclient:
@@ -128,8 +149,10 @@ async def dar():
 
 @register_health_endpoint
 async def keycloak():
-    """
-    Check if Keycloak is running
+    """Check if Keycloak is running.
+
+    Returns:
+        bool: True if reachable. False if not.
     """
     settings = config.get_settings()
     url = (

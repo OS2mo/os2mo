@@ -1,11 +1,22 @@
-# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from typing import Optional
 from uuid import UUID
 
-from ramodels.mo._shared import MOBase
 from pydantic import BaseModel
 from pydantic import Field
+from ramodels.mo._shared import MOBase
+
+# --------------------------------------------------------------------------------------
+# Models
+# --------------------------------------------------------------------------------------
 
 
 class ClassRead(MOBase):
@@ -43,7 +54,7 @@ class FacetRead(MOBase):
     )
 
 
-class SemanticVersion(BaseModel):
+class SemanticVersionRead(BaseModel):
     major: int
     minor: int
     patch: int
