@@ -15,12 +15,13 @@ nav:
       - arkitektur-design/overview.md
       - arkitektur-design/facets.md
       - arkitektur-design/system.md
-  - Udvikler- og brugerguide:
+  - User and developer guides:
       - Getting started:
           - guides/environment/docker.md
           - guides/environment/install-source.md
       - Tests: guides/tests.md
       - Conventions: guides/conventions.md
+      - guides/adfs-setup.md
   - Drift og support:
       - drift-support/auth.md
       - drift-support/cookbook.md

@@ -63,7 +63,7 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
+# documentation
 /docs/out/
 /docs/backend/
 
@@ -127,3 +127,4 @@ frontend/public/keycloak.json
 # Docs
 schema.sdl
 voyager.html
+/docs/site/
