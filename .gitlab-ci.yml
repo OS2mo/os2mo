@@ -594,8 +594,7 @@ Build docs:
 pages:
   <<: *docs-rules
   image: python:3.8
-  dependencies:
-    - 'Build docs'
+  needs: ["Build docs"]
   script:
     - cp -r $CI_PROJECT_DIR/site public
   artifacts:
