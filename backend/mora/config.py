@@ -62,6 +62,7 @@ class Settings(BaseSettings):
 
     # GraphQL settings
     graphql_enable: bool = False
+    graphiql_enable: bool = False
 
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]

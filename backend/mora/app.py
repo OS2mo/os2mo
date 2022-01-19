@@ -14,6 +14,29 @@ from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from more_itertools import only
+from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
+from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
+from os2mo_fastapi_utils.tracing import setup_instrumentation
+from os2mo_fastapi_utils.tracing import setup_logging
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette_context.middleware import RawContextMiddleware
+from structlog import get_logger
+from structlog.contextvars import merge_contextvars
+from structlog.processors import JSONRenderer
+
+from . import service
+from . import triggers
+from .api.v1 import reading_endpoints
+from .common import LoRaConnectorPlugin
+from .config import Environment
+from .config import is_under_test
+from .exceptions import ErrorCodes
+from .exceptions import http_exception_to_json_response
+from .exceptions import HTTPException
+from .metrics import setup_metrics
 from mora import config
 from mora import health
 from mora import log
@@ -29,30 +52,7 @@ from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed import meta_router
-from more_itertools import only
-from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
-from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
-from os2mo_fastapi_utils.tracing import setup_instrumentation
-from os2mo_fastapi_utils.tracing import setup_logging
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette_context.middleware import RawContextMiddleware
-from structlog import get_logger
-from structlog.contextvars import merge_contextvars
-from structlog.processors import JSONRenderer
 from tests.util import setup_test_routing
-
-from . import service
-from . import triggers
-from .api.v1 import reading_endpoints
-from .common import LoRaConnectorPlugin
-from .config import Environment
-from .config import is_under_test
-from .exceptions import ErrorCodes
-from .exceptions import http_exception_to_json_response
-from .exceptions import HTTPException
-from .metrics import setup_metrics
 
 basedir = os.path.dirname(__file__)
 templatedir = os.path.join(basedir, "templates")
@@ -227,7 +227,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         )
 
     if settings.graphql_enable:
-        gql_router = setup_graphql()
+        gql_router = setup_graphql(settings.graphiql_enable)
         app.include_router(gql_router, prefix="/graphql", dependencies=[Depends(auth)])
 
     if settings.v1_api_enable:
