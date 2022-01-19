@@ -90,7 +90,7 @@ services:
       otel-collector:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://mo:80"]
+      test: ["CMD", "curl", "-f", "http://mo:80/health/"]
       interval: 5s
       timeout: 5s
       retries: 3
