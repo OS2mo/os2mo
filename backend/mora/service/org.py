@@ -6,6 +6,7 @@ Organisation
 
 This section describes how to interact with organisations.
 """
+import asyncio
 from asyncio import create_task
 from asyncio import gather
 from uuid import UUID
@@ -26,6 +27,7 @@ class ConfiguredOrganisation:
     hence there must be exactly one organisation in the lora database
     """
 
+    validate_lock = asyncio.Lock()
     organisation = None
     valid = False
 
@@ -53,8 +55,9 @@ async def get_configured_organisation(uuid=None):
     # Access to validate() is guarded behind a lock to ensure we don't schedule multiple
     # (in some cases hundreds) requests on the very first call before the cache (the
     # 'organisation' attribute) is populated.
-    if not ConfiguredOrganisation.valid:
-        await ConfiguredOrganisation.validate()
+    async with ConfiguredOrganisation.validate_lock:
+        if not ConfiguredOrganisation.valid:
+            await ConfiguredOrganisation.validate()
     org = ConfiguredOrganisation.organisation
 
     if uuid and uuid != org["uuid"]:

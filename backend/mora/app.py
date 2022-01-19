@@ -28,7 +28,6 @@ from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
-from mora.service.org import get_configured_organisation
 from mora.service.shimmed import meta_router
 from more_itertools import only
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
@@ -259,12 +258,8 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     serviceplatformen.check_config()
 
     @app.on_event("startup")
-    async def app_startup():
+    async def register_triggers():
         await triggers.register(app)
-        try:
-            await get_configured_organisation()
-        except HTTPException as e:
-            logger.warning(e)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
