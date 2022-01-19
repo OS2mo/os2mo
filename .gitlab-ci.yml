@@ -544,11 +544,8 @@ Release to Prod:
 # Docs stage
 ############
 .docs-rules: &docs-rules
-  <<: *master-rules
   interruptible: true
   stage: docs
-  rules:
-    - if: $CI_COMMIT_BRANCH == "master"
 
 Export GQL Schema:
   <<: *docs-rules
@@ -562,7 +559,7 @@ Export GQL Schema:
     paths:
       - $OUT
 
-pages:
+.build-docs: &build-docs
   <<: *docs-rules
   image: python:3.8
   needs: ["Export GQL Schema"]
@@ -573,7 +570,36 @@ pages:
     - pip3 install poetry==${POETRY_VERSION}
     - cd docs && poetry install --no-interaction
   script:
-    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/public
+    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/site
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/site
+    expire_in: 1 week
+
+# "Deploy" docs when not on master
+Build branch docs:
+  <<: *build-docs
+  rules:
+    - if: '$CI_COMMIT_REF_NAME != "master"'
+  environment:
+    name: $CI_COMMIT_REF_SLUG-docs
+    url: $CI_JOB_URL/artifacts/file/site/index.html
+    auto_stop_in: 1 week
+
+Build docs:
+  <<: *build-docs
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+
+pages:
+  <<: *docs-rules
+  image: python:3.8
+  dependencies:
+    - 'Build docs'
+  script:
+    - cp -r $CI_PROJECT_DIR/site public
   artifacts:
     paths:
       - public/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
