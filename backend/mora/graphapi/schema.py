@@ -586,7 +586,7 @@ class Version:
 )
 class Health:
     @strawberry.field(description="Healthcheck status")
-    async def status(self, root: HealthRead) -> bool:
+    async def status(self, root: HealthRead) -> Optional[bool]:
         return await health_map[root.identifier]()
 
 
