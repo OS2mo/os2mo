@@ -424,8 +424,8 @@ Vue-unit-test:
     when: always
     paths:
       - $CI_PROJECT_DIR/coverage
-    reports:
-      cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
+    # reports:
+    #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
 # e2e-test:
 #   <<: *test-default
