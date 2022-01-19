@@ -9,19 +9,18 @@
 # --------------------------------------------------------------------------------------
 from typing import Optional
 
+import aiohttp
 from aio_pika.exceptions import AMQPError
 from httpx import HTTPStatusError
-from os2mo_dar_client import AsyncDARClient
-from pydantic import AnyUrl
-from requests.exceptions import RequestException
-from structlog import get_logger
-
 from mora import conf_db
 from mora import config
-from mora import lora
 from mora.exceptions import HTTPException
 from mora.http import client
+from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import pools
+from os2mo_dar_client import AsyncDARClient
+from pydantic import AnyUrl
+from structlog import get_logger
 
 # --------------------------------------------------------------------------------------
 # Health endpoints
@@ -113,26 +112,18 @@ async def configuration_database():
 async def dataset():
     """Check if LoRa contains data.
 
-    We check this by determining if an organisation exists in the system.
+    This is done by determining if an organisation is properly configured in the system.
 
     Returns:
         bool: True if data. False if not.
     """
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     try:
-        org = await c.organisation.fetch(bvn="%")
-        if not org:
-            logger.critical("No dataset found in LoRa")
-            return False
+        await ConfiguredOrganisation.validate()
     except HTTPException as e:
-        logger.exception(
-            "Fetching data from oio_rest responded with status code", status_code=e.code
-        )
-        return False
-    except RequestException as e:
-        logger.exception("Fetching data from oio_rest responded with", exception=e)
-        return False
-    return True
+        logger.exception("Failure in LoRa dataset:", e)
+    except aiohttp.ClientError as e:
+        logger.exception("Error fetching data from LoRa", exception=e)
+    return ConfiguredOrganisation.valid
 
 
 @register_health_endpoint
