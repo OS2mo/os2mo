@@ -321,9 +321,12 @@ async def get_context() -> Dict[str, Any]:
     return {**loaders}
 
 
-def setup_graphql():
+def setup_graphql(enable_graphiql: bool = False):
     schema = get_schema()
-    gql_router = GraphQLRouter(schema, context_getter=get_context)
+
+    gql_router = GraphQLRouter(
+        schema, context_getter=get_context, graphiql=enable_graphiql
+    )
 
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically

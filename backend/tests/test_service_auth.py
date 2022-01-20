@@ -75,6 +75,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
     app_settings_overrides = {
         "v1_api_enable": True,
         "graphql_enable": True,
+        "graphiql_enable": True,
     }
 
     def setUp(self):
@@ -158,7 +159,15 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
 
     def test_auth_graphql(self):
+        # GET (only works with GraphiQL enabled)
         self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
+
+        # POST (usual communication, always enabled)
+        self.assertRequestFails(
+            "/graphql",
+            HTTP_401_UNAUTHORIZED,
+            json={"query": "{ __typename }"},  # always implemented
+        )
 
 
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
@@ -167,7 +176,11 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     and one from the /api/v1 endpoints)
     """
 
-    app_settings_overrides = {"v1_api_enable": True}
+    app_settings_overrides = {
+        "v1_api_enable": True,
+        "graphql_enable": True,
+        "graphiql_enable": True,
+    }
 
     def setUp(self):
         super().setUp()
@@ -183,7 +196,16 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
 
     def test_auth_graphql(self):
+        # GET (only works with GraphiQL enabled)
         self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
+
+        # POST (usual communication, always enabled)
+        self.assertRequest(
+            "/graphql",
+            HTTP_200_OK,
+            set_auth_header=True,
+            json={"query": "{ __typename }"},  # always implemented
+        )
 
     def test_client_secret_token(self):
         # Verify that a token obtained from a client secret (e.g. via the
