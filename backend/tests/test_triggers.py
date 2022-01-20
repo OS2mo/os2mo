@@ -36,10 +36,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
 
     def setUp(self):
         if "mock" in Trigger.registry:
-            self.fail(
-                "No role_type named 'mock' allowed in "
-                "Trigger.registry outside this test"
-            )
+            self.fail("No role_type named 'mock' allowed in " "Trigger.registry outside this test")
         super().setUp()
 
     def test_handler_trigger_any_exception(self):
@@ -116,9 +113,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
             )
 
         mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.EDIT
-            ).submit
+            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT).submit
         )()
         self.assertTrue(self.trigger_called)
 
@@ -157,9 +152,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
             )
 
         mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.CREATE
-            ).submit
+            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.CREATE).submit
         )()
         self.assertTrue(self.trigger_called)
 
@@ -198,9 +191,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
             )
 
         mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.TERMINATE
-            ).submit
+            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.TERMINATE).submit
         )()
         self.assertTrue(self.trigger_called)
 
@@ -218,9 +209,9 @@ class TriggerlessTests(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
         self.trigger_called = False
-        self.trigger_before = Trigger.on(
-            "org_unit", RequestType.TERMINATE, EventType.ON_AFTER
-        )(self.trigger)
+        self.trigger_before = Trigger.on("org_unit", RequestType.TERMINATE, EventType.ON_AFTER)(
+            self.trigger
+        )
 
     def tearDown(self):
         super().tearDown()

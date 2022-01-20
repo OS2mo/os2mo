@@ -704,9 +704,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_MANY, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_MANY, lambda x: x)
         ]
 
         expected_result = {
@@ -804,9 +802,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -886,9 +882,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -968,9 +962,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -1037,9 +1029,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -1110,9 +1100,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -1160,9 +1148,7 @@ class TestClass(tests.cases.TestCase):
         }
 
         paths = [
-            mapping.FieldTuple(
-                ("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x
-            )
+            mapping.FieldTuple(("test1", "test2"), mapping.FieldTypes.ZERO_TO_ONE, lambda x: x)
         ]
 
         expected_result = {
@@ -1252,9 +1238,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1319,9 +1303,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1395,9 +1377,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1453,9 +1433,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1511,9 +1489,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1560,9 +1536,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1608,9 +1582,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1656,9 +1628,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)
@@ -1787,9 +1757,7 @@ class TestClass(tests.cases.TestCase):
         # Act
         actual_result = common._merge_obj_effects(orig_objs, new)
 
-        actual_result = sorted(
-            actual_result, key=lambda x: x.get("virkning").get("from")
-        )
+        actual_result = sorted(actual_result, key=lambda x: x.get("virkning").get("from"))
 
         # Assert
         self.assertEqual(expected_result, actual_result)

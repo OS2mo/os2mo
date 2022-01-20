@@ -51,9 +51,7 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
     directory_exists(directory)
 
     if q == ["all"]:
-        return [
-            read_json_from_disc(path) for path in directory.iterdir() if path.is_file()
-        ]
+        return [read_json_from_disc(path) for path in directory.iterdir() if path.is_file()]
     else:
         return [
             read_json_from_disc(directory / query_file)
@@ -82,8 +80,7 @@ async def download_csv() -> StreamingResponse:
     list_of_files = list(filter(lambda path: path.is_file(), directory.iterdir()))
     iter_of_json = map(read_json_from_disc, list_of_files)
     iter_of_csv = (
-        json_to_csv(json_file, extract_fieldnames(json_file))
-        for json_file in iter_of_json
+        json_to_csv(json_file, extract_fieldnames(json_file)) for json_file in iter_of_json
     )
 
     async def zip_writestr(zip_file: ZipFile, file: Path, csv_file: StringIO):

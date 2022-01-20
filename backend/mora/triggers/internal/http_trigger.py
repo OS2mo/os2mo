@@ -52,13 +52,9 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
     async with async_session() as session:
         # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
         payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
-        async with session.post(
-            trigger_url, timeout=client_timeout, json=payload
-        ) as response:
+        async with session.post(trigger_url, timeout=client_timeout, json=payload) as response:
             payload = await response.json()
-            logger.debug(
-                "http_sender received", payload=payload, trigger_url=trigger_url
-            )
+            logger.debug("http_sender received", payload=payload, trigger_url=trigger_url)
             if response.status != 200:
                 raise HTTPTriggerException(payload["detail"])
             return payload
@@ -101,14 +97,10 @@ async def fetch_endpoint_trigger(
     try:
         async with session.get(full_url, timeout=client_timeout) as response:
             try:
-                trigger_configuration = parse_obj_as(
-                    List[MOTriggerRegister], await response.json()
-                )
+                trigger_configuration = parse_obj_as(List[MOTriggerRegister], await response.json())
                 return trigger_configuration
             except aiohttp.client_exceptions.ContentTypeError as exc:
-                logger.error(
-                    "Unable to parse response from (not JSON?)", full_url=full_url
-                )
+                logger.error("Unable to parse response from (not JSON?)", full_url=full_url)
                 logger.error(reponse_text=await response.text())
                 raise exc
     except asyncio.exceptions.TimeoutError as exc:
@@ -130,9 +122,7 @@ async def fetch_endpoint_triggers(
     """
 
     async with async_session() as session:
-        tasks = map(
-            partial(fetch_endpoint_trigger, session, timeout=timeout), endpoints
-        )
+        tasks = map(partial(fetch_endpoint_trigger, session, timeout=timeout), endpoints)
         # TODO: Could do this as an async generator with `.as_completed()`?
         trigger_configs = await asyncio.gather(*tasks)
         trigger_tuples = zip(endpoints, trigger_configs)
@@ -162,12 +152,8 @@ async def register(app) -> bool:
     run_trigger_timeout = settings.run_trigger_timeout
 
     # Fetch configured triggers for all endpoints
-    endpoint_trigger_dict = await fetch_endpoint_triggers(
-        endpoints, fetch_trigger_timeout
-    )
-    logger.debug(
-        "Got endpoint_trigger_dict", endpoint_trigger_dict=endpoint_trigger_dict
-    )
+    endpoint_trigger_dict = await fetch_endpoint_triggers(endpoints, fetch_trigger_timeout)
+    logger.debug("Got endpoint_trigger_dict", endpoint_trigger_dict=endpoint_trigger_dict)
 
     # Register http_sender for all the events found.
     for endpoint, trigger_configuration in endpoint_trigger_dict.items():

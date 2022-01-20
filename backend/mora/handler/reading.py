@@ -60,9 +60,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def get_from_type(
-        cls, c, type, obj_uuid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, obj_uuid, changed_since: Optional[datetime] = None):
         """
         Read a list of objects related to a certain object
 
@@ -90,9 +88,7 @@ class ReadingHandler:
 
     @classmethod
     @abc.abstractmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, obj_id, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, obj_id, flat: bool = False):
         """
         Convert an effect to a MO object
 
@@ -118,11 +114,7 @@ class ReadingHandler:
         """
         return await gather(
             *[
-                create_task(
-                    cls._get_mo_object_from_effect(
-                        effect, start, end, function_id, flat
-                    )
-                )
+                create_task(cls._get_mo_object_from_effect(effect, start, end, function_id, flat))
                 for start, end, effect in (await cls._get_effects(c, function_obj))
                 if util.is_reg_valid(effect)
             ]
@@ -147,9 +139,7 @@ class ReadingHandler:
             for sublist in await gather(
                 *[
                     create_task(
-                        cls.__async_get_mo_object_from_effect(
-                            c, function_id, function_obj, flat
-                        )
+                        cls.__async_get_mo_object_from_effect(c, function_id, function_obj, flat)
                     )
                     for function_id, function_obj in object_tuples
                 ]
@@ -183,9 +173,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         changed_since: Optional[datetime] = None,
         flat: bool = False,
     ):
-        object_tuples = await cls._get_lora_object(
-            c, search_fields, changed_since=changed_since
-        )
+        object_tuples = await cls._get_lora_object(c, search_fields, changed_since=changed_since)
         mo_objects = await cls._get_obj_effects(c, object_tuples, flat)
 
         # Return MO objects early if they are flat
@@ -199,18 +187,14 @@ class OrgFunkReadingHandler(ReadingHandler):
                 if isawaitable(val):
                     tasks.append(
                         create_task(
-                            cls.assign_when_ready(
-                                mapping=mo_object, key=key, awaitable_value=val
-                            )
+                            cls.assign_when_ready(mapping=mo_object, key=key, awaitable_value=val)
                         )
                     )
         await gather(*tasks)  # ensure everything has completed
         return mo_objects
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, objid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, objid, changed_since: Optional[datetime] = None):
         """Retrieve a list of MO objects of type 'type' and with object ID
         'objid'.
 
@@ -219,9 +203,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         :param changed_since: Date used to filter registrations from LoRa
         :return: list of matching MO objects
         """
-        return await cls.get(
-            c, cls._get_search_fields(type, objid), changed_since=changed_since
-        )
+        return await cls.get(c, cls._get_search_fields(type, objid), changed_since=changed_since)
 
     @classmethod
     async def get_count(cls, c, type, objid):
@@ -263,9 +245,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         return field[0]["funktionsnavn"] == cls.function_key
 
     @classmethod
-    async def _get_lora_object(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
-    ):
+    async def _get_lora_object(cls, c, search_fields, changed_since: Optional[datetime] = None):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],

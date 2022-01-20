@@ -17,9 +17,7 @@ from tests.hypothesis_utils import validity_model_strat
 h_db = InMemoryExampleDatabase()
 h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
 h_settings.register_profile("dev", max_examples=10, database=h_db)
-h_settings.register_profile(
-    "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
-)
+h_settings.register_profile("debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db)
 h_settings.load_profile(os.getenv(u"HYPOTHESIS_PROFILE", "dev"))
 
 

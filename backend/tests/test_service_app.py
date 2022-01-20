@@ -25,15 +25,12 @@ class Tests(tests.cases.TestCase):
         )
 
     def test_fallback_handler(self):
-        resp = async_to_sync(app.fallback_handler)(
-            mock.MagicMock(), ValueError("go away")
-        )
+        resp = async_to_sync(app.fallback_handler)(mock.MagicMock(), ValueError("go away"))
 
         self.assertIsInstance(resp, JSONResponse)
         self.assertEqual(500, resp.status_code)
         self.assertEqual(
-            b'{"error":true,"description":"go away",'
-            b'"status":500,"error_key":"E_UNKNOWN"}',
+            b'{"error":true,"description":"go away",' b'"status":500,"error_key":"E_UNKNOWN"}',
             resp.body,
         )
 

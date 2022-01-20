@@ -298,9 +298,7 @@ class TestRenameOrgUnit(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            self.url_edit_detail, json=self.rename_payload, status_code=status_code
-        )
+        self.assertRequest(self.url_edit_detail, json=self.rename_payload, status_code=status_code)
 
 
 class TestTerminateOrgUnit(TestCommon):
@@ -310,9 +308,7 @@ class TestTerminateOrgUnit(TestCommon):
         self.url_terminate = f"/service/ou/{self.org_unit_uuid_2}/terminate"
 
         # Payload for terminating the newly created org unit
-        self.terminate_payload = {
-            "validity": {"to": datetime.today().strftime("%Y-%m-%d")}
-        }
+        self.terminate_payload = {"validity": {"to": datetime.today().strftime("%Y-%m-%d")}}
 
     @parameterized.expand(
         [
@@ -337,9 +333,7 @@ class TestTerminateOrgUnit(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            self.url_terminate, json=self.terminate_payload, status_code=status_code
-        )
+        self.assertRequest(self.url_terminate, json=self.terminate_payload, status_code=status_code)
 
 
 class TestCreateDetail(TestCommon):
@@ -529,9 +523,7 @@ class TestIndirectOwnership(TestCommon):
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
         self.rename_payload["data"]["uuid"] = self.org_unit_uuid_2
 
-        self.assertRequest(
-            self.url_edit_detail, json=self.rename_payload, status_code=status_code
-        )
+        self.assertRequest(self.url_edit_detail, json=self.rename_payload, status_code=status_code)
 
 
 class TestMoveOrgUnit(TestCommon):
@@ -625,9 +617,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             "validity": {"to": "2021-07-16"},
         }
 
-        self.assertRequest(
-            self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
-        )
+        self.assertRequest(self.url_terminate_detail, json=payload, status_code=HTTP_200_OK)
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_association_as_owner_of_unit(self):
@@ -639,9 +629,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             "validity": {"to": "2021-07-16"},
         }
 
-        self.assertRequest(
-            self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
-        )
+        self.assertRequest(self.url_terminate_detail, json=payload, status_code=HTTP_200_OK)
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_manager_as_owner_of_unit(self):
@@ -653,9 +641,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             "validity": {"to": "2021-07-16"},
         }
 
-        self.assertRequest(
-            self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
-        )
+        self.assertRequest(self.url_terminate_detail, json=payload, status_code=HTTP_200_OK)
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_org_unit_as_owner_of_unit(self):
@@ -667,6 +653,4 @@ class TestTerminateOrgUnitDetail(TestCommon):
             "validity": {"to": "2021-07-16"},
         }
 
-        self.assertRequest(
-            self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
-        )
+        self.assertRequest(self.url_terminate_detail, json=payload, status_code=HTTP_200_OK)

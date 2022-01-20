@@ -104,9 +104,7 @@ class TestValidateAPI(tests.cases.TestCase):
 
         self.client.post("/service/validate/candidate-parent-org-unit/", json=payload)
 
-        mock.assert_called_with(
-            org_unit_uuid, parent_uuid, mora_util.parsedatetime(from_date)
-        )
+        mock.assert_called_with(org_unit_uuid, parent_uuid, mora_util.parsedatetime(from_date))
 
     @patch("mora.service.address_handler.base.get_handler_for_scope")
     @patch("mora.service.facet.get_one_class")

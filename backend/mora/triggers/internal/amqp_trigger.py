@@ -124,19 +124,13 @@ async def publish_message(
     """
     # we are strict about the topic format to avoid programmer errors.
     if service not in _SERVICES:
-        raise ValueError(
-            "service {!r} not allowed, use one of {!r}".format(service, _SERVICES)
-        )
+        raise ValueError("service {!r} not allowed, use one of {!r}".format(service, _SERVICES))
     if object_type not in _OBJECT_TYPES:
         raise ValueError(
-            "object_type {!r} not allowed, use one of {!r}".format(
-                object_type, _OBJECT_TYPES
-            )
+            "object_type {!r} not allowed, use one of {!r}".format(object_type, _OBJECT_TYPES)
         )
     if action not in _ACTIONS:
-        raise ValueError(
-            "action {!r} not allowed, use one of {!r}".format(action, _ACTIONS)
-        )
+        raise ValueError("action {!r} not allowed, use one of {!r}".format(action, _ACTIONS))
 
     topic = "{}.{}.{}".format(service, object_type, action)
     message_dict = {
@@ -190,14 +184,10 @@ async def amqp_sender(trigger_dict: Dict) -> None:
     amqp_messages: List[Tuple[str, str]] = []
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
-        amqp_messages.append(
-            (mapping.EMPLOYEE, trigger_dict[triggers.Trigger.EMPLOYEE_UUID])
-        )
+        amqp_messages.append((mapping.EMPLOYEE, trigger_dict[triggers.Trigger.EMPLOYEE_UUID]))
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
-        amqp_messages.append(
-            (mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
-        )
+        amqp_messages.append((mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID]))
 
     for service, service_uuid in amqp_messages:
         logger.debug(
@@ -207,9 +197,7 @@ async def amqp_sender(trigger_dict: Dict) -> None:
             action=action,
         )
         asyncio.create_task(
-            publish_message(
-                service, object_type, action, service_uuid, object_uuid, datetime
-            )
+            publish_message(service, object_type, action, service_uuid, object_uuid, datetime)
         )
 
 
@@ -233,9 +221,7 @@ async def register(app) -> bool:
         mapping.ORG_UNIT,
         *mapping.RELATION_TRANSLATIONS.keys(),
     ]
-    trigger_combinations = product(
-        ROLE_TYPES, mapping.RequestType, [mapping.EventType.ON_AFTER]
-    )
+    trigger_combinations = product(ROLE_TYPES, mapping.RequestType, [mapping.EventType.ON_AFTER])
     for combi in trigger_combinations:
         triggers.Trigger.on(*combi)(amqp_sender)
     return True

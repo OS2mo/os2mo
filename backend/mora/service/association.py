@@ -62,9 +62,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )["uuid"]
 
-        association_type_uuid = util.get_mapping_uuid(
-            req, mapping.ASSOCIATION_TYPE, required=True
-        )
+        association_type_uuid = util.get_mapping_uuid(req, mapping.ASSOCIATION_TYPE, required=True)
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -82,9 +80,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
-            await validator.is_date_range_in_employee_range(
-                employee, valid_from, valid_to
-            )
+            await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
         if employee_uuid:
             await validator.does_employee_have_existing_association(
                 employee_uuid, org_unit_uuid, valid_from
@@ -159,9 +155,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -181,9 +175,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
             if not util.is_substitute_allowed(association_type_uuid):
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
-                )
+                update_fields.append((mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""}))
 
         if mapping.ORG_UNIT in data:
             org_unit_uuid = data.get(mapping.ORG_UNIT).get("uuid")
@@ -231,17 +223,13 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
 
             if not substitute_uuid:
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
-                )
+                update_fields.append((mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""}))
             else:
                 association_type_uuid = util.get_mapping_uuid(
                     data, mapping.ASSOCIATION_TYPE, required=True
                 )
                 validator.is_substitute_allowed(association_type_uuid)
-                update_fields.append(
-                    (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid})
-                )
+                update_fields.append((mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid}))
 
         if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
@@ -249,20 +237,12 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
 
         for clazz in util.checked_get(data, mapping.CLASSES, []):
-            update_fields.append(
-                (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
-            )
+            update_fields.append((mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)}))
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
-        bounds_fields = list(
-            mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields})
-        )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        bounds_fields = list(mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         # Validation
         if employee:

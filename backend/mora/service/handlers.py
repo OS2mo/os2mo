@@ -126,9 +126,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         else:
             raise NotImplementedError
 
-        obj.trigger_dict.update(
-            {Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid}
-        )
+        obj.trigger_dict.update({Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid})
         obj.trigger_results_before = None
         if not util.get_args_flag("triggerless"):
             obj.trigger_results_before = await Trigger.run(obj.trigger_dict)
@@ -237,9 +235,9 @@ class OrgFunkRequestHandler(RequestHandler):
         from_date = virkning["from"]
         to_date = virkning["to"]
 
-        original = await lora.Connector(
-            effective_date=from_date
-        ).organisationfunktion.get(self.uuid)
+        original = await lora.Connector(effective_date=from_date).organisationfunktion.get(
+            self.uuid
+        )
 
         if (
             original is None
@@ -267,13 +265,11 @@ class OrgFunkRequestHandler(RequestHandler):
         )
 
         if self.trigger_dict.get(Trigger.EMPLOYEE_UUID, None) is None:
-            self.trigger_dict[Trigger.EMPLOYEE_UUID] = mapping.USER_FIELD.get_uuid(
+            self.trigger_dict[Trigger.EMPLOYEE_UUID] = mapping.USER_FIELD.get_uuid(original)
+        if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
+            self.trigger_dict[Trigger.ORG_UNIT_UUID] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(
                 original
             )
-        if self.trigger_dict.get(Trigger.ORG_UNIT_UUID, None) is None:
-            self.trigger_dict[
-                Trigger.ORG_UNIT_UUID
-            ] = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
 
     async def submit(self) -> str:
         c = lora.Connector()
@@ -291,9 +287,7 @@ def get_key_for_function(obj: dict) -> str:
     """Obtain the function key class corresponding to the given LoRA object"""
 
     # use unpacking to ensure that the set contains just one element
-    (key,) = {
-        attrs["funktionsnavn"] for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
-    }
+    (key,) = {attrs["funktionsnavn"] for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)}
 
     return key
 
@@ -327,17 +321,11 @@ async def generate_requests(
     for req in requests:
         requesthandler_klasse = HANDLERS_BY_ROLE_TYPE[req.get("type")]
         if request_type == RequestType.CREATE:
-            requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
-            )
+            requesthandlers.append(await requesthandler_klasse.construct(req, request_type))
         elif request_type == RequestType.EDIT:
-            requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
-            )
+            requesthandlers.append(await requesthandler_klasse.construct(req, request_type))
         elif request_type == RequestType.TERMINATE:
-            requesthandlers.append(
-                await requesthandler_klasse.construct(req, request_type)
-            )
+            requesthandlers.append(await requesthandler_klasse.construct(req, request_type))
         else:
             requesthandlers.append(await requesthandler_klasse(req, request_type))
     return requesthandlers

@@ -225,9 +225,7 @@ class _BaseTestCase(TestCase):
 
         self.assertEqual(expected, actual, message)
 
-    def assertRequestFails(
-        self, path, code, message=None, set_auth_header=False, **kwargs
-    ):
+    def assertRequestFails(self, path, code, message=None, set_auth_header=False, **kwargs):
         """Issue a request and assert that it fails with the given status.
 
         ``**kwargs`` is passed directly to the test client -- see the
@@ -255,9 +253,7 @@ class _BaseTestCase(TestCase):
 
             # kwargs['method'] = 'POST'
             kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
-            kwargs.setdefault("headers", dict()).update(
-                {"Content-Type": "application/json"}
-            )
+            kwargs.setdefault("headers", dict()).update({"Content-Type": "application/json"})
             return self.client.post(path, **kwargs)
 
         return self.client.get(path, **kwargs)
@@ -358,10 +354,7 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase, _BaseTestCase):
         super().setUp()
 
     async def asyncTearDown(self):
-        if (
-            hasattr(_local_cache, "async_session")
-            and _local_cache.async_session is not None
-        ):
+        if hasattr(_local_cache, "async_session") and _local_cache.async_session is not None:
             await _local_cache.async_session.close()
             _local_cache.async_session = None
         super().asyncTearDown()
@@ -393,10 +386,7 @@ class LoRATestCase(_BaseTestCase):
 
     @async_to_sync
     async def tearDown(self):
-        if (
-            hasattr(_local_cache, "async_session")
-            and _local_cache.async_session is not None
-        ):
+        if hasattr(_local_cache, "async_session") and _local_cache.async_session is not None:
             await _local_cache.async_session.close()
             _local_cache.async_session = None
         super().tearDown()

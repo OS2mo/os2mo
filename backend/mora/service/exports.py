@@ -35,9 +35,7 @@ def list_export_files():
     if not os.path.isdir(export_dir):
         exceptions.ErrorCodes.E_DIR_NOT_FOUND()
     dir_contents = os.listdir(export_dir)
-    files = [
-        file for file in dir_contents if os.path.isfile(os.path.join(export_dir, file))
-    ]
+    files = [file for file in dir_contents if os.path.isfile(os.path.join(export_dir, file))]
     return files
 
 

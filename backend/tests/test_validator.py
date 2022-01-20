@@ -86,9 +86,7 @@ class TestIsDateRangeValid(tests.cases.TestCase):
     def test_validity_ranges(self, expect, validities, m):
         settings = config.get_settings()
         url = yarl.URL(f"{settings.lora_url}organisation/organisationenhed")
-        c = lora.Connector(
-            virkningfra="2000-01-01", virkningtil="3000-01-01"
-        ).organisationenhed
+        c = lora.Connector(virkningfra="2000-01-01", virkningtil="3000-01-01").organisationenhed
 
         payload = {
             "results": [

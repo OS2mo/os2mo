@@ -53,9 +53,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if inherit_owner or util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
-        return await super().get_from_type(
-            c, type, object_id, changed_since=changed_since
-        )
+        return await super().get_from_type(c, type, object_id, changed_since=changed_since)
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):
@@ -122,9 +120,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 search_fields={"tilknyttedebrugere": owned_person_uuid},
             )
 
-        raise NotImplementedError(
-            f"Mapping for inference_priority missing: {inference_priority}"
-        )
+        raise NotImplementedError(f"Mapping for inference_priority missing: {inference_priority}")
 
     @classmethod
     async def infer_owner(
@@ -141,9 +137,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         if not candidates:  # nothing to do
             return None
         elif len(candidates) > 1:  # sort if multiple
-            priorities = dict(
-                await get_sorted_primary_class_list(c=request_wide_bulk.connector)
-            )
+            priorities = dict(await get_sorted_primary_class_list(c=request_wide_bulk.connector))
             sort_func = partial(cls.__owner_priority, primary_priorities=priorities)
             best_candidate = max(candidates, key=sort_func)
         else:  # nothing to infer
@@ -153,9 +147,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         org_unit_owners = await OwnerReader.get_from_type(
             c=request_wide_bulk.connector,
             type="ou",
-            object_id=util.get_mapping_uuid(
-                best_candidate, mapping.ORG_UNIT, required=True
-            ),
+            object_id=util.get_mapping_uuid(best_candidate, mapping.ORG_UNIT, required=True),
             inherit_owner=True,
         )
         # even when inheriting, no owners can be found
@@ -164,9 +156,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         return org_unit_owners[0]["owner"]
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
 
         owned_person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
@@ -176,12 +166,8 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         inference_priority_str = extensions.get(EXTENSION_1, None)
         inference_priority = None
         if inference_priority_str:  # filters both None and empty string
-            inference_priority = parse_owner_inference_priority_str(
-                inference_priority_str
-            )
-        base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+            inference_priority = parse_owner_inference_priority_str(inference_priority_str)
+        base_obj = create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         owner_task = None
@@ -201,9 +187,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                     )
                 )
             else:
-                raise ErrorCodes.E_INTERNAL_ERROR(
-                    f"ill-formatted object encountered: " f"{effect}"
-                )
+                raise ErrorCodes.E_INTERNAL_ERROR(f"ill-formatted object encountered: " f"{effect}")
 
         if org_unit:
             org_unit_task = create_task(

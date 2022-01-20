@@ -31,9 +31,7 @@ class Reading(TestCase):
                 for orgfunk in MoOrgFunk
             }
         )
-        base.update(
-            {orgfunk.value: f"some_val_{orgfunk.value}" for orgfunk in MoOrgFunk}
-        )
+        base.update({orgfunk.value: f"some_val_{orgfunk.value}" for orgfunk in MoOrgFunk})
         actual = _extract_search_params(base)
         self.assertEqual(expected, actual)
 
@@ -94,9 +92,7 @@ class Reading(TestCase):
         return return_value
 
     @given(st.data())
-    @settings(
-        max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None
-    )
+    @settings(max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None)
     def test_api_exposing_org_funk_endpoint(self, data):
         # parametrized test
         for orgfunk in MoOrgFunk:
@@ -104,9 +100,7 @@ class Reading(TestCase):
             self.api_exposing_org_funk_endpoint_helper(orgfunk, [return_value])
 
     @given(st.data())
-    @settings(
-        max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None
-    )
+    @settings(max_examples=1, suppress_health_check=[HealthCheck.too_slow], deadline=None)
     def test_api_exposing_org_funk_uuid_endpoint(self, data):
         # parametrized test
         for orgfunk in MoOrgFunk:

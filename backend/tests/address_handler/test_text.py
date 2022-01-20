@@ -23,9 +23,7 @@ class TextAddressHandlerTests(tests.cases.TestCase):
         # Arrange
         value = "Test text whatever"
 
-        effect = {
-            "relationer": {"adresser": [{"urn": "urn:text:%54est%20text%20whatever"}]}
-        }
+        effect = {"relationer": {"adresser": [{"urn": "urn:text:%54est%20text%20whatever"}]}}
 
         address_handler = await self.handler.from_effect(effect)
 

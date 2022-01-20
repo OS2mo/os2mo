@@ -94,9 +94,7 @@ async def fallback_handler(*args, **kwargs):
     https://github.com/tiangolo/fastapi/issues/2750#issuecomment-775526951
     :return:
     """
-    exc = only(
-        filter(lambda arg: isinstance(arg, Exception), chain(args, kwargs.values()))
-    )
+    exc = only(filter(lambda arg: isinstance(arg, Exception), chain(args, kwargs.values())))
     if exc and isinstance(exc, FastAPIHTTPException):
         return http_exception_to_json_response(exc=exc)
     if exc:
@@ -117,9 +115,7 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :return:
     """
     if not config.is_production():
-        logger.info(
-            "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
-        )
+        logger.info("os2mo_err_details", exc=exc, url=request.url, params=request.query_params)
 
     err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
     return http_exception_to_json_response(exc=err)
@@ -179,13 +175,11 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             },
             {
                 "name": "Testing",
-                "description": "Endpoints related to testing. "
-                "Enabled by configuration.",
+                "description": "Endpoints related to testing. " "Enabled by configuration.",
             },
             {
                 "name": "Health",
-                "description": "Healthcheck endpoints. "
-                "Called by the observability setup.",
+                "description": "Healthcheck endpoints. " "Called by the observability setup.",
             },
             {
                 "name": "Static",
@@ -231,9 +225,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         app.include_router(gql_router, prefix="/graphql", dependencies=[Depends(auth)])
 
     if settings.v1_api_enable:
-        app.include_router(
-            reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
-        )
+        app.include_router(reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)])
 
     app.include_router(
         keycloak_router(),
@@ -280,9 +272,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
 
     # Adds pretty printed logs for development
     if settings.environment is Environment.DEVELOPMENT:
-        setup_logging(
-            processors=[merge_contextvars, JSONRenderer(indent=2, sort_keys=True)]
-        )
+        setup_logging(processors=[merge_contextvars, JSONRenderer(indent=2, sort_keys=True)])
     else:
         setup_logging(processors=[merge_contextvars, JSONRenderer()])
 

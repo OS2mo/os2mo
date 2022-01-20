@@ -59,9 +59,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation
 
         if employee:
-            await validator.is_date_range_in_employee_range(
-                employee, valid_from, valid_to
-            )
+            await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
 
         manager = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.MANAGER_KEY,
@@ -121,9 +119,7 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -191,16 +187,10 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
-        bounds_fields = list(
-            mapping.MANAGER_FIELDS.difference({x[0] for x in update_fields})
-        )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        bounds_fields = list(mapping.MANAGER_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         await validator.is_date_range_in_org_unit_range(org_unit, new_from, new_to)
 

@@ -31,9 +31,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ENGAGEMENT_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
@@ -45,9 +43,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         extensions = extensions[0] if extensions else {}
         fraction = extensions.get("fraktion", None)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         # TODO this should only be done in graphql when requested
@@ -156,14 +152,9 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         if not util.get_args_flag("calculate_primary"):
             return None
 
-        objs = [
-            obj
-            for _, obj in await cls._get_lora_object(c, {"tilknyttedebrugere": person})
-        ]
+        objs = [obj for _, obj in await cls._get_lora_object(c, {"tilknyttedebrugere": person})]
 
-        effect_tuples_list = await gather(
-            *[create_task(cls._get_effects(c, obj)) for obj in objs]
-        )
+        effect_tuples_list = await gather(*[create_task(cls._get_effects(c, obj)) for obj in objs])
 
         # flatten and filter
         engagements = [

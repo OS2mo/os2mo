@@ -26,25 +26,19 @@ class EngagementAssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        base_obj = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}
         else:
-            engagement = await get_engagement(
-                request_wide_bulk.connector, uuid=engagement_uuid
-            )
+            engagement = await get_engagement(request_wide_bulk.connector, uuid=engagement_uuid)
 
         org_unit_task = create_task(
             orgunit.request_bulked_get_one_orgunit(

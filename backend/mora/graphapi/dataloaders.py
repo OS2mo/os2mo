@@ -219,9 +219,7 @@ def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
         "published": facet_state.published,
         "org_uuid": one(facet_relations.responsible).uuid,
         "parent_uuid": (
-            one(facet_relations.parent).uuid
-            if facet_relations.parent is not None
-            else None
+            one(facet_relations.parent).uuid if facet_relations.parent is not None else None
         ),
     }
     return FacetRead(**mo_facet)
@@ -265,9 +263,7 @@ async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
     return list(map(lambda key: buckets[key], facet_uuids))
 
 
-async def get_employee_details(
-    employee_uuid: UUID, role_type: str
-) -> Optional[List[MOModel]]:
+async def get_employee_details(employee_uuid: UUID, role_type: str) -> Optional[List[MOModel]]:
     """Non-bulk loader for employee details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -285,18 +281,14 @@ async def get_employee_details(
     return parse_obj_as(List[MOModel], result)
 
 
-async def load_employee_details(
-    keys: List[UUID], model: MOModel
-) -> List[List[MOModel]]:
+async def load_employee_details(keys: List[UUID], model: MOModel) -> List[List[MOModel]]:
     """Non-bulk loader for employee details with bulk interface."""
     mo_type = model.__fields__["type_"].default
     tasks = map(partial(get_employee_details, role_type=mo_type), keys)
     return await gather(*tasks)
 
 
-async def get_org_unit_details(
-    org_unit_uuid: UUID, role_type: str
-) -> Optional[List[MOModel]]:
+async def get_org_unit_details(org_unit_uuid: UUID, role_type: str) -> Optional[List[MOModel]]:
     """Non-bulk loader for organisation unit details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -314,9 +306,7 @@ async def get_org_unit_details(
     return parse_obj_as(List[MOModel], result)
 
 
-async def load_org_unit_details(
-    keys: List[UUID], model: MOModel
-) -> List[List[MOModel]]:
+async def load_org_unit_details(keys: List[UUID], model: MOModel) -> List[List[MOModel]]:
     """Non-bulk loader for org_unit details with bulk interface."""
     mo_type = model.__fields__["type_"].default
     tasks = map(partial(get_org_unit_details, role_type=mo_type), keys)
@@ -369,9 +359,7 @@ async def get_loaders() -> Dict[str, DataLoader]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
-        "org_unit_loader": DataLoader(
-            load_fn=partial(load_mo, model=OrganisationUnitRead)
-        ),
+        "org_unit_loader": DataLoader(load_fn=partial(load_mo, model=OrganisationUnitRead)),
         "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "org_unit_manager_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=ManagerRead)
@@ -388,15 +376,11 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "org_unit_association_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=AssociationRead)
         ),
-        "org_unit_role_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=RoleRead)
-        ),
+        "org_unit_role_loader": DataLoader(load_fn=partial(load_org_unit_details, model=RoleRead)),
         "org_unit_ituser_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=ITUserRead)
         ),
-        "org_unit_kle_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=KLERead)
-        ),
+        "org_unit_kle_loader": DataLoader(load_fn=partial(load_org_unit_details, model=KLERead)),
         "org_unit_related_unit_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=RelatedUnitRead)
         ),
@@ -416,9 +400,7 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "employee_association_loader": DataLoader(
             load_fn=partial(load_employee_details, model=AssociationRead)
         ),
-        "employee_role_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=RoleRead)
-        ),
+        "employee_role_loader": DataLoader(load_fn=partial(load_employee_details, model=RoleRead)),
         "employee_ituser_loader": DataLoader(
             load_fn=partial(load_employee_details, model=ITUserRead)
         ),
@@ -426,9 +408,7 @@ async def get_loaders() -> Dict[str, DataLoader]:
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
         "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
-        "association_loader": DataLoader(
-            load_fn=partial(load_mo, model=AssociationRead)
-        ),
+        "association_loader": DataLoader(load_fn=partial(load_mo, model=AssociationRead)),
         "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),

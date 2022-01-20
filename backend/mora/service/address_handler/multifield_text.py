@@ -15,9 +15,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
     @property
     def name(self):
         return self._value + (
-            " :: " + self._value2
-            if self._value2 is not None and self._value2.strip()
-            else ""
+            " :: " + self._value2 if self._value2 is not None and self._value2.strip() else ""
         )
 
     @staticmethod

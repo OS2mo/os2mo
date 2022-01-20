@@ -38,9 +38,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
 
         opgaver = [{"uuid": util.get_uuid(kle_type)} for kle_type in kle_aspects]
 
-        kle_annotation_uuid = util.get_mapping_uuid(
-            req, mapping.KLE_NUMBER, required=True
-        )
+        kle_annotation_uuid = util.get_mapping_uuid(req, mapping.KLE_NUMBER, required=True)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
@@ -117,9 +115,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        for aspect in util.checked_get(
-            data, mapping.KLE_ASPECT, [], can_be_empty=False
-        ):
+        for aspect in util.checked_get(data, mapping.KLE_ASPECT, [], can_be_empty=False):
             update_fields.append(
                 (
                     mapping.KLE_ASPECT_FIELD,
@@ -146,9 +142,7 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -158,18 +152,14 @@ class KLERequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
         bounds_fields = list(
             mapping.KLE_FIELDS.difference(
                 {x[0] for x in update_fields},
             )
         )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         self.payload = payload
         self.uuid = function_uuid

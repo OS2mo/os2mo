@@ -24,9 +24,7 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Arrange
         value = "http://www.test.org/"
 
-        effect = {
-            "relationer": {"adresser": [{"urn": "urn:magenta.dk:www:{}".format(value)}]}
-        }
+        effect = {"relationer": {"adresser": [{"urn": "urn:magenta.dk:www:{}".format(value)}]}}
 
         address_handler = await self.handler.from_effect(effect)
 

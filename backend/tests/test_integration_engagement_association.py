@@ -61,9 +61,7 @@ class EngAssocUtils:
         return [
             {
                 "engagement": {"uuid": cls.engagement_uuid},
-                "engagement_association_type": {
-                    "uuid": cls.engagement_association_type_uuid
-                },
+                "engagement_association_type": {"uuid": cls.engagement_association_type_uuid},
                 "org_unit": {"uuid": cls.unitid},
                 "user_key": cls.user_key,
                 "uuid": cls.association_uuid,
@@ -289,9 +287,7 @@ class Tests(LoRATestCase):
         expected = [
             {
                 "engagement": {"uuid": engagement_uuid},
-                "engagement_association_type": {
-                    "uuid": engagement_association_type_uuid2
-                },
+                "engagement_association_type": {"uuid": engagement_association_type_uuid2},
                 "org_unit": {"uuid": unitid},
                 "user_key": user_key,
                 "uuid": association_uuid,

@@ -23,16 +23,12 @@ class LeaveReader(reading.OrgFunkReadingHandler):
     function_key = mapping.LEAVE_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         person = mapping.USER_FIELD.get_uuid(effect)
         leave_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
@@ -44,15 +40,11 @@ class LeaveReader(reading.OrgFunkReadingHandler):
             }
 
         person_task = create_task(
-            employee.request_bulked_get_one_employee(
-                person, only_primary_uuid=only_primary_uuid
-            )
+            employee.request_bulked_get_one_employee(person, only_primary_uuid=only_primary_uuid)
         )
 
         leave_type_task = create_task(
-            facet.request_bulked_get_one_class(
-                leave_type, only_primary_uuid=only_primary_uuid
-            )
+            facet.request_bulked_get_one_class(leave_type, only_primary_uuid=only_primary_uuid)
         )
 
         if only_primary_uuid:

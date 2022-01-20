@@ -77,8 +77,7 @@ class Query:
     # -----------------
     @strawberry.field(
         description=(
-            "Get the root-organisation. "
-            "This endpoint fails if not exactly one exists in LoRa."
+            "Get the root-organisation. " "This endpoint fails if not exactly one exists in LoRa."
         ),
     )
     async def org(self, info: Info) -> Organisation:
@@ -113,21 +112,15 @@ class Query:
     @strawberry.field(
         description="Get a list of all employees, optionally by uuid(s)",
     )
-    async def employees(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Employee]:
+    async def employees(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Employee]:
         if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
         return await get_employees()
 
     # Engagement
     # ----------
-    @strawberry.field(
-        description="Get a list of all engagements, optionally by uuid(s)"
-    )
-    async def engagements(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Engagement]:
+    @strawberry.field(description="Get a list of all engagements, optionally by uuid(s)")
+    async def engagements(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Engagement]:
         if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
         return await get_engagements()
@@ -147,9 +140,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all addresses, optionally by uuid(s)",
     )
-    async def addresses(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Address]:
+    async def addresses(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Address]:
         if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
         return await get_addresses()
@@ -157,9 +148,7 @@ class Query:
     # Leave
     # -----
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
-    async def leaves(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Leave]:
+    async def leaves(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Leave]:
         if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
         return await get_leaves()
@@ -169,9 +158,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
-    async def itusers(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ITUser]:
+    async def itusers(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[ITUser]:
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return await get_itusers()
@@ -181,9 +168,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all ITSystems, optionally by uuid(s)",
     )
-    async def itsystems(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[ITSystem]:
+    async def itsystems(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[ITSystem]:
         if uuids is not None:
             return await get_by_uuid(info.context["itsystem_loader"], uuids)
         return await get_itsystems()
@@ -203,9 +188,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all managers, optionally by uuid(s)",
     )
-    async def managers(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Manager]:
+    async def managers(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Manager]:
         if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
         return await get_managers()
@@ -215,9 +198,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all classes, optionally by uuid(s)",
     )
-    async def classes(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Class]:
+    async def classes(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Class]:
         if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
         return await get_classes()
@@ -225,9 +206,7 @@ class Query:
     # Relatedunits
     # ---------
     @strawberry.field(
-        description=(
-            "Get a list of all related organisational units, optionally by uuid(s)"
-        ),
+        description=("Get a list of all related organisational units, optionally by uuid(s)"),
     )
     async def related_units(
         self, info: Info, uuids: Optional[List[UUID]] = None
@@ -241,9 +220,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all facets, optionally by uuid(s)",
     )
-    async def facets(
-        self, info: Info, uuids: Optional[List[UUID]] = None
-    ) -> List[Facet]:
+    async def facets(self, info: Info, uuids: Optional[List[UUID]] = None) -> List[Facet]:
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return await get_facets()
@@ -261,9 +238,7 @@ class Query:
     @strawberry.field(
         description="Get a list of all health checks, optionally by identifier(s)",
     )
-    async def healths(
-        self, info: Info, identifiers: Optional[List[str]] = None
-    ) -> List[Health]:
+    async def healths(self, info: Info, identifiers: Optional[List[str]] = None) -> List[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
@@ -324,9 +299,7 @@ async def get_context() -> Dict[str, Any]:
 def setup_graphql(enable_graphiql: bool = False):
     schema = get_schema()
 
-    gql_router = GraphQLRouter(
-        schema, context_getter=get_context, graphiql=enable_graphiql
-    )
+    gql_router = GraphQLRouter(schema, context_getter=get_context, graphiql=enable_graphiql)
 
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically

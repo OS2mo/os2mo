@@ -34,26 +34,18 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, objid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, objid, changed_since: Optional[datetime] = None):
 
         search_fields = {cls.SEARCH_FIELDS[type]: objid}
         if util.get_args_flag(FIRST_PARTY_PERSPECTIVE):
             if type != "e":  # raises
-                exceptions.ErrorCodes.E_INVALID_INPUT(
-                    f"Invalid args: {FIRST_PARTY_PERSPECTIVE}"
-                )
+                exceptions.ErrorCodes.E_INVALID_INPUT(f"Invalid args: {FIRST_PARTY_PERSPECTIVE}")
             else:
                 # get both "vanilla" associations and
                 # associations where "objid" is the substitute, in some new fields
-                e_task = create_task(
-                    cls.get(c, search_fields, changed_since=changed_since)
-                )
+                e_task = create_task(cls.get(c, search_fields, changed_since=changed_since))
                 f_task = create_task(
-                    cls.get(
-                        c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
-                    )
+                    cls.get(c, {"tilknyttedefunktioner": objid}, changed_since=changed_since)
                 )
                 e_result = await e_task
                 f_result = await f_task
@@ -105,9 +97,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         )
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         association_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)

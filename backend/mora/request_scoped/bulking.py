@@ -25,9 +25,7 @@ class __BulkBookkeeper:
     def connector(self) -> Connector:
         return get_connector()
 
-    async def get_lora_object(
-        self, type_: LoraObjectType, uuid: str
-    ) -> Optional[LORA_OBJ]:
+    async def get_lora_object(self, type_: LoraObjectType, uuid: str) -> Optional[LORA_OBJ]:
         results = await self.connector.scope(type_).load(uuid=uuid)
         if not results:
             return None

@@ -161,9 +161,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -290,9 +288,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -418,9 +414,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
@@ -535,9 +529,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(engagementid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 
@@ -1201,17 +1193,13 @@ class Tests(tests.cases.LoRATestCase):
 
         # Assert termination request is persisted correctly in the past
         r = self.request(
-            f"/service/e/{employee_uuid}/details/engagement"
-            f"?validity=past&at=2021-10-08"
+            f"/service/e/{employee_uuid}/details/engagement" f"?validity=past&at=2021-10-08"
         )
-        self.assertEqual(
-            {"from": "2017-01-01", "to": "2018-10-21"}, r.json()[0]["validity"]
-        )
+        self.assertEqual({"from": "2017-01-01", "to": "2018-10-21"}, r.json()[0]["validity"])
 
         # Assert termination request is persisted correctly in the present
         r = self.request(
-            f"/service/e/{employee_uuid}/details/engagement"
-            f"?validity=present&at=2021-10-08"
+            f"/service/e/{employee_uuid}/details/engagement" f"?validity=present&at=2021-10-08"
         )
         self.assertEqual({"from": "2018-10-26", "to": None}, r.json()[0]["validity"])
 

@@ -29,9 +29,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     function_key = mapping.MANAGER_KEY
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, object_id, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, object_id, changed_since: Optional[datetime] = None):
 
         if util.get_args_flag("inherit_manager"):
             return await cls.get_inherited_manager(c, type, object_id)
@@ -63,9 +61,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         return manager
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
 
         person = mapping.USER_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
@@ -73,9 +69,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
         responsibilities = list(mapping.RESPONSIBILITY_FIELD.get_uuids(effect))
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         if is_graphql():
             return {

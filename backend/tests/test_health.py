@@ -15,9 +15,7 @@ from tests import util
 
 pytestmark = pytest.mark.asyncio
 
-HTTPX_MOCK_RESPONSE = Response(
-    status_code=404, request=Request("GET", "http://some-url.xyz")
-)
+HTTPX_MOCK_RESPONSE = Response(status_code=404, request=Request("GET", "http://some-url.xyz"))
 
 
 class TestOIORestHealth:
@@ -32,9 +30,7 @@ class TestOIORestHealth:
     @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
-        mock_get.side_effect = RuntimeError(
-            "Cannot send a request, as the client has been closed."
-        )
+        mock_get.side_effect = RuntimeError("Cannot send a request, as the client has been closed.")
         assert not await health.oio_rest()
 
 
@@ -99,9 +95,7 @@ class TestKeycloakHealth:
     @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_for_httpx_client_error(self, mock_get):
         # This is one of the possible erros raised by the httpx client
-        mock_get.side_effect = RuntimeError(
-            "Cannot send a request, as the client has been closed."
-        )
+        mock_get.side_effect = RuntimeError("Cannot send a request, as the client has been closed.")
         assert not await health.keycloak()
 
 

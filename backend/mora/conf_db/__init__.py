@@ -219,9 +219,7 @@ def health_check():
         return False, error_msg.format(str(e))
 
     settings_configuration = get_settings_configuration()
-    dict_difference = dict(
-        set(db_configuration.items()) - set(settings_configuration.items())
-    )
+    dict_difference = dict(set(db_configuration.items()) - set(settings_configuration.items()))
     if dict_difference:
         error_msg = "Settings not in sync, mismatched keys: {}"
         return False, error_msg.format(", ".join(dict_difference.keys()))

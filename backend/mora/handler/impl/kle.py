@@ -22,16 +22,12 @@ class KLEReader(reading.OrgFunkReadingHandler):
     function_key = mapping.KLE_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type_uuid = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         kle_types_uuid = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         if is_graphql():
             return {

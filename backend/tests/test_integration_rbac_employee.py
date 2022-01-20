@@ -191,9 +191,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()
         self.load_sample_structures()
-        self.payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_employee_detail.json"
-        )
+        self.payload = jsonfile_to_dict("tests/fixtures/rbac/create_employee_detail.json")
         self.payload[0]["person"]["uuid"] = LIS_JENSEN
 
         self.create_multiple_associations = jsonfile_to_dict(
@@ -248,13 +246,9 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
         # Use user "Anders And" (who owns one unit but not the other)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
-        payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_multiple_employments.json"
-        )
+        payload = jsonfile_to_dict("tests/fixtures/rbac/create_multiple_employments.json")
 
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=payload, status_code=HTTP_403_FORBIDDEN
-        )
+        self.assertRequest(URL_CREATE_DETAIL, json=payload, status_code=HTTP_403_FORBIDDEN)
 
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_multiple_employments_owns_all_units(self):
@@ -319,9 +313,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             "owner": None,
         }
 
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
+        self.assertRequest(URL_CREATE_DETAIL, json=self.payload, status_code=status_code)
 
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
@@ -349,9 +341,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             "owner": None,
         }
 
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
+        self.assertRequest(URL_CREATE_DETAIL, json=self.payload, status_code=status_code)
 
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
@@ -397,18 +387,14 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             }
         ]
 
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
+        self.assertRequest(URL_CREATE_DETAIL, json=self.payload, status_code=status_code)
 
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_object_types_in_list_must_be_identical(self):
         # Use user "Anders And" (who owns all units)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
-        self.create_multiple_associations[1] = deepcopy(
-            self.create_multiple_associations[0]
-        )
+        self.create_multiple_associations[1] = deepcopy(self.create_multiple_associations[0])
 
         self.create_multiple_associations[1]["type"] = "address"
 
@@ -423,13 +409,9 @@ class TestEditEmployeeDetail(TestCommon):
     def setUp(self) -> None:
         super().setUp()
 
-        self.payload_edit_address = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_address.json"
-        )
+        self.payload_edit_address = jsonfile_to_dict("tests/fixtures/rbac/edit_address.json")
 
-        self.payload_edit_employment = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_employment.json"
-        )
+        self.payload_edit_employment = jsonfile_to_dict("tests/fixtures/rbac/edit_employment.json")
 
         self.payload_edit_role = jsonfile_to_dict("tests/fixtures/rbac/edit_role.json")
 
@@ -437,9 +419,7 @@ class TestEditEmployeeDetail(TestCommon):
             "tests/fixtures/rbac/edit_association.json"
         )
 
-        self.payload_edit_manager = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_manager.json"
-        )
+        self.payload_edit_manager = jsonfile_to_dict("tests/fixtures/rbac/edit_manager.json")
 
         # Let Anders And be the owner of Fedtmule
 
@@ -493,9 +473,7 @@ class TestEditEmployeeDetail(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_address, status_code=status_code
-        )
+        self.assertRequest(URL_EDIT_DETAIL, json=self.payload_edit_address, status_code=status_code)
 
     @parameterized.expand(
         [
@@ -543,9 +521,7 @@ class TestEditEmployeeDetail(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_role, status_code=status_code
-        )
+        self.assertRequest(URL_EDIT_DETAIL, json=self.payload_edit_role, status_code=status_code)
 
     @parameterized.expand(
         [
@@ -589,9 +565,7 @@ class TestEditEmployeeDetail(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_manager, status_code=status_code
-        )
+        self.assertRequest(URL_EDIT_DETAIL, json=self.payload_edit_manager, status_code=status_code)
 
 
 class TestMoveEmployment(tests.cases.LoRATestCase):
@@ -817,6 +791,4 @@ class TestEmployeeLeave(TestCommon):
         """
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload_leave, status_code=status_code
-        )
+        self.assertRequest(URL_CREATE_DETAIL, json=self.payload_leave, status_code=status_code)

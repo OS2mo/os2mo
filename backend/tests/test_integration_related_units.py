@@ -108,8 +108,7 @@ class Tests(tests.cases.LoRATestCase):
             self.assertRequestResponse(
                 "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
                 {
-                    "description": "Date range exceeds validity range "
-                    "of associated org unit.",
+                    "description": "Date range exceeds validity range " "of associated org unit.",
                     "error": True,
                     "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
                     "org_unit_uuid": ["da77153e-30f3-4dc2-a611-ee912a28d8aa"],
@@ -130,8 +129,7 @@ class Tests(tests.cases.LoRATestCase):
             self.assertRequestResponse(
                 "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
                 {
-                    "description": "Date range exceeds validity range of "
-                    "associated org unit.",
+                    "description": "Date range exceeds validity range of " "associated org unit.",
                     "error": True,
                     "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
                     "org_unit_uuid": ["da77153e-30f3-4dc2-a611-ee912a28d8aa"],

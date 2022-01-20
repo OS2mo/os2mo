@@ -50,8 +50,7 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            "/service/o/00000000-0000-0000-0000-000000000000/" "address_autocomplete/?q=42",
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -116,8 +115,7 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            "/service/o/00000000-0000-0000-0000-000000000000/" "address_autocomplete/?q=42",
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -148,8 +146,7 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            "/service/o/00000000-0000-0000-0000-000000000000/" "address_autocomplete/?q=42",
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -316,9 +313,7 @@ class TestAddressLookup(tests.cases.TestCase):
                                                 }
                                             ]
                                         },
-                                        "tiltidspunkt": {
-                                            "tidsstempeldatotid": "infinity"
-                                        },
+                                        "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
                                     }
                                 ],
                             }
@@ -407,9 +402,7 @@ class TestAddressLookup(tests.cases.TestCase):
 
     @async_to_sync
     async def test_bad_scope(self):
-        with self.assertRaisesRegex(
-            exceptions.HTTPException, "Invalid address scope type"
-        ):
+        with self.assertRaisesRegex(exceptions.HTTPException, "Invalid address scope type"):
             await address.get_one_address(
                 {
                     "relationer": {

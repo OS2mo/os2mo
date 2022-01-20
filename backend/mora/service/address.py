@@ -42,9 +42,7 @@ async def get_address_type(effect):
     address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get("uuid")
     only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-    return await facet.get_one_class(
-        c, address_type_uuid, only_primary_uuid=only_primary_uuid
-    )
+    return await facet.get_one_class(c, address_type_uuid, only_primary_uuid=only_primary_uuid)
 
 
 async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, Any]:
@@ -141,8 +139,7 @@ async def address_autocomplete(
         return r.json()
 
     addrs = collections.OrderedDict(
-        (addr["tekst"], addr["adgangsadresse"]["id"])
-        for addr in await get_access_addreses()
+        (addr["tekst"], addr["adgangsadresse"]["id"]) for addr in await get_access_addreses()
     )
 
     async def get_addresses() -> list[dict]:
@@ -209,9 +206,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
         )["uuid"]
 
-        address_type_uuid = util.get_mapping_uuid(
-            req, mapping.ADDRESS_TYPE, required=True
-        )
+        address_type_uuid = util.get_mapping_uuid(req, mapping.ADDRESS_TYPE, required=True)
 
         c = lora.Connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
@@ -369,9 +364,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -383,9 +376,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         if mapping.VALUE in data:
 
-            address_type_uuid = util.get_mapping_uuid(
-                data, mapping.ADDRESS_TYPE, required=True
-            )
+            address_type_uuid = util.get_mapping_uuid(data, mapping.ADDRESS_TYPE, required=True)
             only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
             type_obj = await facet.get_one_class(
@@ -396,9 +387,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             handler = await base.get_handler_for_scope(scope).from_request(data)
             lora_addr = handler.get_lora_address()
             if isinstance(lora_addr, list):
-                update_fields.extend(
-                    map(lambda x: (mapping.ADDRESSES_FIELD, x), lora_addr)
-                )
+                update_fields.extend(map(lambda x: (mapping.ADDRESSES_FIELD, x), lora_addr))
 
             else:
                 update_fields.append(
@@ -408,25 +397,19 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                     )
                 )
 
-            update_fields.append(
-                (mapping.ADDRESS_TYPE_FIELD, {"uuid": address_type_uuid})
-            )
+            update_fields.append((mapping.ADDRESS_TYPE_FIELD, {"uuid": address_type_uuid}))
 
             for prop in handler.get_lora_properties():
                 update_fields.append((mapping.VISIBILITY_FIELD, prop))
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
         bounds_fields = list(
             mapping.ADDRESS_FIELDS.difference(
                 {x[0] for x in update_fields},
             )
         )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
         self.payload = payload
         self.uuid = function_uuid
         self.trigger_dict.update(

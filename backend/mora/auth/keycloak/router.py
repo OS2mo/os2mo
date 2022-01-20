@@ -33,8 +33,7 @@ def keycloak_router():
     async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         """Login endpoint to exchange username + password for access token."""
         token_url = (
-            f"{SCHEMA}://{HOST}:{PORT}"
-            f"/auth/realms/{REALM}/protocol/openid-connect/token"
+            f"{SCHEMA}://{HOST}:{PORT}" f"/auth/realms/{REALM}/protocol/openid-connect/token"
         )
 
         if form_data.grant_type and form_data.grant_type != "password":
@@ -42,13 +41,9 @@ def keycloak_router():
         if form_data.client_id:
             raise HTTPException(status_code=406, detail="client_id must be left empty")
         if form_data.client_secret:
-            raise HTTPException(
-                status_code=406, detail="client_secret must be left empty"
-            )
+            raise HTTPException(status_code=406, detail="client_secret must be left empty")
         if form_data.scopes:
-            raise HTTPException(
-                status_code=406, detail="client_scope must be left empty"
-            )
+            raise HTTPException(status_code=406, detail="client_scope must be left empty")
 
         payload = {
             "client_id": settings.keycloak_mo_client,

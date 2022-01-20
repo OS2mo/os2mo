@@ -25,9 +25,7 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         value = "1234567890"
 
         effect = {
-            "relationer": {
-                "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value)}]
-            }
+            "relationer": {"adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value)}]}
         }
 
         address_handler = await self.handler.from_effect(effect)

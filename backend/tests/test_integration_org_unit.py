@@ -62,12 +62,10 @@ class Tests(tests.cases.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=past",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48" "/details/org_unit?validity=past",
             [
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Fremtidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -175,12 +173,10 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=present",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48" "/details/org_unit?validity=present",
             [
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Samtidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -288,12 +284,10 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=future",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48" "/details/org_unit?validity=future",
             [
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Fortidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -405,8 +399,7 @@ class Tests(tests.cases.LoRATestCase):
             "/details/org_unit?validity=past&at=2020-01-01",
             [
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Fremtidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -511,8 +504,7 @@ class Tests(tests.cases.LoRATestCase):
                     "validity": {"from": "2016-01-01", "to": "2016-12-31"},
                 },
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Samtidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -617,8 +609,7 @@ class Tests(tests.cases.LoRATestCase):
                     "validity": {"from": "2017-01-01", "to": "2017-12-31"},
                 },
                 {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
+                    "location": "Overordnet Enhed\\Humanistisk fakultet" "\\Historisk Institut",
                     "name": "Afdeling for Fortidshistorik",
                     "org": {
                         "name": "Aarhus Universitet",
@@ -1028,8 +1019,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         expected = {
-            "description": "Date range exceeds validity "
-            "range of associated org unit.",
+            "description": "Date range exceeds validity " "range of associated org unit.",
             "error": True,
             "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
             "org_unit_uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -1422,8 +1412,7 @@ class Tests(tests.cases.LoRATestCase):
                 [
                     (d["name"], d["validity"]["from"], d["validity"]["to"])
                     for d in self.assertRequest(
-                        "/service/ou/{}/details/org_unit?"
-                        "validity=future".format(unitid),
+                        "/service/ou/{}/details/org_unit?" "validity=future".format(unitid),
                         amqp_topics=topics,
                     )
                 ],
@@ -2382,8 +2371,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/details/edit",
             {
-                "description": "Org unit cannot be moved to "
-                "one of its own child units",
+                "description": "Org unit cannot be moved to " "one of its own child units",
                 "error": True,
                 "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
                 "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
@@ -2471,15 +2459,12 @@ class Tests(tests.cases.LoRATestCase):
         other_unit["relationer"]["tilhoerer"][0]["uuid"] = other_org_uuid
         other_unit["relationer"]["overordnet"][0]["uuid"] = other_org_uuid
 
-        other_unit_uuid = mora.async_util.async_to_sync(c.organisationenhed.create)(
-            other_unit
-        )
+        other_unit_uuid = mora.async_util.async_to_sync(c.organisationenhed.create)(other_unit)
 
         self.assertRequestResponse(
             "/service/details/edit",
             {
-                "description": "Unit belongs to an organisation different "
-                "from the current one.",
+                "description": "Unit belongs to an organisation different " "from the current one.",
                 "error": True,
                 "error_key": "V_UNIT_OUTSIDE_ORG",
                 "org_unit_uuid": other_unit_uuid,
@@ -2512,8 +2497,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/details/edit",
             {
-                "description": "Org unit cannot be moved to one of its own "
-                "child units",
+                "description": "Org unit cannot be moved to one of its own " "child units",
                 "error": True,
                 "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
                 "status": 400,
@@ -3051,8 +3035,7 @@ class Tests(tests.cases.LoRATestCase):
                             "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                             "validity": {"from": "2016-01-01", "to": None},
                         },
-                        "user_key": "AlexTestah "
-                        "95c30cd4-1a5c-4025-a23d-430acf018178",
+                        "user_key": "AlexTestah " "95c30cd4-1a5c-4025-a23d-430acf018178",
                         "uuid": unitid,
                         "validity": {"from": "2018-08-23", "to": "2018-08-23"},
                     },

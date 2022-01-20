@@ -26,9 +26,7 @@ async def register(app):
         try:
             await trigger_module.register(app)
         except Exception:
-            logger.exception(
-                "Exception during register call", trigger_module=trigger_module
-            )
+            logger.exception("Exception during register call", trigger_module=trigger_module)
             raise
 
 

@@ -205,9 +205,7 @@ class Tests(tests.cases.LoRATestCase):
                 "uuid": "00000000-0000-0000-0000-000000000000",
                 "substitute": {"uuid": subid},
                 "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "first_party_association_type": {
-                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
+                "first_party_association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                 "third_party_associated": {"uuid": subid},
                 "third_party_association_type": substitute_association,
             }
@@ -215,9 +213,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRequestResponse(
             "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(
-                userid
-            ),
+            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(userid),
             expected,
             amqp_topics={
                 "employee.association.create": 1,
@@ -250,17 +246,13 @@ class Tests(tests.cases.LoRATestCase):
                 "validity": {"from": "2017-12-01", "to": "2017-12-01"},
                 "first_party_association_type": substitute_association,
                 "third_party_associated": {"uuid": userid},
-                "third_party_association_type": {
-                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-                },
+                "third_party_association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             }
         ]
 
         self.assertRequestResponse(
             "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(
-                subid
-            ),
+            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(subid),
             expected,
             amqp_topics={
                 "employee.association.create": 1,
@@ -427,9 +419,9 @@ class Tests(tests.cases.LoRATestCase):
             self.assertIn(associationid, [association_uuid, association_uuid2])
 
             # check that the content is also as expected
-            actual_association = mora.async_util.async_to_sync(
-                c.organisationfunktion.get
-            )(associationid)
+            actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
+                associationid
+            )
 
             self.assertRegistrationsEqual(actual_association, expected)
 
@@ -581,9 +573,7 @@ class Tests(tests.cases.LoRATestCase):
                     "type": "association",
                     "org_unit": {"uuid": unitid},
                     "person": {"uuid": userid},
-                    "association_type": {
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-                    },
+                    "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
                     "address": {
                         "address_type": {
                             "example": "20304060",
@@ -866,9 +856,7 @@ class Tests(tests.cases.LoRATestCase):
                 "uuid": association_uuid,
                 "dynamic_classes": [],
                 "data": {
-                    "association_type": {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                    },
+                    "association_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                     "substitute": {
                         "uuid": subid,
                     },
@@ -983,9 +971,7 @@ class Tests(tests.cases.LoRATestCase):
                 "uuid": association_uuid,
                 "dynamic_classes": [],
                 "data": {
-                    "association_type": {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                    },
+                    "association_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
                     "substitute": {"uuid": subid},
                     "validity": {
                         "from": "2017-01-01",
@@ -1010,9 +996,7 @@ class Tests(tests.cases.LoRATestCase):
                 "uuid": association_uuid,
                 "dynamic_classes": [],
                 "data": {
-                    "association_type": {
-                        "uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a"
-                    },
+                    "association_type": {"uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a"},
                     "validity": {
                         "from": "2017-01-01",
                     },
@@ -1330,8 +1314,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         self.assertRequestResponse(
-            "/service/e/{}/details/association?at=2018-06-01"
-            "&only_primary_uuid=1".format(userid),
+            "/service/e/{}/details/association?at=2018-06-01" "&only_primary_uuid=1".format(userid),
             expected,
             amqp_topics={
                 "employee.association.update": 1,

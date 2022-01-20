@@ -260,9 +260,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            leave_uuid
-        )
+        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(leave_uuid)
 
         # drop lora-generated timestamps & users
         del (

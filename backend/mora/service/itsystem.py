@@ -64,14 +64,10 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         # Validation
         if org_unit:
-            await validator.is_date_range_in_org_unit_range(
-                org_unit, valid_from, valid_to
-            )
+            await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
 
         if employee:
-            await validator.is_date_range_in_employee_range(
-                employee, valid_from, valid_to
-            )
+            await validator.is_date_range_in_employee_range(employee, valid_from, valid_to)
 
         # TODO: validate that the date range is in
         # the validity of the IT system!
@@ -163,9 +159,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -175,26 +169,20 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
         bounds_fields = list(
             mapping.ITSYSTEM_FIELDS.difference(
                 {x[0] for x in update_fields},
             )
         )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         self.payload = payload
         self.uuid = function_uuid
         self.trigger_dict.update(
             {
-                Trigger.ORG_UNIT_UUID: (
-                    mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)
-                ),
+                Trigger.ORG_UNIT_UUID: (mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(original)),
                 Trigger.EMPLOYEE_UUID: (
                     util.get_mapping_uuid(data, mapping.PERSON)
                     or mapping.USER_FIELD.get_uuid(original)
@@ -203,9 +191,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         )
 
 
-async def __get_itsystem_from_cache(
-    systemid: str, only_primary_uuid: bool = False
-) -> MO_OBJ_TYPE:
+async def __get_itsystem_from_cache(systemid: str, only_primary_uuid: bool = False) -> MO_OBJ_TYPE:
     """
     Get org unit from cache and process it
     :param systemid: uuid of it-system
@@ -235,9 +221,7 @@ async def request_bulked_get_one_itsystem(
     :param only_primary_uuid:
     :return: Awaitable returning the processed system
     """
-    return __get_itsystem_from_cache(
-        systemid=systemid, only_primary_uuid=only_primary_uuid
-    )
+    return __get_itsystem_from_cache(systemid=systemid, only_primary_uuid=only_primary_uuid)
 
 
 async def get_one_itsystem(

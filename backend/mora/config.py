@@ -99,14 +99,10 @@ class Settings(BaseSettings):
     keycloak_rbac_enabled: bool = False
 
     @root_validator
-    def show_owners_must_be_true_if_rbac_is_enabled(
-        cls, values: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def show_owners_must_be_true_if_rbac_is_enabled(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values["keycloak_rbac_enabled"]:
             if not values["confdb_show_owner"]:
-                raise ValueError(
-                    "'confdb_show_owner' must be true when RBAC is enabled"
-                )
+                raise ValueError("'confdb_show_owner' must be true when RBAC is enabled")
         return values
 
     # ConfDB database settings

@@ -63,9 +63,7 @@ else:
     auth = keycloak_auth
 
 
-def authorization_exception_handler(
-    request: Request, err: AuthorizationError
-) -> JSONResponse:
+def authorization_exception_handler(request: Request, err: AuthorizationError) -> JSONResponse:
 
     return JSONResponse(
         status_code=HTTP_403_FORBIDDEN, content={"status": "Forbidden", "msg": str(err)}

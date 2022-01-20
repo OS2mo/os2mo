@@ -18,7 +18,5 @@ async def execute(query: str, values: Optional[dict] = None) -> ExecutionResult:
     with patch_query_args():
         with patch_is_graphql(True):
             loaders = await get_loaders()
-            result = await schema.execute(
-                query, variable_values=values, context_value=loaders
-            )
+            result = await schema.execute(query, variable_values=values, context_value=loaders)
     return result

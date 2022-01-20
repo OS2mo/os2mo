@@ -13,8 +13,7 @@ async def get_results(entity, class_uuids, query):
         # title later.
         class_uuids = class_uuids or []
         class_map = {
-            str(class_uuid): await connector.klasse.get(class_uuid)
-            for class_uuid in class_uuids
+            str(class_uuid): await connector.klasse.get(class_uuid) for class_uuid in class_uuids
         }
 
         # Fetch autocomplete results from LoRa
@@ -32,9 +31,7 @@ async def get_results(entity, class_uuids, query):
                 out = {"uuid": class_uuid, "value": attr[1]}
                 try:
                     class_data = class_map[class_uuid]
-                    out["title"] = class_data["attributter"]["klasseegenskaber"][0][
-                        "titel"
-                    ]
+                    out["title"] = class_data["attributter"]["klasseegenskaber"][0]["titel"]
                 except (KeyError, TypeError):
                     out["title"] = None
                 attrs[idx] = out

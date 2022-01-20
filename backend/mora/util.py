@@ -548,9 +548,7 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
         return None
 
 
-def get_urn(
-    mapping: D, fallback: D = None, *, key: typing.Hashable = mapping.URN
-) -> str:
+def get_urn(mapping: D, fallback: D = None, *, key: typing.Hashable = mapping.URN) -> str:
     v = checked_get(mapping, key, "", fallback=fallback, required=True)
 
     if not is_urn(v):
@@ -736,9 +734,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         )
 
 
-def get_validities(
-    obj, fallback=None
-) -> typing.Tuple[datetime.datetime, datetime.datetime]:
+def get_validities(obj, fallback=None) -> typing.Tuple[datetime.datetime, datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:

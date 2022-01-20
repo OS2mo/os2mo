@@ -147,7 +147,6 @@ async def keycloak():
     """
     settings = config.get_settings()
     url = (
-        f"{settings.keycloak_schema}://{settings.keycloak_host}"
-        f":{settings.keycloak_port}/auth/"
+        f"{settings.keycloak_schema}://{settings.keycloak_host}" f":{settings.keycloak_port}/auth/"
     )
     return await _is_endpoint_reachable(url)

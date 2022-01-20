@@ -9,7 +9,5 @@ from typing import Any, Optional, Union
 class QueryArgContextPlugin(Plugin):
     key = "query_args"
 
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
+    async def process_request(self, request: Union[Request, HTTPConnection]) -> Optional[Any]:
         return request.query_params

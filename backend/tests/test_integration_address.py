@@ -851,9 +851,9 @@ class Writing(tests.cases.LoRATestCase):
         assert len(addr_id) == 1
         addr_id = addr_id[0]
 
-        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)[
-            "relationer"
-        ]["tilknyttedefunktioner"]
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(addr_id)["relationer"][
+            "tilknyttedefunktioner"
+        ]
 
         self.assertEqual(expected_tilknyttedefunktioner, actual)
 
@@ -1013,12 +1013,7 @@ class Writing(tests.cases.LoRATestCase):
             "attributter": {
                 "organisationfunktionegenskaber": [
                     {
-                        "brugervendtnoegle": "Nordre "
-                        "Ringgade "
-                        "1, "
-                        "8000 "
-                        "Aarhus "
-                        "C",
+                        "brugervendtnoegle": "Nordre " "Ringgade " "1, " "8000 " "Aarhus " "C",
                         "funktionsnavn": "Adresse",
                         "virkning": {
                             "from": "2016-01-01 " "00:00:00+01",
@@ -1131,8 +1126,7 @@ class Writing(tests.cases.LoRATestCase):
                     "type": "address",
                     "uuid": addr_id,
                     "data": {
-                        "user_key": "gedebukkebensoverogundergeneralkrigs"
-                        "kommandørsergenten",
+                        "user_key": "gedebukkebensoverogundergeneralkrigs" "kommandørsergenten",
                         "validity": {"from": "2018-01-01", "to": "2019-12-31"},
                     },
                 }
@@ -1160,9 +1154,7 @@ class Writing(tests.cases.LoRATestCase):
                 },
             },
             {
-                "brugervendtnoegle": (
-                    "gedebukkebensoverogundergeneralkrigskommandørsergenten"
-                ),
+                "brugervendtnoegle": ("gedebukkebensoverogundergeneralkrigskommandørsergenten"),
                 "funktionsnavn": "Adresse",
                 "virkning": {
                     "from": "2018-01-01 00:00:00+01",
@@ -1210,9 +1202,7 @@ class Writing(tests.cases.LoRATestCase):
             json=req,
         )
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_response = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            uuid=created[0]
-        )
+        actual_response = mora.async_util.async_to_sync(c.organisationfunktion.get)(uuid=created[0])
         actual = actual_response["relationer"]["tilknyttedefunktioner"]
         expected = [
             {

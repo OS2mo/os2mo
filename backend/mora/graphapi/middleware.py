@@ -39,9 +39,7 @@ class GraphQLContextPlugin(Plugin):
 
     key = "is_graphql"
 
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
+    async def process_request(self, request: Union[Request, HTTPConnection]) -> Optional[Any]:
         return False
 
 
@@ -71,9 +69,7 @@ class GraphQLIsShimPlugin(Plugin):
 
     key = "is_graphql_shim"
 
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
+    async def process_request(self, request: Union[Request, HTTPConnection]) -> Optional[Any]:
         return False
 
 

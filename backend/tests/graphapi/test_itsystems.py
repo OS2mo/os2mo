@@ -95,8 +95,6 @@ class TestITSystemsQuery:
         assert data is not None
 
         # Check UUID equivalence
-        result_uuids = [
-            model.get("uuid") for model in jsonable_encoder(data["itsystems"])
-        ]
+        result_uuids = [model.get("uuid") for model in jsonable_encoder(data["itsystems"])]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))

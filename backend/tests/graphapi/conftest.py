@@ -164,9 +164,7 @@ def execute():
     async def _execute(query: str, values: Optional[dict] = None):
         schema = get_schema()
         loaders = await get_loaders()
-        result = await schema.execute(
-            query, variable_values=values, context_value=loaders
-        )
+        result = await schema.execute(query, variable_values=values, context_value=loaders)
         return result
 
     yield _execute

@@ -24,9 +24,7 @@ class Tests(tests.cases.LoRATestCase):
             (False, "0171501234", "-infinity"),
         ]
     )
-    def test_create_employee(
-        self, cpr_validate_birthdate: bool, cpr: str, valid_from: str
-    ):
+    def test_create_employee(self, cpr_validate_birthdate: bool, cpr: str, valid_from: str):
         self.load_sample_structures()
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -44,9 +42,7 @@ class Tests(tests.cases.LoRATestCase):
             "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
         }
 
-        with util.override_config(
-            Settings(cpr_validate_birthdate=cpr_validate_birthdate)
-        ):
+        with util.override_config(Settings(cpr_validate_birthdate=cpr_validate_birthdate)):
             r = self.request("/service/e/create", json=payload)
 
         userid = r.json()
@@ -313,8 +309,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "description": "Date range exceeds validity "
-                "range of associated org unit.",
+                "description": "Date range exceeds validity " "range of associated org unit.",
                 "error": True,
                 "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
                 "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
@@ -350,8 +345,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "description": "Date range exceeds validity "
-                "range of associated employee.",
+                "description": "Date range exceeds validity " "range of associated employee.",
                 "error": True,
                 "error_key": "V_DATE_OUTSIDE_EMPL_RANGE",
                 "status": 400,
@@ -377,9 +371,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-        engagement = self.request(
-            "/service/e/{}/details/engagement".format(employee_uuid)
-        ).json()
+        engagement = self.request("/service/e/{}/details/engagement".format(employee_uuid)).json()
         self.assertEqual([], engagement, "No engagement should have been created")
 
     def test_cpr_lookup_prod_mode_false(self):
@@ -566,18 +558,10 @@ class Tests(tests.cases.LoRATestCase):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
-        self.assertEqual(
-            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
-        )
-        self.assertEqual(
-            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
-        )
-        self.assertEqual(
-            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
-        )
-        self.assertEqual(
-            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
-        )
+        self.assertEqual(expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"])
+        self.assertEqual(expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"])
+        self.assertEqual(expected_brugergyldighed, actual["tilstande"]["brugergyldighed"])
+        self.assertEqual(expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"])
 
     def test_edit_employee(self):
         # A generic example of editing an employee
@@ -703,18 +687,10 @@ class Tests(tests.cases.LoRATestCase):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
 
-        self.assertEqual(
-            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
-        )
-        self.assertEqual(
-            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
-        )
-        self.assertEqual(
-            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
-        )
-        self.assertEqual(
-            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
-        )
+        self.assertEqual(expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"])
+        self.assertEqual(expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"])
+        self.assertEqual(expected_brugergyldighed, actual["tilstande"]["brugergyldighed"])
+        self.assertEqual(expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"])
 
     def test_edit_remove_seniority(self):
         # A generic example of editing an employee

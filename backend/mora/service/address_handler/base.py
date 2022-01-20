@@ -128,9 +128,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             "urn": self.urn,
         }
 
-    async def __get_mo_properties(
-        self, only_primary_uuid: bool = False
-    ) -> Dict[Any, Any]:
+    async def __get_mo_properties(self, only_primary_uuid: bool = False) -> Dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -189,7 +187,5 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 def get_handler_for_scope(scope: str) -> AddressHandler:
     handler = ADDRESS_HANDLERS.get(scope)
     if not handler:
-        raise exceptions.ErrorCodes.E_INVALID_INPUT(
-            "Invalid address scope type {}".format(scope)
-        )
+        raise exceptions.ErrorCodes.E_INVALID_INPUT("Invalid address scope type {}".format(scope))
     return handler

@@ -13,9 +13,7 @@ from mora import config
 
 class KeycloakToken(BaseToken):
     @root_validator
-    def uuid_attribute_required_for_mo_client(
-        cls, values: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def uuid_attribute_required_for_mo_client(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if (
             config.get_settings().keycloak_rbac_enabled
             and values.get("azp") == config.get_settings().keycloak_mo_client

@@ -52,10 +52,7 @@ async def __session_context_helper(awaitable) -> typing.Any:
         # clean-up of global, shared session
         global _local_cache
         # if session was started by the awaitable
-        if (
-            hasattr(_local_cache, "async_session")
-            and _local_cache.async_session is not None
-        ):
+        if hasattr(_local_cache, "async_session") and _local_cache.async_session is not None:
             await _local_cache.async_session.close()
             _local_cache.async_session = None
     return ret
@@ -77,9 +74,7 @@ def async_to_sync(f: typing.Callable):
 
         if loop is not None:  # debug
             if loop.is_running():  # Explicit error handling to ease debugging
-                raise Exception(
-                    "asyncio does not allow nested (or reentrant) event loops"
-                )
+                raise Exception("asyncio does not allow nested (or reentrant) event loops")
 
         if loop is None:
             loop = asyncio.new_event_loop()

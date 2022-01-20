@@ -326,9 +326,7 @@ def inactivate_org_funktion_payload(enddate, note):
     return payload
 
 
-def to_lora_obj(
-    value: typing.Union[typing.Dict[str, str], str]
-) -> typing.Dict[str, str]:
+def to_lora_obj(value: typing.Union[typing.Dict[str, str], str]) -> typing.Dict[str, str]:
     """
     transforms values to uniform lora-format
     :param value: (potentially) High-level specification of lora obj
@@ -345,9 +343,7 @@ def to_lora_obj(
     raise TypeError(f"unexpected type: {type(value)}")
 
 
-def associated_orgfunc(
-    uuid: str, orgfunc_type: mapping.MoOrgFunk
-) -> typing.Dict[str, str]:
+def associated_orgfunc(uuid: str, orgfunc_type: mapping.MoOrgFunk) -> typing.Dict[str, str]:
     """
     creates a lora-understandable object appropriate for
     associating org funcstions with each other
@@ -400,9 +396,7 @@ def create_organisationsfunktion_payload(
             ],
         },
         "relationer": {
-            "tilknyttedeorganisationer": [
-                {"uuid": uuid} for uuid in tilknyttedeorganisationer
-            ]
+            "tilknyttedeorganisationer": [{"uuid": uuid} for uuid in tilknyttedeorganisationer]
         },
     }
 
@@ -443,9 +437,7 @@ def create_organisationsfunktion_payload(
         ]
 
     if funktionstype:
-        org_funk["relationer"]["organisatoriskfunktionstype"] = [
-            {"uuid": funktionstype}
-        ]
+        org_funk["relationer"]["organisatoriskfunktionstype"] = [{"uuid": funktionstype}]
 
     if primær:
         org_funk["relationer"]["primær"] = [{"uuid": primær}]
@@ -617,14 +609,10 @@ def create_klasse_payload(
         attributter["klasseegenskaber"][0]["beskrivelse"] = description
     if scope:
         attributter["klasseegenskaber"][0]["omfang"] = scope
-    tilstande = {
-        "klassepubliceret": [{"publiceret": "Publiceret", "virkning": virkning}]
-    }
+    tilstande = {"klassepubliceret": [{"publiceret": "Publiceret", "virkning": virkning}]}
     relationer = {
         "facet": [{"uuid": facet_uuid, "virkning": virkning, "objekttype": "Facet"}],
-        "overordnetklasse": [
-            {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
-        ],
+        "overordnetklasse": [{"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}],
         "ansvarlig": [
             {
                 "uuid": org_uuid,
@@ -738,6 +726,5 @@ def parse_owner_inference_priority_str(
         return OwnerInferencePriority(inference_priority_candidate)
     except ValueError:
         ErrorCodes.E_INVALID_INPUT(
-            f"Invalid {mapping.OWNER_INFERENCE_PRIORITY}: "
-            f"{inference_priority_candidate}"
+            f"Invalid {mapping.OWNER_INFERENCE_PRIORITY}: " f"{inference_priority_candidate}"
         )

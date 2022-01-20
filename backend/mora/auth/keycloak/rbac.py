@@ -67,9 +67,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         # }
         # when moving an org unit.
 
-        owners = await asyncio.gather(
-            *(get_owners(uuid, entity_type) for uuid in uuids)
-        )
+        owners = await asyncio.gather(*(get_owners(uuid, entity_type) for uuid in uuids))
 
         current_user_ownership_verified = [(token.uuid in owner) for owner in owners]
 
@@ -77,8 +75,6 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
             logger.debug(f"User {token.preferred_username} authorized")
             return
 
-    logger.debug(
-        f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized"
-    )
+    logger.debug(f"User {token.preferred_username} with UUID " f"{token.uuid} not authorized")
 
     raise AuthorizationError("Not authorized to perform this operation")

@@ -194,9 +194,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            managerid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(managerid)
 
         self.assertRegistrationsEqual(actual_manager, expected)
 
@@ -210,8 +208,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/manager"
-            "?validity=future&only_primary_uuid=1".format(userid),
+            "/service/e/{}/details/manager" "?validity=future&only_primary_uuid=1".format(userid),
             [
                 {
                     "manager_level": {
@@ -491,9 +488,7 @@ class Tests(tests.cases.LoRATestCase):
                     "person": {
                         "uuid": userid,
                     },
-                    "responsibility": [
-                        {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}
-                    ],
+                    "responsibility": [{"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}],
                     "manager_level": {"uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"},
                     "manager_type": {"uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"},
                     "user_key": "kaflaflibob",
@@ -674,15 +669,12 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
         self.assertRequestResponse(
-            "/service/e/{}/details/manager"
-            "?validity=future&only_primary_uuid=1".format(userid),
+            "/service/e/{}/details/manager" "?validity=future&only_primary_uuid=1".format(userid),
             [
                 {
                     "manager_level": {
@@ -732,9 +724,7 @@ class Tests(tests.cases.LoRATestCase):
                     "person": {
                         "uuid": userid,
                     },
-                    "responsibility": [
-                        {"uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"}
-                    ],
+                    "responsibility": [{"uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"}],
                     "manager_level": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
                     "manager_type": {"uuid": "32547559-cfc1-4d97-94c6-70b192eff825"},
                     "validity": {
@@ -744,9 +734,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 "data": {
                     "org_unit": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
-                    "responsibility": [
-                        {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}
-                    ],
+                    "responsibility": [{"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}],
                     "manager_level": {"uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec"},
                     "manager_type": {"uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2"},
                     "validity": {
@@ -925,15 +913,12 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
         self.assertRequestResponse(
-            "/service/e/{}/details/manager"
-            "?validity=future&only_primary_uuid=1".format(userid),
+            "/service/e/{}/details/manager" "?validity=future&only_primary_uuid=1".format(userid),
             [
                 {
                     "manager_level": {
@@ -982,9 +967,7 @@ class Tests(tests.cases.LoRATestCase):
                 "type": "manager",
                 "uuid": manager_uuid,
                 "data": {
-                    "responsibility": [
-                        {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}
-                    ],
+                    "responsibility": [{"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"}],
                     "validity": {
                         "from": "2018-04-01",
                     },
@@ -1134,9 +1117,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -1195,9 +1176,9 @@ class Tests(tests.cases.LoRATestCase):
         with self.subTest("verify assumption about relation in LoRA"):
             self.assertEqual(
                 sorted(
-                    mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                        manager_uuid
-                    )["relationer"]["opgaver"],
+                    mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)[
+                        "relationer"
+                    ]["opgaver"],
                     key=mora_util.get_uuid,
                 ),
                 overwritten_responsibilities,
@@ -1242,9 +1223,7 @@ class Tests(tests.cases.LoRATestCase):
         # Anders And is manager at humfak
         filins = "85715fc7-925d-401b-822d-467eb4b163b6"
         # We are NOT allowed to inherit Anders And
-        inherited_managers = self.assertRequest(
-            "/service/ou/{}/details/manager".format(filins)
-        )
+        inherited_managers = self.assertRequest("/service/ou/{}/details/manager".format(filins))
         self.assertEqual(inherited_managers, [])
 
     def test_read_inherit_manager_one_level(self):

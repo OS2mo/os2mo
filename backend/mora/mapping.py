@@ -393,9 +393,7 @@ MANAGER_TYPE_FIELD = FieldTuple(
     type=FieldTypes.ZERO_TO_ONE,
 )
 
-KLE_ASPECT_FIELD = FieldTuple(
-    path=("relationer", "opgaver"), type=FieldTypes.ADAPTED_ZERO_TO_MANY
-)
+KLE_ASPECT_FIELD = FieldTuple(path=("relationer", "opgaver"), type=FieldTypes.ADAPTED_ZERO_TO_MANY)
 
 RESPONSIBILITY_FIELD = FieldTuple(
     path=("relationer", "opgaver"),

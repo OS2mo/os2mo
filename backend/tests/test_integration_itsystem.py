@@ -317,9 +317,7 @@ class Writing(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/it?validity=future&only_primary_uuid=1".format(
-                userid
-            ),
+            "/service/e/{}/details/it?validity=future&only_primary_uuid=1".format(userid),
             [
                 {
                     "itsystem": {
@@ -546,9 +544,7 @@ class Writing(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_it_func = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            it_func_id
-        )
+        actual_it_func = mora.async_util.async_to_sync(c.organisationfunktion.get)(it_func_id)
 
         self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 
@@ -586,8 +582,7 @@ class Reading(tests.cases.LoRATestCase):
         self.load_sample_structures()
 
         self.assertRequestResponse(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
-            "details/it?only_primary_uuid=1",
+            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/" "details/it?only_primary_uuid=1",
             [
                 {
                     "itsystem": {
@@ -649,20 +644,17 @@ class Reading(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=past",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it" "?validity=past",
             [],
         )
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=future",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it" "?validity=future",
             [],
         )
 
         self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01",
+            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it" "?at=2016-06-01",
             [],
         )
 

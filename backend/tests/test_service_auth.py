@@ -213,9 +213,7 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
 
         token = self.get_token(use_client_secret=True)
 
-        self.assertRequest(
-            "/api/v1/it", HTTP_200_OK, headers={"Authorization": "Bearer " + token}
-        )
+        self.assertRequest("/api/v1/it", HTTP_200_OK, headers={"Authorization": "Bearer " + token})
 
 
 class TestTokenModel(tests.cases.LoRATestCase):
@@ -225,9 +223,7 @@ class TestTokenModel(tests.cases.LoRATestCase):
             KeycloakToken(azp="mo")
         errors = err.exception.errors()[0]
 
-        self.assertEqual(
-            "The uuid user attribute is missing in the token", errors["msg"]
-        )
+        self.assertEqual("The uuid user attribute is missing in the token", errors["msg"])
         self.assertEqual("value_error", errors["type"])
 
 

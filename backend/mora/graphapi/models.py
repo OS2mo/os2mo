@@ -29,9 +29,7 @@ class ClassRead(MOBase):
 
     published: Optional[str] = Field(description="Published state of the class object.")
 
-    facet_uuid: UUID = Field(
-        description="UUID of the facet for which the class should be created."
-    )
+    facet_uuid: UUID = Field(description="UUID of the facet for which the class should be created.")
     org_uuid: UUID = Field(
         description="UUID of the organisation for which the class should be created."
     )
@@ -46,12 +44,8 @@ class FacetRead(MOBase):
 
     published: Optional[str] = Field(description="Published state of the class object.")
 
-    org_uuid: UUID = Field(
-        description="UUID of the organisation for which is responsible."
-    )
-    parent_uuid: Optional[UUID] = Field(
-        description="UUID of the parent classification."
-    )
+    org_uuid: UUID = Field(description="UUID of the organisation for which is responsible.")
+    parent_uuid: Optional[UUID] = Field(description="UUID of the parent classification.")
 
 
 class SemanticVersionRead(BaseModel):

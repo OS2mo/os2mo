@@ -131,8 +131,7 @@ async def load_sample_structures(minimal=False):
     functions = {
         "engagement_andersand": "d000591f-8705-4324-897a-075e3623f37b",
         "engagement_eriksmidthansen": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
-        "engagement_eriksmidthansen_sekundaer": "301a906b-ef51-4d5c-"
-        "9c77-386fb8410459",
+        "engagement_eriksmidthansen_sekundaer": "301a906b-ef51-4d5c-" "9c77-386fb8410459",
         "tilknytning": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
         "rolle": "1b20d0b9-96a0-42a6-b196-293bb86e62e8",
         "orlov_andersand": "b807628c-030c-4f5f-a438-de41c1f26ba5",

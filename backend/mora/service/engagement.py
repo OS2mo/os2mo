@@ -54,9 +54,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         )["uuid"]
 
         job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
-        engagement_type_uuid = util.get_mapping_uuid(
-            req, mapping.ENGAGEMENT_TYPE, required=True
-        )
+        engagement_type_uuid = util.get_mapping_uuid(req, mapping.ENGAGEMENT_TYPE, required=True)
 
         extension_attributes = self.get_extension_attribute_fields(req)
 
@@ -154,9 +152,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -184,9 +180,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
 
         if mapping.ORG_UNIT in data:
             org_unit_uuid = util.get_mapping_uuid(data, mapping.ORG_UNIT, required=True)
-            update_fields.append(
-                (mapping.ASSOCIATED_ORG_UNIT_FIELD, {"uuid": org_unit_uuid})
-            )
+            update_fields.append((mapping.ASSOCIATED_ORG_UNIT_FIELD, {"uuid": org_unit_uuid}))
 
         if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
@@ -212,20 +206,12 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
-        bounds_fields = list(
-            mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields})
-        )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        bounds_fields = list(mapping.ENGAGEMENT_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
-        await validator.is_date_range_in_employee_range(
-            {"uuid": employee_uuid}, new_from, new_to
-        )
+        await validator.is_date_range_in_employee_range({"uuid": employee_uuid}, new_from, new_to)
 
         def to_edit_request(address_obj):
             addr_uuid = address_obj.get(mapping.UUID)

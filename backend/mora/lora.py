@@ -125,9 +125,7 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         # reported indicates a "no-op" change (no data was actually changed in
         # the update.)
         if noop_pattern.search(msg):
-            logger.info(
-                "detected empty change, not raising E_INVALID_INPUT", message=msg
-            )
+            logger.info("detected empty change, not raising E_INVALID_INPUT", message=msg)
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
     elif status_code == 401:
@@ -191,9 +189,7 @@ def param_exotics_to_strings(
     @param params: dict of parameters
     @return:
     """
-    ret = {
-        key: exotics_to_str(value) for key, value in params.items() if value is not None
-    }
+    ret = {key: exotics_to_str(value) for key, value in params.items() if value is not None}
     return ret
 
 
@@ -533,9 +529,7 @@ class Scope(BaseScope):
         results_for_calls = list([] for _ in params_list)
         for result in results:
             # Find values in result for all parameter keys => [(a,1), (b,6), (a,3)]
-            result_param_items = ParameterValuesExtractor.get_key_value_items(
-                result, param_keys
-            )
+            result_param_items = ParameterValuesExtractor.get_key_value_items(result, param_keys)
             # Collect calls matching ANY value from parameters => {a: {X,Z}, b: {X,Y,Z}}
             result_param_calls = defaultdict(set)
             for key, value in result_param_items:
@@ -599,9 +593,7 @@ class Scope(BaseScope):
         Returns an iterator of tuples (obj_id, obj) of all matches.
         """
         ret = await self.load(uuid=uuids)
-        return filter_registrations(
-            response=ret, wantregs=False, changed_since=changed_since
-        )
+        return filter_registrations(response=ret, wantregs=False, changed_since=changed_since)
 
     async def paged_get(
         self,
@@ -699,9 +691,7 @@ class Scope(BaseScope):
                 return (await response.json()).get("uuid", uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
-        reg = (
-            await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj
-        )
+        reg = await self.get(obj, **params) if isinstance(obj, (str, uuid.UUID)) else obj
 
         if not reg:
             return

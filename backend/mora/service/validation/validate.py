@@ -164,9 +164,7 @@ async def employee_engagements(req: dict = Body(...)):
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
     valid_from, valid_to = util.get_validities(req)
 
-    await validator.does_employee_have_active_engagement(
-        employee_uuid, valid_from, valid_to
-    )
+    await validator.does_employee_have_active_engagement(employee_uuid, valid_from, valid_to)
 
     return {"success": True}
 
@@ -276,9 +274,7 @@ async def candidate_parent_org_unit(req: dict = Body(...)):
 
 
 @_router.post("/address/")
-async def address_value(
-    req: dict = Body(...), only_primary_uuid: Optional[bool] = None
-):
+async def address_value(req: dict = Body(...), only_primary_uuid: Optional[bool] = None):
     """
     Verify that a given address value conforms to the format for the given
     address type. E.g. that a phone number consists of 8 digits.
@@ -310,9 +306,7 @@ async def address_value(
 
     c = lora.Connector()
 
-    type_obj = await facet.get_one_class(
-        c, address_type_uuid, only_primary_uuid=only_primary_uuid
-    )
+    type_obj = await facet.get_one_class(c, address_type_uuid, only_primary_uuid=only_primary_uuid)
 
     scope = util.checked_get(type_obj, "scope", "", required=True)
 

@@ -251,16 +251,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs["urn"] = "urn:dk:cpr:person:{}".format(data[mapping.CPR_NO])
                 update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
-        bounds_fields = list(
-            mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields})
-        )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        bounds_fields = list(mapping.EMPLOYEE_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
         self.payload = payload
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
@@ -274,9 +268,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             self.result = await c.bruger.update(self.payload, self.uuid)
 
         # process subrequests, if any
-        await asyncio.gather(
-            *(r.submit() for r in getattr(self, "details_requests", []))
-        )
+        await asyncio.gather(*(r.submit() for r in getattr(self, "details_requests", [])))
 
         return await super().submit()
 
@@ -295,9 +287,7 @@ async def __get_employee_from_cache(
     ret = await get_one_employee(
         c=request_wide_bulk.connector,
         userid=userid,
-        user=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.user, uuid=userid
-        )
+        user=await request_wide_bulk.get_lora_object(type_=LoraObjectType.user, uuid=userid)
         if not only_primary_uuid
         else None,
         details=details,
@@ -495,15 +485,10 @@ async def list_employees(
 
     async def get_full_employee(*args, **kwargs):
         return await get_one_employee(
-            *args,
-            **kwargs,
-            details=EmployeeDetails.FULL,
-            only_primary_uuid=only_primary_uuid
+            *args, **kwargs, details=EmployeeDetails.FULL, only_primary_uuid=only_primary_uuid
         )
 
-    search_result = await c.bruger.paged_get(
-        get_full_employee, uuid_filters=uuid_filters, **kwargs
-    )
+    search_result = await c.bruger.paged_get(get_full_employee, uuid_filters=uuid_filters, **kwargs)
     return search_result
 
 

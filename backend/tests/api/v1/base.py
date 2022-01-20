@@ -13,9 +13,7 @@ from backend.tests.api.v1.util import reader_to_endpoint
 
 class BaseReadingTestCase(TestCase):
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    def search_endpoint_helper(
-        self, reader, return_value, endpoint=None, parameters=None
-    ):
+    def search_endpoint_helper(self, reader, return_value, endpoint=None, parameters=None):
         """
         tests that endpoint query params is parsed properly, and
         put into the appropriate reader classes
@@ -49,9 +47,7 @@ class BaseReadingTestCase(TestCase):
             self.assertNotIn("changed_since", mock.search_fields)
             return mock
 
-    def uuid_endpoint_helper(
-        self, reader, return_value, endpoint=None, parameters=None
-    ):
+    def uuid_endpoint_helper(self, reader, return_value, endpoint=None, parameters=None):
         uuid1 = "2f16d140-d743-4c9f-9e0e-361da91a06f6"
         uuid2 = "3e702dd1-4103-4116-bb2d-b150aebe807d"
         if endpoint is None:

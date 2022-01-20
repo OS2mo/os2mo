@@ -197,9 +197,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch("mora.triggers.internal.http_trigger.http_sender")
     @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_integration_error_on_wrong_status(
-        self, mock, t_sender_mock, t_fetch_mock
-    ):
+    def test_returns_integration_error_on_wrong_status(self, mock, t_sender_mock, t_fetch_mock):
         t_fetch_mock.return_value = [
             MOTriggerRegister(
                 **{
@@ -241,9 +239,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
 
     @util.override_config(Settings(http_endpoints=["http://whatever"]))
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
-    @patch(
-        "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
-    )
+    @patch("mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock)
     @patch("mora.service.orgunit.get_one_orgunit")
     def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
         t_fetch_mock.return_value = [
@@ -266,9 +262,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         t_sender_mock.return_value = response_future
 
         mock.return_value = {"whatever": 123}
-        r = self.assertRequest(
-            "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
-        )
+        r = self.assertRequest("/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh")
         self.assertEqual(response_msg, r["message"])
 
         t_sender_mock.assert_has_calls(
@@ -293,9 +287,7 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures(minimal=True)
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
+        self._connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
     @util.patch_query_args()
@@ -322,9 +314,7 @@ class TestGetOneOrgUnit(tests.cases.LoRATestCase):
         self.assertIn("association_count", result)
 
     def _assert_orgunit_keys(self, expected_keys, **kwargs):
-        orgunit = async_to_sync(get_one_orgunit)(
-            self._connector, self._orgunit_uuid, **kwargs
-        )
+        orgunit = async_to_sync(get_one_orgunit)(self._connector, self._orgunit_uuid, **kwargs)
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
 
 
@@ -380,9 +370,7 @@ class TestGetChildren(tests.cases.ConfigTestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
+        self._connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         # We need the UUID of a *parent* OU to test `get_children`.
         # Below is the UUID of "Overordnet Enhed".
@@ -417,9 +405,7 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
     def setUp(self):
         super().setUp()
         self.load_sample_structures()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
+        self._connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         # We need the UUID of a *child* OU to test `get_unit_ancestor_tree`.
         # Below is the UUID of "Filosofisk Institut".

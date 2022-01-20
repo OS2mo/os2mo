@@ -43,15 +43,11 @@ class EmployeeReader(reading.ReadingHandler):
         if type != "e":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
 
-        object_tuples = await c.bruger.get_all_by_uuid(
-            uuids=[objid], changed_since=changed_since
-        )
+        object_tuples = await c.bruger.get_all_by_uuid(uuids=[objid], changed_since=changed_since)
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def _get_lora_object(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
-    ):
+    async def _get_lora_object(cls, c, search_fields, changed_since: Optional[datetime] = None):
         if mapping.UUID in search_fields:
             return await c.bruger.get_all_by_uuid(
                 uuids=search_fields[mapping.UUID],
@@ -73,9 +69,7 @@ class EmployeeReader(reading.ReadingHandler):
         return await c.bruger.get_effects(obj, relevant, {}, **params)
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, obj_id, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, obj_id, flat: bool = False):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 

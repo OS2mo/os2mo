@@ -198,6 +198,4 @@ class DarAddressHandlerTests(base.AddressHandlerTestCase):
         effect = {"relationer": {"adresser": [{"urn": "urn:dar:{}".format(value)}]}}
         address_handler = await self.handler.from_effect(effect)
 
-        self.assertEqual(
-            expected, await address_handler.get_mo_address_and_properties()
-        )
+        self.assertEqual(expected, await address_handler.get_mo_address_and_properties())

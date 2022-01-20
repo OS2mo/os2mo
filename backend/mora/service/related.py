@@ -119,8 +119,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
         unitid
         for unitid, unit in units.items()
         for state in util.get_states(unit)
-        if util.get_effect_to(state) == util.POSITIVE_INFINITY
-        and state["gyldighed"] == "Aktiv"
+        if util.get_effect_to(state) == util.POSITIVE_INFINITY and state["gyldighed"] == "Aktiv"
     }
 
     if wanted_units - good:
@@ -156,12 +155,8 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             date,
             util.POSITIVE_INFINITY,
             "{} <-> {}".format(
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0][
-                    "brugervendtnoegle"
-                ],
-                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])[0][
-                    "brugervendtnoegle"
-                ],
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[origin])[0]["brugervendtnoegle"],
+                mapping.ORG_UNIT_EGENSKABER_FIELD(units[destid])[0]["brugervendtnoegle"],
             ),
             tilknyttedebrugere=[],
             tilknyttedeorganisationer=[orgid],
@@ -181,9 +176,7 @@ async def map_org_units(origin: UUID, req: dict = Body(...)):
             )
         ),
         "added": sorted(
-            await gather(
-                *[create_task(c.organisationfunktion.create(req)) for req in creations]
-            )
+            await gather(*[create_task(c.organisationfunktion.create(req)) for req in creations])
         ),
         "unchanged": sorted(destinations & preexisting.keys()),
     }

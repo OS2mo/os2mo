@@ -25,9 +25,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ADDRESS_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         person_uuid = mapping.USER_FIELD.get_uuid(effect)
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
@@ -37,15 +35,11 @@ class AddressReader(reading.OrgFunkReadingHandler):
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
 
-        base_obj_task = create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj_task = create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        address_task = create_task(
-            handler.get_mo_address_and_properties(only_primary_uuid)
-        )
+        address_task = create_task(handler.get_mo_address_and_properties(only_primary_uuid))
 
         # Return early if flat model is desired
         if is_graphql():
@@ -88,9 +82,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         if engagement_uuid is not None:
             engagement = {mapping.UUID: engagement_uuid}
             if not only_primary_uuid:
-                engagement = await get_engagement(
-                    request_wide_bulk.connector, uuid=engagement_uuid
-                )
+                engagement = await get_engagement(request_wide_bulk.connector, uuid=engagement_uuid)
 
         r = {
             **await base_obj_task,

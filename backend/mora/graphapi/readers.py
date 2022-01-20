@@ -30,9 +30,7 @@ def to_lora_args(key, value):
     return key, value
 
 
-def _extract_search_params(
-    query_args: Dict[Union[Any, MoOrgFunk], Any]
-) -> Dict[Any, Any]:
+def _extract_search_params(query_args: Dict[Union[Any, MoOrgFunk], Any]) -> Dict[Any, Any]:
     """Deals with special LoRa-search format.
 
     Requires data to be written properly formatted.

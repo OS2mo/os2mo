@@ -67,9 +67,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if engagement:
-            await validator.is_date_range_in_engagement_range(
-                engagement, valid_from, valid_to
-            )
+            await validator.is_date_range_in_engagement_range(engagement, valid_from, valid_to)
         if engagement_uuid:
             await validator.does_engagement_have_existing_association(
                 engagement_uuid, org_unit_uuid, valid_from
@@ -145,9 +143,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -158,9 +154,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.ENGAGEMENT_ASSOCIATION_TYPE in data:
-            association_type_uuid = data.get(mapping.ENGAGEMENT_ASSOCIATION_TYPE).get(
-                "uuid"
-            )
+            association_type_uuid = data.get(mapping.ENGAGEMENT_ASSOCIATION_TYPE).get("uuid")
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
@@ -208,24 +202,16 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             # update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
 
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
         bounds_fields = list(
-            mapping.ENGAGEMENT_ASSOCIATION_FIELDS.difference(
-                {x[0] for x in update_fields}
-            )
+            mapping.ENGAGEMENT_ASSOCIATION_FIELDS.difference({x[0] for x in update_fields})
         )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         # Validation
         if engagement:
-            await validator.is_date_range_in_engagement_range(
-                engagement, new_from, new_to
-            )
+            await validator.is_date_range_in_engagement_range(engagement, new_from, new_to)
 
         if engagement:
             await validator.does_engagement_have_existing_association(

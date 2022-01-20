@@ -32,8 +32,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         :return:
         """
         raise ErrorCodes.E_INVALID_INPUT(
-            f"Must supply at most one of {mapping.ORG_UNIT} UUID, "
-            f"{mapping.PERSON} UUID",
+            f"Must supply at most one of {mapping.ORG_UNIT} UUID, " f"{mapping.PERSON} UUID",
             obj=obj,
         )
 
@@ -84,9 +83,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 )
 
             # logically ok, try parsing
-            inference_priority = parse_owner_inference_priority_str(
-                inference_priority_str
-            )
+            inference_priority = parse_owner_inference_priority_str(inference_priority_str)
         return (
             org_unit,
             owned_person,
@@ -135,9 +132,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         :return:
         """
         if org_unit:
-            await validator.is_date_range_in_org_unit_range(
-                org_unit, validity_from, validity_to
-            )
+            await validator.is_date_range_in_org_unit_range(org_unit, validity_from, validity_to)
 
         if owned_person:
             await validator.is_date_range_in_employee_range(
@@ -145,9 +140,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if owner:
-            await validator.is_date_range_in_employee_range(
-                owner, validity_from, validity_to
-            )
+            await validator.is_date_range_in_employee_range(owner, validity_from, validity_to)
 
     async def prepare_create(self, req: Dict):
         """To create a vacant owner, set employee_uuid to None
@@ -254,9 +247,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
         new_attributes = {}
 
         if mapping.USER_KEY in data:
-            new_attributes["brugervendtnoegle"] = util.checked_get(
-                data, mapping.USER_KEY, ""
-            )
+            new_attributes["brugervendtnoegle"] = util.checked_get(data, mapping.USER_KEY, "")
 
         if new_attributes:
             update_fields.append(
@@ -310,16 +301,10 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                     {"uuid": owned_person_uuid},
                 )
             )
-        payload = common.update_payload(
-            new_from, new_to, update_fields, original, payload
-        )
+        payload = common.update_payload(new_from, new_to, update_fields, original, payload)
 
-        bounds_fields = list(
-            mapping.OWNER_FIELDS.difference({x[0] for x in update_fields})
-        )
-        payload = common.ensure_bounds(
-            new_from, new_to, bounds_fields, original, payload
-        )
+        bounds_fields = list(mapping.OWNER_FIELDS.difference({x[0] for x in update_fields}))
+        payload = common.ensure_bounds(new_from, new_to, bounds_fields, original, payload)
 
         await self.validate(
             org_unit=org_unit,

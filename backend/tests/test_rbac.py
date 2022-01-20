@@ -292,9 +292,7 @@ class TestGetAncestorOwners(object):
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
-    async def test_no_owners(
-        self, mock_get_unit_tree, mock_get_from_type, mock_get_connector
-    ):
+    async def test_no_owners(self, mock_get_unit_tree, mock_get_from_type, mock_get_connector):
         self.set_up()
         mock_get_unit_tree.return_value = self.org_unit_tree
         mock_get_from_type.return_value = []

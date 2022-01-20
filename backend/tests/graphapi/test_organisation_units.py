@@ -133,9 +133,7 @@ def gen_organisation_unit(
                     ],
                 },
                 "tilstande": {
-                    "organisationenhedgyldighed": [
-                        {"gyldighed": "Aktiv", "virkning": virkning}
-                    ]
+                    "organisationenhedgyldighed": [{"gyldighed": "Aktiv", "virkning": virkning}]
                 },
                 "relationer": {
                     "overordnet": [
@@ -200,8 +198,7 @@ def setup_organisation_tree(aioresponses):
         org_unit1221,
     ]
     organisation_unit_map = {
-        organisation_unit["id"]: organisation_unit
-        for organisation_unit in organisation_units
+        organisation_unit["id"]: organisation_unit for organisation_unit in organisation_units
     }
 
     def get_parent_uuid(uuid):
@@ -277,9 +274,7 @@ async def test_query_organisation_unit_tree_root(aioresponses):
 @pytest.mark.asyncio
 async def test_query_organisation_unit_tree_deepest_child(aioresponses):
     """Test that we are able to query parents and children of the deepest child."""
-    organisation_unit_map, parent_map, _, deepest_child = setup_organisation_tree(
-        aioresponses
-    )
+    organisation_unit_map, parent_map, _, deepest_child = setup_organisation_tree(aioresponses)
     uuid = deepest_child["id"]
 
     query = """
@@ -319,9 +314,7 @@ async def test_query_organisation_unit_tree_deepest_child(aioresponses):
 @pytest.mark.asyncio
 async def test_query_organisation_unit_tree_layers(aioresponses, num_parents):
     """Test that we are able to query multiple levels of parents at once."""
-    organisation_unit_map, parent_map, _, deepest_child = setup_organisation_tree(
-        aioresponses
-    )
+    organisation_unit_map, parent_map, _, deepest_child = setup_organisation_tree(aioresponses)
     uuid = deepest_child["id"]
 
     def build_parents_query(levels):

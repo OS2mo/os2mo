@@ -22,16 +22,12 @@ class RoleReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ITSYSTEM_KEY
 
     @classmethod
-    async def _get_mo_object_from_effect(
-        cls, effect, start, end, funcid, flat: bool = False
-    ):
+    async def _get_mo_object_from_effect(cls, effect, start, end, funcid, flat: bool = False):
         person_uuid = mapping.USER_FIELD.get_uuid(effect)
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
 
-        base_obj = await create_task(
-            super()._get_mo_object_from_effect(effect, start, end, funcid)
-        )
+        base_obj = await create_task(super()._get_mo_object_from_effect(effect, start, end, funcid))
 
         if is_graphql():
             return {

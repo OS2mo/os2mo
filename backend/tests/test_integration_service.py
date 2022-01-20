@@ -39,8 +39,7 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("invalid"):
             self.assertRequestFails(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-                "?at=2000-01-01T00:00:00Z",
+                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/" "?at=2000-01-01T00:00:00Z",
                 404,
             )
 
@@ -328,8 +327,7 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("list with a limit and a start"):
             self.assertRequestResponse(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/"
-                "?limit=3&start=1",
+                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/" "?limit=3&start=1",
                 {
                     "items": result_list[1:][:3],
                     "offset": 1,
@@ -348,8 +346,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/"
-                "?limit=3&start=3",
+                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/" "?limit=3&start=3",
                 {
                     "items": result_list[3:][:3],
                     "offset": 3,
@@ -426,8 +423,7 @@ class Tests(tests.cases.LoRATestCase):
             # When asking for "&details=path", the result should include a
             # "location" for each matching org unit
             self.assertRequestResponse(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/"
-                "?query=samf&details=path",
+                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/" "?query=samf&details=path",
                 {
                     "items": [
                         {
@@ -453,8 +449,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
             self.assertRequestFails(
-                "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
-                "?at=2000-01-01T00:00:00Z",
+                "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/" "?at=2000-01-01T00:00:00Z",
                 404,
             )
 
@@ -655,8 +650,7 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("invalid"):
             self.assertRequestFails(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
-                "?at=1920-01-01T00:00:00Z",
+                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/" "?at=1920-01-01T00:00:00Z",
                 404,
             )
 
@@ -735,13 +729,9 @@ class Tests(tests.cases.LoRATestCase):
             "total": 4,
         }
 
-        self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/e/", result
-        )
+        self.assertRequestResponse("/service/o/00000000-0000-0000-0000-000000000000/e/", result)
 
-        self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/", result
-        )
+        self.assertRequestResponse("/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/", result)
 
         self.assertRequestResponse(
             "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/",
@@ -994,8 +984,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/"
-            "?at=1937-01-01&query=Anders",
+            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/" "?at=1937-01-01&query=Anders",
             {
                 "items": [
                     {
@@ -1079,8 +1068,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/"
-            "?query=Anders&associated=true",
+            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/" "?query=Anders&associated=true",
             {
                 "items": [
                     {
@@ -1219,15 +1207,13 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("past"):
             self.assertRequestResponse(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-                "/details/role?validity=past",
+                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/role?validity=past",
                 [],
             )
 
         with self.subTest("future"):
             self.assertRequestResponse(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-                "/details/role?validity=future",
+                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/role?validity=future",
                 [],
             )
 
@@ -1238,8 +1224,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
         self.assertRequestResponse(
-            "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            "/details/role?only_primary_uuid=1",
+            "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e" "/details/role?only_primary_uuid=1",
             func,
         )
 
@@ -1268,8 +1253,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         actual = self.assertRequest(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-            "/details/leave?only_primary_uuid=1",
+            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/leave?only_primary_uuid=1",
         )
 
         self.assertEqual(expected, actual)
@@ -1310,8 +1294,7 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("past"):
             self.assertRequestResponse(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-                "/details/manager?validity=past",
+                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/manager?validity=past",
                 [],
             )
 
@@ -1372,15 +1355,13 @@ class Tests(tests.cases.LoRATestCase):
             [
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_job_function/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/engagement_job_function/",
                     "user_key": "engagement_job_function",
                     "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/primary_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/primary_type/",
                     "user_key": "primary_type",
                     "uuid": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",
                 },
@@ -1392,22 +1373,19 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_address_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
                     "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/engagement_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/engagement_type/",
                     "user_key": "engagement_type",
                     "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/responsibility/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/responsibility/",
                     "user_key": "responsibility",
                     "uuid": "452e1dd0-658b-477a-8dd8-efba105c06d6",
                 },
@@ -1419,8 +1397,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_level/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/org_unit_level/",
                     "user_key": "org_unit_level",
                     "uuid": "77c39616-dd98-4cf5-87fb-cdb9f3a0e455",
                 },
@@ -1438,22 +1415,19 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/manager_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/manager_type/",
                     "user_key": "manager_type",
                     "uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/employee_address_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/employee_address_type/",
                     "user_key": "employee_address_type",
                     "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/time_planning/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/time_planning/",
                     "user_key": "time_planning",
                     "uuid": "c4ad4c87-28a8-4d5c-afeb-b59de9c9f549",
                 },
@@ -1465,15 +1439,13 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/manager_level/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/manager_level/",
                     "user_key": "manager_level",
                     "uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/association_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/association_type/",
                     "user_key": "association_type",
                     "uuid": "ef71fe9c-7901-48e2-86d8-84116e210202",
                 },
@@ -1486,8 +1458,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
                 {
                     "description": "",
-                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                    "/f/org_unit_type/",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/org_unit_type/",
                     "user_key": "org_unit_type",
                     "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
                 },
@@ -1507,8 +1478,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/"
-            "?full_name&facet&top_level_facet",
+            "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/" "?full_name&facet&top_level_facet",
             {
                 "example": None,
                 "facet": {
@@ -1621,8 +1591,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/"
-            + "org_unit_address_type/",
+            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/" + "org_unit_address_type/",
             {
                 "data": {
                     "offset": 0,
@@ -1673,8 +1642,7 @@ class Tests(tests.cases.LoRATestCase):
                     ],
                 },
                 "description": "",
-                "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
-                "/f/org_unit_address_type/",
+                "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62" "/f/org_unit_address_type/",
                 "user_key": "org_unit_address_type",
                 "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
             },
@@ -1840,9 +1808,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         ]
 
-        actual = self.assertRequest(
-            "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
-        )
+        actual = self.assertRequest("/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children")
 
         self.assertEqual(expected, actual)
 
@@ -1878,9 +1844,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_post = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
+        actual_post = self.assertRequest("/service/f/engagement_job_function/", json=payload)
 
         actual_get = self.assertRequest("/service/f/engagement_job_function/")
 
@@ -1918,9 +1882,7 @@ class Tests(tests.cases.LoRATestCase):
                 ],
             },
         }
-        actual_put = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
+        actual_put = self.assertRequest("/service/f/engagement_job_function/", json=payload)
         actual_get = self.assertRequest("/service/f/engagement_job_function/")
 
         # Tests PUT on the same class

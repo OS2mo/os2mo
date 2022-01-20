@@ -119,9 +119,7 @@ async def get_class_ancestor_tree(
     )
 
 
-async def get_class_tree(
-    c, classids, with_siblings=False, only_primary_uuid: bool = False
-):
+async def get_class_tree(c, classids, with_siblings=False, only_primary_uuid: bool = False):
     """Return a tree, bounded by the given classid.
 
     The tree includes siblings of ancestors, with their child counts.
@@ -133,9 +131,7 @@ async def get_class_tree(
             classid,
             cache[classid],
             details=(
-                {ClassDetails.NCHILDREN}
-                if with_siblings and classid not in children
-                else None
+                {ClassDetails.NCHILDREN} if with_siblings and classid not in children else None
             ),
             only_primary_uuid=only_primary_uuid,
         )
@@ -203,9 +199,7 @@ async def prepare_class_child(c, entry):
 
 @router.get("/c/{classid}/children")
 # @util.restrictargs('limit', 'start')
-async def get_all_class_children(
-    classid: UUID, only_primary_uuid: Optional[bool] = None
-):
+async def get_all_class_children(classid: UUID, only_primary_uuid: Optional[bool] = None):
     """Get class children by UUID.
 
     :queryparam uuid: The UUID of the class.
@@ -237,9 +231,7 @@ async def get_all_class_children(
             for tup in classes
         ]
     )
-    classes = await gather(
-        *[create_task(prepare_class_child(c, class_)) for class_ in classes]
-    )
+    classes = await gather(*[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
     return sorted(
         classes,
@@ -293,9 +285,7 @@ async def list_facets(orgid: UUID):
         return await get_one_facet(c, facetid, orgid, facet)
 
     response = await c.facet.get_all(ansvarlig=orgid, publiceret="Publiceret")
-    response = await gather(
-        *[create_task(transform(facet_tuple)) for facet_tuple in response]
-    )
+    response = await gather(*[create_task(transform(facet_tuple)) for facet_tuple in response])
 
     return sorted(
         response,
@@ -317,9 +307,7 @@ async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
         c=request_wide_bulk.connector,
         facetid=facetid,
         orgid=orgid,
-        facet=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.facet, uuid=facetid
-        ),
+        facet=await request_wide_bulk.get_lora_object(type_=LoraObjectType.facet, uuid=facetid),
         data=data,
     )
 
@@ -341,18 +329,14 @@ async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
         "description": description,
     }
     if orgid:
-        response["path"] = bvn and router.url_path_for(
-            "get_classes", orgid=orgid, facet=bvn
-        )
+        response["path"] = bvn and router.url_path_for("get_classes", orgid=orgid, facet=bvn)
     if data:
         response["data"] = data
     return response
 
 
 async def fetch_class_children(c, parent_uuid) -> List:
-    return list(
-        await c.klasse.get_all(publiceret="Publiceret", overordnetklasse=parent_uuid)
-    )
+    return list(await c.klasse.get_all(publiceret="Publiceret", overordnetklasse=parent_uuid))
 
 
 async def count_class_children(c, parent_uuid):
@@ -375,9 +359,7 @@ async def __get_class_from_cache(
     return await get_one_class(
         c=request_wide_bulk.connector,
         classid=classid,
-        clazz=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.class_, uuid=classid
-        )
+        clazz=await request_wide_bulk.get_lora_object(type_=LoraObjectType.class_, uuid=classid)
         if not only_primary_uuid
         else None,
         details=details,
@@ -459,9 +441,7 @@ async def get_one_class(
         return rel["ejer"][0]["uuid"] if "ejer" in rel else None
 
     def get_full_name(parents):
-        full_name = " - ".join(
-            [get_attrs(clazz).get("titel") for clazz in reversed(parents)]
-        )
+        full_name = " - ".join([get_attrs(clazz).get("titel") for clazz in reversed(parents)])
         return full_name
 
     async def get_parents(clazz):
@@ -581,9 +561,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
 
     classes = await gather(
         *[
-            create_task(
-                get_one_class_full(c, class_id, class_obj, only_primary_uuid=False)
-            )
+            create_task(get_one_class_full(c, class_id, class_obj, only_primary_uuid=False))
             for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
         ]
     )
@@ -592,9 +570,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
     try:
         parsed_classes = [(clazz["uuid"], int(clazz["scope"])) for clazz in classes]
     except ValueError:
-        raise ErrorCodes.E_INTERNAL_ERROR(
-            message="Unable to parse scope value as integer"
-        )
+        raise ErrorCodes.E_INTERNAL_ERROR(message="Unable to parse scope value as integer")
 
     # Sort based on scope values, higher is better
     sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True)
@@ -696,9 +672,7 @@ def map_query_args_to_class_details(args):
 
     # If unknown args
     if not set(args) <= set(arg_map):
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            f"Invalid args: {set(args) - set(arg_map)}"
-        )
+        exceptions.ErrorCodes.E_INVALID_INPUT(f"Invalid args: {set(args) - set(arg_map)}")
 
     mapped = set(map(arg_map.get, args))
 
@@ -917,8 +891,6 @@ async def get_all_classes_children(
             limit=limit,
         )
     )["items"]
-    classes = await gather(
-        *[create_task(prepare_class_child(c, class_)) for class_ in classes]
-    )
+    classes = await gather(*[create_task(prepare_class_child(c, class_)) for class_ in classes])
 
     return classes

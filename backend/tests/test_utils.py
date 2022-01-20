@@ -49,18 +49,12 @@ class TestUtils(TestCase):
         # user...
         if False:
             # 15 is not a valid month
-            self.assertRaises(
-                exceptions.HTTPException, util.to_lora_time, "1999-15-11 00:00:00+01"
-            )
+            self.assertRaises(exceptions.HTTPException, util.to_lora_time, "1999-15-11 00:00:00+01")
 
         # make sure we can round-trip the edge cases correctly
-        self.assertEqual(
-            util.parsedatetime(util.NEGATIVE_INFINITY), util.NEGATIVE_INFINITY
-        )
+        self.assertEqual(util.parsedatetime(util.NEGATIVE_INFINITY), util.NEGATIVE_INFINITY)
 
-        self.assertEqual(
-            util.parsedatetime(util.POSITIVE_INFINITY), util.POSITIVE_INFINITY
-        )
+        self.assertEqual(util.parsedatetime(util.POSITIVE_INFINITY), util.POSITIVE_INFINITY)
 
         # we frequently get these dates in spreadsheets
         self.assertEqual(util.parsedatetime("31-12-9999"), util.POSITIVE_INFINITY)
@@ -762,9 +756,7 @@ class TestUtils(TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as err:
-            util.checked_get(
-                mapping, "empty_list", [], required=True, can_be_empty=False
-            )
+            util.checked_get(mapping, "empty_list", [], required=True, can_be_empty=False)
         self.assertEqual(
             {
                 "description": "'empty_list' cannot be empty",
@@ -787,9 +779,7 @@ class TestUtils(TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as err:
-            util.checked_get(
-                mapping, "empty_dict", {}, required=True, can_be_empty=False
-            )
+            util.checked_get(mapping, "empty_dict", {}, required=True, can_be_empty=False)
         self.assertEqual(
             {
                 "description": "'empty_dict' cannot be empty",
@@ -812,9 +802,7 @@ class TestUtils(TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as err:
-            util.checked_get(
-                mapping, "empty_str", "", required=True, can_be_empty=False
-            )
+            util.checked_get(mapping, "empty_str", "", required=True, can_be_empty=False)
 
         self.assertEqual(
             {

@@ -167,9 +167,7 @@ async def test_non_existing_field_query(aioresponses):
     assert sum(len(v) for v in aioresponses.requests.values()) == 0
     # We expect one and only one error
     error = one(result.errors)
-    assert error.message == (
-        "Cannot query field 'non_existing_field' on type 'Organisation'."
-    )
+    assert error.message == ("Cannot query field 'non_existing_field' on type 'Organisation'.")
     assert result.data is None
 
 

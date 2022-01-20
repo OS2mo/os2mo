@@ -169,9 +169,7 @@ async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
 
         gyldighed_key = "organisationenhedgyldighed"
 
-        if not await _is_date_range_valid(
-            org_unit, valid_from, valid_to, scope, gyldighed_key
-        ):
+        if not await _is_date_range_valid(org_unit, valid_from, valid_to, scope, gyldighed_key):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_ORG_UNIT_RANGE(
                 org_unit_uuid=org_unit_uuid,
                 wanted_valid_from=util.to_iso_date(valid_from),
@@ -185,9 +183,7 @@ def is_distinct_responsibility(
     fields: typing.List[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
 ):
     uuid_counts = collections.Counter(
-        value["uuid"]
-        for field, value in fields
-        if field == mapping.RESPONSIBILITY_FIELD
+        value["uuid"] for field, value in fields if field == mapping.RESPONSIBILITY_FIELD
     )
     duplicates = sorted(v for v, c in uuid_counts.items() if c > 1)
 
@@ -258,9 +254,7 @@ async def is_date_range_in_obj_range(
                 exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=uuid)
             exceptions.ErrorCodes.E_NOT_FOUND(scope=str(obj_type), uuid=uuid)
 
-        if not await _is_date_range_valid(
-            existing_obj, valid_from, valid_to, scope, gyldighed_key
-        ):
+        if not await _is_date_range_valid(existing_obj, valid_from, valid_to, scope, gyldighed_key):
             exceptions.ErrorCodes.V_DATE_OUTSIDE_EMPL_RANGE(
                 uuid=uuid,
                 **_get_active_validity(obj),
@@ -268,9 +262,7 @@ async def is_date_range_in_obj_range(
 
 
 @forceable
-def is_contained_in_range(
-    candidate_from, candidate_to, valid_from, valid_to, exception
-):
+def is_contained_in_range(candidate_from, candidate_to, valid_from, valid_to, exception):
     if valid_from < candidate_from or candidate_to < valid_to:
         exception(
             valid_from=util.to_iso_date(candidate_from),
@@ -295,9 +287,7 @@ async def is_movable_org_unit(unitid):
 
 
 @forceable
-async def is_candidate_parent_valid(
-    unitid: str, parent: str, from_date: datetime.datetime
-) -> None:
+async def is_candidate_parent_valid(unitid: str, parent: str, from_date: datetime.datetime) -> None:
     """
     For moving an org unit. Check if the candidate parent is in the subtree of
     the org unit itself. Note: it is (and should be) allowed to move an org

@@ -46,17 +46,11 @@ class Tests(tests.cases.LoRATestCase):
 
             return o
 
-        expected_engagement = mora.async_util.async_to_sync(get_expected)(
-            engagement_uuid
-        )
-        expected_association = mora.async_util.async_to_sync(get_expected)(
-            association_uuid, True
-        )
+        expected_engagement = mora.async_util.async_to_sync(get_expected)(engagement_uuid)
+        expected_association = mora.async_util.async_to_sync(get_expected)(association_uuid, True)
         expected_role = mora.async_util.async_to_sync(get_expected)(role_uuid)
         expected_leave = mora.async_util.async_to_sync(get_expected)(leave_uuid)
-        expected_manager = mora.async_util.async_to_sync(get_expected)(
-            manager_uuid, True
-        )
+        expected_manager = mora.async_util.async_to_sync(get_expected)(manager_uuid, True)
 
         self.assertRequestResponse(
             "/service/e/{}/terminate".format(userid),
@@ -84,15 +78,9 @@ class Tests(tests.cases.LoRATestCase):
         actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
             association_uuid
         )
-        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            role_uuid
-        )
-        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            leave_uuid
-        )
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_role = mora.async_util.async_to_sync(c.organisationfunktion.get)(role_uuid)
+        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(leave_uuid)
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         with self.subTest("engagement"):
             self.assertRegistrationsEqual(expected_engagement, actual_engagement)
@@ -165,9 +153,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -208,8 +194,7 @@ class Tests(tests.cases.LoRATestCase):
                         "description": "Missing required value.",
                         "error": True,
                         "error_key": "V_MISSING_REQUIRED_VALUE",
-                        "key": "Validity must be set with either 'to' or both "
-                        "'from' and 'to'",
+                        "key": "Validity must be set with either 'to' or both " "'from' and 'to'",
                         "obj": req,
                         "status": 400,
                     },
@@ -287,9 +272,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         ]
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -339,8 +322,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/manager"
-            "?validity=future&only_primary_uuid=1".format(userid),
+            "/service/e/{}/details/manager" "?validity=future&only_primary_uuid=1".format(userid),
             [
                 {
                     **expected,
@@ -416,18 +398,12 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         expected_association = {
-            **(
-                mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                    association_uuid
-                )
-            ),
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(association_uuid)),
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
         }
 
-        expected_association["relationer"][
-            "tilknyttedebrugere"
-        ] = expected_tilknyttedebrugere
+        expected_association["relationer"]["tilknyttedebrugere"] = expected_tilknyttedebrugere
 
         actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
             association_uuid
@@ -552,9 +528,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        actual_manager = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRegistrationsEqual(expected_manager, actual_manager)
 
@@ -591,11 +565,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         expected_association = {
-            **(
-                mora.async_util.async_to_sync(c.organisationfunktion.get)(
-                    association_uuid
-                )
-            ),
+            **(mora.async_util.async_to_sync(c.organisationfunktion.get)(association_uuid)),
             "note": "Afsluttet",
             "livscykluskode": "Rettet",
             "tilstande": {
@@ -642,9 +612,7 @@ class Tests(tests.cases.LoRATestCase):
             "/service/e/{}/details/manager".format(userid),
         )
 
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            manager_uuid
-        )
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(manager_uuid)
 
         self.assertRequestResponse(
             "/service/details/terminate",
@@ -732,9 +700,7 @@ class Tests(tests.cases.LoRATestCase):
             "/service/e/{}/details/association".format(userid),
         )
 
-        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid
-        )
+        original = mora.async_util.async_to_sync(c.organisationfunktion.get)(association_uuid)
 
         self.assertRequestResponse(
             "/service/details/terminate",
@@ -781,9 +747,7 @@ class Tests(tests.cases.LoRATestCase):
         # Create a new connector to clear the cache
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
-        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            association_uuid
-        )
+        actual = mora.async_util.async_to_sync(c.organisationfunktion.get)(association_uuid)
 
         self.assertRegistrationsEqual(expected, actual)
 

@@ -35,9 +35,7 @@ def gen_employee(
         "registreringer": [
             {
                 "attributter": {
-                    "brugeregenskaber": [
-                        {"brugervendtnoegle": user_key, "virkning": virkning}
-                    ],
+                    "brugeregenskaber": [{"brugervendtnoegle": user_key, "virkning": virkning}],
                     "brugerudvidelser": [
                         {
                             "fornavn": first_name,
@@ -47,9 +45,7 @@ def gen_employee(
                         }
                     ],
                 },
-                "tilstande": {
-                    "brugergyldighed": [{"gyldighed": "Aktiv", "virkning": virkning}]
-                },
+                "tilstande": {"brugergyldighed": [{"gyldighed": "Aktiv", "virkning": virkning}]},
                 "relationer": {
                     "tilknyttedepersoner": [
                         {"urn": "urn:dk:cpr:person:0101700000", "virkning": virkning}
