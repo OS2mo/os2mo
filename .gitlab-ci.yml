@@ -387,6 +387,7 @@ Integration-test:
 Coverage:
   <<: *master-rules
   stage: coverage
+  when: always # Failing tests still produce coverage
   image: python:3.8-slim
   needs: [Unit-test, GraphAPI-test, Integration-test]
   before_script:
