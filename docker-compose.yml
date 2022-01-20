@@ -112,7 +112,8 @@ services:
     #volumes:
     #  - type: bind
     #    source: ./init.config.yml
-    #    target: /config.yml
+    #    target: /config/config.yml
+    #    read_only: true
     depends_on:
       mo:
         condition: service_healthy
