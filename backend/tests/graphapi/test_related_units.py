@@ -41,7 +41,7 @@ class TestRelated_UnitsQuery:
             query = """
                 query {
                     related_units {
-                        org_unit_uuid
+                        org_unit_uuids
                         type
                         validity {from to}
                     }
@@ -54,7 +54,7 @@ class TestRelated_UnitsQuery:
         assert data is not None
         assert data["related_units"] == [
             {
-                "org_unit_uuid": related_unit["org_unit_uuid"],
+                "org_unit_uuids": related_unit["org_unit_uuids"],
                 "type": related_unit["type"],
                 "validity": related_unit["validity"],
             }
