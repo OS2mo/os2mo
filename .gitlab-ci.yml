@@ -29,6 +29,7 @@ variables:
   RELEASE_REGISTRY: docker.io
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   KANIKO_VERSION: v1.3.0
+  LORA_VERSION: 4.1.2
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-frontend
@@ -295,7 +296,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: magentaaps/lora:${LORA_VERSION}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
@@ -325,7 +326,7 @@ GraphAPI-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: magentaaps/lora:${LORA_VERSION}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
@@ -359,7 +360,7 @@ Integration-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: magentaaps/lora:${LORA_VERSION}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
@@ -435,7 +436,7 @@ Vue-unit-test:
 #   services:
 #     - name: magentaaps/postgres-os2mo:9.6.15-2-test
 #       alias: mox-db
-#     - name: magentaaps/lora:dev
+#     - name: magentaaps/lora:${LORA_VERSION}
 #       alias: mox
 #     - name: ${IMAGE_SHA}
 #       alias: mo
