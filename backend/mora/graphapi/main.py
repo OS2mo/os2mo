@@ -65,6 +65,7 @@ from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 from mora.graphapi.types import CPRType
 from mora.util import CPR
+from mora.graphapi.mutators import Mutation
 
 
 # --------------------------------------------------------------------------------------
