@@ -67,6 +67,7 @@ services:
       - ./.pytest_cache:/app/.pytest_cache
     command: ["/start-reload.sh"]
     environment:
+      OS2MO_AUTH: "true"
       AMQP_ENABLE: "true"
 
       DUMMY_MODE: "true"
