@@ -56,6 +56,7 @@ from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
+from mora.graphapi.mutators import Mutation
 
 
 # --------------------------------------------------------------------------------------
@@ -296,6 +297,7 @@ async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]) -> list[MOModel
 def get_schema() -> strawberry.Schema:
     schema = strawberry.Schema(
         query=Query,
+        mutation=Mutation,
         # Automatic camelCasing disabled because under_score style is simply better
         #
         # See: An Eye Tracking Study on camelCase and under_score Identifier Styles
