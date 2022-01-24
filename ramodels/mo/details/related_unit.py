@@ -30,7 +30,7 @@ class RelatedUnitBase(MOBase):
 class RelatedUnitRead(RelatedUnitBase):
     """A MO RelatedUnitRead object."""
 
-    org_unit_uuid: List[UUID] = Field(
+    org_unit_uuids: List[UUID] = Field(
         description="UUIDs of the related organisation units."
     )
 
@@ -38,6 +38,6 @@ class RelatedUnitRead(RelatedUnitBase):
 class RelatedUnitWrite(RelatedUnitBase):
     """A MO RelatedUnitWrite object."""
 
-    org_unit: List[OrgUnitRef] = Field(
+    org_units: List[OrgUnitRef] = Field(
         description="List of references of the related the organisation units."
     )
