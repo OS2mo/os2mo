@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.29.12 - 2022-01-24
+--------------------
+
+[#48042] GraphQL: make reference to org_unit's plural for RelatedUnits
+
 3.29.11 - 2022-01-21
 --------------------
 
