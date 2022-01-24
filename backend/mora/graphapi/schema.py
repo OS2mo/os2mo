@@ -213,12 +213,12 @@ class ITUser:
 )
 class RelatedUnit:
     @strawberry.field(description="Related organisation units")
-    async def org_unit(
+    async def org_units(
         self, root: RelatedUnitRead, info: Info
-    ) -> Optional["OrganisationUnit"]:
-        if not root.org_unit_uuid:
+    ) -> List["OrganisationUnit"]:
+        if not root.org_unit_uuids:
             return None
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        return await info.context["org_unit_loader"].load(root.org_unit_uuids)
 
 
 @strawberry.experimental.pydantic.type(
