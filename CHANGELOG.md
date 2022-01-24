@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.1.0 - 2022-01-24
+------------------
+
+[#48042] Make reference to org_unit's plural for RelatedUnit
+
 5.0.0 - 2022-01-12
 ------------------
 
