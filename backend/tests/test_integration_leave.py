@@ -5,11 +5,159 @@ from unittest.mock import patch
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
+
+
+@freezegun.freeze_time("2018-01-01", tz_offset=1)
+@patch("uuid.uuid4", new=lambda: mock_uuid)
+class AsyncTests(tests.cases.AsyncLoRATestCase):
+    async def test_edit_leave_no_overwrite(self):
+        await self.load_sample_structures()
+
+        leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
+
+        req = [
+            {
+                "type": "leave",
+                "uuid": leave_uuid,
+                "data": {
+                    "user_key": "koflagerske",
+                    "leave_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+                    "engagement": {"uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"},
+                    "validity": {
+                        "from": "2018-04-01",
+                    },
+                },
+            }
+        ]
+
+        await self.assertRequestResponse(
+            "/service/details/edit",
+            [leave_uuid],
+            json=req,
+            amqp_topics={"employee.leave.update": 1},
+        )
+
+        expected_leave = {
+            "note": "Rediger orlov",
+            "relationer": {
+                "organisatoriskfunktionstype": [
+                    {
+                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity",
+                        },
+                    },
+                    {
+                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02",
+                        },
+                    },
+                ],
+                "tilknyttedefunktioner": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2018-04-01 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    },
+                    {
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "virkning": {
+                            "from": "2018-04-01 " "00:00:00+02",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False,
+                        },
+                    },
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity",
+                        },
+                    }
+                ],
+                "tilknyttedebrugere": [
+                    {
+                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity",
+                        },
+                    }
+                ],
+            },
+            "livscykluskode": "Rettet",
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "infinity",
+                        },
+                    }
+                ]
+            },
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2017-01-01 00:00:00+01",
+                            "to": "2018-04-01 00:00:00+02",
+                        },
+                        "brugervendtnoegle": "bvn",
+                        "funktionsnavn": "Orlov",
+                    },
+                    {
+                        "virkning": {
+                            "from_included": True,
+                            "to_included": False,
+                            "from": "2018-04-01 00:00:00+02",
+                            "to": "infinity",
+                        },
+                        "brugervendtnoegle": "koflagerske",
+                        "funktionsnavn": "Orlov",
+                    },
+                ]
+            },
+        }
+
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+        actual_leave = await c.organisationfunktion.get(leave_uuid)
+
+        # drop lora-generated timestamps & users
+        del (
+            actual_leave["fratidspunkt"],
+            actual_leave["tiltidspunkt"],
+            actual_leave["brugerref"],
+        )
+
+        self.assertEqual(expected_leave, actual_leave)
 
 
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
@@ -125,153 +273,6 @@ class Tests(tests.cases.LoRATestCase):
             json=payload,
             status_code=400,
         )
-
-    def test_edit_leave_no_overwrite(self):
-        self.load_sample_structures()
-
-        leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
-
-        req = [
-            {
-                "type": "leave",
-                "uuid": leave_uuid,
-                "data": {
-                    "user_key": "koflagerske",
-                    "leave_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
-                    "engagement": {"uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"},
-                    "validity": {
-                        "from": "2018-04-01",
-                    },
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [leave_uuid],
-            json=req,
-            amqp_topics={"employee.leave.update": 1},
-        )
-
-        expected_leave = {
-            "note": "Rediger orlov",
-            "relationer": {
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity",
-                        },
-                    },
-                    {
-                        "uuid": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02",
-                        },
-                    },
-                ],
-                "tilknyttedefunktioner": [
-                    {
-                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-04-01 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
-                        "virkning": {
-                            "from": "2018-04-01 " "00:00:00+02",
-                            "from_included": True,
-                            "to": "infinity",
-                            "to_included": False,
-                        },
-                    },
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02",
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Orlov",
-                    },
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "infinity",
-                        },
-                        "brugervendtnoegle": "koflagerske",
-                        "funktionsnavn": "Orlov",
-                    },
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_leave = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            leave_uuid
-        )
-
-        # drop lora-generated timestamps & users
-        del (
-            actual_leave["fratidspunkt"],
-            actual_leave["tiltidspunkt"],
-            actual_leave["brugerref"],
-        )
-
-        self.assertEqual(expected_leave, actual_leave)
 
     def test_edit_leave(self):
         self.load_sample_structures()
