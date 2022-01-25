@@ -3,6 +3,7 @@
 from uuid import UUID
 
 import freezegun
+import pytest
 from parameterized import parameterized
 
 import mora.async_util
@@ -10,6 +11,161 @@ import tests.cases
 from . import util
 from mora import lora
 from mora.config import Settings
+
+pytestmark = pytest.mark.asyncio
+
+
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class AsyncTests(tests.cases.AsyncLoRATestCase):
+    async def test_edit_employee_overwrite(self):
+        # A generic example of editing an employee
+
+        await self.load_sample_structures()
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        req = [
+            {
+                "type": "employee",
+                "original": {
+                    "validity": {"from": "2016-01-01 00:00:00+01", "to": None},
+                    "cpr_no": "1205320000",
+                    "givenname": "Fedtmule",
+                    "surname": "Hund",
+                    "uuid": userid,
+                },
+                "data": {
+                    "validity": {
+                        "from": "2017-01-01",
+                    },
+                    "cpr_no": "0202020202",
+                    "givenname": "Test",
+                    "surname": "2 Employee",
+                    "nickname_givenname": "Testmand",
+                    "nickname_surname": "Whatever",
+                    "seniority": "2017-01-01",
+                },
+            }
+        ]
+
+        await self.assertRequestResponse(
+            "/service/details/edit",
+            [userid],
+            json=req,
+            amqp_topics={"employee.employee.update": 1},
+        )
+
+        # there must be a registration of the new name
+        expected_brugeregenskaber = [
+            {
+                "brugervendtnoegle": "fedtmule",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            }
+        ]
+
+        expected_brugerudvidelser = [
+            {
+                "fornavn": "Fedtmule",
+                "efternavn": "Hund",
+                "kaldenavn_fornavn": "George",
+                "kaldenavn_efternavn": "Geef",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01",
+                    "from_included": True,
+                    "to": "2017-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "fornavn": "Test",
+                "efternavn": "2 Employee",
+                "kaldenavn_fornavn": "Testmand",
+                "kaldenavn_efternavn": "Whatever",
+                "seniority": "2017-01-01",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        expected_tilknyttedepersoner = [
+            {
+                "urn": "urn:dk:cpr:person:0202020202",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+            {
+                "urn": "urn:dk:cpr:person:1205320000",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01",
+                    "from_included": True,
+                    "to": "2017-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        # but looking at the validity of the original that was sent along
+        # the period from that fromdate up to the this fromdate has been
+        # removed
+
+        expected_brugergyldighed = [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01",
+                    "from_included": True,
+                    "to": "2016-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "2017-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+            {
+                "gyldighed": "Inaktiv",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": True,
+                    "to": "2017-01-01 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+        actual = await c.bruger.get(userid)
+
+        self.assertEqual(
+            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
+        )
+        self.assertEqual(
+            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
+        )
+        self.assertEqual(
+            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
+        )
+        self.assertEqual(
+            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
+        )
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -427,156 +583,6 @@ class Tests(tests.cases.LoRATestCase):
                 "status": 400,
             },
             status_code=400,
-        )
-
-    def test_edit_employee_overwrite(self):
-        # A generic example of editing an employee
-
-        self.load_sample_structures()
-
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        req = [
-            {
-                "type": "employee",
-                "original": {
-                    "validity": {"from": "2016-01-01 00:00:00+01", "to": None},
-                    "cpr_no": "1205320000",
-                    "givenname": "Fedtmule",
-                    "surname": "Hund",
-                    "uuid": userid,
-                },
-                "data": {
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                    "cpr_no": "0202020202",
-                    "givenname": "Test",
-                    "surname": "2 Employee",
-                    "nickname_givenname": "Testmand",
-                    "nickname_surname": "Whatever",
-                    "seniority": "2017-01-01",
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [userid],
-            json=req,
-            amqp_topics={"employee.employee.update": 1},
-        )
-
-        # there must be a registration of the new name
-        expected_brugeregenskaber = [
-            {
-                "brugervendtnoegle": "fedtmule",
-                "virkning": {
-                    "from": "1932-05-12 00:00:00+01",
-                    "from_included": True,
-                    "to": "infinity",
-                    "to_included": False,
-                },
-            }
-        ]
-
-        expected_brugerudvidelser = [
-            {
-                "fornavn": "Fedtmule",
-                "efternavn": "Hund",
-                "kaldenavn_fornavn": "George",
-                "kaldenavn_efternavn": "Geef",
-                "virkning": {
-                    "from": "1932-05-12 00:00:00+01",
-                    "from_included": True,
-                    "to": "2017-01-01 00:00:00+01",
-                    "to_included": False,
-                },
-            },
-            {
-                "fornavn": "Test",
-                "efternavn": "2 Employee",
-                "kaldenavn_fornavn": "Testmand",
-                "kaldenavn_efternavn": "Whatever",
-                "seniority": "2017-01-01",
-                "virkning": {
-                    "from": "2017-01-01 00:00:00+01",
-                    "from_included": True,
-                    "to": "infinity",
-                    "to_included": False,
-                },
-            },
-        ]
-
-        expected_tilknyttedepersoner = [
-            {
-                "urn": "urn:dk:cpr:person:0202020202",
-                "virkning": {
-                    "from": "2017-01-01 00:00:00+01",
-                    "from_included": True,
-                    "to": "infinity",
-                    "to_included": False,
-                },
-            },
-            {
-                "urn": "urn:dk:cpr:person:1205320000",
-                "virkning": {
-                    "from": "1932-05-12 00:00:00+01",
-                    "from_included": True,
-                    "to": "2017-01-01 00:00:00+01",
-                    "to_included": False,
-                },
-            },
-        ]
-
-        # but looking at the validity of the original that was sent along
-        # the period from that fromdate up to the this fromdate has been
-        # removed
-
-        expected_brugergyldighed = [
-            {
-                "gyldighed": "Aktiv",
-                "virkning": {
-                    "from": "1932-05-12 00:00:00+01",
-                    "from_included": True,
-                    "to": "2016-01-01 00:00:00+01",
-                    "to_included": False,
-                },
-            },
-            {
-                "gyldighed": "Aktiv",
-                "virkning": {
-                    "from": "2017-01-01 00:00:00+01",
-                    "from_included": True,
-                    "to": "infinity",
-                    "to_included": False,
-                },
-            },
-            {
-                "gyldighed": "Inaktiv",
-                "virkning": {
-                    "from": "2016-01-01 00:00:00+01",
-                    "from_included": True,
-                    "to": "2017-01-01 00:00:00+01",
-                    "to_included": False,
-                },
-            },
-        ]
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual = mora.async_util.async_to_sync(c.bruger.get)(userid)
-
-        self.assertEqual(
-            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
-        )
-        self.assertEqual(
-            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
-        )
-        self.assertEqual(
-            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
-        )
-        self.assertEqual(
-            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
         )
 
     def test_edit_employee(self):
