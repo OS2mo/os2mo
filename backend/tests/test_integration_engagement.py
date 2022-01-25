@@ -3,17 +3,16 @@
 import freezegun
 import notsouid
 
-import mora.async_util
 import tests.cases
 from mora import lora
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    def test_create_engagement(self):
-        self.load_sample_structures()
+    async def test_create_engagement(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -39,7 +38,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        (engagementid,) = self.assertRequest(
+        (engagementid,) = await self.assertRequest(
             "/service/details/create",
             json=payload,
             amqp_topics={
@@ -161,14 +160,12 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_from_unit(self):
-        self.load_sample_structures()
+    async def test_create_engagement_from_unit(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -192,7 +189,7 @@ class Tests(tests.cases.LoRATestCase):
 
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
         with notsouid.freeze_uuid(mock_uuid):
-            (engagementid,) = self.assertRequest(
+            (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
                 amqp_topics={
@@ -290,14 +287,12 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_no_valid_to(self):
-        self.load_sample_structures()
+    async def test_create_engagement_no_valid_to(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -320,7 +315,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         with notsouid.freeze_uuid(mock_uuid):
-            (engagementid,) = self.assertRequest(
+            (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
                 amqp_topics={
@@ -418,14 +413,12 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(actual_engagement, expected)
 
-    def test_create_engagement_no_job_function(self):
-        self.load_sample_structures()
+    async def test_create_engagement_no_job_function(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -448,7 +441,7 @@ class Tests(tests.cases.LoRATestCase):
         ]
 
         with notsouid.freeze_uuid(mock_uuid):
-            (engagementid,) = self.assertRequest(
+            (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
                 amqp_topics={
@@ -535,124 +528,12 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagementid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagementid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
 
-    def test_create_engagement_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
-        payload = [
-            {
-                "type": "engagement",
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "Missing org_unit",
-                "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "key": "org_unit",
-                "obj": payload[0],
-                "status": 400,
-            },
-            json=payload,
-            status_code=400,
-        )
-
-    def test_edit_engagement_fails_on_invalid_payloads(self):
-        self.load_sample_structures()
-
-        payload = {
-            "type": "engagement",
-            "uuid": "00000000-0000-0000-0000-000000000000",
-        }
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            {
-                "description": "Missing data",
-                "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "status": 400,
-                "key": "data",
-                "obj": {
-                    "type": "engagement",
-                    "uuid": "00000000-0000-0000-0000-000000000000",
-                },
-            },
-            json=payload,
-            status_code=400,
-        )
-
-    def test_create_engagement_fails_on_missing_unit(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        payload = [
-            {
-                "type": "engagement",
-                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
-                "org_unit": {"uuid": "00000000-0000-0000-0000-000000000000"},
-                "job_function": {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
-                "engagement_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "Org unit not found.",
-                "error": True,
-                "error_key": "E_ORG_UNIT_NOT_FOUND",
-                "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
-                "status": 404,
-            },
-            json=payload,
-            status_code=404,
-        )
-
-    def test_create_engagement_fails_on_missing_person(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        payload = [
-            {
-                "type": "engagement",
-                "person": {"uuid": "00000000-0000-0000-0000-000000000000"},
-                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
-                "job_function": {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
-                "engagement_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "User not found.",
-                "error": True,
-                "error_key": "E_USER_NOT_FOUND",
-                "employee_uuid": "00000000-0000-0000-0000-000000000000",
-                "status": 404,
-            },
-            json=payload,
-            status_code=404,
-        )
-
-    def test_edit_engagement_no_overwrite(self):
-        self.load_sample_structures()
+    async def test_edit_engagement_no_overwrite(self):
+        await self.load_sample_structures()
 
         # Check the POST request
 
@@ -677,7 +558,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/details/edit",
             [engagement_uuid],
             json=req,
@@ -851,14 +732,12 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_edit_engagement_overwrite(self):
-        self.load_sample_structures()
+    async def test_edit_engagement_overwrite(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -889,7 +768,7 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/details/edit",
             [engagement_uuid],
             json=req,
@@ -1029,14 +908,12 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
-    def test_terminate_engagement_via_employee(self):
-        self.load_sample_structures()
+    async def test_terminate_engagement_via_employee(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -1045,7 +922,7 @@ class Tests(tests.cases.LoRATestCase):
 
         payload = {"validity": {"to": "2017-11-30"}}
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/e/{}/terminate".format(userid),
             userid,
             json=payload,
@@ -1178,11 +1055,124 @@ class Tests(tests.cases.LoRATestCase):
 
         engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
-        actual_engagement = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            engagement_uuid
-        )
+        actual_engagement = await c.organisationfunktion.get(engagement_uuid)
 
         self.assertRegistrationsEqual(expected, actual_engagement)
+
+
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class Tests(tests.cases.LoRATestCase):
+    maxDiff = None
+
+    def test_create_engagement_fails_on_empty_payload(self):
+        self.load_sample_structures()
+
+        payload = [
+            {
+                "type": "engagement",
+            }
+        ]
+
+        self.assertRequestResponse(
+            "/service/details/create",
+            {
+                "description": "Missing org_unit",
+                "error": True,
+                "error_key": "V_MISSING_REQUIRED_VALUE",
+                "key": "org_unit",
+                "obj": payload[0],
+                "status": 400,
+            },
+            json=payload,
+            status_code=400,
+        )
+
+    def test_edit_engagement_fails_on_invalid_payloads(self):
+        self.load_sample_structures()
+
+        payload = {
+            "type": "engagement",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+        }
+
+        self.assertRequestResponse(
+            "/service/details/edit",
+            {
+                "description": "Missing data",
+                "error": True,
+                "error_key": "V_MISSING_REQUIRED_VALUE",
+                "status": 400,
+                "key": "data",
+                "obj": {
+                    "type": "engagement",
+                    "uuid": "00000000-0000-0000-0000-000000000000",
+                },
+            },
+            json=payload,
+            status_code=400,
+        )
+
+    def test_create_engagement_fails_on_missing_unit(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        payload = [
+            {
+                "type": "engagement",
+                "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                "org_unit": {"uuid": "00000000-0000-0000-0000-000000000000"},
+                "job_function": {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            "/service/details/create",
+            {
+                "description": "Org unit not found.",
+                "error": True,
+                "error_key": "E_ORG_UNIT_NOT_FOUND",
+                "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
+                "status": 404,
+            },
+            json=payload,
+            status_code=404,
+        )
+
+    def test_create_engagement_fails_on_missing_person(self):
+        self.load_sample_structures()
+
+        # Check the POST request
+        payload = [
+            {
+                "type": "engagement",
+                "person": {"uuid": "00000000-0000-0000-0000-000000000000"},
+                "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
+                "job_function": {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                "engagement_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
+                },
+            }
+        ]
+
+        self.assertRequestResponse(
+            "/service/details/create",
+            {
+                "description": "User not found.",
+                "error": True,
+                "error_key": "E_USER_NOT_FOUND",
+                "employee_uuid": "00000000-0000-0000-0000-000000000000",
+                "status": 404,
+            },
+            json=payload,
+            status_code=404,
+        )
 
     def test_terminate_engagement_with_both_from_and_to_date(self):
         self.load_sample_structures()
