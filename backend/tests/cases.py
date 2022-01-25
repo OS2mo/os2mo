@@ -253,11 +253,10 @@ class _AsyncBaseTestCase(TestCase):
             kwargs.setdefault("headers", dict()).update(
                 {"Content-Type": "application/json"}
             )
-            async with self.client as ac:
-                return await ac.post(path, **kwargs)
 
-        async with self.client as ac:
-            return await ac.get(path, **kwargs)
+            return await self.client.post(path, **kwargs)
+
+        return await self.client.get(path, **kwargs)
 
     @staticmethod
     def __sort_inner_lists(obj):
@@ -636,6 +635,7 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase, _AsyncBaseTestCase):
             await _local_cache.async_session.close()
             _local_cache.async_session = None
         await super().asyncTearDown()
+        await self.client.aclose()
 
 
 @pytest.mark.serial
