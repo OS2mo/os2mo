@@ -5,16 +5,17 @@ from typing import List
 from typing import Optional
 from uuid import UUID
 
-from os2mo_dar_client import AsyncDARClient
 from aiohttp import ClientResponseError
+from os2mo_dar_client import AsyncDARClient
 from starlette_context import context
 from starlette_context.plugins import Plugin
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
 from . import base
-from ..validation.validator import forceable
 from ... import exceptions
+from ..validation.validator import forceable
+from mora.graphapi.middleware import is_graphql
 
 NOT_FOUND = "Ukendt"
 
@@ -53,6 +54,11 @@ class DARAddressHandler(base.AddressHandler):
         """
         # Cut off the prefix
         handler = await super().from_effect(effect)
+        if is_graphql():
+            # Return early if we're doing GraphQL things!
+            handler._name = None
+            handler._href = None
+            return handler
 
         dar_loader = context["dar_loader"]
         address_object = await dar_loader.load(UUID(handler.value))

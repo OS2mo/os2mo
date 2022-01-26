@@ -216,8 +216,6 @@ class RelatedUnit:
     async def org_units(
         self, root: RelatedUnitRead, info: Info
     ) -> List["OrganisationUnit"]:
-        if not root.org_unit_uuids:
-            return None
         return await info.context["org_unit_loader"].load(root.org_unit_uuids)
 
 
@@ -228,6 +226,26 @@ class RelatedUnit:
 )
 class Organisation:
     pass
+
+
+async def filter_address_types(
+    addresses: List[AddressRead], address_types: Optional[List[UUID]]
+) -> List[AddressRead]:
+    """Filter a list of addresses based on their address type UUID.
+
+    Args:
+        addresses: The addresses to filter
+        address_types: The address type UUIDs to filter by.
+
+    Returns:
+        List[AddressRead]: Addresses optionally filtered by their address type.
+    """
+    if address_types is None:
+        return addresses
+    address_type_list: List[UUID] = address_types
+    return list(
+        filter(lambda addr: addr.address_type_uuid in address_type_list, addresses)
+    )
 
 
 @strawberry.experimental.pydantic.type(
@@ -253,8 +271,14 @@ class Employee:
         return await info.context["employee_manager_role_loader"].load(root.uuid)
 
     @strawberry.field(description="Addresses for the employee")
-    async def addresses(self, root: EmployeeRead, info: Info) -> List["Address"]:
-        return await info.context["employee_address_loader"].load(root.uuid)
+    async def addresses(
+        self,
+        root: EmployeeRead,
+        info: Info,
+        address_types: Optional[List[UUID]] = None,
+    ) -> List["Address"]:
+        result = await info.context["employee_address_loader"].load(root.uuid)
+        return await filter_address_types(result, address_types)
 
     @strawberry.field(description="Leaves for the employee")
     async def leaves(self, root: EmployeeRead, info: Info) -> List["Leave"]:
@@ -350,9 +374,13 @@ class OrganisationUnit:
 
     @strawberry.field(description="Related addresses")
     async def addresses(
-        self, root: OrganisationUnitRead, info: Info
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        address_types: Optional[List[UUID]] = None,
     ) -> List["Address"]:
-        return await info.context["org_unit_address_loader"].load(root.uuid)
+        result = await info.context["org_unit_address_loader"].load(root.uuid)
+        return await filter_address_types(result, address_types)
 
     @strawberry.field(description="Related leaves")
     async def leaves(self, root: OrganisationUnitRead, info: Info) -> List["Leave"]:
