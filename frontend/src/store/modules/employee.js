@@ -62,6 +62,12 @@ const actions = {
         params.append(key, payload.extra[key])
       }
     }
+    function check_primary(engagement) {
+      return engagement.is_primary === true;
+    }
+    function check_address(address) {
+      return address.address_type.name === "Adresse"
+    }
 
     return Service.get(`/e/${uuid}/details/${payload.detail}?${params}`)
       .then(response => {
@@ -70,7 +76,29 @@ const actions = {
           validity: payload.validity,
           value: response.data
         })
-
+        if (payload.detail == "address") {
+          Service.get(`/e/${uuid}/details/engagement?calculate_primary=true&${params}`)
+          .then(response => 
+            {
+            let prim = response.data.filter(check_primary)
+            let eng = {}
+            eng.uuid = prim[0] ? prim[0].org_unit.uuid: []
+            eng.validity = prim[0] ? prim[0].validity: []
+            
+            return eng
+          }
+          ).then(eng =>{
+            Service.get(`/ou/${eng.uuid}/details/address?${params}`)
+            .then(response => {
+              let prim = response.data.filter(check_address)
+              
+              content.value.push({"name": prim[0].name, "validity" : eng.validity, "address_type": {"name":"Arbejdsadresse"}})
+            }) 
+          } 
+          )  
+        }
+        
+        console.log(content)
         commit(_employee.mutations.SET_DETAIL, content)
       })
       .catch(error => {
