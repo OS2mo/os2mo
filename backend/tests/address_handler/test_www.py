@@ -3,7 +3,6 @@
 from tests import util
 from unittest.mock import patch
 
-from mora.async_util import async_to_sync
 import tests.cases
 from mora import exceptions
 from mora.service.address_handler import www
@@ -14,12 +13,11 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
+class WWWAddressHandlerTests(tests.cases.AsyncMockRequestContextTestCase):
     handler = www.WWWAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = "http://www.test.org/"
 
-    @async_to_sync
     async def test_from_effect(self):
         # Arrange
         value = "http://www.test.org/"
@@ -36,7 +34,6 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @async_to_sync
     async def test_from_request(self):
         # Arrange
         value = "http://www.test.org/"
@@ -50,7 +47,6 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = "http://www.test.org/"
@@ -86,7 +82,6 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    @async_to_sync
     async def test_validation_fails_on_invalid_value(self):
         # Arrange
         value = "@$@#$@#$"  # Not a valid URL
@@ -95,7 +90,6 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         with self.assertRaises(exceptions.HTTPException):
             await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = [
@@ -109,7 +103,6 @@ class WWWAddressHandlerTests(tests.cases.MockRequestContextTestCase):
             # Shouldn't raise exception
             await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_with_force(self):
         # Arrange
         value = "GARBAGEGARBAGE"  # Not a valid URL
