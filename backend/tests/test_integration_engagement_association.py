@@ -5,9 +5,8 @@ import copy
 
 import freezegun
 
-import mora.async_util
 from mora import lora
-from tests.cases import LoRATestCase
+from tests.cases import LoRATestCase, AsyncLoRATestCase
 
 
 class EngAssocUtils:
@@ -73,14 +72,14 @@ class EngAssocUtils:
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(LoRATestCase):
+class AsyncTests(AsyncLoRATestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
 
     maxDiff = None
 
-    def test_create_engagement_association(self):
-        self.load_sample_structures()
+    async def test_create_engagement_association(self):
+        await self.load_sample_structures()
 
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -95,7 +94,7 @@ class Tests(LoRATestCase):
             payload,
         ) = EngAssocUtils.create_payload()
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/details/create",
             [association_uuid],
             json=payload,
@@ -180,26 +179,32 @@ class Tests(LoRATestCase):
             },
         }
 
-        associations = mora.async_util.async_to_sync(c.organisationfunktion.fetch)(
+        associations = await c.organisationfunktion.fetch(
             tilknyttedefunktioner=engagement_uuid,
             funktionsnavn="engagement_association",
         )
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
 
-        actual_association = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            associationid
-        )
+        actual_association = await c.organisationfunktion.get(associationid)
 
         self.assertRegistrationsEqual(expected, actual_association)
 
         expected = EngAssocUtils.expected_created()
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/api/v1/engagement_association/by_uuid"
             "?validity=future&only_primary_uuid=1&uuid={}".format(association_uuid),
             expected,
         )
+
+
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class Tests(LoRATestCase):
+
+    app_settings_overrides = {"v1_api_enable": True}
+
+    maxDiff = None
 
     def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
