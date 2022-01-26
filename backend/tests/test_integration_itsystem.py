@@ -3,9 +3,307 @@
 
 import freezegun
 
-import mora.async_util
 import tests.cases
 from mora import lora
+
+
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class AsyncWriting(tests.cases.AsyncLoRATestCase):
+    async def test_create_employee_itsystem(self):
+        await self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
+        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+        with self.subTest("preconditions"):
+            await self.assertRequestResponse(
+                "/service/e/{}/details/it?validity=past".format(userid),
+                [],
+            )
+
+            await self.assertRequestResponse(
+                "/service/e/{}/details/it".format(userid),
+                [],
+            )
+
+            await self.assertRequestResponse(
+                "/service/e/{}/details/it?validity=future".format(userid),
+                [],
+            )
+
+        self.assertEqual(
+            list(
+                await c.organisationfunktion.get_all(
+                    funktionsnavn="IT-system",
+                    tilknyttedebrugere=userid,
+                )
+            ),
+            [],
+        )
+
+        (funcid,) = await self.assertRequest(
+            "/service/details/create",
+            json=[
+                {
+                    "type": "it",
+                    "user_key": "goofy-moofy",
+                    "person": {
+                        "uuid": userid,
+                    },
+                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
+                    "validity": {"from": "2018-09-01", "to": None},
+                },
+            ],
+            amqp_topics={"employee.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/e/{}/details/it?validity=past".format(userid),
+            [],
+            amqp_topics={"employee.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/e/{}/details/it".format(userid),
+            [],
+            amqp_topics={"employee.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/e/{}/details/it?validity=future&only_primary_uuid=1".format(
+                userid
+            ),
+            [
+                {
+                    "itsystem": {
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                    },
+                    "org_unit": None,
+                    "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+                    "user_key": "goofy-moofy",
+                    "uuid": funcid,
+                    "validity": {"from": "2018-09-01", "to": None},
+                }
+            ],
+            amqp_topics={"employee.it.create": 1},
+        )
+
+    async def test_create_unit_itsystem(self):
+        await self.load_sample_structures()
+
+        # Check the POST request
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
+        unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+
+        with self.subTest("preconditions"):
+            await self.assertRequestResponse(
+                "/service/ou/{}/details/it?validity=past".format(unitid),
+                [],
+            )
+
+            await self.assertRequestResponse(
+                "/service/ou/{}/details/it".format(unitid),
+                [],
+            )
+
+            await self.assertRequestResponse(
+                "/service/ou/{}/details/it?validity=future".format(unitid),
+                [],
+            )
+
+        self.assertEqual(
+            list(
+                await c.organisationfunktion.get_all(
+                    funktionsnavn="IT-system",
+                    tilknyttedebrugere=unitid,
+                )
+            ),
+            [],
+        )
+
+        (funcid,) = await self.assertRequest(
+            "/service/details/create",
+            json=[
+                {
+                    "type": "it",
+                    "user_key": "root",
+                    "org_unit": {
+                        "uuid": unitid,
+                    },
+                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
+                    "validity": {"from": "2018-09-01", "to": None},
+                },
+            ],
+            amqp_topics={"org_unit.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/{}/details/it?validity=past".format(unitid),
+            [],
+            amqp_topics={"org_unit.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/{}/details/it".format(unitid),
+            [],
+            amqp_topics={"org_unit.it.create": 1},
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/{}/details/it?validity=future".format(unitid),
+            [
+                {
+                    "itsystem": {
+                        "name": "Lokal Rammearkitektur",
+                        "reference": None,
+                        "system_type": None,
+                        "user_key": "LoRa",
+                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                        "validity": {"from": "2010-01-01", "to": None},
+                    },
+                    "org_unit": {
+                        "name": "Samfundsvidenskabelige fakultet",
+                        "user_key": "samf",
+                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                        "validity": {"from": "2017-01-01", "to": None},
+                    },
+                    "person": None,
+                    "user_key": "root",
+                    "uuid": funcid,
+                    "validity": {"from": "2018-09-01", "to": None},
+                }
+            ],
+            amqp_topics={"org_unit.it.create": 1},
+        )
+
+    @freezegun.freeze_time("2017-06-22", tz_offset=2)
+    async def test_edit_itsystem(self):
+        await self.load_sample_structures()
+
+        it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
+
+        old_unit_id = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+        new_unit_id = "0eb323ac-8513-4b18-80fd-b1dfa7fd9a02"
+
+        old_it_system_id = "0872fb72-926d-4c5c-a063-ff800b8ee697"
+        new_it_system_id = "7e7c4f54-a85c-41fa-bae4-74e410215320"
+
+        await self.assertRequestResponse(
+            "/service/details/edit",
+            [it_func_id],
+            json=[
+                {
+                    "type": "it",
+                    "uuid": it_func_id,
+                    "data": {
+                        "itsystem": {
+                            "uuid": new_it_system_id,
+                        },
+                        "org_unit": {
+                            "uuid": new_unit_id,
+                        },
+                        "validity": {
+                            "from": "2017-06-22",
+                            "to": "2018-06-01",
+                        },
+                    },
+                }
+            ],
+            amqp_topics={"org_unit.it.update": 1},
+        )
+
+        expected_it_func = {
+            "attributter": {
+                "organisationfunktionegenskaber": [
+                    {
+                        "brugervendtnoegle": "fwaf",
+                        "funktionsnavn": "IT-system",
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2018-06-02 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    }
+                ]
+            },
+            "livscykluskode": "Rettet",
+            "note": "Rediger IT-system",
+            "relationer": {
+                "tilknyttedeenheder": [
+                    {
+                        "uuid": old_unit_id,
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2017-06-22 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    },
+                    {
+                        "uuid": new_unit_id,
+                        "virkning": {
+                            "from": "2017-06-22 " "00:00:00+02",
+                            "from_included": True,
+                            "to": "2018-06-02 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    },
+                ],
+                "tilknyttedeitsystemer": [
+                    {
+                        "uuid": old_it_system_id,
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2017-06-22 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    },
+                    {
+                        "uuid": new_it_system_id,
+                        "virkning": {
+                            "from": "2017-06-22 " "00:00:00+02",
+                            "from_included": True,
+                            "to": "2018-06-02 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    },
+                ],
+                "tilknyttedeorganisationer": [
+                    {
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2018-06-02 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    }
+                ],
+            },
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {
+                        "gyldighed": "Aktiv",
+                        "virkning": {
+                            "from": "2017-01-01 " "00:00:00+01",
+                            "from_included": True,
+                            "to": "2018-06-02 " "00:00:00+02",
+                            "to_included": False,
+                        },
+                    }
+                ]
+            },
+        }
+
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+        actual_it_func = await c.organisationfunktion.get(it_func_id)
+
+        self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -253,304 +551,6 @@ class Writing(tests.cases.LoRATestCase):
             ],
             status_code=400,
         )
-
-    def test_create_employee_itsystem(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        with self.subTest("preconditions"):
-            self.assertRequestResponse(
-                "/service/e/{}/details/it?validity=past".format(userid),
-                [],
-            )
-
-            self.assertRequestResponse(
-                "/service/e/{}/details/it".format(userid),
-                [],
-            )
-
-            self.assertRequestResponse(
-                "/service/e/{}/details/it?validity=future".format(userid),
-                [],
-            )
-
-        self.assertEqual(
-            list(
-                mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
-                    funktionsnavn="IT-system",
-                    tilknyttedebrugere=userid,
-                )
-            ),
-            [],
-        )
-
-        (funcid,) = self.assertRequest(
-            "/service/details/create",
-            json=[
-                {
-                    "type": "it",
-                    "user_key": "goofy-moofy",
-                    "person": {
-                        "uuid": userid,
-                    },
-                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
-                    "validity": {"from": "2018-09-01", "to": None},
-                },
-            ],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/it?validity=past".format(userid),
-            [],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/it".format(userid),
-            [],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/it?validity=future&only_primary_uuid=1".format(
-                userid
-            ),
-            [
-                {
-                    "itsystem": {
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                    },
-                    "org_unit": None,
-                    "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
-                    "user_key": "goofy-moofy",
-                    "uuid": funcid,
-                    "validity": {"from": "2018-09-01", "to": None},
-                }
-            ],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-    def test_create_unit_itsystem(self):
-        self.load_sample_structures()
-
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-
-        with self.subTest("preconditions"):
-            self.assertRequestResponse(
-                "/service/ou/{}/details/it?validity=past".format(unitid),
-                [],
-            )
-
-            self.assertRequestResponse(
-                "/service/ou/{}/details/it".format(unitid),
-                [],
-            )
-
-            self.assertRequestResponse(
-                "/service/ou/{}/details/it?validity=future".format(unitid),
-                [],
-            )
-
-        self.assertEqual(
-            list(
-                mora.async_util.async_to_sync(c.organisationfunktion.get_all)(
-                    funktionsnavn="IT-system",
-                    tilknyttedebrugere=unitid,
-                )
-            ),
-            [],
-        )
-
-        (funcid,) = self.assertRequest(
-            "/service/details/create",
-            json=[
-                {
-                    "type": "it",
-                    "user_key": "root",
-                    "org_unit": {
-                        "uuid": unitid,
-                    },
-                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
-                    "validity": {"from": "2018-09-01", "to": None},
-                },
-            ],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/{}/details/it?validity=past".format(unitid),
-            [],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/{}/details/it".format(unitid),
-            [],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/{}/details/it?validity=future".format(unitid),
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Samfundsvidenskabelige fakultet",
-                        "user_key": "samf",
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "validity": {"from": "2017-01-01", "to": None},
-                    },
-                    "person": None,
-                    "user_key": "root",
-                    "uuid": funcid,
-                    "validity": {"from": "2018-09-01", "to": None},
-                }
-            ],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-    @freezegun.freeze_time("2017-06-22", tz_offset=2)
-    def test_edit_itsystem(self):
-        self.load_sample_structures()
-
-        it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
-
-        old_unit_id = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-        new_unit_id = "0eb323ac-8513-4b18-80fd-b1dfa7fd9a02"
-
-        old_it_system_id = "0872fb72-926d-4c5c-a063-ff800b8ee697"
-        new_it_system_id = "7e7c4f54-a85c-41fa-bae4-74e410215320"
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [it_func_id],
-            json=[
-                {
-                    "type": "it",
-                    "uuid": it_func_id,
-                    "data": {
-                        "itsystem": {
-                            "uuid": new_it_system_id,
-                        },
-                        "org_unit": {
-                            "uuid": new_unit_id,
-                        },
-                        "validity": {
-                            "from": "2017-06-22",
-                            "to": "2018-06-01",
-                        },
-                    },
-                }
-            ],
-            amqp_topics={"org_unit.it.update": 1},
-        )
-
-        expected_it_func = {
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "brugervendtnoegle": "fwaf",
-                        "funktionsnavn": "IT-system",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ]
-            },
-            "livscykluskode": "Rettet",
-            "note": "Rediger IT-system",
-            "relationer": {
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": old_unit_id,
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-06-22 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "uuid": new_unit_id,
-                        "virkning": {
-                            "from": "2017-06-22 " "00:00:00+02",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                ],
-                "tilknyttedeitsystemer": [
-                    {
-                        "uuid": old_it_system_id,
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-06-22 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "uuid": new_it_system_id,
-                        "virkning": {
-                            "from": "2017-06-22 " "00:00:00+02",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ],
-            },
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ]
-            },
-        }
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_it_func = mora.async_util.async_to_sync(c.organisationfunktion.get)(
-            it_func_id
-        )
-
-        self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
