@@ -3,7 +3,6 @@
 from tests import util
 from unittest.mock import patch
 
-from mora.async_util import async_to_sync
 import tests.cases
 from mora import exceptions
 from mora.service.address_handler import pnumber
@@ -14,12 +13,11 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
+class PNumberAddressHandlerTests(tests.cases.AsyncMockRequestContextTestCase):
     handler = pnumber.PNumberAddressHandler
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     value = "1234567890"
 
-    @async_to_sync
     async def test_from_effect(self):
         # Arrange
         value = "1234567890"
@@ -38,7 +36,6 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @async_to_sync
     async def test_from_request(self):
         # Arrange
         value = "1234567890"
@@ -52,7 +49,6 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = "1234567890"
@@ -88,7 +84,6 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    @async_to_sync
     async def test_fails_on_invalid_value(self):
         # Arrange
         invalid_values = ["1234", "12341234123412341234"]  # Not a valid P-number
@@ -98,7 +93,6 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
             with self.assertRaises(exceptions.HTTPException):
                 await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = ["1234123412"]
@@ -108,7 +102,6 @@ class PNumberAddressHandlerTests(tests.cases.MockRequestContextTestCase):
             # Shouldn't raise exception
             await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_with_force(self):
         # Arrange
         value = "GARBAGEGARBAGE"  # Not a valid P-number
