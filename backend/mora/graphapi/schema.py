@@ -369,8 +369,20 @@ class OrganisationUnit:
         return await info.context["org_unit_engagement_loader"].load(root.uuid)
 
     @strawberry.field(description="Managers of the organisation unit")
-    async def managers(self, root: OrganisationUnitRead, info: Info) -> List["Manager"]:
-        return await info.context["org_unit_manager_loader"].load(root.uuid)
+    async def managers(
+        self, root: OrganisationUnitRead, info: Info, inherit: bool = False
+    ) -> List["Manager"]:
+        result = await info.context["org_unit_manager_loader"].load(root.uuid)
+        if inherit:
+            parent = root
+            while (not result) and (parent is not None):
+                parent_uuid = parent.parent_uuid
+                tasks = [
+                    info.context["org_unit_manager_loader"].load(parent_uuid),
+                    info.context["org_unit_loader"].load(parent_uuid),
+                ]
+                result, parent = await asyncio.gather(*tasks)
+        return result
 
     @strawberry.field(description="Related addresses")
     async def addresses(
