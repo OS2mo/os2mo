@@ -3,7 +3,6 @@
 import freezegun
 
 import tests.cases
-import mora.async_util
 from mora.exceptions import HTTPException
 from mora.mapping import EventType, RequestType
 from mora.service.handlers import RequestHandler
@@ -27,7 +26,7 @@ class MockHandler(RequestHandler):
         await super().submit()
 
 
-class Tests(tests.cases.MockRequestContextTestCase):
+class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
     maxDiff = None
 
     def tearDown(self):
@@ -42,14 +41,14 @@ class Tests(tests.cases.MockRequestContextTestCase):
             )
         super().setUp()
 
-    def test_handler_trigger_any_exception(self):
+    async def test_handler_trigger_any_exception(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
             raise Exception("Bummer")
 
         with self.assertRaises(HTTPException) as err:
-            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
+            await MockHandler.construct({}, RequestType.EDIT)
         self.assertEqual(
             {
                 "description": "Bummer",
@@ -61,14 +60,14 @@ class Tests(tests.cases.MockRequestContextTestCase):
         )
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_own_error(self):
+    async def test_handler_trigger_own_error(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
             raise Trigger.Error("Bummer", stage="final")
 
         with self.assertRaises(HTTPException) as ctxt:
-            mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
+            await MockHandler.construct({}, RequestType.EDIT)
         self.assertEqual(
             {
                 "error": True,
@@ -81,7 +80,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
         )
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_edit(self):
+    async def test_handler_trigger_before_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -96,10 +95,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.EDIT)
+        await MockHandler.construct({}, RequestType.EDIT)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_edit(self):
+    async def test_handler_trigger_after_edit(self):
         @Trigger.on("mock", RequestType.EDIT, EventType.ON_AFTER)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -115,14 +114,11 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.EDIT
-            ).submit
-        )()
+        await (await MockHandler.construct({}, RequestType.EDIT)).submit()
+
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_create(self):
+    async def test_handler_trigger_before_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -137,10 +133,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.CREATE)
+        await MockHandler.construct({}, RequestType.CREATE)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_create(self):
+    async def test_handler_trigger_after_create(self):
         @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -156,14 +152,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.CREATE
-            ).submit
-        )()
+        await (await MockHandler.construct({}, RequestType.CREATE)).submit()
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_before_terminate(self):
+    async def test_handler_trigger_before_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_BEFORE)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -178,10 +170,10 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(MockHandler.construct)({}, RequestType.TERMINATE)
+        await MockHandler.construct({}, RequestType.TERMINATE)
         self.assertTrue(self.trigger_called)
 
-    def test_handler_trigger_after_terminate(self):
+    async def test_handler_trigger_after_terminate(self):
         @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_AFTER)
         async def trigger(trigger_dict):
             self.trigger_called = True
@@ -197,11 +189,7 @@ class Tests(tests.cases.MockRequestContextTestCase):
                 trigger_dict,
             )
 
-        mora.async_util.async_to_sync(
-            mora.async_util.async_to_sync(MockHandler.construct)(
-                {}, RequestType.TERMINATE
-            ).submit
-        )()
+        await (await MockHandler.construct({}, RequestType.TERMINATE)).submit()
         self.assertTrue(self.trigger_called)
 
 
