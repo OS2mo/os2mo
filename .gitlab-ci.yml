@@ -544,6 +544,7 @@ Release to Prod:
 # Docs stage
 ############
 .docs-rules: &docs-rules
+  <<: *master-rules
   interruptible: true
   stage: docs
 
