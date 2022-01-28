@@ -586,11 +586,11 @@ Export GQL Schema:
 Build branch docs:
   <<: *build-docs
   rules:
-    - if: '$CI_COMMIT_REF_NAME != "master"'
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: never
+    - if: '$CI_COMMIT_REF_NAME != "master"'
   environment:
     name: $CI_COMMIT_REF_SLUG-docs
     url: $CI_JOB_URL/artifacts/file/site/index.html
@@ -599,11 +599,11 @@ Build branch docs:
 Build docs:
   <<: *build-docs
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: never
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 pages:
   <<: *docs-rules
@@ -615,8 +615,8 @@ pages:
     paths:
       - public/
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: never
+    - if: '$CI_COMMIT_REF_NAME == "master"'
