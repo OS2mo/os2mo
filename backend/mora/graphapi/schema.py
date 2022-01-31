@@ -31,6 +31,7 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
+from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from mora import config
@@ -85,21 +86,21 @@ class OpenValidity:
 )
 class KLE:
     @strawberry.field(description="KLE number")
-    async def kle_number(self, root: KLERead, info: Info) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.kle_number)
+    async def kle_number(self, root: KLERead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.kle_number_uuid)
 
     @strawberry.field(description="KLE Aspect")
     async def kle_aspect(self, root: KLERead, info: Info) -> List["Class"]:
-        if not root.kle_aspect_uuid:
-            return []
-        tasks = map(info.context["class_loader"].load, root.kle_aspect_uuid)
-        return await asyncio.gather(*tasks)
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load_many(root.kle_aspect_uuid)  # TODO: make uuid plural
 
     @strawberry.field(description="Associated organisation unit")
     async def org_unit(self, root: KLERead, info: Info) -> Optional["OrganisationUnit"]:
-        if not root.org_unit_uuid:
+        loader: DataLoader = info.context["org_unit_loader"]
+        if root.org_unit_uuid is None:
             return None
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -109,16 +110,19 @@ class KLE:
 )
 class Role:
     @strawberry.field(description="Role type")
-    async def role_type(self, root: RoleRead, info: Info) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.role_type_uuid)
+    async def role_type(self, root: RoleRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.role_type_uuid)
 
     @strawberry.field(description="Connected employee")
     async def employee(self, root: RoleRead, info: Info) -> "Employee":
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        loader: DataLoader = info.context["employee_loader"]
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(description="Connected organisation unit")
     async def org_unit(self, root: RoleRead, info: Info) -> "OrganisationUnit":
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -128,23 +132,26 @@ class Role:
 )
 class Address:
     @strawberry.field(description="Address type")
-    async def address_type(self, root: AddressRead, info: Info) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.address_type_uuid)
+    async def address_type(self, root: AddressRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.address_type_uuid)
 
     @strawberry.field(description="Address visibility")
     async def visibility(self, root: AddressRead, info: Info) -> Optional["Class"]:
-        if not root.visibility_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.visibility_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.visibility_uuid)
+        return await loader.load(root.visibility_uuid)
 
     @strawberry.field(
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field"
     )
     async def employee(self, root: AddressRead, info: Info) -> Optional["Employee"]:
-        if not root.employee_uuid:
+        loader: DataLoader = info.context["employee_loader"]
+        if root.employee_uuid is None:
             return None
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Connected organisation unit. "
@@ -153,9 +160,10 @@ class Address:
     async def org_unit(
         self, root: AddressRead, info: Info
     ) -> Optional["OrganisationUnit"]:
-        if not root.org_unit_uuid:
+        loader: DataLoader = info.context["org_unit_loader"]
+        if root.org_unit_uuid is None:
             return None
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -165,24 +173,26 @@ class Address:
 )
 class Association:
     @strawberry.field(description="Association type")
-    async def association_type(
-        self, root: AssociationRead, info: Info
-    ) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.association_type_uuid)
+    async def association_type(self, root: AssociationRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.association_type_uuid)
 
     @strawberry.field(description="Primary status")
     async def primary(self, root: AssociationRead, info: Info) -> Optional["Class"]:
-        if not root.primary_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.primary_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.primary_uuid)
+        return await loader.load(root.primary_uuid)
 
     @strawberry.field(description="Connected employee")
     async def employee(self, root: AssociationRead, info: Info) -> "Employee":
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        loader: DataLoader = info.context["employee_loader"]
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(description="Connected organisation unit")
     async def org_unit(self, root: AssociationRead, info: Info) -> "OrganisationUnit":
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -193,17 +203,19 @@ class Association:
 class ITUser:
     @strawberry.field(description="Connected employee")
     async def employee(self, root: ITUserRead, info: Info) -> Optional["Employee"]:
-        if not root.employee_uuid:
+        loader: DataLoader = info.context["employee_loader"]
+        if root.employee_uuid is None:
             return None
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(description="Connected organisation unit")
     async def org_unit(
         self, root: ITUserRead, info: Info
     ) -> Optional["OrganisationUnit"]:
-        if not root.org_unit_uuid:
+        loader: DataLoader = info.context["org_unit_loader"]
+        if root.org_unit_uuid is None:
             return None
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -216,7 +228,8 @@ class RelatedUnit:
     async def org_units(
         self, root: RelatedUnitRead, info: Info
     ) -> List["OrganisationUnit"]:
-        return await info.context["org_unit_loader"].load(root.org_unit_uuids)
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await loader.load_many(root.org_unit_uuids)
 
 
 @strawberry.experimental.pydantic.type(
@@ -264,11 +277,13 @@ class Employee:
 
     @strawberry.field(description="Engagements for the employee")
     async def engagements(self, root: EmployeeRead, info: Info) -> List["Engagement"]:
-        return await info.context["employee_engagement_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_engagement_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Manager roles for the employee")
     async def manager_roles(self, root: EmployeeRead, info: Info) -> List["Manager"]:
-        return await info.context["employee_manager_role_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_manager_role_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Addresses for the employee")
     async def addresses(
@@ -277,24 +292,29 @@ class Employee:
         info: Info,
         address_types: Optional[List[UUID]] = None,
     ) -> List["Address"]:
-        result = await info.context["employee_address_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_address_loader"]
+        result = await loader.load(root.uuid)
         return await filter_address_types(result, address_types)
 
     @strawberry.field(description="Leaves for the employee")
     async def leaves(self, root: EmployeeRead, info: Info) -> List["Leave"]:
-        return await info.context["employee_leave_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_leave_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Associations for the employee")
     async def associations(self, root: EmployeeRead, info: Info) -> List["Association"]:
-        return await info.context["employee_association_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_association_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Roles for the employee")
     async def roles(self, root: EmployeeRead, info: Info) -> List["Role"]:
-        return await info.context["employee_role_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_role_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="IT users for the employee")
     async def itusers(self, root: EmployeeRead, info: Info) -> List["ITUser"]:
-        return await info.context["employee_ituser_loader"].load(root.uuid)
+        loader: DataLoader = info.context["employee_ituser_loader"]
+        return await loader.load(root.uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -312,10 +332,10 @@ class OrganisationUnit:
         Returns:
             Optional[OrganisationUnit]: The ancestor, if any.
         """
-        if not root.parent_uuid:
+        loader: DataLoader = info.context["org_unit_loader"]
+        if root.parent_uuid is None:
             return None
-
-        return await info.context["org_unit_loader"].load(root.parent_uuid)
+        return await loader.load(root.parent_uuid)
 
     @strawberry.field(description="The immediate descendants in the organisation tree")
     async def children(
@@ -326,61 +346,66 @@ class OrganisationUnit:
         Returns:
             List[OrganisationUnit]: List of descendants, if any.
         """
-        return await info.context["org_unit_children_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_children_loader"]
+        return await loader.load(root.uuid)
 
     # TODO: Add UUID to RAModel and remove model prefix here
     @strawberry.field(description="Organisation unit hierarchy")
     async def org_unit_hierarchy_model(
         self, root: OrganisationUnitRead, info: Info
     ) -> Optional["Class"]:
-        if not root.org_unit_hierarchy:
+        loader: DataLoader = info.context["class_loader"]
+        if root.org_unit_hierarchy is None:
             return None
-        return await info.context["class_loader"].load(root.org_unit_hierarchy)
+        return await loader.load(root.org_unit_hierarchy)
 
     @strawberry.field(description="Organisation unit type")
     async def unit_type(
         self, root: OrganisationUnitRead, info: Info
     ) -> Optional["Class"]:
-        if not root.unit_type_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.unit_type_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.unit_type_uuid)
+        return await loader.load(root.unit_type_uuid)
 
     # TODO: Remove org prefix from RAModel and remove it here too
     @strawberry.field(description="Organisation unit level")
     async def org_unit_level(
         self, root: OrganisationUnitRead, info: Info
     ) -> Optional["Class"]:
-        if not root.org_unit_level_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.org_unit_level_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.org_unit_level_uuid)
+        return await loader.load(root.org_unit_level_uuid)
 
     @strawberry.field(description="Time planning strategy")
     async def time_planning(
         self, root: OrganisationUnitRead, info: Info
     ) -> Optional["Class"]:
-        if not root.time_planning_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.time_planning_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.time_planning_uuid)
+        return await loader.load(root.time_planning_uuid)
 
     @strawberry.field(description="Related engagements")
     async def engagements(
         self, root: OrganisationUnitRead, info: Info
     ) -> List["Engagement"]:
-        return await info.context["org_unit_engagement_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_engagement_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Managers of the organisation unit")
     async def managers(
         self, root: OrganisationUnitRead, info: Info, inherit: bool = False
     ) -> List["Manager"]:
-        result = await info.context["org_unit_manager_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_manager_loader"]
+        ou_loader: DataLoader = info.context["org_unit_loader"]
+        result = await loader.load(root.uuid)
         if inherit:
             parent = root
             while (not result) and (parent is not None):
                 parent_uuid = parent.parent_uuid
-                tasks = [
-                    info.context["org_unit_manager_loader"].load(parent_uuid),
-                    info.context["org_unit_loader"].load(parent_uuid),
-                ]
+                tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
                 result, parent = await asyncio.gather(*tasks)
         return result
 
@@ -391,36 +416,43 @@ class OrganisationUnit:
         info: Info,
         address_types: Optional[List[UUID]] = None,
     ) -> List["Address"]:
-        result = await info.context["org_unit_address_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_address_loader"]
+        result = await loader.load(root.uuid)
         return await filter_address_types(result, address_types)
 
     @strawberry.field(description="Related leaves")
     async def leaves(self, root: OrganisationUnitRead, info: Info) -> List["Leave"]:
-        return await info.context["org_unit_leave_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_leave_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Related associations")
     async def associations(
         self, root: OrganisationUnitRead, info: Info
     ) -> List["Association"]:
-        return await info.context["org_unit_association_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_association_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Related roles")
     async def roles(self, root: OrganisationUnitRead, info: Info) -> List["Role"]:
-        return await info.context["org_unit_role_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_role_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Related IT users")
     async def itusers(self, root: OrganisationUnitRead, info: Info) -> List["ITUser"]:
-        return await info.context["org_unit_ituser_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_ituser_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="KLE responsibilites for the organisation unit")
     async def kles(self, root: OrganisationUnitRead, info: Info) -> List["KLE"]:
-        return await info.context["org_unit_kle_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_kle_loader"]
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Related units for the organisational unit")
     async def related_units(
         self, root: OrganisationUnitRead, info: Info
     ) -> List["RelatedUnit"]:
-        return await info.context["org_unit_role_loader"].load(root.uuid)
+        loader: DataLoader = info.context["org_unit_related_unit_loader"]
+        return await loader.load(root.uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -430,34 +462,38 @@ class OrganisationUnit:
 )
 class Engagement:
     @strawberry.field(description="Engagement type")
-    async def engagement_type(
-        self, root: EngagementRead, info: Info
-    ) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.engagement_type_uuid)
+    async def engagement_type(self, root: EngagementRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.engagement_type_uuid)
 
     @strawberry.field(description="Job function")
-    async def job_function(self, root: EngagementRead, info: Info) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.job_function_uuid)
+    async def job_function(self, root: EngagementRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.job_function_uuid)
 
     @strawberry.field(description="The primary status")
     async def primary(self, root: EngagementRead, info: Info) -> Optional["Class"]:
-        if not root.primary_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.primary_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.primary_uuid)
+        return await loader.load(root.primary_uuid)
 
     @strawberry.field(description="Related leave")
     async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
-        if not root.leave_uuid:
+        loader: DataLoader = info.context["leave_loader"]
+        if root.leave_uuid is None:
             return None
-        return await info.context["leave_loader"].load(root.leave_uuid)
+        return await loader.load(root.leave_uuid)
 
     @strawberry.field(description="Related employee")
     async def employee(self, root: EngagementRead, info: Info) -> "Employee":
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        loader: DataLoader = info.context["employee_loader"]
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(description="Related organisation unit")
     async def org_unit(self, root: EngagementRead, info: Info) -> "OrganisationUnit":
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -467,8 +503,9 @@ class Engagement:
 )
 class Leave:
     @strawberry.field(description="Leave type")
-    async def leave_type(self, root: LeaveRead, info: Info) -> Optional["Class"]:
-        return await info.context["class_loader"].load(root.leave_type_uuid)
+    async def leave_type(self, root: LeaveRead, info: Info) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.leave_type_uuid)
 
     @strawberry.field(description="Related employee")
     async def employee(self, root: LeaveRead, info: Info) -> "Employee":
@@ -476,9 +513,10 @@ class Leave:
 
     @strawberry.field(description="Related engagement")
     async def engagement(self, root: LeaveRead, info: Info) -> Optional["Engagement"]:
-        if not root.engagement_uuid:
+        loader: DataLoader = info.context["engagement_loader"]
+        if root.engagement_uuid is None:
             return None
-        return await info.context["engagement_loader"].load(root.engagement_uuid)
+        return await loader.load(root.engagement_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -489,36 +527,36 @@ class Leave:
 class Manager:
     @strawberry.field(description="Manager type")
     async def manager_type(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        if not root.manager_type_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.manager_type_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.manager_type_uuid)
+        return await loader.load(root.manager_type_uuid)
 
     @strawberry.field(description="Manager level")
     async def manager_level(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        if not root.manager_level_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.manager_level_uuid is None:
             return None
-        return await info.context["class_loader"].load(root.manager_level_uuid)
+        return await loader.load(root.manager_level_uuid)
 
     @strawberry.field(description="Manager responsibilities")
     async def responsibilities(self, root: ManagerRead, info: Info) -> List["Class"]:
-        if not root.responsibility_uuids:
+        loader: DataLoader = info.context["class_loader"]
+        if root.responsibility_uuids is None:  # TODO: just a list please
             return []
-        tasks = map(info.context["class_loader"].load, root.responsibility_uuids)
-        return await asyncio.gather(*tasks)
+        return await loader.load_many(root.responsibility_uuids)
 
     @strawberry.field(description="Manager identity details")
     async def employee(self, root: ManagerRead, info: Info) -> Optional["Employee"]:
-        if not root.employee_uuid:
+        loader: DataLoader = info.context["employee_loader"]
+        if root.employee_uuid is None:
             return None
-        return await info.context["employee_loader"].load(root.employee_uuid)
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(description="Managed organisation unit")
-    async def org_unit(
-        self, root: ManagerRead, info: Info
-    ) -> Optional["OrganisationUnit"]:
-        if not root.org_unit_uuid:
-            return None
-        return await info.context["org_unit_loader"].load(root.org_unit_uuid)
+    async def org_unit(self, root: ManagerRead, info: Info) -> "OrganisationUnit":
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await loader.load(root.org_unit_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -534,10 +572,11 @@ class Class:
         Returns:
             Class: Parent class
         """
-        if not root.parent_uuid:
+        loader: DataLoader = info.context["class_loader"]
+        if root.parent_uuid is None:
             return None
 
-        return await info.context["class_loader"].load(root.parent_uuid)
+        return await loader.load(root.parent_uuid)
 
     @strawberry.field(description="Immediate descendants of the class")
     async def children(self, root: ClassRead, info: Info) -> List["Class"]:
@@ -546,18 +585,20 @@ class Class:
         Returns:
             List[Class]: List of descendants, if any.
         """
-        if not isinstance(root.uuid, UUID):
-            root.parent_uuid = UUID(root.uuid)
-        return await info.context["class_children_loader"].load(root.uuid)
+        loader: DataLoader = info.context["class_children_loader"]
+        if not isinstance(root.uuid, UUID):  # TODO: What? We never reach this
+            root.parent_uuid = UUID(root.uuid)  # but why?
+        return await loader.load(root.uuid)
 
     @strawberry.field(description="Associated facet")
-    async def facet(self, root: ClassRead, info: Info) -> Optional["Facet"]:
+    async def facet(self, root: ClassRead, info: Info) -> "Facet":
         """Get the associated facet.
 
         Returns:
             The associated facet.
         """
-        return await info.context["facet_loader"].load(root.facet_uuid)
+        loader: DataLoader = info.context["facet_loader"]
+        return await loader.load(root.facet_uuid)
 
 
 @strawberry.experimental.pydantic.type(
@@ -573,7 +614,8 @@ class Facet:
         Returns:
             The associated classes.
         """
-        return await info.context["facet_classes_loader"].load(root.uuid)
+        loader: DataLoader = info.context["facet_classes_loader"]
+        return await loader.load(root.uuid)
 
 
 @strawberry.type(description="MO & LoRa versions")
@@ -590,7 +632,8 @@ class Version:
         if not commit_tag:
             return None
         major, minor, patch = commit_tag.split(".")
-        return SemanticVersionRead(major=major, minor=minor, patch=patch)
+        sem_ver = SemanticVersionRead(major=major, minor=minor, patch=patch)
+        return sem_ver  # type: ignore
 
     @strawberry.field(description="OS2mo commit hash")
     async def mo_hash(self) -> Optional[str]:
@@ -616,7 +659,8 @@ class Version:
         if not commit_tag:
             return None
         major, minor, patch = commit_tag.split(".")
-        return SemanticVersionRead(major=major, minor=minor, patch=patch)
+        sem_ver = SemanticVersionRead(major=major, minor=minor, patch=patch)
+        return sem_ver  # type: ignore
 
 
 @strawberry.experimental.pydantic.type(

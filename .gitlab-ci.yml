@@ -240,7 +240,8 @@ Build Keycloak DB:
   <<: *master-rules
   stage: test
   interruptible: true
-  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
+  needs:
+    ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
   tags:
     - docker
@@ -342,7 +343,7 @@ GraphAPI-test:
       --cov=backend/mora/graphapi
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
-      --cov-fail-under=70
+      --cov-fail-under=67
       --workers auto
   artifacts:
     when: always
