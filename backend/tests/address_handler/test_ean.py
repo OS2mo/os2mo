@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+
 from tests import util
 from unittest.mock import patch
 
-from mora.async_util import async_to_sync
 from mora import exceptions
 from mora.service.address_handler import ean
 from . import base
@@ -14,12 +14,11 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
 
 
 @patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class EANAddressHandlerTests(base.AddressHandlerTestCase):
+class AsyncEANAddressHandlerTests(base.AsyncAddressHandlerTestCase):
     handler = ean.EANAddressHandler
     value = "1234567890123"
     visibility = "1f6295e8-9000-43ec-b694-4d288fa158bb"
 
-    @async_to_sync
     async def test_from_effect(self):
         # Arrange
         effect = {
@@ -39,7 +38,6 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         self.assertEqual(self.value, actual_value)
         self.assertEqual(self.visibility, actual_visibility)
 
-    @async_to_sync
     async def test_from_request(self):
         # Arrange
         value = "1234567890123"
@@ -53,7 +51,6 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(value, actual_value)
 
-    @async_to_sync
     async def test_get_mo_address(self):
         # Arrange
         value = "1234567890123"
@@ -86,7 +83,6 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
         # Assert
         self.assertEqual(expected, actual)
 
-    @async_to_sync
     async def test_fails_on_invalid_value(self):
         # Arrange
         invalid_values = ["1234", "12341234123412341234"]  # Not a valid EAN
@@ -96,7 +92,6 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
             with self.assertRaises(exceptions.HTTPException):
                 await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_on_correct_values(self):
         # Arrange
         valid_values = ["1234123412341"]
@@ -106,7 +101,6 @@ class EANAddressHandlerTests(base.AddressHandlerTestCase):
             # Shouldn't raise exception
             await self.handler.validate_value(value)
 
-    @async_to_sync
     async def test_validation_succeeds_with_force(self):
         # Arrange
         value = "GARBAGEGARBAGE"  # Not a valid EAN
