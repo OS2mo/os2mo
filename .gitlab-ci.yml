@@ -37,6 +37,8 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
 
+  LORA_IMAGE: magentaaps/lora:4.2.1
+
 include:
   - project: "labs/salt-automation"
     ref: "master"
@@ -238,8 +240,7 @@ Build Keycloak DB:
   <<: *master-rules
   stage: test
   interruptible: true
-  needs:
-    ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
+  needs: ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
   services: []
   tags:
     - docker
@@ -295,7 +296,7 @@ Unit-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: ${LORA_IMAGE}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
@@ -325,7 +326,7 @@ GraphAPI-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: ${LORA_IMAGE}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
@@ -359,7 +360,7 @@ Integration-test:
   services:
     - name: magentaaps/postgres-os2mo:10-11.7-test
       alias: mox-db
-    - name: magentaaps/lora:3.0.0
+    - name: ${LORA_IMAGE}
       alias: mox
     - name: ${KEYCLOAK_DB_IMAGE_SHA}
       alias: keycloak-db
