@@ -3,7 +3,6 @@
 import re
 
 import freezegun
-import mora.async_util
 import tests.cases
 from aioresponses import aioresponses
 from mora import config
@@ -19,9 +18,9 @@ from . import util
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
-class Tests(tests.cases.TestCase):
+class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
     @util.MockAioresponses()
-    def test_get_effects(self, m):
+    async def test_get_effects(self, m):
         lora_url = config.get_settings().lora_url
         url = URL(f"{lora_url}organisation/organisationenhed")
         m.get(
@@ -189,7 +188,7 @@ class Tests(tests.cases.TestCase):
             [
                 (str(start), str(end), entry)
                 for start, end, entry in (
-                    mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
+                    await c.organisationenhed.get_effects(
                         "00000000-0000-0000-0000-000000000000",
                         relevant={
                             "tilstande": ("organisationenhedgyldighed",),
@@ -220,7 +219,7 @@ class Tests(tests.cases.TestCase):
         ]
     )
     @util.MockAioresponses()
-    def test_errors_json(self, status_in, status_out, error_key, m):
+    async def test_errors_json(self, status_in, status_out, error_key, m):
         c = lora.Connector()
         url = URL("http://mox/organisation/organisationenhed")
 
@@ -233,7 +232,7 @@ class Tests(tests.cases.TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
-            mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+            await c.organisationenhed.get("42")
 
         call_args = last(m.requests["GET", url])
         self.assertEqual(
@@ -266,7 +265,7 @@ class Tests(tests.cases.TestCase):
         ]
     )
     @util.MockAioresponses()
-    def test_errors_text(self, status_in, status_out, error_key, m):
+    async def test_errors_text(self, status_in, status_out, error_key, m):
         c = lora.Connector()
         url = URL("http://mox/organisation/organisationenhed")
 
@@ -277,7 +276,7 @@ class Tests(tests.cases.TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
-            mora.async_util.async_to_sync(c.organisationenhed.get)("42")
+            await c.organisationenhed.get("42")
 
         call_args = last(m.requests["GET", url])
         self.assertEqual(
@@ -301,7 +300,7 @@ class Tests(tests.cases.TestCase):
         )
 
     @util.MockAioresponses()
-    def test_error_debug(self, m):
+    async def test_error_debug(self, m):
         # with util.override_lora_url():
         url = URL("http://mox/organisation/organisationenhed")
         m.get(
@@ -314,7 +313,7 @@ class Tests(tests.cases.TestCase):
         )
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
-            mora.async_util.async_to_sync(lora.Connector().organisationenhed.get)("42")
+            await lora.Connector().organisationenhed.get("42")
 
         call_args = one(m.requests["GET", url])
         self.assertEqual(
@@ -338,7 +337,7 @@ class Tests(tests.cases.TestCase):
         )
 
     @util.MockAioresponses()
-    def test_finding_nothing(self, m):
+    async def test_finding_nothing(self, m):
         c = lora.Connector()
         url = URL("http://mox/organisation/organisationenhed")
         m.get(
@@ -346,7 +345,7 @@ class Tests(tests.cases.TestCase):
             payload={"results": []},
         )
 
-        self.assertIsNone(mora.async_util.async_to_sync(c.organisationenhed.get)("42"))
+        self.assertIsNone(await c.organisationenhed.get("42"))
         call_args = one(m.requests["GET", url])
         self.assertEqual(
             call_args.kwargs["json"],
@@ -360,7 +359,7 @@ class Tests(tests.cases.TestCase):
 
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @aioresponses()
-    def test_get_effects_2(self, m):
+    async def test_get_effects_2(self, m):
         lora_url = config.get_settings().lora_url
         url = URL(f"{lora_url}organisation/organisationenhed")
         m.get(
@@ -528,7 +527,7 @@ class Tests(tests.cases.TestCase):
             [
                 (str(start), str(end), entry)
                 for start, end, entry in (
-                    mora.async_util.async_to_sync(c.organisationenhed.get_effects)(
+                    await c.organisationenhed.get_effects(
                         "00000000-0000-0000-0000-000000000000",
                         relevant={
                             "tilstande": ("organisationenhedgyldighed",),
@@ -549,6 +548,53 @@ class Tests(tests.cases.TestCase):
             },
         )
 
+    @util.MockAioresponses()
+    async def test_noop_update_returns_null(self, m):
+        # A "no-op" update in LoRa returns a response with an error message,
+        # but no "uuid" key.
+        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
+        m.patch(
+            re.compile(r".*/organisation/bruger/" + uuid),
+            payload={
+                "message": "ERROR:  Aborted updating bruger with id "
+                "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+                "not give raise to a new registration. Aborted reg: ..."
+            },
+        )
+        # Assert that `Scope.update` tolerates the missing 'uuid' key in the
+        # LoRa response, and instead just returns the original UUID back to its
+        # caller.
+        c = lora.Connector()
+        same_uuid = await c.bruger.update({}, uuid)
+        self.assertEqual(uuid, same_uuid)
+
+    @util.MockAioresponses()
+    async def test_actual_update_returns_uuid(self, m):
+        # A normal update in LoRa returns a response with a 'uuid' key which
+        # matches the object that was updated.
+        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
+        m.patch(re.compile(r".*/organisation/bruger/" + uuid), payload={"uuid": uuid})
+        # Assert that `Scope.update` parses the JSON response and returns the
+        # value of the 'uuid' key to its caller.
+        c = lora.Connector()
+        updated_uuid = await c.bruger.update({}, uuid)
+        self.assertEqual(uuid, updated_uuid)
+
+    @util.MockAioresponses()
+    async def test_update_returns_nothing_on_lora_404(self, m):
+        # Updating a nonexistent LoRa object returns a 404 status code, which
+        # should not be converted into a MO exception.
+        uuid = "00000000-0000-0000-0000-000000000000"
+        m.patch(re.compile(r".*/organisation/bruger/" + uuid), status=404)
+        # Assert that `Scope.update` does not raise an exception nor return a
+        # UUID in this case.
+        c = lora.Connector()
+        response = await c.bruger.update({}, uuid)
+        self.assertIsNone(response)
+
+
+@freezegun.freeze_time("2010-06-01", tz_offset=2)
+class Tests(tests.cases.TestCase):
     def test_raise_on_status_detects_noop_change(self):
         status_code = 400
         msg_noop = (
@@ -571,47 +617,3 @@ class Tests(tests.cases.TestCase):
             },
             ctxt.exception.detail,
         )
-
-    @util.MockAioresponses()
-    def test_noop_update_returns_null(self, m):
-        # A "no-op" update in LoRa returns a response with an error message,
-        # but no "uuid" key.
-        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        m.patch(
-            re.compile(r".*/organisation/bruger/" + uuid),
-            payload={
-                "message": "ERROR:  Aborted updating bruger with id "
-                "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-                "not give raise to a new registration. Aborted reg: ..."
-            },
-        )
-        # Assert that `Scope.update` tolerates the missing 'uuid' key in the
-        # LoRa response, and instead just returns the original UUID back to its
-        # caller.
-        c = lora.Connector()
-        same_uuid = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
-        self.assertEqual(uuid, same_uuid)
-
-    @util.MockAioresponses()
-    def test_actual_update_returns_uuid(self, m):
-        # A normal update in LoRa returns a response with a 'uuid' key which
-        # matches the object that was updated.
-        uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        m.patch(re.compile(r".*/organisation/bruger/" + uuid), payload={"uuid": uuid})
-        # Assert that `Scope.update` parses the JSON response and returns the
-        # value of the 'uuid' key to its caller.
-        c = lora.Connector()
-        updated_uuid = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
-        self.assertEqual(uuid, updated_uuid)
-
-    @util.MockAioresponses()
-    def test_update_returns_nothing_on_lora_404(self, m):
-        # Updating a nonexistent LoRa object returns a 404 status code, which
-        # should not be converted into a MO exception.
-        uuid = "00000000-0000-0000-0000-000000000000"
-        m.patch(re.compile(r".*/organisation/bruger/" + uuid), status=404)
-        # Assert that `Scope.update` does not raise an exception nor return a
-        # UUID in this case.
-        c = lora.Connector()
-        response = mora.async_util.async_to_sync(c.bruger.update)({}, uuid)
-        self.assertIsNone(response)
