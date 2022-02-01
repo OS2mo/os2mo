@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.2.0 - 2022-02-01
+------------------
+
+[#48176] Add models from GraphAPI module in MO
+
 5.1.0 - 2022-01-24
 ------------------
 
