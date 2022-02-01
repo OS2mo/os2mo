@@ -7,11 +7,11 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
+from ramodels.mo.details import ITSystemRead
 
 import mora.graphapi.dataloaders as dataloaders
 import mora.graphapi.main as main
 from mora.graphapi.main import get_schema
-from mora.graphapi.models import ITSystemRead
 
 # --------------------------------------------------------------------------------------
 # Tests

@@ -26,16 +26,16 @@ from ramodels.lora.klasse import KlasseRead
 from strawberry.dataloader import DataLoader
 
 from mora.common import get_connector
-from mora.graphapi.models import ClassRead
-from mora.graphapi.models import FacetRead
-from mora.graphapi.models import ITSystemRead
 from mora.graphapi.readers import _extract_search_params
 from mora.graphapi.readers import get_role_type_by_uuid
 from mora.graphapi.readers import search_role_type
 from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
+from mora.graphapi.schema import ClassRead
 from mora.graphapi.schema import EmployeeRead
 from mora.graphapi.schema import EngagementRead
+from mora.graphapi.schema import FacetRead
+from mora.graphapi.schema import ITSystemRead
 from mora.graphapi.schema import ITUserRead
 from mora.graphapi.schema import KLERead
 from mora.graphapi.schema import LeaveRead
