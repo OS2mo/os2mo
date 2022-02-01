@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
-import mora.async_util
 import tests.cases
 from mora import common
 from mora import exceptions
@@ -12,6 +11,53 @@ from more_itertools import one
 from yarl import URL
 
 from . import util
+
+
+class AsyncTestClass(tests.cases.IsolatedAsyncioTestCase):
+    maxDiff = None
+
+    @freezegun.freeze_time("2018-01-01")
+    @util.MockAioresponses()
+    async def test_history_missing(self, mock):
+        userid = "00000000-0000-0000-0000-000000000000"
+
+        url = URL("http://mox/organisation/bruger")
+        mock.get(
+            url,
+            payload={
+                "results": [],
+            },
+        )
+
+        with self.assertRaises(exceptions.HTTPException) as cm:
+            await common.add_history_entry(
+                lora.Connector().bruger,
+                userid,
+                "kaflaflibob",
+            )
+
+        call_args = one(mock.requests["GET", url])
+        self.assertEqual(
+            call_args.kwargs["json"],
+            {
+                "uuid": [userid],
+                "virkningfra": "2018-01-01T00:00:00+01:00",
+                "virkningtil": "2018-01-01T00:00:00.000001+01:00",
+                "konsolider": "True",
+            },
+        )
+
+        self.assertEqual(
+            cm.exception.detail,
+            {
+                "description": "Not found.",
+                "error": True,
+                "error_key": "E_NOT_FOUND",
+                "path": "organisation/bruger",
+                "status": 404,
+                "uuid": userid,
+            },
+        )
 
 
 class TestClass(tests.cases.TestCase):
@@ -1793,46 +1839,3 @@ class TestClass(tests.cases.TestCase):
 
         # Assert
         self.assertEqual(expected_result, actual_result)
-
-    @freezegun.freeze_time("2018-01-01")
-    @util.MockAioresponses()
-    def test_history_missing(self, mock):
-        userid = "00000000-0000-0000-0000-000000000000"
-
-        url = URL("http://mox/organisation/bruger")
-        mock.get(
-            url,
-            payload={
-                "results": [],
-            },
-        )
-
-        with self.assertRaises(exceptions.HTTPException) as cm:
-            mora.async_util.async_to_sync(common.add_history_entry)(
-                lora.Connector().bruger,
-                userid,
-                "kaflaflibob",
-            )
-
-        call_args = one(mock.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
-                "uuid": [userid],
-                "virkningfra": "2018-01-01T00:00:00+01:00",
-                "virkningtil": "2018-01-01T00:00:00.000001+01:00",
-                "konsolider": "True",
-            },
-        )
-
-        self.assertEqual(
-            cm.exception.detail,
-            {
-                "description": "Not found.",
-                "error": True,
-                "error_key": "E_NOT_FOUND",
-                "path": "organisation/bruger",
-                "status": 404,
-                "uuid": userid,
-            },
-        )
