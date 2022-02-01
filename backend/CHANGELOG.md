@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.30.0 - 2022-02-01
+-------------------
+
+[#47789] Add manager inheritance for organisation units
+
 3.29.13 - 2022-01-28
 --------------------
 
