@@ -121,7 +121,7 @@ services:
       - init
 
   mox:
-    image: magentaaps/lora:3.1.1
+    image: magentaaps/lora:4.2.1
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
