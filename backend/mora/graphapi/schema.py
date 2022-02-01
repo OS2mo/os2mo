@@ -13,7 +13,9 @@ from typing import Optional
 from uuid import UUID
 
 import strawberry
+from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
@@ -22,6 +24,7 @@ from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
@@ -33,10 +36,7 @@ from strawberry.types import Info
 from mora import config
 from mora import lora
 from mora.graphapi.health import health_map
-from mora.graphapi.models import ClassRead
-from mora.graphapi.models import FacetRead
 from mora.graphapi.models import HealthRead
-from mora.graphapi.models import ITSystemRead
 from mora.graphapi.models import SemanticVersionRead
 
 # --------------------------------------------------------------------------------------
