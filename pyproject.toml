@@ -30,6 +30,7 @@ pytest-xdist = "^2.2.1"
 mkdocs-material = "^7.1.7"
 mkdocstrings = "^0.15.2"
 pytest-shard = "^0.1.2"
+pydocstyle = "^6.1.1"
 
 [tool.autopub]
 git-username = "MagentaBot"

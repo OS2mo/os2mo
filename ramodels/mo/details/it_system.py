@@ -19,6 +19,19 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Validity
 
+# --------------------------------------------------------------------------------------
+# IT Systems
+# --------------------------------------------------------------------------------------
+
+
+class ITSystemRead(MOBase):
+    """Payload model for IT systems."""
+
+    type_: str = Field("itsystem", alias="type", description="The object type")
+    name: str = Field(description="Name/titel of the itsystem.")
+    user_key: str = Field(description="Short, unique key.")
+    system_type: Optional[str] = Field(description="The ITSystem type.")
+
 
 # --------------------------------------------------------------------------------------
 # IT Users
@@ -83,10 +96,7 @@ class ITUser(MOBase):
         person_uuid: Optional[UUID] = None,
         org_unit_uuid: Optional[UUID] = None,
     ) -> "ITUser":
-        """
-        Create an IT User from simplified fields.
-        """
-
+        """Create an IT User from simplified fields."""
         it_system = ITSystemRef(uuid=itsystem_uuid)
         person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None

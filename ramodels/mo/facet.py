@@ -30,3 +30,13 @@ class FacetClass(MOBase):
     org_uuid: UUID = Field(
         description="UUID of the organisation for which the Klasse should be created."
     )
+
+
+class FacetRead(MOBase):
+    """A MO Facet read object."""
+
+    type_: str = Field("facet", alias="type", description="The object type")
+    user_key: str = Field(description="Short, unique key.")
+    published: Optional[str] = Field(description="Published state of the facet object.")
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+    parent_uuid: Optional[UUID] = Field(description="UUID of the parent facet.")
