@@ -8,7 +8,19 @@ from starlette.responses import JSONResponse
 
 import tests.cases
 from mora import app
-from mora.async_util import async_to_sync
+
+
+class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
+    async def test_fallback_handler(self):
+        resp = await app.fallback_handler(mock.MagicMock(), ValueError("go away"))
+
+        self.assertIsInstance(resp, JSONResponse)
+        self.assertEqual(500, resp.status_code)
+        self.assertEqual(
+            b'{"error":true,"description":"go away",'
+            b'"status":500,"error_key":"E_UNKNOWN"}',
+            resp.body,
+        )
 
 
 class Tests(tests.cases.TestCase):
@@ -22,19 +34,6 @@ class Tests(tests.cases.TestCase):
                 "status": 404,
             },
             status_code=404,
-        )
-
-    def test_fallback_handler(self):
-        resp = async_to_sync(app.fallback_handler)(
-            mock.MagicMock(), ValueError("go away")
-        )
-
-        self.assertIsInstance(resp, JSONResponse)
-        self.assertEqual(500, resp.status_code)
-        self.assertEqual(
-            b'{"error":true,"description":"go away",'
-            b'"status":500,"error_key":"E_UNKNOWN"}',
-            resp.body,
         )
 
 
