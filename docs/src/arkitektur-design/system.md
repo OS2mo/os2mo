@@ -20,3 +20,6 @@ A number of ArchiMate models exist which describe the system
 architecture from a deployment perspective The models can be found on
 [The OS2mo repository on
 Github](https://github.com/OS2mo/os2mo-arkitektur)
+
+## Ny sektion
+Hello! :)
