@@ -82,7 +82,7 @@ Select "Send LDAP Attributes as Claims" and click "Next".
 
 ![](./img/adfs_claim_2.png)
 
-Select an LDAP attribute to send as a claim. As an example we have selected "E-Mail".
+Select an LDAP attribute to send as a claim. As an example we have selected "User-Principle-Name".
 Select "UPN" as outgoing claim type.
 
 Click "Finish".
