@@ -11,7 +11,7 @@ from asyncio import gather
 from functools import partial
 from itertools import starmap
 from typing import Dict
-from typing import Iterator
+from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -117,8 +117,8 @@ get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
 def lora_itsystem_to_mo_itsystem(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[ITSystemRead]:
+    lora_result: Iterable[Tuple[str, dict]],
+) -> Iterable[ITSystemRead]:
     def convert(systemid, system):
         attrs = system["attributter"]["itsystemegenskaber"][0]
 
@@ -169,10 +169,10 @@ def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
 
 
 def lora_classes_to_mo_classes(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[ClassRead]:
-    lora_result = map(lambda entry: (entry[0], KlasseRead(**entry[1])), lora_result)
-    return map(lora_class_to_mo_class, lora_result)
+    lora_result: Iterable[Tuple[str, dict]],
+) -> Iterable[ClassRead]:
+    mapped_result = map(lambda entry: (entry[0], KlasseRead(**entry[1])), lora_result)
+    return map(lora_class_to_mo_class, mapped_result)  # type: ignore
 
 
 async def get_classes() -> List[ClassRead]:
@@ -228,10 +228,10 @@ def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
 
 
 def lora_facets_to_mo_facets(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[FacetRead]:
+    lora_result: Iterable[Tuple[str, dict]],
+) -> Iterable[FacetRead]:
     lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
-    return map(lora_facet_to_mo_facet, lora_result)
+    return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
 
 async def get_facets() -> List[FacetRead]:

@@ -12,15 +12,16 @@ from typing import Optional
 import aiohttp
 from aio_pika.exceptions import AMQPError
 from httpx import HTTPStatusError
+from os2mo_dar_client import AsyncDARClient
+from pydantic import AnyUrl
+from structlog import get_logger
+
 from mora import conf_db
 from mora import config
 from mora.exceptions import HTTPException
 from mora.http import client
 from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import pools
-from os2mo_dar_client import AsyncDARClient
-from pydantic import AnyUrl
-from structlog import get_logger
 
 # --------------------------------------------------------------------------------------
 # Health endpoints
@@ -70,7 +71,7 @@ async def amqp() -> Optional[bool]:
         return None
 
     try:
-        async with pools.connection_pool.acquire() as connection:
+        async with pools.connection_pool.acquire() as connection:  # type: ignore
             if not connection:
                 logger.critical("AMQP connection not found")
                 return False
