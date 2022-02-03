@@ -74,7 +74,7 @@ workflow:
   stage: lint
   interruptible: true
   needs: []
-  image: python:3.8
+  image: python:3.9
   services: []
   tags:
     - docker
@@ -389,7 +389,7 @@ Integration-test:
 Coverage:
   <<: *master-rules
   stage: coverage
-  image: python:3.8-slim
+  image: python:3.9-slim
   needs: [Unit-test, GraphAPI-test, Integration-test]
   before_script:
     - pip install coverage
@@ -569,7 +569,7 @@ Export GQL Schema:
 
 .build-docs: &build-docs
   <<: *docs-rules
-  image: python:3.8
+  image: python:3.9
   needs: ["Export GQL Schema"]
   variables:
     POETRY_VERSION: 1.1.12
@@ -609,7 +609,7 @@ Build docs:
 
 pages:
   <<: *docs-rules
-  image: python:3.8
+  image: python:3.9
   needs: ["Build docs"]
   script:
     - cp -r $CI_PROJECT_DIR/site public
