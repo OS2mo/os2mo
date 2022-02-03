@@ -84,3 +84,14 @@ git-email = "info@magenta.dk"
 [tool.pytest.ini_options]
 markers = ["serial"]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+follow_imports = "skip"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "mora.graphapi.*"
+disallow_untyped_defs = true
+ignore_errors = false

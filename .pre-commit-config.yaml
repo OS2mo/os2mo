@@ -13,9 +13,4 @@ repos:
     rev: v0.931
     hooks:
       - id: mypy
-        args:
-          [
-            backend/mora/graphapi,
-            --follow-imports=skip,
-            --ignore-missing-imports,
-          ]
+        args: [--config-file=backend/pyproject.toml]
