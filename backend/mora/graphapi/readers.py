@@ -8,9 +8,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
 from typing import Union
 from uuid import UUID
 
@@ -25,15 +22,15 @@ from mora.mapping import MoOrgFunk
 ORGFUNK_VALUES = tuple(map(lambda x: x.value, MoOrgFunk))
 
 
-def to_lora_args(key: Any, value: Any) -> Tuple[Any, Any]:
+def to_lora_args(key: Any, value: Any) -> tuple[Any, Any]:
     if key in ORGFUNK_VALUES:
         return f"tilknyttedefunktioner:{key}", value
     return key, value
 
 
 def _extract_search_params(
-    query_args: Dict[Union[Any, MoOrgFunk], Any]
-) -> Dict[Any, Any]:
+    query_args: dict[Union[Any, MoOrgFunk], Any]
+) -> dict[Any, Any]:
     """Deals with special LoRa-search format.
 
     Requires data to be written properly formatted.
@@ -53,7 +50,7 @@ def _extract_search_params(
     return args
 
 
-async def search_role_type(role_type: str) -> List[Dict[str, Any]]:
+async def search_role_type(role_type: str) -> list[dict[str, Any]]:
     connector = get_connector()
     handler = get_handler_for_type(role_type)
     return await handler.get(
@@ -64,8 +61,8 @@ async def search_role_type(role_type: str) -> List[Dict[str, Any]]:
 
 
 async def get_role_type_by_uuid(
-    role_type: str, uuid: List[UUID]
-) -> List[Dict[str, Any]]:
+    role_type: str, uuid: list[UUID]
+) -> list[dict[str, Any]]:
     c = get_connector()
     cls = get_handler_for_type(role_type)
     return await cls.get(

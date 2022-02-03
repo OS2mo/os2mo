@@ -11,7 +11,6 @@ Used for shimming the service API.
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Any
-from typing import Dict
 
 from strawberry.types import ExecutionResult
 
@@ -20,7 +19,7 @@ from strawberry.types import ExecutionResult
 # --------------------------------------------------------------------------------------
 
 
-async def execute_graphql(*args: Any, **kwargs: Dict[str, Any]) -> ExecutionResult:
+async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
     from mora.graphapi.main import get_schema
     from mora.graphapi.dataloaders import get_loaders
     from mora.graphapi.middleware import set_is_shim
@@ -28,5 +27,7 @@ async def execute_graphql(*args: Any, **kwargs: Dict[str, Any]) -> ExecutionResu
     set_is_shim()
 
     loaders = await get_loaders()
+    if "context_value" not in kwargs:
+        kwargs["context_value"] = loaders
 
-    return await get_schema().execute(*args, **kwargs, context_value=loaders)
+    return await get_schema().execute(*args, **kwargs)
