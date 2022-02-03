@@ -10,6 +10,7 @@
 from asyncio import gather
 from functools import partial
 from itertools import starmap
+from typing import Any
 from typing import Dict
 from typing import Iterable
 from typing import List
@@ -119,7 +120,7 @@ get_related_units = partial(get_mo, model=RelatedUnitRead)
 def lora_itsystem_to_mo_itsystem(
     lora_result: Iterable[Tuple[str, dict]],
 ) -> Iterable[ITSystemRead]:
-    def convert(systemid, system):
+    def convert(systemid: str, system: dict) -> Dict[str, Any]:
         attrs = system["attributter"]["itsystemegenskaber"][0]
 
         return {

@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Callable
 from typing import Optional
 
 import aiohttp
@@ -14,6 +15,7 @@ from aio_pika.exceptions import AMQPError
 from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
 from pydantic import AnyUrl
+from pydantic import parse_obj_as
 from structlog import get_logger
 
 from mora import conf_db
@@ -33,7 +35,7 @@ logger = get_logger()
 health_map = {}
 
 
-def register_health_endpoint(func):
+def register_health_endpoint(func: Callable) -> Callable:
     health_map[func.__name__] = func
     return func
 
@@ -86,18 +88,19 @@ async def amqp() -> Optional[bool]:
 
 
 @register_health_endpoint
-async def oio_rest():
+async def oio_rest() -> bool:
     """Check if the configured oio_rest can be reached.
 
     Returns:
         bool: True if reachable. False if not.
     """
     url = config.get_settings().lora_url + "site-map"
-    return await _is_endpoint_reachable(url)
+    parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
+    return await _is_endpoint_reachable(parsed_url)
 
 
 @register_health_endpoint
-async def configuration_database():
+async def configuration_database() -> bool:
     """Check if configuration database is reachable and initialized with default data.
 
     Returns:
@@ -110,7 +113,7 @@ async def configuration_database():
 
 
 @register_health_endpoint
-async def dataset():
+async def dataset() -> bool:
     """Check if LoRa contains data.
 
     This is done by determining if an organisation is properly configured in the system.
@@ -128,7 +131,7 @@ async def dataset():
 
 
 @register_health_endpoint
-async def dar():
+async def dar() -> bool:
     """Check whether DAR can be reached.
 
     Returns:
@@ -140,7 +143,7 @@ async def dar():
 
 
 @register_health_endpoint
-async def keycloak():
+async def keycloak() -> bool:
     """Check if Keycloak is running.
 
     Returns:
@@ -151,4 +154,5 @@ async def keycloak():
         f"{settings.keycloak_schema}://{settings.keycloak_host}"
         f":{settings.keycloak_port}/auth/"
     )
-    return await _is_endpoint_reachable(url)
+    parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
+    return await _is_endpoint_reachable(parsed_url)

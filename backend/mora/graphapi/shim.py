@@ -10,12 +10,17 @@ Used for shimming the service API.
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Any
+from typing import Dict
+
+from strawberry.types import ExecutionResult
+
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
 
 
-async def execute_graphql(*args, **kwargs):
+async def execute_graphql(*args: Any, **kwargs: Dict[str, Any]) -> ExecutionResult:
     from mora.graphapi.main import get_schema
     from mora.graphapi.dataloaders import get_loaders
     from mora.graphapi.middleware import set_is_shim
