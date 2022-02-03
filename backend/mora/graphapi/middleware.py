@@ -46,7 +46,7 @@ class GraphQLContextPlugin(Plugin):
 
 
 class StarletteContextExtension(Extension):
-    def on_request_start(self):
+    def on_request_start(self) -> None:
         context["is_graphql"] = True
 
 

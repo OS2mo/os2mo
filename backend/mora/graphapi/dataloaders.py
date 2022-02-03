@@ -8,13 +8,11 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from asyncio import gather
+from collections.abc import Iterable
 from functools import partial
 from itertools import starmap
-from typing import Dict
-from typing import Iterator
-from typing import List
+from typing import Any
 from typing import Optional
-from typing import Tuple
 from typing import TypeVar
 from uuid import UUID
 
@@ -70,7 +68,7 @@ MOModel = TypeVar(
 RoleType = TypeVar("RoleType")
 
 
-async def get_mo(model: MOModel) -> List[MOModel]:
+async def get_mo(model: MOModel) -> list[MOModel]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
@@ -82,10 +80,10 @@ async def get_mo(model: MOModel) -> List[MOModel]:
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type)
 
-    return parse_obj_as(List[model], results)  # type: ignore
+    return parse_obj_as(list[model], results)  # type: ignore
 
 
-async def load_mo(uuids: List[UUID], model: MOModel) -> List[Optional[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[Optional[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -97,7 +95,7 @@ async def load_mo(uuids: List[UUID], model: MOModel) -> List[Optional[MOModel]]:
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results = parse_obj_as(List[model], results)  # type: ignore
+    parsed_results = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = {model.uuid: model for model in parsed_results}  # type: ignore
     return list(map(uuid_map.get, uuids))
 
@@ -117,9 +115,9 @@ get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
 def lora_itsystem_to_mo_itsystem(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[ITSystemRead]:
-    def convert(systemid, system):
+    lora_result: Iterable[tuple[str, dict]],
+) -> Iterable[ITSystemRead]:
+    def convert(systemid: str, system: dict) -> dict[str, Any]:
         attrs = system["attributter"]["itsystemegenskaber"][0]
 
         return {
@@ -130,17 +128,17 @@ def lora_itsystem_to_mo_itsystem(
         }
 
     objects = list(starmap(convert, lora_result))
-    return parse_obj_as(List[ITSystemRead], objects)
+    return parse_obj_as(list[ITSystemRead], objects)
 
 
-async def get_itsystems() -> List[ITSystemRead]:
+async def get_itsystems() -> list[ITSystemRead]:
     c = get_connector()
     lora_result = await c.itsystem.get_all()
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
     return list(mo_models)
 
 
-async def load_itsystems(uuids: List[UUID]) -> List[Optional[ITSystemRead]]:
+async def load_itsystems(uuids: list[UUID]) -> list[Optional[ITSystemRead]]:
     c = get_connector()
     lora_result = await c.itsystem.get_all_by_uuid(uuids)
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
@@ -148,7 +146,7 @@ async def load_itsystems(uuids: List[UUID]) -> List[Optional[ITSystemRead]]:
     return list(map(uuid_map.get, uuids))
 
 
-def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
+def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
     class_attributes = one(lora_class.attributes.properties)
@@ -169,20 +167,20 @@ def lora_class_to_mo_class(lora_tuple: Tuple[UUID, KlasseRead]) -> ClassRead:
 
 
 def lora_classes_to_mo_classes(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[ClassRead]:
-    lora_result = map(lambda entry: (entry[0], KlasseRead(**entry[1])), lora_result)
-    return map(lora_class_to_mo_class, lora_result)
+    lora_result: Iterable[tuple[str, dict]],
+) -> Iterable[ClassRead]:
+    mapped_result = map(lambda entry: (entry[0], KlasseRead(**entry[1])), lora_result)
+    return map(lora_class_to_mo_class, mapped_result)  # type: ignore
 
 
-async def get_classes() -> List[ClassRead]:
+async def get_classes() -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all()
     mo_models = lora_classes_to_mo_classes(lora_result)
     return list(mo_models)
 
 
-async def load_classes(uuids: List[UUID]) -> List[Optional[ClassRead]]:
+async def load_classes(uuids: list[UUID]) -> list[Optional[ClassRead]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -198,7 +196,7 @@ async def load_classes(uuids: List[UUID]) -> List[Optional[ClassRead]]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_class_children(parent_uuids: List[UUID]) -> List[ClassRead]:
+async def load_class_children(parent_uuids: list[UUID]) -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all(overordnetklasse=list(map(str, parent_uuids)))
     mo_models = lora_classes_to_mo_classes(lora_result)
@@ -206,7 +204,7 @@ async def load_class_children(parent_uuids: List[UUID]) -> List[ClassRead]:
     return list(map(lambda key: buckets[key], parent_uuids))
 
 
-def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
+def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
     uuid, lora_facet = lora_tuple
 
     facet_attributes = one(lora_facet.attributes.properties)
@@ -228,20 +226,20 @@ def lora_facet_to_mo_facet(lora_tuple: Tuple[UUID, LFacetRead]) -> FacetRead:
 
 
 def lora_facets_to_mo_facets(
-    lora_result: Iterator[Tuple[dict]],
-) -> Iterator[FacetRead]:
+    lora_result: Iterable[tuple[str, dict]],
+) -> Iterable[FacetRead]:
     lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
-    return map(lora_facet_to_mo_facet, lora_result)
+    return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
 
-async def get_facets() -> List[FacetRead]:
+async def get_facets() -> list[FacetRead]:
     c = get_connector()
     lora_result = await c.facet.get_all()
     mo_models = lora_facets_to_mo_facets(lora_result)
     return list(mo_models)
 
 
-async def load_facets(uuids: List[UUID]) -> List[Optional[FacetRead]]:
+async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -257,7 +255,7 @@ async def load_facets(uuids: List[UUID]) -> List[Optional[FacetRead]]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
+async def load_facet_classes(facet_uuids: list[UUID]) -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
     mo_models = lora_classes_to_mo_classes(lora_result)
@@ -267,7 +265,7 @@ async def load_facet_classes(facet_uuids: List[UUID]) -> List[ClassRead]:
 
 async def get_employee_details(
     employee_uuid: UUID, role_type: str
-) -> Optional[List[MOModel]]:
+) -> Optional[list[MOModel]]:
     """Non-bulk loader for employee details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -282,12 +280,12 @@ async def get_employee_details(
         ),
         changed_since=None,
     )
-    return parse_obj_as(List[MOModel], result)
+    return parse_obj_as(list[MOModel], result)
 
 
 async def load_employee_details(
-    keys: List[UUID], model: MOModel
-) -> List[List[MOModel]]:
+    keys: list[UUID], model: MOModel
+) -> list[list[MOModel]]:
     """Non-bulk loader for employee details with bulk interface."""
     mo_type = model.__fields__["type_"].default
     tasks = map(partial(get_employee_details, role_type=mo_type), keys)
@@ -296,7 +294,7 @@ async def load_employee_details(
 
 async def get_org_unit_details(
     org_unit_uuid: UUID, role_type: str
-) -> Optional[List[MOModel]]:
+) -> Optional[list[MOModel]]:
     """Non-bulk loader for organisation unit details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -311,19 +309,19 @@ async def get_org_unit_details(
         ),
         changed_since=None,
     )
-    return parse_obj_as(List[MOModel], result)
+    return parse_obj_as(list[MOModel], result)
 
 
 async def load_org_unit_details(
-    keys: List[UUID], model: MOModel
-) -> List[List[MOModel]]:
+    keys: list[UUID], model: MOModel
+) -> list[list[MOModel]]:
     """Non-bulk loader for org_unit details with bulk interface."""
     mo_type = model.__fields__["type_"].default
     tasks = map(partial(get_org_unit_details, role_type=mo_type), keys)
     return await gather(*tasks)
 
 
-async def load_org(keys: List[int]) -> List[OrganisationRead]:
+async def load_org(keys: list[int]) -> list[OrganisationRead]:
     """Dataloader function to load Organisation.
 
     A dataloader is used even though only a single Organisation can ever exist, as the
@@ -339,7 +337,7 @@ async def load_org(keys: List[int]) -> List[OrganisationRead]:
     return [OrganisationRead.parse_obj(obj)] * len(keys)
 
 
-async def get_org_unit_children(parent_uuid: UUID) -> List[MOModel]:
+async def get_org_unit_children(parent_uuid: UUID) -> list[MOModel]:
     """Non-bulk loader for organisation unit children."""
     c = get_connector()
     cls = get_handler_for_type(OrganisationUnitRead.__fields__["type_"].default)
@@ -355,17 +353,17 @@ async def get_org_unit_children(parent_uuid: UUID) -> List[MOModel]:
         ),
         changed_since=None,
     )
-    return parse_obj_as(List[MOModel], result)
+    return parse_obj_as(list[MOModel], result)
 
 
-async def load_org_units_children(keys: List[UUID]) -> List[List[MOModel]]:
+async def load_org_units_children(keys: list[UUID]) -> list[list[MOModel]]:
     """Non-bulk loader for organisation unit children with bulk interface."""
     # TODO: This function should be replaced with a bulk version
     tasks = map(get_org_unit_children, keys)
     return await gather(*tasks)
 
 
-async def get_loaders() -> Dict[str, DataLoader]:
+async def get_loaders() -> dict[str, DataLoader]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
