@@ -13,7 +13,7 @@ repository = "https://git.magenta.dk/rammearkitektur/os2mo"
 keywords = ["os2mo"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 alembic = "^1.6.5"
 requests = "^2.25.1"
 lxml = "^4.6.3"
