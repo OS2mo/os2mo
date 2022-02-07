@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.30.4 - 2022-02-07
+-------------------
+
+[#47514] Rename default Keycloak client name to 'mo-frontend'
+
 3.30.3 - 2022-02-03
 -------------------
 
