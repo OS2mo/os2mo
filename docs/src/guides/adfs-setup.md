@@ -17,17 +17,17 @@ This guide will help you configure ADFS as an IdP for OS2mo. During the followin
 
 Start by opening up the ADFS management application.
 
-![](./img/adfs_1.png)
+![](./img/adfs_idp/adfs_1.png)
 
 ## Adding a "Relying Party Trust"
 
 Select "Relying Party Trusts".
 
-![](./img/adfs_2.png)
+![](./img/adfs_idp/adfs_2.png)
 
 Click on "Add Relying Party Trust...".
 
-![](./img/adfs_3.png)
+![](./img/adfs_idp/adfs_3.png)
 
 This process should be performed for **each** of the environments you would like to configure.
 
@@ -35,7 +35,7 @@ The application must be "claims aware":
 
 Click "Start".
 
-![](./img/adfs_add_1.png)
+![](./img/adfs_idp/adfs_add_1.png)
 
 Enter the metadata URL for the OS2mo deployment you would like to configure, and click "Next".
 
@@ -45,23 +45,23 @@ The metadata URL is usually on the form:
 https://{APPLICATION_URL}/auth/realms/mo/broker/saml/endpoint/descriptor
 ```
 
-![](./img/adfs_add_2.png)
+![](./img/adfs_idp/adfs_add_2.png)
 
 Enter a name you would to use to identify the OS2mo configuration inside ADFS, and click "Next".
 
-![](./img/adfs_add_3.png)
+![](./img/adfs_idp/adfs_add_3.png)
 
 Here you will configure the access control policy for the application, i.e. define user access to OS2mo. If you are unsure of this step, it can be skipped for now by selecting the checkbox at the bottom of the dialogue.
 
-![](./img/adfs_add_4.png)
+![](./img/adfs_idp/adfs_add_4.png)
 
 Click "Next" again to add the OS2mo configuration.
 
-![](./img/adfs_add_5.png)
+![](./img/adfs_idp/adfs_add_5.png)
 
 We also need to add a claim issuance policy, so make sure to check the checkbox before hitting "Close".
 
-![](./img/adfs_add_6.png)
+![](./img/adfs_idp/adfs_add_6.png)
 
 ## Configuring claims issuance policies
 
@@ -72,26 +72,26 @@ We need to add two rules:
 
 If the dialogue isn't open, select "Edit Claim Issuance Policy...".
 
-![](./img/adfs_claim_0.png)
+![](./img/adfs_idp/adfs_claim_0.png)
 
 Select "Add rule".
 
-![](./img/adfs_claim_1.png)
+![](./img/adfs_idp/adfs_claim_1.png)
 
 Select "Send LDAP Attributes as Claims" and click "Next".
 
-![](./img/adfs_claim_2.png)
+![](./img/adfs_idp/adfs_claim_2.png)
 
 Select an LDAP attribute to send as a claim. As an example we have selected "User-Principle-Name".
 Select "UPN" as outgoing claim type.
 
 Click "Finish".
 
-![](./img/adfs_claim_3.png)
+![](./img/adfs_idp/adfs_claim_3.png)
 
 Select "Add rule" again. This time select "Transform an Incoming Claim", and click "Next".
 
-![](./img/adfs_claim_4.png)
+![](./img/adfs_idp/adfs_claim_4.png)
 
 Select "UPN" as "Incoming claim type". This corresponds to the claim you created earlier.
 
@@ -99,6 +99,6 @@ Select "Name ID" as "Outgoing claim type" and select "Persistent Identifier" as 
 
 Click "Finish".
 
-![](./img/adfs_claim_5.png)
+![](./img/adfs_idp/adfs_claim_5.png)
 
 You should now be able to log in to OS2mo using ADFS as an IdP! 🎈
