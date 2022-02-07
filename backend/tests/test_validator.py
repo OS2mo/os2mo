@@ -4,7 +4,6 @@ import datetime
 import unittest
 
 import freezegun
-import mora.async_util
 import tests.cases
 import yarl
 from mora import config
@@ -16,10 +15,10 @@ from parameterized import parameterized
 from . import util
 
 
-class TestIsDateRangeValid(tests.cases.TestCase):
-    def test_startdate_should_be_smaller_than_enddate(self):
+class AsyncTestIsDateRangeValid(tests.cases.IsolatedAsyncioTestCase):
+    async def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
-            mora.async_util.async_to_sync(validator._is_date_range_valid)(
+            await validator._is_date_range_valid(
                 None, "01-01-2017", "01-01-2016", None, "whatever"
             )
         )
@@ -83,7 +82,7 @@ class TestIsDateRangeValid(tests.cases.TestCase):
     )
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     @util.MockAioresponses(override_lora=False)
-    def test_validity_ranges(self, expect, validities, m):
+    async def test_validity_ranges(self, expect, validities, m):
         settings = config.get_settings()
         url = yarl.URL(f"{settings.lora_url}organisation/organisationenhed")
         c = lora.Connector(
@@ -128,7 +127,7 @@ class TestIsDateRangeValid(tests.cases.TestCase):
 
         self.assertIs(
             expect,
-            mora.async_util.async_to_sync(validator._is_date_range_valid)(
+            await validator._is_date_range_valid(
                 "00000000-0000-0000-0000-000000000000",
                 mora_util.parsedatetime("01-01-2000"),
                 mora_util.parsedatetime("01-01-3000"),
