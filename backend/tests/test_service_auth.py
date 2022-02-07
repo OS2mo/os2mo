@@ -222,7 +222,7 @@ class TestTokenModel(tests.cases.LoRATestCase):
     @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
     def test_uuid_required_if_client_is_mo(self):
         with self.assertRaises(ValidationError) as err:
-            KeycloakToken(azp="mo")
+            KeycloakToken(azp="mo-frontend")
         errors = err.exception.errors()[0]
 
         self.assertEqual(
