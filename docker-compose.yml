@@ -211,18 +211,6 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:14.0.0
-    command: [
-      # The -b flag is important. It is the default CMD from the docker image. It
-      # is passed to keycloak's standalone.sh. If it is not present, the service
-      # will only bind to a single network interface. If there are multiple
-      # interfaces, it appears to choose an interface at random, leading to subtle
-      # breaking when the container is restarted and the interface on the
-      # docker-compose network is not chosen.
-      "-b", "0.0.0.0",
-      "-Dkeycloak.migration.action=import",
-      "-Dkeycloak.migration.provider=singleFile",
-      "-Dkeycloak.migration.file=/srv/keycloak-realm.json"
-    ]
     ports:
       - "8081:8080"
     environment:
@@ -238,8 +226,6 @@ services:
       # KEYCLOAK_FRONTEND_URL: https://proxy/auth
       # KEYCLOAK_LOGLEVEL: DEBUG
     depends_on:
-      keycloak-gen:
-        condition: service_completed_successfully
       keycloak-db:
         condition: service_healthy
     volumes:
@@ -252,9 +238,15 @@ services:
       start_period: 300s
 
   keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:2.4.0
+    image: magentaaps/os2mo-keycloak-realm-builder:3.0.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
+
+      POSTGRES_CONNECTION_STRING: postgres://keycloak:keycloak@keycloak-db/keycloak?sslmode=disable
+      KEYCLOAK_ADMIN_USERNAME: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+      KEYCLOAK_URL: "http://keycloak:8080"
+
       KEYCLOAK_SSL_REQUIRED_MO: external
       KEYCLOAK_SSL_REQUIRED_LORA: external
       KEYCLOAK_LORA_REALM_ENABLED: "true"
@@ -267,46 +259,49 @@ services:
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5000", "http://localhost:5001"]'
       KEYCLOAK_RBAC_ENABLED: "true"
       KEYCLOAK_REALM_USERS: '[
-        {
-          "username": "bruce",
-          "password": "bruce",
-          "firstname": "Bruce",
-          "lastname": "Lee",
-          "email": "bruce@kung.fu",
-          "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-          "enabled": true
-        },
-        {
-          "username": "eline",
-          "password": "eline",
-          "firstname": "Eline",
-          "lastname": "Wedsgaard Christensen",
-          "email": "elinec@kolding.dk",
-          "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
-          "roles": ["owner"],
-          "enabled": true
-        },
-        {
-          "username": "alvida",
-          "password": "alvida",
-          "firstname": "Alvida",
-          "lastname": "Nibe",
-          "email": "alvidan@kolding.dk",
-          "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
-          "roles": ["admin"],
-          "enabled": true
-        },
-        {
-          "username": "anders",
-          "password": "anders",
-          "firstname": "Anders",
-          "lastname": "And",
-          "email": "anders@andeby.dk",
-          "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-          "roles": ["owner"],
-          "enabled": true
-        }
-      ]'
+          {
+            "username": "bruce",
+            "password": "bruce",
+            "firstname": "Bruce",
+            "lastname": "Lee",
+            "email": "bruce@kung.fu",
+            "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+            "enabled": true
+          },
+          {
+            "username": "eline",
+            "password": "eline",
+            "firstname": "Eline",
+            "lastname": "Wedsgaard Christensen",
+            "email": "elinec@kolding.dk",
+            "uuid": "1c571f8f-0e3e-4ffa-9ff0-d35505781924",
+            "roles": ["owner"],
+            "enabled": true
+          },
+          {
+            "username": "alvida",
+            "password": "alvida",
+            "firstname": "Alvida",
+            "lastname": "Nibe",
+            "email": "alvidan@kolding.dk",
+            "uuid": "0fb62199-cb9e-4083-ba45-2a63bfd142d7",
+            "roles": ["admin"],
+            "enabled": true
+          },
+          {
+            "username": "anders",
+            "password": "anders",
+            "firstname": "Anders",
+            "lastname": "And",
+            "email": "anders@andeby.dk",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "roles": ["owner"],
+            "enabled": true
+          }
+        ]'
+    depends_on:
+      keycloak:
+        condition: service_healthy
     volumes:
       - keycloak-volume:/srv/
 

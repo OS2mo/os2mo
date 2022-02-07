@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     keycloak_host: str = "keycloak"
     keycloak_port: int = 443
     keycloak_realm: str = "mo"
-    keycloak_mo_client: str = "mo"
+    keycloak_mo_client: str = "mo-frontend"
     keycloak_signing_alg: str = "RS256"
     keycloak_verify_audience: bool = True
     keycloak_auth_server_url: AnyHttpUrl = "http://localhost:8081/auth/"
