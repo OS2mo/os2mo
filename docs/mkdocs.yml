@@ -21,7 +21,9 @@ nav:
           - guides/environment/install-source.md
       - Tests: guides/tests.md
       - Conventions: guides/conventions.md
-      - guides/adfs-setup.md
+      - ADFS:
+        - guides/adfs-setup.md
+        - guides/adfs-rbac-setup.md
   - Drift og support:
       - drift-support/auth.md
       - drift-support/cookbook.md
