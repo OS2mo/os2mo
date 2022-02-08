@@ -5,11 +5,10 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
 import freezegun
-import mora.async_util
 from fastapi.encoders import jsonable_encoder
 from mora.mapping import OwnerInferencePriority
 from pydantic import BaseModel, Field
-from tests.cases import ConfigTestCase
+from tests.cases import ConfigTestCase, AsyncConfigTestCase
 from tests.util import load_fixture
 
 
@@ -347,6 +346,39 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
         )
 
 
+class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
+    async def create_helper(
+        self,
+        jsonified_owner: Dict[str, Any],
+        create_status_code: int,
+        verifying_person: UUID = person1,
+        verifying_response: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """
+
+        :param jsonified_owner: Ready-to-send dict; Containing create-payload
+        :param create_status_code: expected status code of create-operation
+        :param verifying_org_unit: Target for verification, only used with response
+        :param verifying_response: If success is expected, the returned value
+        :return:
+        """
+        await self.load_sample_structures()
+
+        await self.assertRequest(
+            "/service/details/create",
+            json=jsonified_owner,
+            status_code=create_status_code,
+        )
+
+        # verify
+        if verifying_response:
+            await self.assertRequestResponse(
+                f"service/e/{verifying_person}/details/"
+                f"owner?validity=present&at=2017-01-01&inherit_owner=1",
+                verifying_response,
+            )
+
+
 class OwnerPersonTestCase(ConfigTestCase):
     def create_helper(
         self,
@@ -445,33 +477,33 @@ class PersonTests(OwnerPersonTestCase):
         )
 
 
-class OwnerPersonTestInheritCase(OwnerPersonTestCase):
-    def setUp(self):
+class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
+    async def asyncSetUp(self):
         """
         Load a bunch of data so we have something to inherit.
         Particularly, we need both engagements and associations
         :return:
         """
-        super().setUp()
+        await super().asyncSetUp()
 
-        self.load_sample_structures()
-        mora.async_util.async_to_sync(load_fixture)(
+        await self.load_sample_structures()
+        await load_fixture(
             "organisation/organisationfunktion",
             "create_organisationfunktion_tilknytning_eriksmidthansen.json",
         )
-        mora.async_util.async_to_sync(load_fixture)(
+        await load_fixture(
             "organisation/organisationfunktion",
             "create_organisationfunktion_tilknytning_eriksmidthansen_sekundaer.json",
         )
-        self.setup_org_units()
+        await self.setup_org_units()
 
-    def setup_org_units(self):
+    async def setup_org_units(self):
         """
         set some owners, so we have something to inherit
         :return:
         """
         # create owner in org_unit so we have something to inherit
-        self.assertRequest(
+        await self.assertRequest(
             "/service/details/create",
             json=simplified_owner(
                 owner=person1,
@@ -482,7 +514,7 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
         )
 
         # create owner in level2 org_unit so we can distinguish from top_level
-        self.assertRequest(
+        await self.assertRequest(
             "/service/details/create",
             json=simplified_owner(
                 owner=person3,
@@ -492,7 +524,7 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
             status_code=201,
         )
 
-    def create_helper(
+    async def create_helper(
         self,
         jsonified_owner: Dict[str, Any],
         create_status_code: int,
@@ -506,7 +538,7 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
         :return:
         """
 
-        self.assertRequest(
+        await self.assertRequest(
             "/service/details/create",
             json=jsonified_owner,
             status_code=create_status_code,
@@ -514,18 +546,18 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
 
         # verify
         if verifying_response:
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 f"service/e/{person2}/details/"
                 f"owner?validity=present&at=2017-01-01&inherit_owner=1",
                 verifying_response,
             )
 
-    def test_create_with_engagement_priority_and_engagement(self):
+    async def test_create_with_engagement_priority_and_engagement(self):
         """
         should follow engagement and find owner
         :return:
         """
-        self.create_helper(
+        await self.create_helper(
             jsonified_owner=simplified_owner(
                 uuid=func_uuid,
                 person=person2,
@@ -563,12 +595,12 @@ class OwnerPersonTestInheritCase(OwnerPersonTestCase):
             ],
         )
 
-    def test_create_with_association_priority_and_multiple_associations(self):
+    async def test_create_with_association_priority_and_multiple_associations(self):
         """
         should follow association with highest priority
         :return:
         """
-        self.create_helper(
+        await self.create_helper(
             jsonified_owner=simplified_owner(
                 uuid=func_uuid,
                 person=person2,

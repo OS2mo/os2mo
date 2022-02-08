@@ -697,6 +697,32 @@ class LoRATestCase(_BaseTestCase):
         super().tearDown()
 
 
+class AsyncConfigTestCase(AsyncLoRATestCase):
+    """Testcase with configuration database support."""
+
+    def set_global_conf(self, conf):
+        conf_db.set_configuration({"org_units": dict(conf)})
+
+    @classmethod
+    def setUpClass(cls):
+        conf_db.config.get_settings = lambda *args, **kwargs: Settings(
+            conf_db_name="test_confdb", *args, **kwargs
+        )
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    async def asyncSetUp(self):
+        conf_db._createdb(force=False)
+        await super().asyncSetUp()
+
+    def tearDown(self):
+        conf_db.drop_db()
+        super().tearDown()
+
+
 class ConfigTestCase(LoRATestCase):
     """Testcase with configuration database support."""
 
