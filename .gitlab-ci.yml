@@ -37,7 +37,7 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
 
-  LORA_IMAGE: magentaaps/lora:56dd384f58210bee7b04c9c367a25348a68a7ded
+  LORA_IMAGE: 1mrw/lora:3.1.1
 
 include:
   - project: "labs/salt-automation"
