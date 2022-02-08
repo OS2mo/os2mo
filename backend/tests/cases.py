@@ -69,6 +69,14 @@ class _AsyncBaseTestCase(TestCase):
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
 
+    async def asyncSetUp(self):
+        super().setUp()
+        self.app = self.create_app()
+        self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
+
+        # Bypass Keycloak per default
+        self.app.dependency_overrides[auth] = fake_auth
+
     def create_app(self, overrides=None):
         # make sure the configured organisation is always reset
         # every before test
@@ -634,6 +642,10 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase, _AsyncBaseTestCase):
     def tearDownClass(cls):
         _mox_testing_api("db-teardown")
         super().tearDownClass()
+
+    async def asyncSetUp(self):
+        _mox_testing_api("db-reset")
+        await super().asyncSetUp()
 
     def setUp(self):
         _mox_testing_api("db-reset")
