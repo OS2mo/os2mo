@@ -470,8 +470,7 @@ Vue-unit-test:
 ##############
 deploy_review:
   stage: review
-  #needs: ["Build OS2MO"]
-  needs: []
+  needs: ["Build OS2MO"]
   image: debian:bullseye
   variables:
     GIT_STRATEGY: none # We do not need the source code
@@ -484,7 +483,7 @@ deploy_review:
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
-    - ./template.sh $CI_MERGE_REQUEST_IID
+    - ./template.sh $CI_MERGE_REQUEST_IID $CI_COMMIT_SHA
     - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
     - git status
     - git commit -m "[cd] Deploy OS2MO MR$CI_MERGE_REQUEST_IID to flux CI cluster" || true
