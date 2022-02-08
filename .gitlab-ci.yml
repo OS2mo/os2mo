@@ -19,6 +19,8 @@ stages:
   - build
   - test
   - coverage
+  - review
+  - qa
   - prepare-release
   - release
   - deploy
@@ -54,7 +56,8 @@ include:
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_MERGE_REQUEST_ID
 
 .master-rules: &master-rules
   rules:
@@ -462,6 +465,74 @@ Vue-unit-test:
 #       - $CI_PROJECT_DIR/artifacts
 #   allow_failure: true
 
+
+# Review Stage
+##############
+deploy_review:
+  stage: review
+  #needs: ["Build OS2MO"]
+  needs: []
+  image: debian:bullseye
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  tags:
+    - docker
+  before_script:
+    - apt-get update && apt-get install -y git j2cli curl
+  script:
+    - git config --global user.email "labs@magenta-aps.dk"
+    - git config --global user.name "OS2MO Config Updater"
+    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
+    - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
+    - ./template.sh $CI_MERGE_REQUEST_IID
+    - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
+    - git status
+    - git commit -m "[cd] Deploy OS2MO MR$CI_MERGE_REQUEST_IID to flux CI cluster" || true
+    - git push || true
+    - curl https://mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk/version/
+      --fail
+      --retry-all-errors
+      --retry-delay 5
+      --retry 120
+  environment:
+    name: review/$CI_MERGE_REQUEST_IID
+    url: https://mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk
+    on_stop: stop_review
+    auto_stop_in: 1 week
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+      allow_failure: true
+
+stop_review:
+  stage: review
+  needs: []
+  image: debian:bullseye
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+  tags:
+    - docker
+  before_script:
+    - apt-get update && apt-get install -y git j2cli
+  script:
+    - git config --global user.email "labs@magenta-aps.dk"
+    - git config --global user.name "OS2MO Config Updater"
+    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
+    - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
+    - ./untemplate.sh $CI_MERGE_REQUEST_IID
+    - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
+    - git status
+    - git commit -m "[cd] Undeploy OS2MO MR$CI_MERGE_REQUEST_IID from flux CI cluster" || true
+    - git push || true
+  environment:
+    name: review/$CI_MERGE_REQUEST_IID
+    action: stop
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+      allow_failure: true
+
+
 # Release stage
 ###############
 
@@ -594,7 +665,7 @@ Build branch docs:
       when: never
     - if: '$CI_COMMIT_REF_NAME != "master"'
   environment:
-    name: $CI_COMMIT_REF_SLUG-docs
+    name: docs/$CI_COMMIT_REF_SLUG
     url: $CI_JOB_URL/artifacts/file/site/index.html
     auto_stop_in: 1 week
 
