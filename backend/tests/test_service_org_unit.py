@@ -4,12 +4,14 @@ from asyncio import Future
 from uuid import UUID
 
 import freezegun
+import pytest
+from mora.service import orgunit
 import tests.cases
+from unittest.mock import MagicMock
 from mock import call
 from mock import patch
 from mora import lora
 from mora import mapping
-from mora.async_util import async_to_sync
 from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
@@ -27,6 +29,7 @@ from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 from tests import util
 from yarl import URL
+from mora.triggers.internal import http_trigger
 
 
 class TestAddressLookup(tests.cases.TestCase):
@@ -183,35 +186,52 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
 
-class TestTriggerExternalIntegration(tests.cases.TestCase):
-    @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_404_on_unknown_unit(self, mock):
-        mock.return_value = {}
+# TODO: MagicMock() er nok ikke vejen frem
+@pytest.fixture()
+def trigger_fetch_endpoint_trigger(monkeypatch):
+    # called = MagicMock()
+    # monkeypatch.setattr(http_trigger, "fetch_endpoint_trigger", called)
+    with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger"):
+        yield
 
-        r = self.assertRequest(
-            "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=404
-        )
-        self.assertIn("NOT_FOUND", r.get("error_key"))
 
+# TODO: Fix!
+@pytest.fixture()
+def trigger_http_sender(monkeypatch):
+    # called = MagicMock()
+    # monkeypatch.setattr(http_trigger, "http_sender")
+    with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger"):
+        yield
+
+
+# TODO: Fix!
+@pytest.fixture()
+def trigger_get_one_orgunit(monkeypatch):
+    called = MagicMock()
+    monkeypatch.setattr(orgunit, "get_one_orgunit", called)
+    # with patch("mora.service.orgunit.get_one_orgunit"):
+    yield
+
+
+class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
     @util.override_config(Settings(http_endpoints=["http://whatever"]))
-    @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
-    @patch("mora.triggers.internal.http_trigger.http_sender")
-    @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_integration_error_on_wrong_status(
-        self, mock, t_sender_mock, t_fetch_mock
-    ):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
+    async def test_returns_integration_error_on_wrong_status(self):
+        async def mock_fetch(*args, **kwargs):
+            return [
+                MOTriggerRegister(
+                    **{
+                        "event_type": mapping.EventType.ON_BEFORE,
+                        "request_type": mapping.RequestType.REFRESH,
+                        "role_type": "org_unit",
+                        "url": "/triggers/ou/refresh",
+                    }
+                )
+            ]
+
         Trigger.registry = {}
-        async_to_sync(register)(None)
+        await register(None)
+        print(await register(None))
+        assert False
         t_fetch_mock.assert_called()
 
         error_msg = "Something horrible happened"
@@ -220,7 +240,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         t_sender_mock.side_effect = response_future
 
         mock.return_value = {"whatever": 123}
-        r = self.assertRequest(
+        r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=400
         )
         self.assertIn("INTEGRATION_ERROR", r.get("error_key"))
@@ -245,7 +265,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
     )
     @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
+    async def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
         t_fetch_mock.return_value = [
             MOTriggerRegister(
                 **{
@@ -257,7 +277,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
             )
         ]
         Trigger.registry = {}
-        async_to_sync(register)(None)
+        await register(None)
         t_fetch_mock.assert_called()
 
         response_msg = "Something good happened"
@@ -266,7 +286,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         t_sender_mock.return_value = response_future
 
         mock.return_value = {"whatever": 123}
-        r = self.assertRequest(
+        r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
         )
         self.assertEqual(response_msg, r["message"])
@@ -289,42 +309,51 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         )
 
 
-class TestGetOneOrgUnit(tests.cases.LoRATestCase):
-    def setUp(self):
-        super().setUp()
-        self.load_sample_structures(minimal=True)
+class TestTriggerExternalIntegration(tests.cases.TestCase):
+    @patch("mora.service.orgunit.get_one_orgunit")
+    def test_returns_404_on_unknown_unit(self, mock):
+        mock.return_value = {}
+
+        r = self.assertRequest(
+            "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=404
+        )
+        self.assertIn("NOT_FOUND", r.get("error_key"))
+
+
+class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await self.load_sample_structures(minimal=True)
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )
         self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
     @util.patch_query_args()
-    def test_details_nchildren(self):
-        self._assert_orgunit_keys(
-            {"uuid", "name", "user_key", "validity", "child_count"},
-            details=UnitDetails.NCHILDREN,
-        )
-
-    @util.patch_query_args()
-    def test_details_path(self):
-        self._assert_orgunit_keys(
-            {"uuid", "name", "user_key", "validity", "location"},
-            details=UnitDetails.PATH,
-        )
-
-    @util.patch_query_args()
-    def test_get_one_orgunit_with_association_count(self):
-        result = async_to_sync(get_one_orgunit)(
+    async def test_get_one_orgunit_with_association_count(self):
+        result = await get_one_orgunit(
             self._connector,
             self._orgunit_uuid,
             count_related={"association": AssociationReader},
         )
         self.assertIn("association_count", result)
 
-    def _assert_orgunit_keys(self, expected_keys, **kwargs):
-        orgunit = async_to_sync(get_one_orgunit)(
-            self._connector, self._orgunit_uuid, **kwargs
+    @util.patch_query_args()
+    async def test_details_nchildren(self):
+        await self._assert_orgunit_keys(
+            {"uuid", "name", "user_key", "validity", "child_count"},
+            details=UnitDetails.NCHILDREN,
         )
+
+    @util.patch_query_args()
+    async def test_details_path(self):
+        await self._assert_orgunit_keys(
+            {"uuid", "name", "user_key", "validity", "location"},
+            details=UnitDetails.PATH,
+        )
+
+    async def _assert_orgunit_keys(self, expected_keys, **kwargs):
+        orgunit = await get_one_orgunit(self._connector, self._orgunit_uuid, **kwargs)
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
 
 
@@ -358,28 +387,28 @@ class TestGetCountRelated(tests.cases.TestCase):
                 _get_count_related()
 
 
-class TestGetOrgUnit(tests.cases.ConfigTestCase):
-    def setUp(self):
-        super().setUp()
-        self.load_sample_structures()
+class TestGetOrgUnit(tests.cases.AsyncConfigTestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await self.load_sample_structures()
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
-    def test_count_association(self):
+    async def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = async_to_sync(get_orgunit)(self._orgunit_uuid)
+            result = await get_orgunit(self._orgunit_uuid)
             self.assertEqual(result["association_count"], 1)
 
-    def test_count_engagement(self):
+    async def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = async_to_sync(get_orgunit)(self._orgunit_uuid)
+            result = await get_orgunit(self._orgunit_uuid)
             self.assertEqual(result["engagement_count"], 3)
 
 
-class TestGetChildren(tests.cases.ConfigTestCase):
-    def setUp(self):
-        super().setUp()
-        self.load_sample_structures()
+class TestGetChildren(tests.cases.AsyncConfigTestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )
@@ -388,18 +417,18 @@ class TestGetChildren(tests.cases.ConfigTestCase):
         # Below is the UUID of "Overordnet Enhed".
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
-    def test_count_association(self):
+    async def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = async_to_sync(get_children)("ou", self._orgunit_uuid)
+            result = await get_children("ou", self._orgunit_uuid)
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
                 association_count=1,
             )
 
-    def test_count_engagement(self):
+    async def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = async_to_sync(get_children)("ou", self._orgunit_uuid)
+            result = await get_children("ou", self._orgunit_uuid)
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
@@ -413,10 +442,10 @@ class TestGetChildren(tests.cases.ConfigTestCase):
                     self.assertEqual(node.get(attr_name), attr_value)
 
 
-class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
-    def setUp(self):
-        super().setUp()
-        self.load_sample_structures()
+class TestGetUnitAncestorTree(tests.cases.AsyncConfigTestCase):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        await self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )
@@ -425,9 +454,9 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
         # Below is the UUID of "Filosofisk Institut".
         self._orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
 
-    def test_count_association(self):
+    async def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = async_to_sync(get_unit_ancestor_tree)(
+            result = await get_unit_ancestor_tree(
                 self._orgunit_uuid, only_primary_uuid=False
             )
             self._assert_matching_ou_has(
@@ -436,9 +465,9 @@ class TestGetUnitAncestorTree(tests.cases.ConfigTestCase):
                 association_count=1,
             )
 
-    def test_count_engagement(self):
+    async def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = async_to_sync(get_unit_ancestor_tree)(
+            result = await get_unit_ancestor_tree(
                 self._orgunit_uuid, only_primary_uuid=False
             )
             self._assert_matching_ou_has(
