@@ -1,5 +1,7 @@
+<!--
 SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
+-->
 <template>
   <div class="card col">
     <div class="card-body d-flex flex-column">
@@ -36,6 +38,9 @@ SPDX-License-Identifier: MPL-2.0
       <div v-if="!query_files || !query_files.length">
         <p>{{ $t('common.no_data') }}</p>
       </div>
+
+      <insight-table />
+
     </div>
   </div>
 </template>
@@ -47,6 +52,7 @@ import { mapGetters } from 'vuex'
 import DataGrid from '../../components/DataGrid/DataGrid'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
+import InsightTable from './InsightTable.vue'
 
 const STORE_KEY = '$_queryList'
 
@@ -54,7 +60,8 @@ export default {
   components: {
     DataGrid,
     bTabs,
-    bTab
+    bTab,
+    InsightTable
   },
   data: function() {
     return {
