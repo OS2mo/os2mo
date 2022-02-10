@@ -395,10 +395,10 @@ class KLE:
         loader: DataLoader = info.context["class_loader"]
         return await loader.load(root.kle_number_uuid)
 
-    @strawberry.field(description="KLE Aspect")
-    async def kle_aspect(self, root: KLERead, info: Info) -> list["Class"]:
+    @strawberry.field(description="KLE Aspects")
+    async def kle_aspects(self, root: KLERead, info: Info) -> list["Class"]:
         loader: DataLoader = info.context["class_loader"]
-        return await loader.load_many(root.kle_aspect_uuid)  # TODO: make uuid plural
+        return await loader.load_many(root.kle_aspect_uuids)
 
     @strawberry.field(description="Associated organisation unit")
     async def org_unit(self, root: KLERead, info: Info) -> Optional["OrganisationUnit"]:

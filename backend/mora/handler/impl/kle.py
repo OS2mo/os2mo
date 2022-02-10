@@ -26,8 +26,8 @@ class KLEReader(reading.OrgFunkReadingHandler):
         cls, effect, start, end, funcid, flat: bool = False
     ):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
-        address_type_uuid = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
-        kle_types_uuid = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
+        kle_number_uuid = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
+        kle_aspect_uuids = list(mapping.KLE_ASPECT_FIELD.get_uuids(effect))
 
         base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
@@ -37,8 +37,8 @@ class KLEReader(reading.OrgFunkReadingHandler):
             return {
                 **base_obj,
                 "org_unit_uuid": org_unit_uuid,
-                "address_type_uuid": address_type_uuid,
-                "kle_types_uuid": kle_types_uuid,
+                "kle_number_uuid": kle_number_uuid,
+                "kle_aspect_uuids": kle_aspect_uuids,
             }
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
@@ -53,13 +53,13 @@ class KLEReader(reading.OrgFunkReadingHandler):
                             obj_uuid, only_primary_uuid=only_primary_uuid
                         )
                     )
-                    for obj_uuid in kle_types_uuid
+                    for obj_uuid in kle_aspect_uuids
                 ]
             )
         )
         kle_number_task = create_task(
             facet.request_bulked_get_one_class_full(
-                address_type_uuid, only_primary_uuid=only_primary_uuid
+                kle_number_uuid, only_primary_uuid=only_primary_uuid
             )
         )
 

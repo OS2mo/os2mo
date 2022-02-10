@@ -42,7 +42,7 @@ class TestKLEQuery:
                 query {
                     kles {
                         kle_number_uuid
-                        kle_aspect_uuid
+                        kle_aspect_uuids
                         org_unit_uuid
                         type
                         validity {from to}
@@ -57,7 +57,7 @@ class TestKLEQuery:
         assert data["kles"] == [
             {
                 "kle_number_uuid": kle["kle_number_uuid"],
-                "kle_aspect_uuid": kle["kle_aspect_uuid"],
+                "kle_aspect_uuids": kle["kle_aspect_uuids"],
                 "org_unit_uuid": kle["org_unit_uuid"],
                 "type": kle["type"],
                 "validity": kle["validity"],

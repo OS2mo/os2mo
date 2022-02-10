@@ -987,11 +987,11 @@ tomli = {version = ">=1.1.0", markers = "python_version >= \"3.6\""}
 
 [[package]]
 name = "pip-tools"
-version = "6.4.0"
+version = "6.5.1"
 description = "pip-tools keeps your pinned dependencies fresh."
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 click = ">=7"
@@ -1003,7 +1003,7 @@ testing = ["pytest", "pytest-rerunfailures", "pytest-xdist"]
 
 [[package]]
 name = "platformdirs"
-version = "2.4.1"
+version = "2.5.0"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
@@ -1325,7 +1325,7 @@ headers = ["pydantic (>=1.8.2,<2.0.0)", "requests (>=2.26.0,<3.0.0)", "types-req
 
 [[package]]
 name = "ramodels"
-version = "5.2.0"
+version = "5.3.2"
 description = "Pydantic data models for OS2mo"
 category = "main"
 optional = false
@@ -1529,7 +1529,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.95.3"
+version = "0.95.5"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1550,7 +1550,7 @@ typing_extensions = ">=3.7.4,<5.0.0"
 
 [package.extras]
 asgi = ["starlette (>=0.13.6,<0.17.0)"]
-debug-server = ["starlette (>=0.13.6,<0.17.0)", "uvicorn (>=0.11.6,<0.17.0)"]
+debug-server = ["starlette (>=0.13.6,<0.17.0)", "uvicorn (>=0.11.6,<0.18.0)"]
 django = ["Django (>=2.2,<4)", "Django (>=2.2,<5)", "asgiref (>=3.2,<4.0)"]
 flask = ["flask (>=1.1,<2.0)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
@@ -1615,7 +1615,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "tomli"
-version = "2.0.0"
+version = "2.0.1"
 description = "A lil' TOML parser"
 category = "dev"
 optional = false
@@ -1681,7 +1681,7 @@ watchmedo = ["PyYAML (>=3.10)"]
 
 [[package]]
 name = "werkzeug"
-version = "2.0.2"
+version = "2.0.3"
 description = "The comprehensive WSGI web application library."
 category = "main"
 optional = false
@@ -1721,7 +1721,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b5b74785f39e818a0b9030db7b2a22a2c9341098949bb77c2ae317ad61aa2115"
+content-hash = "af8a35c0a96b7cee4547d0adfea1ecf6f5791a60d7fc3134b5d3a6868c2e4612"
 
 [metadata.files]
 aio-pika = [
@@ -2589,12 +2589,12 @@ pep517 = [
     {file = "pep517-0.12.0.tar.gz", hash = "sha256:931378d93d11b298cf511dd634cf5ea4cb249a28ef84160b3247ee9afb4e8ab0"},
 ]
 pip-tools = [
-    {file = "pip-tools-6.4.0.tar.gz", hash = "sha256:65553a15b1ba34be5e43889345062e38fb9b219ffa23b084ca0d4c4039b6f53b"},
-    {file = "pip_tools-6.4.0-py3-none-any.whl", hash = "sha256:bb2c3272bc229b4a6d25230ebe255823aba1aa466a0d698c48ab7eb5ab7efdc9"},
+    {file = "pip-tools-6.5.1.tar.gz", hash = "sha256:80f562aa699fc76a424539697e0bef41e490a050e57a6a21468531981a9d419e"},
+    {file = "pip_tools-6.5.1-py3-none-any.whl", hash = "sha256:80f1cfc7156e4a4465b1a46a6bb3599587909537db1a149cf3a6b73eed979ee4"},
 ]
 platformdirs = [
-    {file = "platformdirs-2.4.1-py3-none-any.whl", hash = "sha256:1d7385c7db91728b83efd0ca99a5afb296cab9d0ed8313a45ed8ba17967ecfca"},
-    {file = "platformdirs-2.4.1.tar.gz", hash = "sha256:440633ddfebcc36264232365d7840a970e75e1018d15b4327d11f91909045fda"},
+    {file = "platformdirs-2.5.0-py3-none-any.whl", hash = "sha256:30671902352e97b1eafd74ade8e4a694782bd3471685e78c32d0fdfd3aa7e7bb"},
+    {file = "platformdirs-2.5.0.tar.gz", hash = "sha256:8ec11dfba28ecc0715eb5fb0147a87b1bf325f349f3da9aab2cd6b50b96b692b"},
 ]
 pluggy = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
@@ -2804,8 +2804,8 @@ ra-utils = [
     {file = "ra_utils-0.4.0-py3-none-any.whl", hash = "sha256:93441f4302710ff5f75d9e0451e6ead81186c2fd47124c879098216d4e5d5db4"},
 ]
 ramodels = [
-    {file = "ramodels-5.2.0-py3-none-any.whl", hash = "sha256:5804e928578d908e53b7a01f0e0c4071c45dbf456062d3c7cb37180da45a6177"},
-    {file = "ramodels-5.2.0.tar.gz", hash = "sha256:1777c4c31682ddea0a2704879c253ddc1c7acd0dbe0a8c8d9a69406a8789f10a"},
+    {file = "ramodels-5.3.2-py3-none-any.whl", hash = "sha256:1ddeb63eb6ec0445ae0574a40df7d606d5f47e8d5031b539ef170a59f8594c84"},
+    {file = "ramodels-5.3.2.tar.gz", hash = "sha256:ba37baa23d7bfa0d3d18de96a5a3e7abf8b0baa5211e338c13d86ce46a43b515"},
 ]
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
@@ -2891,8 +2891,8 @@ starlette-context = [
     {file = "starlette_context-0.3.3.tar.gz", hash = "sha256:1c900380d08c872461aa76e9ae4d7b454bf53724ac2355104f191845a3c9947d"},
 ]
 strawberry-graphql = [
-    {file = "strawberry-graphql-0.95.3.tar.gz", hash = "sha256:5e1882af281ff9cfd0d4a4fcafe3671411049ce14d13a09fa32a204ac575267c"},
-    {file = "strawberry_graphql-0.95.3-py3-none-any.whl", hash = "sha256:60709c41df30f1403f97dba22218711fb5e174b34f3a967062c2ccd6ef79360a"},
+    {file = "strawberry-graphql-0.95.5.tar.gz", hash = "sha256:82ce6c6a6bb6a3e181a46384c5aed52e1ae3bc861ac223979254f994ceba471c"},
+    {file = "strawberry_graphql-0.95.5-py3-none-any.whl", hash = "sha256:a92920ea484f69bd3d3b5417e79d0961bc9ea62fc8e77290fc9628abbecf1085"},
 ]
 structlog = [
     {file = "structlog-21.5.0-py3-none-any.whl", hash = "sha256:fd7922e195262b337da85c2a91c84be94ccab1f8fd1957bd6986f6904e3761c8"},
@@ -2913,8 +2913,8 @@ toml = [
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
 ]
 tomli = [
-    {file = "tomli-2.0.0-py3-none-any.whl", hash = "sha256:b5bde28da1fed24b9bd1d4d2b8cba62300bfb4ec9a6187a957e8ddb9434c5224"},
-    {file = "tomli-2.0.0.tar.gz", hash = "sha256:c292c34f58502a1eb2bbb9f5bbc9a5ebc37bee10ffb8c2d6bbdfa8eb13cc14e1"},
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
@@ -2958,8 +2958,8 @@ watchdog = [
     {file = "watchdog-2.1.6.tar.gz", hash = "sha256:a36e75df6c767cbf46f61a91c70b3ba71811dfa0aca4a324d9407a06a8b7a2e7"},
 ]
 werkzeug = [
-    {file = "Werkzeug-2.0.2-py3-none-any.whl", hash = "sha256:63d3dc1cf60e7b7e35e97fa9861f7397283b75d765afcaefd993d6046899de8f"},
-    {file = "Werkzeug-2.0.2.tar.gz", hash = "sha256:aa2bb6fc8dee8d6c504c0ac1e7f5f7dc5810a9903e793b6f715a9f015bdadb9a"},
+    {file = "Werkzeug-2.0.3-py3-none-any.whl", hash = "sha256:1421ebfc7648a39a5c58c601b154165d05cf47a3cd0ccb70857cbdacf6c8f2b8"},
+    {file = "Werkzeug-2.0.3.tar.gz", hash = "sha256:b863f8ff057c522164b6067c9e28b041161b4be5ba4d0daceeaa50a163822d3c"},
 ]
 wrapt = [
     {file = "wrapt-1.13.3-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:e05e60ff3b2b0342153be4d1b597bbcfd8330890056b9619f4ad6b8d5c96a81a"},
