@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.3.2 - 2022-02-10
+------------------
+
+[#48565] Fix pypi publishing
+
 5.3.1 - 2022-02-10
 ------------------
 
