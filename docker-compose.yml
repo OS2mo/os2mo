@@ -238,7 +238,7 @@ services:
       start_period: 300s
 
   keycloak-gen:
-    image: magentaaps/os2mo-keycloak-realm-builder:3.0.0
+    image: magentaaps/os2mo-keycloak-realm-builder:3.1.0
     environment:
       KEYCLOAK_VERSION: 14.0.0
 
