@@ -93,7 +93,7 @@ Release to PyPI:
   <<: *install-deps
   stage: release
   image: python:3.8-slim
-  script: poetry publish --build -u OS2mo -p $PYPI_PWD
+  script: poetry publish -vvv --build -u OS2mo -p $PYPI_PWD
   rules:
     # Matches <version core> from SemVer 2.0.0 BNF grammar.
     # Ex. 2.3.4, but not 2.3.4-rc
