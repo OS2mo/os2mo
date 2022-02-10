@@ -23,6 +23,7 @@ from .it_system import ITSystemRead
 from .it_system import ITUser
 from .it_system import ITUserRead
 from .it_system import ITUserWrite
+from .kle import KLE
 from .kle import KLEBase
 from .kle import KLERead
 from .kle import KLEWrite
@@ -45,7 +46,9 @@ from .role import RoleWrite
 # --------------------------------------------------------------------------------------
 # All
 # --------------------------------------------------------------------------------------
-Details = Union[Association, Engagement, EngagementAssociation, Manager, ITUser, Role]
+Details = Union[
+    Association, Engagement, EngagementAssociation, KLE, Manager, ITUser, Role
+]
 EmployeeDetails = Union[Details, Address, Leave]
 OrgUnitDetails = Details
 
@@ -67,6 +70,7 @@ __all__ = [
     "ITUser",
     "ITUserRead",
     "ITUserWrite",
+    "KLE",
     "KLEBase",
     "KLERead",
     "KLEWrite",
