@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.3.0 - 2022-02-10
+------------------
+
+[#48565] Fix KLE kle_aspect -> kle_aspects
+
 5.2.0 - 2022-02-01
 ------------------
 
