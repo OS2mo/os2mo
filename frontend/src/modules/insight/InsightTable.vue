@@ -6,7 +6,7 @@
 
 <script>
 import DataGrid from '../../components/DataGrid/DataGrid.vue'
-import Service from '@/api/HttpCommon'
+import { get_by_graphql } from '@/api/HttpCommon'
 
 export default {
     components: {
@@ -17,11 +17,11 @@ export default {
             table_data: [],
             table_fields: [],
             table_title: 'GraphQL Data test',
-            query: `query: "{
+            query: `{
                 employees {
                     name
                 }
-            }"`
+            }`
         }
     },
     methods: {
@@ -29,7 +29,7 @@ export default {
             return fields
         },
         fetchData: function(query) {
-            return Service.post('http://localhost:5000/graphql', query)
+            return get_by_graphql(query)
         },
         sanitizeData: function(data) {
             const row_data = []

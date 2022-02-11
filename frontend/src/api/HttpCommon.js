@@ -23,6 +23,46 @@ const ApiV1 = axios.create({
   baseURL: '/api/v1',
 })
 
+const get_by_axios = function(url, axios) {
+  return axios
+    .get(url)
+    .catch(err => {
+      console.warn('Request failed', err)
+
+      return new Promise(function (resolve, reject) {
+        reject(err)
+      })
+    })
+}
+
+const get_by_graphql = function(query) {
+  return axios({
+    method: 'post',
+    baseURL: 'http://localhost:5000/graphql',
+    url: '',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${keycloak.token}`,
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'same-site'
+    },
+    data: {query: query}
+
+    //POST http://localhost:5000/graphql
+
+    // POST http://localhost:5000/graphql/
+    //mode: 'cors',
+    //credentials: 'same-origin',
+  })
+  .then((response) => {
+    console.log('got response', reponse)
+    return response
+  })
+  .catch((err) => {
+    console.error('Somehting went horribly wrong', err)
+  })
+}
+
 Service.interceptors.response.use(
   response => response,
   error => {
@@ -53,16 +93,8 @@ ApiV1.interceptors.request.use(function (config){
   return config
 })
 
-function get_by_axios (url, axios) {
-  return axios
-    .get(url)
-    .catch(err => {
-      console.warn('Request failed', err)
-
-      return new Promise(function (resolve, reject) {
-        reject(err)
-      })
-    })
+export {
+  get_by_graphql
 }
 
 export default {
