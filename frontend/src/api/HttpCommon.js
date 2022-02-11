@@ -46,13 +46,9 @@ const get_by_graphql = function(query) {
       'Sec-Fetch-Mode': 'cors',
       'Sec-Fetch-Site': 'same-site'
     },
-    data: {query: query}
-
-    //POST http://localhost:5000/graphql
-
-    // POST http://localhost:5000/graphql/
-    //mode: 'cors',
-    //credentials: 'same-origin',
+    data: {
+      query: query
+    }
   })
   .then((response) => {
     console.log('got response', reponse)
