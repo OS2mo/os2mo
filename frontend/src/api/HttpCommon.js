@@ -51,7 +51,6 @@ const get_by_graphql = function(query) {
     }
   })
   .then((response) => {
-    console.log('got response', reponse)
     return response
   })
   .catch((err) => {
