@@ -1,20 +1,25 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Future
+from unittest.mock import MagicMock
 from uuid import UUID
 
 import freezegun
 import pytest
-from mora.service import orgunit
-import tests.cases
-from unittest.mock import MagicMock
 from mock import call
 from mock import patch
+from more_itertools import one
+from os2mo_http_trigger_protocol import MOTriggerRegister
+from starlette.datastructures import ImmutableMultiDict
+from yarl import URL
+
+import tests.cases
 from mora import lora
 from mora import mapping
 from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
+from mora.service import orgunit
 from mora.service.orgunit import _get_count_related
 from mora.service.orgunit import get_children
 from mora.service.orgunit import get_one_orgunit
@@ -24,12 +29,7 @@ from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
-from more_itertools import one
-from os2mo_http_trigger_protocol import MOTriggerRegister
-from starlette.datastructures import ImmutableMultiDict
 from tests import util
-from yarl import URL
-from mora.triggers.internal import http_trigger
 
 
 class TestAddressLookup(tests.cases.TestCase):
@@ -214,10 +214,14 @@ def trigger_get_one_orgunit(monkeypatch):
 
 
 class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
-    @util.override_config(Settings(http_endpoints=["http://whatever"]))
-    async def test_returns_integration_error_on_wrong_status(self):
-        async def mock_fetch(*args, **kwargs):
-            return [
+    @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
+    @patch("mora.triggers.internal.http_trigger.http_sender")
+    @patch("mora.service.orgunit.get_one_orgunit")
+    async def test_returns_integration_error_on_wrong_status(
+        self, mock, t_sender_mock, t_fetch_mock
+    ):
+        with util.override_config(Settings(http_endpoints=["http://whatever"])):
+            t_fetch_mock.return_value = [
                 MOTriggerRegister(
                     **{
                         "event_type": mapping.EventType.ON_BEFORE,
@@ -227,12 +231,9 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
                     }
                 )
             ]
-
-        Trigger.registry = {}
-        await register(None)
-        print(await register(None))
-        assert False
-        t_fetch_mock.assert_called()
+            Trigger.registry = {}
+            await register(None)
+            t_fetch_mock.assert_called()
 
         error_msg = "Something horrible happened"
         response_future = Future()
@@ -259,26 +260,26 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
             timeout=5,
         )
 
-    @util.override_config(Settings(http_endpoints=["http://whatever"]))
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch(
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
     )
     @patch("mora.service.orgunit.get_one_orgunit")
     async def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
-        t_fetch_mock.return_value = [
-            MOTriggerRegister(
-                **{
-                    "event_type": mapping.EventType.ON_BEFORE,
-                    "request_type": mapping.RequestType.REFRESH,
-                    "role_type": "org_unit",
-                    "url": "/triggers/ou/refresh",
-                }
-            )
-        ]
-        Trigger.registry = {}
-        await register(None)
-        t_fetch_mock.assert_called()
+        with util.override_config(Settings(http_endpoints=["http://whatever"])):
+            t_fetch_mock.return_value = [
+                MOTriggerRegister(
+                    **{
+                        "event_type": mapping.EventType.ON_BEFORE,
+                        "request_type": mapping.RequestType.REFRESH,
+                        "role_type": "org_unit",
+                        "url": "/triggers/ou/refresh",
+                    }
+                )
+            ]
+            Trigger.registry = {}
+            await register(None)
+            t_fetch_mock.assert_called()
 
         response_msg = "Something good happened"
         response_future = Future()

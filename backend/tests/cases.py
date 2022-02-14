@@ -588,7 +588,7 @@ class _BaseTestCase(TestCase):
         return self.assertEqual(expected, actual, message)
 
 
-class AsyncTestCase(IsolatedAsyncioTestCase, _AsyncBaseTestCase):
+class AsyncTestCase(_AsyncBaseTestCase):
     pass
 
 
