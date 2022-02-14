@@ -49,7 +49,7 @@ async def fake_auth():
     }
 
 
-class _AsyncBaseTestCase(TestCase):
+class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
     """
     Async base class for MO testcases w/o LoRA access.
     """
@@ -61,21 +61,17 @@ class _AsyncBaseTestCase(TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
-    def setUp(self):
-        super().setUp()
-        self.app = self.create_app()
-        self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
-
-        # Bypass Keycloak per default
-        self.app.dependency_overrides[auth] = fake_auth
-
     async def asyncSetUp(self):
-        super().setUp()
+        await super().asyncSetUp()
         self.app = self.create_app()
         self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
+
+    async def asyncTearDown(self):
+        await super().asyncTearDown()
+        await self.client.aclose()
 
     def create_app(self, overrides=None):
         # make sure the configured organisation is always reset
@@ -625,7 +621,7 @@ class MockRequestContextTestCase(TestCase):
 
 
 @pytest.mark.serial
-class AsyncLoRATestCase(IsolatedAsyncioTestCase, _AsyncBaseTestCase):
+class AsyncLoRATestCase(_AsyncBaseTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
@@ -647,19 +643,8 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase, _AsyncBaseTestCase):
         _mox_testing_api("db-reset")
         await super().asyncSetUp()
 
-    def setUp(self):
-        _mox_testing_api("db-reset")
-        super().setUp()
-
     async def asyncTearDown(self):
-        if (
-            hasattr(_local_cache, "async_session")
-            and _local_cache.async_session is not None
-        ):
-            await _local_cache.async_session.close()
-            _local_cache.async_session = None
         await super().asyncTearDown()
-        await self.client.aclose()
 
 
 @pytest.mark.serial
