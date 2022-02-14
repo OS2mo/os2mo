@@ -2,6 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 version: "3.9"
 services:
+  the-kolding-profile-is-deprecated--please-use-the-fixture-profile-instead:
+    image: scratch
+    command: ["fail"]
+    profiles:
+      - kolding
+
   # We use two images in development. One frontend that runs `vue-cli-service
   # serve`, named `frontend` and one that runs flask named `mo`. The frontend
   # image proxies requests to flask.
@@ -360,19 +366,22 @@ services:
       start_period: 300s
 
   fixture-loader:
-    image: magentaaps/os2mo-kolding-fixture:latest
+    # Usage:
+    # docker-compose --profile=fixture up -d --build - defaults to 'kolding'
+    # FIXTURE=aalborg docker-compose --profile=fixture up -d --build
+    # Supported fixtures: https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
+    image: magentaaps/os2mo-fixture-loader:0.0.2
+    command: ["${FIXTURE:-kolding}"]
     environment:
-      POSTGRES_HOST: mox-db
-      POSTGRES_NAME: mox
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
+      PGHOST: mox-db
+      PGDATABASE: mox
+      PGUSER: postgres
+      PGPASSWORD: mysecretpassword
     depends_on:
-      mox-db-init:
-        condition: service_completed_successfully
-      mox-db:
+      mox:
         condition: service_healthy
     profiles:
-      - kolding
+      - fixture
 
   amqp-metrics:
     image: magentaaps/os2mo-amqp-trigger-metrics:latest
