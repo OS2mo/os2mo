@@ -8,7 +8,9 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import asyncio
+from typing import Generic
 from typing import Optional
+from typing import TypeVar
 from uuid import UUID
 
 import strawberry
@@ -41,6 +43,15 @@ from mora.graphapi.models import HealthRead
 # --------------------------------------------------------------------------------------
 # Schema
 # --------------------------------------------------------------------------------------
+
+MOObject = TypeVar("MOObject")
+
+
+@strawberry.type
+class Response(Generic[MOObject]):
+    uuid: UUID
+    objects: list[MOObject]
+
 
 # Validities
 # ----------
@@ -275,6 +286,12 @@ class Employee:
     async def itusers(self, root: EmployeeRead, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["employee_ituser_loader"]
         return await loader.load(root.uuid)
+
+
+@strawberry.type
+class EmployeeResponse:
+    uuid: UUID
+    value: list[Employee]
 
 
 # Engagement

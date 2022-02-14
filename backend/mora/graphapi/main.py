@@ -54,6 +54,7 @@ from mora.graphapi.schema import Manager
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import RelatedUnit
+from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 
@@ -79,10 +80,10 @@ class Query:
     )
     async def addresses(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Address]:
+    ) -> list[Response[Address]]:
         if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
-        return cast(list[Address], await get_addresses())
+        return cast(list[Response[Address]], await get_addresses())
 
     # Associations
     # ---------
@@ -91,10 +92,10 @@ class Query:
     )
     async def associations(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Association]:
+    ) -> list[Response[Association]]:
         if uuids is not None:
             return await get_by_uuid(info.context["association_loader"], uuids)
-        return cast(list[Association], await get_associations())
+        return cast(list[Response[Association]], await get_associations())
 
     # Classes
     # -------
@@ -103,10 +104,10 @@ class Query:
     )
     async def classes(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Class]:
+    ) -> list[Response[Class]]:
         if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
-        return cast(list[Class], await get_classes())
+        return cast(list[Response[Class]], await get_classes())
 
     # Employees
     # ---------
@@ -115,10 +116,10 @@ class Query:
     )
     async def employees(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Employee]:
+    ) -> list[Response[Employee]]:
         if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
-        return cast(list[Employee], await get_employees())
+        return cast(list[Response[Employee]], await get_employees())
 
     # Engagements
     # -----------
@@ -127,10 +128,10 @@ class Query:
     )
     async def engagements(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Engagement]:
+    ) -> list[Response[Engagement]]:
         if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
-        return cast(list[Engagement], await get_engagements())
+        return cast(list[Response[Engagement]], await get_engagements())
 
     # Facets
     # ------
@@ -139,10 +140,10 @@ class Query:
     )
     async def facets(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Facet]:
+    ) -> list[Response[Facet]]:
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
-        return cast(list[Facet], await get_facets())
+        return cast(list[Response[Facet]], await get_facets())
 
     # ITSystem
     # ---------
@@ -151,10 +152,10 @@ class Query:
     )
     async def itsystems(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[ITSystem]:
+    ) -> list[Response[ITSystem]]:
         if uuids is not None:
             return await get_by_uuid(info.context["itsystem_loader"], uuids)
-        return cast(list[ITSystem], await get_itsystems())
+        return cast(list[Response[ITSystem]], await get_itsystems())
 
     # ITUser
     # ---------
@@ -163,30 +164,32 @@ class Query:
     )
     async def itusers(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[ITUser]:
+    ) -> list[Response[ITUser]]:
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
-        return cast(list[ITUser], await get_itusers())
+        return cast(list[Response[ITUser]], await get_itusers())
 
     # KLE
     # ---------
     @strawberry.field(
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
-    async def kles(self, info: Info, uuids: Optional[list[UUID]] = None) -> list[KLE]:
+    async def kles(
+        self, info: Info, uuids: Optional[list[UUID]] = None
+    ) -> list[Response[KLE]]:
         if uuids is not None:
             return await get_by_uuid(info.context["kle_loader"], uuids)
-        return cast(list[KLE], await get_kles())
+        return cast(list[Response[KLE]], await get_kles())
 
     # Leave
     # -----
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
     async def leaves(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Leave]:
+    ) -> list[Response[Leave]]:
         if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
-        return cast(list[Leave], await get_leaves())
+        return cast(list[Response[Leave]], await get_leaves())
 
     # Managers
     # --------
@@ -195,10 +198,10 @@ class Query:
     )
     async def managers(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Manager]:
+    ) -> list[Response[Manager]]:
         if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
-        return cast(list[Manager], await get_managers())
+        return cast(list[Response[Manager]], await get_managers())
 
     # Root Organisation
     # -----------------
@@ -218,10 +221,10 @@ class Query:
     )
     async def org_units(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[OrganisationUnit]:
+    ) -> list[Response[OrganisationUnit]]:
         if uuids is not None:
             return await get_by_uuid(info.context["org_unit_loader"], uuids)
-        return cast(list[OrganisationUnit], await get_org_units())
+        return cast(list[Response[OrganisationUnit]], await get_org_units())
 
     # Related Units
     # ---------
@@ -232,20 +235,22 @@ class Query:
     )
     async def related_units(
         self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[RelatedUnit]:
+    ) -> list[Response[RelatedUnit]]:
         if uuids is not None:
             return await get_by_uuid(info.context["rel_unit_loader"], uuids)
-        return cast(list[RelatedUnit], await get_related_units())
+        return cast(list[Response[RelatedUnit]], await get_related_units())
 
     # Roles
     # ---------
     @strawberry.field(
         description="Get a list of all roles, optionally by uuid(s)",
     )
-    async def roles(self, info: Info, uuids: Optional[list[UUID]] = None) -> list[Role]:
+    async def roles(
+        self, info: Info, uuids: Optional[list[UUID]] = None
+    ) -> list[Response[Role]]:
         if uuids is not None:
             return await get_by_uuid(info.context["role_loader"], uuids)
-        return cast(list[Role], await get_roles())
+        return cast(list[Response[Role]], await get_roles())
 
     # Version
     # -------
@@ -278,7 +283,9 @@ class Query:
 # --------------------------------------------------------------------------------------
 
 
-async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]) -> list[MOModel]:
+async def get_by_uuid(
+    dataloader: DataLoader, uuids: list[UUID]
+) -> list[Response[MOModel]]:
     """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
     Args:
@@ -290,7 +297,7 @@ async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]) -> list[MOModel
     """
     tasks = map(dataloader.load, set(uuids))
     results = await gather(*tasks)
-    return list(filter(lambda result: result is not None, results))
+    return results
 
 
 def get_schema() -> strawberry.Schema:

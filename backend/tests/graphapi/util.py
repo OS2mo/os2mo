@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
 from typing import Optional
 
+from more_itertools import flatten
 from strawberry.types import ExecutionResult
 
 from mora.graphapi.dataloaders import get_loaders
@@ -22,3 +24,7 @@ async def execute(query: str, values: Optional[dict] = None) -> ExecutionResult:
                 query, variable_values=values, context_value=loaders
             )
     return result
+
+
+def flatten_data(resp_dict: dict[str, Any]):
+    return list(flatten([d["objects"] for d in resp_dict]))

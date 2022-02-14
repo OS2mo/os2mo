@@ -3,21 +3,20 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import strategies as st
+from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 from ramodels.mo import FacetRead
 
 import mora.graphapi.dataloaders as dataloaders
-import mora.graphapi.main as main
-from mora.graphapi.main import get_schema
+import mora.lora as lora
+from .strategies import graph_data_strat
+from .strategies import graph_data_uuids_strat
+from .util import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
-
-SCHEMA = str(get_schema())
 
 
 class TestFacetsQuery:
@@ -29,21 +28,31 @@ class TestFacetsQuery:
     because mocks are *not* reset between invocations of Hypothesis examples.
     """
 
-    @given(test_data=st.lists(st.builds(FacetRead)))
+    @given(test_data=graph_data_strat(FacetRead))
     def test_query_all(self, test_data, graphapi_test, patch_loader):
         """Test that we can query all attributes of the facets data model."""
-
-        # patch get_facets to return list(ClassRead)
+        # Patch dataloader
         with MonkeyPatch.context() as patch:
-            patch.setattr(main, "get_facets", patch_loader(test_data))
+            # Our facet dataloaders are ~* special *~
+            # We need to intercept the connector too
+            patch.setattr(lora.Scope, "get_all", patch_loader({}))
+            patch.setattr(
+                dataloaders,
+                "lora_facets_to_mo_facets",
+                lambda *args, **kwargs: parse_obj_as(list[FacetRead], test_data),
+            )
             query = """
                 query {
                     facets {
-                        parent_uuid
-                        org_uuid
-                        published
-                        type
                         uuid
+                        objects {
+                            uuid
+                            user_key
+                            parent_uuid
+                            org_uuid
+                            published
+                            type
+                        }
                     }
                 }
             """
@@ -52,32 +61,22 @@ class TestFacetsQuery:
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
         assert data is not None
-        assert data["facets"] == [
-            {
-                "parent_uuid": facet["parent_uuid"],
-                "org_uuid": facet["org_uuid"],
-                "published": facet["published"],
-                "type": facet["type"],
-                "uuid": facet["uuid"],
-            }
-            # convert the test_data to json
-            for facet in jsonable_encoder(test_data)
-        ]
+        assert flatten_data(data["facets"]) == test_data
 
-    @given(test_data=st.lists(st.builds(FacetRead)), st_data=st.data())
-    def test_query_by_uuid(self, test_data, st_data, graphapi_test):
+    @given(test_input=graph_data_uuids_strat(FacetRead))
+    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
         """Test that we can query facets by UUID."""
-
-        # Sample UUIDs
-        uuids = [str(model.uuid) for model in test_data]
-        test_uuids = st_data.draw(st.lists(st.sampled_from(uuids))) if uuids else []
+        test_data, test_uuids = test_input
 
         # Patch dataloader
         with MonkeyPatch.context() as patch:
+            # Our facet dataloaders are ~* special *~
+            # We need to intercept the connector too
+            patch.setattr(lora.Scope, "get_all_by_uuid", patch_loader({}))
             patch.setattr(
                 dataloaders,
                 "lora_facets_to_mo_facets",
-                lambda *args, **kwargs: test_data,
+                lambda *args, **kwargs: parse_obj_as(list[FacetRead], test_data),
             )
             query = """
                     query TestQuery($uuids: [UUID!]) {
@@ -95,6 +94,6 @@ class TestFacetsQuery:
         assert data is not None
 
         # Check UUID equivalence
-        result_uuids = [assoc.get("uuid") for assoc in data["facets"]]
+        result_uuids = [facet.get("uuid") for facet in data["facets"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))

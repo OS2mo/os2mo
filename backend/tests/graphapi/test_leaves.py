@@ -3,20 +3,18 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import strategies as st
 from pytest import MonkeyPatch
 from ramodels.mo.details import LeaveRead
 
 import mora.graphapi.dataloaders as dataloaders
-from mora.graphapi.main import get_schema
+from .strategies import graph_data_strat
+from .strategies import graph_data_uuids_strat
+from .util import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
-
-SCHEMA = str(get_schema())
 
 
 class TestLeavesQuery:
@@ -28,24 +26,25 @@ class TestLeavesQuery:
     because mocks are *not* reset between invocations of Hypothesis examples.
     """
 
-    @given(test_data=st.lists(st.builds(LeaveRead)))
+    @given(test_data=graph_data_strat(LeaveRead))
     def test_query_all(self, test_data, graphapi_test, patch_loader):
         """Test that we can query all attributes of the leave data model."""
-
-        # JSON encode test data
-        test_data = jsonable_encoder(test_data)
-
         # Patch dataloader
         with MonkeyPatch.context() as patch:
             patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
             query = """
                 query {
                     leaves {
-                        employee_uuid
-                        engagement_uuid
-                        leave_type_uuid
-                        type
-                        validity {from to}
+                        uuid
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            engagement_uuid
+                            leave_type_uuid
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             """
@@ -54,27 +53,12 @@ class TestLeavesQuery:
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
         assert data is not None
-        assert data["leaves"] == [
-            {
-                "employee_uuid": leave["employee_uuid"],
-                "engagement_uuid": leave["engagement_uuid"],
-                "leave_type_uuid": leave["leave_type_uuid"],
-                "type": leave["type"],
-                "validity": leave["validity"],
-            }
-            for leave in test_data
-        ]
+        assert flatten_data(data["leaves"]) == test_data
 
-    @given(test_data=st.lists(st.builds(LeaveRead)), st_data=st.data())
-    def test_query_by_uuid(self, test_data, st_data, graphapi_test, patch_loader):
+    @given(test_input=graph_data_uuids_strat(LeaveRead))
+    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
         """Test that we can query leaves by UUID."""
-
-        # Sample UUIDs
-        uuids = [str(model.uuid) for model in test_data]
-        test_uuids = st_data.draw(st.lists(st.sampled_from(uuids))) if uuids else []
-
-        # JSON encode test data
-        test_data = jsonable_encoder(test_data)
+        test_data, test_uuids = test_input
 
         # Patch dataloader
         with MonkeyPatch.context() as patch:
@@ -95,6 +79,6 @@ class TestLeavesQuery:
         assert data is not None
 
         # Check UUID equivalence
-        result_uuids = [assoc.get("uuid") for assoc in data["leaves"]]
+        result_uuids = [leave.get("uuid") for leave in data["leaves"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))

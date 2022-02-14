@@ -41,6 +41,7 @@ from mora.graphapi.schema import ManagerRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.graphapi.schema import RelatedUnitRead
+from mora.graphapi.schema import Response
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
@@ -49,6 +50,7 @@ from mora.service import org
 # --------------------------------------------------------------------------------------
 # Dataloaders
 # --------------------------------------------------------------------------------------
+
 
 MOModel = TypeVar(
     "MOModel",
@@ -68,7 +70,31 @@ MOModel = TypeVar(
 RoleType = TypeVar("RoleType")
 
 
-async def get_mo(model: MOModel) -> list[MOModel]:
+def group_by_uuid(
+    models: list[MOModel], uuids: Optional[list[UUID]] = None
+) -> dict[UUID, list[MOModel]]:
+    """Auxiliary function to group MOMOdels by their UUID.
+
+    Args:
+        models: List of MOModels to group.
+        uuids: List of UUIDs that have been looked up. Defaults to None.
+
+    Returns:
+        dict[UUID, list[MOModel]]: A mapping of uuids and lists of corresponding
+            MOModels.
+    """
+    uuid_map: dict[UUID, list[MOModel]] = dict()
+    uuids = uuids if uuids is not None else []
+    for model in models:
+        # Group MOModels first
+        uuid_map.setdefault(model.uuid, []).append(model)
+    for uuid in uuids:
+        # Set empty lists for uuids not set in the previous step
+        uuid_map.setdefault(uuid, [])
+    return uuid_map
+
+
+async def get_mo(model: MOModel) -> list[Response[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
@@ -79,11 +105,12 @@ async def get_mo(model: MOModel) -> list[MOModel]:
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type)
+    parsed_results = parse_obj_as(list[model], results)  # type: ignore
+    uuid_map = group_by_uuid(parsed_results)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
-    return parse_obj_as(list[model], results)  # type: ignore
 
-
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[Optional[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -95,9 +122,9 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Optional[MOModel]]:
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = {model.uuid: model for model in parsed_results}  # type: ignore
-    return list(map(uuid_map.get, uuids))
+    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
+    uuid_map = group_by_uuid(parsed_results, uuids)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 # get all models
@@ -135,15 +162,16 @@ async def get_itsystems() -> list[ITSystemRead]:
     c = get_connector()
     lora_result = await c.itsystem.get_all()
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    return list(mo_models)
+    uuid_map = group_by_uuid(list(mo_models))
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 async def load_itsystems(uuids: list[UUID]) -> list[Optional[ITSystemRead]]:
     c = get_connector()
     lora_result = await c.itsystem.get_all_by_uuid(uuids)
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
-    return list(map(uuid_map.get, uuids))
+    uuid_map = group_by_uuid(list(mo_models), uuids)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
@@ -177,10 +205,11 @@ async def get_classes() -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all()
     mo_models = lora_classes_to_mo_classes(lora_result)
-    return list(mo_models)
+    uuid_map = group_by_uuid(list(mo_models))
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
-async def load_classes(uuids: list[UUID]) -> list[Optional[ClassRead]]:
+async def load_classes(uuids: list[UUID]) -> list[Response[ClassRead]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -192,8 +221,8 @@ async def load_classes(uuids: list[UUID]) -> list[Optional[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all_by_uuid(uuids)
     mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
-    return list(map(uuid_map.get, uuids))
+    uuid_map = group_by_uuid(list(mo_models), uuids)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 async def load_class_children(parent_uuids: list[UUID]) -> list[ClassRead]:
@@ -232,14 +261,15 @@ def lora_facets_to_mo_facets(
     return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
 
-async def get_facets() -> list[FacetRead]:
+async def get_facets() -> list[Response[FacetRead]]:
     c = get_connector()
     lora_result = await c.facet.get_all()
     mo_models = lora_facets_to_mo_facets(lora_result)
-    return list(mo_models)
+    uuid_map = group_by_uuid(list(mo_models))
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
-async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
+async def load_facets(uuids: list[UUID]) -> list[Response[FacetRead]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -251,8 +281,8 @@ async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
     c = get_connector()
     lora_result = await c.facet.get_all_by_uuid(uuids)
     mo_models = lora_facets_to_mo_facets(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
-    return list(map(uuid_map.get, uuids))
+    uuid_map = group_by_uuid(list(mo_models), uuids)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 async def load_facet_classes(facet_uuids: list[UUID]) -> list[ClassRead]:
