@@ -56,7 +56,7 @@ include:
 workflow:
   rules:
     - if: $CI_COMMIT_TAG
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_MERGE_REQUEST_ID
 
 .master-rules: &master-rules
