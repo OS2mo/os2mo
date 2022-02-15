@@ -240,11 +240,11 @@ class Class:
 class Employee:
     @strawberry.field(description="Full name of the employee")
     async def name(self, root: EmployeeRead) -> str:
-        return f"{root.givenname} {root.surname}"
+        return f"{root.givenname} {root.surname}".strip()
 
     @strawberry.field(description="Full nickname of the employee")
     async def nickname(self, root: EmployeeRead) -> str:
-        return f"{root.nickname_givenname} {root.nickname_surname}"
+        return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
     @strawberry.field(description="Engagements for the employee")
     async def engagements(self, root: EmployeeRead, info: Info) -> list["Engagement"]:

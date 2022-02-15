@@ -1,18 +1,22 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from typing import Any
 from typing import Dict
 from typing import Optional
 from uuid import UUID
-from fastapi import APIRouter
 
+from fastapi import APIRouter
+from more_itertools import flatten
 from more_itertools import one
 
+from .. import exceptions
+from ..graphapi.shim import execute_graphql
 from mora.service.employee import router as employee_router
 from mora.service.itsystem import router as it_router
-from ..graphapi.shim import execute_graphql
-from .. import exceptions
+
+
+def flatten_data(resp_dict: dict[str, Any]):
+    return list(flatten([d["objects"] for d in resp_dict]))
 
 
 @employee_router.get("/e/{id}/")
@@ -70,22 +74,26 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
         query = """
         query EmployeeQuery($uuid: UUID!) {
           employees(uuids: [$uuid]) {
-            uuid
+            objects { uuid }
           }
         }
         """
 
         def transformer(data: Dict[str, Any]) -> Dict[str, Any]:
-            return one(r.data["employees"])
+            employees = flatten_data(r.data["employees"])
+            employee = one(employees)
+            return employee
 
     else:
         query = """
         query EmployeeQuery($uuid: UUID!) {
           employees(uuids: [$uuid]) {
-            uuid, user_key, cpr_no
-            givenname, surname
-            nickname_givenname, nickname_surname
-            seniority
+            objects {
+              uuid, user_key, cpr_no
+              givenname, surname, name
+              nickname_givenname, nickname_surname, nickname
+              seniority
+            }
           }
           org {
             uuid, user_key, name
@@ -94,13 +102,10 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
         """
 
         def transformer(data: Dict[str, Any]) -> Dict[str, Any]:
-            employee = one(r.data["employees"])
+            employees = flatten_data(r.data["employees"])
+            employee = one(employees)
             return {
                 **employee,
-                "name": " ".join([employee["givenname"], employee["surname"]]).strip(),
-                "nickname": " ".join(
-                    [employee["nickname_givenname"], employee["nickname_surname"]]
-                ).strip(),
                 "org": r.data["org"],
             }
 
@@ -111,7 +116,7 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
     )
     if r.errors:
         raise ValueError(r.errors)
-    if not r.data["employees"]:
+    if not flatten_data(r.data["employees"]):
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(r.data)
@@ -187,7 +192,7 @@ async def list_it_systems(orgid: UUID):
     query = """
     query ITSystemQuery {
       itsystems {
-        uuid, name, system_type, user_key
+        objects { uuid, name, system_type, user_key }
       }
       org {
         uuid
@@ -199,4 +204,4 @@ async def list_it_systems(orgid: UUID):
         raise ValueError(r.errors)
     if r.data["org"]["uuid"] != orgid:
         return []
-    return r.data["itsystems"]
+    return flatten_data(r.data["itsystems"])
