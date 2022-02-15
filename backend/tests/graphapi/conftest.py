@@ -21,14 +21,13 @@ from uuid import UUID
 import pytest
 from aioresponses import aioresponses as aioresp
 from aioresponses.core import URL
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from mora import util as mora_util
+from mora.app import create_app
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.main import get_loaders
 from mora.graphapi.main import get_schema
-from mora.graphapi.main import setup_graphql
 from mora.lora import LoraObjectType
 from tests.util import patch_is_graphql
 
@@ -38,13 +37,9 @@ from tests.util import patch_is_graphql
 # --------------------------------------------------------------------------------------
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def patch_context(monkeypatch):
-    """Patch the context.
-
-    This fixture is autoused and is primarily necessary when our LoRa
-    readers are not mocked.
-    """
+    """Fixture for patching the context."""
     monkeypatch.setattr(mora_util, "get_args_flag", lambda *args: False)
     with patch_is_graphql(True):
         yield
@@ -138,13 +133,22 @@ def lora_mock(lora_data):
 def graphapi_test():
     """Fixture yielding a FastAPI test client.
 
-    Only the GraphAPI endpoint is available.
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    app = FastAPI()
-    gql_router = setup_graphql()
-    app.include_router(gql_router, prefix="/graphql")
+    app = create_app(settings_overrides={"graphql_enable": True})
     yield TestClient(app)
+
+
+@pytest.fixture(scope="class")
+def graphapi_test_no_exc():
+    """Fixture yielding a FastAPI test client.
+
+    This test client does not raise server errors. We use it to check error handling
+    in our GraphQL stack.
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    app = create_app(settings_overrides={"graphql_enable": True})
+    yield TestClient(app, raise_server_exceptions=False)
 
 
 # --------------------------------------------------------------------------------------

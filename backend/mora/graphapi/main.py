@@ -7,6 +7,8 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from asyncio import gather
+from datetime import datetime
+from datetime import timezone
 from typing import Any
 from typing import cast
 from typing import Optional
@@ -14,6 +16,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import parse_obj_as
+from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
@@ -37,6 +40,7 @@ from mora.graphapi.dataloaders import get_related_units
 from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.health import health_map
+from mora.graphapi.middleware import set_graphql_args
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
@@ -59,6 +63,8 @@ from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 
 
+UTC = timezone.utc
+
 # --------------------------------------------------------------------------------------
 # Reads Query
 # --------------------------------------------------------------------------------------
@@ -79,8 +85,15 @@ class Query:
         description="Get a list of all addresses, optionally by uuid(s)",
     )
     async def addresses(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Address]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
         return cast(list[Response[Address]], await get_addresses())
@@ -91,8 +104,15 @@ class Query:
         description="Get a list of all Associations, optionally by uuid(s)",
     )
     async def associations(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Association]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["association_loader"], uuids)
         return cast(list[Response[Association]], await get_associations())
@@ -103,8 +123,15 @@ class Query:
         description="Get a list of all classes, optionally by uuid(s)",
     )
     async def classes(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Class]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
         return cast(list[Response[Class]], await get_classes())
@@ -115,8 +142,15 @@ class Query:
         description="Get a list of all employees, optionally by uuid(s)",
     )
     async def employees(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Employee]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
         return cast(list[Response[Employee]], await get_employees())
@@ -127,8 +161,15 @@ class Query:
         description="Get a list of all engagements, optionally by uuid(s)"
     )
     async def engagements(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Engagement]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
         return cast(list[Response[Engagement]], await get_engagements())
@@ -139,8 +180,15 @@ class Query:
         description="Get a list of all facets, optionally by uuid(s)",
     )
     async def facets(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Facet]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return cast(list[Response[Facet]], await get_facets())
@@ -151,8 +199,15 @@ class Query:
         description="Get a list of all ITSystems, optionally by uuid(s)",
     )
     async def itsystems(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[ITSystem]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["itsystem_loader"], uuids)
         return cast(list[Response[ITSystem]], await get_itsystems())
@@ -163,8 +218,15 @@ class Query:
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
     async def itusers(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[ITUser]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return cast(list[Response[ITUser]], await get_itusers())
@@ -175,8 +237,15 @@ class Query:
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
     async def kles(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[KLE]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["kle_loader"], uuids)
         return cast(list[Response[KLE]], await get_kles())
@@ -185,8 +254,15 @@ class Query:
     # -----
     @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
     async def leaves(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Leave]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
         return cast(list[Response[Leave]], await get_leaves())
@@ -197,8 +273,15 @@ class Query:
         description="Get a list of all managers, optionally by uuid(s)",
     )
     async def managers(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Manager]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
         return cast(list[Response[Manager]], await get_managers())
@@ -220,8 +303,15 @@ class Query:
         description="Get a list of all organisation units, optionally by uuid(s)",
     )
     async def org_units(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[OrganisationUnit]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["org_unit_loader"], uuids)
         return cast(list[Response[OrganisationUnit]], await get_org_units())
@@ -234,8 +324,15 @@ class Query:
         ),
     )
     async def related_units(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[RelatedUnit]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["rel_unit_loader"], uuids)
         return cast(list[Response[RelatedUnit]], await get_related_units())
@@ -246,8 +343,15 @@ class Query:
         description="Get a list of all roles, optionally by uuid(s)",
     )
     async def roles(
-        self, info: Info, uuids: Optional[list[UUID]] = None
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = None,
     ) -> list[Response[Role]]:
+        if from_date is UNSET:
+            from_date = datetime.now(tz=UTC)
+        set_graphql_args(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["role_loader"], uuids)
         return cast(list[Response[Role]], await get_roles())
