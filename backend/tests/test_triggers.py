@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import pytest
 
 import tests.cases
 from mora.exceptions import HTTPException
@@ -193,8 +194,9 @@ class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
         self.assertTrue(self.trigger_called)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2016-01-01")
-class TriggerlessTests(tests.cases.LoRATestCase):
+class TriggerlessTests(tests.cases.NewLoRATestCase):
     """Trigger functionality (and there by also amqp as that is triggered)
     can be disabled by the 'triggerless' flag
     This test is supposed to test/show the the difference
@@ -215,7 +217,6 @@ class TriggerlessTests(tests.cases.LoRATestCase):
         del self.trigger_before
 
     def test_flag_on(self):
-        self.load_sample_structures()
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": {"to": "2016-10-21"}}
         self.assertRequestResponse(
@@ -227,7 +228,6 @@ class TriggerlessTests(tests.cases.LoRATestCase):
         self.assertFalse(self.trigger_called)
 
     def test_flag_off(self):
-        self.load_sample_structures()
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": {"to": "2016-10-21"}}
         self.assertRequestResponse(

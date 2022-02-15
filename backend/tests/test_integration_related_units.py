@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
+import pytest
 
 import tests.cases
 from mora import util as mora_util
@@ -65,13 +66,12 @@ HIST = {
 }
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-06-01", tz_offset=2)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_reading(self):
-        self.load_sample_structures()
-
         self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/related_unit",
             [HUM, HIST],
@@ -102,8 +102,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_validation(self):
-        self.load_sample_structures()
-
         with self.subTest("past"):
             self.assertRequestResponse(
                 "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
@@ -216,8 +214,6 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     def test_writing(self):
-        self.load_sample_structures()
-
         r = self.assertRequest(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/map",
             json={

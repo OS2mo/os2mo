@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import pytest
+
 from mora.config import Settings, NavLink
 
 from tests import util
 
-from tests.cases import LoRATestCase
+from tests.cases import NewLoRATestCase
 from tests.cases import TestCase
 
 
@@ -52,15 +54,14 @@ class Tests(TestCase):
         self.assertIn("show_kle", user_settings)
 
 
-class LoRaTest(LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class LoRaTest(NewLoRATestCase):
     def test_ou_service_response(self):
         """
         Test that the service endpoint for units returns the correct
         configuration settings, including that this endpoint should convert
         the magic strings 'True' and 'False' into boolean values.
         """
-
-        self.load_sample_structures()
         uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
         url = "/service/ou/{}/configuration".format(uuid)
