@@ -5,7 +5,9 @@
 
     The guide also requires OS2mo and Keycloak to have been set up with RBAC enabled on your servers.
 
-This guide will help you configure AD and ADFS with the necessary groups for role-based access control (RBAC) in OS2mo. During installation, we will create the necessary groups in Active Directory, and map the membership of those groups as claims in ADFS when authenticating with OS2mo.
+This guide will help you configure AD and ADFS with the necessary groups and attribute mappings for role-based access control (RBAC) in OS2mo. During installation, we will create the necessary groups in Active Directory, and map the membership of those groups as claims in ADFS when authenticating with OS2mo.
+
+We also map the user GUID to OS2mo, so we are able to correlate the logged in user with an employee in OS2mo. This is necessary for the 'owner' role.
 
 ## Adding groups to AD
 
@@ -87,5 +89,28 @@ Do the above steps for the "owner" role.
 You should now have added two claim policies, one for each of the admin and owner role.
 
 ![](./img/adfs_rbac/adfs_claim_5.png)
+
+## Sending user object GUID
+
+Users in OS2mo contain information about their AD GUID. In order for the 'owner' role to function properly, we need to send the AD GUID of the logged in user as an attribute.
+
+Click "Add Rule..." in the "Edit Claim Issuance Policy" dialogue.
+
+Select "Send LDAP Attributes as Claims".
+
+![](./img/adfs_rbac/adfs_claim_6.png)
+
+Enter "objectGUID" as "Claim rule name" and "LDAP Attribute". Enter "object-guid" as "Outgoing Claim Type".
+
+!!! note
+    "object-guid" is not available in the dropdown, but must be typed manually.
+
+![](./img/adfs_rbac/adfs_claim_7.png)
+
+Click "Finish".
+
+You should now have the following claims configured:
+
+![](./img/adfs_rbac/adfs_claim_8.png)
 
 RBAC should now be successfully configured for AD and ADFS! 🎈
