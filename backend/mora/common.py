@@ -30,6 +30,8 @@ from . import mapping
 from . import util
 from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
+from mora.graphapi.middleware import get_graphql_args
+from mora.graphapi.middleware import is_graphql
 
 
 class LoRaConnectorPlugin(Plugin):
@@ -55,8 +57,18 @@ def get_connector(**loraparams) -> lora.Connector:
 
 
 def _create_connector(**loraparams) -> lora.Connector:
-    args = util.get_query_args() or {}
+    # OH BOY
+    if is_graphql() and get_graphql_args():
+        gql_args = get_graphql_args()
+        from_date, to_date = gql_args["from_date"], gql_args["to_date"]
 
+        loraparams["validity"] = "present"
+        loraparams["virkningfra"] = from_date if from_date is not None else "-infinity"
+        loraparams["virkningtil"] = to_date if to_date is not None else "infinity"
+
+        return lora.Connector(**loraparams)
+
+    args = util.get_query_args() or {}
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])
 

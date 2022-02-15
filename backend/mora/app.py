@@ -45,6 +45,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.router import keycloak_router
 from mora.graphapi.main import setup_graphql
+from mora.graphapi.middleware import GraphQLArgsPlugin
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.http import client
 from mora.http import lora_client
@@ -148,6 +149,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
                 LoRaConnectorPlugin(),
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
+                GraphQLArgsPlugin(),
             ),
         )
     ]
