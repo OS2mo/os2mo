@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 import freezegun
+import pytest
 
 import tests.cases
 from mora import lora
@@ -31,14 +32,13 @@ address_type_facet = {
 }
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWriting(tests.cases.AsyncLoRATestCase):
+class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_add_org_unit_address(self, mock):
-        await self.load_sample_structures()
-
         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
         (addr_id,) = await self.assertRequest(
@@ -145,8 +145,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_add_org_unit_address_contact_open_hours(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"  # root org
@@ -261,8 +259,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_add_employee_address(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -399,8 +395,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_employee_with_address(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         user_id = await self.assertRequest(
@@ -517,8 +511,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_engagement_with_address(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -583,8 +575,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_org_unit_with_address(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         unit_id = await self.assertRequest(
@@ -705,8 +695,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_edit_address(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -840,8 +828,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_edit_address_user_key(self, mock):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         addr_id = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -909,8 +895,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_address_related_to_engagement(self, mock):
-        await self.load_sample_structures()
-
         engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
         req = [
@@ -949,14 +933,13 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         self.assertEqual(actual, expected)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Writing(tests.cases.LoRATestCase):
+class Writing(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_create_errors(self, mock):
-        self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
@@ -1154,8 +1137,6 @@ class Writing(tests.cases.LoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_create_dar_address_fails_correctly(self, mock):
         """Ensure that we fail when creating a DAR address when lookup fails"""
-        self.load_sample_structures()
-
         expected_msg = {
             "description": "Invalid address",
             "error": True,
@@ -1187,8 +1168,6 @@ class Writing(tests.cases.LoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_edit_errors(self, mock):
-        self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
 
@@ -1225,12 +1204,11 @@ class Writing(tests.cases.LoRATestCase):
             )
 
 
+@pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncReading(tests.cases.AsyncLoRATestCase):
+class AsyncReadingMinimal(tests.cases.NewAsyncLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_missing_class(self, mock):
-        await self.load_sample_structures(minimal=True)
-
         # The relevant address_type klasse is not present in the minimal dataset
         await util.load_fixture(
             "organisation/organisationfunktion",
@@ -1243,10 +1221,12 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
 
         self.assertEqual(None, r[0]["address_type"])
 
+
+@pytest.mark.usefixtures("sample_structures")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class AsyncReading(tests.cases.NewAsyncLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=False)
     async def test_missing_address(self, mock):
-        await self.load_sample_structures()
-
         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
         functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -1312,8 +1292,6 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=False)
     async def test_missing_error(self, mock):
-        await self.load_sample_structures()
-
         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
         addrid = "bd7e5317-4a9e-437b-8923-11156406b117"
         functionid = "414044e0-fe5f-4f82-be20-1e107ad50e80"
@@ -1381,12 +1359,11 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.LoRATestCase):
+class Reading(tests.cases.NewLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_reading(self, mock):
-        self.load_sample_structures()
-
         with self.subTest("Addresses present"):
             self.assertRequestResponse(
                 "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053"

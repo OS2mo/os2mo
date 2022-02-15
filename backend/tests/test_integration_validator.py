@@ -23,7 +23,8 @@ def patch_context(monkeypatch):
     yield
 
 
-class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class AsyncTestHelper(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
     SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"
@@ -32,7 +33,6 @@ class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        await self.load_sample_structures()
 
     async def expire_org_unit(self, org_unit):
         # Expire the parent from 2018-01-01
@@ -46,7 +46,8 @@ class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
         )
 
 
-class TestHelper(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestHelper(tests.cases.NewLoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
     SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"
@@ -55,7 +56,6 @@ class TestHelper(tests.cases.LoRATestCase):
 
     def setUp(self):
         super().setUp()
-        self.load_sample_structures()
 
     def expire_org_unit(self, org_unit):
         # Expire the parent from 2018-01-01
@@ -174,7 +174,6 @@ class AsyncTestValidator(AsyncTestHelper):
         employee range"""
 
         # Arrange
-        await self.load_sample_structures()
         employee_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"  # Anders And
         valid_from = mora_util.parsedatetime("1910-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")
@@ -191,7 +190,6 @@ class AsyncTestValidator(AsyncTestHelper):
         inside employee range"""
 
         # Arrange
-        await self.load_sample_structures()
         employee_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"  # Anders And
         valid_from = mora_util.parsedatetime("2020-01-01")
         valid_to = mora_util.parsedatetime("2040-01-01")

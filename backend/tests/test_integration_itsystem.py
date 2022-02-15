@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
+import pytest
 
 import tests.cases
 from mora import lora
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWriting(tests.cases.AsyncLoRATestCase):
+class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
     async def test_create_employee_itsystem(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -91,8 +91,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_create_unit_itsystem(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -181,8 +179,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @freezegun.freeze_time("2017-06-22", tz_offset=2)
     async def test_edit_itsystem(self):
-        await self.load_sample_structures()
-
         it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
 
         old_unit_id = "04c78fc2-72d2-4d02-b55f-807af19eac48"
@@ -306,8 +302,9 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 
 
+@pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Writing(tests.cases.LoRATestCase):
+class WritingMinimal(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     @classmethod
@@ -323,8 +320,6 @@ class Writing(tests.cases.LoRATestCase):
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
         # This test will fail if run against postgres >=10.0. We can ignore it
         # with `pytest -m "not psql_9_dependent"`.
-        self.load_sample_structures(minimal=True)
-
         self.assertRequestResponse(
             "/service/details/create",
             {
@@ -553,11 +548,10 @@ class Writing(tests.cases.LoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.LoRATestCase):
+class Reading(tests.cases.NewLoRATestCase):
     def test_reading_organisation(self):
-        self.load_sample_structures()
-
         self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
             [
@@ -583,8 +577,6 @@ class Reading(tests.cases.LoRATestCase):
         )
 
     def test_reading_employee(self):
-        self.load_sample_structures()
-
         self.assertRequestResponse(
             "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
             "details/it?only_primary_uuid=1",
@@ -603,8 +595,6 @@ class Reading(tests.cases.LoRATestCase):
         )
 
     def test_reading_unit(self):
-        self.load_sample_structures()
-
         for unitid in (
             "2874e1dc-85e6-4269-823a-e1125484dfd3",
             "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",

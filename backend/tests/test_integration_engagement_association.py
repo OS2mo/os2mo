@@ -4,9 +4,13 @@
 import copy
 
 import freezegun
+import pytest
 
 from mora import lora
-from tests.cases import LoRATestCase, AsyncLoRATestCase
+from tests.cases import (
+    NewLoRATestCase,
+    NewAsyncLoRATestCase,
+)
 
 
 class EngAssocUtils:
@@ -71,16 +75,15 @@ class EngAssocUtils:
         ]
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(AsyncLoRATestCase):
+class AsyncTests(NewAsyncLoRATestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
 
     maxDiff = None
 
     async def test_create_engagement_association(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -199,8 +202,9 @@ class AsyncTests(AsyncLoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(LoRATestCase):
+class Tests(NewLoRATestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
 
@@ -209,8 +213,6 @@ class Tests(LoRATestCase):
     def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
         unit"""
-        self.load_sample_structures()
-
         # Check the POST request
         (
             association_uuid,
@@ -249,8 +251,6 @@ class Tests(LoRATestCase):
         create then edit
         :return:
         """
-        self.load_sample_structures()
-
         # Check the POST request
         #  ##### CREATE
         (
@@ -315,8 +315,6 @@ class Tests(LoRATestCase):
         create then terminate
         :return:
         """
-        self.load_sample_structures()
-
         # Check the POST request
 
         (

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
+import pytest
 import notsouid
 
 import tests.cases
@@ -19,14 +20,13 @@ kle_nummer_facet = {
 }
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)
     def test_create_kle(self):
-        self.load_sample_structures()
-
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         payload = [
@@ -113,8 +113,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(expected, actual)
 
     def test_edit_kle_no_overwrite(self):
-        self.load_sample_structures()
-
         org_unit_uuid = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
         kle_uuid = "4bee0127-a3a3-419a-8bcc-d1b81d21c5b5"
 
