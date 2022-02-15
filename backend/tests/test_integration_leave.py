@@ -3,6 +3,7 @@
 
 from unittest.mock import patch
 
+import pytest
 import freezegun
 
 import tests.cases
@@ -11,12 +12,11 @@ from mora import lora
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
     async def test_edit_leave_no_overwrite(self):
-        await self.load_sample_structures()
-
         leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
         req = [
@@ -160,14 +160,13 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertEqual(expected_leave, actual_leave)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_create_leave(self):
-        self.load_sample_structures()
-
         # Check the POST request
         userid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
         leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -216,8 +215,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(expected, actual)
 
     def test_create_leave_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
         payload = [
             {
                 "type": "leave",
@@ -241,8 +238,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_create_leave_fails_when_no_active_engagement(self):
         """Should fail on validation when the employee has no
         active engagements"""
-        self.load_sample_structures()
-
         # Check the POST request
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
         leave_type = "62ec821f-4179-4758-bfdf-134529d186e9"
@@ -275,8 +270,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_edit_leave(self):
-        self.load_sample_structures()
-
         leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
         user_id = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
@@ -325,8 +318,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(expected, actual)
 
     def test_edit_leave_fails_when_no_active_engagement(self):
-        self.load_sample_structures()
-
         leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
         req = [
@@ -357,8 +348,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_terminate_leave(self):
-        self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         payload = {"validity": {"to": "2017-11-30"}}
@@ -404,8 +393,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual([], actual)
 
     def test_create_leave_missing_user(self):
-        self.load_sample_structures()
-
         # Check the POST request
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"

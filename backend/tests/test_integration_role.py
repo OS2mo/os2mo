@@ -2,18 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import freezegun
+import pytest
 
 import tests.cases
 from mora import lora
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     async def test_create_role(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -125,8 +125,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_role, expected)
 
     async def test_create_role_on_unit(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -238,8 +236,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_role, expected)
 
     async def test_create_role_no_valid_to(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -349,8 +345,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_role, expected)
 
     async def test_edit_role_no_overwrite(self):
-        await self.load_sample_structures()
-
         role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
         req = [
@@ -490,8 +484,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_role, actual_role)
 
     async def test_edit_role_minimal(self):
-        await self.load_sample_structures()
-
         role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
         req = [
@@ -600,8 +592,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_role, actual_role)
 
     async def test_edit_role_minimal_unit(self):
-        await self.load_sample_structures()
-
         role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
         req = [
@@ -710,8 +700,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_role, actual_role)
 
     async def test_edit_role_person(self):
-        await self.load_sample_structures()
-
         role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
         req = {
@@ -830,8 +818,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_role, actual_role)
 
     async def test_edit_role_overwrite(self):
-        await self.load_sample_structures()
-
         role_uuid = "1b20d0b9-96a0-42a6-b196-293bb86e62e8"
 
         req = [
@@ -974,8 +960,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_role, actual_role)
 
     async def test_terminate_role(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -1097,13 +1081,12 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_role, expected_role)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_reading(self):
-        self.load_sample_structures()
-
         self.assertRequestResponse(
             "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
             "details/role?only_primary_uuid=1",
@@ -1126,8 +1109,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_role_missing_unit(self):
-        self.load_sample_structures()
-
         # Check the POST request
         unitid = "00000000-0000-0000-0000-000000000000"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -1159,8 +1140,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_role_missing_user(self):
-        self.load_sample_structures()
-
         # Check the POST request
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         userid = "00000000-0000-0000-0000-000000000000"

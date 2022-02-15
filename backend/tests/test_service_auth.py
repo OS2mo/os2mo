@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import pytest
 import unittest.mock
 
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
@@ -170,7 +171,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         )
 
 
-class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
+class TestAuthEndpointsReturn2xx(tests.cases.NewLoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
     and one from the /api/v1 endpoints)
@@ -188,8 +189,8 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         # integration tests
         self.app.dependency_overrides = dict()
 
+    @pytest.mark.usefixtures("sample_structures_minimal")
     def test_auth_service_org(self):
-        self.load_sample_structures(minimal=True)
         self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
     def test_auth_api_v1(self):
@@ -254,11 +255,10 @@ class TestTokenModel(tests.cases.TestCase):
         self.assertEqual("type_error.uuid", errors["type"])
 
 
-class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures_minimal")
+class TestUuidInvalidOrMissing(tests.cases.NewLoRATestCase):
     @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
     def test_401_when_uuid_missing_in_token(self, mock_auth):
-        self.load_sample_structures(minimal=True)
-
         validation_err = ValidationError(
             errors=[ErrorWrapper(MissingError(), loc="uuid")], model=Token
         )
@@ -277,10 +277,10 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
 # TODO: Find a way to test that endpoints works when auth is disabled
 @unittest.skip("Not working...(?)")
-class TestAuthDisabled(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestAuthDisabled(tests.cases.NewLoRATestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.load_sample_structures()
         self.app.dependency_overrides = []
 
     @util.override_config(Settings(os2mo_auth=False))
