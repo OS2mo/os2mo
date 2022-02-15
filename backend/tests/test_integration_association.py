@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import copy
+import pytest
 
 import freezegun
 from mock import patch
@@ -13,8 +14,9 @@ from mora import mapping
 substitute_association = {"name": "i18n:substitute_association"}  # const
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     @patch(
@@ -22,8 +24,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
     )
     async def test_create_association(self, mock):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -270,8 +270,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
     )
     async def test_create_vacant_association(self, mock):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -462,8 +460,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_create_association_with_dynamic_classes(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -636,8 +632,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_edit_association_with_preexisting(self):
         """Only one active association is allowed for each employee in each
         org unit"""
-        await self.load_sample_structures()
-
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
@@ -737,8 +731,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_edit_association_move(self):
-        await self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -902,8 +894,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_terminate_association_via_user(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -1031,13 +1021,12 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertEqual(actual_association, expected)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_create_association_from_missing_unit(self):
-        self.load_sample_structures()
-
         unitid = "00000000-0000-0000-0000-000000000000"
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -1080,8 +1069,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_create_association_fails_on_two_assocations(self):
         """An employee cannot have more than one active association per org
         unit"""
-        self.load_sample_structures()
-
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1120,8 +1107,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_create_association_with_preexisting(self):
         """An employee cannot have more than one active association per org
         unit"""
-        self.load_sample_structures()
-
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -1179,8 +1164,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_association_no_unit(self):
-        self.load_sample_structures()
-
         # Check the POST request
         userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -1221,8 +1204,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_association_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
         payload = [
             {
                 "type": "association",
@@ -1248,8 +1229,6 @@ class Tests(tests.cases.LoRATestCase):
         return_value={"substitute_roles": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
     )
     def test_edit_association(self, mock):
-        self.load_sample_structures()
-
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -1365,8 +1344,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_edit_association_substitute(self, mock):
         """Test that substitute field is removed when writing an association
         type that is not meant to have substitutes"""
-        self.load_sample_structures()
-
         # Check the POST request
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -1465,13 +1442,12 @@ class Tests(tests.cases.LoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AddressTests(tests.cases.LoRATestCase):
+class AddressTests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_terminate_association_directly(self):
-        self.load_sample_structures()
-
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -1528,8 +1504,6 @@ class AddressTests(tests.cases.LoRATestCase):
 
     @freezegun.freeze_time("2018-01-01", tz_offset=1)
     def test_terminate_association_in_the_past(self):
-        self.load_sample_structures()
-
         # Check the POST request
         associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 

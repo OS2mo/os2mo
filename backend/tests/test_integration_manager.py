@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 import freezegun
+import pytest
 import notsouid
 
 import tests.cases
@@ -17,13 +18,12 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)
     async def test_create_manager(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -220,8 +220,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_edit_manager_no_overwrite(self):
-        await self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
@@ -459,8 +457,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_edit_manager_overwrite(self):
-        await self.load_sample_structures()
-
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
@@ -713,8 +709,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         fields correctly, i.e. multiple fields sharing the same
         relation should remain intact when only one of the
         fields are updated"""
-        await self.load_sample_structures()
-
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
 
         req = [
@@ -880,8 +874,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     async def test_read_manager_multiple_responsibilities(self):
         """Test reading a manager with multiple responsibilities, all valid"""
-        await self.load_sample_structures()
-
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -979,12 +971,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class Tests(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_create_manager_missing_unit(self):
-        self.load_sample_structures()
-
         # Check the POST request
         payload = {
             "type": "manager",
@@ -1009,8 +1000,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_vacant_manager(self):
-        self.load_sample_structures()
-
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
 
         with self.subTest("preconditions"):
@@ -1111,8 +1100,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_edit_manager_on_unit(self):
-        self.load_sample_structures()
-
         unit_id = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
         user_id = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
@@ -1236,7 +1223,6 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     def test_read_no_inherit_manager(self):
-        self.load_sample_structures()
         # Anders And is manager at humfak
         filins = "85715fc7-925d-401b-822d-467eb4b163b6"
         # We are NOT allowed to inherit Anders And
@@ -1246,7 +1232,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(inherited_managers, [])
 
     def test_read_inherit_manager_one_level(self):
-        self.load_sample_structures()
         # Anders And is manager at humfak
         humfak = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         # There is no manager at filins
@@ -1259,7 +1244,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
 
     def test_read_inherit_manager_none_found_all_the_way_up(self):
-        self.load_sample_structures()
         # There is no manager at samfak
         samfak = "b688513d-11f7-4efc-b679-ab082a2055d0"
         # We must not find no managers

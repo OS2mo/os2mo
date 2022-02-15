@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import pytest
 import notsouid
 
 import tests.cases
 from mora import lora
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     async def test_create_engagement(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -165,8 +165,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_engagement, expected)
 
     async def test_create_engagement_from_unit(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -292,8 +290,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_engagement, expected)
 
     async def test_create_engagement_no_valid_to(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -418,8 +414,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_engagement, expected)
 
     async def test_create_engagement_no_job_function(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -533,8 +527,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected, actual_engagement)
 
     async def test_edit_engagement_no_overwrite(self):
-        await self.load_sample_structures()
-
         # Check the POST request
 
         engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
@@ -737,8 +729,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     async def test_edit_engagement_overwrite(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
 
@@ -913,8 +903,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_engagement, actual_engagement)
 
     async def test_terminate_engagement_via_employee(self):
-        await self.load_sample_structures()
-
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -1060,13 +1048,12 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected, actual_engagement)
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
+class Tests(tests.cases.NewLoRATestCase):
     maxDiff = None
 
     def test_create_engagement_fails_on_empty_payload(self):
-        self.load_sample_structures()
-
         payload = [
             {
                 "type": "engagement",
@@ -1088,8 +1075,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_edit_engagement_fails_on_invalid_payloads(self):
-        self.load_sample_structures()
-
         payload = {
             "type": "engagement",
             "uuid": "00000000-0000-0000-0000-000000000000",
@@ -1113,8 +1098,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_engagement_fails_on_missing_unit(self):
-        self.load_sample_structures()
-
         # Check the POST request
         payload = [
             {
@@ -1144,8 +1127,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_create_engagement_fails_on_missing_person(self):
-        self.load_sample_structures()
-
         # Check the POST request
         payload = [
             {
@@ -1175,8 +1156,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_terminate_engagement_with_both_from_and_to_date(self):
-        self.load_sample_structures()
-
         # Terminate engagement for Anders And employed at humanistisk fak
         employee_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
@@ -1206,8 +1185,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual({"from": "2018-10-26", "to": None}, r.json()[0]["validity"])
 
     def test_reading_engagement_only_primary_uuid(self):
-        self.load_sample_structures()
-
         actual = self.assertRequest(
             "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
             "/details/engagement?only_primary_uuid=1",
@@ -1224,8 +1201,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertListEqual(list(person.keys()), ["uuid"])
 
     def test_reading_engagement_calculate_primary(self):
-        self.load_sample_structures()
-
         r = self.assertRequest(
             "/service/e/236e0a78-11a0-4ed9-8545-6286bb8611c7"
             "/details/engagement?calculate_primary=1"
