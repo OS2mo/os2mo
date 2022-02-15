@@ -74,6 +74,7 @@ def expected_error_response(error_key, **overrides):
     return {"error_key": error_key, **dict(errors[error_key], **overrides)}
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
 
@@ -81,8 +82,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     async def test_edit_org_unit_overwrite(self):
         # A generic example of editing an org unit
-
-        await self.load_sample_structures()
 
         org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
@@ -206,8 +205,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_edit_org_unit(self):
         # A generic example of editing an org unit
 
-        await self.load_sample_structures()
-
         org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
         req = [
@@ -326,8 +323,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @freezegun.freeze_time("2016-01-01")
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
     async def test_edit_org_unit_earlier_start_on_created(self, m):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         payload = {
@@ -467,8 +462,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     # @pytest.mark.xfail  # TODO: Not sure why this is failing
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
     async def test_create_org_unit(self, m):
-        await self.load_sample_structures()
-
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         payload = {
@@ -720,8 +713,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     async def test_rename_org_unit(self):
         # A generic example of editing an org unit
-        await self.load_sample_structures()
-
         org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
         req = {
@@ -838,8 +829,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # fixtures, as LoRa is unable to properly delete objects
         # without the validities bleeding through.
 
-        await self.load_sample_structures()
-
         org_unit_uuid = "cbe3016f-b0ab-4c14-8265-ba4c1b3d17f6"
 
         await util.load_fixture(
@@ -920,8 +909,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     async def test_rename_root_org_unit(self):
         # Test renaming root units
-
-        await self.load_sample_structures()
 
         org_unit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
@@ -1029,8 +1016,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_rename_root_org_unit_no_parent(self):
         # Test renaming root units
 
-        await self.load_sample_structures()
-
         org_unit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
         req = {
@@ -1135,8 +1120,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     async def test_move_org_unit(self):
         "Test successfully moving organisational units"
-
-        await self.load_sample_structures()
 
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
@@ -1243,8 +1226,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @unittest.expectedFailure
     @freezegun.freeze_time("2018-09-11", tz_offset=2)
     async def test_terminating_complex_org_unit(self):
-        await self.load_sample_structures()
-
         # alas, this import fails due to overzealous validation :(
         unitid = await util.load_fixture(
             "organisation/organisationenhed", "very-edited-unit.json"
@@ -1445,8 +1426,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_move_org_unit_wrong_org(self):
         """Verify that we cannot move a unit into another organisation"""
 
-        await self.load_sample_structures()
-
         org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
         other_org_uuid = await util.load_fixture(
             "organisation/organisation",
@@ -1489,13 +1468,12 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_org_unit_temporality(self):
-        self.load_sample_structures()
-
         self.assertRequestResponse(
             "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
             "/details/org_unit?validity=past",
@@ -2175,8 +2153,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_create_org_unit_fails_validation_outside_org_unit(self):
         """Validation should fail when date range is outside of org unit
         range"""
-        self.load_sample_structures()
-
         payload = {
             "name": "Fake Corp",
             "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
@@ -2242,46 +2218,7 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={"org_unit.org_unit.create": 1},
         )
 
-    def test_read_root(self):
-        self.load_sample_structures(minimal=True)
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "location": "",
-                "name": "Overordnet Enhed",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "time_planning": None,
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "user_settings": {"orgunit": {}},
-                "parent": None,
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-            },
-        )
-
     def test_edit_missing_org_unit(self):
-        self.load_sample_structures()
-
         req = [
             {
                 "type": "org_unit",
@@ -2311,8 +2248,6 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2010-01-01")
     def test_edit_org_unit_earlier_start(self):
         """Test setting the start date to something earlier (#23182)"""
-
-        self.load_sample_structures()
 
         org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
@@ -2349,8 +2284,6 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2016-01-01")
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
     def test_edit_org_unit_extending_end(self, m):
-        self.load_sample_structures()
-
         unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
         topics = {}
 
@@ -2422,8 +2355,6 @@ class Tests(tests.cases.LoRATestCase):
 
     @notsouid.freeze_uuid("ec93e37e-774e-40b4-953c-05ca41b80372")
     def test_create_missing_parent(self):
-        self.load_sample_structures()
-
         payload = {
             "name": "Fake Corp",
             "parent": {"uuid": "00000000-0000-0000-0000-000000000000"},
@@ -2448,152 +2379,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_create_root_unit(self):
-        self.load_sample_structures(minimal=True)
-
-        unitid = "00000000-0000-0000-0000-000000000000"
-        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-
-        roots = [
-            {
-                "child_count": 0,
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
-            },
-        ]
-
-        with self.subTest("prerequisites"):
-            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            unitid,
-            json={
-                "name": "Fake Corp",
-                "uuid": unitid,
-                "user_key": "fakefakefake",
-                "parent": {
-                    "uuid": orgid,
-                },
-                "time_planning": None,
-                "org_unit_type": {
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": "2018-01-01",
-                },
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/{}/".format(unitid),
-            {
-                "location": "",
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "org": {"name": "Aarhus Universitet", "user_key": "AU", "uuid": orgid},
-                "time_planning": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "org_unit_level": None,
-                "parent": None,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
-                "user_settings": {"orgunit": {}},
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-        roots.insert(
-            0,
-            {
-                "child_count": 0,
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/o/{}/children".format(orgid),
-            roots,
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-    def test_create_root_unit_without_org_id(self):
-        self.load_sample_structures(minimal=True)
-
-        unitid = "00000000-0000-0000-0000-000000000000"
-        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-
-        roots = [
-            {
-                "child_count": 0,
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
-            },
-        ]
-
-        with self.subTest("prerequisites"):
-            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            unitid,
-            json={
-                "name": "Fake Corp",
-                "uuid": unitid,
-                "user_key": "fakefakefake",
-                "time_planning": None,
-                "org_unit_type": {
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": "2018-01-01",
-                },
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-        expected_parent = None
-        actual_parent = self.assertRequest("/service/ou/{}/".format(unitid))["parent"]
-        self.assertEqual(expected_parent, actual_parent)
-        roots.insert(
-            0,
-            {
-                "child_count": 0,
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/o/{}/children".format(orgid),
-            roots,
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
     def test_edit_time_planning(self):
-        self.load_sample_structures()
-
         org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
 
         self.assertRequestResponse(
@@ -2639,8 +2425,6 @@ class Tests(tests.cases.LoRATestCase):
         """Should fail validation when trying to move an org unit to one of
         its children"""
 
-        self.load_sample_structures()
-
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         req = {
@@ -2672,8 +2456,6 @@ class Tests(tests.cases.LoRATestCase):
         """Should fail validation when trying to move an org unit to the root
         level"""
 
-        self.load_sample_structures()
-
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         req = {
@@ -2701,8 +2483,6 @@ class Tests(tests.cases.LoRATestCase):
 
     def test_move_org_unit_should_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""
-
-        self.load_sample_structures()
 
         org_unit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
@@ -2732,7 +2512,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_move_org_autoparent(self):
         "Verify that we cannot create cycles when moving organisational units"
 
-        self.load_sample_structures(False)
         hum_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"  # parent
         fil_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"  # child
 
@@ -2763,8 +2542,6 @@ class Tests(tests.cases.LoRATestCase):
 
     def test_move_org_nowhere(self):
         "Verify that we cannot move units to places that don't exist"
-
-        self.load_sample_structures()
 
         org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
@@ -2834,7 +2611,6 @@ class Tests(tests.cases.LoRATestCase):
                 self.assertEqual(actual_parent, expected_parent)
 
         # Initial state: parent is "Overordnet Enhed"
-        self.load_sample_structures()
         assert_parent_is(overordnet_enhed, "2016-01-01")
 
         # Construct iterable of changes, consisting of tuples of (parent uuid,
@@ -2853,8 +2629,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_edit_org_unit_should_fail_validation_when_end_before_start(self):
         """Should fail validation when trying to edit an org unit with the
         to-time being before the from-time"""
-
-        self.load_sample_structures()
 
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
@@ -2906,8 +2680,6 @@ class Tests(tests.cases.LoRATestCase):
         ]
     )
     def test_terminate_org_unit(self, inactive_validity, expected_validity):
-        self.load_sample_structures()
-
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": inactive_validity}
 
@@ -3020,7 +2792,6 @@ class Tests(tests.cases.LoRATestCase):
         ]
     )
     def test_terminate_org_unit_invalid_uuid(self, validity):
-        self.load_sample_structures()
         unitid = "00000000-0000-0000-0000-000000000000"
         self.assertRequestResponse(
             "/service/ou/{}/terminate".format(unitid),
@@ -3099,7 +2870,6 @@ class Tests(tests.cases.LoRATestCase):
     def test_terminate_org_unit_active_children_and_roles(
         self, org_unit_uuid, validity, expected_error_response
     ):
-        self.load_sample_structures()
         self.assertRequestResponse(
             "/service/ou/{}/terminate".format(org_unit_uuid),
             {"error": True, "status": 400, **expected_error_response},
@@ -3109,8 +2879,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_terminate_org_unit_validations_other(self):
-        self.load_sample_structures()
-
         unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
         unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
@@ -3200,7 +2968,6 @@ class Tests(tests.cases.LoRATestCase):
         expected_error_response,
         message,
     ):
-        self.load_sample_structures()
         self.assertRequestResponse(
             "/service/ou/{}/terminate".format(org_unit_uuid),
             {"error": True, "status": 400, **expected_error_response},
@@ -3211,8 +2978,186 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_tree(self):
-        self.load_sample_structures()
-
         for path, expected in util.get_fixture("test_trees.json").items():
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
+
+
+@pytest.mark.usefixtures("sample_structures_minimal")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class TestsMinimal(tests.cases.LoRATestCase):
+    maxDiff = None
+
+    def test_read_root(self):
+        self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
+            {
+                "location": "",
+                "name": "Overordnet Enhed",
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "time_planning": None,
+                "org_unit_level": None,
+                "org_unit_type": {
+                    "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
+                    "name": "Afdeling",
+                    "owner": None,
+                    "scope": None,
+                    "top_level_facet": org_unit_type_facet,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "user_settings": {"orgunit": {}},
+                "parent": None,
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+            },
+        )
+
+    def test_create_root_unit(self):
+        unitid = "00000000-0000-0000-0000-000000000000"
+        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+        roots = [
+            {
+                "child_count": 0,
+                "name": "Overordnet Enhed",
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {"from": "2016-01-01", "to": None},
+            },
+        ]
+
+        with self.subTest("prerequisites"):
+            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
+
+        self.assertRequestResponse(
+            "/service/ou/create",
+            unitid,
+            json={
+                "name": "Fake Corp",
+                "uuid": unitid,
+                "user_key": "fakefakefake",
+                "parent": {
+                    "uuid": orgid,
+                },
+                "time_planning": None,
+                "org_unit_type": {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01",
+                },
+            },
+            amqp_topics={"org_unit.org_unit.create": 1},
+        )
+
+        self.assertRequestResponse(
+            "/service/ou/{}/".format(unitid),
+            {
+                "location": "",
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "org": {"name": "Aarhus Universitet", "user_key": "AU", "uuid": orgid},
+                "time_planning": None,
+                "org_unit_type": {
+                    "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
+                    "name": "Afdeling",
+                    "owner": None,
+                    "scope": None,
+                    "top_level_facet": org_unit_type_facet,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "org_unit_level": None,
+                "parent": None,
+                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
+                "user_settings": {"orgunit": {}},
+            },
+            amqp_topics={"org_unit.org_unit.create": 1},
+        )
+
+        roots.insert(
+            0,
+            {
+                "child_count": 0,
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
+            },
+        )
+
+        self.assertRequestResponse(
+            "/service/o/{}/children".format(orgid),
+            roots,
+            amqp_topics={"org_unit.org_unit.create": 1},
+        )
+
+    def test_create_root_unit_without_org_id(self):
+        unitid = "00000000-0000-0000-0000-000000000000"
+        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
+
+        roots = [
+            {
+                "child_count": 0,
+                "name": "Overordnet Enhed",
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {"from": "2016-01-01", "to": None},
+            },
+        ]
+
+        with self.subTest("prerequisites"):
+            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
+
+        self.assertRequestResponse(
+            "/service/ou/create",
+            unitid,
+            json={
+                "name": "Fake Corp",
+                "uuid": unitid,
+                "user_key": "fakefakefake",
+                "time_planning": None,
+                "org_unit_type": {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                    "to": "2018-01-01",
+                },
+            },
+            amqp_topics={"org_unit.org_unit.create": 1},
+        )
+        expected_parent = None
+        actual_parent = self.assertRequest("/service/ou/{}/".format(unitid))["parent"]
+        self.assertEqual(expected_parent, actual_parent)
+        roots.insert(
+            0,
+            {
+                "child_count": 0,
+                "name": "Fake Corp",
+                "user_key": "fakefakefake",
+                "uuid": unitid,
+                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
+            },
+        )
+
+        self.assertRequestResponse(
+            "/service/o/{}/children".format(orgid),
+            roots,
+            amqp_topics={"org_unit.org_unit.create": 1},
+        )

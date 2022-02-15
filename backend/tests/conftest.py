@@ -12,6 +12,7 @@ from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
 from mora.api.v1.models import Validity
+from tests.util import load_sample_structures, _mox_testing_api
 from tests.hypothesis_utils import validity_model_strat
 
 h_db = InMemoryExampleDatabase()
@@ -62,3 +63,24 @@ def aioresponses():
     """Pytest fixture for aioresponses."""
     with aioresponses_() as aior:
         yield aior
+
+
+@pytest.fixture(scope="class")
+def testing_db():
+    _mox_testing_api("db-setup")
+    yield
+    _mox_testing_api("db-teardown")
+
+
+@pytest.fixture
+async def sample_structures(testing_db):
+    await load_sample_structures(minimal=False)
+    yield
+    _mox_testing_api("db-reset")
+
+
+@pytest.fixture
+async def sample_structures_minimal(testing_db):
+    await load_sample_structures(minimal=True)
+    yield
+    _mox_testing_api("db-reset")
