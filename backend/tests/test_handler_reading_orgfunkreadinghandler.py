@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import pytest
+
 import tests.cases
 from mora.handler.reading import OrgFunkReadingHandler
 from mora.lora import Connector
 
 
-class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
+@pytest.mark.usefixtures("sample_structures_minimal")
+class TestOrgFunkReadingHandler(tests.cases.NewAsyncLoRATestCase):
     def setUp(self):
         super().setUp()
         self._unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -13,7 +16,6 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
         self._args = self._connector, "ou", self._unitid
 
     async def test_get_search_fields(self):
-        await self.load_sample_structures(minimal=True)
         result = OrgFunkReadingHandler._get_search_fields("ou", self._unitid)
         self.assertDictEqual(
             result,
@@ -21,7 +23,6 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_get_from_type(self):
-        await self.load_sample_structures(minimal=True)
         result = await OrgFunkReadingHandler.get_from_type(*self._args)
         self.assertIsInstance(result, list)
         self.assertSetEqual(
@@ -30,7 +31,6 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_get_count(self):
-        await self.load_sample_structures(minimal=True)
         # This counts the 2 org funcs of type "tilknyttedeenheder"
         # ("rod <-> fil", "rod <-> hum")
         result = await OrgFunkReadingHandler.get_count(*self._args)

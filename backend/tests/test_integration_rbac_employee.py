@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from copy import deepcopy
 
+import pytest
 from parameterized import parameterized
 from starlette.status import (
     HTTP_200_OK,
@@ -30,11 +31,10 @@ URL_EDIT_DETAIL = "/service/details/edit"
 URL_TERMINATE_DETAIL = "/service/details/terminate"
 
 
-class TestCommon(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestCommon(tests.cases.NewLoRATestCase):
     def setUp(self):
         super().setUp()
-        self.load_sample_structures()
-
         self.create_owner_payload = jsonfile_to_dict(
             "tests/fixtures/rbac/create_employee_owner.json"
         )
@@ -54,11 +54,10 @@ class TestCommon(tests.cases.LoRATestCase):
         self.app.dependency_overrides[auth] = mock_auth()
 
 
-class TestCreateEmployee(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestCreateEmployee(tests.cases.NewLoRATestCase):
     def setUp(self):
         super().setUp()
-        self.load_sample_structures()
-
         self.create_employee_url = "/service/e/create"
 
         self.create_employee_payload = {
@@ -180,7 +179,8 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
         )
 
 
-class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestCreateEmployeeDetailViaOrgUnit(tests.cases.NewLoRATestCase):
     """
     When creating employee details in the frontend some details actually
     resides under an org unit, e.g. employment, role, association,...
@@ -190,7 +190,6 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.load_sample_structures()
         self.payload = jsonfile_to_dict(
             "tests/fixtures/rbac/create_employee_detail.json"
         )
@@ -594,11 +593,10 @@ class TestEditEmployeeDetail(TestCommon):
         )
 
 
-class TestMoveEmployment(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestMoveEmployment(tests.cases.NewLoRATestCase):
     def setUp(self) -> None:
         super().setUp()
-        self.load_sample_structures()
-
         # Move Erik Smidt Hansen from hum to samf
         self.move_single_employment_payload = jsonfile_to_dict(
             "tests/fixtures/rbac/move_employment.json"

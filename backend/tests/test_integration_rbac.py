@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import pytest
 from copy import deepcopy
 from datetime import datetime
 from parameterized import parameterized
@@ -67,11 +68,10 @@ def mock_auth(role: str = None, user_uuid: str = None):
     return fake_auth
 
 
-class TestCommon(tests.cases.LoRATestCase):
+@pytest.mark.usefixtures("sample_structures")
+class TestCommon(tests.cases.NewLoRATestCase):
     def setUp(self):
         super().setUp()
-
-        self.load_sample_structures()
 
         self.url_create = "/service/ou/create"
         self.url_create_detail = "/service/details/create"
