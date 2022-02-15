@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import Future
-from unittest.mock import MagicMock
 from uuid import UUID
 
 import freezegun
-import pytest
 from mock import call
 from mock import patch
 from more_itertools import one
@@ -19,7 +17,6 @@ from mora import mapping
 from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
-from mora.service import orgunit
 from mora.service.orgunit import _get_count_related
 from mora.service.orgunit import get_children
 from mora.service.orgunit import get_one_orgunit
@@ -184,33 +181,6 @@ class TestAddressLookup(tests.cases.TestCase):
                 "konsolider": "True",
             },
         )
-
-
-# TODO: MagicMock() er nok ikke vejen frem
-@pytest.fixture()
-def trigger_fetch_endpoint_trigger(monkeypatch):
-    # called = MagicMock()
-    # monkeypatch.setattr(http_trigger, "fetch_endpoint_trigger", called)
-    with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger"):
-        yield
-
-
-# TODO: Fix!
-@pytest.fixture()
-def trigger_http_sender(monkeypatch):
-    # called = MagicMock()
-    # monkeypatch.setattr(http_trigger, "http_sender")
-    with patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger"):
-        yield
-
-
-# TODO: Fix!
-@pytest.fixture()
-def trigger_get_one_orgunit(monkeypatch):
-    called = MagicMock()
-    monkeypatch.setattr(orgunit, "get_one_orgunit", called)
-    # with patch("mora.service.orgunit.get_one_orgunit"):
-    yield
 
 
 class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
