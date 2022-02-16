@@ -33,7 +33,7 @@ class KeycloakToken(BaseToken):
         """Attempt to parse incoming UUID as base64"""
         if uuid is not None:
             try:
-                uuid = UUID(bytes=b64decode(uuid))
+                uuid = UUID(bytes_le=b64decode(uuid))
             except (ValueError, binascii.Error):
                 pass
         return uuid

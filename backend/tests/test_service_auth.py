@@ -233,16 +233,16 @@ class TestTokenModel(tests.cases.TestCase):
     @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
     def test_uuid_parsed_correctly_uuid(self):
         token = KeycloakToken(
-            azp="mo-frontend", uuid="d29ac830-bbe0-ae42-82a8-1ae36943cb9e"
+            azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
         )
 
-        self.assertEqual("d29ac830-bbe0-ae42-82a8-1ae36943cb9e", str(token.uuid))
+        self.assertEqual("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e", str(token.uuid))
 
     @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
     def test_uuid_parsed_correctly_base64(self):
         token = KeycloakToken(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
-        self.assertEqual("d29ac830-bbe0-ae42-82a8-1ae36943cb9e", str(token.uuid))
+        self.assertEqual("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e", str(token.uuid))
 
     @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
     def test_uuid_parse_fails_on_garbage(self):
