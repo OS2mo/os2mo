@@ -11,7 +11,7 @@ de forskellige enheder.
 Dokumentation
 =============
 
-Dokumentationen for OS2mo kan findes på `Read The Docs <https://os2mo.readthedocs.io/>`_.
+Dokumentationen for OS2mo findes `her <https://rammearkitektur.docs.magenta.dk/os2mo/>`_.
 
 Dokumentation kan også bygges manuelt.
 Til dette anvendes `Sphinx <http://www.sphinx-doc.org/en/stable/index.html>`_.
