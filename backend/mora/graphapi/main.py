@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from asyncio import gather
 from datetime import datetime
+from datetime import timedelta
 from datetime import timezone
 from typing import Any
 from typing import cast
@@ -16,6 +17,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import parse_obj_as
+from pydantic import ValidationError
 from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
@@ -55,6 +57,7 @@ from mora.graphapi.schema import ITUser
 from mora.graphapi.schema import KLE
 from mora.graphapi.schema import Leave
 from mora.graphapi.schema import Manager
+from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import RelatedUnit
@@ -62,8 +65,6 @@ from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 
-
-UTC = timezone.utc
 
 # --------------------------------------------------------------------------------------
 # Reads Query
@@ -89,11 +90,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Address]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["address_loader"], uuids)
         return cast(list[Response[Address]], await get_addresses())
@@ -108,11 +107,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Association]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["association_loader"], uuids)
         return cast(list[Response[Association]], await get_associations())
@@ -127,11 +124,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Class]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["class_loader"], uuids)
         return cast(list[Response[Class]], await get_classes())
@@ -146,11 +141,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Employee]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["employee_loader"], uuids)
         return cast(list[Response[Employee]], await get_employees())
@@ -165,11 +158,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Engagement]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["engagement_loader"], uuids)
         return cast(list[Response[Engagement]], await get_engagements())
@@ -184,11 +175,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Facet]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["facet_loader"], uuids)
         return cast(list[Response[Facet]], await get_facets())
@@ -203,11 +192,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[ITSystem]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["itsystem_loader"], uuids)
         return cast(list[Response[ITSystem]], await get_itsystems())
@@ -222,11 +209,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[ITUser]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["ituser_loader"], uuids)
         return cast(list[Response[ITUser]], await get_itusers())
@@ -241,11 +226,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[KLE]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["kle_loader"], uuids)
         return cast(list[Response[KLE]], await get_kles())
@@ -258,11 +241,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Leave]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["leave_loader"], uuids)
         return cast(list[Response[Leave]], await get_leaves())
@@ -277,11 +258,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Manager]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["manager_loader"], uuids)
         return cast(list[Response[Manager]], await get_managers())
@@ -307,11 +286,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[OrganisationUnit]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["org_unit_loader"], uuids)
         return cast(list[Response[OrganisationUnit]], await get_org_units())
@@ -328,11 +305,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[RelatedUnit]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["rel_unit_loader"], uuids)
         return cast(list[Response[RelatedUnit]], await get_related_units())
@@ -347,11 +322,9 @@ class Query:
         info: Info,
         uuids: Optional[list[UUID]] = None,
         from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = UNSET,
     ) -> list[Response[Role]]:
-        if from_date is UNSET:
-            from_date = datetime.now(tz=UTC)
-        set_graphql_args(from_date, to_date)
+        set_date_interval(from_date, to_date)
         if uuids is not None:
             return await get_by_uuid(info.context["role_loader"], uuids)
         return cast(list[Response[Role]], await get_roles())
@@ -387,17 +360,48 @@ class Query:
 # --------------------------------------------------------------------------------------
 
 
+def set_date_interval(
+    from_date: Optional[datetime], to_date: Optional[datetime]
+) -> None:
+    """Set the date interval for GraphQL queries to support bitemporal lookups.
+
+    Args:
+        from_date: The lower bound of the request interval
+        to_date: The upper bound of the request interval
+
+    Raises:
+        ValueError: If lower bound is none and upper bound is unset
+        ValueError: If the interval is invalid, e.g. lower > upper
+    """
+    if from_date is UNSET:
+        from_date = datetime.now(tz=timezone.utc)
+    if to_date is UNSET:
+        if from_date is None:
+            raise ValueError(
+                "Cannot infer UNSET to_date from interval starting at -infinity"
+            )
+        to_date = from_date + timedelta(milliseconds=1)
+    try:
+        interval = OpenValidityModel(from_date=from_date, to_date=to_date)
+    except ValidationError as v_error:
+        # Pydantic errors are ugly in GraphQL so we get the msg part only
+        message = ", ".join([err["msg"] for err in v_error.errors()])
+        raise ValueError(message)
+
+    set_graphql_args(interval.dict())
+
+
 async def get_by_uuid(
     dataloader: DataLoader, uuids: list[UUID]
 ) -> list[Response[MOModel]]:
     """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
     Args:
-        dataloader (DataLoader): Strawberry dataloader to use.
-        uuids (list[UUID]): List of UUIDs to load.
+        dataloader: Strawberry dataloader to use.
+        uuids: List of UUIDs to load.
 
     Returns:
-        list[MOModel]: List of models found. We do not return None or duplicates.
+        List of objects found.
     """
     tasks = map(dataloader.load, set(uuids))
     results = await gather(*tasks)

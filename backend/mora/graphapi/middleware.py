@@ -7,19 +7,15 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from datetime import datetime
 from typing import Any
 from typing import Optional
 from typing import Union
 
-from pydantic import ValidationError
-from ramodels.mo import OpenValidity
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
 from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
-from strawberry.schema.execute import GraphQLError
 
 # --------------------------------------------------------------------------------------
 # Middleware
@@ -113,26 +109,9 @@ class GraphQLArgsPlugin(Plugin):
         return dict()
 
 
-def set_graphql_args(
-    from_date: Optional[datetime], to_date: Optional[datetime]
-) -> None:
-    """Set GraphQL args directly in the Starlette context.
-
-    Args:
-        from_date: The from date as defined in reads
-        to_date: The to date as defined in reads
-
-    Raises:
-        ValueError: If to date is greater than or equal to from date
-    """
-    try:
-        validity = OpenValidity(from_date=from_date, to_date=to_date)
-    except ValidationError as v_error:
-        # Pydantic errors are ugly in GraphQL so we get the msg part only
-        message = ", ".join([err["msg"] for err in v_error.errors()])
-        raise GraphQLError(message)
-
-    context["graphql_args"] = validity.dict()
+def set_graphql_args(args_dict: dict[str, Any]) -> None:
+    """Set GraphQL args directly in the Starlette context."""
+    context["graphql_args"] = args_dict
 
 
 def get_graphql_args() -> dict[str, Any]:

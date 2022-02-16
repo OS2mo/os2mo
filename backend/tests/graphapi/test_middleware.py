@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 import re
 from datetime import datetime
+from datetime import timedelta
 
 import freezegun
 import pytest
@@ -68,8 +69,9 @@ class TestMiddleware:
         assert data is not None
         assert errors is None
         assert "from_date", "to_date" in graphql_args
-        assert graphql_args["from_date"] == datetime.now(tz=tzutc()).isoformat()
-        assert graphql_args["to_date"] is None
+        now = datetime.now(tz=tzutc())
+        assert graphql_args["from_date"] == now.isoformat()
+        assert graphql_args["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
 
     @given(dates=st.builds(OpenValidity))
     def test_graphql_args_explicit(self, graphapi_test, dates):
@@ -134,10 +136,25 @@ class TestMiddleware:
                 error["message"],
             )
 
+        # Test the specific case where from is None and to is UNSET
+        response = graphapi_test_no_exc.post(
+            "/graphql",
+            json={"query": query, "variables": {"from_date": None}},
+        )
+        data, errors = response.json().get("data"), response.json().get("errors")
+        graphql_args = response.json()["extensions"]["graphql_args"]
+        assert data is None
+        assert errors is not None
+        for error in errors:
+            assert re.match(
+                r"Cannot infer UNSET to_date from interval starting at -infinity",
+                error["message"],
+            )
+
     def test_graphql_args_to_lora(self, graphapi_test):
         """Test that GraphQL arguments propagate to the LoRa connector."""
         response = graphapi_test.post(
-            "/graphql", json={"query": "{ employees { uuid } }"}
+            "/graphql", json={"query": "{ employees (to_date: null) { uuid } }"}
         )
         lora_args = response.json()["extensions"]["lora_args"]
         assert lora_args["virkningfra"] == datetime.now(tz=tzutc()).isoformat()
