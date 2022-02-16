@@ -536,3 +536,10 @@ async def does_employee_with_cpr_already_exist(
             exceptions.ErrorCodes.V_EXISTING_CPR,
             cpr=cpr,
         )
+
+
+@forceable
+async def is_mutually_exclusive(*values):
+    """Raise validation error if more than one of `values` is not None."""
+    if len([val for val in values if val is not None]) > 1:
+        exceptions.ErrorCodes.E_INVALID_INPUT(values)

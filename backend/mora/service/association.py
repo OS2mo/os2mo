@@ -9,15 +9,26 @@ This section describes how to interact with employee associations.
 
 """
 import uuid
-from typing import Any, Dict
+from datetime import date
+from typing import Any
+from typing import Dict
+from typing import Optional
+
+from structlog import get_logger
 
 from . import handlers
 from . import org
 from .validation import validator
-from .. import common, conf_db
+from ..service.itsystem import ItsystemRequestHandler
+from ..service.facet import get_classes_under_facet
+from .. import common
+from .. import conf_db
 from .. import lora
 from .. import mapping
 from .. import util
+
+
+logger = get_logger()
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
@@ -56,11 +67,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {})
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = (
-            await org.get_configured_organisation(
-                util.get_mapping_uuid(req, mapping.ORG, required=False)
-            )
-        )["uuid"]
+        org_ = await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)
+        )
+        org_uuid = org_["uuid"]
 
         association_type_uuid = util.get_mapping_uuid(
             req, mapping.ASSOCIATION_TYPE, required=True
@@ -72,14 +82,15 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = util.get_mapping_uuid(req, mapping.PRIMARY)
-
         substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
+        job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
+        it_user = util.checked_get(req, mapping.IT, {})
 
         # Validation
         # remove substitute if not needed
+        await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
         if substitute_uuid:  # substitute is specified
             validator.is_substitute_allowed(association_type_uuid)
-
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
             await validator.is_date_range_in_employee_range(
@@ -93,7 +104,14 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
 
-        association = common.create_organisationsfunktion_payload(
+        if substitute_uuid:
+            rel_orgfunc_uuids = [substitute_uuid]
+        elif job_function_uuid:
+            rel_orgfunc_uuids = [job_function_uuid]
+        else:
+            rel_orgfunc_uuids = []
+
+        payload_kwargs = dict(
             funktionsnavn=mapping.ASSOCIATION_KEY,
             primær=primary,
             valid_from=valid_from,
@@ -103,9 +121,37 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             tilknyttedeklasser=dynamic_classes,
-            tilknyttedefunktioner=[substitute_uuid] if substitute_uuid else [],
+            tilknyttedefunktioner=rel_orgfunc_uuids,
             funktionstype=association_type_uuid,
         )
+
+        if it_user:
+            it_user_system = util.checked_get(
+                it_user,
+                mapping.ITSYSTEM,
+                {},
+                required=True,
+            )
+            it_user_system_uuid = util.get_uuid(it_user_system, required=True)
+            it_user_is_primary = bool(
+                util.checked_get(it_user, mapping.PRIMARY, True, required=True)
+            )
+            it_user_username = it_user[mapping.USER_KEY]
+            it_system_binding_uuid = await _create_it_system_binding(
+                org_uuid=org_uuid,
+                org_unit_uuid=org_unit_uuid,
+                employee_uuid=employee_uuid,
+                it_system_uuid=it_user_system_uuid,
+                primary=it_user_is_primary,
+                user_key=it_user_username,
+                valid_from=valid_from,
+                valid_to=valid_to,
+            )
+            # Create relation between the IT system binding and the association, making
+            # the association an "IT association."
+            payload_kwargs["tilknyttedeitsystemer"] = [it_system_binding_uuid]
+
+        association = common.create_organisationsfunktion_payload(**payload_kwargs)
 
         self.payload = association
         self.uuid = func_id
@@ -299,3 +345,46 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_value = {}
 
         await super().prepare_terminate(request)
+
+
+async def _create_it_system_binding(
+    org_uuid: uuid.UUID,
+    org_unit_uuid: uuid.UUID,
+    employee_uuid: uuid.UUID,
+    it_system_uuid: uuid.UUID,
+    primary: bool,
+    user_key: str,
+    valid_from: Optional[date] = None,
+    valid_to: Optional[date] = None,
+) -> uuid.UUID:
+    "Create an IT system binding, using the `ItsystemRequestHandler` class."
+
+    # Figure out the UUIDs of facet "primary_type"
+    primary_classes = await get_classes_under_facet(
+        org_uuid,
+        "primary_type",
+        only_primary_uuid=False,
+    )
+    primary_uuid_lookup = {
+        cls[mapping.USER_KEY]: cls[mapping.UUID]
+        for cls in primary_classes[mapping.DATA]["items"]
+    }
+    primary_uuid = primary_uuid_lookup["primary" if primary else "not_primary"]
+
+    # Build request for the `ItsystemRequestHandler`
+    request = {
+        mapping.ORG_UNIT: {mapping.UUID: str(org_unit_uuid)},
+        mapping.PERSON: {mapping.UUID: str(employee_uuid)},
+        mapping.ITSYSTEM: {mapping.UUID: str(it_system_uuid)},
+        mapping.PRIMARY: {mapping.UUID: str(primary_uuid)},
+        mapping.USER_KEY: user_key,
+        mapping.VALIDITY: {
+            mapping.FROM: util.to_iso_date(valid_from),
+            mapping.TO: util.to_iso_date(valid_to, is_end=True),
+        },
+    }
+    # Prepare and submit request
+    handler = ItsystemRequestHandler(request, mapping.RequestType.CREATE)
+    await handler.prepare_create(request)
+    it_system_binding_uuid = await handler.submit()
+    return it_system_binding_uuid

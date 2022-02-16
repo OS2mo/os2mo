@@ -357,6 +357,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "user_key": "bvn",
             "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
             "validity": {"from": "2017-01-01", "to": "2017-11-30"},
+            "it": None,
+            "job_function": None,
         }
 
         await self.assertRequestResponse(
