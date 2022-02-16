@@ -1,223 +1,95 @@
----
-title: 'Docker-miljø'
----
+# Docker Environment
 
-Denne side beskriver opsætning at et Docker baseret udviklingsmiljø.
-Hvis du vil installerer fra kildekoden, se
-`install-source`{.interpreted-text role="ref"}.
+## Getting Started
+OS2mo is primarily developed using [Docker](https://www.docker.com/). Follow the
+[official installation guide](https://docs.docker.com/engine/install/) for your operating system to set it up. It is
+recommended to enable [managing Docker as a non-root user](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
+to ease usage.
 
-!!! tip
-    TL;DR: for at få et udviklingsmiljø, kør:
+Additionally, distributed development of the application is empowered through the use of the [git](https://git-scm.com/)
+version control system. It should also be [installed](https://git-scm.com/downloads) for any developer who wishes to
+contribute to the project.
 
-    ``` {.bash}
-    git clone git@git.magenta.dk:rammearkitektur/os2mo.git # Or https://github.com/OS2mo/os2mo.git
-    cd os2mo
-    docker-compose up -d --build
-    ```
-
-## Docker
-
-Repositoriet inderholder en `Dockerfile`{.interpreted-text role="file"}.
-Det er den anbefalede måde at installere OS2MO i produktion og som
-udvikler.
-
-Alle releases bliver sendt til Docker Hub på
-[magentaaps/os2mo](https://hub.docker.com/r/magentaaps/os2mo) under
-tagget `latest`. Tagget `dev-latest` indeholder det seneste byg af
-`development` branchen.
-
-For at køre OS2MO i docker, skal du have en kørende docker instans. For
-installationen af denne, referere vi til [den officielle
-dokumentation](https://docs.docker.com/install/). Alternativt er her
-`en kort guide til
-Ubuntu's<docker-install>`{.interpreted-text role="ref"}.
-
-Containeren kræver en forbindelse til en [LoRa
-instans](https://github.com/magenta-aps/mox). Den kan sættes via
-`indstillingen
-<settings>`{.interpreted-text role="ref"} `[lora] url`. Desuden kræves
-enten en forbindelse til Serviceplatformen som indstilles under
-`[service_platformen]`. Alternativt kan OS2MO lave en attrap af
-Serviceplatformen. Det gøres ved at sætte indstillingen
-`dummy_mode = true`.
-
-Disse indstillinger laves i en TOML fil der bindes til
-`/user-settings.toml` i containeren.
-
-For at starte en OS2MO container køres følgende:
-
-``` {.bash}
-docker run -p 5000:80 -v /path/to/user-settings.toml:/user-settings.toml magentaaps/os2mo:latest
-```
-
-Den henter docker imaget fra Docker Hub og starter en container i
-forgrunden. `-p 5000:80` [binds
-port](https://docs.docker.com/engine/reference/commandline/run/#publish-or-expose-port--p---expose)
-`5000` på host maskinen til port `80` i containeren. `-v`
-[binder](https://docs.docker.com/engine/reference/commandline/run/#mount-volume--v---read-only)
-`/path/to/user-settings.toml` på host maskinen til `/user-settings.toml`
-inde i containeren.
-
-Hvis serveren starter rigtigt op skulle du kunne tilgå den på fra din
-host maskine på `http://localhost:5000`.
-
-### Brugerrettigheder
-
-`Dockerfile`{.interpreted-text role="file"} laver en `mora` brugerkonto
-der kører applikationen. Brugerkonto ejer alle filer lavet af
-applikationen. Brugerkontoen har `UID` og `GID` på 72020.
-
-Hvis du vil kører under en anden `UID/GID`, kan du specificere det med
-`--user=uid:gid`
-[flaget](https://docs.docker.com/engine/reference/run/#user) til
-`docker run` eller [i
-docker-compose](https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir).
-
-## Docker-compose
-
-
-Du kan bruge `docker-compose` til at starte OS2MO, LoRa og relaterede
-services op.
-
-En `docker-compose.yml`{.interpreted-text role="file"} til udvikling er
-inkluderet. Den starter automatisk OS2MO og
-[LoRa](https://github.com/magenta-aps/mox) med tilhørende
-[postgres](https://hub.docker.com/_/postgres) op. Den sætter desuden
-også indstillinger til at forbinde dem. Den starter også en Vue.js
-udviklingsserver op. Se mere under
-`frontend-udvikling`{.interpreted-text role="ref"}.
-
-Din host maskines `./backend`{.interpreted-text role="file"} bliver også
-mounted til den tilsvarende mappe inde i backend containeren. Serveren
-bliver automatisk genstart ved kodeændringer.
-
-For at hente og bygge images og starte de fem services, kør:
-
-``` {.bash}
+After installing the required dependencies, the OS2mo development stack, and all necessary services, can be started by
+executing the following commands:
+```bash
+git clone git@git.magenta.dk:rammearkitektur/os2mo.git  # or https://github.com/OS2mo/os2mo.git
+cd os2mo
 docker-compose up -d --build
 ```
 
-`-d` flaget starter servicene i baggrunden. Du kan se outputtet af dem
-med `docker-compose logs <name>` hvor `<name>` er navnet på servicen i
-`docker-compose.yml`{.interpreted-text role="file"}. `--build` flaget
-bygger den nyeste version af OS2MO imageet fra den lokale
-`Dockerfile`{.interpreted-text role="file"}. Hvis det ikke bliver
-angivet, starter containerne meget hurtigere op, men ændringer til andet
-end python filer kommer ikke med. Det er specielt relevant hvis du ændre
-i `requirements.txt`{.interpreted-text role="file"} eller bruger
-`git {rebase, pull, merge}`.
+This starts the following services:
 
-For at stoppe servicene igen, kør `docker-compose stop`. Servicene vil
-blive stoppet, men datane vil blive bevaret. For helt at fjerne
-containerne og datane , kør `docker-compose down -v`.
+ - OS2mo frontend: http://localhost:5001.
+ - OS2mo backend: http://localhost:5000.
+ - LoRa: http://localhost:8080.
+ - Keycloak: http://localhost:8081/auth/admin/.
+ - Grafana: http://localhost:3000.
 
-Efter servicene er startet op kan du se dem på følgende porte på din
-hostmaskine:
+The `-d` flag runs the services in the background; to see the output of a container, run `docker-compose logs <name>`,
+where `<name>` is the name of the service from `docker-compose.yml`. Furthermore, the `backend/` directory on the host
+machine is mounted into the OS2mo backend container, which enables automatic reloading of the server on changes to the
+code.
 
-<http://localhost:5001>
+Development of the frontend code should be done using the OS2mo frontend service on port `5001`, as changes to the
+`frontend/` directory are automatically reloaded using `vue-cli-service serve`. The frontend container proxies all API
+requests to the backend.
 
-:   Frontend udviklingsserveren. Denne opdateres ved kodeændringer til
-    frontenden. Se `frontend-udvikling`{.interpreted-text role="ref"}.
-
-<http://localhost:5000>
-
-:   OS2MO backend og frontend. Denne opdateres *ikke* ved kodeændringer
-    til frontenden, men opdatere ved kodeændringer til backenden.
-
-<http://localhost:8080>
-
-:   LoRa
-
-## Frontend udvikling
-
-
-Du kan tilgå frontend på port `5000`. Denne frontend er det
-produktionsklare byg fra der sidst blev kørt `docker-compose build`
-eller `docker-compose up --build`. Den bliver altså *ikke* opdateret ved
-kodeændringer under `frontend/`{.interpreted-text role="file"}.
-
-For at udvikle på frontend, har `docker-compose.yml`{.interpreted-text
-role="file"} en service med navnet [frontend]{.title-ref} der kører
-`vue-cli-service serve`. Den er bundet til port `5001`. Til denne
-service er `frontend/`{.interpreted-text role="file"} mountet ind og
-servicen sørger for at opdatere ved kodeændringer i denne.
-
-Forespørgelser til `/service` og `/saml` bliver proxyed videre til
-backenden i [mo]{.title-ref} containeren.
-
-## Docker installation på Ubuntu
-
-
-[Den officielle dokumentation til
-Docker](https://docs.docker.com/install/) indeholder udførlig
-dokumentation for installering på all platforme. Den kan dog være svær
-at navigere. Derfor er her en kort guide til at installere nyeste
-version af Docker og docker-compose på Ubuntu:
-
-``` {.bash}
-sudo apt-get update
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
-sudo add-apt-repository \
-"deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-$(lsb_release -cs) \
-stable"
-
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
+To bring down the stack, run
+```bash
+docker-compose down
 ```
+which stops the services but persists the data. Add the `-v` flag to also remove all data.
+
+
+## Feature Flags
+Customising the behaviour of the application is primarily done through _feature flags_, which are implemented through
+[environment variables](https://12factor.net/config). To add or change environment variables, the file
+`docker-compose.override.yml` is used. This optional file is developer-specific, and therefore not versioned in git,
+and is [read by default](https://docs.docker.com/compose/extends/) when using `docker-compose up`. The override file,
+as its name implies, can contain configuration overrides for existing services or entirely new services. If a service is
+defined in both the override and main `docker-compose.yml` files, `docker-compose`
+[merges](https://docs.docker.com/compose/extends/#adding-and-overriding-configuration) the configurations.
+
+As an example, this functionality can be used to disable authentication for OS2mo by creating a file
+`docker-compose.override.yml` with the following content:
+```yaml
+services:
+  mo:
+    environment:
+      OS2MO_AUTH: "false"
+```
+
+## Importing Fixture Data
+By default, the OS2mo instance is completely void of any data. To encourage play, fixture data can easily be loaded into
+the application by augmenting the startup command as follows:
+```bash
+# Stop the stack, removing any attached volumes
+docker-compose down -v
+
+# Start the stack, loading the 'kolding' fixture dataset of approximately 900 employees
+FIXTURE=kolding docker-compose -f docker-compose.yml -f docker-compose.fixture.yml [-f docker-compose.override.yml] up -d --build
+```
+If the `FIXTURE` environment variable is unset, the default `kolding` fixture will be used. For a list of supported
+fixtures, see the [OS2mo Fixture Loader repo](https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader). Note that
+`-f docker-compose.override.yml` is optional, and should only be set if such configuration is used.
+
 
 ## Troubleshooting
 
-
-### Container `os2mo_mo_1` fejler
-
-
-Du har forsøgt at bygge og starte services med `docker-compose up`, men
-processen fejler med denne besked: 
-```
-mo_1 | rabbitmq is unavailable - attempt 120/120 os2mo_mo_1 exited with code 1
-```
-
-**Mulig løsning** Prøv at fjerne gamle images med `docker system prune`,
-genstart Docker og forsøg igen.
-
-### Container `os2mo_frontend_1` fejler med timeout
-
-
-Du har forsøgt at bygge og starte services med `docker-compose up`, men
-processen fejler med denne besked:
-
+### Docker Compose Timeout
+**Problem**: `docker-compose up` fails with something resembling
 ```
 ERROR: for os2mo_frontend_1
 UnixHTTPConnectionPool(host='localhost', port=None): Read timed out.
 (read timeout=60)
 ```
-
-**Mulig løsning** Prøv at justere miljøvariablen for timeout og forsøg
-igen. F.eks. med:
-
+**Possible solution**: Adjust the environment variable `COMPOSE_HTTP_TIMEOUT` as follows:
 ```bash
 env COMPOSE_HTTP_TIMEOUT=300 docker-compose up -d --build
 ```
 
-### Opstart fejler ved `Building mo`
-
-
-Du har forsøgt at bygge og starte services med `docker-compose up`, men
-processen fejler med denne besked: 
-
+Alternatively, add the configuration to `.env` for future use:
+```bash
+echo 'COMPOSE_HTTP_TIMEOUT=300' >> .env
 ```
-ERROR [internal] load metadata for
-docker.io/tiangolo/uvicorn-gunicorn-fastapi:python3.8
-```
-
-**Mulige løsninger** Det kan skyldes et netværksproblem. Check
-forbindelse og prøv igen.
-
-Hvis din host maskine er macOS 11.0+, kan det skyldes at Docker er sat
-op til at benytte `virtualization.framework`. Åbn indstillinger for
-Docker Desktop og fjern afkrydsning ved "Use new virtualization
-framework" under "Experimental Features". Genstart Docker og forsøg
-igen.
