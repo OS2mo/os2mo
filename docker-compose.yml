@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-version: "3.9"
 services:
-  the-kolding-profile-is-deprecated--please-use-the-fixture-profile-instead:
+  the-kolding-profile-is-deprecated--please-see-docker-compose-fixture-yml-for-the-new-format:
     image: scratch
     command: ["fail"]
     profiles:
@@ -362,24 +361,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 300s
-
-  fixture-loader:
-    # Usage:
-    # docker-compose --profile=fixture up -d --build - defaults to 'kolding'
-    # FIXTURE=aalborg docker-compose --profile=fixture up -d --build
-    # Supported fixtures: https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
-    image: magentaaps/os2mo-fixture-loader:0.0.2
-    command: ["${FIXTURE:-kolding}"]
-    environment:
-      PGHOST: mox-db
-      PGDATABASE: mox
-      PGUSER: postgres
-      PGPASSWORD: mysecretpassword
-    depends_on:
-      mox:
-        condition: service_healthy
-    profiles:
-      - fixture
 
   amqp-metrics:
     image: magentaaps/os2mo-amqp-trigger-metrics:latest
