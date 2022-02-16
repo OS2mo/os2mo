@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+3.32.1 - 2022-02-16
+-------------------
+
+[#47844] Parse Base64 auth UUID as little endian bytes, as that is what is sent
+to us from ADFS
+
 3.32.0 - 2022-02-15
 -------------------
 
