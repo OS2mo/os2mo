@@ -14,6 +14,7 @@ from typing import Any, Awaitable, Dict, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter
+from structlog import get_logger
 
 from . import handlers
 from . import org
@@ -28,6 +29,8 @@ from mora.request_scoped.bulking import request_wide_bulk
 from ..triggers import Trigger
 
 router = APIRouter()
+
+logger = get_logger()
 
 MO_OBJ_TYPE = Dict[str, Any]
 
@@ -62,6 +65,8 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         func_id = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
+        primary = util.get_mapping_uuid(req, mapping.PRIMARY)
+
         # Validation
         if org_unit:
             await validator.is_date_range_in_org_unit_range(
@@ -78,6 +83,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
         func = common.create_organisationsfunktion_payload(
             funktionsnavn=mapping.ITSYSTEM_KEY,
+            primær=primary,
             valid_from=valid_from,
             valid_to=valid_to,
             brugervendtnoegle=bvn,
@@ -87,6 +93,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeitsystemer=[systemid],
         )
 
+        #logger.info(event="payload", payload=func)
         self.payload = func
         self.uuid = func_id
         self.trigger_dict.update(

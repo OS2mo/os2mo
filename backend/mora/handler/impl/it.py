@@ -18,7 +18,7 @@ logger = get_logger()
 
 
 @reading.register(ROLE_TYPE)
-class RoleReader(reading.OrgFunkReadingHandler):
+class ItSystemBindingReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ITSYSTEM_KEY
 
     @classmethod
