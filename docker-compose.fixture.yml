@@ -14,7 +14,7 @@ services:
         condition: service_completed_successfully
 
   fixture-loader:
-    image: magentaaps/os2mo-fixture-loader:0.0.3
+    image: magentaaps/os2mo-fixture-loader:0.1.0
     command: ["${FIXTURE:-kolding}"]
     environment:
       PGHOST: mox-db
