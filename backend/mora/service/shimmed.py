@@ -1,98 +1,88 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
+from datetime import date
+from datetime import datetime
 from typing import Any
-from typing import Dict
 from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
 from more_itertools import flatten
 from more_itertools import one
+from pydantic import root_validator
+from ramodels.mo import EmployeeRead
+from ramodels.mo import OrganisationRead
 
-from .. import exceptions
-from ..graphapi.shim import execute_graphql
+from mora import exceptions
+from mora.graphapi.shim import execute_graphql
 from mora.service.employee import router as employee_router
 from mora.service.itsystem import router as it_router
+
+# --------------------------------------------------------------------------------------
+# Auxiliary functions
+# --------------------------------------------------------------------------------------
 
 
 def flatten_data(resp_dict: dict[str, Any]):
     return list(flatten([d["objects"] for d in resp_dict]))
 
 
-@employee_router.get("/e/{id}/")
-async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
-    """Retrieve an employee.
+# --------------------------------------------------------------------------------------
+# Shimmed endpoints
+# --------------------------------------------------------------------------------------
 
-    .. :quickref: Employee; Get
 
-    :queryparam date at: Show the employee at this point in time,
-        in ISO-8601 format.
+class MOEmployee(EmployeeRead):
+    name: str
+    nickname: str
+    org: OrganisationRead
+    validity: Optional[Any]  # not part of the "old" MO response
 
-    :<json string name: Full name of the employee (concatenation
-        of givenname and surname).
-    :<json string givenname: Given name of the employee.
-    :<json string surname: Surname of the employee.
-    :<json string nickname: Nickname of the employee (concatenation
-        of the nickname givenname and surname).
-    :<json string nickname_givenname: The given name part of the nickname.
-    :<json string nickname_surname: The surname part of the nickname.
-    :>json string uuid: Machine-friendly UUID.
-    :>json object org: The organisation that this employee belongs to, as
-        yielded by http:get:`/service/o/`.
-    :>json string cpr_no: CPR number of for the corresponding person.
-        Please note that this is the only means for obtaining the CPR
-        number; due to confidentiality requirements, all other end
-        points omit it.
+    @root_validator(pre=True)
+    def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
+        # noop overriding parent method - we need name & nickname
+        return values
 
-    :status 200: Whenever the user ID is valid and corresponds to an
-        existing user.
-    :status 404: Otherwise.
 
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     {
-       "cpr_no": "0708522600",
-       "name": "Bente Pedersen",
-       "givenname": "Bente",
-       "surname": "Pedersen",
-       "nickname": "Kjukke Mimergolf",
-       "nickname_givenname": "Kjukke",
-       "nickname_surname": "Mimergolf",
-       "org": {
-         "name": "Hj\u00f8rring Kommune",
-         "user_key": "Hj\u00f8rring Kommune",
-         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
-       },
-       "user_key": "2ba3feb8-9617-43c1-8502-e55a2b283c58",
-       "uuid": "c9eaffad-971e-4c0c-8516-44c5d29ca092"
-     }
-
-    """
+@employee_router.get(
+    "/e/{id}/",
+    response_model=Union[MOEmployee, UUID],
+    response_model_exclude_unset=True,
+)
+async def get_employee(
+    id: UUID,
+    only_primary_uuid: Optional[bool] = None,
+    at: Optional[Union[date, datetime]] = None,
+):
+    """Retrieve an employee."""
     if only_primary_uuid:
         query = """
-        query EmployeeQuery($uuid: UUID!) {
-          employees(uuids: [$uuid]) {
+            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
+              employees(uuids: [$uuid], from_date: $from_date) {
             objects { uuid }
           }
         }
         """
 
-        def transformer(data: Dict[str, Any]) -> Dict[str, Any]:
-            employees = flatten_data(r.data["employees"])
+        def transformer(data: dict[str, Any]) -> dict[str, Any]:
+            employees = flatten_data(data["employees"])
             employee = one(employees)
             return employee
 
     else:
         query = """
-        query EmployeeQuery($uuid: UUID!) {
-          employees(uuids: [$uuid]) {
+            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
+                employees(uuids: [$uuid], from_date: $from_date) {
             objects {
               uuid, user_key, cpr_no
               givenname, surname, name
               nickname_givenname, nickname_surname, nickname
-              seniority
+                        seniority
             }
           }
           org {
@@ -101,18 +91,22 @@ async def get_employee(id: UUID, only_primary_uuid: Optional[bool] = None):
         }
         """
 
-        def transformer(data: Dict[str, Any]) -> Dict[str, Any]:
-            employees = flatten_data(r.data["employees"])
+        def transformer(data: dict[str, Any]) -> dict[str, Any]:
+            employees = flatten_data(data["employees"])
             employee = one(employees)
             return {
                 **employee,
                 "org": r.data["org"],
             }
 
+    dates = dict()
+    if at is not None:
+        dates["from_date"] = at
+    variables = {"uuid": id, **dates}
     # Execute GraphQL query to fetch required data
     r = await execute_graphql(
         query,
-        variable_values={"uuid": str(id)},
+        variable_values=jsonable_encoder(variables),
     )
     if r.errors:
         raise ValueError(r.errors)
