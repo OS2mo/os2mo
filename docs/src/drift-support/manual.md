@@ -4,39 +4,43 @@ title: MO manual
 
 ## Introduktion
 
-OS2mo er bygget til at håndtere en eller flere organisationer (løn, administrativ, økonomi, MED/AMR mv.), dens medarbejdere og andre tilknyttede personer (eksterne konsulenter, praktikanter, mv.).
+OS2mo er bygget til at håndtere en eller flere organisationer, dens medarbejdere og andre tilknyttede personer (eksterne konsulenter, praktikanter, mv.). Organisationstyperne kan fx være lønørganisationen, den administrative organisation, økonomiorganisationen, projektorganisationen, MED/AMR, mv.
 
-OS2mo implementerer den fællesoffentlige rammearkitektur og har to OIO-services implementeret (Organisation, Klassifikation).
+Det smarte ved OS2mo er, at samtlige organisationer og samtlige tilknyttede personer håndteres i én applikation. Alle oplysningerne kan sendes videre til andre systemer, således at disse grundlæggende oplysningerne altid er ens i alle systemer, der er forbundet til OS2mo, herunder fx organisationsdiagrammet:
 
-Dette dokument beskriver en række grundbegreber og -logikker samt den funktionalitet, der er indlejret i brugergrænsefladen, jf. hhttps://morademo.magentahosted.dk/ bruce/bruce
+![image](../graphics/momanual/orgviewer.png)
 
-Se [øvrig dokumentation](https://rammearkitektur.docs.magenta.dk/os2mo/index.html)
+Dette dokument beskriver en række grundbegreber og -logikker samt den funktionalitet, der er indlejret i brugergrænsefladen.
 
-For at få et overblik over hvilke [integrationer](https://rammearkitektur.docs.magenta.dk/os2mo/arkitektur-design/overview.html) der er udviklet.
+Se [øvrig dokumentation.](https://rammearkitektur.docs.magenta.dk/os2mo/index.html)
 
-Der findes også en [implementeringshåndbog](https://rammearkitektur.docs.magenta.dk/os2mo/drift-support/cookbook.html)
+For at få et overblik over hvilke [integrationer.](https://rammearkitektur.docs.magenta.dk/os2mo/arkitektur-design/overview.html) der er udviklet.
+
+Der findes også en [implementeringshåndbog.](https://rammearkitektur.docs.magenta.dk/os2mo/drift-support/cookbook.html)
 
 ## Overordnede begreber og fælles funktionalitet
 
 ### Organisation og Organisationsenhed
 
-En organisation er en juridisk enhed med rettigheder og ansvar. Eksempler på organisationer er myndigheder (fx et ministerium, en styrelse, en kommune), NGO'er eller virksomheder.
+En organisation er en juridisk enhed med rettigheder og ansvar. Eksempler på organisationer er myndigheder (fx et ministerium, en styrelse, en kommune), NGO'er og private virksomheder.
 
 En organisationsenhed er en del af en organisation og kan kun eksistere i forbindelse med denne. Eksempelvis kan et kontanthjælpskontor kun eksistere som en del af en kommune, og en it-afdeling eksisterer kun som en del af en virksomhed.
 
 ### Personer (medarbejder, praktikant, ekstern konsulent, etc.)
 
-En person er en digital repræsentation af en fysisk person. Personer hentes typisk fra lønsystemet eller CPR-Registret og er altid indplaceret i organisationsenhed.
+En person er en digital repræsentation af en fysisk person. Personer hentes typisk fra lønsystemet eller CPR-Registret og er altid indplaceret i en eller flere organisationsenheder.
 
 ### Dobbelthistorik og Fortid, Nutid og Fremtid
 
-[Dobbelthistorik](https://en.wikipedia.org/wiki/Bitemporal_Modeling), eller bitemporalitet, betyder, at både registreringstid og virkningstid håndteres:
+[Dobbelthistorik](https://en.wikipedia.org/wiki/Bitemporal_Modeling), eller bitemporalitet, betyder, at to tidsakser (registreringstid og virkningstid) håndteres:
 
-**Registreringstid** er tidspunktet for selve registreringen, fx oprettelsen af en enhed eller en medarbejder. Denne ’tid’ optræder ikke i brugergrænsefladen, men vil altid kunne spores i databasen.
+**Registreringstid** er tidspunktet for selve registreringen, fx oprettelsen af en enhed eller en medarbejder. Denne ’tid’ er ikke synlig i brugergrænsefladen, men vil altid kunne spores i databasen.
 
-**Virkningstid** er den periode, inden for hvilken registreringen er gyldig, fx at en enhed skal eksistere fra 1. januar 2020 til 31. december 2024.
+**Virkningstid** er den periode, inden for hvilken en registrering er gyldig, fx at en enhed eksisterer fra 1. januar 2020 til 31. december 2024.
 
-Det er altså i OS2mo muligt at have overblik over fortidige, nutidige og fremtidige registreringer vha. følgende tabs under hvert faneblad. Man kan altså se alle de ændringer der er foretaget over tid i brugergrænsefladen.
+Enheden 'IT-support kan altså oprettes på forhånd (den 3. januar 2022 = registreringstid), men først træde i kraft den 1. februar 2022 og ikke have nogen slutdato (1. februar til uendelig = virkningstid).
+
+Det er altså i OS2mo muligt at have overblik over fortidige, nutidige og fremtidige oplysninger, planlægge dem på forhånd og inspicere dem retrospekt. Alle oplysningerne er tilgængelige i de tre "tids-tabs", Fremtid, Nutid og Fremtid, under hvert faneblad. Man kan altså se alle de ændringer der er foretaget over tid i brugergrænsefladen.
 
 ![image](../graphics/momanual/fortidnutidfremtid.png)
 
@@ -46,7 +50,7 @@ Det er altså i OS2mo muligt at have overblik over fortidige, nutidige og fremti
 
 ![image](../graphics/momanual/Afslut.png)
 
-Det er muligt at afslutte en registrering, sådan at fx en medarbejders engagement i organisationen bliver bragt til ophør på en specifik dato og vedkommendes konti i andre systemer (fx Active Directory) bliver nedlagt. Når datoen for afslutningen af ansættelsen oprinder, vil medarbejderens engagement flytte sig fra Nutid til Fortid.
+Det er muligt at afslutte en registrering, sådan at fx en medarbejders engagement i organisationen bliver bragt til ophør på en specifik dato, og vedkommendes konti i andre systemer (fx Active Directory) bliver nedlagt. Når datoen for afslutningen af ansættelsen oprinder, vil medarbejderens engagement flytte sig fra Nutid til Fortid og blive inaktivt.
 
 **Redigér**
 
@@ -54,28 +58,25 @@ Det er muligt at afslutte en registrering, sådan at fx en medarbejders engageme
 
 Det er muligt at redigere en registrering for at ændre en af registreringens oplysninger. Det kan fx være, at et telefonnummer skal redigeres, eller en tilknytningstype skal ændres. Hvis den nye tilknytningstype skal være gældende fra i dag, vil den gamle tilknytningstype rykke ned under Fortidstabben, og den ny tilknytningstype vil være gældende og at finde under Nutidstabben. På den måde er der synlig historik på alle de ændringer, man foretager.
 
-I eksemplet nedenfor har Marie tilknytningen "Projektgruppemedlem", men det er planlagt, at hun skal være projektleder pr. en fremtidig dato, nemlig 01-02-2020, hvorfor ændringen nu kan ses under Fremtidstabben. Når datoen oprinder, vil hun ændringen bliver flyttet ned under Nutidstabben, mens den registrering, der findes under Nutidstabben, vil blive flyttet ned under Fortidstabben.
+I eksemplet nedenfor har Marie tilknytningen "Projektgruppemedlem", men det er planlagt, at hun skal være projektleder pr. en fremtidig dato, nemlig 01-02-2020, hvorfor ændringen nu kan ses under Fremtidstabben. Når datoen oprinder, vil ændringen blive flyttet ned under Nutidstabben, mens den registrering, der findes under Nutidstabben, vil blive flyttet ned under Fortidstabben.
 
 ![image](../graphics/momanual/tilknytningstype.png)
 
-Det skal bemærkes, at såfremt *startdatoen* ikke ændres, vil det resultere i en *overskrivning* af den eksisterende registrering, og der vil *ikke* blive oprettet historik på overskrivning, fordi det ikke bliver opfattet som en ændring, en en rettelse.
+Det bemærkes, at såfremt *startdatoen* ikke ændres, vil det resultere i en *overskrivning* af den eksisterende registrering, og der vil *ikke* blive oprettet historik på oplysningen, fordi det ikke bliver opfattet som en ændring, en en rettelse, en korrektion (fx ifm. fejlindtastning).
 
 ## OS2mo’s brugergrænseflade
 
 OS2mo består af to moduler:
-<ol>
-  <li>Medarbejdermodulet, som håndterer tilknyttede personer og deres stamdata.</li>
-  <li>Organisationsmodulet, som håndterer organisationsenheder og deres stamdata. Det er også muligt at skabe relationer mellem Organisationsenheder vha. modulet ’Organisationssammenkobling’.</li>
-</ol>
+
+1. **Medarbejdermodulet**, som håndterer tilknyttede personer og deres stamdata.
+2. **Organisationsmodulet**, som håndterer organisationsenheder og deres stamdata. Det er også muligt at skabe relationer mellem Organisationsenheder vha. modulet ’Organisationssammenkobling’.
 
 De to moduler indeholder:
 
-<ol>
-<li>En Header – øverst.</li>
-<li>Et Organisationshierarki – I venstre side (findes dog ikke i Medarbejder-delen).</li>
-<li>En Detaljeside - I midten.</li>
-<li>En række Hovedarbejdsgange – I højre side.</li>
-</ol>
+1. En Header
+2. Et Organisationshierarki – I venstre side (findes dog ikke i Medarbejderdelen).
+3. En Detaljeside - I midten.
+4. En række Hovedarbejdsgange – I højre side.
 
 ![image](../graphics/momanual/moduler.png)
 
@@ -87,16 +88,14 @@ OS2mo’s header ser således ud:
 
 Headeren består af følgende elementer:
 
-<ol>
-<li>OS2mo-ikon, der fører tilbage til startsiden.</li>
-<li>Medarbejder- & Organisations-knapper, der leder til det ene og det andet modul.</li>
-<li>Søgefunktion, som søger på medarbejdere, når man befinder sig i Medarbejdermodulet, og på enheder, når man er i Organisationsmodulet</li>
-<li>Datovælger-knap, de kan spole i tid</li>
-<li>Rapporter, hvor man kan tilgå rapporter</li>
-<li>Indsigt</li>
-<li>Sprog - dansk og engelsk</li>
-<li>Log ind/ud-knap.</li>
-</ol>
+1. OS2mo-ikon, der fører tilbage til startsiden.
+2. Medarbejder- & Organisations-knapper, der leder til det ene og det andet modul.
+3. Søgefunktion, som søger på medarbejdere, når man befinder sig i Medarbejdermodulet, og på enheder, når man er i Organisationsmodulet.
+4. Datovælger, der kan spole i tid.
+5. Rapporter, hvor man kan tilgå rapporter.
+6. Indsigt.
+7. Sprog - dansk og engelsk.
+8. Log ind/ud-knap.
 
 Yderligere forklaringer til **Søgefunktion**, **Rapporter** og **Indsigt**:
 
@@ -106,17 +105,17 @@ Yderligere forklaringer til **Søgefunktion**, **Rapporter** og **Indsigt**:
 
 Søgefunktionen fungerer i kontekst med enten Medarbejderdelen eller Organisationsdelen:
 
-Under Medarbejder-delen kan man søge på:
+Under Medarbejderdelen kan man søge på:
 
-Brugernavn, dvs fornavn eller efternavn eller fuldt navn (ex Karen Hammer Nielsen)
-BrugerVendt Nøgle (ex Bd5tr)
-CPR-nummer uden bindestreg (ex 2908623439)
+- Brugernavn, dvs fornavn eller efternavn eller fuldt navn (ex Karen Hammer Nielsen)
+- BrugerVendt Nøgle (ex Bd5tr)
+- CPR-nummer uden bindestreg (ex 2908623439)
 
 Under Organisationsdelen kan man søge på:
 
-Administrativ- eller Løn-organisation (ex Svendborg Kommune)
-Organisationsenhedsnavn (ex Egtved skole)
-Enhedsnummer (BrugerVendt Nøgle, ex EgtSko)
+- Administrativ- eller Løn-organisation (ex Svendborg Kommune)
+- Organisationsenhedsnavn (ex Egtved skole)
+- Enhedsnummer (BrugerVendt Nøgle, ex EgtSko)
 
 #### Rapporter
 
@@ -128,9 +127,7 @@ Rapporter er forskellige sammenstillinger af de data, der findes i OS2mo. Rappor
 
 #### Indsigt
 
-KOMMER
-
-![image](../graphics/momanual/fortidnutidfremtid.png)
+Indsigt er ikke idriftssat endnu, men er et modul, som tillader brugerne selv at sammenstille data på kryds og tværs og downloade pdf'er eller csv'er.
 
 ### Organisationshierarki med mulighed for flere parallelle organisationer
 
@@ -171,15 +168,17 @@ Eksempel: Afdeling, underafdeling, sektion, enhed, direktørområde, center.
 
 **Start- og slutdato** angiver hvornår sidste ændring på enheden er foretaget, og eventuelt hvornår den slutter.
 
+Fanebladet findes ikke i Medarbejderdelen.
+
 #### Fanebladet Adresser
 
 ![image](../graphics/momanual/fanebladadresser.png)
 
-Er beskrivelse af de forskellige kontaktformer, der er tilgængelige for organisationer, organisationsenheder og medarbejdere.
+Er en liste af de forskellige kontaktformer, der er tilgængelige for organisationer, organisationsenheder og medarbejdere.
 
 Eksempler på adressetyper er: Postadresse, email-adresse, EAN-nummer, P-nummer, Henvendelsessted, webadresse.
 
-Det er muligt at behæfte en ‘Synlighed’ til alle Adressetyper. Synligheden ændrer ikke på, om adressen kan ses i MO, men indikerer overfor MOs brugere, om adressen må videregives, og anvendes i øvrigt af MOs integrationer til at afgøre, i hvilke sammenhænge en adresse må udstilles i (hjemmesider, rapporter, mv). Det kan typisk dreje sig om, at man ikke ønsker at udstille et telefonnummer på fx intranettet.
+Det er muligt at behæfte en ‘Synlighed’ til alle Adressetyper. Synligheden ændrer ikke på, om adressen kan ses i MO, men indikerer overfor MOs brugere, om adressen må videregives, og anvendes i øvrigt af MOs integrationer til at afgøre, i hvilke sammenhænge en adresse må udstilles i (hjemmesider, rapporter, organisationsdiagram, mv). Det kan typisk dreje sig om, at man ikke ønsker at udstille et telefonnummer på fx intranettet.
 
 #### Fanebladet Engagementer
 
@@ -195,13 +194,13 @@ Et engagement beskriver et forhold mellem en person og en organisationsenhed. En
 
 En ‘Tilknytning’ definerer et forhold mellem en person og en organisationsenhed. Der er modsat engagementet ikke tale om en ansættelse, men om en funktion, en person udfylder i forbindelse med en anden organisationsenhed, end den vedkommende er ansat i.
 
-Tilknytninger er typisk benyttet til at forbinde en medarbejder midlertidigt til en anden ehed ifm. et midlertidigt projekt. Det benyttes også hyppigt til at knytte medarbejdere til MED/AMR-organisationen. Det er også muligt at angive stefortrædere for fx tillidsrepræsentanter.
+Tilknytninger er typisk benyttet til at forbinde en medarbejder midlertidigt til en anden enhed ifm. et midlertidigt projekt. Det benyttes også hyppigt til at knytte medarbejdere til MED/AMR-organisationen. Det er også muligt at angive stedfortrædere for fx tillidsrepræsentanter. I Medarbejderdelen er det også muligt at angive, hvilken faglig organisation, vedkommende repræsenterer, fx LO - Dansk El-forbund.
 
 #### Fanebladet IT
 
 ![image](../graphics/momanual/fanebladetit.png)
 
-Fanebladet ’IT’ giver et overblik over, hvilke it-systemer organisationsenheden benytter.
+Fanebladet ’IT’ giver et overblik over, hvilke it-systemer organisationsenheden benytter. Under Medarbejderdelen vises medarbejderens systemkonti, fx fra OPUS eller Active Directory.
 
 #### Fanebladet Roller
 
@@ -223,7 +222,7 @@ Ledere kan beskrives vha:
 - **Ledertype** indikerer ofte lederens funktion og hierarkiske placering eller tilknytning til et specifikt organisatorisk niveau. Eksempel: Direktør, Beredskabschef, Centerchef, Institutionsleder.
 - **Lederniveau** er en hierarkisk beskrivelse. Eksempel: Niveau 1, 2, 3.
 
-For ledere gælder det (i Organisations-delen), at de er markeret med en stjerne (*), hvis de er nedarvede fra en overordnet organisationsenhed (se skærmbilledet ovenfor) som følge af at enheden ikke har en direkte leder. Nedarvede ledere kan ikke redigeres eller afsluttes fra andre steder end den organisationsenhed, de er direkte ledere for.
+For ledere gælder det (i Organisationsdelen), at de er markeret med en stjerne (*), hvis de er nedarvede fra en overordnet organisationsenhed (se skærmbilledet ovenfor) som følge af at enheden ikke har en direkte leder. Nedarvede ledere kan ikke redigeres eller afsluttes fra andre steder end den organisationsenhed, de er direkte ledere for.
 Det er desuden muligt at gøre en lederfunktion vakant, hvis den midlertidigt ikke er besat:
 
 ![image](../graphics/momanual/vakanteledere.png)
@@ -236,7 +235,9 @@ En lederfunktion gøres vakant ved at klikke på Redigeringsknappen og manuelt s
 
 ![image](../graphics/momanual/fanebladetkle.png)
 
-Det er muligt at opmærke sine enheder med [KL's Emnesystematik (KLE)](http://www.kle-online.dk/soegning). Disse opmærkninger kan så sendes videre til andre systemer, der har behov for dem ifm. rettighedsstyring (fx FK ORG og OS2rollekatalog)
+Det er muligt at opmærke sine enheder med [KL's Emnesystematik (KLE)](http://www.kle-online.dk/soegning). Disse opmærkninger kan så sendes videre til andre systemer, der har behov for dem ifm. rettighedsstyring (fx FK ORG og OS2rollekatalog).
+
+Fanebladet findes ikke i Medarbejderdelen.
 
 #### Fanebladet Relateret
 
@@ -252,7 +253,7 @@ Relationer mellem enheder etableres og nedlægges i Organisationssammenkoblingsm
 
 ![image](../graphics/momanual/fanebladetorlov.png)
 
-En ‘Orlov’ beskriver fritagelse for tjeneste eller arbejde i en periode. Man kan eventuelt bruge den til at suspendere en konto i Active Directory. Informationen sendes videre til andre systemer.
+En ‘Orlov’ beskriver fritagelse for tjeneste i en periode. Man kan eventuelt bruge den til at suspendere en konto i Active Directory. Informationen kan altså sendes videre til andre systemer.
 
 Eksempel: Uddannelsesorlov, Sygeorlov, Barselsorlov.
 
@@ -262,11 +263,11 @@ Fanebladet findes ikke i Organisations-delen.
 
 ![image](../graphics/momanual/fanebladetejere.png)
 
-Konceptet 'Ejer' benyttes til at foretage rollebaseret adgangsstyring. Det betyder at det er muligt at give visse personer rettigheder til at redigere i en specifik del af OS2mo, mens andre (adminsitratorer) har rettigheder til at redigere overalt i Os2mo. I eksemplet ovenfor har Alfa ret til at redigere i afdelingen "Teknik og Miljø", men hvis han prøver at at rette andre steder, vil han modtage denne besked.
-
-Kræver at rettighedsstyring er sat op via [Keycloak](https://www.keycloak.org/)
+Konceptet 'Ejer' benyttes til at foretage rollebaseret adgangsstyring. Det betyder, at det er muligt at give visse personer rettigheder til at redigere i en specifik del af OS2mo, mens andre (adminsitratorer) har rettigheder til at redigere overalt i Os2mo. I eksemplet ovenfor har Alfa ret til at redigere i afdelingen "Teknik og Miljø", men hvis han prøver at rette andre steder, vil han modtage denne besked:
 
 ![image](../graphics/momanual/ingenrettigheder.png)
+
+Kræver at rettighedsstyring er sat op via [Keycloak](https://www.keycloak.org/)
 
 ## Hovedarbejdsgange
 
@@ -289,9 +290,9 @@ I Medarbejder-delen er der fem:
 4. Flyt mange engagementer
 5. Opsig medarbejder
 
-Som hovedregel gælder det, at arbejdsgange, der hidrører organisations-delen, udelukkende skal benyttes, hvis OS2mo er autoritativ for organisationen. Hvis organisationen hver nat hentes fra et andet system (fx KMD LOS), vil ændringer foretaget direkte i OS2mo blive overskrevet hver nat.
+Som hovedregel gælder det, at arbejdsgange, der hidrører Organisationsdelen, udelukkende skal benyttes, hvis OS2mo er autoritativ for organisationen. Hvis organisationen hver nat hentes fra et andet system (fx KMD LOS), vil ændringer foretaget direkte i OS2mo blive overskrevet hver nat.
 
-Såfremt lønsystemet er autoritativt for medarbejderne, gælder det ligeledes, at OS2mo’s medarbejder-arbejdsgange som hovedregel ikke bør benyttes, idet ændringer foretaget i OS2mo vil blive overskrevet af den næstkommende synkronisering fra lønsystemet.
+Såfremt lønsystemet er autoritativt for medarbejderne, gælder det ligeledes, at OS2mo’s medarbejder-arbejdsgange som hovedregel ikke bør benyttes, idet ændringer foretaget i OS2mo vil blive overskrevet af den næstkommende synkronisering fra fx lønsystemet.
 
 *Det er altså kun, hvis OS2mo er autoritativ, at arbejdsgangene bør benyttes.*
 
@@ -299,7 +300,7 @@ Fælles for arbejdsgangene er, at en startdato skal angives (slutdatoen er optio
 
 Oprettes en medarbejder med en fremtidig startdato, vil medarbejderen fremgå af ‘Fremtids’-tabben.
 
-Oprettes en organisationsenhed med en fremtidig startdato, vil den kun fremgå af organisationstræet, hvis tidsmaskinen indstilles til den fremtidige dato. Ellers vil den først dukke op i organisationstræet på pågældende dato.
+Oprettes en organisationsenhed med en fremtidig startdato, vil den kun fremgå af organisationstræet, hvis Datovælgeren indstilles til den fremtidige dato. Ellers vil den først dukke op i organisationstræet på pågældende dato.
 
 Når man opretter en organisationsenhed, kan man tilknytte en række informationer til den:
 
