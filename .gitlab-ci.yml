@@ -59,7 +59,7 @@ workflow:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_MERGE_REQUEST_ID
 
-.master-rules: &master-rules
+.master-rules:
   rules:
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
       when: never
@@ -72,8 +72,8 @@ workflow:
 # Lint stage
 #############
 
-.lint-default: &lint-default
-  <<: *master-rules
+.lint-default:
+  extends: .master-rules
   stage: lint
   interruptible: true
   needs: []
@@ -83,7 +83,7 @@ workflow:
     - docker
 
 Lint Python:
-  <<: *lint-default
+  extends: .lint-default
   before_script:
     - pip install pre-commit pydocstyle
     - pre-commit install
@@ -92,7 +92,7 @@ Lint Python:
     - pydocstyle backend/mora/graphapi/ --convention=google --add-ignore=D1
 
 Lint Dockerfiles:
-  <<: *lint-default
+  extends: .lint-default
   image: hadolint/hadolint:latest-debian
   before_script:
     - apt-get -y update
@@ -101,7 +101,7 @@ Lint Dockerfiles:
     - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
 
 REUSE compliance:
-  <<: *lint-default
+  extends: .lint-default
   image:
     name: fsfe/reuse:latest
     entrypoint: [""]
@@ -109,7 +109,7 @@ REUSE compliance:
     - reuse lint
 
 Lint shell scripts:
-  <<: *lint-default
+  extends: .lint-default
   image: koalaman/shellcheck-alpine:latest
   before_script:
     - apk update
@@ -121,7 +121,7 @@ Lint shell scripts:
 #############
 
 Prebuild Keycloak-realm:
-  <<: *master-rules
+  extends: .master-rules
   stage: prebuild
   interruptible: true
   needs: []
@@ -178,7 +178,7 @@ Build OS2MO:
     - when: on_success
 
 Build frontend:
-  <<: *master-rules
+  extends: .master-rules
   stage: build
   interruptible: true
   needs: []
@@ -200,7 +200,7 @@ Build frontend:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build Keycloak:
-  <<: *master-rules
+  extends: .master-rules
   stage: build
   interruptible: true
   needs: ["Prebuild Keycloak-realm"]
@@ -219,7 +219,7 @@ Build Keycloak:
       --destination=${KEYCLOAK_IMAGE_SHA}
 
 Build Keycloak DB:
-  <<: *master-rules
+  extends: .master-rules
   stage: build
   needs: []
   image:
@@ -236,19 +236,22 @@ Build Keycloak DB:
       --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.ci.keycloak-db
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
-# Test stage
-############
 
-.test-default: &test-default
-  <<: *master-rules
-  stage: test
-  interruptible: true
-  needs:
-    ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
-  services: []
+# Services Template
+###################
+.services:
   tags:
     - docker
     - network-per-build
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
+      alias: mox-db
+    - name: ${LORA_IMAGE}
+      alias: mox
+    - name: ${KEYCLOAK_DB_IMAGE_SHA}
+      alias: keycloak-db
+    - name: ${KEYCLOAK_IMAGE_SHA}
+      alias: keycloak
   variables:
     # Enable one docker network per job on the runner. This enables services to
     # reach each other over the network. It requires a special runner with this
@@ -287,25 +290,29 @@ Build Keycloak DB:
     CONF_DB_PORT: "5432"
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
-    BASE_URL: http://mo:80
+    BASE_URL: "http://mo"
     GRAPHQL_ENABLE: "true"
     GRAPHQL_AUTH: "false"
+
+
+# Test stage
+############
+
+.test-default:
+  extends: [.master-rules, .services]
+  stage: test
+  interruptible: true
+  needs:
+    ["Build OS2MO", "Build Keycloak", "Build Keycloak DB", "Build frontend"]
+  variables:
     # $CI_JOB_ID is unique across parallel jobs, so this works as expected
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
 
+
 Unit-test:
-  <<: *test-default
+  extends: .test-default
   image:
     name: ${IMAGE_SHA}
-  services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
-      alias: mox-db
-    - name: ${LORA_IMAGE}
-      alias: mox
-    - name: ${KEYCLOAK_DB_IMAGE_SHA}
-      alias: keycloak-db
-    - name: ${KEYCLOAK_IMAGE_SHA}
-      alias: keycloak
   script:
     - pytest
       -p no:cacheprovider
@@ -324,18 +331,9 @@ Unit-test:
       junit: $CI_PROJECT_DIR/junit.xml
 
 GraphAPI-test:
-  <<: *test-default
+  extends: .test-default
   image:
     name: ${IMAGE_SHA}
-  services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
-      alias: mox-db
-    - name: ${LORA_IMAGE}
-      alias: mox
-    - name: ${KEYCLOAK_DB_IMAGE_SHA}
-      alias: keycloak-db
-    - name: ${KEYCLOAK_IMAGE_SHA}
-      alias: keycloak
   script:
     - pytest
       -k "graphapi"
@@ -357,19 +355,10 @@ GraphAPI-test:
       junit: $CI_PROJECT_DIR/junit.xml
 
 Integration-test:
-  <<: *test-default
+  extends: .test-default
   image:
     name: ${IMAGE_SHA}
   parallel: 6
-  services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test
-      alias: mox-db
-    - name: ${LORA_IMAGE}
-      alias: mox
-    - name: ${KEYCLOAK_DB_IMAGE_SHA}
-      alias: keycloak-db
-    - name: ${KEYCLOAK_IMAGE_SHA}
-      alias: keycloak
   script:
     - pytest
       -m "serial"
@@ -390,7 +379,7 @@ Integration-test:
       junit: $CI_PROJECT_DIR/junit.xml
 
 Coverage:
-  <<: *master-rules
+  extends: .master-rules
   stage: coverage
   image: python:3.9-slim
   needs: [Unit-test, GraphAPI-test, Integration-test]
@@ -411,7 +400,7 @@ Coverage:
       cobertura: $CI_PROJECT_DIR/coverage.xml
 
 Vue-unit-test:
-  <<: *test-default
+  extends: .test-default
   image:
     name: ${FRONTEND_IMAGE_SHA}
   variables:
@@ -433,7 +422,7 @@ Vue-unit-test:
     #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
 # e2e-test:
-#   <<: *test-default
+#   extends: .test-default
 #   image:
 #     name: magentalabs/testcafe:latest
 #     entrypoint: ["/bin/sh", "-c"]
@@ -615,12 +604,12 @@ Release to Prod:
 
 # Docs stage
 ############
-.docs-rules: &docs-rules
+.docs-rules:
   interruptible: true
   stage: docs
 
 Export GQL Schema:
-  <<: *docs-rules
+  extends: .docs-rules
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -637,8 +626,8 @@ Export GQL Schema:
     paths:
       - $OUT
 
-.build-docs: &build-docs
-  <<: *docs-rules
+.build-docs:
+  extends: .docs-rules
   image: python:3.9
   needs: ["Export GQL Schema"]
   variables:
@@ -656,7 +645,7 @@ Export GQL Schema:
 
 # "Deploy" docs when not on master
 Build branch docs:
-  <<: *build-docs
+  extends: .build-docs
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -669,7 +658,7 @@ Build branch docs:
     auto_stop_in: 1 week
 
 Build docs:
-  <<: *build-docs
+  extends: .build-docs
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
@@ -678,7 +667,7 @@ Build docs:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
 pages:
-  <<: *docs-rules
+  extends: .docs-rules
   image: python:3.9
   needs: ["Build docs"]
   script:
