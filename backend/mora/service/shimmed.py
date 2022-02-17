@@ -51,7 +51,7 @@ class MOEmployee(EmployeeRead):
 
 @employee_router.get(
     "/e/{id}/",
-    response_model=Union[MOEmployee, UUID],
+    response_model=Union[MOEmployee, dict[str, UUID]],
     response_model_exclude_unset=True,
 )
 async def get_employee(

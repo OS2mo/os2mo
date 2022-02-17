@@ -47,6 +47,8 @@ class GraphQLContextPlugin(Plugin):
 
 class StarletteContextExtension(Extension):
     def on_request_start(self) -> None:
+        # clear query arguments bypassing the stack
+        context["query_args"] = {}
         context["is_graphql"] = True
 
 
