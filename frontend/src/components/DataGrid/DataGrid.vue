@@ -67,7 +67,6 @@ SPDX-License-Identifier: MPL-2.0
 </template>
 
 <script>
-    import Service from '@/api/HttpCommon'
 
     export default {
 
