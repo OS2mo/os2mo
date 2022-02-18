@@ -8,6 +8,7 @@ from .. import reading
 from ... import mapping
 from ...graphapi.middleware import is_graphql
 from ...service import employee
+from ...service import facet
 from ...service import itsystem
 from ...service import orgunit
 from mora import util
@@ -25,9 +26,12 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
+        only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
         person_uuid = mapping.USER_FIELD.get_uuid(effect)
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
+        primary = mapping.PRIMARY_FIELD.get_uuid(effect)
 
         base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
@@ -39,9 +43,9 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
                 "itsystem_uuid": itsystem_uuid,
+                "primary_uuid": primary,
             }
 
-        only_primary_uuid = util.get_args_flag("only_primary_uuid")
         it_system_task = create_task(
             itsystem.request_bulked_get_one_itsystem(
                 itsystem_uuid, only_primary_uuid=only_primary_uuid
@@ -64,11 +68,19 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 )
             )
 
+        if primary:
+            primary_task = create_task(
+                facet.request_bulked_get_one_class_full(
+                    primary, only_primary_uuid=only_primary_uuid
+                )
+            )
+
         r = {
             **base_obj,
             mapping.ITSYSTEM: await it_system_task,
             mapping.PERSON: await person_task if person_uuid else None,
             mapping.ORG_UNIT: await org_unit_task if org_unit_uuid else None,
+            mapping.PRIMARY: await primary_task if primary else None,
         }
 
         return r

@@ -89,7 +89,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # it_system_binding_is_primary = util.checked_get(req, ...)
         substitute_uuid = None
         job_function_uuid = "000e07d3-67e1-46d2-9694-87aba903885e"  # in AAK dataset
-        it_system_binding_uuid = "c750b872-3760-6f4a-f599-7b3b8ef5255c"  # = AZ in AAK
+        it_system_binding_uuid = "10c2f705-e2bf-4f0e-ba27-2bb32c3d12d2"  # = AZ in AAK
         it_system_binding_username = "foobar@example.com"
         it_system_binding_is_primary = True
 
