@@ -3,12 +3,14 @@
 from asyncio import create_task
 from asyncio import gather
 from datetime import datetime
+from enum import Enum
 from typing import Any
 from typing import Dict
 from typing import Iterable
 from typing import List
 from typing import Optional
 
+from more_itertools import partition
 from structlog import get_logger
 
 from .it import ItSystemBindingReader
@@ -25,10 +27,20 @@ from mora import exceptions
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}
 FIRST_PARTY_PERSPECTIVE = "first_party_perspective"
+IT_ASSOCIATION = mapping.IT  # query param name
+MO_OBJ_TYPE = Dict[str, Any]
 
 logger = get_logger()
 
-MO_OBJ_TYPE = Dict[str, Any]
+
+class AssociationSubType(Enum):
+    NORMAL = None
+
+    # only valid for employee associations
+    FIRST_PARTY_PERSPECTIVE = "first_party_perspective"
+
+    # "IT association"
+    IT = mapping.IT
 
 
 @reading.register(ROLE_TYPE)
@@ -39,53 +51,73 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     async def get_from_type(
         cls, c, type, objid, changed_since: Optional[datetime] = None
     ):
-
         search_fields = {cls.SEARCH_FIELDS[type]: objid}
-        if util.get_args_flag(FIRST_PARTY_PERSPECTIVE):
-            if type != "e":  # raises
+
+        # Get *all* associations for this employee or org unit
+        mo_assocs = await cls.get(c, search_fields, changed_since=changed_since)
+
+        # Divide associations into IT associations and normal associations
+        normal_assocs, it_assocs = partition(
+            lambda assoc: assoc.get(mapping.IT), mo_assocs
+        )
+
+        if util.get_args_flag(AssociationSubType.FIRST_PARTY_PERSPECTIVE.value):
+            # URL contains "?first_party_perspective=1"
+            if type == "e":
+                # Fetch associations linked to this employee by the relation
+                # 'tilknyttedefunktioner'
+                substitute_assocs = await cls.get(
+                    c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
+                )
+                # Remove any "IT associations"
+                substitute_assocs = filter(
+                    lambda assoc: assoc.get(mapping.IT), substitute_assocs
+                )
+                # Return a decorated result composed of both `normal_assocs` and
+                # `substitute_assocs`.
+                return cls._get_substitute_pairs(normal_assocs, substitute_assocs)
+            else:
+                # "?first_party_perspective=1" is only valid for employees (not org
+                # units.)
                 exceptions.ErrorCodes.E_INVALID_INPUT(
                     f"Invalid args: {FIRST_PARTY_PERSPECTIVE}"
                 )
-            else:
-                # get both "vanilla" associations and
-                # associations where "objid" is the substitute, in some new fields
-                e_task = create_task(
-                    cls.get(c, search_fields, changed_since=changed_since)
-                )
-                f_task = create_task(
-                    cls.get(
-                        c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
-                    )
-                )
-                e_result = await e_task
-                f_result = await f_task
-                augmented_e = [
-                    {
-                        **x,
-                        "first_party_association_type": x["association_type"],
-                        "third_party_associated": x["substitute"],
-                        "third_party_association_type": SUBSTITUTE_ASSOCIATION
-                        if x["substitute"]
-                        else None,
-                    }
-                    for x in e_result
-                ]
+        elif util.get_args_flag(AssociationSubType.IT.value):
+            # URL contains "?it=1"
+            return it_assocs
+        else:
+            # URL contains neither "?first_party_perspective=1" nor "?it=1"
+            return normal_assocs
 
-                augmented_f = [
-                    {
-                        **x,
-                        "first_party_association_type": SUBSTITUTE_ASSOCIATION
-                        if x["substitute"]
-                        else None,
-                        "third_party_associated": x["person"],
-                        "third_party_association_type": x["association_type"],
-                    }
-                    for x in f_result
-                ]
-
-                return augmented_e + augmented_f
-        else:  # default
-            return await cls.get(c, search_fields, changed_since=changed_since)
+    @classmethod
+    def _get_substitute_pairs(
+        cls, normal_assocs: Iterable[dict], substitute_assocs: Iterable[dict]
+    ):
+        # get both "vanilla" associations and
+        # associations where "objid" is the substitute, in some new fields
+        augmented_normal = [
+            {
+                **x,
+                "first_party_association_type": x["association_type"],
+                "third_party_associated": x["substitute"],
+                "third_party_association_type": SUBSTITUTE_ASSOCIATION
+                if x["substitute"]
+                else None,
+            }
+            for x in normal_assocs
+        ]
+        augmented_substitutes = [
+            {
+                **x,
+                "first_party_association_type": SUBSTITUTE_ASSOCIATION
+                if x["substitute"]
+                else None,
+                "third_party_associated": x["person"],
+                "third_party_association_type": x["association_type"],
+            }
+            for x in substitute_assocs
+        ]
+        return augmented_normal + augmented_substitutes
 
     @staticmethod
     async def __dynamic_classes_helper(
@@ -206,7 +238,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             job_function_task = facet.get_one_class(
                 c,
                 classid=associated_function_uuid,
-                details={facet.ClassDetails.FACET},
+                details={},
                 only_primary_uuid=only_primary_uuid,
             )
         else:
