@@ -26,8 +26,6 @@ from mora import exceptions
 
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}
-FIRST_PARTY_PERSPECTIVE = "first_party_perspective"
-IT_ASSOCIATION = mapping.IT  # query param name
 MO_OBJ_TYPE = Dict[str, Any]
 
 logger = get_logger()
@@ -80,7 +78,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 # "?first_party_perspective=1" is only valid for employees (not org
                 # units.)
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    f"Invalid args: {FIRST_PARTY_PERSPECTIVE}"
+                    f"Invalid args: {AssociationSubType.FIRST_PARTY_PERSPECTIVE.value}"
                 )
         elif util.get_args_flag(AssociationSubType.IT.value):
             # URL contains "?it=1"
