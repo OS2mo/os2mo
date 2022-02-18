@@ -65,7 +65,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         func_id = util.get_uuid(req, required=False) or str(uuid4())
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
-        primary = util.get_mapping_uuid(req, mapping.PRIMARY)
+        primary = util.get_mapping_uuid(req, mapping.PRIMARY, required=False)
 
         # Validation
         if org_unit:
@@ -93,7 +93,6 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeitsystemer=[systemid],
         )
 
-        #logger.info(event="payload", payload=func)
         self.payload = func
         self.uuid = func_id
         self.trigger_dict.update(
