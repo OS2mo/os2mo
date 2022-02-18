@@ -357,7 +357,9 @@ async def _create_it_system_binding(
 
     # Figure out the UUIDs of facet "primary_type"
     primary_classes = await get_classes_under_facet(
-        org_uuid, "primary_type", only_primary_uuid=False,
+        org_uuid,
+        "primary_type",
+        only_primary_uuid=False,
     )
     primary_uuid_lookup = {
         cls[mapping.USER_KEY]: cls[mapping.UUID]

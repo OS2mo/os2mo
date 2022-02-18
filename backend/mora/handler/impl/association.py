@@ -228,7 +228,8 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             c = get_connector()
             reader = ItSystemBindingReader()
             it_system_binding_task = reader.get(
-                c, {mapping.UUID: it_system_binding_uuid},
+                c,
+                {mapping.UUID: it_system_binding_uuid},
             )
 
         if needs == "job_function_uuid" and associated_function_uuid:
