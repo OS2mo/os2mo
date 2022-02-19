@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+3.33.0 - 2022-02-19
+-------------------
+
+[#42981] Split the MO backend and frontend into seperate containers
+
+Two seperate containers must now be started in order to launch MO with UI.
+
 3.32.1 - 2022-02-16
 -------------------
 
