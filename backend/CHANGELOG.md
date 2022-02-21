@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.33.1 - 2022-02-21
+-------------------
+
+[#42981] Fixup broken CI release stage and dev environment
+
 3.33.0 - 2022-02-19
 -------------------
 
