@@ -3,6 +3,7 @@
 from __future__ import generator_stop
 
 import asyncio
+import json
 import re
 import uuid
 from asyncio import gather
@@ -30,7 +31,6 @@ from typing import TypeVar
 from typing import Union
 
 import lora_utils
-from aiohttp import ClientSession
 from fastapi.encoders import jsonable_encoder
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
@@ -41,6 +41,7 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+from .http import lora_client
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -138,16 +139,30 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-async def _check_response(r):
-    if 400 <= r.status < 600:  # equivalent to requests.response.ok
+def _check_httpx_response(r):
+    if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
         try:
-            cause = await r.json()
+            cause = r.json()
             msg = cause["message"]
         except (ValueError, KeyError):
             cause = None
-            msg = await r.text()
+            msg = r.text
 
-        raise_on_status(status_code=r.status, msg=msg, cause=cause)
+        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
+
+    return r
+
+
+async def _check_response(r):
+    if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
+        try:
+            cause = r.json()
+            msg = cause["message"]
+        except (ValueError, KeyError):
+            cause = None
+            msg = r.text
+
+        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
 
     return r
 
@@ -376,10 +391,6 @@ class BaseScope:
         self.connector = connector
         self.path = path
 
-    @property
-    def base_path(self):
-        return config.get_settings().lora_url + self.path
-
 
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
@@ -548,23 +559,27 @@ class Scope(BaseScope):
 
         return results_for_calls
 
+    def encode_params(self, params: Dict[str, Any]) -> bytes:
+        return json.dumps(
+            jsonable_encoder(param_exotics_to_strings({**params}))
+        ).encode()
+
     async def fetch(self, **params):
-        async with ClientSession() as session:
-            response = await session.get(
-                self.base_path,
-                # We send the parameters as JSON through the body of the GET request to
-                # allow arbitrarily many, as opposed to being limited by the length of a
-                # URL if we were using query parameters.
-                json=jsonable_encoder(
-                    param_exotics_to_strings({**self.connector.defaults, **params})
-                ),
-            )
-            await _check_response(response)
-            try:
-                ret = (await response.json())["results"][0]
-                return ret
-            except IndexError:
-                return []
+        params = self.encode_params({**self.connector.defaults, **params})
+        response = await lora_client.request(
+            method="GET",
+            url=self.path,
+            # We send the parameters as JSON through the body of the GET request to
+            # allow arbitrarily many, as opposed to being limited by the length of a
+            # URL if we were using query parameters.
+            content=params,
+        )
+        _check_httpx_response(response)
+        try:
+            ret = response.json()["results"][0]
+            return ret
+        except IndexError:
+            return []
 
     async def get_all(self, changed_since: Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.
@@ -671,32 +686,28 @@ class Scope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            async with ClientSession() as session:
-                r = await session.put("{}/{}".format(self.base_path, uuid), json=obj)
-
-                async with r:
-                    await _check_response(r)
-                    return (await r.json())["uuid"]
+            url = f"{self.path}/{uuid}"
+            response = await lora_client.put(url, json=obj)
+            await _check_response(response)
+            return response.json()["uuid"]
         else:
-            async with ClientSession() as session:
-                r = await session.post(self.base_path, json=obj)
-                await _check_response(r)
-                return (await r.json())["uuid"]
+            response = await lora_client.post(self.path, json=obj)
+            await _check_response(response)
+            return response.json()["uuid"]
 
     async def delete(self, uuid):
-        async with ClientSession() as session:
-            response = await session.delete("{}/{}".format(self.base_path, uuid))
-            await _check_response(response)
+        url = f"{self.path}/{uuid}"
+        response = await lora_client.delete(url)
+        await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with ClientSession() as session:
-            url = "{}/{}".format(self.base_path, uuid)
-            response = await session.patch(url, json=obj)
-            if response.status == 404:
-                logger.warning("could not update nonexistent LoRa object", url=url)
-            else:
-                await _check_response(response)
-                return (await response.json()).get("uuid", uuid)
+        url = f"{self.path}/{uuid}"
+        response = await lora_client.patch(url, json=obj)
+        if response.status_code == 404:
+            logger.warning("could not update nonexistent LoRa object", url=url)
+        else:
+            await _check_response(response)
+            return response.json().get("uuid", uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (
@@ -715,12 +726,11 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    async with ClientSession() as session:
-        response = await session.get(config.get_settings().lora_url + "version")
-        try:
-            return (await response.json())["lora_version"]
-        except ValueError:
-            return "Could not find lora version: %s" % await response.text()
+    response = await lora_client.get("version")
+    try:
+        return response.json()["lora_version"]
+    except ValueError:
+        return f"Could not find lora version: {response.text}"
 
 
 class AutocompleteScope(BaseScope):
@@ -732,7 +742,6 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with ClientSession() as session:
-            response = await session.get(self.base_path, params=params)
-            await _check_response(response)
-            return {"items": (await response.json())["results"]}
+        response = await lora_client.get(self.path, params=params)
+        await _check_response(response)
+        return {"items": response.json()["results"]}

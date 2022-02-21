@@ -46,7 +46,7 @@ from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.router import keycloak_router
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
-from mora.http import client
+from mora.http import client, lora_client
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -272,6 +272,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     @app.on_event("shutdown")
     async def close_httpx_client():
         await client.aclose()
+        await lora_client.aclose()
         await triggers.internal.amqp_trigger.close_amqp()
 
     if not is_under_test():
