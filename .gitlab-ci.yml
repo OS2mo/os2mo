@@ -500,19 +500,19 @@ deploy_review:
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
-    - ./template.sh $CI_MERGE_REQUEST_IID $CI_COMMIT_SHA
+    - ./template.sh os2mo-mr$CI_MERGE_REQUEST_IID $CI_COMMIT_SHA
     - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
     - git status
     - git commit -m "[cd] Deploy OS2MO MR$CI_MERGE_REQUEST_IID to flux CI cluster" || true
     - git push || true
-    - curl https://mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk/version/
+    - curl https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk/version/
       --fail
       --retry-all-errors
       --retry-delay 5
       --retry 120
   environment:
     name: review/$CI_MERGE_REQUEST_IID
-    url: https://mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk
+    url: https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk
     on_stop: stop_review
     auto_stop_in: 1 week
   rules:
@@ -535,7 +535,7 @@ stop_review:
     - git config --global user.name "OS2MO Config Updater"
     - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
     - cd salt-automation/flux/clusters/os2mo-ci-magenta-az/
-    - ./untemplate.sh $CI_MERGE_REQUEST_IID
+    - ./untemplate.sh os2mo-mr$CI_MERGE_REQUEST_IID
     - git add kustomization.yaml os2mo-mr$CI_MERGE_REQUEST_IID
     - git status
     - git commit -m "[cd] Undeploy OS2MO MR$CI_MERGE_REQUEST_IID from flux CI cluster" || true
