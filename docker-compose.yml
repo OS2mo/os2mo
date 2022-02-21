@@ -27,7 +27,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: docker/Dockerfile.frontend
+      dockerfile: docker/frontend.Dockerfile
       # target: frontend build the dynamically reloading frontend
       target: frontend
     environment:
@@ -53,7 +53,7 @@ services:
   mo:
     build:
       context: .
-      dockerfile: docker/Dockerfile.api
+      dockerfile: docker/api.Dockerfile
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.

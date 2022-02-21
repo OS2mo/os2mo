@@ -100,7 +100,7 @@ Lint Dockerfiles:
     - apt-get -y update
     - apt-get -y install --no-install-recommends git
   script:
-    - git ls-files --exclude='Dockerfile*' --ignored | xargs --max-lines=1 hadolint
+    - git ls-files --exclude='*Dockerfile*' --ignored | xargs --max-lines=1 hadolint
 
 REUSE compliance:
   extends: .lint-default
@@ -170,7 +170,7 @@ Build OS2MO:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.api
+      --dockerfile=$CI_PROJECT_DIR/docker/api.Dockerfile
       --destination=${IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
@@ -195,7 +195,7 @@ Build test frontend:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.frontend
+      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
       --destination=${FRONTEND_TEST_IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
@@ -217,7 +217,7 @@ Build frontend:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.frontend
+      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
       --destination=${FRONTEND_IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
@@ -242,7 +242,7 @@ Build Keycloak:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.ci.keycloak
+      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak.Dockerfile
       --destination=${KEYCLOAK_IMAGE_SHA}
 
 Build Keycloak DB:
@@ -260,7 +260,7 @@ Build Keycloak DB:
     - /kaniko/executor
       --cache
       --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/Dockerfile.ci.keycloak-db
+      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
 
