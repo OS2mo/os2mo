@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 import freezegun
+import pytest
 
 import tests.cases
 from . import util
@@ -22,7 +23,7 @@ org_unit_address_type_facet = {
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class AsyncTests(tests.cases.AsyncLoRATestCase):
+class AsyncTestsDelayedMinimal(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
     async def test_employee(self):
@@ -37,7 +38,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 {"total": 0, "items": [], "offset": 0},
             )
 
-        await self.load_sample_structures(minimal=True)
+        await util.load_sample_structures(minimal=True)
 
         with self.subTest("invalid"):
             await self.assertRequestFails(
@@ -493,24 +494,15 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class Tests(tests.cases.LoRATestCase):
+class AsyncTestsMinimal(tests.cases.NewAsyncLoRATestCase):
     maxDiff = None
 
-    @classmethod
-    def get_lora_environ(cls):
-        # force LoRA to run under a UTC timezone, ensuring that we
-        # handle this case correctly for reading
-        return {
-            "TZ": "UTC",
-        }
-
-    def test_organisation(self):
-        self.load_sample_structures(minimal=True)
-
+    async def test_organisation(self):
         with self.subTest("invalid"):
-            self.assertRequestFails(
+            await self.assertRequestFails(
                 "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
                 "?at=2000-01-01T00:00:00Z",
                 404,
@@ -538,52 +530,50 @@ class Tests(tests.cases.LoRATestCase):
             "child_count": 1,
         }
 
-        self.assertRequestResponse("/service/o/", org_list)
+        await self.assertRequestResponse("/service/o/", org_list)
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/",
             org_only,
         )
 
-        self.load_sample_structures()
+        await util.load_sample_structures()
         org_only["unit_count"] = 11
         org_only["child_count"] = 2
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/",
             org_list,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/",
             org_only,
         )
 
-    def test_children(self):
-        self.load_sample_structures(minimal=True)
-
+    async def test_children(self):
         with self.subTest("invalid"):
-            self.assertRequestFails(
+            await self.assertRequestFails(
                 "/service/o/00000000-0000-0000-0000-000000000000/children",
                 404,
             )
 
-            self.assertRequestFails(
+            await self.assertRequestFails(
                 "/service/ou/00000000-0000-0000-0000-000000000000/children",
                 404,
             )
 
         with self.subTest("resolving a unit as an org, and vice versa"):
-            self.assertRequestFails(
+            await self.assertRequestFails(
                 "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
                 404,
             )
-            self.assertRequestFails(
+            await self.assertRequestFails(
                 "/service/ou/456362c4-0ee4-4e5e-a72c-751239745e62/children",
                 404,
             )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             [
                 {
@@ -599,14 +589,14 @@ class Tests(tests.cases.LoRATestCase):
             ],
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
             [],
         )
 
-        self.load_sample_structures()
+        await util.load_sample_structures()
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             [
                 {
@@ -629,7 +619,7 @@ class Tests(tests.cases.LoRATestCase):
             ],
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
             [
                 {
@@ -669,12 +659,323 @@ class Tests(tests.cases.LoRATestCase):
             ],
         )
 
+    async def test_orgunit(self):
+        with self.subTest("invalid"):
+            await self.assertRequestFails(
+                "/service/ou/00000000-0000-0000-0000-000000000000/",
+                404,
+            )
+
+            await self.assertRequestFails(
+                "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
+                "?at=2000-01-01T00:00:00Z",
+                404,
+            )
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
+            {
+                "name": "Overordnet Enhed",
+                "user_key": "root",
+                "user_settings": {"orgunit": {}},
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "org_unit_level": None,
+                "org_unit_type": {
+                    "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
+                    "name": "Afdeling",
+                    "owner": None,
+                    "scope": None,
+                    "top_level_facet": org_unit_type_facet,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "parent": None,
+                "time_planning": None,
+                "location": "",
+            },
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
+            [
+                {
+                    "name": "Overordnet Enhed",
+                    "user_key": "root",
+                    "user_settings": {"orgunit": {}},
+                    "location": "",
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    },
+                    "org_unit_level": None,
+                    "org_unit_type": {
+                        "example": None,
+                        "facet": org_unit_type_facet,
+                        "full_name": "Afdeling",
+                        "name": "Afdeling",
+                        "owner": None,
+                        "scope": None,
+                        "top_level_facet": org_unit_type_facet,
+                        "user_key": "afd",
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    },
+                    "parent": None,
+                    "time_planning": None,
+                    "validity": {
+                        "from": "2016-01-01",
+                        "to": None,
+                    },
+                }
+            ],
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
+            [],
+        )
+
+        await util.load_sample_structures()
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
+            [
+                {
+                    "name": "Overordnet Enhed",
+                    "user_key": "root",
+                    "user_settings": {"orgunit": {}},
+                    "location": "",
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    },
+                    "org_unit_level": None,
+                    "org_unit_type": {
+                        "example": None,
+                        "facet": org_unit_type_facet,
+                        "full_name": "Afdeling",
+                        "name": "Afdeling",
+                        "owner": None,
+                        "scope": None,
+                        "top_level_facet": org_unit_type_facet,
+                        "user_key": "afd",
+                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    },
+                    "parent": None,
+                    "time_planning": None,
+                    "validity": {
+                        "from": "2016-01-01",
+                        "to": None,
+                    },
+                }
+            ],
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
+            {
+                "name": "Overordnet Enhed",
+                "user_key": "root",
+                "user_settings": {"orgunit": {}},
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01",
+                    "to": None,
+                },
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "org_unit_level": None,
+                "org_unit_type": {
+                    "example": None,
+                    "facet": org_unit_type_facet,
+                    "full_name": "Afdeling",
+                    "name": "Afdeling",
+                    "owner": None,
+                    "scope": None,
+                    "top_level_facet": org_unit_type_facet,
+                    "user_key": "afd",
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                },
+                "parent": None,
+                "time_planning": None,
+                "location": "",
+            },
+        )
+
+        await self.assertRequestResponse(
+            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
+            [
+                {
+                    "child_count": 2,
+                    "name": "Humanistisk fakultet",
+                    "user_key": "hum",
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {"from": "2016-01-01", "to": None},
+                },
+                {
+                    "child_count": 0,
+                    "name": "Samfundsvidenskabelige fakultet",
+                    "user_key": "samf",
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {"from": "2017-01-01", "to": None},
+                },
+                {
+                    "child_count": 1,
+                    "name": "Skole og Børn",
+                    "user_key": "skole-børn",
+                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+                    "validity": {"from": "2017-01-01", "to": None},
+                },
+                {
+                    "child_count": 0,
+                    "name": "Social og sundhed",
+                    "user_key": "social-sundhed",
+                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+                    "validity": {"from": "2017-01-01", "to": None},
+                },
+            ],
+        )
+
+
+@pytest.mark.usefixtures("sample_structures")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@patch("mora.conf_db.get_configuration", new=lambda *x: {})
+class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+    maxDiff = None
+
+
+@pytest.mark.usefixtures("sample_structures_minimal")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@patch("mora.conf_db.get_configuration", new=lambda *x: {})
+class TestsMinimal(tests.cases.NewLoRATestCase):
+    maxDiff = None
+
+    @classmethod
+    def get_lora_environ(cls):
+        # force LoRA to run under a UTC timezone, ensuring that we
+        # handle this case correctly for reading
+        return {
+            "TZ": "UTC",
+        }
+
+    def test_facet_create_and_update(self):
+        payload = {
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
+            "name": "Jurist",
+            "scope": "TEXT",
+            "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
+        }
+
+        expected_post = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
+        expected_get = {
+            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+            "user_key": "engagement_job_function",
+            "description": "",
+            "data": {
+                "total": 1,
+                "offset": 0,
+                "items": [
+                    {
+                        "example": None,
+                        "name": "Jurist",
+                        "owner": None,
+                        "scope": "TEXT",
+                        "user_key": "BVN",
+                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                    }
+                ],
+            },
+        }
+
+        actual_post = self.assertRequest(
+            "/service/f/engagement_job_function/", json=payload
+        )
+
+        actual_get = self.assertRequest("/service/f/engagement_job_function/")
+
+        # Tests new creation - 200 message
+        self.assertEqual(expected_post, actual_post)
+
+        # Tests the GET data matches
+        self.assertEqual(expected_get, actual_get)
+
+        # Updated payload, same uuid
+        payload = {
+            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "user_key": "BVN",
+            "name": "Ergoterapeut",
+            "scope": "TEXT",
+            "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
+        }
+        expected_put = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
+        expected_get = {
+            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+            "user_key": "engagement_job_function",
+            "description": "",
+            "data": {
+                "total": 1,
+                "offset": 0,
+                "items": [
+                    {
+                        "example": None,
+                        "name": "Ergoterapeut",
+                        "owner": None,
+                        "scope": "TEXT",
+                        "user_key": "BVN",
+                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                    }
+                ],
+            },
+        }
+        actual_put = self.assertRequest(
+            "/service/f/engagement_job_function/", json=payload
+        )
+        actual_get = self.assertRequest("/service/f/engagement_job_function/")
+
+        # Tests PUT on the same class
+        self.assertEqual(expected_put, actual_put)
+
+        # Tests the GET data matches
+        self.assertEqual(expected_get, actual_get)
+
+
+@pytest.mark.usefixtures("sample_structures")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@patch("mora.conf_db.get_configuration", new=lambda *x: {})
+class Tests(tests.cases.NewLoRATestCase):
+    maxDiff = None
+
+    @classmethod
+    def get_lora_environ(cls):
+        # force LoRA to run under a UTC timezone, ensuring that we
+        # handle this case correctly for reading
+        return {
+            "TZ": "UTC",
+        }
+
     def test_children_filtered(self):
         # When asking for "&org_unit_hierarchy=<uuid>", the result should only
         # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
         # With the default test database contents, that means nothing should be
         # returned.
-        self.load_sample_structures()
         self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
             "?org_unit_hierarchy=321f1a2f-e185-42ef-a5f3-bebb2c69f1ba",
@@ -682,8 +983,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_orgunit_search(self):
-        self.load_sample_structures()
-
         result_list = [
             {
                 "user_key": "frem",
@@ -915,205 +1214,7 @@ class Tests(tests.cases.LoRATestCase):
                 },
             )
 
-    def test_orgunit(self):
-        self.load_sample_structures(minimal=True)
-
-        with self.subTest("invalid"):
-            self.assertRequestFails(
-                "/service/ou/00000000-0000-0000-0000-000000000000/",
-                404,
-            )
-
-            self.assertRequestFails(
-                "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
-                "?at=2000-01-01T00:00:00Z",
-                404,
-            )
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "user_settings": {"orgunit": {}},
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "parent": None,
-                "time_planning": None,
-                "location": "",
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
-            [
-                {
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "user_settings": {"orgunit": {}},
-                    "location": "",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": None,
-                    "time_planning": None,
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                }
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [],
-        )
-
-        self.load_sample_structures()
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
-            [
-                {
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "user_settings": {"orgunit": {}},
-                    "location": "",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": None,
-                    "time_planning": None,
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                }
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "user_settings": {"orgunit": {}},
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "parent": None,
-                "time_planning": None,
-                "location": "",
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [
-                {
-                    "child_count": 2,
-                    "name": "Humanistisk fakultet",
-                    "user_key": "hum",
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "validity": {"from": "2016-01-01", "to": None},
-                },
-                {
-                    "child_count": 0,
-                    "name": "Samfundsvidenskabelige fakultet",
-                    "user_key": "samf",
-                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-                {
-                    "child_count": 1,
-                    "name": "Skole og Børn",
-                    "user_key": "skole-børn",
-                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-                {
-                    "child_count": 0,
-                    "name": "Social og sundhed",
-                    "user_key": "social-sundhed",
-                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-            ],
-        )
-
     def test_engagement(self):
-        self.load_sample_structures()
-
         andersand = [
             {
                 "job_function": {
@@ -1193,8 +1294,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_role(self):
-        self.load_sample_structures()
-
         func = [
             {
                 "org_unit": {
@@ -1259,8 +1358,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_leave(self):
-        self.load_sample_structures()
-
         expected = [
             {
                 "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
@@ -1280,8 +1377,6 @@ class Tests(tests.cases.LoRATestCase):
         self.assertEqual(expected, actual)
 
     def test_manager(self):
-        self.load_sample_structures()
-
         func = [
             {
                 "manager_level": {
@@ -1365,7 +1460,7 @@ class Tests(tests.cases.LoRATestCase):
             404,
         )
 
-        self.load_sample_structures()
+        # self.load_sample_structures()
 
         self.assertRequestFails(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/kaflaflibob/",
@@ -1686,8 +1781,6 @@ class Tests(tests.cases.LoRATestCase):
         )
 
     def test_detail_list(self):
-        self.load_sample_structures()
-
         with self.subTest("fedtmule"):
             self.assertRequestResponse(
                 "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053" "/details/",
@@ -1822,8 +1915,6 @@ class Tests(tests.cases.LoRATestCase):
             )
 
     def test_facet_children(self):
-        self.load_sample_structures()
-
         expected = [
             {
                 "child_count": 0,
@@ -1850,86 +1941,3 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertEqual(expected, actual)
-
-    def test_facet_create_and_update(self):
-        self.load_sample_structures(minimal=True)
-
-        payload = {
-            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-            "user_key": "BVN",
-            "name": "Jurist",
-            "scope": "TEXT",
-            "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
-        }
-
-        expected_post = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
-        expected_get = {
-            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-            "user_key": "engagement_job_function",
-            "description": "",
-            "data": {
-                "total": 1,
-                "offset": 0,
-                "items": [
-                    {
-                        "example": None,
-                        "name": "Jurist",
-                        "owner": None,
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-            },
-        }
-
-        actual_post = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
-
-        actual_get = self.assertRequest("/service/f/engagement_job_function/")
-
-        # Tests new creation - 200 message
-        self.assertEqual(expected_post, actual_post)
-
-        # Tests the GET data matches
-        self.assertEqual(expected_get, actual_get)
-
-        # Updated payload, same uuid
-        payload = {
-            "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-            "user_key": "BVN",
-            "name": "Ergoterapeut",
-            "scope": "TEXT",
-            "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
-        }
-        expected_put = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
-        expected_get = {
-            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-            "user_key": "engagement_job_function",
-            "description": "",
-            "data": {
-                "total": 1,
-                "offset": 0,
-                "items": [
-                    {
-                        "example": None,
-                        "name": "Ergoterapeut",
-                        "owner": None,
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-            },
-        }
-        actual_put = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
-        actual_get = self.assertRequest("/service/f/engagement_job_function/")
-
-        # Tests PUT on the same class
-        self.assertEqual(expected_put, actual_put)
-
-        # Tests the GET data matches
-        self.assertEqual(expected_get, actual_get)

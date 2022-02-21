@@ -4,6 +4,7 @@ from asyncio import Future
 from uuid import UUID
 
 import freezegun
+import pytest
 from mock import call
 from mock import patch
 from more_itertools import one
@@ -291,10 +292,10 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
         self.assertIn("NOT_FOUND", r.get("error_key"))
 
 
-class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
+@pytest.mark.usefixtures("sample_structures_minimal")
+class AsyncTestGetOneOrgUnit(tests.cases.NewAsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        await self.load_sample_structures(minimal=True)
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )
@@ -358,10 +359,10 @@ class TestGetCountRelated(tests.cases.TestCase):
                 _get_count_related()
 
 
+@pytest.mark.usefixtures("sample_structures")
 class TestGetOrgUnit(tests.cases.AsyncConfigTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        await self.load_sample_structures()
         # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
         self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
 
@@ -376,10 +377,10 @@ class TestGetOrgUnit(tests.cases.AsyncConfigTestCase):
             self.assertEqual(result["engagement_count"], 3)
 
 
+@pytest.mark.usefixtures("sample_structures")
 class TestGetChildren(tests.cases.AsyncConfigTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        await self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )
@@ -413,10 +414,10 @@ class TestGetChildren(tests.cases.AsyncConfigTestCase):
                     self.assertEqual(node.get(attr_name), attr_value)
 
 
+@pytest.mark.usefixtures("sample_structures")
 class TestGetUnitAncestorTree(tests.cases.AsyncConfigTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        await self.load_sample_structures()
         self._connector = lora.Connector(
             virkningfra="-infinity", virkningtil="infinity"
         )

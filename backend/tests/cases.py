@@ -721,7 +721,7 @@ class LoRATestCase(_BaseTestCase):
         super().tearDown()
 
 
-class AsyncConfigTestCase(AsyncLoRATestCase):
+class AsyncConfigTestCase(NewAsyncLoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
@@ -747,7 +747,7 @@ class AsyncConfigTestCase(AsyncLoRATestCase):
         super().tearDown()
 
 
-class ConfigTestCase(LoRATestCase):
+class ConfigTestCase(NewLoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):

@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
 import freezegun
+import pytest
 from fastapi.encoders import jsonable_encoder
 from mora.mapping import OwnerInferencePriority
 from pydantic import BaseModel, Field
@@ -120,6 +121,7 @@ def simplified_owner(
     return owner
 
 
+@pytest.mark.usefixtures("sample_structures")
 class OwnerOrgUnitTestCase(ConfigTestCase):
     def create_helper(
         self,
@@ -136,8 +138,6 @@ class OwnerOrgUnitTestCase(ConfigTestCase):
         :param verifying_response: If success is expected, the returned value
         :return:
         """
-        self.load_sample_structures()
-
         self.assertRequest(
             "/service/details/create",
             json=jsonified_owner,
@@ -285,6 +285,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class OrgUnitInheritTests(OwnerOrgUnitTestCase):
     maxDiff = None
@@ -294,8 +295,6 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
         when absolutely no owner-orgfunc exists, inherit via the org hierarchy
         :return:
         """
-        self.load_sample_structures()
-
         # attempt successful create, verify via child org-unit
         self.create_helper(
             jsonified_owner=simplified_owner(
@@ -338,7 +337,6 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
         when hitting top-level simply return nothing
         :return:
         """
-        self.load_sample_structures()
         self.assertRequestResponse(
             f"service/ou/{level2_ou}/details/"
             f"owner?validity=present&at=2017-01-01&inherit_owner=1",
@@ -346,6 +344,7 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
     async def create_helper(
         self,
@@ -362,8 +361,6 @@ class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
         :param verifying_response: If success is expected, the returned value
         :return:
         """
-        await self.load_sample_structures()
-
         await self.assertRequest(
             "/service/details/create",
             json=jsonified_owner,
@@ -379,6 +376,7 @@ class AsyncOwnerPersonTestCase(AsyncConfigTestCase):
             )
 
 
+@pytest.mark.usefixtures("sample_structures")
 class OwnerPersonTestCase(ConfigTestCase):
     def create_helper(
         self,
@@ -395,8 +393,6 @@ class OwnerPersonTestCase(ConfigTestCase):
         :param verifying_response: If success is expected, the returned value
         :return:
         """
-        self.load_sample_structures()
-
         self.assertRequest(
             "/service/details/create",
             json=jsonified_owner,
@@ -477,6 +473,7 @@ class PersonTests(OwnerPersonTestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
     async def asyncSetUp(self):
         """
@@ -486,7 +483,6 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
         """
         await super().asyncSetUp()
 
-        await self.load_sample_structures()
         await load_fixture(
             "organisation/organisationfunktion",
             "create_organisationfunktion_tilknytning_eriksmidthansen.json",
@@ -639,6 +635,7 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
         )
 
 
+@pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 class OwnerEditCase(OwnerPersonTestCase):
     def setUp(self):
@@ -648,7 +645,6 @@ class OwnerEditCase(OwnerPersonTestCase):
         :return:
         """
         super().setUp()
-        self.load_sample_structures()
 
         # create owner in org_unit so we have something to inherit / edit
         self.assertRequest(
