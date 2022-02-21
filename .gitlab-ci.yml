@@ -34,10 +34,10 @@ variables:
   KANIKO_VERSION: v1.3.0
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
-  FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-frontend
-  FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-test-frontend
-  KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak
-  KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}-keycloak-db
+  FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}
+  FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend-test:${CI_COMMIT_SHA}
+  KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
+  KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
   PYPROJECT_ROOT: "./backend"
 
@@ -221,6 +221,10 @@ Build frontend:
       --destination=${FRONTEND_IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
 
 Build Keycloak:
   extends: .master-rules
