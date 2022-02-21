@@ -581,7 +581,7 @@ Release Frontend version:
 Release to Dev:
   stage: deploy
   needs: ["Release API version"]
-  image: alpine
+  image: curlimages/curl:7.81.0
   variables:
     GIT_STRATEGY: none # We do not need the source code
   rules:
@@ -590,17 +590,8 @@ Release to Dev:
   tags:
     - docker
   script:
-    - apk add git
-    - wget https://github.com/mikefarah/yq/releases/download/v4.12.1/yq_linux_amd64 -O /usr/bin/yq
-    - chmod +x /usr/bin/yq
-    - git config --global user.email "labs@magenta-aps.dk"
-    - git config --global user.name "OS2MO Config Updater"
-    - git clone https://$DEPLOY_USER:$ACCESS_TOKEN@git.magenta.dk/labs/salt-automation.git
-    - cd salt-automation
-    - yq e -i '.spec.values.os2mo.image.tag = strenv(CI_COMMIT_TAG)' flux/projects/os2mo/config/dev.yaml
-    - git add flux/projects/os2mo/config/dev.yaml
-    - git commit -m "[cd] Deploy OS2MO $CI_COMMIT_TAG to flux dev servers"
-    - git push
+    - curl --silent ifconfig.me
+    - curl --silent --request POST --user $CONFIG_UPDATER_USERNAME:$CONFIG_UPDATER_PASSWORD https://config-updater.magentahosted.dk/os2mo/flux/update-dev?tag=$CI_COMMIT_TAG
 
 Release to Test:
   stage: deploy
