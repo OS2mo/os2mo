@@ -209,6 +209,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 },
                 "third_party_associated": {"uuid": subid},
                 "third_party_association_type": substitute_association,
+                "it": None,
+                "job_function": None,
             }
         ]
 
