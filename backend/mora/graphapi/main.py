@@ -29,7 +29,7 @@ from strawberry.types import Info
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.health import health_map
-from mora.graphapi.middleware import set_graphql_args
+from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
@@ -75,7 +75,8 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
             info: Info, uuids: Optional[list[UUID]] = None
         ):
             """Resolve queries with no validity, i.e. class/facet/itsystem."""
-            set_date_interval(None, None)  # from -inf to inf
+            dates = set_date_interval(None, None)  # from -inf to inf
+            set_graphql_dates(dates)
             if uuids is not None:
                 return await get_by_uuid(info.context[loader], uuids)
             return await info.context[getter]()
@@ -104,7 +105,8 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
             The default behaviour of from_date and to_date, i.e. both being
             UNSET, is equivalent to validity=present in the service API.
         """
-        set_date_interval(from_date, to_date)
+        dates = set_date_interval(from_date, to_date)  # from -inf to inf
+        set_graphql_dates(dates)
         if uuids is not None:
             return await get_by_uuid(info.context[loader], uuids)
         return await info.context[getter]()
@@ -263,7 +265,7 @@ class Query:
 
 def set_date_interval(
     from_date: Optional[datetime], to_date: Optional[datetime]
-) -> None:
+) -> OpenValidityModel:
     """Set the date interval for GraphQL queries to support bitemporal lookups.
 
     Args:
@@ -288,8 +290,7 @@ def set_date_interval(
         # Pydantic errors are ugly in GraphQL so we get the msg part only
         message = ", ".join([err["msg"] for err in v_error.errors()])
         raise ValueError(message)
-
-    set_graphql_args(interval.dict())
+    return interval
 
 
 async def get_by_uuid(

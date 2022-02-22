@@ -36,7 +36,9 @@ def get_context_from_ext(monkeypatch):
         "get_results",
         lambda *args: {
             "is_graphql": jsonable_encoder(context.data["is_graphql"]),
-            "graphql_args": jsonable_encoder(context.data["graphql_args"]),
+            "graphql_dates": jsonable_encoder(
+                context.data["graphql_dates"], by_alias=False
+            ),
             "lora_args": jsonable_encoder(context.data["lora_connector"]().defaults),
         },
     )
@@ -59,22 +61,23 @@ class TestMiddleware:
         response = graphapi_test.post("/graphql", json={"query": "{ __typename }"})
         assert response.json()["extensions"]["is_graphql"]
 
-    def test_graphql_args_default(self, graphapi_test):
+    def test_graphql_dates_default(self, graphapi_test):
         """Test default GraphQL date arguments."""
         response = graphapi_test.post(
             "/graphql", json={"query": "{ employees { uuid } }"}
         )
         data, errors = response.json().get("data"), response.json().get("errors")
-        graphql_args = response.json()["extensions"]["graphql_args"]
+        graphql_dates = response.json()["extensions"]["graphql_dates"]
         assert data is not None
         assert errors is None
-        assert "from_date", "to_date" in graphql_args
+        assert "from_date", "to_date" in graphql_dates
         now = datetime.now(tz=tzutc())
-        assert graphql_args["from_date"] == now.isoformat()
-        assert graphql_args["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
+        print(graphql_dates)
+        assert graphql_dates["from_date"] == now.isoformat()
+        assert graphql_dates["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
 
     @given(dates=st.builds(OpenValidity))
-    def test_graphql_args_explicit(self, graphapi_test, dates):
+    def test_graphql_dates_explicit(self, graphapi_test, dates):
         """Test explicit GraphQL date arguments."""
         query = """
                 query TestQuery($from_date: DateTime, $to_date: DateTime) {
@@ -91,17 +94,17 @@ class TestMiddleware:
             },
         )
         data, errors = response.json().get("data"), response.json().get("errors")
-        graphql_args = response.json()["extensions"]["graphql_args"]
+        graphql_dates = response.json()["extensions"]["graphql_dates"]
         assert data is not None
         assert errors is None
-        assert graphql_args == dates.dict()
+        assert graphql_dates == dates.dict()
 
     @given(
         dates=st.tuples(st.datetimes(), st.datetimes()).filter(
             lambda dts: dts[0] > dts[1]
         ),
     )
-    def test_graphql_args_failure(self, graphapi_test_no_exc, dates):
+    def test_graphql_dates_failure(self, graphapi_test_no_exc, dates):
         """Test failing GraphQL date arguments.
 
         We use a test client that silences server side errors in order to
@@ -126,10 +129,10 @@ class TestMiddleware:
             },
         )
         data, errors = response.json().get("data"), response.json().get("errors")
-        graphql_args = response.json()["extensions"]["graphql_args"]
+        graphql_dates = response.json()["extensions"]["graphql_dates"]
         assert data is None
         assert errors is not None
-        assert graphql_args == dict()
+        assert graphql_dates is None
         for error in errors:
             assert re.match(
                 r"from_date .* must be less than or equal to to_date .*",
@@ -142,7 +145,7 @@ class TestMiddleware:
             json={"query": query, "variables": {"from_date": None}},
         )
         data, errors = response.json().get("data"), response.json().get("errors")
-        graphql_args = response.json()["extensions"]["graphql_args"]
+        graphql_dates = response.json()["extensions"]["graphql_dates"]
         assert data is None
         assert errors is not None
         for error in errors:
@@ -151,7 +154,7 @@ class TestMiddleware:
                 error["message"],
             )
 
-    def test_graphql_args_to_lora(self, graphapi_test):
+    def test_graphql_dates_to_lora(self, graphapi_test):
         """Test that GraphQL arguments propagate to the LoRa connector."""
         response = graphapi_test.post(
             "/graphql", json={"query": "{ employees (to_date: null) { uuid } }"}

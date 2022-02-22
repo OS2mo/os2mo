@@ -11,6 +11,7 @@ from typing import Any
 from typing import Optional
 from typing import Union
 
+from ramodels.mo import OpenValidity
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
@@ -92,29 +93,28 @@ def is_graphql_shim() -> bool:
     return context.get("is_graphql_shim", False)
 
 
-class GraphQLArgsPlugin(Plugin):
+class GraphQLDatesPlugin(Plugin):
     """Starlette plugin to create the `graphql_args` context variable.
 
     The variable is used to store `from_date` and `to_date` and send them
     to the LoRa connector.
 
-    It sucks, and I apologise. We do it like this because we cannot write
-    to the internal Strawberry context and fetch it again at a meaningful step
-    in the execution.
+    When we regain control of our connectors and dataloaders, this
+    should be deleted immediately and with extreme prejudice.
     """
 
-    key: str = "graphql_args"
+    key: str = "graphql_dates"
 
     async def process_request(
         self, request: Union[Request, HTTPConnection]
     ) -> Optional[Any]:
-        return dict()
+        return None
 
 
-def set_graphql_args(args_dict: dict[str, Any]) -> None:
+def set_graphql_dates(dates: OpenValidity) -> None:
     """Set GraphQL args directly in the Starlette context."""
-    context["graphql_args"] = args_dict
+    context["graphql_dates"] = dates
 
 
-def get_graphql_args() -> dict[str, Any]:
-    return context.get("graphql_args", dict())
+def get_graphql_dates() -> Optional[OpenValidity]:
+    return context.get("graphql_dates")

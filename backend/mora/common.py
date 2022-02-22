@@ -30,7 +30,7 @@ from . import mapping
 from . import util
 from .exceptions import ErrorCodes
 from .mapping import OwnerInferencePriority
-from mora.graphapi.middleware import get_graphql_args
+from mora.graphapi.middleware import get_graphql_dates
 from mora.graphapi.middleware import is_graphql
 
 
@@ -56,18 +56,7 @@ def get_connector(**loraparams) -> lora.Connector:
     return create_connector(**loraparams)
 
 
-def _create_connector(**loraparams) -> lora.Connector:
-    # OH BOY
-    if is_graphql() and get_graphql_args():
-        gql_args = get_graphql_args()
-        from_date, to_date = gql_args["from_date"], gql_args["to_date"]
-
-        loraparams["validity"] = "present"
-        loraparams["virkningfra"] = from_date if from_date is not None else "-infinity"
-        loraparams["virkningtil"] = to_date if to_date is not None else "infinity"
-
-        return lora.Connector(**loraparams)
-
+def _create_service_connector(**loraparams) -> lora.Connector:
     args = util.get_query_args() or {}
     if args.get("at"):
         loraparams["effective_date"] = util.from_iso_time(args["at"])
@@ -86,6 +75,32 @@ def _create_connector(**loraparams) -> lora.Connector:
             loraparams["validity"] = args["validity"]
 
     return lora.Connector(**loraparams)
+
+
+def _create_graphql_connector(**loraparams) -> lora.Connector:
+    dates = get_graphql_dates()
+
+    if dates is None:
+        # default to present
+        from_date = datetime.datetime.now(tz=datetime.timezone.utc)
+        to_date = from_date + datetime.timedelta(milliseconds=1)
+    else:
+        # None in MO -> ±infinity in LoRa
+        from_date = dates.from_date if dates.from_date is not None else "-infinity"
+        to_date = dates.to_date if dates.to_date is not None else "infinity"
+
+    loraparams["validity"] = "present"
+    loraparams["virkningfra"] = from_date
+    loraparams["virkningtil"] = to_date
+
+    return lora.Connector(**loraparams)
+
+
+def _create_connector(**loraparams) -> lora.Connector:
+    if is_graphql():
+        return _create_graphql_connector(**loraparams)
+    else:
+        return _create_service_connector(**loraparams)
 
 
 class cache(collections.defaultdict):
