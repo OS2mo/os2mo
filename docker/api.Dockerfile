@@ -8,9 +8,6 @@
 
 FROM node:10 AS frontend
 
-ARG COMMIT_TAG
-ENV COMMIT_TAG=${COMMIT_TAG}
-
 WORKDIR /app/frontend
 
 COPY frontend/package.json .
@@ -89,3 +86,9 @@ RUN install -g mora -o mora -d /log
 
 # Run the server as the mora user on port 5000
 USER mora:mora
+
+# Add build version to the environment last to avoid build cache misses
+ARG COMMIT_TAG
+ARG COMMIT_SHA
+ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
+    COMMIT_SHA=${COMMIT_SHA}

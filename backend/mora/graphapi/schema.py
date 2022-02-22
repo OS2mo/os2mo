@@ -37,7 +37,6 @@ from mora import config
 from mora import lora
 from mora.graphapi.health import health_map
 from mora.graphapi.models import HealthRead
-from mora.graphapi.models import SemanticVersionRead
 
 # --------------------------------------------------------------------------------------
 # Schema
@@ -678,29 +677,16 @@ class Role:
 
 # Health & version
 # ----------------
-@strawberry.experimental.pydantic.type(
-    model=SemanticVersionRead, all_fields=True, description="Semantic version"
-)
-class SemanticVersion:
-    pass
-
-
 @strawberry.type(description="MO & LoRa versions")
 class Version:
     @strawberry.field(description="OS2mo Version")
-    async def mo_version(self) -> Optional[SemanticVersion]:
+    async def mo_version(self) -> Optional[str]:
         """Get the mo version.
 
         Returns:
             The version.
         """
-        settings = config.get_settings()
-        commit_tag = settings.commit_tag
-        if not commit_tag:
-            return None
-        major, minor, patch = commit_tag.split(".")
-        sem_ver = SemanticVersionRead(major=major, minor=minor, patch=patch)
-        return sem_ver  # type: ignore
+        return config.get_settings().commit_tag
 
     @strawberry.field(description="OS2mo commit hash")
     async def mo_hash(self) -> Optional[str]:
@@ -709,25 +695,16 @@ class Version:
         Returns:
             The commit hash.
         """
-        settings = config.get_settings()
-        commit_sha = settings.commit_sha
-        if not commit_sha:
-            return None
-        return commit_sha
+        return config.get_settings().commit_sha
 
     @strawberry.field(description="LoRa version")
-    async def lora_version(self) -> Optional[SemanticVersion]:
+    async def lora_version(self) -> Optional[str]:
         """Get the lora version.
 
         Returns:
             The version.
         """
-        commit_tag = await lora.get_version()
-        if not commit_tag:
-            return None
-        major, minor, patch = commit_tag.split(".")
-        sem_ver = SemanticVersionRead(major=major, minor=minor, patch=patch)
-        return sem_ver  # type: ignore
+        return await lora.get_version()
 
 
 @strawberry.experimental.pydantic.type(

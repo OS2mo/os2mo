@@ -53,7 +53,8 @@ export default {
 
     Version.get().then(response => {
       const version_dict = response.data
-      this.mo_version = `OS2mo ${version_dict['mo_version']}`
+      const mo_hash = (version_dict['mo_hash'] || '').substring(0, 8)
+      this.mo_version = `OS2mo ${version_dict['mo_version']}@${mo_hash}`
       this.lora_version = `LoRa ${version_dict['lora_version']}`
     })
   },

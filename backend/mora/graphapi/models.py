@@ -14,12 +14,6 @@ from pydantic import Field
 # --------------------------------------------------------------------------------------
 
 
-class SemanticVersionRead(BaseModel):
-    major: int
-    minor: int
-    patch: int
-
-
 class HealthRead(BaseModel):
     """Payload model for health."""
 

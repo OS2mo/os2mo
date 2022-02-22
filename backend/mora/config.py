@@ -33,8 +33,8 @@ class Settings(BaseSettings):
     E.g. LORA_URL == lora_url
     """
 
-    commit_tag: str = "DEVELOPMENT BUILD"
-    commit_sha: str = ""
+    commit_tag: Optional[str]
+    commit_sha: Optional[str]
     lora_url: AnyHttpUrl = "http://mox/"
 
     # Misc OS2mo settings
