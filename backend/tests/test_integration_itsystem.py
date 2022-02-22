@@ -637,6 +637,7 @@ class Reading(tests.cases.LoRATestCase):
                     "user_key": "fwaf",
                     "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
                     "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+                    "primary": None,
                 },
             ],
         )

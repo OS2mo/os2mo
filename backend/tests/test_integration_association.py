@@ -179,6 +179,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "uuid": "00000000-0000-0000-0000-000000000000",
                 "substitute": {"uuid": subid},
                 "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+                "it": None,
+                "job_function": None,
             }
         ]
 
@@ -445,6 +447,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "uuid": assoc_uuid,
                 "substitute": {"uuid": subid},
                 "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+                "it": None,
+                "job_function": None,
             }
 
         expected = [
@@ -1337,6 +1341,8 @@ class Tests(tests.cases.LoRATestCase):
                             "from": "2017-01-01",
                             "to": None,
                         },
+                        "it": None,
+                        "job_function": None,
                     }
                 ],
                 amqp_topics={
