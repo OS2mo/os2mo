@@ -139,20 +139,6 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-def _check_httpx_response(r):
-    if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
-        try:
-            cause = r.json()
-            msg = cause["message"]
-        except (ValueError, KeyError):
-            cause = None
-            msg = r.text
-
-        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
-
-    return r
-
-
 async def _check_response(r):
     if 400 <= r.status_code < 600:  # equivalent to requests.response.ok
         try:
@@ -574,7 +560,7 @@ class Scope(BaseScope):
             # URL if we were using query parameters.
             content=params,
         )
-        _check_httpx_response(response)
+        await _check_response(response)
         try:
             ret = response.json()["results"][0]
             return ret
