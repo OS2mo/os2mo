@@ -90,7 +90,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # remove substitute if not needed
         await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
         if substitute_uuid:  # substitute is specified
-            await validator.is_substitute_allowed(association_type_uuid)
+            validator.is_substitute_allowed(association_type_uuid)
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
             await validator.is_date_range_in_employee_range(
