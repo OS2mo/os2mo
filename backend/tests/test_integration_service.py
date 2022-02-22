@@ -21,6 +21,7 @@ org_unit_address_type_facet = {
 }
 
 
+@pytest.mark.usefixtures("testing_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
