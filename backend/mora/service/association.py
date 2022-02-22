@@ -127,7 +127,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         if it_user:
             it_user_system = util.checked_get(
-                it_user, mapping.ITSYSTEM, {}, required=True,
+                it_user,
+                mapping.ITSYSTEM,
+                {},
+                required=True,
             )
             it_user_system_uuid = util.get_uuid(it_user_system, required=True)
             it_user_is_primary = bool(
