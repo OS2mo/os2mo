@@ -58,7 +58,7 @@ from mora.graphapi.schema import Version
 # --------------------------------------------------------------------------------------
 
 
-def create_resolver(getter: str, loader: str) -> Callable:
+def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
     """Create a field resolver by specifying getter and loader.
 
     Args:
@@ -69,6 +69,18 @@ def create_resolver(getter: str, loader: str) -> Callable:
         Callable: Resolver using specified getters/loaders from
             the context.
     """
+    if static:
+
+        async def resolve_static(  # type: ignore
+            info: Info, uuids: Optional[list[UUID]] = None
+        ):
+            """Resolve queries with no validity, i.e. class/facet/itsystem."""
+            set_date_interval(None, None)  # from -inf to inf
+            if uuids is not None:
+                return await get_by_uuid(info.context[loader], uuids)
+            return await info.context[getter]()
+
+        return resolve_static
 
     async def resolve_query(  # type: ignore
         info: Info,
@@ -125,8 +137,8 @@ class Query:
 
     # Classes
     # -------
-    classes: list[Response[Class]] = strawberry.field(
-        resolver=create_resolver("class_getter", "class_loader"),
+    classes: list[Class] = strawberry.field(
+        resolver=create_resolver("class_getter", "class_loader", static=True),
         description="Get a list of all classes, optionally by uuid(s)",
     )
 
@@ -146,15 +158,15 @@ class Query:
 
     # Facets
     # ------
-    facets: list[Response[Facet]] = strawberry.field(
-        resolver=create_resolver("facet_getter", "facet_loader"),
+    facets: list[Facet] = strawberry.field(
+        resolver=create_resolver("facet_getter", "facet_loader", static=True),
         description="Get a list of all facets, optionally by uuid(s)",
     )
 
     # ITSystems
     # ---------
-    itsystems: list[Response[ITSystem]] = strawberry.field(
-        resolver=create_resolver("itsystem_getter", "itsystem_loader"),
+    itsystems: list[ITSystem] = strawberry.field(
+        resolver=create_resolver("itsystem_getter", "itsystem_loader", static=True),
         description="Get a list of all ITSystems, optionally by uuid(s)",
     )
 

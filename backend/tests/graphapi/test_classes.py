@@ -12,7 +12,6 @@ import mora.graphapi.dataloaders as dataloaders
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora.graphapi.shim import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -45,17 +44,14 @@ class TestClassesQuery:
                 query {
                     classes {
                         uuid
-                        objects {
-                            uuid
-                            user_key
-                            facet_uuid
-                            org_uuid
-                            name
-                            parent_uuid
-                            published
-                            scope
-                            type
-                        }
+                        user_key
+                        facet_uuid
+                        org_uuid
+                        name
+                        parent_uuid
+                        published
+                        scope
+                        type
                     }
                 }
             """
@@ -64,7 +60,7 @@ class TestClassesQuery:
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
         assert data is not None
-        assert flatten_data(data["classes"]) == test_data
+        assert data["classes"] == test_data
 
     @given(test_input=graph_data_uuids_strat(ClassRead))
     def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):

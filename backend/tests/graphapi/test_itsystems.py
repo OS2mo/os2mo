@@ -12,7 +12,6 @@ import mora.graphapi.dataloaders as dataloaders
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora.graphapi.shim import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -45,13 +44,11 @@ class TestITSystemsQuery:
                 query {
                     itsystems {
                         uuid
-                        objects {
-                            name
-                            system_type
-                            type
-                            user_key
-                            uuid
-                        }
+                        name
+                        system_type
+                        type
+                        user_key
+                        uuid
                     }
                 }
             """
@@ -60,7 +57,7 @@ class TestITSystemsQuery:
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
         assert data is not None
-        assert flatten_data(data["itsystems"]) == test_data
+        assert data["itsystems"] == test_data
 
     @given(test_input=graph_data_uuids_strat(ITSystemRead))
     def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
