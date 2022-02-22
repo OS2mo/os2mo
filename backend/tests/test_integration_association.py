@@ -254,6 +254,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "third_party_association_type": {
                     "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
                 },
+                "it": None,
+                "job_function": None,
             }
         ]
 
