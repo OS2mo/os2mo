@@ -10,7 +10,7 @@ from mora import lora
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     async def test_create_engagement(self):
@@ -1050,7 +1050,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_engagement_fails_on_empty_payload(self):

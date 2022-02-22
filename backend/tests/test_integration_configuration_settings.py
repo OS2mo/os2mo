@@ -6,11 +6,10 @@ from mora.config import Settings, NavLink
 
 from tests import util
 
-from tests.cases import NewLoRATestCase
-from tests.cases import TestCase
+import tests.cases
 
 
-class Tests(TestCase):
+class Tests(tests.cases.TestCase):
     def test_global_user_settings_read(self):
         """
         Test that it is possible to correctly read default global settings.
@@ -55,7 +54,7 @@ class Tests(TestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class LoRaTest(NewLoRATestCase):
+class LoRaTest(tests.cases.LoRATestCase):
     def test_ou_service_response(self):
         """
         Test that the service endpoint for units returns the correct
@@ -77,7 +76,7 @@ class LoRaTest(NewLoRATestCase):
         self.assertTrue(user_settings["show_location"])
 
 
-class TestNavLink(TestCase):
+class TestNavLink(tests.cases.TestCase):
     """
     Test the retrieval of "nav links" via the "/service/navlinks" endpoint
     """

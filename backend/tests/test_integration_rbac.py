@@ -69,7 +69,7 @@ def mock_auth(role: str = None, user_uuid: str = None):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestCommon(tests.cases.NewLoRATestCase):
+class TestCommon(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
 

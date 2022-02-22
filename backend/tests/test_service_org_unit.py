@@ -293,7 +293,7 @@ class TestTriggerExternalIntegration(tests.cases.TestCase):
 
 
 @pytest.mark.usefixtures("sample_structures_minimal")
-class AsyncTestGetOneOrgUnit(tests.cases.NewAsyncLoRATestCase):
+class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self._connector = lora.Connector(

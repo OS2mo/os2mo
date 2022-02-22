@@ -11,7 +11,7 @@ from mora import lora
 
 
 @pytest.mark.usefixtures("sample_structures")
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     @freezegun.freeze_time("2000-12-01")
     async def test_terminate_employee(self):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -702,7 +702,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2018-01-01")
     def test_validation_missing_validity(self):
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"

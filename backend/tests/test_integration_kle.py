@@ -22,7 +22,7 @@ kle_nummer_facet = {
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)

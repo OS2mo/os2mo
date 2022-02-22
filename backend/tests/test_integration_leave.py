@@ -15,7 +15,7 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_edit_leave_no_overwrite(self):
         leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
 
@@ -163,7 +163,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_leave(self):

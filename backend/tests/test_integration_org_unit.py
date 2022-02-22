@@ -76,7 +76,7 @@ def expected_error_response(error_key, **overrides):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     maxDiff = None
 
@@ -1470,7 +1470,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_org_unit_temporality(self):
@@ -2985,7 +2985,7 @@ class Tests(tests.cases.NewLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class TestsMinimal(tests.cases.NewLoRATestCase):
+class TestsMinimal(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_read_root(self):

@@ -196,7 +196,7 @@ class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2016-01-01")
-class TriggerlessTests(tests.cases.NewLoRATestCase):
+class TriggerlessTests(tests.cases.LoRATestCase):
     """Trigger functionality (and there by also amqp as that is triggered)
     can be disabled by the 'triggerless' flag
     This test is supposed to test/show the the difference

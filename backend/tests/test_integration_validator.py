@@ -24,7 +24,7 @@ def patch_context(monkeypatch):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class AsyncTestHelper(tests.cases.NewAsyncLoRATestCase):
+class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
     SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"
@@ -47,7 +47,7 @@ class AsyncTestHelper(tests.cases.NewAsyncLoRATestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestHelper(tests.cases.NewLoRATestCase):
+class TestHelper(tests.cases.LoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
     SAMF_UNIT = "b688513d-11f7-4efc-b679-ab082a2055d0"

@@ -34,7 +34,7 @@ address_type_facet = {
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
+class AsyncWriting(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
@@ -935,7 +935,7 @@ class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Writing(tests.cases.NewLoRATestCase):
+class Writing(tests.cases.LoRATestCase):
     maxDiff = None
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
@@ -1206,7 +1206,7 @@ class Writing(tests.cases.NewLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncReadingMinimal(tests.cases.NewAsyncLoRATestCase):
+class AsyncReadingMinimal(tests.cases.AsyncLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_missing_class(self, mock):
         # The relevant address_type klasse is not present in the minimal dataset
@@ -1224,7 +1224,7 @@ class AsyncReadingMinimal(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncReading(tests.cases.NewAsyncLoRATestCase):
+class AsyncReading(tests.cases.AsyncLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=False)
     async def test_missing_address(self, mock):
         unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -1361,7 +1361,7 @@ class AsyncReading(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.NewLoRATestCase):
+class Reading(tests.cases.LoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_reading(self, mock):
         with self.subTest("Addresses present"):

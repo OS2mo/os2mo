@@ -19,7 +19,7 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 @patch("uuid.uuid4", new=lambda: mock_uuid)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
 @pytest.mark.usefixtures("sample_structures")
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)
@@ -972,7 +972,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 @patch("uuid.uuid4", new=lambda: mock_uuid)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
 @pytest.mark.usefixtures("sample_structures")
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_manager_missing_unit(self):

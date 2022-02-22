@@ -10,7 +10,7 @@ from mora import lora
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
+class AsyncWriting(tests.cases.AsyncLoRATestCase):
     async def test_create_employee_itsystem(self):
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -304,7 +304,7 @@ class AsyncWriting(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class WritingMinimal(tests.cases.NewLoRATestCase):
+class WritingMinimal(tests.cases.LoRATestCase):
     maxDiff = None
 
     @classmethod
@@ -550,7 +550,7 @@ class WritingMinimal(tests.cases.NewLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.NewLoRATestCase):
+class Reading(tests.cases.LoRATestCase):
     def test_reading_organisation(self):
         self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",

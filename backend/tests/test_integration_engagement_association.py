@@ -7,10 +7,7 @@ import freezegun
 import pytest
 
 from mora import lora
-from tests.cases import (
-    NewLoRATestCase,
-    NewAsyncLoRATestCase,
-)
+import tests.cases
 
 
 class EngAssocUtils:
@@ -77,7 +74,7 @@ class EngAssocUtils:
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
 
@@ -204,7 +201,7 @@ class AsyncTests(NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
 

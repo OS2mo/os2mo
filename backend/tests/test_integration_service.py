@@ -23,7 +23,7 @@ org_unit_address_type_facet = {
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class AsyncTestsDelayedMinimal(tests.cases.NewAsyncLoRATestCase):
+class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     async def test_employee(self):
@@ -497,7 +497,7 @@ class AsyncTestsDelayedMinimal(tests.cases.NewAsyncLoRATestCase):
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class AsyncTestsMinimal(tests.cases.NewAsyncLoRATestCase):
+class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     async def test_organisation(self):
@@ -857,14 +857,14 @@ class AsyncTestsMinimal(tests.cases.NewAsyncLoRATestCase):
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class TestsMinimal(tests.cases.NewLoRATestCase):
+class TestsMinimal(tests.cases.LoRATestCase):
     maxDiff = None
 
     @classmethod
@@ -960,7 +960,7 @@ class TestsMinimal(tests.cases.NewLoRATestCase):
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     @classmethod

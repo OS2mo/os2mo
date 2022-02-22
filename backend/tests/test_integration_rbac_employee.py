@@ -32,7 +32,7 @@ URL_TERMINATE_DETAIL = "/service/details/terminate"
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestCommon(tests.cases.NewLoRATestCase):
+class TestCommon(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
         self.create_owner_payload = jsonfile_to_dict(
@@ -55,7 +55,7 @@ class TestCommon(tests.cases.NewLoRATestCase):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestCreateEmployee(tests.cases.NewLoRATestCase):
+class TestCreateEmployee(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
         self.create_employee_url = "/service/e/create"
@@ -180,7 +180,7 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestCreateEmployeeDetailViaOrgUnit(tests.cases.NewLoRATestCase):
+class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     """
     When creating employee details in the frontend some details actually
     resides under an org unit, e.g. employment, role, association,...
@@ -594,7 +594,7 @@ class TestEditEmployeeDetail(TestCommon):
 
 
 @pytest.mark.usefixtures("sample_structures")
-class TestMoveEmployment(tests.cases.NewLoRATestCase):
+class TestMoveEmployment(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()
         # Move Erik Smidt Hansen from hum to samf

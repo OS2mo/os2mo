@@ -8,7 +8,7 @@ from mora.lora import Connector
 
 
 @pytest.mark.usefixtures("sample_structures_minimal")
-class TestOrgFunkReadingHandler(tests.cases.NewAsyncLoRATestCase):
+class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
     def setUp(self):
         super().setUp()
         self._unitid = "2874e1dc-85e6-4269-823a-e1125484dfd3"

@@ -171,7 +171,7 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         )
 
 
-class TestAuthEndpointsReturn2xx(tests.cases.NewLoRATestCase):
+class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
     and one from the /api/v1 endpoints)
@@ -256,7 +256,7 @@ class TestTokenModel(tests.cases.TestCase):
 
 
 @pytest.mark.usefixtures("sample_structures_minimal")
-class TestUuidInvalidOrMissing(tests.cases.NewLoRATestCase):
+class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
     @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
     def test_401_when_uuid_missing_in_token(self, mock_auth):
         validation_err = ValidationError(
@@ -278,7 +278,7 @@ class TestUuidInvalidOrMissing(tests.cases.NewLoRATestCase):
 # TODO: Find a way to test that endpoints works when auth is disabled
 @unittest.skip("Not working...(?)")
 @pytest.mark.usefixtures("sample_structures")
-class TestAuthDisabled(tests.cases.NewLoRATestCase):
+class TestAuthDisabled(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()
         self.app.dependency_overrides = []

@@ -68,7 +68,7 @@ HIST = {
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-06-01", tz_offset=2)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_reading(self):

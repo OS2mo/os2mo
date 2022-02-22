@@ -16,7 +16,7 @@ substitute_association = {"name": "i18n:substitute_association"}  # const
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.NewAsyncLoRATestCase):
+class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     @patch(
@@ -1023,7 +1023,7 @@ class AsyncTests(tests.cases.NewAsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.NewLoRATestCase):
+class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_create_association_from_missing_unit(self):
@@ -1444,7 +1444,7 @@ class Tests(tests.cases.NewLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AddressTests(tests.cases.NewLoRATestCase):
+class AddressTests(tests.cases.LoRATestCase):
     maxDiff = None
 
     def test_terminate_association_directly(self):

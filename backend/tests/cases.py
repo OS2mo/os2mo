@@ -16,12 +16,8 @@ from mora import app
 from mora import conf_db
 from mora import config
 from mora import service
-from mora.async_util import _local_cache
-from mora.async_util import async_to_sync
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
-from tests.util import _mox_testing_api
-from tests.util import load_sample_structures
 
 logger = get_logger()
 
@@ -621,69 +617,24 @@ class MockRequestContextTestCase(TestCase):
 
 
 @pytest.mark.serial
-class NewAsyncLoRATestCase(_AsyncBaseTestCase):
-    """Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-
-    async def asyncTearDown(self):
-        await super().asyncTearDown()
-
-
-@pytest.mark.serial
 class AsyncLoRATestCase(_AsyncBaseTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
 
-    async def load_sample_structures(self, minimal=False):
-        return await load_sample_structures(minimal)
-
     @classmethod
     def setUpClass(cls):
-        _mox_testing_api("db-setup")
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        _mox_testing_api("db-teardown")
         super().tearDownClass()
 
     async def asyncSetUp(self):
-        _mox_testing_api("db-reset")
         await super().asyncSetUp()
 
     async def asyncTearDown(self):
         await super().asyncTearDown()
-
-
-@pytest.mark.serial
-class NewLoRATestCase(_BaseTestCase):
-    """Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    def setUp(self):
-        super().setUp()
 
 
 @pytest.mark.serial
@@ -692,36 +643,19 @@ class LoRATestCase(_BaseTestCase):
     instance, and deletes all objects between runs.
     """
 
-    def load_sample_structures(self, minimal=False):
-        func = async_to_sync(load_sample_structures)
-        return func(minimal)
-
     @classmethod
     def setUpClass(cls):
-        _mox_testing_api("db-setup")
         super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
-        _mox_testing_api("db-teardown")
         super().tearDownClass()
 
     def setUp(self):
-        _mox_testing_api("db-reset")
         super().setUp()
 
-    @async_to_sync
-    async def tearDown(self):
-        if (
-            hasattr(_local_cache, "async_session")
-            and _local_cache.async_session is not None
-        ):
-            await _local_cache.async_session.close()
-            _local_cache.async_session = None
-        super().tearDown()
 
-
-class AsyncConfigTestCase(NewAsyncLoRATestCase):
+class AsyncConfigTestCase(AsyncLoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
@@ -747,7 +681,7 @@ class AsyncConfigTestCase(NewAsyncLoRATestCase):
         super().tearDown()
 
 
-class ConfigTestCase(NewLoRATestCase):
+class ConfigTestCase(LoRATestCase):
     """Testcase with configuration database support."""
 
     def set_global_conf(self, conf):
