@@ -299,6 +299,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     "from": "2017-12-01",
                     "to": "2017-12-01",
                 },
+                "it": None,
+                "job_function": None,
             }
             if include_person:
                 main["person"] = None
@@ -616,6 +618,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "uuid": "00000000-0000-0000-0000-000000000000",
                 "substitute": None,
                 "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+                "it": None,
+                "job_function": None,
             }
         ]
 
@@ -880,6 +884,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     "from": "2018-04-01",
                     "to": "2019-03-31",
                 },
+                "it": None,
+                "job_function": None,
             }
         ]
 
@@ -1287,6 +1293,8 @@ class Tests(tests.cases.LoRATestCase):
                         "from": "2017-01-01",
                         "to": None,
                     },
+                    "it": None,
+                    "job_function": None,
                 }
             ],
             amqp_topics={
@@ -1424,6 +1432,8 @@ class Tests(tests.cases.LoRATestCase):
                         "from": "2017-01-01",
                         "to": None,
                     },
+                    "it": None,
+                    "job_function": None,
                 }
             ],
             amqp_topics={
