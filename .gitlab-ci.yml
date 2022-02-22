@@ -590,8 +590,10 @@ Release to Dev:
   tags:
     - docker
   script:
-    - curl --silent ifconfig.me
+    - curl --silent http://ipinfo.io/ip
     - curl --silent --request POST --user $CONFIG_UPDATER_USERNAME:$CONFIG_UPDATER_PASSWORD https://config-updater.magentahosted.dk/os2mo/flux/update-dev?tag=$CI_COMMIT_TAG
+  tags:
+    - deploy
 
 Release to Test:
   stage: deploy
