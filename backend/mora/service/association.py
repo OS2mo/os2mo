@@ -82,16 +82,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = util.get_mapping_uuid(req, mapping.PRIMARY)
-        # substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
-        # job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
-        # it_system_binding_uuid = util.get_mapping_uuid(req, mapping.IT)
-        # it_system_binding_username = util.checked_get(req, ...)
-        # it_system_binding_is_primary = util.checked_get(req, ...)
-        substitute_uuid = None
-        job_function_uuid = "000e07d3-67e1-46d2-9694-87aba903885e"  # in AAK dataset
-        it_system_binding_uuid = "10c2f705-e2bf-4f0e-ba27-2bb32c3d12d2"  # = AZ in AAK
-        it_system_binding_username = "foobar@example.com"
-        it_system_binding_is_primary = True
+        substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
+        job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
+        it_user = util.checked_get(req, mapping.IT, {})
 
         # Validation
         # remove substitute if not needed
@@ -118,23 +111,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             rel_orgfunc_uuids = []
 
-        # if (
-        #     it_system_binding_uuid
-        #     and it_system_binding_username
-        #     and it_system_binding_is_primary
-        # ):
-        it_system_binding_uuid = await _create_it_system_binding(
-            org_uuid=org_uuid,
-            org_unit_uuid=org_unit_uuid,
-            employee_uuid=employee_uuid,
-            it_system_uuid=it_system_binding_uuid,
-            primary=it_system_binding_is_primary,
-            user_key=it_system_binding_username,
-            valid_from=valid_from,
-            valid_to=valid_to,
-        )
-
-        association = common.create_organisationsfunktion_payload(
+        payload_kwargs = dict(
             funktionsnavn=mapping.ASSOCIATION_KEY,
             primær=primary,
             valid_from=valid_from,
@@ -145,9 +122,33 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             tilknyttedeklasser=dynamic_classes,
             tilknyttedefunktioner=rel_orgfunc_uuids,
-            tilknyttedeitsystemer=[it_system_binding_uuid],
             funktionstype=association_type_uuid,
         )
+
+        if it_user:
+            it_user_system = util.checked_get(
+                it_user, mapping.ITSYSTEM, {}, required=True,
+            )
+            it_user_system_uuid = util.get_uuid(it_user_system, required=True)
+            it_user_is_primary = bool(
+                util.checked_get(it_user, mapping.PRIMARY, True, required=True)
+            )
+            it_user_username = it_user[mapping.USER_KEY]
+            it_system_binding_uuid = await _create_it_system_binding(
+                org_uuid=org_uuid,
+                org_unit_uuid=org_unit_uuid,
+                employee_uuid=employee_uuid,
+                it_system_uuid=it_user_system_uuid,
+                primary=it_user_is_primary,
+                user_key=it_user_username,
+                valid_from=valid_from,
+                valid_to=valid_to,
+            )
+            # Create relation between the IT system binding and the association, making
+            # the association an "IT association."
+            payload_kwargs["tilknyttedeitsystemer"] = [it_system_binding_uuid]
+
+        association = common.create_organisationsfunktion_payload(**payload_kwargs)
 
         self.payload = association
         self.uuid = func_id
