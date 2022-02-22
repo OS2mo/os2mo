@@ -175,10 +175,10 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 "substitute_uuid": (
                     associated_function_uuid if needs == "substitute_uuid" else None
                 ),
-                mapping.JOB_FUNCTION: (
+                "job_function_uuid": (
                     associated_function_uuid if needs == "job_function_uuid" else None
                 ),
-                mapping.IT: it_system_binding_uuid,
+                "it_user_uuid": it_system_binding_uuid,
             }
 
         substitute = None
@@ -237,7 +237,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             job_function_task = facet.get_one_class(
                 c,
                 classid=associated_function_uuid,
-                details={},
+                details=set(),
                 only_primary_uuid=only_primary_uuid,
             )
         else:
