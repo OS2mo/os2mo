@@ -12,6 +12,7 @@ Used for shimming the service API.
 # --------------------------------------------------------------------------------------
 from typing import Any
 
+from more_itertools import flatten
 from strawberry.types import ExecutionResult
 
 # --------------------------------------------------------------------------------------
@@ -31,3 +32,15 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
         kwargs["context_value"] = loaders
 
     return await get_schema().execute(*args, **kwargs)
+
+
+def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:
+    """Function to flatten response data into just the objects.
+
+    Args:
+        resp_dicts: Response dicts to flatten.
+
+    Returns:
+        List of response objects.
+    """
+    return list(flatten([d["objects"] for d in resp_dicts]))

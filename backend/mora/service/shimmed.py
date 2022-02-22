@@ -12,7 +12,6 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
-from more_itertools import flatten
 from more_itertools import one
 from pydantic import root_validator
 from ramodels.mo import EmployeeRead
@@ -20,16 +19,9 @@ from ramodels.mo import OrganisationRead
 
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import flatten_data
 from mora.service.employee import router as employee_router
 from mora.service.itsystem import router as it_router
-
-# --------------------------------------------------------------------------------------
-# Auxiliary functions
-# --------------------------------------------------------------------------------------
-
-
-def flatten_data(resp_dict: dict[str, Any]):
-    return list(flatten([d["objects"] for d in resp_dict]))
 
 
 # --------------------------------------------------------------------------------------

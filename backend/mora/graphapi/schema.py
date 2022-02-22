@@ -288,12 +288,6 @@ class Employee:
         return await loader.load(root.uuid)
 
 
-@strawberry.type
-class EmployeeResponse:
-    uuid: UUID
-    value: list[Employee]
-
-
 # Engagement
 # ----------
 

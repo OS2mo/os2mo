@@ -20,6 +20,7 @@ from uuid import UUID
 
 from more_itertools import bucket
 from more_itertools import one
+from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
@@ -75,7 +76,7 @@ RoleType = TypeVar("RoleType")
 def group_by_uuid(
     models: list[MOModel], uuids: Optional[list[UUID]] = None
 ) -> dict[UUID, list[MOModel]]:
-    """Auxiliary function to group MOMOdels by their UUID.
+    """Auxiliary function to group MOModels by their UUID.
 
     Args:
         models: List of MOModels to group.
@@ -85,15 +86,11 @@ def group_by_uuid(
         dict[UUID, list[MOModel]]: A mapping of uuids and lists of corresponding
             MOModels.
     """
-    uuid_map: dict[UUID, list[MOModel]] = dict()
     uuids = uuids if uuids is not None else []
-    for model in models:
-        # Group MOModels first
-        uuid_map.setdefault(model.uuid, []).append(model)
-    for uuid in uuids:
-        # Set empty lists for uuids not set in the previous step
-        uuid_map.setdefault(uuid, [])
-    return uuid_map
+    buckets = bucket(models, lambda model: model.uuid)
+    # unique keys in order. mypy doesn't like bucket for some reason
+    keys = unique_everseen([*list(buckets), *uuids])  # type: ignore
+    return {key: list(buckets[key]) for key in keys}
 
 
 async def get_mo(model: MOModel) -> list[Response[MOModel]]:

@@ -12,7 +12,7 @@ import mora.graphapi.dataloaders as dataloaders
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from .util import flatten_data
+from mora.graphapi.shim import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests

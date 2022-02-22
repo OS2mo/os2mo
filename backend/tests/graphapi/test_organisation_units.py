@@ -13,7 +13,7 @@ from ramodels.mo import OrganisationUnitRead
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from .util import flatten_data
+from mora.graphapi.shim import flatten_data
 
 
 # --------------------------------------------------------------------------------------

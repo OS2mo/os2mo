@@ -56,7 +56,7 @@ def graph_data_strat(draw, model: MOModel):
 def graph_data_uuids_strat(draw, model: MOModel):
     """Hypothesis strategy for drawing data and uuids based on a specific MOModel."""
     data = draw(graph_data_strat(model))
-    uuids = [model.get("uuid") for model in data]
+    uuids = list(map(lambda model: model.get("uuid"), data))
     test_uuids = draw(st.lists(st.sampled_from(uuids))) if uuids else []
-    test_data = [obj for obj in data if obj.get("uuid") in test_uuids]
+    test_data = list(filter(lambda obj: obj.get("uuid") in test_uuids, data))
     return test_data, test_uuids
