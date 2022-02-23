@@ -625,6 +625,10 @@ Performance Tests:
     when: always
     reports:
       load_performance: load-performance.json
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+      allow_failure: true
 
 
 # Release stage
