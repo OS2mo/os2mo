@@ -602,7 +602,10 @@ Create Performance Test Keycloak Token:
     - gitlab-terraform plan
     - gitlab-terraform plan-json
     - gitlab-terraform apply
-
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+      allow_failure: true
 
 Performance Tests:
   stage: qa
