@@ -577,6 +577,10 @@ Delete Review Terraform State:
   image: curlimages/curl:7.81.0
   script:
     - 'curl --header "Private-Token: $REVIEW_TERRAFORM_STATE_CI_TOKEN" --request DELETE "$REVIEW_TERRAFORM_STATE_ADDRESS"'
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: on_success
+    - when: never
 
 
 # QA Stage
