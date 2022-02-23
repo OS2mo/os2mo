@@ -178,7 +178,7 @@ async def list_it_systems(orgid: UUID):
     query = """
     query ITSystemQuery {
       itsystems {
-        objects { uuid, name, system_type, user_key }
+        uuid, name, system_type, user_key
       }
       org {
         uuid
@@ -190,4 +190,4 @@ async def list_it_systems(orgid: UUID):
         raise ValueError(r.errors)
     if r.data["org"]["uuid"] != orgid:
         return []
-    return flatten_data(r.data["itsystems"])
+    return r.data["itsystems"]
