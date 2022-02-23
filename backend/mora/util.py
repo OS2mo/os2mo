@@ -56,8 +56,8 @@ DEFAULT_TIMEZONE = dateutil.tz.gettz("Europe/Copenhagen")
 _tzinfos = {
     None: DEFAULT_TIMEZONE,
     0: dateutil.tz.tzutc,
-    1 * 60 ** 2: DEFAULT_TIMEZONE,
-    2 * 60 ** 2: DEFAULT_TIMEZONE,
+    1 * 60**2: DEFAULT_TIMEZONE,
+    2 * 60**2: DEFAULT_TIMEZONE,
 }
 
 logger = get_logger()

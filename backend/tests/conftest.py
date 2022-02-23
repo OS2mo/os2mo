@@ -21,7 +21,7 @@ h_settings.register_profile("dev", max_examples=10, database=h_db)
 h_settings.register_profile(
     "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
 )
-h_settings.load_profile(os.getenv(u"HYPOTHESIS_PROFILE", "dev"))
+h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
 
 def pytest_runtest_setup(item):

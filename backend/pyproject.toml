@@ -74,7 +74,7 @@ hypothesis-graphql = "^0.5.1"
 pytest-split = "^0.6.0"
 mypy = "^0.931"
 pydocstyle = "^6.1.1"
-black = {version = "^22.1.0", allow-prereleases = true}
+black = {version = "^22.1.0"}
 
 [build-system]
 requires = ["poetry-core"]
