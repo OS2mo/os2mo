@@ -665,19 +665,19 @@ Release to Dev:
   extends: .release-to-dev
   needs: ["Release API version"]
   variables:
-    ENDPOINT: os2mo/flux/update-dev
+    ENDPOINT: os2mo/flux/os2mo/update-dev
 
 Release to Test:
   extends: .release-to-test
   needs: []
   variables:
-    ENDPOINT: os2mo/flux/update-test
+    ENDPOINT: os2mo/flux/os2mo/update-test
 
 Release to Prod:
   extends: .release-to-prod
   needs: []
   variables:
-    ENDPOINT: os2mo/flux/update-prod
+    ENDPOINT: os2mo/flux/os2mo/update-prod
 
 # Docs stage
 ############
