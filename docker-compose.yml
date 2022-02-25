@@ -144,7 +144,9 @@ services:
       DB_PASSWORD: mox
       DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
 
-      MAX_WORKERS: "1"
+      # MAX_WORKERS > 1 is required because the LoRa database connection (psycopg2) is completely synchronous, causing
+      # all other incoming requests to be blocked for the duration of a query.
+      MAX_WORKERS: "4"
       TESTING_API: "true"
 
       LORA_AUTH: "false"
