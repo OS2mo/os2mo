@@ -13,6 +13,10 @@ function health() {
   client.get('/health/');
 }
 
+function live() {
+  client.get('/health/live');
+}
+
 function org() {
   client.get('/service/o/');
 }
@@ -20,6 +24,7 @@ function org() {
 export default function apiServiceMetaTests() {
   group('api.service.meta', () => {
     version();
+    live();
     org();
   });
   group('api.service.meta.health', () => {
