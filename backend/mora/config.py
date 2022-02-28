@@ -98,6 +98,12 @@ class Settings(BaseSettings):
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
 
+    # Lora client
+    lora_client_id: str = "mo"
+    lora_client_secret: Optional[str]
+    lora_auth_realm: str = "lora"
+    lora_auth_server: AnyHttpUrl = "http://keycloak:8080/auth"
+
     @root_validator
     def show_owners_must_be_true_if_rbac_is_enabled(
         cls, values: Dict[str, Any]
