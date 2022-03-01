@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from datetime import date
 
+import pytest
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
@@ -15,6 +16,8 @@ from hypothesis import strategies as st
 from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import DynamicClasses
 from ramodels.mo._shared import EmployeeRef
+from ramodels.mo._shared import ITUserRef
+from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
@@ -58,14 +61,15 @@ def read_strat(draw):
     optional = {
         "primary_uuid": st.none() | st.uuids(),
         "substitute_uuid": st.none() | st.uuids(),
+        "job_function_uuid": st.none() | st.uuids(),
+        "it_user_uuid": st.none() | st.uuids(),
     }
-
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
 
 
 @st.composite
-def write_strat(draw):
+def _base_write_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit": st.builds(OrgUnitRef),
@@ -74,10 +78,40 @@ def write_strat(draw):
     }
     optional = {
         "primary": st.none() | st.builds(Primary),
-        "substitute": st.none() | st.builds(EmployeeRef),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
+
+
+@st.composite
+def write_strat(draw):
+    normal_assoc_fields = {
+        "substitute": st.none() | st.builds(EmployeeRef),
+    }
+    it_assoc_fields = {
+        "job_function": st.none() | st.builds(JobFunction),
+        "it_user": st.none() | st.builds(ITUserRef),
+    }
+    optional = st.one_of(  # type: ignore
+        st.fixed_dictionaries(normal_assoc_fields),  # type: ignore
+        st.fixed_dictionaries(it_assoc_fields),  # type: ignore
+    )
+    base_dict = draw(_base_write_strat())
+    optional_dict = draw(optional)
+    return {**base_dict, **optional_dict}
+
+
+@st.composite
+def write_strat_invalid(draw):
+    normal_assoc_fields = {"substitute": st.builds(EmployeeRef)}
+    it_assoc_fields = {
+        "job_function": st.builds(JobFunction),
+        "it_user": st.builds(ITUserRef),
+    }
+    normal_assoc = draw(st.fixed_dictionaries(normal_assoc_fields))  # type: ignore
+    it_assoc = draw(st.fixed_dictionaries(it_assoc_fields))  # type: ignore
+    base_dict = draw(_base_write_strat())
+    return {**base_dict, **normal_assoc, **it_assoc}
 
 
 @st.composite
@@ -143,3 +177,8 @@ class TestAssociation:
     @given(write_strat())
     def test_write(self, model_dict):
         assert AssociationWrite(**model_dict)
+
+    @given(write_strat_invalid())
+    def test_write_validates_mutually_exclusive_fields(self, model_dict):
+        with pytest.raises(ValueError):
+            AssociationWrite(**model_dict)

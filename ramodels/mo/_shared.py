@@ -130,6 +130,10 @@ class ITSystemRef(MORef):
     """IT System reference."""
 
 
+class ITUserRef(MORef):
+    """IT User reference."""
+
+
 class JobFunction(MORef):
     """Job function reference."""
 
