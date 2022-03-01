@@ -50,7 +50,9 @@ const ShowIfInherited = (orgUnitUuid, content) => {
 
 const actions = {
   async [_orgUnit.actions.SET_ORG_UNIT] ({ commit }, payload) {
-    const response = await Service.get(`/ou/${payload}/`)
+    let atDate = payload.atDate
+    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    const response = await Service.get(`/ou/${payload.uuid}/?at=${atDate}`)
 
     if (response) {
       commit(_orgUnit.mutations.SET_ORG_UNIT, response.data)

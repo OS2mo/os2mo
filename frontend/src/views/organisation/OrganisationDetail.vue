@@ -105,7 +105,7 @@ export default {
 
   created () {
     this.$store.commit(OrganisationUnit.mutations.RESET_ORG_UNIT)
-    this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
+    this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, {uuid: this.route.params.uuid, atDate: this.atDate})
   },
 
   mounted () {
@@ -125,7 +125,7 @@ export default {
     },
 
     listener () {
-      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, this.route.params.uuid)
+      this.$store.dispatch(OrganisationUnit.actions.SET_ORG_UNIT, {uuid: this.route.params.uuid, atDate: this.atDate})
       this.loadContent(this.latestEvent)
     }
   }
@@ -136,4 +136,3 @@ export default {
     color: #aaa;
   }
 </style>
-
