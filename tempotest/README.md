@@ -27,6 +27,7 @@ K6_PROMETHEUS_REMOTE_URL = http://localhost:9090/api/v1/write
 K6_PROMETHEUS_USER
 K6_PROMETHEUS_PASSWORD
 K6_KEEP_NAME_TAG = true
+K6_OUT=output-prometheus-remote
 ```
 To enable remote write in Prometheus 2.x use --enable-feature=remote-write-receiver option. See docker-compose samples in example/. Options for remote write storage can be found here.
 TODO #48631
