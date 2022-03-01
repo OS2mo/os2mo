@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.34.2 - 2022-03-01
+-------------------
+
+[#45065] Make MO Organisational Unit overview respect selected date
+
 3.34.1 - 2022-02-25
 -------------------
 
