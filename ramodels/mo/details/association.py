@@ -6,16 +6,20 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Dict
 from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
+from pydantic import validator
 
 from .._shared import AssociationType
 from .._shared import DynamicClasses
 from .._shared import EmployeeRef
+from .._shared import ITUserRef
+from .._shared import JobFunction
 from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
@@ -53,6 +57,12 @@ class AssociationRead(AssociationBase):
     substitute_uuid: Optional[UUID] = Field(
         description="UUID of the substitute for the employee in the association."
     )
+    job_function_uuid: Optional[UUID] = Field(
+        description="UUID of a job function class, only defined for 'IT associations.'"
+    )
+    it_user_uuid: Optional[UUID] = Field(
+        description="UUID of an 'ITUser' model, only defined for 'IT associations.'"
+    )
 
 
 class AssociationWrite(AssociationBase):
@@ -79,6 +89,22 @@ class AssociationWrite(AssociationBase):
             "Reference to the substitute for the employee in the association object."
         )
     )
+    job_function: Optional[JobFunction] = Field(
+        description=(
+            "References a job function class (only defined for 'IT associations.')"
+        )
+    )
+    it_user: Optional[ITUserRef] = Field(
+        description="References an 'ITUser' (only defined for 'IT associations.')"
+    )
+
+    @validator("job_function", "it_user", always=True)
+    def validate_mutually_exclusive(cls, v: UUID, values: Dict[str, UUID]) -> UUID:
+        if values.get("substitute") and v:
+            raise ValueError(
+                "'substitute' must be None if 'job_function' or 'it_user' are not None"
+            )
+        return v
 
 
 class Association(MOBase):
