@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+3.35.0 - 2022-03-03
+-------------------
+
+[#48309] Bump LoRa version in CI and local dev to 4.4.1 (= introduces Alembic in LoRa)
+
 3.34.2 - 2022-03-01
 -------------------
 
