@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+include:
+  - local: .gitlab/ci/rules.gitlab-ci.yml
+
+.services-start-base:
+  variables:
+    FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
+
+.services:start-mox:
+  extends:
+    - .services-start-base
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
+      alias: mox-db
+      variables:
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+    - name: magentaaps/lora:4.4.1
+      alias: mox
+      variables:
+        MAX_WORKERS: "1"
+        TESTING_API: "true"
+        LORA_AUTH: "false"
+        DB_HOST: mox-db
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+
+.services:start-keycloak:
+  extends:
+    - .services-start-base
+  needs:
+    - Build Keycloak DB
+    - Build Keycloak
+  services:
+    - name: $KEYCLOAK_DB_IMAGE_SHA
+      alias: keycloak-db
+    - name: $KEYCLOAK_IMAGE_SHA
+      alias: keycloak
+
+.services:start-all:
+  extends:
+    - .services:start-mox
+    - .services:start-keycloak
+  needs: !reference [".services:start-keycloak", needs]
+  services:
+    - !reference [".services:start-mox", services]
+    - !reference [".services:start-keycloak", services]
+
+
+.services:use-mo:
+  needs:
+    - Build OS2MO
+  image: $IMAGE_SHA
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+    LORA_URL: "http://mox/"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
+    GRAPHQL_AUTH: "false"
+
+.services:use-frontend:
+  needs:
+    - Build frontend
+  image: $FRONTEND_TEST_IMAGE_SHA
+  variables:
+    BASE_URL: "http://mo"

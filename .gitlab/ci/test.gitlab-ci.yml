@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+include:
+  - local: .gitlab/ci/rules.gitlab-ci.yml
+  - local: .gitlab/ci/services.gitlab-ci.yml
+
+.test-base:
+  extends: .test:rules:run-tests
+  stage: test
+  variables:
+    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
+    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
+
+# Backend Tests
+################
+.backend-test-base:
+  extends:
+    - .test-base
+    - .services:use-mo
+  variables:
+    HYPOTHESIS_PROFILE: "ci"
+
+Unit-test:
+  extends:
+    - .backend-test-base
+  script:
+    - pytest
+      -p no:cacheprovider
+      -m "not serial"
+      -k "not graphapi"
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --workers auto
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+GraphAPI-test:
+  extends:
+    - .backend-test-base
+  script:
+    - pytest
+      -k "graphapi"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=backend/mora/graphapi
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      --cov-fail-under=60
+      --workers auto
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage-html
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Integration-test:
+  extends:
+    - .backend-test-base
+    - .services:start-all
+  needs:
+    - !reference [".backend-test-base", needs]
+    - !reference [".services:start-all", needs]
+  parallel: 6
+  script:
+    - pytest
+      -m "serial"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --group $CI_NODE_INDEX
+      --splits $CI_NODE_TOTAL
+      --splitting-algorithm least_duration
+      --durations-path backend/tests/.test_durations
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Coverage:
+  extends: .test:rules:run-tests
+  stage: coverage
+  image: python:3.9-slim
+  needs:
+    - Unit-test
+    - GraphAPI-test
+    - Integration-test
+  before_script:
+    - pip install coverage
+    - coverage combine
+  script:
+    - coverage report --fail-under=85 --skip-empty
+  after_script:
+    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
+    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    paths:
+      - coverage-html
+    reports:
+      cobertura: $CI_PROJECT_DIR/coverage.xml
+
+# Frontend Tests
+#################
+.frontend-test-base:
+  extends:
+    - .test-base
+    - .services:use-frontend
+
+Vue-unit-test:
+  extends:
+    - .frontend-test-base
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - cd /app/frontend
+    - yarn install --dev
+    - yarn test:unit
+      --coverage
+      --coverageReporters=cobertura
+      --coverageReporters=html
+      --coverageReporters=text-summary
+      --coverageDirectory=$CI_PROJECT_DIR/coverage
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage
+    # reports:
+    #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
+
+# TODO: Move to QA / use cluster services?
+# e2e-test:
+#   extends: .test-base
+#   image:
+#     name: magentalabs/testcafe:latest
+#     entrypoint: ["/bin/sh", "-c"]
+#   script:
+#     - sleep 30
+#     - cd /
+#     - /opt/testcafe/docker/testcafe-docker.sh
+#         chromium:headless
+#         $CI_PROJECT_DIR/frontend/e2e-tests
+#         --skip-js-errors
+#         --speed 0.7
+#         --selector-timeout 30000
+#         --screenshot $CI_PROJECT_DIR/artifacts
+#         --video $CI_PROJECT_DIR/artifacts
+#   artifacts:
+#     when: always
+#     paths:
+#       - $CI_PROJECT_DIR/artifacts
+#   allow_failure: true

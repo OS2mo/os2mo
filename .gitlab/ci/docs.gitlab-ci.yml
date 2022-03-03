@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+include:
+  - local: .gitlab/ci/rules.gitlab-ci.yml
+  - local: .gitlab/ci/services.gitlab-ci.yml
+
+
+.docs-base:
+  stage: docs
+
+Export GQL Schema:
+  extends:
+    - .docs-base
+    - .docs:rules:build-docs
+    - .services:use-mo
+  variables:
+    OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
+  script:
+    - python docs/schema_to_voyager.py
+  artifacts:
+    paths:
+      - $OUT
+
+.build-docs:
+  extends:
+    - .docs-base
+  needs:
+    - Export GQL Schema
+  image: python:3.9
+  variables:
+    POETRY_VERSION: 1.1.12
+    POETRY_VIRTUALENVS_CREATE: "false"
+  before_script:
+    - pip3 install poetry==${POETRY_VERSION}
+    - cd docs && poetry install --no-interaction
+  script:
+    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/site
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/site
+    expire_in: 1 week
+
+Build and deploy branch docs:
+  extends:
+    - .build-docs
+    - .docs:rules:deploy-branch-docs
+  environment:
+    name: docs/$CI_COMMIT_REF_SLUG
+    url: $CI_JOB_URL/artifacts/file/site/index.html
+    auto_stop_in: 1 week
+
+Build master docs:
+    extends:
+    - .build-docs
+    - .docs:rules:deploy-master-docs
+
+Deploy pages:
+  extends:
+    - .docs-base
+    - .docs:rules:deploy-master-docs
+  image: alpine:latest
+  script:
+    - cp -r $CI_PROJECT_DIR/site public
+  artifacts:
+    paths:
+      - public/

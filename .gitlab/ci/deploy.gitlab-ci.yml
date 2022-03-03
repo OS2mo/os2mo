@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+include:
+  - local: .gitlab/ci/rules.gitlab-ci.yml
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
+
+
+Deploy to Dev:
+  extends: .release-to-dev
+  needs:
+    - Release API version
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-dev
+
+Deploy to Test:
+  extends: .release-to-test
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-test
+
+Deploy to Prod:
+  extends: .release-to-prod
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-prod
