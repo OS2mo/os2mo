@@ -279,12 +279,11 @@ Build Keycloak DB:
       --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
-
 # Services Template
 ###################
 .services:
   services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
+    - name: magentaaps/postgres-os2mo:10-11.7-test # TODO: upgrade?
       alias: mox-db
     - name: ${LORA_IMAGE}
       alias: mox
@@ -333,7 +332,6 @@ Build Keycloak DB:
     GRAPHQL_ENABLE: "true"
     GRAPHQL_AUTH: "false"
 
-
 # Test stage
 ############
 
@@ -346,7 +344,6 @@ Build Keycloak DB:
   variables:
     # $CI_JOB_ID is unique across parallel jobs, so this works as expected
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
-
 
 Unit-test:
   extends: .test-default
@@ -383,7 +380,7 @@ GraphAPI-test:
       --cov=backend/mora/graphapi
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
-      --cov-fail-under=67
+      --cov-fail-under=60
       --workers auto
   artifacts:
     when: always
@@ -494,7 +491,6 @@ Vue-unit-test:
 #       - $CI_PROJECT_DIR/artifacts
 #   allow_failure: true
 
-
 # Review Stage
 ##############
 
@@ -581,7 +577,6 @@ Delete Review Terraform State:
       when: on_success
     - when: never
 
-
 # QA Stage
 ###################
 Create Performance Test Keycloak Token:
@@ -613,7 +608,7 @@ Performance Tests:
     name: $TEMPOTEST_IMAGE_SHA
     entrypoint: [""]
   tags:
-    - high-mem  # we don't want other jobs impacting the test results
+    - high-mem # we don't want other jobs impacting the test results
   script: "/k6 run /script.js --summary-export=load-performance.json"
   variables:
     MO_URL: "$REVIEW_URL"
@@ -628,7 +623,6 @@ Performance Tests:
     - if: $CI_MERGE_REQUEST_ID
       when: manual
       allow_failure: true
-
 
 # Release stage
 ###############
@@ -655,7 +649,6 @@ Release Frontend version:
   variables:
     CI_IMAGE: ${FRONTEND_IMAGE_SHA}
     RELEASE_IMAGE: ${FRONTEND_RELEASE_REGISTRY_IMAGE}
-
 
 # Deploy stage
 ##############
