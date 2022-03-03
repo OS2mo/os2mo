@@ -114,7 +114,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         substitute_assocs = list(substitute_assocs)
         # Remove any "IT associations"
         substitute_assocs = filter(
-            lambda assoc: assoc.get(mapping.IT), substitute_assocs
+            lambda assoc: assoc.get(mapping.IT) is None, substitute_assocs
         )
         # Return a decorated result composed of both `normal_assocs` and
         # `substitute_assocs`.
