@@ -41,6 +41,12 @@ class AssociationSubType(Enum):
     IT = mapping.IT
 
 
+class ResponseExtraField(Enum):
+    NONE = None
+    SUBSTITUTE = "substitute"
+    JOB_FUNCTION = "job_function"
+
+
 @reading.register(ROLE_TYPE)
 class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
@@ -52,28 +58,14 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         search_fields = {cls.SEARCH_FIELDS[type]: objid}
 
         # Get *all* associations for this employee or org unit
-        mo_assocs = await cls.get(c, search_fields, changed_since=changed_since)
-
-        # Divide associations into IT associations and normal associations
-        normal_assocs, it_assocs = partition(
-            lambda assoc: assoc.get(mapping.IT), mo_assocs
-        )
+        assocs = await cls.get(c, search_fields, changed_since=changed_since)
 
         if util.get_args_flag(AssociationSubType.FIRST_PARTY_PERSPECTIVE.value):
             # URL contains "?first_party_perspective=1"
             if type == "e":
-                # Fetch associations linked to this employee by the relation
-                # 'tilknyttedefunktioner'
-                substitute_assocs = await cls.get(
-                    c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
+                return await cls._get_first_party_perspective(
+                    c, objid, assocs, changed_since=changed_since
                 )
-                # Remove any "IT associations"
-                substitute_assocs = filter(
-                    lambda assoc: assoc.get(mapping.IT), substitute_assocs
-                )
-                # Return a decorated result composed of both `normal_assocs` and
-                # `substitute_assocs`.
-                return cls._get_substitute_pairs(normal_assocs, substitute_assocs)
             else:
                 # "?first_party_perspective=1" is only valid for employees (not org
                 # units.)
@@ -82,10 +74,51 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 )
         elif util.get_args_flag(AssociationSubType.IT.value):
             # URL contains "?it=1"
-            return it_assocs
+            return cls._get_it_associations(assocs)
         else:
             # URL contains neither "?first_party_perspective=1" nor "?it=1"
-            return normal_assocs
+            return cls._get_normal_associations(assocs)
+
+    @classmethod
+    def _partition_assocs(cls, assocs: Iterable[dict]):
+        # Divide associations into IT associations and normal associations
+        normal_assocs, it_assocs = partition(
+            lambda assoc: assoc.get(mapping.IT), assocs
+        )
+        return normal_assocs, it_assocs
+
+    @classmethod
+    def _get_it_associations(cls, assocs: Iterable[dict]):
+        normal_assocs, it_assocs = cls._partition_assocs(assocs)
+        return it_assocs
+
+    @classmethod
+    def _get_normal_associations(cls, assocs: Iterable[dict]):
+        normal_assocs, it_assocs = cls._partition_assocs(assocs)
+        return normal_assocs
+
+    @classmethod
+    async def _get_first_party_perspective(
+        cls,
+        c,
+        objid,
+        assocs: Iterable[dict],
+        changed_since: Optional[datetime] = None,
+    ):
+        normal_assocs = cls._get_normal_associations(assocs)
+        # Fetch associations linked to this employee by the relation
+        # 'tilknyttedefunktioner'
+        substitute_assocs = await cls.get(
+            c, {"tilknyttedefunktioner": objid}, changed_since=changed_since
+        )
+        substitute_assocs = list(substitute_assocs)
+        # Remove any "IT associations"
+        substitute_assocs = filter(
+            lambda assoc: assoc.get(mapping.IT), substitute_assocs
+        )
+        # Return a decorated result composed of both `normal_assocs` and
+        # `substitute_assocs`.
+        return cls._get_substitute_pairs(normal_assocs, substitute_assocs)
 
     @classmethod
     def _get_substitute_pairs(
@@ -155,11 +188,11 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         # identifies a job function.
         # Otherwise, it identifies a substitute, and must be validated as such.
         if it_system_binding_uuid:
-            needs = "job_function_uuid"
+            extra = ResponseExtraField.JOB_FUNCTION
         elif associated_function_uuid and util.is_substitute_allowed(association_type):
-            needs = "substitute_uuid"
+            extra = ResponseExtraField.SUBSTITUTE
         else:
-            needs = None
+            extra = ResponseExtraField.NONE
 
         # Await base object
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
@@ -173,16 +206,20 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 "dynamic_classes": classes,
                 "primary_uuid": primary,
                 "substitute_uuid": (
-                    associated_function_uuid if needs == "substitute_uuid" else None
+                    associated_function_uuid
+                    if (extra == ResponseExtraField.SUBSTITUTE)
+                    else None
                 ),
                 "job_function_uuid": (
-                    associated_function_uuid if needs == "job_function_uuid" else None
+                    associated_function_uuid
+                    if (extra == ResponseExtraField.JOB_FUNCTION)
+                    else None
                 ),
                 "it_user_uuid": it_system_binding_uuid,
             }
 
         substitute = None
-        if needs == "substitute_uuid":
+        if extra == ResponseExtraField.SUBSTITUTE:
             substitute = create_task(
                 employee.request_bulked_get_one_employee(
                     associated_function_uuid, only_primary_uuid=only_primary_uuid
@@ -232,7 +269,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 {mapping.UUID: it_system_binding_uuid},
             )
 
-        if needs == "job_function_uuid" and associated_function_uuid:
+        if extra == ResponseExtraField.JOB_FUNCTION and associated_function_uuid:
             c = get_connector()
             job_function_task = facet.get_one_class(
                 c,
@@ -248,16 +285,16 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             mapping.PERSON: (await person_task) if person else None,
             mapping.ORG_UNIT: await org_unit_task,
             mapping.ASSOCIATION_TYPE: await association_type_task,
-            mapping.PRIMARY: await primary_task if primary else None,
+            mapping.PRIMARY: (await primary_task) if primary else None,
             mapping.CLASSES: await dynamic_classes_awaitable,
             mapping.SUBSTITUTE: (
-                await substitute if needs == "substitute_uuid" else None
+                (await substitute) if extra == ResponseExtraField.SUBSTITUTE else None
             ),
             mapping.JOB_FUNCTION: (
-                await job_function_task if job_function_task else None
+                (await job_function_task) if job_function_task else None
             ),
             mapping.IT: (
-                await it_system_binding_task if it_system_binding_uuid else None
+                (await it_system_binding_task) if it_system_binding_uuid else None
             ),
         }
 
