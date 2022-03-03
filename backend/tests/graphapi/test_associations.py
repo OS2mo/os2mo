@@ -5,18 +5,17 @@
 # --------------------------------------------------------------------------------------
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import strategies as st
 from pytest import MonkeyPatch
 from ramodels.mo.details import AssociationRead
 
 import mora.graphapi.dataloaders as dataloaders
-from mora.graphapi.main import get_schema
+from .strategies import graph_data_strat
+from .strategies import graph_data_uuids_strat
+from mora.graphapi.shim import flatten_data
 
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
-
-SCHEMA = str(get_schema())
 
 
 class TestAssociationsQuery:
@@ -28,10 +27,9 @@ class TestAssociationsQuery:
     because mocks are *not* reset between invocations of Hypothesis examples.
     """
 
-    @given(test_data=st.lists(st.builds(AssociationRead)))
+    @given(test_data=graph_data_strat(AssociationRead))
     def test_query_all(self, test_data, graphapi_test, patch_loader):
         """Test that we can query all our associations."""
-
         # JSON encode test data
         test_data = jsonable_encoder(test_data)
 
@@ -41,14 +39,19 @@ class TestAssociationsQuery:
             query = """
                 query {
                     associations {
-                        org_unit_uuid
-                        employee_uuid
-                        association_type_uuid
-                        primary_uuid
-                        substitute_uuid
-                        dynamic_classes {uuid}
-                        type
-                        validity {from to}
+                        uuid
+                        objects {
+                            uuid
+                            user_key
+                            org_unit_uuid
+                            employee_uuid
+                            association_type_uuid
+                            primary_uuid
+                            substitute_uuid
+                            dynamic_classes { uuid }
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             """
@@ -57,30 +60,13 @@ class TestAssociationsQuery:
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
         assert data is not None
-        assert data["associations"] == [
-            {
-                "association_type_uuid": association["association_type_uuid"],
-                "org_unit_uuid": association["org_unit_uuid"],
-                "employee_uuid": association["employee_uuid"],
-                "primary_uuid": association["primary_uuid"],
-                "substitute_uuid": association["substitute_uuid"],
-                "dynamic_classes": association["dynamic_classes"],
-                "type": association["type"],
-                "validity": association["validity"],
-            }
-            for association in test_data
-        ]
+        assert flatten_data(data["associations"]) == test_data
 
-    @given(test_data=st.lists(st.builds(AssociationRead)), st_data=st.data())
-    def test_query_by_uuid(self, test_data, st_data, graphapi_test, patch_loader):
+    @given(test_input=graph_data_uuids_strat(AssociationRead))
+    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
         """Test that we can query associations by UUID."""
-
         # Sample UUIDs
-        uuids = [str(model.uuid) for model in test_data]
-        test_uuids = st_data.draw(st.lists(st.sampled_from(uuids))) if uuids else []
-
-        # JSON encode test data
-        test_data = jsonable_encoder(test_data)
+        test_data, test_uuids = test_input
 
         # Patch dataloader
         with MonkeyPatch.context() as patch:

@@ -7,6 +7,10 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from asyncio import gather
+from collections.abc import Callable
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 from typing import Any
 from typing import cast
 from typing import Optional
@@ -14,29 +18,18 @@ from uuid import UUID
 
 import strawberry
 from pydantic import parse_obj_as
+from pydantic import ValidationError
+from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from mora.graphapi.dataloaders import get_addresses
-from mora.graphapi.dataloaders import get_associations
-from mora.graphapi.dataloaders import get_classes
-from mora.graphapi.dataloaders import get_employees
-from mora.graphapi.dataloaders import get_engagements
-from mora.graphapi.dataloaders import get_facets
-from mora.graphapi.dataloaders import get_itsystems
-from mora.graphapi.dataloaders import get_itusers
-from mora.graphapi.dataloaders import get_kles
-from mora.graphapi.dataloaders import get_leaves
 from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.dataloaders import get_managers
-from mora.graphapi.dataloaders import get_org_units
-from mora.graphapi.dataloaders import get_related_units
-from mora.graphapi.dataloaders import get_roles
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.health import health_map
+from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
@@ -51,9 +44,11 @@ from mora.graphapi.schema import ITUser
 from mora.graphapi.schema import KLE
 from mora.graphapi.schema import Leave
 from mora.graphapi.schema import Manager
+from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import RelatedUnit
+from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 
@@ -61,6 +56,62 @@ from mora.graphapi.schema import Version
 # --------------------------------------------------------------------------------------
 # Reads Query
 # --------------------------------------------------------------------------------------
+
+
+def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
+    """Create a field resolver by specifying getter and loader.
+
+    Args:
+        getter: Name of the getter to use.
+        loader: Name of the loader to use.
+
+    Returns:
+        Callable: Resolver using specified getters/loaders from
+            the context.
+    """
+    if static:
+
+        async def resolve_static(  # type: ignore
+            info: Info, uuids: Optional[list[UUID]] = None
+        ):
+            """Resolve queries with no validity, i.e. class/facet/itsystem."""
+            dates = set_date_interval(None, None)  # from -inf to inf
+            set_graphql_dates(dates)
+            if uuids is not None:
+                return await get_by_uuid(info.context[loader], uuids)
+            return await info.context[getter]()
+
+        return resolve_static
+
+    async def resolve_query(  # type: ignore
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = UNSET,
+    ):
+        """Resolve a query using the specified arguments.
+
+        Args:
+            uuids: Only retrieve these UUIDs. Defaults to None.
+            from_date: Lower bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case from_date is today.
+            to_date: Upper bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case to_date is from_date + 1 ms.
+
+        Returns:
+            List of response objects based on getters/loaders.
+
+        Note:
+            The default behaviour of from_date and to_date, i.e. both being
+            UNSET, is equivalent to validity=present in the service API.
+        """
+        dates = set_date_interval(from_date, to_date)  # from -inf to inf
+        set_graphql_dates(dates)
+        if uuids is not None:
+            return await get_by_uuid(info.context[loader], uuids)
+        return await info.context[getter]()
+
+    return resolve_query
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -74,131 +125,80 @@ class Query:
 
     # Addresses
     # ---------
-    @strawberry.field(
+    addresses: list[Response[Address]] = strawberry.field(
+        resolver=create_resolver("address_getter", "address_loader"),
         description="Get a list of all addresses, optionally by uuid(s)",
     )
-    async def addresses(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Address]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["address_loader"], uuids)
-        return cast(list[Address], await get_addresses())
 
     # Associations
     # ---------
-    @strawberry.field(
+    associations: list[Response[Association]] = strawberry.field(
+        resolver=create_resolver("association_getter", "association_loader"),
         description="Get a list of all Associations, optionally by uuid(s)",
     )
-    async def associations(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Association]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["association_loader"], uuids)
-        return cast(list[Association], await get_associations())
 
     # Classes
     # -------
-    @strawberry.field(
+    classes: list[Class] = strawberry.field(
+        resolver=create_resolver("class_getter", "class_loader", static=True),
         description="Get a list of all classes, optionally by uuid(s)",
     )
-    async def classes(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Class]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["class_loader"], uuids)
-        return cast(list[Class], await get_classes())
 
     # Employees
     # ---------
-    @strawberry.field(
+    employees: list[Response[Employee]] = strawberry.field(
+        resolver=create_resolver("employee_getter", "employee_loader"),
         description="Get a list of all employees, optionally by uuid(s)",
     )
-    async def employees(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Employee]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["employee_loader"], uuids)
-        return cast(list[Employee], await get_employees())
 
     # Engagements
     # -----------
-    @strawberry.field(
-        description="Get a list of all engagements, optionally by uuid(s)"
+    engagements: list[Response[Engagement]] = strawberry.field(
+        resolver=create_resolver("engagement_getter", "engagement_loader"),
+        description="Get a list of all engagements, optionally by uuid(s)",
     )
-    async def engagements(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Engagement]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["engagement_loader"], uuids)
-        return cast(list[Engagement], await get_engagements())
 
     # Facets
     # ------
-    @strawberry.field(
+    facets: list[Facet] = strawberry.field(
+        resolver=create_resolver("facet_getter", "facet_loader", static=True),
         description="Get a list of all facets, optionally by uuid(s)",
     )
-    async def facets(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Facet]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["facet_loader"], uuids)
-        return cast(list[Facet], await get_facets())
 
-    # ITSystem
+    # ITSystems
     # ---------
-    @strawberry.field(
+    itsystems: list[ITSystem] = strawberry.field(
+        resolver=create_resolver("itsystem_getter", "itsystem_loader", static=True),
         description="Get a list of all ITSystems, optionally by uuid(s)",
     )
-    async def itsystems(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[ITSystem]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["itsystem_loader"], uuids)
-        return cast(list[ITSystem], await get_itsystems())
 
-    # ITUser
-    # ---------
-    @strawberry.field(
+    # ITUsers
+    # -------
+    itusers: list[Response[ITUser]] = strawberry.field(
+        resolver=create_resolver("ituser_getter", "ituser_loader"),
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
-    async def itusers(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[ITUser]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["ituser_loader"], uuids)
-        return cast(list[ITUser], await get_itusers())
 
-    # KLE
-    # ---------
-    @strawberry.field(
+    # KLEs
+    # ----
+    kles: list[Response[KLE]] = strawberry.field(
+        resolver=create_resolver("kle_getter", "kle_loader"),
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
-    async def kles(self, info: Info, uuids: Optional[list[UUID]] = None) -> list[KLE]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["kle_loader"], uuids)
-        return cast(list[KLE], await get_kles())
 
     # Leave
     # -----
-    @strawberry.field(description="Get a list of all leaves, optionally by uuid(s)")
-    async def leaves(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Leave]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["leave_loader"], uuids)
-        return cast(list[Leave], await get_leaves())
+    leaves: list[Response[Leave]] = strawberry.field(
+        resolver=create_resolver("leave_getter", "leave_loader"),
+        description="Get a list of all leaves, optionally by uuid(s)",
+    )
 
     # Managers
     # --------
-    @strawberry.field(
+    managers: list[Response[Manager]] = strawberry.field(
+        resolver=create_resolver("manager_getter", "manager_loader"),
         description="Get a list of all managers, optionally by uuid(s)",
     )
-    async def managers(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[Manager]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["manager_loader"], uuids)
-        return cast(list[Manager], await get_managers())
 
     # Root Organisation
     # -----------------
@@ -213,39 +213,24 @@ class Query:
 
     # Organisational Units
     # --------------------
-    @strawberry.field(
+    org_units: list[Response[OrganisationUnit]] = strawberry.field(
+        resolver=create_resolver("org_unit_getter", "org_unit_loader"),
         description="Get a list of all organisation units, optionally by uuid(s)",
     )
-    async def org_units(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[OrganisationUnit]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["org_unit_loader"], uuids)
-        return cast(list[OrganisationUnit], await get_org_units())
 
     # Related Units
     # ---------
-    @strawberry.field(
-        description=(
-            "Get a list of all related organisational units, optionally by uuid(s)"
-        ),
+    related_units: list[Response[RelatedUnit]] = strawberry.field(
+        resolver=create_resolver("rel_unit_getter", "rel_unit_loader"),
+        description="Get a list of related organisation units, optionally by uuid(s)",
     )
-    async def related_units(
-        self, info: Info, uuids: Optional[list[UUID]] = None
-    ) -> list[RelatedUnit]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["rel_unit_loader"], uuids)
-        return cast(list[RelatedUnit], await get_related_units())
 
     # Roles
     # ---------
-    @strawberry.field(
+    roles: list[Response[Role]] = strawberry.field(
+        resolver=create_resolver("role_getter", "role_loader"),
         description="Get a list of all roles, optionally by uuid(s)",
     )
-    async def roles(self, info: Info, uuids: Optional[list[UUID]] = None) -> list[Role]:
-        if uuids is not None:
-            return await get_by_uuid(info.context["role_loader"], uuids)
-        return cast(list[Role], await get_roles())
 
     # Version
     # -------
@@ -278,19 +263,51 @@ class Query:
 # --------------------------------------------------------------------------------------
 
 
-async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]) -> list[MOModel]:
+def set_date_interval(
+    from_date: Optional[datetime], to_date: Optional[datetime]
+) -> OpenValidityModel:
+    """Set the date interval for GraphQL queries to support bitemporal lookups.
+
+    Args:
+        from_date: The lower bound of the request interval
+        to_date: The upper bound of the request interval
+
+    Raises:
+        ValueError: If lower bound is none and upper bound is unset
+        ValueError: If the interval is invalid, e.g. lower > upper
+    """
+    if from_date is UNSET:
+        from_date = datetime.now(tz=timezone.utc)
+    if to_date is UNSET:
+        if from_date is None:
+            raise ValueError(
+                "Cannot infer UNSET to_date from interval starting at -infinity"
+            )
+        to_date = from_date + timedelta(milliseconds=1)
+    try:
+        interval = OpenValidityModel(from_date=from_date, to_date=to_date)
+    except ValidationError as v_error:
+        # Pydantic errors are ugly in GraphQL so we get the msg part only
+        message = ", ".join([err["msg"] for err in v_error.errors()])
+        raise ValueError(message)
+    return interval
+
+
+async def get_by_uuid(
+    dataloader: DataLoader, uuids: list[UUID]
+) -> list[Response[MOModel]]:
     """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
     Args:
-        dataloader (DataLoader): Strawberry dataloader to use.
-        uuids (list[UUID]): List of UUIDs to load.
+        dataloader: Strawberry dataloader to use.
+        uuids: List of UUIDs to load.
 
     Returns:
-        list[MOModel]: List of models found. We do not return None or duplicates.
+        List of objects found.
     """
     tasks = map(dataloader.load, set(uuids))
     results = await gather(*tasks)
-    return list(filter(lambda result: result is not None, results))
+    return results
 
 
 def get_schema() -> strawberry.Schema:

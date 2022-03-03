@@ -7,13 +7,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import mora.graphapi.dataloaders as dataloaders
 import pytest
 from hypothesis import given
-from pytest import MonkeyPatch
-
-import mora.graphapi.dataloaders as dataloaders
-from .strategies import data_strat
-from .strategies import data_with_uuids_strat
 from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import EmployeeRead
@@ -25,6 +21,10 @@ from mora.graphapi.schema import ManagerRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.graphapi.schema import RelatedUnitRead
 from mora.graphapi.schema import RoleRead
+from pytest import MonkeyPatch
+
+from .strategies import data_strat
+from .strategies import data_with_uuids_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -47,6 +47,7 @@ models = [
 ]
 
 
+@pytest.mark.skip(reason="We need a LoRa dataset for these to make sense")
 class TestDataloaders:
     """Class collecting dataloader tests."""
 

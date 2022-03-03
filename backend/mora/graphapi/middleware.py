@@ -11,6 +11,7 @@ from typing import Any
 from typing import Optional
 from typing import Union
 
+from ramodels.mo import OpenValidity
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
@@ -47,6 +48,8 @@ class GraphQLContextPlugin(Plugin):
 
 class StarletteContextExtension(Extension):
     def on_request_start(self) -> None:
+        # clear query arguments bypassing the stack
+        context["query_args"] = {}
         context["is_graphql"] = True
 
 
@@ -88,3 +91,30 @@ def is_graphql_shim() -> bool:
         bool: True if GraphQL shim. False if not.
     """
     return context.get("is_graphql_shim", False)
+
+
+class GraphQLDatesPlugin(Plugin):
+    """Starlette plugin to create the `graphql_args` context variable.
+
+    The variable is used to store `from_date` and `to_date` and send them
+    to the LoRa connector.
+
+    When we regain control of our connectors and dataloaders, this
+    should be deleted immediately and with extreme prejudice.
+    """
+
+    key: str = "graphql_dates"
+
+    async def process_request(
+        self, request: Union[Request, HTTPConnection]
+    ) -> Optional[Any]:
+        return None
+
+
+def set_graphql_dates(dates: OpenValidity) -> None:
+    """Set GraphQL args directly in the Starlette context."""
+    context["graphql_dates"] = dates
+
+
+def get_graphql_dates() -> Optional[OpenValidity]:
+    return context.get("graphql_dates")

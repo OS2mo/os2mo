@@ -8,16 +8,19 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from asyncio import gather
+from collections.abc import Callable
 from collections.abc import Iterable
 from functools import partial
 from itertools import starmap
 from typing import Any
 from typing import Optional
 from typing import TypeVar
+from typing import Union
 from uuid import UUID
 
 from more_itertools import bucket
 from more_itertools import one
+from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
@@ -41,6 +44,7 @@ from mora.graphapi.schema import ManagerRead
 from mora.graphapi.schema import OrganisationRead
 from mora.graphapi.schema import OrganisationUnitRead
 from mora.graphapi.schema import RelatedUnitRead
+from mora.graphapi.schema import Response
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
@@ -49,6 +53,7 @@ from mora.service import org
 # --------------------------------------------------------------------------------------
 # Dataloaders
 # --------------------------------------------------------------------------------------
+
 
 MOModel = TypeVar(
     "MOModel",
@@ -68,7 +73,27 @@ MOModel = TypeVar(
 RoleType = TypeVar("RoleType")
 
 
-async def get_mo(model: MOModel) -> list[MOModel]:
+def group_by_uuid(
+    models: list[MOModel], uuids: Optional[list[UUID]] = None
+) -> dict[UUID, list[MOModel]]:
+    """Auxiliary function to group MOModels by their UUID.
+
+    Args:
+        models: List of MOModels to group.
+        uuids: List of UUIDs that have been looked up. Defaults to None.
+
+    Returns:
+        dict[UUID, list[MOModel]]: A mapping of uuids and lists of corresponding
+            MOModels.
+    """
+    uuids = uuids if uuids is not None else []
+    buckets = bucket(models, lambda model: model.uuid)
+    # unique keys in order. mypy doesn't like bucket for some reason
+    keys = unique_everseen([*list(buckets), *uuids])  # type: ignore
+    return {key: list(buckets[key]) for key in keys}
+
+
+async def get_mo(model: MOModel) -> list[Response[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
@@ -79,11 +104,12 @@ async def get_mo(model: MOModel) -> list[MOModel]:
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type)
+    parsed_results = parse_obj_as(list[model], results)  # type: ignore
+    uuid_map = group_by_uuid(parsed_results)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
-    return parse_obj_as(list[model], results)  # type: ignore
 
-
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[Optional[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -95,9 +121,9 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Optional[MOModel]]:
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = {model.uuid: model for model in parsed_results}  # type: ignore
-    return list(map(uuid_map.get, uuids))
+    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
+    uuid_map = group_by_uuid(parsed_results, uuids)
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 # get all models
@@ -237,6 +263,8 @@ async def get_facets() -> list[FacetRead]:
     lora_result = await c.facet.get_all()
     mo_models = lora_facets_to_mo_facets(lora_result)
     return list(mo_models)
+    uuid_map = group_by_uuid(list(mo_models))
+    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
@@ -363,13 +391,14 @@ async def load_org_units_children(keys: list[UUID]) -> list[list[MOModel]]:
     return await gather(*tasks)
 
 
-async def get_loaders() -> dict[str, DataLoader]:
+async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
         "org_unit_loader": DataLoader(
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
+        "org_unit_getter": get_org_units,
         "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "org_unit_manager_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=ManagerRead)
@@ -399,6 +428,7 @@ async def get_loaders() -> dict[str, DataLoader]:
             load_fn=partial(load_org_unit_details, model=RelatedUnitRead)
         ),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
+        "employee_getter": get_employees,
         "employee_manager_role_loader": DataLoader(
             load_fn=partial(load_employee_details, model=ManagerRead)
         ),
@@ -421,19 +451,31 @@ async def get_loaders() -> dict[str, DataLoader]:
             load_fn=partial(load_employee_details, model=ITUserRead)
         ),
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
+        "engagement_getter": get_engagements,
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
+        "kle_getter": get_kles,
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
+        "address_getter": get_addresses,
         "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
+        "leave_getter": get_leaves,
         "association_loader": DataLoader(
             load_fn=partial(load_mo, model=AssociationRead)
         ),
+        "association_getter": get_associations,
         "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
+        "role_getter": get_roles,
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
+        "ituser_getter": get_itusers,
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
+        "manager_getter": get_managers,
         "class_loader": DataLoader(load_fn=load_classes),
+        "class_getter": get_classes,
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
+        "rel_unit_getter": get_related_units,
         "class_children_loader": DataLoader(load_fn=load_class_children),
         "facet_loader": DataLoader(load_fn=load_facets),
+        "facet_getter": get_facets,
         "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
+        "itsystem_getter": get_itsystems,
     }

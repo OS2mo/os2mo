@@ -12,12 +12,13 @@ from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
 from mora.api.v1.models import Validity
-from tests.util import load_sample_structures, _mox_testing_api
 from tests.hypothesis_utils import validity_model_strat
+from tests.util import _mox_testing_api
+from tests.util import load_sample_structures
 
 h_db = InMemoryExampleDatabase()
 h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
-h_settings.register_profile("dev", max_examples=10, database=h_db)
+h_settings.register_profile("dev", max_examples=10, deadline=None, database=h_db)
 h_settings.register_profile(
     "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
 )

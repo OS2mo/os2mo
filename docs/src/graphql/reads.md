@@ -29,20 +29,22 @@ In the graph API, however, you can do all this with a single query
 ```graphql
 query Managers {
   org_units(uuids: ["uuid1", "uuid2", "uuid3"]) {
-    name
-    managers {
-      manager_type {
-        user_key
-      }
-      employee {
-        name
-        engagements {
-          job_function {
-            user_key
+    objects [
+      name
+      managers {
+        manager_type {
+          user_key
+        }
+        employee {
+          name
+          engagements {
+            job_function {
+              user_key
+            }
           }
         }
       }
-    }
+    ]
   }
 }
 ```
@@ -53,62 +55,80 @@ which will output data similar to
   "data": {
     "org_units": [
       {
-        "name": "Organisation Unit 1",
-        "managers": [
+        "objects": [
           {
-            "manager_type": {
-              "user_key": "Director"
-            },
-            "employee": {
-              "name": "Fred Smith",
-              "engagements": [
-                {
-                  "job_function": {
-                    "user_key": "CEO"
+            "name": "Organisation Unit 1",
+            "managers": [
+              {
+                "manager_type": {
+                  "user_key": "Director"
+                },
+                "employee": [
+                  {
+                    "name": "Fred Smith",
+                    "engagements": [
+                      {
+                        "job_function": {
+                          "user_key": "CEO"
+                        }
+                      }
+                    ]
                   }
-                }
-              ]
-            }
+                ]
+              }
+            ]
           }
         ]
       },
       {
-        "name": "Organisation Unit 2",
-        "managers": [
+        "objects": [
           {
-            "manager_type": {
-              "user_key": "Team Leader"
-            },
-            "employee": {
-              "name": "Eliza Johnson",
-              "engagements": [
-                {
-                  "job_function": {
-                    "user_key": "Senior Software Developer"
+            "name": "Organisation Unit 2",
+            "managers": [
+              {
+                "manager_type": {
+                  "user_key": "Team Lead"
+                },
+                "employee": [
+                  {
+                    "name": "Elsa Støcken Andersen",
+                    "engagements": [
+                      {
+                        "job_function": {
+                          "user_key": "Senior Software Developer"
+                        }
+                      }
+                    ]
                   }
-                }
-              ]
-            }
+                ]
+              }
+            ]
           }
         ]
       },
       {
-        "name": "Organisation Unit 3",
-        "managers": [
+        "objects": [
           {
-            "manager_type": {
-              "user_key": "Regional Manager"
-            },
-            "employee": {
-              "name": "Anna Larsen",
-              "engagements": [
-                {
-                  "job_function": {
-                    "user_key": "HR Consultant"
+            "name": "Organisation Unit 3",
+            "managers": [
+              {
+                "manager_type": {
+                  "user_key": "Regional Manager"
+                },
+                "employee": [
+                  {
+                    "name": "Anna Larsen",
+                    "engagements": [
+                      {
+                        "job_function": {
+                          "user_key": "HR Consultant"
+                        }
+                      }
+                    ]
                   }
-                }
-              ]
-            }
+                ]
+              }
+            ]
           }
         ]
       }
