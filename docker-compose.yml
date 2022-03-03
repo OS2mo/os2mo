@@ -79,7 +79,6 @@ services:
       CONF_DB_PASSWORD: "mox"
       CONFDB_SHOW_KLE: "true"
 
-      GRAPHQL_ENABLE: "true"
       GRAPHIQL_ENABLE: "true"
 
       LORA_URL: "http://mox/"

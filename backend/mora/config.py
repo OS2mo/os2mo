@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     bulked_fetch: bool = True
 
     # GraphQL settings
-    graphql_enable: bool = False
+    graphql_enable: bool = True
     graphiql_enable: bool = False
 
     # HTTP Trigger settings
