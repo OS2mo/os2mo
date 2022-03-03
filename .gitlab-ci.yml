@@ -42,7 +42,7 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
 
-  LORA_IMAGE: magentaaps/lora:4.2.1
+  LORA_IMAGE: magentaaps/lora:4.4.1
 
   REVIEW_URL: "https://os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
   REVIEW_TERRAFORM_STATE_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-mr$CI_MERGE_REQUEST_IID"
@@ -316,7 +316,6 @@ Build Keycloak DB:
     HYPOTHESIS_PROFILE: ci
     LORA_AUTH: "false"
     DB_HOST: mox-db
-    DB_EXTENSIONS_PATH: "oio_rest/oio_rest/db_extensions/mo-01.json"
     # for mo
     DUMMY_MODE: "true"
     ENVIRONMENT: "testing"
