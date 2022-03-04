@@ -126,8 +126,9 @@ export default {
      * @model
      */
     value: Array,
+
     /**
-     * Defines a content.
+     * Defines content.
      */
     content: Array,
 

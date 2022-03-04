@@ -49,6 +49,8 @@ const actions = {
   },
 
   [_employee.actions.SET_DETAIL] ({ state, commit }, payload) {
+    
+    let endpoint_name = payload.detail
     let uuid = payload.uuid || state.uuid
 
     // Build query string from payload
@@ -63,14 +65,19 @@ const actions = {
       }
     }
 
-    return Service.get(`/e/${uuid}/details/${payload.detail}?${params}`)
+    // Handle special IT association special case
+    if (payload.detail === 'itassociation') {
+      params.append('it', '1')
+      endpoint_name = 'association'
+    }
+
+    return Service.get(`/e/${uuid}/details/${endpoint_name}?${params}`)
       .then(response => {
         let content = ShowIfInherited({
           key: payload.detail,
           validity: payload.validity,
           value: response.data
         })
-
         commit(_employee.mutations.SET_DETAIL, content)
       })
       .catch(error => {
@@ -97,6 +104,7 @@ const mutations = {
       Vue.set(state.details, payload.key, {})
     }
     Vue.set(state.details[payload.key], payload.validity, payload.value)
+    console.log('got details in store', state.details)
   }
 }
 

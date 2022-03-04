@@ -3,6 +3,7 @@
   "welcome_tagline": "Global Identity Repository",
   "address": "Address | Addresses",
   "association": "Affiliation | Affiliations",
+  "itassociation": "IT affiliation | IT affiliations",
   "association_type": "Affiliation role",
   "address_type": "Address type",
   "date": {
