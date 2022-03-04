@@ -77,6 +77,18 @@ SPDX-License-Identifier: MPL-2.0
         />
       </b-tab>
 
+      <b-tab @click="navigateToTab('#ittilknytninger')" href="#ittilknytninger" :title="$tc('tabs.employee.itassociation', 2)">
+        <mo-table-detail
+          type="EMPLOYEE"
+          :uuid="uuid"
+          :content="content['itassociation']"
+          content-type="itassociation"
+          :columns="itassociation"
+          @show="loadContent('itassociation', $event)"
+          :entry-component="!hideActions ? undefined : undefined"
+        />
+      </b-tab>
+
       <b-tab @click="navigateToTab('#orlov')" href="#orlov" :title="$t('tabs.employee.leave')">
         <mo-table-detail
           type="EMPLOYEE"
