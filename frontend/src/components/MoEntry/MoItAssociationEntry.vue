@@ -27,12 +27,6 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
     <div class="form-row">
-      <mo-facet-picker
-        v-if="showPrimary"
-        facet="primary_type"
-        v-model="entry.primary"
-        required
-      />
 
       <mo-organisation-unit-picker
         v-if="!hideOrgPicker"
@@ -43,13 +37,7 @@ SPDX-License-Identifier: MPL-2.0
         :validity="entry.validity"
         :extra-validations="validations"
       />
-
-      <mo-facet-picker
-        class="select-association"
-        facet="association_type"
-        v-model="entry.association_type"
-        required
-      />
+      
     </div>
 
     <div v-for="(dynamic, index) in dynamicFacets" :key="dynamic">
@@ -62,15 +50,6 @@ SPDX-License-Identifier: MPL-2.0
         />
     </div>
 
-    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) !== -1">
-      <hr>
-      <mo-employee-picker
-        class="search-employee mb-3"
-        :label="$tc('input_fields.employee_substitute')"
-        v-model="entry.substitute"
-        :validity="entry.validity"
-      />
-    </div>
   </div>
 </template>
 
@@ -127,21 +106,6 @@ export default {
       }
     },
 
-    showPrimary () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-
-      return conf.show_primary_association
-    },
-
-    substituteRoles () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      if ('substitute_roles' in conf){
-        return conf.substitute_roles.split(',').filter(elem => elem !== "")
-      } else {
-        return []
-      }
-    },
-
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
@@ -170,11 +134,6 @@ export default {
      */
     entry: {
       handler (newVal) {
-        if ('association_type' in newVal){
-          if (this.substituteRoles.indexOf(newVal.association_type.uuid) === -1) {
-            delete newVal.substitute
-          }
-        }
         newVal.type = 'association'
         this.$emit('input', newVal)
       },
