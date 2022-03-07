@@ -23,6 +23,8 @@ import '@/views/organisation/install'
 import '@/modules/install'
 import Keycloak from 'keycloak-js'
 
+import axios from 'axios'
+
 sync(store, router)
 
 Vue.config.productionTip = false
@@ -44,44 +46,45 @@ function app() {
 const keycloakJson = window.location.origin + '/service/keycloak.json'
 let keycloak = {}
 
-fetch(keycloakJson, {
+axios({
+  url: keycloakJson,
   method: 'HEAD'
 }).then(response => {
-  if (response.status === 404) {
-    console.log('Authentication is disabled; starting vue app..')
+  
+  console.log(`Authentication is enabled (keycloak.json ${response.status}); initialising keycloak..`)
+  keycloak = Keycloak(keycloakJson)
+
+  keycloak.init({ onLoad: 'login-required' }).then((auth) => {
+    if (!auth) {
+      window.location.reload();
+    } else {
+      console.log("Authenticated")
+      app();
+    }
+
+    // Token refresh
+    setInterval(() => {
+      keycloak.updateToken(15).then((refreshed) => {
+        if (refreshed) {
+          console.debug('Token refreshed')
+          console.debug(keycloak.tokenParsed)
+        } else {
+          console.debug('Token not refreshed, valid for '
+            + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
+        }
+      }).catch(() => {
+        console.error('Failed to refresh token')
+      });
+    }, 5000)
+  }).catch(() => {
+    console.error("Authenticated Failed")
+  })
+}).catch((err) => {
+  console.error('keycloak.json could not be fetched')
+  if (err.response.status === 404) {
+    console.info('Starting vue app with no authentication ...')
     app()
-  } else {
-    console.log(`Authentication is enabled (keycloak.json ${response.status}); initialising keycloak..`)
-    keycloak = Keycloak(keycloakJson)
-
-    keycloak.init({ onLoad: 'login-required' }).then((auth) => {
-      if (!auth) {
-        window.location.reload();
-      } else {
-        console.log("Authenticated")
-        app();
-      }
-
-      // Token refresh
-      setInterval(() => {
-        keycloak.updateToken(15).then((refreshed) => {
-          if (refreshed) {
-            console.debug('Token refreshed')
-            console.debug(keycloak.tokenParsed)
-          } else {
-            console.debug('Token not refreshed, valid for '
-              + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
-          }
-        }).catch(() => {
-          console.error('Failed to refresh token')
-        });
-      }, 5000)
-    }).catch(() => {
-      console.error("Authenticated Failed")
-    });
   }
-}).catch(() => {
-  console.error('Error fetching keycloak.json')
 })
 
 export default keycloak
