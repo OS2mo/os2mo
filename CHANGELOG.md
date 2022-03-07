@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.4.0 - 2022-03-07
+------------------
+
+[#48315] Expose new `Association` fields `it_user` and `job_function`
+
 5.3.2 - 2022-02-10
 ------------------
 
