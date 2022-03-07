@@ -15,18 +15,24 @@ from tests import util
 
 pytestmark = pytest.mark.asyncio
 
-HTTPX_MOCK_RESPONSE = Response(
+HTTPX_MOCK_RESPONSE_404 = Response(
     status_code=404, request=Request("GET", "http://some-url.xyz")
+)
+
+HTTPX_MOCK_RESPONSE_200 = Response(
+    status_code=200, request=Request("GET", "http://some-url.xyz")
 )
 
 
 class TestOIORestHealth:
-    async def test_oio_rest_returns_true_if_reachable(self):
+    @patch("httpx.AsyncClient.get")
+    async def test_oio_rest_returns_true_if_reachable(self, mock_get):
+        mock_get.return_value = HTTPX_MOCK_RESPONSE_200
         assert await health.oio_rest()
 
     @patch("httpx.AsyncClient.get")
     async def test_oio_rest_returns_false_if_unreachable(self, mock_get):
-        mock_get.return_value = HTTPX_MOCK_RESPONSE
+        mock_get.return_value = HTTPX_MOCK_RESPONSE_404
         assert not await health.oio_rest()
 
     @patch("httpx.AsyncClient.get")
@@ -93,7 +99,7 @@ class TestKeycloakHealth:
 
     @patch("httpx.AsyncClient.get")
     async def test_keycloak_returns_false_if_unreachable(self, mock_get):
-        mock_get.return_value = HTTPX_MOCK_RESPONSE
+        mock_get.return_value = HTTPX_MOCK_RESPONSE_404
         assert not await health.keycloak()
 
     @patch("httpx.AsyncClient.get")
