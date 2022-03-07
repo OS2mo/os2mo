@@ -238,11 +238,12 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
         )
 
-    app.include_router(
-        keycloak_router(),
-        prefix="/service",
-        tags=["Auth"],
-    )
+    if settings.os2mo_auth:
+        app.include_router(
+            keycloak_router(),
+            prefix="/service",
+            tags=["Auth"],
+        )
     app.include_router(
         meta_router(),
         tags=["Meta"],

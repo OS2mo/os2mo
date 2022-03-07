@@ -17,6 +17,7 @@ def keycloak_router():
     PORT = settings.keycloak_port
     REALM = settings.keycloak_realm
 
+    @router.head("/keycloak.json")
     @router.get("/keycloak.json")
     def get_config():
         """Frontend keycloak configuration endpoint."""
