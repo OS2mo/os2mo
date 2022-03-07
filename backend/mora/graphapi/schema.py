@@ -185,6 +185,23 @@ class Association:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
 
+    @strawberry.field(description="Connected substitute employee")
+    async def substitute(self, root: AssociationRead, info: Info) -> list["Employee"]:
+        loader: DataLoader = info.context["employee_loader"]
+        return (await loader.load(root.substitute_uuid)).objects
+
+    @strawberry.field(description="Connected job function")
+    async def job_function(
+        self, root: AssociationRead, info: Info
+    ) -> Optional["Class"]:
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.job_function_uuid)
+
+    @strawberry.field(description="Connected IT user")
+    async def it_user(self, root: AssociationRead, info: Info) -> list["ITUser"]:
+        loader: DataLoader = info.context["ituser_loader"]
+        return (await loader.load(root.it_user_uuid)).objects
+
 
 # Class
 # -----
