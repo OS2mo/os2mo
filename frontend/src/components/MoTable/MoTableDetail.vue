@@ -56,6 +56,7 @@ SPDX-License-Identifier: MPL-2.0
       :entry-component="entryComponent"
       v-if="!hideCreate"
     />
+
   </div>
 </template>
 
