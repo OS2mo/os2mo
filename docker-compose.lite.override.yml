@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+services:
+  mo:
+    environment:
+      AMQP_ENABLE: "false"
+      OS2MO_AUTH: "false"
+
+  msg_broker:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  keycloak:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  keycloak-gen:
+    image: alpine:latest
+    command: ["true"]
+
+  keycloak-db:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  otel-collector:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  grafana:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  tempo:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  amqp-metrics:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
+
+  amqp-consumer:
+    image: alpine:latest
+    command: ["sleep", "inf"]
+    healthcheck:
+      test: ["CMD", "true"]
