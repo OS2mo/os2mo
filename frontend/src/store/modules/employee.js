@@ -53,8 +53,6 @@ const actions = {
     let endpoint_name = payload.detail
     let uuid = payload.uuid || state.uuid
 
-    console.log('setting detail', payload)
-
     // Build query string from payload
     const params = new URLSearchParams()
     params.append('validity', payload.validity || 'present')
@@ -106,6 +104,7 @@ const mutations = {
       Vue.set(state.details, payload.key, {})
     }
     Vue.set(state.details[payload.key], payload.validity, payload.value)
+    console.log('got details in store', state.details)
   }
 }
 

@@ -81,7 +81,7 @@ SPDX-License-Identifier: MPL-2.0
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
-          :content="content['association']"
+          :content="content['itassociation']"
           content-type="itassociation"
           :columns="itassociation"
           @show="loadContent('itassociation', $event)"
