@@ -81,10 +81,10 @@ SPDX-License-Identifier: MPL-2.0
         <mo-table-detail
           type="EMPLOYEE"
           :uuid="uuid"
-          :content="content['itassociation']"
+          :content="content['association']"
           content-type="itassociation"
           :columns="itassociation"
-          @show="loadContent('itassociation', $event)"
+          @show="loadItAssociationContent('association', $event)"
           :entry-component="!hideActions ? undefined : undefined"
         />
       </b-tab>
@@ -166,7 +166,7 @@ export default {
   data () {
     return {
       tabIndex: 0,
-      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#orlov', '#leder', '#owner'],
+      tabs: ['#medarbejder', '#engagementer', '#adresser', '#roller', '#it', '#tilknytninger', '#ittilknytninger', '#orlov', '#leder', '#owner'],
       currentDetail: 'employee',
       _atDate: undefined,
       /**
@@ -288,6 +288,13 @@ export default {
       return columns
     },
 
+    itassociation() {
+      let columns = [
+        { label: 'org_unit', data: 'org_unit' }
+      ]
+      return columns
+    },
+
     show_owner() {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.show_owner
@@ -300,6 +307,7 @@ export default {
 
   watch: {
     atDate (newVal) {
+      // TODO: This needs to handle the special case of the ITAssociation
       this._atDate = newVal
       for (var validity of ['present', 'past', 'future']) {
         this.loadContent(this.currentDetail, validity)
@@ -322,9 +330,28 @@ export default {
         detail: contentType,
         validity: event,
         atDate: this._atDate,
-        extra: contentType === 'association' ? {'first_party_perspective': '1'} : {},
+        extra: {}
+      }
+      if (contentType === 'association') {
+        payload.extra.first_party_perspective = '1'
       }
       this.currentDetail = contentType
+      this.$emit('show', payload)
+    },
+
+    // IT Associations are special snowflakes 
+    // so we use a different loader method for them
+    loadItAssociationContent (contentType, event) {
+      let payload = {
+        uuid: this.uuid,
+        detail: contentType,
+        validity: event,
+        atDate: this._atDate,
+        extra: {
+          it: '1'
+        }
+      }
+      this.currentDetail = 'itassocaition'
       this.$emit('show', payload)
     },
 

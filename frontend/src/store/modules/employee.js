@@ -70,7 +70,6 @@ const actions = {
           validity: payload.validity,
           value: response.data
         })
-
         commit(_employee.mutations.SET_DETAIL, content)
       })
       .catch(error => {
