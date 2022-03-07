@@ -84,8 +84,8 @@ SPDX-License-Identifier: MPL-2.0
           :content="content['association']"
           content-type="itassociation"
           :columns="itassociation"
-          @show="loadItAssociationContent('association', $event)"
-          :entry-component="!hideActions ? undefined : undefined"
+          @show="loadContent('itassociation', $event)"
+          :entry-component="!hideActions ? components.itassociation : undefined"
         />
       </b-tab>
 
@@ -134,7 +134,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import { mapGetters } from 'vuex'
-import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoLeaveEntry, MoManagerEntry, MoOwnerEntry } from '@/components/MoEntry'
+import { MoEmployeeEntry, MoEngagementEntry, MoEmployeeAddressEntry, MoRoleEntry, MoItSystemEntry, MoAssociationEntry, MoItAssociationEntry, MoLeaveEntry, MoManagerEntry, MoOwnerEntry } from '@/components/MoEntry'
 import MoTableDetail from '@/components/MoTable/MoTableDetail'
 import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
@@ -213,6 +213,7 @@ export default {
         role: MoRoleEntry,
         it: MoItSystemEntry,
         association: MoAssociationEntry,
+        itassociation: MoItAssociationEntry,
         leave: MoLeaveEntry,
         manager: MoManagerEntry,
         owner: MoOwnerEntry
@@ -307,7 +308,6 @@ export default {
 
   watch: {
     atDate (newVal) {
-      // TODO: This needs to handle the special case of the ITAssociation
       this._atDate = newVal
       for (var validity of ['present', 'past', 'future']) {
         this.loadContent(this.currentDetail, validity)
@@ -336,22 +336,6 @@ export default {
         payload.extra.first_party_perspective = '1'
       }
       this.currentDetail = contentType
-      this.$emit('show', payload)
-    },
-
-    // IT Associations are special snowflakes 
-    // so we use a different loader method for them
-    loadItAssociationContent (contentType, event) {
-      let payload = {
-        uuid: this.uuid,
-        detail: contentType,
-        validity: event,
-        atDate: this._atDate,
-        extra: {
-          it: '1'
-        }
-      }
-      this.currentDetail = 'itassocaition'
       this.$emit('show', payload)
     },
 
