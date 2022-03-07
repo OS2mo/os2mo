@@ -27,45 +27,61 @@ sync(store, router)
 
 Vue.config.productionTip = false
 
-let keycloak = Keycloak(window.location.origin + '/service/keycloak.json')
+function app() {
+  Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
+  Vue.use(VueSplit)
+  Vue.use(FlagIcon)
+  Vue.use(Router)
 
-keycloak.init({ onLoad: 'login-required' }).then((auth) => {
-  if (!auth) {
-    window.location.reload();
+  new Vue({
+    router,
+    store,
+    i18n,
+    render: h => h(App)
+  }).$mount('#app')
+}
+
+const keycloakJson = window.location.origin + '/service/keycloak.json'
+let keycloak = {}
+
+fetch(keycloakJson, {
+  method: 'HEAD'
+}).then(response => {
+  if (response.status === 404) {
+    console.log('Authentication is disabled; starting vue app..')
+    app()
   } else {
-    console.log("Authenticated")
+    console.log(`Authentication is enabled (keycloak.json ${response.status}); initialising keycloak..`)
+    keycloak = Keycloak(keycloakJson)
 
-    Vue.use(VueShortKey, { prevent: ['input', 'textarea'] })
-    Vue.use(VueSplit)
-    Vue.use(FlagIcon)
-    Vue.use(Router)
-
-    new Vue({
-      router,
-      store,
-      i18n,
-      render: h => h(App)
-    }).$mount('#app')
-
-  }
-
-  // Token refresh
-  setInterval(() => {
-    keycloak.updateToken(15).then((refreshed) => {
-      if (refreshed) {
-        console.debug('Token refreshed')
-        console.debug(keycloak.tokenParsed)
+    keycloak.init({ onLoad: 'login-required' }).then((auth) => {
+      if (!auth) {
+        window.location.reload();
       } else {
-        console.debug('Token not refreshed, valid for '
-          + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
+        console.log("Authenticated")
+        app();
       }
-    }).catch(() => {
-      console.error('Failed to refresh token')
-    });
-  }, 5000)
 
+      // Token refresh
+      setInterval(() => {
+        keycloak.updateToken(15).then((refreshed) => {
+          if (refreshed) {
+            console.debug('Token refreshed')
+            console.debug(keycloak.tokenParsed)
+          } else {
+            console.debug('Token not refreshed, valid for '
+              + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
+          }
+        }).catch(() => {
+          console.error('Failed to refresh token')
+        });
+      }, 5000)
+    }).catch(() => {
+      console.error("Authenticated Failed")
+    });
+  }
 }).catch(() => {
-  console.error("Authenticated Failed")
-});
+  console.error('Error fetching keycloak.json')
+})
 
 export default keycloak
