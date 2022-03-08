@@ -37,18 +37,31 @@ SPDX-License-Identifier: MPL-2.0
         :validity="entry.validity"
         :extra-validations="validations"
       />
-      
+
+      <mo-it-system-picker
+        class="select-itSystem"
+        v-model="entry.itsystem"
+        :preselected="entry.itsystem && entry.itsystem.uuid"
+      />
+
+      <mo-facet-picker
+        class="select-association"
+        facet="association_type"
+        v-model="entry.association_type"
+        required
+      />
+
+      <mo-input-checkbox
+        v-model="entry.primary"
+      />
+
     </div>
 
-    <div v-for="(dynamic, index) in dynamicFacets" :key="dynamic">
-        <mo-recursive-facet-picker
-          :label="facet_uuid_to_label(dynamic)"
-          class="select-association"
-          :facet_uuid="dynamic"
-          v-bind:value="fetch_entry(dynamic)"
-          v-on:input="set_entry($event, dynamic)"
-        />
-    </div>
+    <mo-facet-picker
+      facet="engagement_job_function"
+      v-model="entry.job_function"
+      required
+    />
 
   </div>
 </template>
@@ -58,6 +71,8 @@ SPDX-License-Identifier: MPL-2.0
  * An IT association entry component.
  */
 
+import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
+import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
 import { MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -76,7 +91,7 @@ export default {
 
   name: 'MoItAssociationEntry',
 
-    props: {
+  props: {
     /**
      * This boolean property hide the org picker.
      */
@@ -93,7 +108,6 @@ export default {
     ...mapGetters({
       currentEmployee: Employee.getters.GET_EMPLOYEE
     }),
-
 
     validations () {
       return {
@@ -125,7 +139,9 @@ export default {
     MoEmployeePicker,
     MoFacetPicker,
     MoRecursiveFacetPicker,
-    MoInputText
+    MoInputText,
+    MoItSystemPicker,
+    MoInputCheckbox
   },
 
   watch: {
@@ -134,7 +150,11 @@ export default {
      */
     entry: {
       handler (newVal) {
+        console.log('on input tell me about newVal', newVal)
         newVal.type = 'association'
+        newVal.it = {
+          uuid: newVal.itsystem ? newVal.itsystem.uuid : null
+        }
         this.$emit('input', newVal)
       },
       deep: true

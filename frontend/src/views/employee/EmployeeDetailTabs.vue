@@ -292,8 +292,12 @@ export default {
 
     itassociation() {
       let columns = [
-        { label: 'org_unit', data: 'org_unit' }
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'first_party_association_type', data: 'first_party_association_type' },
+        { label: 'third_party_associated', data: 'third_party_associated' },
+        { label: 'third_party_association_type', data: 'third_party_association_type' }
       ]
+
       return columns
     },
 
