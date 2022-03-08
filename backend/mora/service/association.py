@@ -118,9 +118,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             tilknyttedeklasser=dynamic_classes,
             tilknyttedefunktioner=rel_orgfunc_uuids,
-            tilknyttedeitsystemer=[it_user_uuid],
             funktionstype=association_type_uuid,
         )
+
+        if it_user_uuid:
+            payload_kwargs["tilknyttedeitsystemer"] = [it_user_uuid]
 
         association = common.create_organisationsfunktion_payload(**payload_kwargs)
 
