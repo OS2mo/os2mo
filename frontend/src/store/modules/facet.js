@@ -20,7 +20,8 @@ const state = {
   org_unit_type: undefined,
   responsibility: undefined,
   role_type: undefined,
-  org_unit_hierarchy: undefined
+  org_unit_hierarchy: undefined,
+  primary_type: undefined
 }
 
 
@@ -58,7 +59,9 @@ const mutations = {
 
 const getters = {
   [_facet.getters.GET_UUID]: state => state.uuid,
-  [_facet.getters.GET_FACET]: (state) => (id) => state[id] || {}
+  [_facet.getters.GET_FACET]: (state) => (id) => {
+    return state[id] ? state[id] : {}
+  }
 }
 
 export default {

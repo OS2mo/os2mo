@@ -76,6 +76,7 @@ import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 import { Employee } from '@/store/actions/employee'
 import { mapGetters } from 'vuex'
 import { Facet } from '@/store/actions/facet'
+import FacetApi from '@/api/Facet'
 
 export default {
   mixins: [OrgUnitValidity],
@@ -94,6 +95,12 @@ export default {
      * This boolean property hide the employee picker.
      */
     hideEmployeePicker: Boolean
+  },
+
+  data: function() {
+    return {
+      primary_types: null
+    }
   },
 
   computed: {
@@ -125,7 +132,7 @@ export default {
       this.$set(this.entry, 'person', this.currentEmployee)
     }
 
-    this.$store.dispatch(Facet.actions.SET_FACET, {facet: 'primary_type'})
+    this.getPrimaryTypes()
   },
 
   components: {
@@ -211,20 +218,33 @@ export default {
     },
 
     /**
+     * Fetch primary_type facet from Service API
+     */
+    getPrimaryTypes() {
+      FacetApi.get('primary_type')
+        .then(response => {
+          this.primary_types = response.data.items
+        })
+    },
+
+    /**
      * Sets entry.primary value after user changes checkbox value
      *
      * @param {Boolean} primary - The input event data
      */
-    setPrimaryValue(primary) {
-      console.log('change primary', primary)
-      let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
+    setPrimaryValue(primaryVal) {
+      console.log('change primary', primaryVal, this.primary_types)
       
-      console.log(facet_getter('primay_type'))
-      
-      if (primary) {
-
-      } else {
-
+      if (this.primary_type) {
+        if (primaryVal) {
+          this.entry.primary = { 
+            uuid: this.primary_types.find(type => type.user_key === 'primary').uuid
+          }
+        } else {
+          this.entry.primary = { 
+            uuid: this.primary_types.find(type => type.user_key === 'non_primary').uuid
+          }
+        }
       }
     }
   }
