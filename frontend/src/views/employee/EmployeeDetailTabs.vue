@@ -290,11 +290,13 @@ export default {
     },
 
     itassociation() {
+
       let columns = [
         { label: 'org_unit', data: 'org_unit' },
-        { label: 'first_party_association_type', data: 'first_party_association_type' },
-        { label: 'third_party_associated', data: 'third_party_associated' },
-        { label: 'third_party_association_type', data: 'third_party_association_type' }
+        { label: 'job_function', data: 'job_function' },
+        { label: 'it_system', data: 'it', field: 'itsystem' },
+        { label: 'user_key', data: 'it', field: 'user_key' },
+        { label: 'primary', data: 'primary' }
       ]
 
       return columns
