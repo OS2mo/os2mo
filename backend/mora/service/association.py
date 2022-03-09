@@ -68,10 +68,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         )
         org_uuid = org_["uuid"]
 
-        association_type_uuid = util.get_mapping_uuid(
-            req, mapping.ASSOCIATION_TYPE, required=True
-        )
-
         valid_from, valid_to = util.get_validities(req)
 
         func_id = util.get_uuid(req, required=False) or str(uuid.uuid4())
@@ -81,11 +77,14 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
         job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
         it_user_uuid = util.get_mapping_uuid(req, mapping.IT)
+        association_type_uuid = util.get_mapping_uuid(
+            req, mapping.ASSOCIATION_TYPE, required=False if it_user_uuid else True
+        )
 
         # Validation
         # remove substitute if not needed
         await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
-        if substitute_uuid:  # substitute is specified
+        if substitute_uuid and association_type_uuid:  # substitute is specified
             validator.is_substitute_allowed(association_type_uuid)
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
@@ -118,11 +117,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeenheder=[org_unit_uuid],
             tilknyttedeklasser=dynamic_classes,
             tilknyttedefunktioner=rel_orgfunc_uuids,
+            tilknyttedeitsystemer=[it_user_uuid] if it_user_uuid else None,
             funktionstype=association_type_uuid,
         )
-
-        if it_user_uuid:
-            payload_kwargs["tilknyttedeitsystemer"] = [it_user_uuid]
 
         association = common.create_organisationsfunktion_payload(**payload_kwargs)
 
