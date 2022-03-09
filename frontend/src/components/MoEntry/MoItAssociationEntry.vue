@@ -38,10 +38,10 @@ SPDX-License-Identifier: MPL-2.0
         :extra-validations="validations"
       />
 
-      <mo-it-system-picker
-        class="select-itSystem"
-        v-model="entry.itsystem"
-        :preselected="entry.itsystem && entry.itsystem.uuid"
+      <mo-it-account-picker
+        class="select-itAccount"
+        v-model="entry.it"
+        :preselected="entry.it && entry.it.uuid"
       />
 
       <mo-facet-picker
@@ -72,7 +72,7 @@ SPDX-License-Identifier: MPL-2.0
  */
 
 import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
-import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
+import MoItAccountPicker from '@/components/MoPicker/MoItAccountPicker'
 import { MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -140,7 +140,7 @@ export default {
     MoFacetPicker,
     MoRecursiveFacetPicker,
     MoInputText,
-    MoItSystemPicker,
+    MoItAccountPicker,
     MoInputCheckbox
   },
 
