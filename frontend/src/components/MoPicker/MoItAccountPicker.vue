@@ -42,7 +42,7 @@ export default {
     /**
      * Create two-way data bindings with the component.
      */
-    value: Object,
+    value: [Object, Array],
 
     /**
      * Defines a preselected value.

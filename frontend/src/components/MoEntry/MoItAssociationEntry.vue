@@ -41,7 +41,6 @@ SPDX-License-Identifier: MPL-2.0
       <mo-it-account-picker
         class="select-itAccount"
         v-model="entry.it"
-        :preselected="entry.it && entry.it.uuid"
       />
 
       <mo-input-checkbox
@@ -99,7 +98,8 @@ export default {
 
   data: function() {
     return {
-      primary_types: null
+      primary_types: null,
+      preselected_it: ''
     }
   },
 
@@ -233,8 +233,7 @@ export default {
      * @param {Boolean} primary - The input event data
      */
     setPrimaryValue(primaryVal) {
-      console.log('change primary', primaryVal, this.primary_types)
-      
+      // TODO: This doesn't work. Fix it.
       if (this.primary_type) {
         if (primaryVal) {
           this.entry.primary = { 

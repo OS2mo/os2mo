@@ -82,7 +82,7 @@ SPDX-License-Identifier: MPL-2.0
           type="EMPLOYEE"
           :uuid="uuid"
           :content="content['itassociation']"
-          content-type="itassociation"
+          content-type="association"
           :columns="itassociation"
           @show="loadContent('itassociation', $event)"
           :entry-component="!hideActions ? components.itassociation : undefined"

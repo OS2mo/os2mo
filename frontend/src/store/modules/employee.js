@@ -104,7 +104,6 @@ const mutations = {
       Vue.set(state.details, payload.key, {})
     }
     Vue.set(state.details[payload.key], payload.validity, payload.value)
-    console.log('got details in store', state.details)
   }
 }
 

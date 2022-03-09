@@ -58,7 +58,7 @@ const actions = {
         commit('setDetail', content)
       })
       .catch(error => {
-        console.log(error)
+        console.error(error)
       })
   },
 
