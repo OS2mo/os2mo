@@ -5,6 +5,34 @@ import Service from './HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 
+const sanitizeData = function(data) {
+
+  let sane_data = []
+  
+  if (!data[0].it) {
+    sane_data = data
+  } else {
+    // IT association hack:
+    // When creating an IT association, we must scrub the data to conform to 
+    // the special API request format that is supported by the backend.
+    for (let d of data) {
+      sane_data.push({
+        type: "association",
+        person: { uuid: d.person.uuid },
+        org_unit: { uuid: d.org_unit.uuid },
+        org: { uuid: d.org.uuid },
+        job_function: { uuid: d.job_function.uuid },
+        it: { uuid: d.it.uuid },
+        validity: { from: d.validity.from, to: d.validity.to },
+        association_type: { uuid: d.association_type.uuid }
+        // Primary missing
+      })
+    }
+  }
+
+  return sane_data
+}
+
 export default {
 
   /**
@@ -72,7 +100,8 @@ export default {
   },
 
   create (create) {
-    return this.createEntry(create)
+
+    return this.createEntry(sanitizeData(create))
       .then(response => {
         if (response.data.error) {
           return response.data
