@@ -150,11 +150,7 @@ export default {
      */
     entry: {
       handler (newVal) {
-        console.log('on input tell me about newVal', newVal)
         newVal.type = 'association'
-        newVal.it = {
-          uuid: newVal.itsystem ? newVal.itsystem.uuid : null
-        }
         this.$emit('input', newVal)
       },
       deep: true
@@ -162,6 +158,7 @@ export default {
   },
 
   methods: {
+    
     /**
      * Find the first element in the array fulfilling the predicate
      * @param {Array} arr - Array to search for elements in

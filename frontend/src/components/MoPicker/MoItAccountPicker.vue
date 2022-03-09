@@ -17,7 +17,7 @@ SPDX-License-Identifier: MPL-2.0
         v-for="it in orderedListOptions"
         v-bind:key="it.uuid"
         :value="it.uuid">
-          {{it.name}}
+          {{ it.itsystem.name }} : {{ it.user_key }}
       </option>
     </select>
 
@@ -77,7 +77,7 @@ export default {
     },
 
     orderedListOptions () {
-      return sortBy(this.itAccounts, 'name')
+      return sortBy(this.itAccounts, 'user_key')
     }
   },
 
