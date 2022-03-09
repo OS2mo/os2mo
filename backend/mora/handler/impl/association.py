@@ -246,11 +246,12 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             )
         )
 
-        association_type_task = create_task(
-            facet.request_bulked_get_one_class_full(
-                association_type, only_primary_uuid=only_primary_uuid
+        if association_type:
+            association_type_task = create_task(
+                facet.request_bulked_get_one_class_full(
+                    association_type, only_primary_uuid=only_primary_uuid
+                )
             )
-        )
 
         if primary:
             primary_task = create_task(
@@ -284,7 +285,9 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             **base_obj,
             mapping.PERSON: (await person_task) if person else None,
             mapping.ORG_UNIT: await org_unit_task,
-            mapping.ASSOCIATION_TYPE: await association_type_task,
+            mapping.ASSOCIATION_TYPE: (
+                (await association_type_task) if association_type else None
+            ),
             mapping.PRIMARY: (await primary_task) if primary else None,
             mapping.CLASSES: await dynamic_classes_awaitable,
             mapping.SUBSTITUTE: (
