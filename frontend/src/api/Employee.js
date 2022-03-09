@@ -24,7 +24,7 @@ const sanitizeData = function(data) {
         job_function: { uuid: d.job_function.uuid },
         it: { uuid: d.it.uuid },
         validity: { from: d.validity.from, to: d.validity.to },
-        association_type: { uuid: d.association_type.uuid },
+        // association_type: { uuid: d.association_type.uuid },
         // Hardcoding primary value
         primary: { uuid: 'afe0910b-df1f-478d-a62b-aa02492b3f67'}
       })

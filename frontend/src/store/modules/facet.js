@@ -20,7 +20,7 @@ const state = {
   org_unit_type: undefined,
   responsibility: undefined,
   role_type: undefined,
-  org_unit_hierarchy: undefined,
+  org_unit_hierarchy: undefined
 }
 
 

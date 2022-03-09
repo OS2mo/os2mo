@@ -44,15 +44,8 @@ SPDX-License-Identifier: MPL-2.0
         :preselected="entry.it && entry.it.uuid"
       />
 
-      <mo-facet-picker
-        class="select-association"
-        facet="association_type"
-        v-model="entry.association_type"
-        required
-      />
-
       <mo-input-checkbox
-        v-model="entry.primary"
+        @input="setPrimaryValue"
       />
 
     </div>
@@ -123,7 +116,7 @@ export default {
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
-    },
+    }
   },
 
   created () {
@@ -131,6 +124,8 @@ export default {
       (this.currentEmployee && this.currentEmployee.name)){
       this.$set(this.entry, 'person', this.currentEmployee)
     }
+
+    this.$store.dispatch(Facet.actions.SET_FACET, {facet: 'primary_type'})
   },
 
   components: {
@@ -213,6 +208,24 @@ export default {
     facet_uuid_to_label(uuid) {
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
       return facet_getter(uuid)['description']
+    },
+
+    /**
+     * Sets entry.primary value after user changes checkbox value
+     *
+     * @param {Boolean} primary - The input event data
+     */
+    setPrimaryValue(primary) {
+      console.log('change primary', primary)
+      let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
+      
+      console.log(facet_getter('primay_type'))
+      
+      if (primary) {
+
+      } else {
+
+      }
     }
   }
 }
