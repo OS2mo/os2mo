@@ -38,20 +38,12 @@ SPDX-License-Identifier: MPL-2.0
         :extra-validations="validations"
       />
 
-      <mo-it-system-picker
-        class="select-itSystem"
-        v-model="entry.itsystem"
-        :preselected="entry.itsystem && entry.itsystem.uuid"
+      <mo-it-account-picker
+        class="select-itAccount"
+        v-model="entry.it"
       />
 
-      <mo-facet-picker
-        class="select-association"
-        facet="association_type"
-        v-model="entry.association_type"
-        required
-      />
-
-      <mo-input-checkbox
+      <mo-input-primary-check
         v-model="entry.primary"
       />
 
@@ -71,8 +63,8 @@ SPDX-License-Identifier: MPL-2.0
  * An IT association entry component.
  */
 
-import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
-import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
+import MoInputPrimaryCheck from '@/components/MoInput/MoInputPrimaryCheck'
+import MoItAccountPicker from '@/components/MoPicker/MoItAccountPicker'
 import { MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
 import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
@@ -103,6 +95,13 @@ export default {
     hideEmployeePicker: Boolean
   },
 
+  data: function() {
+    return {
+      primary_types: null,
+      preselected_it: ''
+    }
+  },
+
   computed: {
 
     ...mapGetters({
@@ -123,7 +122,7 @@ export default {
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
-    },
+    }
   },
 
   created () {
@@ -140,8 +139,8 @@ export default {
     MoFacetPicker,
     MoRecursiveFacetPicker,
     MoInputText,
-    MoItSystemPicker,
-    MoInputCheckbox
+    MoItAccountPicker,
+    MoInputPrimaryCheck
   },
 
   watch: {
@@ -150,11 +149,7 @@ export default {
      */
     entry: {
       handler (newVal) {
-        console.log('on input tell me about newVal', newVal)
         newVal.type = 'association'
-        newVal.it = {
-          uuid: newVal.itsystem ? newVal.itsystem.uuid : null
-        }
         this.$emit('input', newVal)
       },
       deep: true
@@ -162,6 +157,7 @@ export default {
   },
 
   methods: {
+    
     /**
      * Find the first element in the array fulfilling the predicate
      * @param {Array} arr - Array to search for elements in

@@ -5,32 +5,56 @@ import Service from './HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 
+const identfyItAssociationData = function(data) {
+  
+  if (Array.isArray(data) && data[0].it) {
+
+    // Probably data for creating a new IT association
+    return data.map(d => sanitizeData(d))
+
+  } else if (data.data && data.data.it) {
+
+    // Probably data for editing an IT association
+    return sanitizeData(data.data)
+
+  } else {
+
+    // Nothing special. Just patch it through.
+    return data
+
+  }
+}
+
 const sanitizeData = function(data) {
 
-  let sane_data = []
+  // IT association hack:
+  // When creating an IT association, we must scrub the data to conform to 
+  // the special API request format that is supported by the backend.
   
-  if (!data[0].it) {
-    sane_data = data
-  } else {
-    // IT association hack:
-    // When creating an IT association, we must scrub the data to conform to 
-    // the special API request format that is supported by the backend.
-    for (let d of data) {
-      sane_data.push({
-        type: "association",
-        person: { uuid: d.person.uuid },
-        org_unit: { uuid: d.org_unit.uuid },
-        org: { uuid: d.org.uuid },
-        job_function: { uuid: d.job_function.uuid },
-        it: { uuid: d.it.uuid },
-        validity: { from: d.validity.from, to: d.validity.to },
-        association_type: { uuid: d.association_type.uuid }
-        // Primary missing
-      })
-    }
+  let new_data = { type: "association" }
+  if (data.person) {
+    new_data.person = { uuid: data.person.uuid }
   }
-
-  return sane_data
+  if (data.org_unit) {
+    new_data.org_unit = { uuid: data.org_unit.uuid }
+  }
+  if (data.org) {
+    new_data.org = { uuid: data.org.uuid }
+  }
+  if (data.job_function) {
+    new_data.job_function = { uuid: data.job_function.uuid }
+  }
+  if (data.it) {
+    new_data.it = { uuid: data.it.uuid }
+  }
+  if (data.validity) {
+    new_data.validity = { from: data.validity.from, to: data.validity.to }
+  }
+  if (data.primary) {
+    new_data.primary = { uuid: data.primary }
+  }
+   
+  return new_data
 }
 
 export default {
@@ -61,25 +85,6 @@ export default {
       })
   },
 
-  // new (employee) {
-  //   return Service.post('/e/create', employee)
-  //     .then(response => {
-  //       let employeeUuid = response.data
-  //       if (Array.isArray(response.data)) {
-  //         employeeUuid = response.data[0]
-  //       }
-  //       if (response.data.error) {
-  //         return response.data
-  //       }
-  //       store.commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: employeeUuid })
-  //       return employeeUuid
-  //     })
-  //     .catch(error => {
-  //       store.commit('log/newError', { type: 'ERROR', value: error.response.data })
-  //       return error.response.data
-  //     })
-  // },
-
   /**
    * Create a new employee
    * @param {String} uuid - employee uuid
@@ -101,7 +106,7 @@ export default {
 
   create (create) {
 
-    return this.createEntry(sanitizeData(create))
+    return this.createEntry(identfyItAssociationData(create))
       .then(response => {
         if (response.data.error) {
           return response.data
@@ -117,7 +122,7 @@ export default {
    * @returns {Object} employeee uuid
    */
   edit (edit) {
-    return Service.post('/details/edit', edit)
+    return Service.post('/details/edit', identfyItAssociationData(edit))
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response.data

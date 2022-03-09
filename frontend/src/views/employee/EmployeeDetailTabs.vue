@@ -82,7 +82,7 @@ SPDX-License-Identifier: MPL-2.0
           type="EMPLOYEE"
           :uuid="uuid"
           :content="content['itassociation']"
-          content-type="itassociation"
+          content-type="association"
           :columns="itassociation"
           @show="loadContent('itassociation', $event)"
           :entry-component="!hideActions ? components.itassociation : undefined"
@@ -201,6 +201,13 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
+      itassociation: [
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'job_function', data: 'job_function' },
+        { label: 'it_system', data: 'it', field: 'itsystem' },
+        { label: 'user_key', data: 'it', field: 'user_key' },
+        { label: 'primary', data: 'primary' }
+      ],
 
       /**
        * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
@@ -286,17 +293,6 @@ export default {
           { label: 'primary', data: 'primary' }
         )
       }
-
-      return columns
-    },
-
-    itassociation() {
-      let columns = [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'first_party_association_type', data: 'first_party_association_type' },
-        { label: 'third_party_associated', data: 'third_party_associated' },
-        { label: 'third_party_association_type', data: 'third_party_association_type' }
-      ]
 
       return columns
     },
