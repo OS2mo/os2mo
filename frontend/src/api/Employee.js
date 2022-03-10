@@ -13,7 +13,7 @@ const sanitizeData = function(data) {
     // the special API request format that is supported by the backend.
     let sane_data = []
     for (let d of data) {
-      sane_data.push({
+      let new_data = {
         type: "association",
         person: { uuid: d.person.uuid },
         org_unit: { uuid: d.org_unit.uuid },
@@ -21,9 +21,11 @@ const sanitizeData = function(data) {
         job_function: { uuid: d.job_function.uuid },
         it: { uuid: d.it.uuid },
         validity: { from: d.validity.from, to: d.validity.to },
-        // Hardcoding primary value
-        primary: { uuid: 'afe0910b-df1f-478d-a62b-aa02492b3f67'}
-      })
+      }
+      if (d.primary) {
+        new_data.primary = { uuid: d.primary }
+      }
+      sane_data.push(new_data)
     }
     return sane_data
   } else {

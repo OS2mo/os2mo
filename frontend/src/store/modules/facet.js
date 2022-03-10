@@ -31,7 +31,7 @@ const fullQueryParams = '?' + [Facet.ClassDetails.FULL_NAME,
 
 
 const actions = {
-  [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
+  [_facet.actions.SET_FACET] ({ rootState, commit }, payload) {
     let queryParams = ""
     if (payload.full) {
       queryParams = fullQueryParams
@@ -42,6 +42,7 @@ const actions = {
         response.data.classes = response.data.data.items
         delete response.data.data.items
         commit(_facet.mutations.SET_FACET, response.data)
+        return response.data
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })

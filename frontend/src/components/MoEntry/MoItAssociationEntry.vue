@@ -43,8 +43,8 @@ SPDX-License-Identifier: MPL-2.0
         v-model="entry.it"
       />
 
-      <mo-input-checkbox
-        @input="setPrimaryValue"
+      <mo-input-primary-check
+        v-model="entry.primary"
       />
 
     </div>
@@ -63,7 +63,7 @@ SPDX-License-Identifier: MPL-2.0
  * An IT association entry component.
  */
 
-import MoInputCheckbox from '@/components/MoInput/MoInputCheckbox'
+import MoInputPrimaryCheck from '@/components/MoInput/MoInputPrimaryCheck'
 import MoItAccountPicker from '@/components/MoPicker/MoItAccountPicker'
 import { MoInputDateRange, MoInputText} from '@/components/MoInput'
 import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
@@ -75,7 +75,6 @@ import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 import { Employee } from '@/store/actions/employee'
 import { mapGetters } from 'vuex'
 import { Facet } from '@/store/actions/facet'
-import FacetApi from '@/api/Facet'
 
 export default {
   mixins: [OrgUnitValidity],
@@ -131,8 +130,6 @@ export default {
       (this.currentEmployee && this.currentEmployee.name)){
       this.$set(this.entry, 'person', this.currentEmployee)
     }
-
-    this.getPrimaryTypes()
   },
 
   components: {
@@ -143,7 +140,7 @@ export default {
     MoRecursiveFacetPicker,
     MoInputText,
     MoItAccountPicker,
-    MoInputCheckbox
+    MoInputPrimaryCheck
   },
 
   watch: {
@@ -215,36 +212,6 @@ export default {
     facet_uuid_to_label(uuid) {
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
       return facet_getter(uuid)['description']
-    },
-
-    /**
-     * Fetch primary_type facet from Service API
-     */
-    getPrimaryTypes() {
-      FacetApi.get('primary_type')
-        .then(response => {
-          this.primary_types = response.data.items
-        })
-    },
-
-    /**
-     * Sets entry.primary value after user changes checkbox value
-     *
-     * @param {Boolean} primary - The input event data
-     */
-    setPrimaryValue(primaryVal) {
-      // TODO: This doesn't work. Fix it.
-      if (this.primary_type) {
-        if (primaryVal) {
-          this.entry.primary = { 
-            uuid: this.primary_types.find(type => type.user_key === 'primary').uuid
-          }
-        } else {
-          this.entry.primary = { 
-            uuid: this.primary_types.find(type => type.user_key === 'non_primary').uuid
-          }
-        }
-      }
     }
   }
 }
