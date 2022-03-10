@@ -29,7 +29,7 @@ const sanitizeData = function(data) {
 
   // IT association hack:
   // When creating an IT association, we must scrub the data to conform to 
-  // the special API request format that is supported by the backend.
+  // the special snowflake API request format that is supported by the backend.
   
   let new_data = { type: "association" }
   if (data.person) {
