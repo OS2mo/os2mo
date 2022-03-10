@@ -15,6 +15,7 @@ from structlog import get_logger
 
 from .it import ItSystemBindingReader
 from .. import reading
+from ... import lora
 from ... import mapping
 from ... import util
 from ...common import get_connector
@@ -55,7 +56,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     async def get_from_type(
         cls, c, type, objid, changed_since: Optional[datetime] = None
     ):
-        search_fields = {cls.SEARCH_FIELDS[type]: objid}
+        search_fields = cls._get_search_fields(type, objid)
 
         # Get *all* associations for this employee or org unit
         assocs = await cls.get(c, search_fields, changed_since=changed_since)
@@ -263,7 +264,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         if it_system_binding_uuid:
             # This probably breaks some architectural pattern in MO, but I
             # don't know a better way at this point.
-            c = get_connector()
+            c = lora.Connector()
             reader = ItSystemBindingReader()
             it_system_binding_task = reader.get(
                 c,
