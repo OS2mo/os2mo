@@ -187,8 +187,24 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ASSOCIATION_TYPE in data:
-            association_type_uuid = data.get(mapping.ASSOCIATION_TYPE).get("uuid")
+        job_function_uuid = util.get_mapping_uuid(
+            req.get("data", {}), mapping.JOB_FUNCTION
+        )
+        if job_function_uuid:
+            update_fields.append(
+                (mapping.JOB_FUNCTION_FIELD, {"uuid": job_function_uuid})
+            )
+
+        it_user_uuid = util.get_mapping_uuid(req.get("data", {}), mapping.IT)
+        if it_user_uuid:
+            update_fields.append(
+                (mapping.SINGLE_ITSYSTEM_FIELD, {"uuid": it_user_uuid})
+            )
+
+        association_type_uuid = util.get_mapping_uuid(
+            req, mapping.ASSOCIATION_TYPE, required=False if it_user_uuid else True
+        )
+        if association_type_uuid:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
@@ -197,6 +213,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
             if not util.is_substitute_allowed(association_type_uuid):
+                # Updates "tilknyttedefunktioner" to an empty "substitute UUID"
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
@@ -264,6 +281,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
 
+        # Update "dynamic_classes"
         for clazz in util.checked_get(data, mapping.CLASSES, []):
             update_fields.append(
                 (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
