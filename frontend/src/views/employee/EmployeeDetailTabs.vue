@@ -200,6 +200,13 @@ export default {
         { label: 'visibility', data: 'visibility' },
         { label: 'address', data: null }
       ],
+      itassociation: [
+        { label: 'org_unit', data: 'org_unit' },
+        { label: 'job_function', data: 'job_function' },
+        { label: 'it_system', data: 'it', field: 'itsystem' },
+        { label: 'user_key', data: 'it', field: 'user_key' },
+        { label: 'primary', data: 'primary' }
+      ],
 
       /**
        * The MoEngagementEntry, MoAddressEntry, MoRoleEntry, MoItSystemEntry,
@@ -285,19 +292,6 @@ export default {
           { label: 'primary', data: 'primary' }
         )
       }
-
-      return columns
-    },
-
-    itassociation() {
-
-      let columns = [
-        { label: 'org_unit', data: 'org_unit' },
-        { label: 'job_function', data: 'job_function' },
-        { label: 'it_system', data: 'it', field: 'itsystem' },
-        { label: 'user_key', data: 'it', field: 'user_key' },
-        { label: 'primary', data: 'primary' }
-      ]
 
       return columns
     },
