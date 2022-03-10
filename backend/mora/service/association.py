@@ -144,7 +144,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=association_uuid)
 
-        data = req.get("data")
+        data = req.get("data", {})
         new_from, new_to = util.get_validities(data)
 
         payload = dict()
@@ -187,23 +187,22 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        job_function_uuid = util.get_mapping_uuid(
-            req.get("data", {}), mapping.JOB_FUNCTION
-        )
+        # Update "job_function"
+        job_function_uuid = util.get_mapping_uuid(data, mapping.JOB_FUNCTION)
         if job_function_uuid:
             update_fields.append(
                 (mapping.JOB_FUNCTION_FIELD, {"uuid": job_function_uuid})
             )
 
-        it_user_uuid = util.get_mapping_uuid(req.get("data", {}), mapping.IT)
+        # Update "it" (UUID of IT user, in case this association is an IT association)
+        it_user_uuid = util.get_mapping_uuid(data, mapping.IT)
         if it_user_uuid:
             update_fields.append(
                 (mapping.SINGLE_ITSYSTEM_FIELD, {"uuid": it_user_uuid})
             )
 
-        association_type_uuid = util.get_mapping_uuid(
-            req, mapping.ASSOCIATION_TYPE, required=False if it_user_uuid else True
-        )
+        # Update "association_type"
+        association_type_uuid = util.get_mapping_uuid(data, mapping.ASSOCIATION_TYPE)
         if association_type_uuid:
             update_fields.append(
                 (
@@ -211,16 +210,15 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     {"uuid": association_type_uuid},
                 )
             )
-
             if not util.is_substitute_allowed(association_type_uuid):
-                # Updates "tilknyttedefunktioner" to an empty "substitute UUID"
+                # Updates "tilknyttedefunktioner"
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
 
+        # Update org unit UUID
         if mapping.ORG_UNIT in data:
             org_unit_uuid = data.get(mapping.ORG_UNIT).get("uuid")
-
             update_fields.append(
                 (
                     mapping.ASSOCIATED_ORG_UNIT_FIELD,
@@ -233,28 +231,21 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
             )
 
+        # Update person UUID
         if mapping.PERSON in data:
             employee = data.get(mapping.PERSON, {})
             if employee:
                 employee_uuid = employee.get("uuid")
-                update_payload = {
-                    "uuid": employee_uuid,
-                }
+                update_payload = {"uuid": employee_uuid}
             else:  # allow missing, e.g. vacant association
                 employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
                 update_payload = {"uuid": "", "urn": ""}
-
-            update_fields.append(
-                (
-                    mapping.USER_FIELD,
-                    update_payload,
-                )
-            )
-            # update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
+            update_fields.append((mapping.USER_FIELD, update_payload))
         else:
             employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
             employee_uuid = util.get_uuid(employee)
 
+        # Update "substitute"
         if mapping.SUBSTITUTE in data and data.get(mapping.SUBSTITUTE):
             substitute = data.get(mapping.SUBSTITUTE)
             substitute_uuid = substitute.get("uuid")
@@ -262,7 +253,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 validator.is_substitute_self(
                     employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
                 )
-
             if not substitute_uuid:
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
@@ -276,9 +266,9 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid})
                 )
 
+        # Update "primary"
         if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
-
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
 
         # Update "dynamic_classes"
@@ -290,7 +280,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
         )
-
         bounds_fields = list(
             mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields})
         )
