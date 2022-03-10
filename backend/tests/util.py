@@ -553,6 +553,7 @@ def get_testcafe_config() -> Settings:
         "confdb_show_time_planning",
         "confdb_show_user_key",
         "confdb_show_user_key_in_search",
+        "show_it_associations_tab",
     }
 
     settings.update({key: True for key in feature_flags})

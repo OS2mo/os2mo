@@ -128,6 +128,7 @@ import bTabs from 'bootstrap-vue/es/components/tabs/tabs'
 import bTab from 'bootstrap-vue/es/components/tabs/tab'
 import { Facet } from '@/store/actions/facet'
 import { AtDate } from '@/store/actions/atDate'
+import { Conf } from '@/store/actions/conf'
 import {columns, generate_extension_columns} from "../shared/engagement_tab";
 
 export default {
@@ -279,6 +280,11 @@ export default {
     show_owner() {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.show_owner
+    },
+
+    show_it_associations () {
+      let conf = this.$store.getters[Conf.getters.GET_CONF_DB]
+      return conf.show_it_associations_tab
     },
 
     ...mapGetters({
