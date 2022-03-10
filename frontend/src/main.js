@@ -62,15 +62,8 @@ axios({
 
     // Token refresh
     setInterval(() => {
-      keycloak.updateToken(15).then((refreshed) => {
-        if (refreshed) {
-          console.debug('Token refreshed')
-          console.debug(keycloak.tokenParsed)
-        } else {
-          console.debug('Token not refreshed, valid for '
-            + Math.round(keycloak.tokenParsed.exp + keycloak.timeSkew - new Date().getTime() / 1000) + ' seconds')
-        }
-      }).catch(() => {
+      keycloak.updateToken(15)
+      .catch(() => {
         console.error('Failed to refresh token')
       });
     }, 5000)
