@@ -1,17 +1,98 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import copy
-import pytest
+from uuid import uuid4
+from unittest.mock import patch
+from urllib.parse import urlencode
 
+import pytest
 import freezegun
-from mock import patch
+from parameterized import parameterized
 
 import tests.cases
 from mora import lora
 from mora import mapping
 
-substitute_association = {"name": "i18n:substitute_association"}  # const
+
+_substitute_association = {"name": "i18n:substitute_association"}  # const
+_substitute_uuid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
+_unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+_userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+_it_system_uuid = "0872fb72-926d-4c5c-a063-ff800b8ee697"
+_it_user_uuid = "11111111-1111-1111-1111-111111111111"
+_job_function_uuid = str(uuid4())
+
+
+def _lora_virkning(**kwargs):
+    virkning = {
+        "virkning": {
+            "from": "2017-12-01 00:00:00+01",
+            "from_included": True,
+            "to": "2017-12-02 00:00:00+01",
+            "to_included": False,
+        },
+    }
+    virkning.update(kwargs)
+    return virkning
+
+
+def _lora_organisationfunktion(**kwargs):
+    doc = {
+        "livscykluskode": "Importeret",
+        "tilstande": {
+            "organisationfunktiongyldighed": [
+                _lora_virkning(gyldighed="Aktiv"),
+            ]
+        },
+        "note": "Oprettet i MO",
+        "relationer": {
+            "tilknyttedeorganisationer": [
+                _lora_virkning(uuid="456362c4-0ee4-4e5e-a72c-751239745e62"),
+            ],
+            "tilknyttedebrugere": [
+                _lora_virkning(uuid=_userid),
+            ],
+            "organisatoriskfunktionstype": [
+                _lora_virkning(uuid="62ec821f-4179-4758-bfdf-134529d186e9"),
+            ],
+            "tilknyttedeenheder": [
+                _lora_virkning(uuid=_unitid),
+            ],
+            "primær": [
+                _lora_virkning(uuid="f49c797b-d3e8-4dc2-a7a8-c84265432474"),
+            ],
+        },
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                _lora_virkning(brugervendtnoegle="1234", funktionsnavn="Tilknytning"),
+            ]
+        },
+    }
+
+    for key, val in kwargs.items():
+        if key in doc:
+            doc[key].update(val)
+
+    return doc
+
+
+def _mo_create_it_user_doc():
+    return {
+        "type": "it",
+        "uuid": _it_user_uuid,
+        "itsystem": {"uuid": _it_system_uuid},
+        "user_key": "usernameInItSystem",
+        "org_unit": {"uuid": _unitid},
+        "person": {"uuid": _userid},
+        "validity": {"from": "2017-01-01", "to": None},
+    }
+
+
+def _mo_return_it_user_doc():
+    doc = _mo_create_it_user_doc()
+    del doc["type"]
+    doc["primary"] = None
+    return doc
 
 
 @pytest.mark.usefixtures("sample_structures")
@@ -19,257 +100,196 @@ substitute_association = {"name": "i18n:substitute_association"}  # const
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    @patch(
-        "mora.conf_db.get_configuration",
-        return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
+    @parameterized.expand(
+        [
+            # 1. Test usage of "substitute" property on associations
+            (
+                # MO payload: extra data
+                {
+                    "substitute": {"uuid": _substitute_uuid},
+                },
+                # MO response: expected extra data
+                {
+                    "substitute": {"uuid": _substitute_uuid},
+                    "it": None,
+                    "job_function": None,
+                },
+                # LoRa response: expected extra data
+                {
+                    "relationer": {
+                        "tilknyttedefunktioner": [_lora_virkning(uuid=_substitute_uuid)]
+                    }
+                },
+            ),
+            # 2. Test usage of "it" and "job_function" properties on associations
+            (
+                # MO payload: extra data
+                {
+                    "it": {"uuid": _it_user_uuid},
+                    "job_function": {"uuid": _job_function_uuid},
+                },
+                # MO response: expected extra data
+                {
+                    "substitute": None,
+                    "it": [_mo_return_it_user_doc()],
+                    "job_function": {"uuid": _job_function_uuid},
+                },
+                # LoRa response: expected extra data
+                {
+                    "relationer": {
+                        "tilknyttedeitsystemer": [_lora_virkning(uuid=_it_user_uuid)],
+                        "tilknyttedefunktioner": [
+                            _lora_virkning(uuid=_job_function_uuid)
+                        ],
+                    }
+                },
+            ),
+        ]
     )
-    async def test_create_association(self, mock):
+    async def test_create_association(self, mo_data, mo_expected, lora_expected):
+        def url(employee_uuid: str, **kwargs):
+            base = f"/service/e/{employee_uuid}/details/association"
+            args = {"validity": "future", "only_primary_uuid": "1"}
+            if "it" in mo_data and "first_party_perspective" not in kwargs:
+                args.update(it="1")
+            if kwargs:
+                args.update(**kwargs)
+            return f"{base}?{urlencode(args)}"
+
+        patch_substitute_roles = patch(
+            "mora.conf_db.get_configuration",
+            return_value={"substitute_roles": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        )
+
+        # Create an "IT User" (aka. "IT system binding")
+        await self.request("/service/details/create", json=_mo_create_it_user_doc())
+
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
         association_uuid = "00000000-0000-0000-0000-000000000000"
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
+
         payload = [
             {
                 "type": "association",
                 "uuid": association_uuid,
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
+                "org_unit": {"uuid": _unitid},
+                "person": {"uuid": _userid},
                 "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "substitute": {"uuid": subid},
                 "user_key": "1234",
                 "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
+                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
             }
         ]
 
-        await self.assertRequestResponse(
-            "/service/details/create",
-            [association_uuid],
-            json=payload,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
+        payload[0].update(mo_data)
 
-        expected = {
-            "livscykluskode": "Importeret",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "gyldighed": "Aktiv",
-                    }
-                ]
-            },
-            "note": "Oprettet i MO",
-            "relationer": {
-                "tilknyttedeorganisationer": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    }
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": userid,
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": unitid,
-                    }
-                ],
-                "tilknyttedefunktioner": [
-                    {
-                        "uuid": subid,
-                        "virkning": {
-                            "from": "2017-12-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-12-02 " "00:00:00+01",
-                            "to_included": False,
-                        },
-                    }
-                ],
-                "primær": [
-                    {
-                        "uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474",
-                        "virkning": {
-                            "from": "2017-12-01 00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-12-02 00:00:00+01",
-                            "to_included": False,
-                        },
-                    }
-                ],
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "brugervendtnoegle": "1234",
-                        "funktionsnavn": "Tilknytning",
-                    }
-                ]
-            },
-        }
+        with patch_substitute_roles:
+            await self.assertRequestResponse(
+                "/service/details/create",
+                [association_uuid],
+                json=payload,
+                amqp_topics={
+                    "employee.association.create": 1,
+                    "org_unit.association.create": 1,
+                },
+            )
 
+        # Check that we created the expected "organisationfunktion" in LoRa
+        expected = _lora_organisationfunktion(**lora_expected)
         associations = await c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn="Tilknytning"
+            tilknyttedebrugere=_userid, funktionsnavn="Tilknytning"
         )
         self.assertEqual(len(associations), 1)
         associationid = associations[0]
-
         actual_association = await c.organisationfunktion.get(associationid)
-
         self.assertRegistrationsEqual(actual_association, expected)
 
-        expected = [
-            {
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "dynamic_classes": [],
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "user_key": "1234",
-                "uuid": "00000000-0000-0000-0000-000000000000",
-                "substitute": {"uuid": subid},
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "it": None,
-                "job_function": None,
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1".format(userid),
-            expected,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-        expected = [
-            {
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "dynamic_classes": [],
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "user_key": "1234",
-                "uuid": "00000000-0000-0000-0000-000000000000",
-                "substitute": {"uuid": subid},
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "first_party_association_type": {
-                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        # Check that we get the expected response from MO, case 1
+        expected = {
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "dynamic_classes": [],
+            "org_unit": {"uuid": _unitid},
+            "person": {"uuid": _userid},
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "user_key": "1234",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        }
+        expected.update(mo_expected)
+        with patch_substitute_roles:
+            await self.assertRequestResponse(
+                url(_userid),
+                [expected],
+                amqp_topics={
+                    "employee.association.create": 1,
+                    "org_unit.association.create": 1,
                 },
-                "third_party_associated": {"uuid": subid},
-                "third_party_association_type": substitute_association,
-                "it": None,
-                "job_function": None,
-            }
-        ]
+            )
 
-        await self.assertRequestResponse(
-            "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(
-                userid
-            ),
-            expected,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
+        # Check that we get the expected response from MO, case 2
+        expected = {
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "dynamic_classes": [],
+            "org_unit": {"uuid": _unitid},
+            "person": {"uuid": _userid},
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "user_key": "1234",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "first_party_association_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
             },
-        )
-
-        expected = []
-
-        await self.assertRequestResponse(
-            "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1".format(subid),
-            expected,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-        expected = [
-            {
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "dynamic_classes": [],
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "user_key": "1234",
-                "uuid": "00000000-0000-0000-0000-000000000000",
-                "substitute": {"uuid": subid},
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "first_party_association_type": substitute_association,
-                "third_party_associated": {"uuid": userid},
-                "third_party_association_type": {
-                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+            "third_party_associated": {"uuid": _substitute_uuid},
+            "third_party_association_type": _substitute_association,
+        }
+        expected.update(mo_expected)
+        with patch_substitute_roles:
+            await self.assertRequestResponse(
+                url(_userid, first_party_perspective="1"),
+                [expected] if "it" not in mo_data else [],
+                amqp_topics={
+                    "employee.association.create": 1,
+                    "org_unit.association.create": 1,
                 },
-                "it": None,
-                "job_function": None,
-            }
-        ]
+            )
 
+        # Check that we get the expected response from MO, case 3
         await self.assertRequestResponse(
-            "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1&first_party_perspective=1".format(
-                subid
-            ),
-            expected,
+            url(_substitute_uuid),
+            [],
             amqp_topics={
                 "employee.association.create": 1,
                 "org_unit.association.create": 1,
             },
         )
+
+        # Check that we get the expected response from MO, case 2
+        expected = {
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "dynamic_classes": [],
+            "org_unit": {"uuid": _unitid},
+            "person": {"uuid": _userid},
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "user_key": "1234",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "first_party_association_type": _substitute_association,
+            "third_party_associated": {"uuid": _userid},
+            "third_party_association_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+            },
+        }
+        expected.update(mo_expected)
+        with patch_substitute_roles:
+            await self.assertRequestResponse(
+                url(_substitute_uuid, first_party_perspective="1"),
+                [expected] if "it" not in mo_data else [],
+                amqp_topics={
+                    "employee.association.create": 1,
+                    "org_unit.association.create": 1,
+                },
+            )
 
     @patch(
         "mora.conf_db.get_configuration",
