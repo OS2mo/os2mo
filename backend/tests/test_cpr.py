@@ -14,12 +14,12 @@ from . import util
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @util.mock(real_http=True)
-class Tests(tests.cases.TestCase):
+class AsyncTests(tests.cases.AsyncTestCase):
     maxDiff = None
 
-    def test_cpr_lookup_dummy_mode_true(self, m):
+    async def test_cpr_lookup_dummy_mode_true(self, m):
         with self.subTest("found"):
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=0101501234",
                 {"name": "Merle Mortensen", "cpr_no": "0101501234"},
             )
@@ -27,7 +27,7 @@ class Tests(tests.cases.TestCase):
         with self.subTest("too early"):
             self.assertEqual(mora_util.get_cpr_birthdate(2004936541).year, 1893)
 
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=2004936541",
                 {
                     "cpr": "2004936541",
@@ -42,7 +42,7 @@ class Tests(tests.cases.TestCase):
         with self.subTest("too late"):
             self.assertEqual(mora_util.get_cpr_birthdate(2004256543).year, 2025)
 
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=2004256543",
                 {
                     "cpr": "2004256543",
@@ -55,7 +55,7 @@ class Tests(tests.cases.TestCase):
             )
 
         with self.subTest("not a cpr number"):
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=1337",
                 {
                     "cpr": "1337",
@@ -67,11 +67,11 @@ class Tests(tests.cases.TestCase):
                 status_code=400,
             )
 
-    def test_cpr_lookup_raises_on_wrong_length(self, m):
+    async def test_cpr_lookup_raises_on_wrong_length(self, m):
         # Arrange
 
         # Act
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/e/cpr_lookup/?q=1234/",
             {
                 "cpr": "1234/",
@@ -83,7 +83,7 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/e/cpr_lookup/?q=111111111",
             {
                 "cpr": "111111111",
@@ -95,7 +95,7 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/e/cpr_lookup/?q=1234567890123",
             {
                 "cpr": "1234567890123",
@@ -107,7 +107,7 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/e/cpr_lookup/?q=2222222222",
             {
                 "cpr": "2222222222",
@@ -119,10 +119,10 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-    def test_birthdate_validation_disabled(self, m):
+    async def test_birthdate_validation_disabled(self, m):
         """Validation of CPR birthdate can be disabled by a feature flag"""
         with util.override_config(Settings(cpr_validate_birthdate=False)):
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=0121501234",
                 {"name": "Naja Hansen", "cpr_no": "0121501234"},
             )

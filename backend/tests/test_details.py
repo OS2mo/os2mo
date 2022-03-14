@@ -3,11 +3,11 @@
 import tests.cases
 
 
-class Tests(tests.cases.TestCase):
+class AsyncTests(tests.cases.AsyncTestCase):
     maxDiff = None
 
-    def test_create_invalid_type(self):
-        self.assertRequestResponse(
+    async def test_create_invalid_type(self):
+        await self.assertRequestResponse(
             "/service/details/create",
             {
                 "description": "Unknown role type.",
@@ -24,8 +24,8 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-    def test_edit_invalid_type(self):
-        self.assertRequestResponse(
+    async def test_edit_invalid_type(self):
+        await self.assertRequestResponse(
             "/service/details/edit",
             {
                 "description": "Unknown role type.",
@@ -42,8 +42,8 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-    def test_invalid_json(self):
-        self.assertRequestResponse(
+    async def test_invalid_json(self):
+        await self.assertRequestResponse(
             "/service/details/edit",
             {
                 "description": "Invalid input.",
@@ -56,8 +56,8 @@ class Tests(tests.cases.TestCase):
             status_code=400,
         )
 
-    def test_request_invalid_type(self):
-        self.assertRequestResponse(
+    async def test_request_invalid_type(self):
+        await self.assertRequestResponse(
             "/service/e/00000000-0000-0000-0000-000000000000/details/blyf",
             {
                 "description": "Unknown role type.",
