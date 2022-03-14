@@ -76,25 +76,25 @@ class LoRaTest(tests.cases.LoRATestCase):
         self.assertTrue(user_settings["show_location"])
 
 
-class TestNavLink(tests.cases.TestCase):
+class AsyncTestNavLink(tests.cases.AsyncTestCase):
     """
     Test the retrieval of "nav links" via the "/service/navlinks" endpoint
     """
 
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.url = "/service/navlinks"
 
-    def test_empty_list(self):
-        empty_list = self.assertRequest(self.url)
+    async def test_empty_list(self):
+        empty_list = await self.assertRequest(self.url)
         self.assertSequenceEqual(empty_list, [{}])
 
-    def test_populated_list(self):
+    async def test_populated_list(self):
         href = "http://google.com"
         text = "Google"
 
         with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
-            populated_list = self.assertRequest(self.url)
+            populated_list = await self.assertRequest(self.url)
         self.assertEqual(len(populated_list), 1)
         self.assertEqual(populated_list[0]["href"], href)
         self.assertEqual(populated_list[0]["text"], text)

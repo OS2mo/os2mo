@@ -13,12 +13,12 @@ async def async_helper2():
     return [{}, {}]
 
 
-class Tests(tests.cases.TestCase):
+class AsyncTests(tests.cases.AsyncTestCase):
     maxDiff = None
 
     @patch("mora.service.org.get_valid_organisations", new=async_helper1)
-    def test_no_orgs_in_mo(self):
-        r = self.request("/service/o/")
+    async def test_no_orgs_in_mo(self):
+        r = await self.request("/service/o/")
         self.assertEqual(
             {
                 "error": True,
@@ -30,8 +30,8 @@ class Tests(tests.cases.TestCase):
         )
 
     @patch("mora.service.org.get_valid_organisations", new=async_helper2)
-    def test_more_than_one_org_in_mo(self):
-        r = self.request("/service/o/")
+    async def test_more_than_one_org_in_mo(self):
+        r = await self.request("/service/o/")
         self.assertEqual(
             {
                 "error": True,
