@@ -501,57 +501,6 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
 class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    async def test_organisation(self):
-        with self.subTest("invalid"):
-            await self.assertRequestFails(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-                "?at=2000-01-01T00:00:00Z",
-                404,
-            )
-
-        org_list = [
-            {
-                "name": "Aarhus Universitet",
-                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                "user_key": "AU",
-            }
-        ]
-
-        org_only = {
-            "name": "Aarhus Universitet",
-            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-            "user_key": "AU",
-            "unit_count": 1,
-            "person_count": 4,
-            "engagement_count": 1,
-            "association_count": 1,
-            "leave_count": 1,
-            "role_count": 1,
-            "manager_count": 1,
-            "child_count": 1,
-        }
-
-        await self.assertRequestResponse("/service/o/", org_list)
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/",
-            org_only,
-        )
-
-        await util.load_sample_structures()
-        org_only["unit_count"] = 11
-        org_only["child_count"] = 2
-
-        await self.assertRequestResponse(
-            "/service/o/",
-            org_list,
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/",
-            org_only,
-        )
-
     async def test_children(self):
         with self.subTest("invalid"):
             await self.assertRequestFails(
@@ -575,50 +524,11 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
             )
 
         await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
-            [
-                {
-                    "child_count": 0,
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                },
-            ],
-        )
-
-        await self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
             [],
         )
 
         await util.load_sample_structures()
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
-            [
-                {
-                    "child_count": 1,
-                    "user_key": "løn",
-                    "name": "Lønorganisation",
-                    "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-                {
-                    "child_count": 4,
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                },
-            ],
-        )
 
         await self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",

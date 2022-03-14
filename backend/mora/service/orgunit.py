@@ -32,8 +32,6 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
-from mora.auth.keycloak import oidc
-from mora.request_scoped.bulking import request_wide_bulk
 from more_itertools import unzip
 
 from . import autocomplete
@@ -47,12 +45,14 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..graphapi.middleware import is_graphql
 from ..handler.reading import get_handler_for_type
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
-from ..graphapi.middleware import is_graphql
+from mora.auth.keycloak import oidc
+from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
 
@@ -442,7 +442,6 @@ async def get_one_orgunit(
 
         if not unit or not util.is_reg_valid(unit):
             return None
-
     attrs = unit["attributter"]["organisationenhedegenskaber"][0]
     rels = unit["relationer"]
     validities = unit["tilstande"]["organisationenhedgyldighed"]
@@ -451,19 +450,20 @@ async def get_one_orgunit(
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     org_unit_level = mapping.ORG_UNIT_LEVEL_FIELD.get_uuid(unit)
     parentid = rels["overordnet"][0]["uuid"]
-
     r = {
         "name": attrs["enhedsnavn"],
         "user_key": attrs["brugervendtnoegle"],
         "uuid": unitid,
     }
     if is_graphql():
+        org_unit_hierarchy = mapping.ORG_UNIT_HIERARCHY_FIELD.get_uuid(unit)
         r.update(
             {
                 "unit_type_uuid": unittype,
                 "time_planning_uuid": timeplanning,
                 "org_unit_level_uuid": org_unit_level,
                 "parent_uuid": parentid,
+                "org_unit_hierarchy": org_unit_hierarchy,
             }
         )
 
@@ -614,9 +614,8 @@ async def autocomplete_orgunits(query: str):
     )
 
 
-@router.get("/{type}/{parentid}/children")
+@router.get("/ou/{parentid}/children")
 async def get_children(
-    type,
     parentid: UUID,
     at: Optional[date] = Query(None),
     count: Optional[str] = None,
@@ -683,14 +682,10 @@ async def get_children(
       ]
 
     """
+
     parentid = str(parentid)
     c = common.get_connector()
-
-    if type == "o":
-        scope = c.organisation
-    else:
-        assert type == "ou"
-        scope = c.organisationenhed
+    scope = c.organisationenhed
 
     obj = await scope.get(parentid)
 
