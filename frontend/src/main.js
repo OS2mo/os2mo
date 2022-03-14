@@ -44,15 +44,13 @@ function app() {
 }
 
 const keycloakJson = window.location.origin + '/service/keycloak.json'
-let keycloak = {}
+const keycloak = Keycloak(keycloakJson)
 
 axios({
   url: keycloakJson,
   method: 'HEAD'
 }).then(response => {
-  
   console.log(`Authentication is enabled (keycloak.json ${response.status}); initialising keycloak..`)
-  keycloak = Keycloak(keycloakJson)
 
   keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     if (!auth) {
