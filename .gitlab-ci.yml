@@ -15,13 +15,6 @@ stages:
   - deploy
   - docs
 
-default:
-  # All jobs are interruptible by default
-  interruptible: true
-
-workflow:
-  rules: !reference [".workflow:rules", rules]
-
 variables:
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}
@@ -29,7 +22,779 @@ variables:
   TEMPOTEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/tempotest:${CI_COMMIT_SHA}
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
+
   PYPROJECT_ROOT: "./backend"
 
+  # We use kaniko v0.13.0 as newer versions contain fatal bugs
+  KANIKO_VERSION: v1.3.0-debug
+  RELEASE_REGISTRY: docker.io
+  RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
+  FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
+
+  REVIEW_URL: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
+
 include:
-  - local: .gitlab/ci/*.gitlab-ci.yml
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/autopub.v1.yml"
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
+  - project: "labs/salt-automation"
+    ref: "master"
+    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
+
+
+# Conditions
+#############
+# Global Conditions
+.if-default-branch-refs: &if-default-branch-refs
+  if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+.if-tag: &if-tag
+  if: '$CI_COMMIT_TAG'
+
+.if-tag-semver: &if-tag-semver
+  if: '$CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/'
+
+.if-merge-request: &if-merge-request
+  if: '$CI_MERGE_REQUEST_IID'
+
+.if-schedule: &if-schedule
+  if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+# Sync Conditions
+.if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
+  if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Don't Interrupt/"
+
+# Review / QA Conditions
+.if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
+  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Run Review App/'
+
+.if-merge-request-labels-run-qa: &if-merge-request-labels-run-qa
+  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Run QA/'
+
+
+# Workflow
+###########
+workflow:
+  rules:
+    - <<: *if-tag
+    - <<: *if-default-branch-refs
+    - <<: *if-merge-request
+
+default:
+  # All jobs are interruptible by default
+  interruptible: true
+
+
+# Services
+###########
+.services-start-base:
+  variables:
+    FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
+
+.services:start-mox:
+  extends:
+    - .services-start-base
+  services:
+    - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
+      alias: mox-db
+      variables:
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+    - name: magentaaps/lora:4.4.1
+      alias: mox
+      variables:
+        MAX_WORKERS: "1"
+        TESTING_API: "true"
+        LORA_AUTH: "false"
+        DB_HOST: mox-db
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+
+.services:start-keycloak:
+  extends:
+    - .services-start-base
+  needs:
+    - Build Keycloak DB
+    - Build Keycloak
+  services:
+    - name: $KEYCLOAK_DB_IMAGE_SHA
+      alias: keycloak-db
+    - name: $KEYCLOAK_IMAGE_SHA
+      alias: keycloak
+
+.services:start-all:
+  extends:
+    - .services:start-mox
+    - .services:start-keycloak
+  needs: !reference [".services:start-keycloak", needs]
+  services:
+    - !reference [".services:start-mox", services]
+    - !reference [".services:start-keycloak", services]
+
+
+.services:use-mo:
+  needs:
+    - Build OS2MO
+  image: $IMAGE_SHA
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+    LORA_URL: "http://mox/"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
+    GRAPHQL_AUTH: "false"
+
+.services:use-frontend:
+  needs:
+    - Build frontend
+  image: $FRONTEND_TEST_IMAGE_SHA
+  variables:
+    BASE_URL: "http://mo"
+
+
+# Sync
+#######
+dont-interrupt-me:
+  stage: sync
+  image: alpine:latest
+  interruptible: false
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "This jobs makes sure this pipeline won't be interrupted!"
+    - echo "It works because you cannot cancel subsequent jobs after a job with interruptible=false starts."
+    - echo "See https://docs.gitlab.com/ee/ci/yaml/#interruptible for more information."
+  rules:
+    - <<: *if-default-branch-refs
+    - <<: *if-schedule
+    - <<: *if-merge-request-labels-dont-interrupt
+    - when: manual
+      allow_failure: true
+
+
+# Lint
+#######
+.lint-base:
+  stage: lint
+  needs: []
+  image: python:3.9
+  # TODO: Individual lint rules for each file type using 'changes' patterns
+  rules:
+    - <<: *if-merge-request
+
+Pre-commit:
+  extends: .lint-base
+  before_script:
+    - pip install pre-commit pydocstyle
+    - pre-commit install
+    # Fetch terraform
+    - TERRAFORM_VERSION="1.1.6"
+    - TERRAFORM_DOWNLOAD_URL=https://releases.hashicorp.com/terraform
+    - TERRAFORM_URL=${TERRAFORM_DOWNLOAD_URL}/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    - curl -o terraform_linux_amd64.zip -sL ${TERRAFORM_URL}
+    - unzip terraform_linux_amd64.zip -d /usr/bin/
+    - chmod +x /usr/bin/terraform
+  script:
+    - pre-commit run --all-files
+    - pydocstyle backend/mora/graphapi/ --convention=google --add-ignore=D1
+
+Lint Dockerfiles:
+  # TODO: Do this as part of pre-commit instead
+  extends: .lint-base
+  image: hadolint/hadolint:latest-debian
+  before_script:
+    - apt-get -y update
+    - apt-get -y install --no-install-recommends git
+  script:
+    - git ls-files --exclude='*Dockerfile*' --ignored | xargs --max-lines=1 hadolint
+
+REUSE compliance:
+  # TODO: Do this as part of pre-commit instead
+  extends: .lint-base
+  image:
+    name: fsfe/reuse:latest
+    entrypoint: [""]
+  script:
+    - reuse lint
+
+Lint shell scripts:
+  # TODO: Do this as part of pre-commit instead
+  extends: .lint-base
+  image: koalaman/shellcheck-alpine:latest
+  before_script:
+    - apk update
+    - apk add git
+  script:
+    - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
+
+
+# Build
+########
+.build-base:
+  stage: build
+  needs: []
+  image:
+    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
+    entrypoint: [""]
+
+.build:release-image:
+  extends:
+    - .build-base
+  rules:
+    - <<: *if-schedule
+      when: never
+    - when: on_success
+
+.build:test-image:
+  extends:
+    - .build-base
+  rules:
+    - <<: *if-merge-request
+
+Build OS2MO:
+  extends: .build:release-image
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead. Migration requires support for COMMIT_SHA and
+  # COMMIT_TAG, see https://git.magenta.dk/rammearkitektur/os2mo-triggers/os2mo-amqp-trigger-calculate-primary/-/blob/master/Dockerfile
+  # for alternatives to --build-arg.
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/api.Dockerfile
+      --destination=${IMAGE_SHA}
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+
+Build frontend:
+  extends: .build:release-image
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
+      --destination=${FRONTEND_IMAGE_SHA}
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+
+Build test frontend:
+  extends: .build:test-image
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
+      --destination=${FRONTEND_TEST_IMAGE_SHA}
+      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
+      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+      --target frontend
+
+Build Tempotest:
+  extends: .build:test-image
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR/tempotest
+      --dockerfile=$CI_PROJECT_DIR/tempotest/Dockerfile
+      --destination=$TEMPOTEST_IMAGE_SHA
+
+Build Keycloak-realm:
+  extends: .build:test-image
+  image:
+    # TODO: Use new realm builder
+    name: magentaaps/os2mo-keycloak-realm-builder:2.3.0
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none # We do not need the source code
+    KEYCLOAK_VERSION: 14.0.0
+    KEYCLOAK_SSL_REQUIRED: external # for MO
+    KEYCLOAK_SSL_REQUIRED_MO: external # for realm builder
+    KEYCLOAK_LORA_REALM_ENABLED: "true"
+    KEYCLOAK_LORA_CLIENT_SECRET: 158a2075-aa8a-421c-94a4-2df35377014a
+    KEYCLOAK_DIPEX_CLIENT_ENABLED: "true"
+    KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+    KEYCLOAK_REALM_USERS: '[{"username": "bruce", "password": "bruce", "firstname": "Bruce", "lastname": "Lee", "email": "bruce@kung.fu", "enabled": true, "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a"}]'
+    KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["*"]'
+    KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["*"]'
+  script:
+    - export KEYCLOAK_REALM_JSON_PATH=$PWD/keycloak-realm.json
+    - cd /app
+    - python main.py
+  artifacts:
+    paths:
+      - keycloak-realm.json
+    expire_in: 1 day
+
+Build Keycloak:
+  extends: .build:test-image
+  needs:
+    - Build Keycloak-realm
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak.Dockerfile
+      --destination=${KEYCLOAK_IMAGE_SHA}
+
+Build Keycloak DB:
+  extends: .build:test-image
+  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --cache
+      --context=$CI_PROJECT_DIR
+      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
+      --destination=${KEYCLOAK_DB_IMAGE_SHA}
+
+
+# Tests
+########
+.test-base:
+  stage: test
+  variables:
+    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
+    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
+  rules:
+    - <<: *if-merge-request
+
+
+# Backend Tests
+################
+.backend-test-base:
+  extends:
+    - .test-base
+    - .services:use-mo
+  variables:
+    HYPOTHESIS_PROFILE: "ci"
+
+Unit-test:
+  extends:
+    - .backend-test-base
+  script:
+    - pytest
+      -p no:cacheprovider
+      -m "not serial"
+      -k "not graphapi"
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --workers auto
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+GraphAPI-test:
+  extends:
+    - .backend-test-base
+  script:
+    - pytest
+      -k "graphapi"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=backend/mora/graphapi
+      --cov-report html:$CI_PROJECT_DIR/coverage-html
+      --cov-report term
+      --cov-fail-under=60
+      --workers auto
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage-html
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Integration-test:
+  extends:
+    - .backend-test-base
+    - .services:start-all
+  needs:
+    - !reference [".backend-test-base", needs]
+    - !reference [".services:start-all", needs]
+  parallel: 6
+  script:
+    - pytest
+      -m "serial"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --group $CI_NODE_INDEX
+      --splits $CI_NODE_TOTAL
+      --splitting-algorithm least_duration
+      --durations-path backend/tests/.test_durations
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+Coverage:
+  stage: coverage
+  image: python:3.9-slim
+  needs:
+    - Unit-test
+    - GraphAPI-test
+    - Integration-test
+  before_script:
+    - pip install coverage
+    - coverage combine
+  script:
+    - coverage report --fail-under=85 --skip-empty
+  after_script:
+    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
+    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    paths:
+      - coverage-html
+    reports:
+      cobertura: $CI_PROJECT_DIR/coverage.xml
+  rules:
+    - <<: *if-merge-request
+
+# Frontend Tests
+#################
+.frontend-test-base:
+  extends:
+    - .test-base
+    - .services:use-frontend
+
+Vue-unit-test:
+  extends:
+    - .frontend-test-base
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - cd /app/frontend
+    - yarn install --dev
+    - yarn test:unit
+      --coverage
+      --coverageReporters=cobertura
+      --coverageReporters=html
+      --coverageReporters=text-summary
+      --coverageDirectory=$CI_PROJECT_DIR/coverage
+  artifacts:
+    when: always
+    paths:
+      - $CI_PROJECT_DIR/coverage
+    # reports:
+    #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
+
+# TODO: Move to QA / use cluster services?
+# e2e-test:
+#   extends: .test-base
+#   image:
+#     name: magentalabs/testcafe:latest
+#     entrypoint: ["/bin/sh", "-c"]
+#   script:
+#     - sleep 30
+#     - cd /
+#     - /opt/testcafe/docker/testcafe-docker.sh
+#         chromium:headless
+#         $CI_PROJECT_DIR/frontend/e2e-tests
+#         --skip-js-errors
+#         --speed 0.7
+#         --selector-timeout 30000
+#         --screenshot $CI_PROJECT_DIR/artifacts
+#         --video $CI_PROJECT_DIR/artifacts
+#   artifacts:
+#     when: always
+#     paths:
+#       - $CI_PROJECT_DIR/artifacts
+#   allow_failure: true
+
+# SPDX-FileCopyrightText: 2022 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+
+
+# Review
+#########
+Deploy Review:
+  stage: review
+  needs:
+    - Build OS2MO
+  image: debian:bullseye
+  variables:
+    GIT_STRATEGY: none  # We do not need the source code
+  before_script:
+    - apt-get update && apt-get install -y curl jq
+  script:
+    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/deploy?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
+    - until $(curl "$REVIEW_URL/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
+  environment:
+    name: review/$CI_MERGE_REQUEST_IID
+    # Cannot use $REVIEW_URL for the url because GitLab
+    url: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
+    on_stop: Stop Review
+    auto_stop_in: 1 week
+  tags:
+    - deploy
+  rules:
+    - <<: *if-default-branch-refs
+    - <<: *if-merge-request-labels-run-review-app
+    - <<: *if-merge-request-labels-run-qa
+    - <<: *if-merge-request
+      when: manual
+      allow_failure: true
+
+
+# QA
+#####
+.qa-base:
+  stage: qa
+  rules:
+    - <<: *if-default-branch-refs
+    - <<: *if-merge-request-labels-run-qa
+    - <<: *if-merge-request
+      when: manual
+      allow_failure: true
+
+Create Performance Test Keycloak Token:
+  extends:
+    - .qa-base
+  needs:
+    - Deploy Review
+  image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  variables:
+    TF_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-mr$CI_MERGE_REQUEST_IID"
+    TF_VAR_keycloak_admin_password: $REVIEW_KEYCLOAK_ADMIN_PASSWORD
+    TF_VAR_keycloak_url: $REVIEW_URL
+    TF_VAR_keycloak_tempotest_client_secret: $REVIEW_TEMPOTEST_CLIENT_SECRET
+  before_script:
+    - cd tempotest/
+    - gitlab-terraform init
+    - gitlab-terraform validate
+  script:
+    - gitlab-terraform plan
+    - gitlab-terraform plan-json
+    - gitlab-terraform apply
+
+Performance Tests:
+  extends:
+    - .qa-base
+  needs:
+    - Create Performance Test Keycloak Token
+  image:
+    name: $TEMPOTEST_IMAGE_SHA
+    entrypoint: [""]
+  tags:
+    - high-mem  # we don't want other jobs impacting the test results
+  script: "/k6 run /script.js --summary-export=load-performance.json"
+  variables:
+    MO_URL: "$REVIEW_URL"
+    AUTH_SERVER: "$REVIEW_URL/auth"
+    CLIENT_ID: "tempotest"
+    CLIENT_SECRET: "$REVIEW_TEMPOTEST_CLIENT_SECRET"
+    UPLOAD_TO_GRAFANA_SOMETHING: "false"
+  artifacts:
+    when: always
+    reports:
+      load_performance: load-performance.json
+
+
+# Post-QA
+##########
+.post-qa-base:
+  stage: post-qa
+
+Stop Review:
+  extends:
+    - .post-qa-base
+  needs: []
+  image: curlimages/curl:7.81.0
+  variables:
+    GIT_STRATEGY: none  # We do not need the source code
+  script:
+    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/undeploy?mr_id=$CI_MERGE_REQUEST_IID
+  environment:
+    name: review/$CI_MERGE_REQUEST_IID
+    action: stop
+  tags:
+    - deploy
+  rules:
+    - <<: *if-default-branch-refs
+    - <<: *if-merge-request
+      when: manual
+      allow_failure: true
+
+Delete Review Terraform State:
+  extends:
+    - .post-qa-base
+  needs:
+    - Stop Review
+  image: curlimages/curl:7.81.0
+  script:
+    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/delete-tf-state?mr_id=$CI_MERGE_REQUEST_IID
+
+
+# Release
+##########
+.release-api-base:
+  variables:
+    CI_IMAGE: $IMAGE_SHA
+    RELEASE_IMAGE: $RELEASE_REGISTRY_IMAGE
+
+Release API master:
+  extends:
+    - .release-api-base
+    - .release-master
+
+Release API version:
+  extends:
+    - .release-api-base
+    - .release-version
+
+.release-frontend-base:
+  variables:
+    CI_IMAGE: $FRONTEND_IMAGE_SHA
+    RELEASE_IMAGE: $FRONTEND_RELEASE_REGISTRY_IMAGE
+
+Release Frontend master:
+  extends:
+    - .release-frontend-base
+    - .release-master
+
+Release Frontend version:
+  extends:
+    - .release-frontend-base
+    - .release-version
+
+
+# Deploy
+#########
+Deploy to Dev:
+  extends: .release-to-dev
+  needs:
+    - Release API version
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-dev
+
+Deploy to Test:
+  extends: .release-to-test
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-test
+
+Deploy to Prod:
+  extends: .release-to-prod
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo/update-prod
+
+
+# Docs
+#######
+.docs-base:
+  stage: docs
+
+.docs:rules:deploy-branch-docs:
+  rules:
+    - <<: *if-merge-request
+
+.docs:rules:deploy-master-docs:
+  rules:
+    - <<: *if-schedule
+      when: never
+    - <<: *if-tag-semver
+      when: never
+    - <<: *if-default-branch-refs
+
+.docs:rules:build-docs:
+  rules:
+    - !reference [".docs:rules:deploy-branch-docs", rules]
+    - !reference [".docs:rules:deploy-master-docs", rules]
+
+Export GQL Schema:
+  extends:
+    - .docs-base
+    - .docs:rules:build-docs
+    - .services:use-mo
+  variables:
+    OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
+  script:
+    - python docs/schema_to_voyager.py
+  artifacts:
+    paths:
+      - $OUT
+
+.build-docs:
+  extends:
+    - .docs-base
+    - .docs:rules:build-docs
+  needs:
+    - Export GQL Schema
+  image: python:3.9
+  variables:
+    POETRY_VERSION: 1.1.12
+    POETRY_VIRTUALENVS_CREATE: "false"
+  before_script:
+    - pip3 install poetry==${POETRY_VERSION}
+    - cd docs && poetry install --no-interaction
+  script:
+    - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/site
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/site
+    expire_in: 1 week
+
+Build and deploy branch docs:
+  extends:
+    - .build-docs
+    - .docs:rules:deploy-branch-docs
+  environment:
+    name: docs/$CI_COMMIT_REF_SLUG
+    url: $CI_JOB_URL/artifacts/file/site/index.html
+    auto_stop_in: 1 week
+
+Build master docs:
+    extends:
+    - .build-docs
+    - .docs:rules:deploy-master-docs
+
+Deploy pages:
+  extends:
+    - .docs-base
+    - .docs:rules:deploy-master-docs
+  image: alpine:latest
+  script:
+    - cp -r $CI_PROJECT_DIR/site public
+  artifacts:
+    paths:
+      - public/
