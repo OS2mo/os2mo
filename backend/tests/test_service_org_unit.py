@@ -280,13 +280,11 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
             ]
         )
 
-
-class TestTriggerExternalIntegration(tests.cases.TestCase):
     @patch("mora.service.orgunit.get_one_orgunit")
-    def test_returns_404_on_unknown_unit(self, mock):
+    async def test_returns_404_on_unknown_unit(self, mock):
         mock.return_value = {}
 
-        r = self.assertRequest(
+        r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=404
         )
         self.assertIn("NOT_FOUND", r.get("error_key"))
