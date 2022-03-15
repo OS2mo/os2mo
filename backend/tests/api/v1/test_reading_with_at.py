@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 
+import pytest
 import freezegun
 from hypothesis import given
 from hypothesis import settings
@@ -18,6 +19,7 @@ from . import base
 from .util import instance2dict
 
 
+@pytest.mark.skip(reason="Deprecated: Replaced by GraphQL")
 class ReadingWithAtTestCase(base.BaseReadingTestCase):
 
     app_settings_overrides = {"v1_api_enable": True}

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+import pytest
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
@@ -16,6 +17,7 @@ from . import base
 from .util import instance2dict
 
 
+@pytest.mark.skip(reason="Deprecated: Replaced by GraphQL")
 class GeneralReadingTestCase(base.BaseReadingTestCase):
 
     app_settings_overrides = {"v1_api_enable": True}

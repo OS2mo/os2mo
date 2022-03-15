@@ -5,6 +5,7 @@ from copy import deepcopy
 from unittest.mock import patch
 from uuid import UUID
 
+import pytest
 import freezegun
 from hypothesis import given
 from hypothesis import HealthCheck
@@ -18,6 +19,7 @@ from tests.cases import TestCase
 from .util import instance2dict
 
 
+@pytest.mark.skip(reason="Deprecated: Replaced by GraphQL")
 class Reading(TestCase):
 
     app_settings_overrides = {"v1_api_enable": True}
