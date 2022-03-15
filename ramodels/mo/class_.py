@@ -29,3 +29,4 @@ class ClassRead(MOBase):
     scope: Optional[str] = Field(description="Scope of the class.")
     published: Optional[str] = Field(description="Published state of the class object.")
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
+    example: Optional[str] = Field(description="Example usage.")

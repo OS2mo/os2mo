@@ -515,6 +515,7 @@ class KlasseProperties(RABase):
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the properties."
     )
+    example: Optional[str] = Field(alias="eksempel", description="Example usage.")
 
 
 class KlasseRelations(RABase):
