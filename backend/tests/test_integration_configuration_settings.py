@@ -9,19 +9,19 @@ from tests import util
 import tests.cases
 
 
-class Tests(tests.cases.TestCase):
-    def test_global_user_settings_read(self):
+class AsyncTests(tests.cases.AsyncTestCase):
+    async def test_global_user_settings_read(self):
         """
         Test that it is possible to correctly read default global settings.
         """
         url = "/service/configuration"
-        user_settings = self.assertRequest(url)
+        user_settings = await self.assertRequest(url)
         self.assertTrue("show_location" in user_settings)
         self.assertTrue("show_user_key" in user_settings)
         self.assertTrue("show_roles" in user_settings)
         self.assertTrue(user_settings["show_location"] is True)
 
-    def test_global_user_settings_write(self):
+    async def test_global_user_settings_write(self):
         """
         Test that it is no longer possible to write a global setting
         """
@@ -29,16 +29,16 @@ class Tests(tests.cases.TestCase):
         url = "/service/configuration"
 
         payload = {"org_units": {"show_roles": "False"}}
-        self.assertRequest(url, json=payload, status_code=410)
-        user_settings = self.assertRequest(url)
+        await self.assertRequest(url, json=payload, status_code=410)
+        user_settings = await self.assertRequest(url)
         self.assertTrue(user_settings["show_roles"] is True)
 
         payload = {"org_units": {"show_roles": "True"}}
-        self.assertRequest(url, json=payload, status_code=410)
-        user_settings = self.assertRequest(url)
+        await self.assertRequest(url, json=payload, status_code=410)
+        user_settings = await self.assertRequest(url)
         self.assertTrue(user_settings["show_roles"] is True)
 
-    def test_ou_user_settings(self):
+    async def test_ou_user_settings(self):
         """
         Test that reading and writing settings on units works corrcectly.
         """
@@ -47,9 +47,9 @@ class Tests(tests.cases.TestCase):
 
         payload = {"org_units": {"show_user_key": "True"}}
         url = "/service/ou/{}/configuration".format(uuid)
-        self.assertRequest(url, json=payload, status_code=410)
+        await self.assertRequest(url, json=payload, status_code=410)
 
-        user_settings = self.assertRequest(url)
+        user_settings = await self.assertRequest(url)
         self.assertIn("show_kle", user_settings)
 
 
@@ -76,25 +76,25 @@ class LoRaTest(tests.cases.LoRATestCase):
         self.assertTrue(user_settings["show_location"])
 
 
-class TestNavLink(tests.cases.TestCase):
+class AsyncTestNavLink(tests.cases.AsyncTestCase):
     """
     Test the retrieval of "nav links" via the "/service/navlinks" endpoint
     """
 
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         self.url = "/service/navlinks"
 
-    def test_empty_list(self):
-        empty_list = self.assertRequest(self.url)
+    async def test_empty_list(self):
+        empty_list = await self.assertRequest(self.url)
         self.assertSequenceEqual(empty_list, [{}])
 
-    def test_populated_list(self):
+    async def test_populated_list(self):
         href = "http://google.com"
         text = "Google"
 
         with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
-            populated_list = self.assertRequest(self.url)
+            populated_list = await self.assertRequest(self.url)
         self.assertEqual(len(populated_list), 1)
         self.assertEqual(populated_list[0]["href"], href)
         self.assertEqual(populated_list[0]["text"], text)

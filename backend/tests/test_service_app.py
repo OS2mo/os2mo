@@ -10,7 +10,7 @@ import tests.cases
 from mora import app
 
 
-class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
+class AsyncTests(tests.cases.AsyncTestCase):
     async def test_fallback_handler(self):
         resp = await app.fallback_handler(mock.MagicMock(), ValueError("go away"))
 
@@ -22,10 +22,8 @@ class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
             resp.body,
         )
 
-
-class Tests(tests.cases.TestCase):
-    def test_failing_service(self):
-        self.assertRequestResponse(
+    async def test_failing_service(self):
+        await self.assertRequestResponse(
             "/service/kaflaflibob",
             {
                 "error": True,
@@ -37,24 +35,24 @@ class Tests(tests.cases.TestCase):
         )
 
 
-class PatchedAppTests(tests.cases.TestCase):
+class AsyncPatchedAppTests(tests.cases.AsyncTestCase):
     fb = app.fallback_handler
 
-    def setUp(self):
+    async def asyncSetUp(self):
         self.mock_fallback = mock.AsyncMock()
         app.fallback_handler = self.mock_fallback
-        super().setUp()
+        await super().asyncSetUp()
 
-    def tearDown(self):
+    async def asyncTearDown(self):
         app.fallback_handler = self.fb
-        super().tearDown()
+        await super().asyncTearDown()
 
     @mock.patch("mora.common.get_connector")
-    def test_exception_handling(self, p):
+    async def test_exception_handling(self, p):
         vErr = ValueError("go away")
         p.side_effect = vErr
         with self.assertRaises(ValueError):
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/ou/00000000-0000-0000-0000-000000000000/",
                 {
                     "error": True,

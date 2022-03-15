@@ -71,7 +71,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
         )
 
 
-class TestAuthEndpointsReturn401(tests.cases.TestCase):
+class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
 
     app_settings_overrides = {
         "v1_api_enable": True,
@@ -79,47 +79,51 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         "graphiql_enable": True,
     }
 
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         # Enable the real OIDC auth function
         self.app.dependency_overrides = dict()
 
-    def test_auth_service_address(self):
-        self.assertRequestFails(
+    async def test_auth_service_address(self):
+        await self.assertRequestFails(
             "/service/e/00000000-0000-0000-0000-000000000000/details/address",
             HTTP_401_UNAUTHORIZED,
         )
 
-    def test_auth_service_cpr(self):
-        self.assertRequestFails("/service/e/cpr_lookup/?q=1234", HTTP_401_UNAUTHORIZED)
+    async def test_auth_service_cpr(self):
+        await self.assertRequestFails(
+            "/service/e/cpr_lookup/?q=1234", HTTP_401_UNAUTHORIZED
+        )
 
-    def test_auth_service_details_reading(self):
-        self.assertRequestFails(
+    async def test_auth_service_details_reading(self):
+        await self.assertRequestFails(
             "/service/e/00000000-0000-0000-0000-000000000000/details/",
             HTTP_401_UNAUTHORIZED,
         )
 
-    def test_auth_service_details_writing(self):
-        self.assertRequestResponse(
+    async def test_auth_service_details_writing(self):
+        await self.assertRequestResponse(
             "/service/details/create",
             "Not authenticated",
             status_code=HTTP_401_UNAUTHORIZED,
             json=[{"not": "important"}],
         )
 
-    def test_auth_service_employee(self):
-        self.assertRequestFails(
+    async def test_auth_service_employee(self):
+        await self.assertRequestFails(
             "/service/o/00000000-0000-0000-0000-000000000000/e/", HTTP_401_UNAUTHORIZED
         )
 
-    def test_auth_service_exports(self):
-        self.assertRequestFails("/service/exports/not-important", HTTP_401_UNAUTHORIZED)
+    async def test_auth_service_exports(self):
+        await self.assertRequestFails(
+            "/service/exports/not-important", HTTP_401_UNAUTHORIZED
+        )
 
-    def test_auth_service_facets(self):
-        self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
+    async def test_auth_service_facets(self):
+        await self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
 
-    def test_auth_service_itsystem(self):
-        self.assertRequestFails(
+    async def test_auth_service_itsystem(self):
+        await self.assertRequestFails(
             "/service/o/00000000-0000-0000-0000-000000000000/it/", HTTP_401_UNAUTHORIZED
         )
 
@@ -127,44 +131,44 @@ class TestAuthEndpointsReturn401(tests.cases.TestCase):
         # KLE router not used anywhere?
         pass
 
-    def test_auth_service_org(self):
-        self.assertRequestFails("/service/o/", HTTP_401_UNAUTHORIZED)
+    async def test_auth_service_org(self):
+        await self.assertRequestFails("/service/o/", HTTP_401_UNAUTHORIZED)
 
-    def test_auth_service_orgunit(self):
-        self.assertRequestFails(
+    async def test_auth_service_orgunit(self):
+        await self.assertRequestFails(
             "/service/ou/00000000-0000-0000-0000-000000000000/children",
             HTTP_401_UNAUTHORIZED,
         )
 
-    def test_auth_service_related(self):
-        self.assertRequestFails(
+    async def test_auth_service_related(self):
+        await self.assertRequestFails(
             "/service/ou/00000000-0000-0000-0000-000000000000/map",
             HTTP_401_UNAUTHORIZED,
             json=[{"not": "important"}],
         )
 
-    def test_auth_service_configuration(self):
-        self.assertRequestFails(
+    async def test_auth_service_configuration(self):
+        await self.assertRequestFails(
             "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
             HTTP_401_UNAUTHORIZED,
         )
 
-    def test_auth_service_validate(self):
-        self.assertRequestFails(
+    async def test_auth_service_validate(self):
+        await self.assertRequestFails(
             "/service/validate/org-unit/",
             HTTP_401_UNAUTHORIZED,
             json=[{"not": "important"}],
         )
 
-    def test_auth_api_v1(self):
-        self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
+    async def test_auth_api_v1(self):
+        await self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
 
-    def test_auth_graphql(self):
+    async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
-        self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
+        await self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
 
         # POST (usual communication, always enabled)
-        self.assertRequestFails(
+        await self.assertRequestFails(
             "/graphql",
             HTTP_401_UNAUTHORIZED,
             json={"query": "{ __typename }"},  # always implemented

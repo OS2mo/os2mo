@@ -11,7 +11,7 @@ from tests.util import dar_loader
 from yarl import URL
 
 
-class AsyncTestAddressLookup(tests.cases.IsolatedAsyncioTestCase):
+class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     async def test_many_addresses(self):
         addresses = {
             "00000000-0000-0000-0000-000000000000": {
