@@ -229,6 +229,9 @@ class FacetProperties(RABase):
     """
 
     user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
+    description: Optional[str] = Field(
+        alias="beskrivelse", description="The facet description."
+    )
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the property."
     )
