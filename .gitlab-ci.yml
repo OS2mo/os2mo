@@ -65,14 +65,14 @@ include:
 
 # Sync Conditions
 .if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
-  if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Don't Interrupt/"
+  if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Sync::Don't Interrupt/"
 
 # Review / QA Conditions
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
-  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Run Review App/'
+  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
 .if-merge-request-labels-run-qa: &if-merge-request-labels-run-qa
-  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Run QA/'
+  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run QA/'
 
 
 # Workflow
@@ -556,7 +556,7 @@ Deploy Review:
   before_script:
     - apt-get update && apt-get install -y curl jq
   script:
-    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/deploy?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
+    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/deploy?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
     - until $(curl "$REVIEW_URL/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
     name: review/$CI_MERGE_REQUEST_IID
@@ -642,7 +642,7 @@ Stop Review:
   variables:
     GIT_STRATEGY: none  # We do not need the source code
   script:
-    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/undeploy?mr_id=$CI_MERGE_REQUEST_IID
+    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/undeploy?mr_id=$CI_MERGE_REQUEST_IID"
   environment:
     name: review/$CI_MERGE_REQUEST_IID
     action: stop
@@ -661,7 +661,9 @@ Delete Review Terraform State:
     - Stop Review
   image: curlimages/curl:7.81.0
   script:
-    - curl --silent --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/delete-tf-state?mr_id=$CI_MERGE_REQUEST_IID
+    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/delete-tf-state?mr_id=$CI_MERGE_REQUEST_IID"
+  tags:
+    - deploy
 
 
 # Release
