@@ -51,6 +51,7 @@ def read_strat(draw):
         "org_unit_uuid": st.none() | st.uuids(),
         "engagement_uuid": st.none() | st.uuids(),
         "visibility_uuid": st.none() | st.uuids(),
+        "href": st.none() | st.text(),
     }
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}

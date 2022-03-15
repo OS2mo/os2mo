@@ -29,6 +29,7 @@ def read_strat(draw):
         "published": st.none() | st.text(),
         "scope": st.none() | st.text(),
         "parent_uuid": st.none() | st.uuids(),
+        "example": st.none() | st.text(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore

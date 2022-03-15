@@ -42,6 +42,7 @@ def read_strat(draw):
         "type": st.just("facet"),
         "published": st.none() | st.text(),
         "parent_uuid": st.none() | st.uuids(),
+        "description": st.none() | st.text(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
