@@ -123,19 +123,6 @@ export default {
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
-    },
-
-    it_current_value () {
-      // `it` can be anything
-      if (this.entry.it) {
-        if (this.entry.it[0]) {
-          return this.entry.it[0].uuid
-        } else {
-          return this.entry.it.uuid
-        }
-      } else {
-        return ''
-      }
     }
   },
 

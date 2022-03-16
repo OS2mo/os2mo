@@ -22,10 +22,11 @@ import Http from '@/api/HttpCommon'
 export default {
   name: 'MoInputPrimaryCheck',
   props: {
-    checked: Boolean
+    value: Object
   },
   data: function() {
     return {
+      checked: false,
       primary: null,
       non_primary: null
     }
@@ -43,9 +44,15 @@ export default {
   created: function() {
     Http.get('/f/primary_type/')
     .then(res => {
-      this.primary = { uuid: res.data.data.items.find(item => item.user_key === 'primary').uuid }
-      this.non_primary = { uuid: res.data.data.items.find(item => item.user_key === 'non-primary').uuid }
-      if (!this.checked) {
+      this.primary = res.data.data.items.find(item => item.user_key === 'primary').uuid
+      this.non_primary = res.data.data.items.find(item => item.user_key === 'non-primary').uuid
+      console.log('check value', this.value)
+      if (this.value) {
+        this.emitNewValue(this.value.uuid)
+        if (this.value.uuid === this.primary) {
+          this.checked = true
+        }
+      } else {
         this.emitNewValue(this.non_primary)
       }
     })
@@ -65,7 +72,7 @@ export default {
       }
     },
     emitNewValue: function(val) {
-        this.$emit('input', val)  
+        this.$emit('input', {uuid: val})  
     }
   }
 }
