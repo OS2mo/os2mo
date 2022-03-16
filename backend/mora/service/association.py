@@ -190,8 +190,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # Update "job_function"
         job_function_uuid = util.get_mapping_uuid(data, mapping.JOB_FUNCTION)
         if job_function_uuid:
+            # We store the job function in "tilknyttedefunktioner", so update that
+            # field, rather than `mapping.JOB_FUNCTION_FIELD`, which points to "opgaver"
             update_fields.append(
-                (mapping.JOB_FUNCTION_FIELD, {"uuid": job_function_uuid})
+                (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": job_function_uuid})
             )
 
         # Update "it" (UUID of IT user, in case this association is an IT association)
