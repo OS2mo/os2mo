@@ -42,12 +42,7 @@ export default {
     /**
      * Create two-way data bindings with the component.
      */
-    value: [Object, Array],
-
-    /**
-     * Defines a preselected value.
-     */
-    preselected: String
+    value: [Object, Array]
   },
 
   /**
@@ -84,9 +79,11 @@ export default {
   created () {
     /**
      * Called synchronously after the instance is created.
-     * Set selected to preselected.
+     * Set selected to preselected value.
      */
-    this.selected = this.preselected
+    if (this.value) {
+      this.selected = this.value[0].uuid
+    }
     this.getItAccounts()
   },
 

@@ -1,45 +1,59 @@
 SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
-  <div>
-    <label class="container mb-3 mt-2">{{$t('input_fields.primary')}}
-      <input
-        type="checkbox"
-        @change="changePrimary"
-        :data-vv-as="label"
-        :name="identifier"
-        :id="identifier"
-        :ref="identifier"
-        v-validate="{ required: isRequired }"
-      />
-      <span class="checkmark"></span>
-    </label>
-
-    <span v-show="errors.has(identifier)" class="text-danger">
-      {{ errors.first(identifier) }}
-    </span>
-  </div>
+  <label class="container mb-3 mt-2">
+    {{$t('input_fields.primary')}}
+    <input
+      type="checkbox"
+      @change="changePrimary"
+      :id="identifier"
+      :checked="checked"
+    />
+    <span class="checkmark"></span>
+  </label>
 </template>
 
 <script>
 /**
  * Checkbox for `primary` value (binary choice).
  */
-import MoInputBase from './MoInputBase'
 import Http from '@/api/HttpCommon'
 
 export default {
-  extends: MoInputBase,
   name: 'MoInputPrimaryCheck',
+  props: {
+    value: Object
+  },
   data: function() {
     return {
-      primary: null
+      checked: false,
+      primary: null,
+      non_primary: null
+    }
+  },
+  computed: {
+    /**
+     * unique name.
+     * @default mo-entry-<uid>
+     * @type {String}
+     */
+    identifier () {
+      return 'mo-entry-' + this._uid
     }
   },
   created: function() {
     Http.get('/f/primary_type/')
     .then(res => {
       this.primary = res.data.data.items.find(item => item.user_key === 'primary').uuid
+      this.non_primary = res.data.data.items.find(item => item.user_key === 'non-primary').uuid
+      if (this.value) {
+        this.emitNewValue(this.value.uuid)
+        if (this.value.uuid === this.primary) {
+          this.checked = true
+        }
+      } else {
+        this.emitNewValue(this.non_primary)
+      }
     })
     .catch(err => {
       console.error('Mishap fetching primary types', err)
@@ -50,11 +64,14 @@ export default {
     changePrimary: function(event) {
       if (this.primary && this.non_primary) {
         if (event.target.checked) {
-          this.$emit('input', this.primary)
+          this.emitNewValue(this.primary)
         } else {
-          this.$emit('input', false)
+          this.emitNewValue(this.non_primary)
         }
       }
+    },
+    emitNewValue: function(val) {
+        this.$emit('input', {uuid: val})  
     }
   }
 }

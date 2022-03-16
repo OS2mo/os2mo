@@ -41,6 +41,7 @@ SPDX-License-Identifier: MPL-2.0
       <mo-it-account-picker
         class="select-itAccount"
         v-model="entry.it"
+        required
       />
 
       <mo-input-primary-check
