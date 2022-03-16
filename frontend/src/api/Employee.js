@@ -6,56 +6,49 @@ import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 
 const identfyItAssociationData = function(data) {
-  
+
+  console.log('prior to saving', data)
+  // When creating an IT association, we must scrub the data to conform to 
+  // the special snowflake API request format that is supported by the backend.
+
   if (Array.isArray(data) && data[0].it) {
 
     // Probably data for creating a new IT association
-    return data.map(d => sanitizeData(d))
+    return data.map(d => {
+      return {
+        type: "association",
+        person: { uuid: d.person.uuid },
+        org_unit: { uuid: d.org_unit.uuid },
+        org: { uuid: d.org.uuid },
+        primary: { uuid: d.primary.uuid },
+        validity: { from: d.validity.from, to: d.validity.to },
+        job_function: { uuid: d.job_function.uuid },
+        it: { uuid: d.it.uuid }
+      }
+    })
 
   } else if (data.data && data.data.it) {
 
     // Probably data for editing an IT association
-    return sanitizeData(data.data)
+    return { 
+      type: "association", 
+      uuid: data.data.uuid, 
+      data: {
+        person: { uuid: data.data.person.uuid },
+        job_function: { uuid: data.data.job_function.uuid },
+        org_unit: { uuid: data.data.org_unit.uuid },
+        it: { uuid: data.data.it.uuid },
+        validity: { from: data.data.validity.from, to: data.data.validity.to },
+        primary: { uuid: data.data.primary.uuid }
+      }
+    }
 
   } else {
 
     // Nothing special. Just patch it through.
     return data
-
   }
-}
-
-const sanitizeData = function(data) {
-
-  // IT association hack:
-  // When creating an IT association, we must scrub the data to conform to 
-  // the special snowflake API request format that is supported by the backend.
-  
-  let new_data = { type: "association" }
-  if (data.person) {
-    new_data.person = { uuid: data.person.uuid }
-  }
-  if (data.org_unit) {
-    new_data.org_unit = { uuid: data.org_unit.uuid }
-  }
-  if (data.org) {
-    new_data.org = { uuid: data.org.uuid }
-  }
-  if (data.job_function) {
-    new_data.job_function = { uuid: data.job_function.uuid }
-  }
-  if (data.it) {
-    new_data.it = { uuid: data.it.uuid }
-  }
-  if (data.validity) {
-    new_data.validity = { from: data.validity.from, to: data.validity.to }
-  }
-  if (data.primary) {
-    new_data.primary = { uuid: data.primary }
-  }
-   
-  return new_data
-}
+}  
 
 export default {
 

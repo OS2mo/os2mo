@@ -41,6 +41,7 @@ SPDX-License-Identifier: MPL-2.0
       <mo-it-account-picker
         class="select-itAccount"
         v-model="entry.it"
+        required
       />
 
       <mo-input-primary-check
@@ -122,6 +123,19 @@ export default {
     dynamicFacets () {
       let conf = this.$store.getters['conf/GET_CONF_DB']
       return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
+    },
+
+    it_current_value () {
+      // `it` can be anything
+      if (this.entry.it) {
+        if (this.entry.it[0]) {
+          return this.entry.it[0].uuid
+        } else {
+          return this.entry.it.uuid
+        }
+      } else {
+        return ''
+      }
     }
   },
 
@@ -130,6 +144,7 @@ export default {
       (this.currentEmployee && this.currentEmployee.name)){
       this.$set(this.entry, 'person', this.currentEmployee)
     }
+    console.log('what data have we got?', this.entry)
   },
 
   components: {
@@ -151,6 +166,7 @@ export default {
       handler (newVal) {
         newVal.type = 'association'
         this.$emit('input', newVal)
+        console.log('data changed', newVal)
       },
       deep: true
     }
