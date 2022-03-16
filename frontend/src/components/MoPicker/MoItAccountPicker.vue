@@ -85,7 +85,6 @@ export default {
       this.selected = this.value[0].uuid
     }
     this.getItAccounts()
-    console.log('show me the value of it', this.value)
   },
 
   methods: {

@@ -46,7 +46,6 @@ export default {
     .then(res => {
       this.primary = res.data.data.items.find(item => item.user_key === 'primary').uuid
       this.non_primary = res.data.data.items.find(item => item.user_key === 'non-primary').uuid
-      console.log('check value', this.value)
       if (this.value) {
         this.emitNewValue(this.value.uuid)
         if (this.value.uuid === this.primary) {

@@ -131,7 +131,6 @@ export default {
       (this.currentEmployee && this.currentEmployee.name)){
       this.$set(this.entry, 'person', this.currentEmployee)
     }
-    console.log('what data have we got?', this.entry)
   },
 
   components: {
@@ -153,7 +152,6 @@ export default {
       handler (newVal) {
         newVal.type = 'association'
         this.$emit('input', newVal)
-        console.log('data changed', newVal)
       },
       deep: true
     }

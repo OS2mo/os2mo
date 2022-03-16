@@ -7,7 +7,6 @@ import store from '@/store'
 
 const identfyItAssociationData = function(data) {
 
-  console.log('prior to saving', data)
   // When creating an IT association, we must scrub the data to conform to 
   // the special snowflake API request format that is supported by the backend.
 
