@@ -8,10 +8,7 @@ import mora.main
 
 class TestEndpointUniqueness(unittest.TestCase):
     def test_ensure_endpoint_function_names_are_unique(self):
-        non_unique_endpoints = {
-            "index",
-            "get_keycloak_config",
-        }
+        non_unique_endpoints = {"index", "get_keycloak_config"}
         endpoint_func_names = [
             route.name
             for route in mora.main.app.routes

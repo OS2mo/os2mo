@@ -64,6 +64,7 @@ class OrgUnitReader(reading.ReadingHandler):
                 "overordnet",
                 "tilhoerer",
                 "niveau",
+                "opmærkning",
             ),
             "tilstande": ("organisationenhedgyldighed",),
         }
@@ -77,7 +78,6 @@ class OrgUnitReader(reading.ReadingHandler):
     ):
         c = common.get_connector()
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
-
         details = orgunit.UnitDetails.FULL
         if is_graphql():
             details = orgunit.UnitDetails.MINIMAL

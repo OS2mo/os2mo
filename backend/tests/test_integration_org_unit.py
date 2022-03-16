@@ -1,19 +1,18 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import unittest
-import pytest
 from itertools import cycle
 
 import freezegun
 import notsouid
+import pytest
 from parameterized import parameterized
 
 import tests.cases
-from mora import lora
 from . import util
-from mora.service import orgunit as service_orgunit
 from mora import conf_db
+from mora import lora
+from mora.service import orgunit as service_orgunit
 
 
 mock_uuid = "f494ad89-039d-478e-91f2-a63566554bd6"
@@ -3033,7 +3032,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
                 "name": "Overordnet Enhed",
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             },
         ]
 
@@ -3097,7 +3096,10 @@ class TestsMinimal(tests.cases.LoRATestCase):
                 "name": "Fake Corp",
                 "user_key": "fakefakefake",
                 "uuid": unitid,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
+                "validity": {
+                    "from": "2017-01-01T00:00:00+01:00",
+                    "to": "2018-01-01T00:00:00+01:00",
+                },
             },
         )
 
@@ -3117,7 +3119,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
                 "name": "Overordnet Enhed",
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01", "to": None},
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             },
         ]
 
@@ -3152,7 +3154,10 @@ class TestsMinimal(tests.cases.LoRATestCase):
                 "name": "Fake Corp",
                 "user_key": "fakefakefake",
                 "uuid": unitid,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
+                "validity": {
+                    "from": "2017-01-01T00:00:00+01:00",
+                    "to": "2018-01-01T00:00:00+01:00",
+                },
             },
         )
 

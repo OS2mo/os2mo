@@ -391,7 +391,7 @@ class TestGetChildren(tests.cases.AsyncConfigTestCase):
 
     async def test_count_association(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = await get_children("ou", self._orgunit_uuid)
+            result = await get_children(self._orgunit_uuid)
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
@@ -400,7 +400,7 @@ class TestGetChildren(tests.cases.AsyncConfigTestCase):
 
     async def test_count_engagement(self):
         with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = await get_children("ou", self._orgunit_uuid)
+            result = await get_children(self._orgunit_uuid)
             self._assert_matching_ou_has(
                 result,
                 user_key="hum",
