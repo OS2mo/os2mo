@@ -206,7 +206,7 @@ export default {
         { label: 'job_function', data: 'job_function' },
         { label: 'it_system', data: 'it', field: 'itsystem' },
         { label: 'user_key', data: 'it', field: 'user_key' },
-        { label: 'primary', data: 'primary' }
+        { label: 'primary', data: 'primary', field: 'user_key' }
       ],
 
       /**
