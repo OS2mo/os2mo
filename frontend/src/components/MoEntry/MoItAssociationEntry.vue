@@ -45,7 +45,7 @@ SPDX-License-Identifier: MPL-2.0
       />
 
       <mo-input-primary-check
-        style="margin-left: 1.25rem; margin-bottom: 1.25rem !important;"
+        style="margin-left: 1.25rem; margin-bottom: 1.33rem !important;"
         class="col"
         v-model="entry.primary"
       />
