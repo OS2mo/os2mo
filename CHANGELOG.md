@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.6.0 - 2022-03-17
+------------------
+
+[#49205] Add `owner` to mo ClassRead and lora KlasseRelations
+
 5.5.0 - 2022-03-17
 ------------------
 
