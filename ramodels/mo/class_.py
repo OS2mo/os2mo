@@ -30,3 +30,4 @@ class ClassRead(MOBase):
     published: Optional[str] = Field(description="Published state of the class object.")
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
     example: Optional[str] = Field(description="Example usage.")
+    owner: Optional[UUID] = Field(description="Owner of class")
