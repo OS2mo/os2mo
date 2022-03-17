@@ -25,9 +25,11 @@ from uuid import UUID
 
 from datetime import datetime
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
 
 from . import handlers
 from .. import common
+from mora.graphapi.shim import execute_graphql, flatten_data
 
 router = APIRouter()
 
@@ -90,6 +92,127 @@ async def list_details(type, id: UUID):
     r["org_unit"] = bool(scope.path == "organisation/organisationenhed" and reg)
 
     return r
+
+
+@router.get("/e/{eid}/details/address")
+async def list_addresses_employee(eid: UUID):
+    """GraphQL shim"""
+    query = """
+        query GetAddress($uuid: UUID!) {
+          employees(uuids: [$uuid]) {
+            objects {
+              addresses {
+                uuid
+                user_key
+                validity {
+                  from
+                  to
+                }
+                address_type {
+                  user_key
+                  uuid
+                  name
+                  scope
+                  example
+                  top_level_facet {
+                    user_key
+                    uuid
+                    description
+                  }
+                  facet {
+                    user_key
+                    uuid
+                    description
+                  }
+                }
+                href
+                value
+                value2
+                employee {
+                  givenname
+                  surname
+                  name
+                  nickname
+                  nickname_surname
+                  nickname_givenname
+                  uuid
+                  seniority
+                }
+              }
+            }
+          }
+        }
+    """
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder({"uuid": eid}),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+    data = flatten_data(r.data["employees"])[0]["addresses"]
+    for element in data:
+        # the old api calls it "person" instead of "employee"
+        element["person"] = element["employee"]
+        del element["employee"]
+    return data
+
+
+@router.get("/ou/{orgid}/details/address")
+async def list_addresses_ou(orgid: UUID):
+    """GraphQL shim"""
+    query = """
+        query GetAddress($uuid: UUID!) {
+          org_units(uuids: [$uuid]) {
+            objects {
+              addresses {
+                uuid
+                user_key
+                href
+                validity {
+                  from
+                  to
+                }
+                value
+                value2
+                address_type {
+                  facet {
+                    user_key
+                    uuid
+                    description
+                  }
+                  top_level_facet {
+                    user_key
+                    uuid
+                    description
+                  }
+                  uuid
+                  user_key
+                  name
+                  scope
+                  example
+                }
+                org_unit {
+                  name
+                  user_key
+                  uuid
+                  validity {
+                    from
+                    to
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder({"uuid": orgid}),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+
+    return flatten_data(r.data["org_units"])[0]["addresses"]
 
 
 @router.get(
