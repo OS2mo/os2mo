@@ -78,7 +78,6 @@ import OrgUnitValidity from '@/mixins/OrgUnitValidity'
 import { Employee } from '@/store/actions/employee'
 import { mapGetters } from 'vuex'
 import { Facet } from '@/store/actions/facet'
-import Service from '@/api/HttpCommon'
 
 export default {
   mixins: [OrgUnitValidity],
