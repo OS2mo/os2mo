@@ -324,7 +324,8 @@ def valid_auth(draw):
 @st.composite
 def facet_prop_strat(draw):
     required = {"user_key": st.text(), "effective_time": valid_edt()}
-    st_dict = draw(st.fixed_dictionaries(required))
+    optional = {"description": st.none() | st.text()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
 
 
@@ -802,7 +803,7 @@ def klasse_prop_strat(draw):
         "title": st.text(),
         "effective_time": valid_edt(),
     }
-    optional = {"scope": st.none() | st.text()}
+    optional = {"scope": st.none() | st.text(), "example": st.none() | st.text()}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
 
