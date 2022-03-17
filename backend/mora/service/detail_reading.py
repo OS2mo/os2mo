@@ -20,14 +20,17 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-from typing import Any, Optional
+from typing import Any, Optional, Union
 from uuid import UUID
 
-from datetime import datetime
+from datetime import date, datetime
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 
 from . import handlers
 from .. import common
+from mora.graphapi.shim import execute_graphql, flatten_data
 
 router = APIRouter()
 
@@ -90,6 +93,170 @@ async def list_details(type, id: UUID):
     r["org_unit"] = bool(scope.path == "organisation/organisationenhed" and reg)
 
     return r
+
+
+@router.get(
+    "/e/{eid}/details/address",
+    response_model_exclude_unset=True,
+)
+async def list_addresses_employee(
+    eid: UUID,
+    only_primary_uuid: Optional[bool] = None,
+    at: Optional[Union[date, datetime]] = None,
+):
+    """GraphQL shim"""
+    if only_primary_uuid:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime) {
+              employees(uuids: [$uuid], from_date: $from_date) {
+                objects { uuid }
+              }
+            }
+        """
+    else:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime) {
+              employees(uuids: [$uuid], from_date: $from_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    value
+                    value2
+                    validity {
+                      from
+                      to
+                    }
+                    address_type {
+                      user_key
+                      uuid
+                      name
+                      scope
+                      example
+                      top_level_facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                    }
+                    employee {
+                      givenname
+                      surname
+                      name
+                      nickname
+                      nickname_surname
+                      nickname_givenname
+                      uuid
+                      seniority
+                    }
+                  }
+                }
+              }
+            }
+        """
+    args = {"uuid": eid}
+    if at is not None:
+        args["from_date"] = at
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(args),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+    if only_primary_uuid:
+        data = one(flatten_data(r.data["employees"]))
+    else:
+        data = one(flatten_data(r.data["employees"]))["addresses"]
+        for element in data:
+            # the old api calls it "person" instead of "employee"
+            element["person"] = element["employee"]
+            del element["employee"]
+    return data
+
+
+@router.get("/ou/{orgid}/details/address")
+async def list_addresses_ou(
+    orgid: UUID,
+    only_primary_uuid: Optional[bool] = None,
+    at: Optional[Union[date, datetime]] = None,
+):
+    """GraphQL shim"""
+    if only_primary_uuid:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime) {
+              org_units(uuids: [$uuid], from_date: $from_date) {
+                objects { uuid }
+              }
+            }
+        """
+    else:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime) {
+              org_units(uuids: [$uuid], from_date: $from_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    validity {
+                      from
+                      to
+                    }
+                    value
+                    value2
+                    address_type {
+                      facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      top_level_facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      uuid
+                      user_key
+                      name
+                      scope
+                      example
+                    }
+                    org_unit {
+                      name
+                      user_key
+                      uuid
+                      validity {
+                        from
+                        to
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """
+    args = {"uuid": orgid}
+    if at is not None:
+        args["from_data"] = at
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(args),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+
+    if only_primary_uuid:
+        data = one(flatten_data(r.data["org_units"]))
+    else:
+        data = one(flatten_data(r.data["org_units"]))["addresses"]
+
+    return data
 
 
 @router.get(
