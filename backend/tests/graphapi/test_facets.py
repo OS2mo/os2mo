@@ -45,6 +45,7 @@ class TestFacetsQuery:
                     facets {
                         uuid
                         user_key
+                        description
                         parent_uuid
                         org_uuid
                         published
