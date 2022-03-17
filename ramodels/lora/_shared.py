@@ -538,6 +538,10 @@ class KlasseRelations(RABase):
         max_items=1,
         description="The parent class object.",
     )
+    owner: Optional[UUID] = Field(
+        alias="ejer",
+        description="Owner of class relation",
+    )
 
 
 class KlasseAttributes(RABase):

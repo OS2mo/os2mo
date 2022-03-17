@@ -831,7 +831,8 @@ def klasse_relations_strat(draw):
         "responsible": st.lists(valid_resp(), min_size=1, max_size=1),
         "facet": st.lists(valid_fref(), min_size=1, max_size=1),
     }
-    st_dict = draw(st.fixed_dictionaries(required))
+    optional = {"owner": st.none() | st.uuids()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 
