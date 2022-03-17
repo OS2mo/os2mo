@@ -88,8 +88,9 @@ def group_by_uuid(
     """
     uuids = uuids if uuids is not None else []
     buckets = bucket(models, lambda model: model.uuid)
-    # unique keys in order. mypy doesn't like bucket for some reason
-    keys = unique_everseen([*list(buckets), *uuids])  # type: ignore
+    # unique keys in order by incoming uuid.
+    # mypy doesn't like bucket for some reason
+    keys = unique_everseen([*uuids, *list(buckets)])  # type: ignore
     return {key: list(buckets[key]) for key in keys}
 
 
