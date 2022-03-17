@@ -8,8 +8,6 @@ from fastapi import APIRouter, Body
 from . import validator
 from .. import facet
 from ..address_handler import base
-from ...handler.impl.association import AssociationReader
-from ...handler.impl.it import ItSystemBindingReader
 from ... import lora
 from ... import mapping
 from ... import util
@@ -330,47 +328,15 @@ async def employee_primary_it_associations(req: dict = Body(...)):
     the *same' IT system.
     """
 
-    def is_it_association(assoc: dict) -> bool:
-        return assoc.get(mapping.IT) is not None
-
-    def is_primary(assoc: dict) -> bool:
-        return (
-            assoc.get(mapping.PRIMARY, {}).get(mapping.USER_KEY, "") == mapping.PRIMARY
-        )
-
-    def is_in_same_it_system(assoc: dict, it_system_uuids: set[str]) -> bool:
-        it_user = assoc[mapping.IT][0]
-        return it_user[mapping.ITSYSTEM][mapping.UUID] in it_system_uuids
-
-    # Get UUIDs from POST request
     employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
     it_user_uuid = util.get_mapping_uuid(req, mapping.IT, required=True)
 
-    c = lora.Connector()
+    await validator.is_employee_it_association_primary_within_it_system(
+        employee_uuid,
+        it_user_uuid,
+    )
 
-    # Get the IT system UUID of the IT user that we wish to use for a primary
-    # association
-    reader = ItSystemBindingReader()
-    it_system_uuids = {
-        it_user[mapping.ITSYSTEM][mapping.UUID]
-        for it_user in await reader.get(c, {mapping.UUID: it_user_uuid})
-    }
-
-    # Get the existing primary IT associations in the same IT system
-    assoc_reader = AssociationReader()
-    existing_primary_it_associations_in_same_it_system = [
-        assoc
-        for assoc in await assoc_reader.get(c, {"tilknyttedebrugere": employee_uuid})
-        if (
-            is_it_association(assoc)
-            and is_primary(assoc)
-            and is_in_same_it_system(assoc, it_system_uuids)
-        )
-    ]
-
-    # To pass validation, there should not be any primary IT associations in the same
-    # IT system.
-    return {"success": len(existing_primary_it_associations_in_same_it_system) == 0}
+    return {"success": True}
 
 
 # important to include AFTER path_operations are in place

@@ -98,6 +98,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
+        if employee_uuid and it_user_uuid:
+            await validator.is_employee_it_association_primary_within_it_system(
+                employee_uuid,
+                it_user_uuid,
+            )
 
         if substitute_uuid:
             rel_orgfunc_uuids = [substitute_uuid]
@@ -279,6 +284,18 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
             )
 
+        # Validation
+        if employee:
+            await validator.is_date_range_in_employee_range(employee, new_from, new_to)
+            await validator.does_employee_have_existing_association(
+                employee_uuid, org_unit_uuid, new_from, association_uuid
+            )
+        if employee_uuid and it_user_uuid:
+            await validator.is_employee_it_association_primary_within_it_system(
+                employee_uuid,
+                it_user_uuid,
+            )
+
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
         )
@@ -288,15 +305,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         payload = common.ensure_bounds(
             new_from, new_to, bounds_fields, original, payload
         )
-
-        # Validation
-        if employee:
-            await validator.is_date_range_in_employee_range(employee, new_from, new_to)
-
-        if employee:
-            await validator.does_employee_have_existing_association(
-                employee_uuid, org_unit_uuid, new_from, association_uuid
-            )
 
         self.payload = payload
         self.uuid = association_uuid
