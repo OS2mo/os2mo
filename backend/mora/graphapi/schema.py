@@ -231,6 +231,17 @@ class Class:
         loader: DataLoader = info.context["facet_loader"]
         return await loader.load(root.facet_uuid)
 
+    @strawberry.field(description="Associated top-level facet")
+    async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
+        parent: ClassRead = root
+
+        # Traverse class tree
+        loader: DataLoader = info.context["class_loader"]
+        while parent.parent_uuid is not None:
+            parent = await asyncio.gather(loader.load(parent.parent_uuid))
+
+        return await info.context["facet_loader"].load(parent.facet_uuid)
+
 
 # Employee
 # --------

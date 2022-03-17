@@ -61,6 +61,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
                 "org_unit_uuid": org_unit_uuid,
                 "engagement_uuid": engagement_uuid,
                 "visibility_uuid": visibility_uuid,
+                "href": address_obj["href"],
             }
 
         facet_task = create_task(
