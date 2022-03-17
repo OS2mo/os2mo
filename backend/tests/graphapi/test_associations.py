@@ -46,6 +46,8 @@ class TestAssociationsQuery:
                             org_unit_uuid
                             employee_uuid
                             association_type_uuid
+                            it_user_uuid
+                            job_function_uuid
                             primary_uuid
                             substitute_uuid
                             dynamic_classes { uuid }
