@@ -1265,7 +1265,6 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "address_type": {
                         "example": "<UUID>",
                         "facet": address_type_facet,
-                        "full_name": "Postadresse",
                         "name": "Postadresse",
                         "owner": None,
                         "scope": "DAR",
@@ -1333,7 +1332,6 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "address_type": {
                         "example": "<UUID>",
                         "facet": address_type_facet,
-                        "full_name": "Postadresse",
                         "name": "Postadresse",
                         "owner": None,
                         "scope": "DAR",

@@ -185,10 +185,12 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         "name": class_attributes.title,
         "user_key": class_attributes.user_key,
         "scope": class_attributes.scope,
+        "example": class_attributes.example,
         "published": class_state.published,
         "facet_uuid": one(class_relations.facet).uuid,
         "org_uuid": one(class_relations.responsible).uuid,
         "parent_uuid": class_relations.parent.uuid if class_relations.parent else None,
+        "owner": class_relations.owner,
     }
     return ClassRead(**mo_class)
 
@@ -248,6 +250,7 @@ def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
             if facet_relations.parent is not None
             else None
         ),
+        "description": facet_attributes.description or "",
     }
     return FacetRead(**mo_facet)
 

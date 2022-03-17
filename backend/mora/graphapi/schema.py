@@ -32,11 +32,13 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
+from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from mora import config
 from mora import lora
+from mora.service.address_handler import multifield_text, dar
 from mora.graphapi.health import health_map
 from mora.graphapi.models import HealthRead
 
@@ -120,6 +122,39 @@ class Address:
         if root.org_unit_uuid is None:
             return None
         return (await loader.load(root.org_unit_uuid)).objects
+
+    @strawberry.field(description="Name of address")
+    async def name(self, root: AddressRead, info: Info) -> Optional[str]:
+        address_type = await Address.address_type(self, root, info)
+
+        if address_type.scope == "MULTIFIELD_TEXT":
+            return multifield_text.name(root.value, root.value2)
+
+        if address_type.scope == "DAR":
+            dar_loader = context["dar_loader"]
+            address_object = await dar_loader.load(UUID(root.value))
+            return dar.name_from_dar_object(address_object)
+
+        return root.value
+
+    @strawberry.field(description="href of address")
+    async def href(self, root: AddressRead, info: Info) -> Optional[str]:
+        address_type = await Address.address_type(self, root, info)
+
+        if address_type.scope == "PHONE":
+            return f"tel:{root.value}"
+
+        if address_type.scope == "EMAIL":
+            return f"mailto:{root.value}"
+
+        if address_type.scope == "DAR":
+            dar_loader = context["dar_loader"]
+            address_object = await dar_loader.load(UUID(root.value))
+            if address_object is None:
+                return None
+            return dar.open_street_map_href_from_dar_object(address_object)
+
+        return None
 
 
 async def filter_address_types(
@@ -261,6 +296,17 @@ class Class:
         """
         loader: DataLoader = info.context["facet_loader"]
         return await loader.load(root.facet_uuid)
+
+    @strawberry.field(description="Associated top-level facet")
+    async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
+        parent: ClassRead = root
+
+        # Traverse class tree
+        loader: DataLoader = info.context["class_loader"]
+        while parent.parent_uuid is not None:
+            parent = await asyncio.gather(loader.load(parent.parent_uuid))
+
+        return await info.context["facet_loader"].load(parent.facet_uuid)
 
 
 # Employee

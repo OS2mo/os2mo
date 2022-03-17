@@ -50,7 +50,6 @@ class TestClassesQuery:
                         owner
                         org_uuid
                         name
-                        full_name
                         parent_uuid
                         published
                         scope
