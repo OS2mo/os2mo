@@ -49,6 +49,7 @@ class TestAddresssQuery:
                             engagement_uuid
                             visibility_uuid
                             type
+                            href
                             value
                             value2
                             validity {from to}

@@ -46,6 +46,7 @@ class TestClassesQuery:
                         uuid
                         user_key
                         facet_uuid
+                        example
                         org_uuid
                         name
                         parent_uuid
