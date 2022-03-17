@@ -98,10 +98,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
-        if employee_uuid and it_user_uuid:
+        if employee_uuid and it_user_uuid and primary:
             await validator.is_employee_it_association_primary_within_it_system(
                 employee_uuid,
                 it_user_uuid,
+                primary,
             )
 
         if substitute_uuid:
@@ -277,6 +278,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
+        else:
+            primary = None
 
         # Update "dynamic_classes"
         for clazz in util.checked_get(data, mapping.CLASSES, []):
@@ -290,10 +293,11 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             await validator.does_employee_have_existing_association(
                 employee_uuid, org_unit_uuid, new_from, association_uuid
             )
-        if employee_uuid and it_user_uuid:
+        if employee_uuid and it_user_uuid and primary:
             await validator.is_employee_it_association_primary_within_it_system(
                 employee_uuid,
                 it_user_uuid,
+                primary,
             )
 
         payload = common.update_payload(
