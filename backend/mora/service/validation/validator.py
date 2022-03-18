@@ -580,7 +580,7 @@ async def is_employee_it_association_primary_within_it_system(
     # First, determine whether the desired `primary_class_uuid` does indeed refer to a
     # primary class (as opposed to a non-primary class.)
     cls = await get_one_class(c, primary_class_uuid)
-    if not _is_primary(cls):
+    if (cls is None) or (not _is_primary(cls)):
         return
 
     # Get the IT system UUID of any other IT users the employee may have
