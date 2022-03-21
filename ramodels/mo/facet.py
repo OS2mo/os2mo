@@ -40,4 +40,4 @@ class FacetRead(MOBase):
     published: Optional[str] = Field(description="Published state of the facet object.")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent facet.")
-    description: Optional[str] = Field(description="Description of the facet object.")
+    description: str = Field(description="Description of the facet object.", default="")
