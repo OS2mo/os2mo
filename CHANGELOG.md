@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.7.0 - 2022-03-21
+------------------
+
+[#49205] Add `note` attr to lora klasse
+
 5.6.0 - 2022-03-17
 ------------------
 
