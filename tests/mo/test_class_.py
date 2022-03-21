@@ -21,6 +21,7 @@ def read_strat(draw):
     required = {
         "user_key": st.text(),
         "name": st.text(),
+        "full_name": st.text(),
         "facet_uuid": st.uuids(),
         "org_uuid": st.uuids(),
     }
