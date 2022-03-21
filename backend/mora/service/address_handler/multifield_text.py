@@ -7,6 +7,13 @@ from ... import mapping
 from ... import util
 
 
+def name(value1, value2) -> str:
+    # value2 is more than empty spaces
+    if not value2 or not value2.strip():
+        return value1
+    return f"{value1} :: {value2}"
+
+
 class MultifieldTextAddressHandler(base.AddressHandler):
     scope = "MULTIFIELD_TEXT"
     prefix = "urn:multifield_text:"
@@ -14,11 +21,7 @@ class MultifieldTextAddressHandler(base.AddressHandler):
 
     @property
     def name(self):
-        return self._value + (
-            " :: " + self._value2
-            if self._value2 is not None and self._value2.strip()
-            else ""
-        )
+        return name(self._value, self._value2)
 
     @staticmethod
     def _value_from_effect(effect, prefix: str):
