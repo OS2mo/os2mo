@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.9.0 - 2022-03-21
+------------------
+
+[#49205] Make description non-optional, add full_name to ClassRead
+
 5.8.0 - 2022-03-21
 ------------------
 
