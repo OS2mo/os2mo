@@ -32,7 +32,8 @@ def klasse_strat(draw):
         "states": valid_klasse_states(),
         "relations": valid_klasse_relations(),
     }
-    st_dict = draw(st.fixed_dictionaries(required))
+    optional = {"note": st.none() | st.text()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
     return st_dict
 
 

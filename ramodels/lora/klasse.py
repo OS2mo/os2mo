@@ -40,6 +40,7 @@ class Klasse(LoraBase):
     relations: KlasseRelations = Field(
         alias="relationer", description="The klasse relations."
     )
+    note: Optional[str] = Field(description="Optional note.")
 
     @classmethod
     def from_simplified_fields(
