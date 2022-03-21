@@ -164,7 +164,7 @@ default:
 
 .services:use-frontend:
   needs:
-    - Build frontend
+    - Build test frontend
   image: $FRONTEND_TEST_IMAGE_SHA
   variables:
     BASE_URL: "http://mo"
