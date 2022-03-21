@@ -22,6 +22,7 @@ from typing import FrozenSet
 from typing import ItemsView
 from typing import Iterable
 from typing import List
+from typing import Literal
 from typing import NoReturn
 from typing import Optional
 from typing import Set
@@ -44,6 +45,8 @@ from .util import from_iso_time
 
 T = TypeVar("T")
 V = TypeVar("V")
+ValidityLiteral = Literal["past", "present", "future"]
+
 
 logger = get_logger()
 settings = config.get_settings()
@@ -197,6 +200,25 @@ def param_exotics_to_strings(
     return ret
 
 
+def validity_tuple(validity: ValidityLiteral, now=None) -> (datetime, datetime):
+    """Return (start, end) tuple of datetimes for Lora."""
+    if now is None:
+        now = util.parsedatetime(util.now())
+
+    if validity == "past":
+        return util.NEGATIVE_INFINITY, now
+
+    if validity == "present":
+        return now, now + util.MINIMAL_INTERVAL
+
+    if validity == "future":
+        return now, util.POSITIVE_INFINITY
+
+    raise TypeError(
+        f"Expected validity to be 'past', 'present' or 'future', but was {validity}"
+    )
+
+
 class Connector:
     def __init__(self, **defaults):
         self.__validity = defaults.pop("validity", None) or "present"
@@ -205,32 +227,20 @@ class Connector:
             defaults.pop("effective_date", None) or util.now(),
         )
 
-        if self.__validity == "past":
-            self.start = util.NEGATIVE_INFINITY
-            self.end = self.now
-
-        elif self.__validity == "future":
-            self.start = self.now
-            self.end = util.POSITIVE_INFINITY
-
-        elif self.__validity == "present":
+        if self.__validity == "present":
             # we should probably use 'virkningstid' but that means we
             # have to override each and every single invocation of the
             # accessors later on
             if "virkningfra" in defaults:
-                self.start = self.now = util.parsedatetime(
-                    defaults.pop("virkningfra"),
-                )
-            else:
-                self.start = self.now
+                self.now = util.parsedatetime(defaults.pop("virkningfra"))
 
-            if "virkningtil" in defaults:
-                self.end = util.parsedatetime(defaults.pop("virkningtil"))
-            else:
-                self.end = self.start + util.MINIMAL_INTERVAL
-
-        else:
+        try:
+            self.start, self.end = validity_tuple(self.__validity, now=self.now)
+        except TypeError:
             exceptions.ErrorCodes.V_INVALID_VALIDITY(validity=self.__validity)
+
+        if self.__validity == "present" and "virkningtil" in defaults:
+            self.end = util.parsedatetime(defaults.pop("virkningtil"))
 
         defaults.update(
             virkningfra=util.to_lora_time(self.start),
