@@ -62,7 +62,6 @@ class AddressRead(AddressBase):
     visibility_uuid: Optional[UUID] = Field(
         description="UUID of the visibility klasse of the address."
     )
-    href: Optional[str] = Field(description="href representation of address")
 
     # NOTE: The one and only one of {employee, org_unit, engagement} invariant
     # is not validated here because reads are assumed to originate from valid data.
