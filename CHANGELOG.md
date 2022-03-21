@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.8.0 - 2022-03-21
+------------------
+
+[#49205] Remove href attr (its computed in MO)
+
 5.7.0 - 2022-03-21
 ------------------
 
