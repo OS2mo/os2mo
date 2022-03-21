@@ -22,6 +22,17 @@ NOT_FOUND = "Ukendt"
 logger = get_logger()
 
 
+def open_street_map_href_from_dar_object(address_object) -> str:
+    if not ("x" in address_object and "y" in address_object):
+        return None
+    x, y = address_object["x"], address_object["y"]
+    return f"https://www.openstreetmap.org/?mlon={x}&mlat={y}&zoom=16"
+
+
+def name_from_dar_object(address_object) -> str:
+    return "".join(DARAddressHandler._address_string_chunks(address_object))
+
+
 async def load_addresses(keys: List[UUID]) -> List[Optional[dict]]:
     adarclient = AsyncDARClient(timeout=120)
     async with adarclient:
@@ -67,13 +78,8 @@ class DARAddressHandler(base.AddressHandler):
             handler._name = NOT_FOUND
             handler._href = None
         else:
-            handler._name = "".join(handler._address_string_chunks(address_object))
-            handler._href = (
-                "https://www.openstreetmap.org/"
-                "?mlon={x}&mlat={y}&zoom=16".format(**address_object)
-                if "x" in address_object and "y" in address_object
-                else None
-            )
+            handler._name = name_from_dar_object(address_object)
+            handler._href = open_street_map_href_from_dar_object(address_object)
 
         return handler
 
