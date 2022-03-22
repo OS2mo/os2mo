@@ -170,7 +170,7 @@ class Settings(BaseSettings):
     cpr_validate_birthdate: bool = True
 
     # MO UI displays an "IT associations" tab for employees, if this is set to True
-    show_it_associations_tab: bool = True
+    show_it_associations_tab: bool = False
 
 
 @lru_cache()
