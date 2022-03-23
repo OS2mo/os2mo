@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.10.0 - 2022-03-23
+-------------------
+
+[#48312] Make `AssociationRead.association_type_uuid` optional
+
 5.9.0 - 2022-03-21
 ------------------
 
