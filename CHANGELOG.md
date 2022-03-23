@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.11.0 - 2022-03-23
+-------------------
+
+[#48315] Add optional `ITUser.primary_uuid` attribute
+
 5.10.0 - 2022-03-23
 -------------------
 
