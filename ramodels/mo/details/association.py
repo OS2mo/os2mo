@@ -50,7 +50,9 @@ class AssociationRead(AssociationBase):
     employee_uuid: UUID = Field(
         description="UUID of the employee related to the association."
     )
-    association_type_uuid: UUID = Field(description="UUID of the association type.")
+    association_type_uuid: Optional[UUID] = Field(
+        description="UUID of the association type."
+    )
     primary_uuid: Optional[UUID] = Field(
         description="UUID of the primary type of the association."
     )

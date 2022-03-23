@@ -56,9 +56,9 @@ def read_strat(draw):
     required = {
         "org_unit_uuid": st.uuids(),
         "employee_uuid": st.uuids(),
-        "association_type_uuid": st.uuids(),
     }
     optional = {
+        "association_type_uuid": st.none() | st.uuids(),
         "primary_uuid": st.none() | st.uuids(),
         "substitute_uuid": st.none() | st.uuids(),
         "job_function_uuid": st.none() | st.uuids(),
