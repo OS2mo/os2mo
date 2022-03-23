@@ -5,11 +5,18 @@ stages:
   - sync
   - lint
   - build
-  - test
-  - coverage
+
+  # TODO: gitlab/#293674: variable expansion bug
+  # Jobs for deploying and undeploying review apps are currently unable to use the 'needs'
+  # keyword due to a bug in how GitLab handles variables for deployment environments.
+  # Therefore, we define these jobs as early as possibly -- just after 'build'ing their
+  # dependencies. CTRL+F 'gitlab/#293674' for further information.
   - review
   - qa
   - post-qa
+
+  - test
+  - coverage
   - prepare-release
   - release
   - deploy
@@ -31,7 +38,8 @@ variables:
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
-  REVIEW_URL: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
+  REVIEW_URL: "https://$REVIEW_SLUG.moraci.magentahosted.dk"
+  REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
 include:
   - project: "labs/salt-automation"
@@ -81,7 +89,19 @@ workflow:
   rules:
     - <<: *if-tag
     - <<: *if-default-branch-refs
+      variables:
+        # These values cannot be changed without also modifying salt-automation/config-updater
+        REVIEW_SLUG: "review-os2mo-master-$CI_COMMIT_SHORT_SHA"
+        REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-master?commit_sha=$CI_COMMIT_SHA"
+        REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-master?commit_sha=$CI_COMMIT_SHA"
+        REVIEW_DELETE_TF_STATE_URL: "$REVIEW_CONFIG_UPDATER_URL/delete-master-tf-state?commit_sha=$CI_COMMIT_SHA"
     - <<: *if-merge-request
+      variables:
+        # These values cannot be changed without also modifying salt-automation/config-updater
+        REVIEW_SLUG: "review-os2mo-mr${CI_MERGE_REQUEST_IID}"
+        REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
+        REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
+        REVIEW_DELETE_TF_STATE_URL: "$REVIEW_CONFIG_UPDATER_URL/delete-mr-tf-state?mr_id=$CI_MERGE_REQUEST_IID"
 
 default:
   # All jobs are interruptible by default
@@ -615,7 +635,12 @@ Vue-unit-test:
 
 # Review
 #########
-Deploy Review:
+# TODO: gitlab/#293674: variable expansion bug
+# GitLab does not currently expand variables properly in all cases, so instead of defining
+# a single 'Deploy Review' job with `environment: name/url` referencing a variable
+# $REVIEW_SLUG, we need to define two different jobs with the variable values hard-coded.
+# See https://gitlab.com/gitlab-org/gitlab/-/issues/293674 for more information.
+.deploy-review:
   stage: review
   needs:
     - Build OS2MO
@@ -625,18 +650,44 @@ Deploy Review:
   before_script:
     - apt-get update && apt-get install -y curl jq
   script:
-    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/deploy?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
-    - until $(curl "$REVIEW_URL/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
+    - curl
+      --silent
+      --fail
+      --request POST
+      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
+      $REVIEW_DEPLOY_URL
+    - until $(curl "${REVIEW_URL}/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
-    name: review/$CI_MERGE_REQUEST_IID
-    # Cannot use $REVIEW_URL for the url because GitLab
-    url: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
-    on_stop: Stop Review
+    #name: "review/$REVIEW_SLUG"
+    #url: $REVIEW_URL
+    #on_stop: Stop Review
     auto_stop_in: 1 week
   tags:
     - deploy
+  #rules:
+  #  - <<: *if-default-branch-refs
+  #  - <<: *if-merge-request-labels-run-review-app
+  #  - <<: *if-merge-request-labels-run-qa
+  #  - <<: *if-merge-request
+  #    when: manual
+  #    allow_failure: true
+Deploy Review Master:
+  extends:
+    - .deploy-review
+  environment:
+    name: "review/review-os2mo-master-$CI_COMMIT_SHORT_SHA"
+    url: "https://review-os2mo-master-$CI_COMMIT_SHORT_SHA.moraci.magentahosted.dk"
+    on_stop: Stop Review Master
   rules:
     - <<: *if-default-branch-refs
+Deploy Review MR:
+  extends:
+    - .deploy-review
+  environment:
+    name: "review/review-os2mo-mr$CI_MERGE_REQUEST_IID"
+    url: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
+    on_stop: Stop Review MR
+  rules:
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request-labels-run-qa
     - <<: *if-merge-request
@@ -658,13 +709,15 @@ Deploy Review:
 Create Performance Test Keycloak Token:
   extends:
     - .qa-base
-  needs:
-    - Deploy Review
+  # TODO: gitlab/#293674: variable expansion bug
+  # This would ideally use 'needs', but we're unable to at the moment.
+  #needs:
+  #  - Deploy Review
   image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
   variables:
-    TF_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-mr$CI_MERGE_REQUEST_IID"
+    TF_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-$REVIEW_SLUG"
     TF_VAR_keycloak_admin_password: $REVIEW_KEYCLOAK_ADMIN_PASSWORD
-    TF_VAR_keycloak_url: $REVIEW_URL
+    TF_VAR_keycloak_url: "$REVIEW_URL"
     TF_VAR_keycloak_tempotest_client_secret: $REVIEW_TEMPOTEST_CLIENT_SECRET
   before_script:
     - cd tempotest/
@@ -703,7 +756,9 @@ Performance Tests:
 .post-qa-base:
   stage: post-qa
 
-Stop Review:
+# TODO: gitlab/#293674: variable expansion bug
+# See the deploy job for details and discussion about why this is needed.
+.stop-review:
   extends:
     - .post-qa-base
   needs: []
@@ -711,28 +766,71 @@ Stop Review:
   variables:
     GIT_STRATEGY: none  # We do not need the source code
   script:
-    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/undeploy?mr_id=$CI_MERGE_REQUEST_IID"
+    - curl
+      --silent
+      --fail
+      --request POST
+      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
+      $REVIEW_UNDEPLOY_URL
   environment:
-    name: review/$CI_MERGE_REQUEST_IID
+    #name: "review/$REVIEW_SLUG"
     action: stop
   tags:
     - deploy
+  #rules:
+  #  - <<: *if-default-branch-refs
+  #  - <<: *if-merge-request
+  #    when: manual
+  #    allow_failure: true
+Stop Review Master:
+  extends:
+    - .stop-review
+  environment:
+    name: "review/review-os2mo-master-$CI_COMMIT_SHORT_SHA"
   rules:
     - <<: *if-default-branch-refs
+Stop Review MR:
+  extends:
+    - .stop-review
+  environment:
+    name: "review/review-os2mo-mr$CI_MERGE_REQUEST_IID"
+  rules:
     - <<: *if-merge-request
       when: manual
       allow_failure: true
 
-Delete Review Terraform State:
+# TODO: gitlab/#293674: variable expansion bug
+# The 'Delete Review Terraform State' job NEEDS to depend on 'Stop Review' so that it runs
+# iff the environment is stopped. Therefore we cannot simply move it to a later stage.
+.delete-review-terraform-state:
   extends:
     - .post-qa-base
-  needs:
-    - Stop Review
+  #needs:
+  #  - Stop Review
   image: curlimages/curl:7.81.0
   script:
-    - curl --silent --fail --request POST --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo/delete-tf-state?mr_id=$CI_MERGE_REQUEST_IID"
+    - curl
+      --silent
+      --fail
+      --request POST
+      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
+      $REVIEW_DELETE_TF_STATE_URL
   tags:
     - deploy
+Delete Review Terraform State Master:
+  extends:
+    - .delete-review-terraform-state
+  needs:
+    - Stop Review Master
+  rules:
+    - <<: *if-default-branch-refs
+Delete Review Terraform State MR:
+  extends:
+    - .delete-review-terraform-state
+  needs:
+    - Stop Review MR
+  rules:
+    - <<: *if-merge-request
 
 
 # Release
