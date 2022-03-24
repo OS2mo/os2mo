@@ -604,7 +604,7 @@ async def is_employee_it_association_primary_within_it_system(
 
     # To pass validation, there should not be any primary IT associations in the same
     # IT system.
-    if len(existing_primary_it_associations_in_same_it_system):
-        raise exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY(
+    if existing_primary_it_associations_in_same_it_system:
+        exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY(
             {"employee_uuid": employee_uuid, "it_user_uuid": it_user_uuid}
         )
