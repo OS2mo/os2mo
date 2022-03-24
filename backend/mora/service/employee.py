@@ -386,7 +386,12 @@ async def get_one_employee(
     return r
 
 
-@router.get("/e/autocomplete/")
+@router.get(
+    "/e/autocomplete/",
+    responses={
+        "400": {"description": "Invalid input"},
+    },
+)
 async def autocomplete_employees(query: str):
     settings = config.get_settings()
     return await autocomplete.get_results(
@@ -394,7 +399,12 @@ async def autocomplete_employees(query: str):
     )
 
 
-@router.get("/o/{orgid}/e/")
+@router.get(
+    "/o/{orgid}/e/",
+    responses={
+        "400": {"description": "Invalid input"},
+    },
+)
 # @util.restrictargs('at', 'start', 'limit', 'query', 'associated')
 async def list_employees(
     orgid: UUID,
@@ -507,7 +517,12 @@ async def list_employees(
     return search_result
 
 
-@router.post("/e/{uuid}/terminate")
+@router.post(
+    "/e/{uuid}/terminate",
+    responses={
+        "400": {"description": "Invalid input"},
+    },
+)
 # @util.restrictargs('force', 'triggerless')
 async def terminate_employee(
     uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)

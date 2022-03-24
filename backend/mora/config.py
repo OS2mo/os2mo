@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     graphql_enable: bool = True
     graphiql_enable: bool = False
 
+    # Testing settings
+    testcafe_enable: bool = True
+
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
     fetch_trigger_timeout: int = 5

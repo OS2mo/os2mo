@@ -18,7 +18,14 @@ from ..integrations.serviceplatformen import get_citizen
 router = APIRouter()
 
 
-@router.get("/e/cpr_lookup/")
+@router.get(
+    "/e/cpr_lookup/",
+    responses={
+        "404": {"description": "No person found"},
+        "400": {"description": "Invalid CPR number"},
+        "500": {"description": "Unknown error"},
+    },
+)
 # @util.restrictargs(required=['q'])
 def search_cpr(q: str):
     """

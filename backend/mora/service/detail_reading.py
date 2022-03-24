@@ -45,7 +45,13 @@ DETAIL_TYPES = {
 }
 
 
-@router.get("/{type}/{id}/details/")
+@router.get(
+    "/{type}/{id}/details/",
+    responses={
+        "400": {"description": "Invalid input"},
+        "404": {"description": "No such endpoint"},
+    },
+)
 async def list_details(type, id: UUID):
     """List the available 'detail' types under this entry.
 
@@ -94,6 +100,10 @@ async def list_details(type, id: UUID):
 
 @router.get(
     "/{type}/{id}/details/{function}",
+    responses={
+        "400": {"description": "Invalid input"},
+        "404": {"description": "No such endpoint"},
+    },
 )
 # @util.restrictargs('at', 'validity', 'start', 'limit', 'inherit_manager',
 #                  'calculate_primary', 'only_primary_uuid', 'first_party_perspective')
