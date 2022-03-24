@@ -3,6 +3,7 @@
   "welcome_tagline": "Medarbejder | Organisation",
   "address": "Adresse | Adresser",
   "association": "Tilknytning | Tilknytninger",
+  "itassociation": "IT-tilknytning | IT-tilknytninger",
   "association_type": "Tilknytningsrolle",
   "address_type": "Adressetype",
   "date": {
@@ -16,7 +17,8 @@
   "employee": "Medarbejder | Medarbejdere",
   "organisation": "Organisation | Organisationer",
   "engagement": "Engagement | Engagementer",
-  "it_system": "IT system | IT systemer",
+  "it_system": "IT-system | IT-systemer",
+  "it_account": "IT-konto | IT-konti",
   "job_function": "Stillingsbetegnelse",
   "leave_type": "Orlovstype",
   "manager": "Leder | Ledere",

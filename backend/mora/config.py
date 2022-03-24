@@ -169,6 +169,9 @@ class Settings(BaseSettings):
     # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
     cpr_validate_birthdate: bool = True
 
+    # MO UI displays an "IT associations" tab for employees, if this is set to True
+    show_it_associations_tab: bool = False
+
 
 @lru_cache()
 def get_settings(*args, **kwargs) -> Settings:

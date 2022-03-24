@@ -6,6 +6,7 @@
     "roles": "Roller",
     "it": "IT",
     "association": "@:shared.association",
+    "itassociation": "@:shared.itassociation",
     "leave": "Orlov",
     "manager": "Leder",
     "owner": "Ejer"

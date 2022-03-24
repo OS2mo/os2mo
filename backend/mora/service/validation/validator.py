@@ -14,6 +14,9 @@ from ... import lora
 from ... import mapping
 from ... import util
 from ...lora import LoraObjectType
+from ...handler.impl.association import AssociationReader
+from ...handler.impl.it import ItSystemBindingReader
+from ...service.facet import get_one_class
 
 
 def forceable(fn):
@@ -535,4 +538,73 @@ async def does_employee_with_cpr_already_exist(
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.V_EXISTING_CPR,
             cpr=cpr,
+        )
+
+
+@forceable
+async def is_mutually_exclusive(*values):
+    """Raise validation error if more than one of `values` is not None."""
+    if len([val for val in values if val is not None]) > 1:
+        exceptions.ErrorCodes.E_INVALID_INPUT(values)
+
+
+@forceable
+async def is_employee_it_association_primary_within_it_system(
+    employee_uuid: str,
+    it_user_uuid: str,
+    primary_class_uuid: str,
+):
+    """Verify that an employee does not have more than one primary IT associations to
+    the *same' IT system.
+    """
+
+    def _get_primary(assoc: dict) -> dict:
+        return assoc.get(mapping.PRIMARY, {})
+
+    def _is_primary(cls: dict) -> bool:
+        return cls.get(mapping.USER_KEY, "") == mapping.PRIMARY
+
+    def is_it_association(assoc: dict) -> bool:
+        return assoc.get(mapping.IT) is not None
+
+    def is_primary(assoc: dict) -> bool:
+        return _is_primary(_get_primary(assoc))
+
+    def is_in_same_it_system(assoc: dict, it_system_uuids: set[str]) -> bool:
+        it_user = assoc[mapping.IT][0]
+        return it_user[mapping.ITSYSTEM][mapping.UUID] in it_system_uuids
+
+    c = lora.Connector()
+    search_fields = {"tilknyttedebrugere": employee_uuid}
+
+    # First, determine whether the desired `primary_class_uuid` does indeed refer to a
+    # primary class (as opposed to a non-primary class.)
+    cls = await get_one_class(c, primary_class_uuid)
+    if (cls is None) or (not _is_primary(cls)):
+        return
+
+    # Get the IT system UUID of any other IT users the employee may have
+    reader = ItSystemBindingReader()
+    it_system_uuids = {
+        it_user[mapping.ITSYSTEM][mapping.UUID]
+        for it_user in await reader.get(c, search_fields)
+    }
+
+    # Get the existing primary IT associations in the same IT system
+    assoc_reader = AssociationReader()
+    existing_primary_it_associations_in_same_it_system = [
+        assoc
+        for assoc in await assoc_reader.get(c, search_fields)
+        if (
+            is_it_association(assoc)
+            and is_primary(assoc)
+            and is_in_same_it_system(assoc, it_system_uuids)
+        )
+    ]
+
+    # To pass validation, there should not be any primary IT associations in the same
+    # IT system.
+    if existing_primary_it_associations_in_same_it_system:
+        exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY(
+            {"employee_uuid": employee_uuid, "it_user_uuid": it_user_uuid}
         )

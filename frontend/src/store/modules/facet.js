@@ -21,6 +21,7 @@ const state = {
   responsibility: undefined,
   role_type: undefined,
   org_unit_hierarchy: undefined,
+  primary_type: undefined
 }
 
 
@@ -30,7 +31,7 @@ const fullQueryParams = '?' + [Facet.ClassDetails.FULL_NAME,
 
 
 const actions = {
-  [_facet.actions.SET_FACET] ({ state, rootState, commit }, payload) {
+  [_facet.actions.SET_FACET] ({ rootState, commit }, payload) {
     let queryParams = ""
     if (payload.full) {
       queryParams = fullQueryParams
@@ -41,6 +42,7 @@ const actions = {
         response.data.classes = response.data.data.items
         delete response.data.data.items
         commit(_facet.mutations.SET_FACET, response.data)
+        return response.data
       })
       .catch(error => {
         commit('log/newError', { type: 'ERROR', value: error.response }, { root: true })
@@ -58,7 +60,9 @@ const mutations = {
 
 const getters = {
   [_facet.getters.GET_UUID]: state => state.uuid,
-  [_facet.getters.GET_FACET]: (state) => (id) => state[id] || {}
+  [_facet.getters.GET_FACET]: (state) => (id) => {
+    return state[id] ? state[id] : {}
+  }
 }
 
 export default {

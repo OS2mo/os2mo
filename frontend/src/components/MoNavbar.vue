@@ -97,7 +97,7 @@ export default {
 
   created () {
       
-    this.username = keycloak.idTokenParsed.preferred_username
+    this.username = keycloak.idTokenParsed ? keycloak.idTokenParsed.preferred_username : 'Nobody'
     this.shortcuts = MoNavbar.getShortcuts()
 
     this.$store.dispatch(Conf.actions.SET_NAVLINKS).then(

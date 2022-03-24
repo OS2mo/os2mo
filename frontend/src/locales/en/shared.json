@@ -3,6 +3,7 @@
   "welcome_tagline": "Global Identity Repository",
   "address": "Address | Addresses",
   "association": "Affiliation | Affiliations",
+  "itassociation": "IT affiliation | IT affiliations",
   "association_type": "Affiliation role",
   "address_type": "Address type",
   "date": {
@@ -16,7 +17,8 @@
   "employee": "Employee | Employees",
   "organisation": "Organization | Organizations",
   "engagement": "Employment | Employments",
-  "it_system": "IT-system | IT-systems",
+  "it_system": "IT system | IT systems",
+  "it_account": "IT account | IT accounts",
   "job_function": "Job title",
   "leave_type": "Leave type",
   "manager": "Manager | Managers",

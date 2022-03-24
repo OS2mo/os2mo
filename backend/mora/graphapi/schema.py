@@ -162,9 +162,14 @@ class DynamicClasses:
 )
 class Association:
     @strawberry.field(description="Association type")
-    async def association_type(self, root: AssociationRead, info: Info) -> "Class":
+    async def association_type(
+        self, root: AssociationRead, info: Info
+    ) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.association_type_uuid)
+        if root.association_type_uuid:
+            return await loader.load(root.association_type_uuid)
+        else:
+            return None
 
     @strawberry.field(description="Primary status")
     async def primary(self, root: AssociationRead, info: Info) -> Optional["Class"]:
@@ -184,6 +189,32 @@ class Association:
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
+
+    @strawberry.field(description="Connected substitute employee")
+    async def substitute(self, root: AssociationRead, info: Info) -> list["Employee"]:
+        loader: DataLoader = info.context["employee_loader"]
+        if root.substitute_uuid:
+            return (await loader.load(root.substitute_uuid)).objects
+        else:
+            return []
+
+    @strawberry.field(description="Connected job function")
+    async def job_function(
+        self, root: AssociationRead, info: Info
+    ) -> Optional["Class"]:
+        loader: DataLoader = info.context["class_loader"]
+        if root.job_function_uuid:
+            return await loader.load(root.job_function_uuid)
+        else:
+            return None
+
+    @strawberry.field(description="Connected IT user")
+    async def it_user(self, root: AssociationRead, info: Info) -> list["ITUser"]:
+        loader: DataLoader = info.context["ituser_loader"]
+        if root.it_user_uuid:
+            return (await loader.load(root.it_user_uuid)).objects
+        else:
+            return []
 
 
 # Class

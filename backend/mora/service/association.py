@@ -9,15 +9,22 @@ This section describes how to interact with employee associations.
 
 """
 import uuid
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
+
+from structlog import get_logger
 
 from . import handlers
 from . import org
 from .validation import validator
-from .. import common, conf_db
+from .. import common
+from .. import conf_db
 from .. import lora
 from .. import mapping
 from .. import util
+
+
+logger = get_logger()
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
@@ -56,15 +63,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {})
         employee_uuid = util.get_uuid(employee, required=False)
 
-        org_uuid = (
-            await org.get_configured_organisation(
-                util.get_mapping_uuid(req, mapping.ORG, required=False)
-            )
-        )["uuid"]
-
-        association_type_uuid = util.get_mapping_uuid(
-            req, mapping.ASSOCIATION_TYPE, required=True
+        org_ = await org.get_configured_organisation(
+            util.get_mapping_uuid(req, mapping.ORG, required=False)
         )
+        org_uuid = org_["uuid"]
 
         valid_from, valid_to = util.get_validities(req)
 
@@ -72,14 +74,18 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(req, mapping.USER_KEY, func_id)
 
         primary = util.get_mapping_uuid(req, mapping.PRIMARY)
-
         substitute_uuid = util.get_mapping_uuid(req, mapping.SUBSTITUTE)
+        job_function_uuid = util.get_mapping_uuid(req, mapping.JOB_FUNCTION)
+        it_user_uuid = util.get_mapping_uuid(req, mapping.IT)
+        association_type_uuid = util.get_mapping_uuid(
+            req, mapping.ASSOCIATION_TYPE, required=False if it_user_uuid else True
+        )
 
         # Validation
         # remove substitute if not needed
-        if substitute_uuid:  # substitute is specified
+        await validator.is_mutually_exclusive(substitute_uuid, job_function_uuid)
+        if substitute_uuid and association_type_uuid:  # substitute is specified
             validator.is_substitute_allowed(association_type_uuid)
-
         await validator.is_date_range_in_org_unit_range(org_unit, valid_from, valid_to)
         if employee:
             await validator.is_date_range_in_employee_range(
@@ -92,8 +98,21 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
+        if employee_uuid and it_user_uuid and primary:
+            await validator.is_employee_it_association_primary_within_it_system(
+                employee_uuid,
+                it_user_uuid,
+                primary,
+            )
 
-        association = common.create_organisationsfunktion_payload(
+        if substitute_uuid:
+            rel_orgfunc_uuids = [substitute_uuid]
+        elif job_function_uuid:
+            rel_orgfunc_uuids = [job_function_uuid]
+        else:
+            rel_orgfunc_uuids = []
+
+        payload_kwargs = dict(
             funktionsnavn=mapping.ASSOCIATION_KEY,
             primær=primary,
             valid_from=valid_from,
@@ -103,9 +122,12 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid],
             tilknyttedeklasser=dynamic_classes,
-            tilknyttedefunktioner=[substitute_uuid] if substitute_uuid else [],
+            tilknyttedefunktioner=rel_orgfunc_uuids,
+            tilknyttedeitsystemer=[it_user_uuid] if it_user_uuid else None,
             funktionstype=association_type_uuid,
         )
+
+        association = common.create_organisationsfunktion_payload(**payload_kwargs)
 
         self.payload = association
         self.uuid = func_id
@@ -128,7 +150,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationfunktion.get(uuid=association_uuid)
 
-        data = req.get("data")
+        data = req.get("data", {})
         new_from, new_to = util.get_validities(data)
 
         payload = dict()
@@ -171,23 +193,40 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
-        if mapping.ASSOCIATION_TYPE in data:
-            association_type_uuid = data.get(mapping.ASSOCIATION_TYPE).get("uuid")
+        # Update "job_function"
+        job_function_uuid = util.get_mapping_uuid(data, mapping.JOB_FUNCTION)
+        if job_function_uuid:
+            # We store the job function in "tilknyttedefunktioner", so update that
+            # field, rather than `mapping.JOB_FUNCTION_FIELD`, which points to "opgaver"
+            update_fields.append(
+                (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": job_function_uuid})
+            )
+
+        # Update "it" (UUID of IT user, in case this association is an IT association)
+        it_user_uuid = util.get_mapping_uuid(data, mapping.IT)
+        if it_user_uuid:
+            update_fields.append(
+                (mapping.SINGLE_ITSYSTEM_FIELD, {"uuid": it_user_uuid})
+            )
+
+        # Update "association_type"
+        association_type_uuid = util.get_mapping_uuid(data, mapping.ASSOCIATION_TYPE)
+        if association_type_uuid:
             update_fields.append(
                 (
                     mapping.ORG_FUNK_TYPE_FIELD,
                     {"uuid": association_type_uuid},
                 )
             )
-
             if not util.is_substitute_allowed(association_type_uuid):
+                # Updates "tilknyttedefunktioner"
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
                 )
 
+        # Update org unit UUID
         if mapping.ORG_UNIT in data:
             org_unit_uuid = data.get(mapping.ORG_UNIT).get("uuid")
-
             update_fields.append(
                 (
                     mapping.ASSOCIATED_ORG_UNIT_FIELD,
@@ -200,28 +239,21 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 mapping.ASSOCIATED_ORG_UNIT_FIELD.path,
             )
 
+        # Update person UUID
         if mapping.PERSON in data:
             employee = data.get(mapping.PERSON, {})
             if employee:
                 employee_uuid = employee.get("uuid")
-                update_payload = {
-                    "uuid": employee_uuid,
-                }
+                update_payload = {"uuid": employee_uuid}
             else:  # allow missing, e.g. vacant association
                 employee_uuid = util.get_mapping_uuid(data, mapping.PERSON)
                 update_payload = {"uuid": "", "urn": ""}
-
-            update_fields.append(
-                (
-                    mapping.USER_FIELD,
-                    update_payload,
-                )
-            )
-            # update_fields.append((mapping.USER_FIELD, {'uuid': employee_uuid}))
+            update_fields.append((mapping.USER_FIELD, update_payload))
         else:
             employee = util.get_obj_value(original, mapping.USER_FIELD.path)[-1]
             employee_uuid = util.get_uuid(employee)
 
+        # Update "substitute"
         if mapping.SUBSTITUTE in data and data.get(mapping.SUBSTITUTE):
             substitute = data.get(mapping.SUBSTITUTE)
             substitute_uuid = substitute.get("uuid")
@@ -229,7 +261,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 validator.is_substitute_self(
                     employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
                 )
-
             if not substitute_uuid:
                 update_fields.append(
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": "", "urn": ""})
@@ -243,35 +274,41 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     (mapping.ASSOCIATED_FUNCTION_FIELD, {"uuid": substitute_uuid})
                 )
 
+        # Update "primary"
         if mapping.PRIMARY in data and data.get(mapping.PRIMARY):
             primary = util.get_mapping_uuid(data, mapping.PRIMARY)
-
             update_fields.append((mapping.PRIMARY_FIELD, {"uuid": primary}))
+        else:
+            primary = None
 
+        # Update "dynamic_classes"
         for clazz in util.checked_get(data, mapping.CLASSES, []):
             update_fields.append(
                 (mapping.ORG_FUNK_CLASSES_FIELD, {"uuid": util.get_uuid(clazz)})
             )
 
+        # Validation
+        if employee:
+            await validator.is_date_range_in_employee_range(employee, new_from, new_to)
+            await validator.does_employee_have_existing_association(
+                employee_uuid, org_unit_uuid, new_from, association_uuid
+            )
+        if employee_uuid and it_user_uuid and primary:
+            await validator.is_employee_it_association_primary_within_it_system(
+                employee_uuid,
+                it_user_uuid,
+                primary,
+            )
+
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
         )
-
         bounds_fields = list(
             mapping.ASSOCIATION_FIELDS.difference({x[0] for x in update_fields})
         )
         payload = common.ensure_bounds(
             new_from, new_to, bounds_fields, original, payload
         )
-
-        # Validation
-        if employee:
-            await validator.is_date_range_in_employee_range(employee, new_from, new_to)
-
-        if employee:
-            await validator.does_employee_have_existing_association(
-                employee_uuid, org_unit_uuid, new_from, association_uuid
-            )
 
         self.payload = payload
         self.uuid = association_uuid

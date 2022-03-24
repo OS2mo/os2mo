@@ -48,6 +48,8 @@ class TestAssociationsQuery:
                             association_type_uuid
                             primary_uuid
                             substitute_uuid
+                            job_function_uuid
+                            it_user_uuid
                             dynamic_classes { uuid }
                             type
                             validity {from to}
