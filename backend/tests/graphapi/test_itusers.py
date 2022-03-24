@@ -42,6 +42,7 @@ class TestITUsersQuery:
                             employee_uuid
                             itsystem_uuid
                             org_unit_uuid
+                            primary_uuid
                             type
                             validity {from to}
                         }
