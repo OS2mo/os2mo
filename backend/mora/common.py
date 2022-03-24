@@ -72,7 +72,7 @@ def _create_service_connector(**loraparams) -> lora.Connector:
                 loraparams["virkningfra"] = start
                 loraparams["virkningtil"] = end
         else:
-            loraparams["validity"] = args["validity"]
+            loraparams.setdefault("validity", args["validity"])
 
     return lora.Connector(**loraparams)
 

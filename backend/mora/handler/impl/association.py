@@ -15,7 +15,6 @@ from structlog import get_logger
 
 from .it import ItSystemBindingReader
 from .. import reading
-from ... import lora
 from ... import mapping
 from ... import util
 from ...common import get_connector
@@ -262,9 +261,16 @@ class AssociationReader(reading.OrgFunkReadingHandler):
             )
 
         if it_system_binding_uuid:
-            # This probably breaks some architectural pattern in MO, but I
-            # don't know a better way at this point.
-            c = lora.Connector()
+            # Load an optional related IT User object, if contained in this Association.
+            # We want *all* related IT Users, and not just the ones that may or may not
+            # match the "virkningsperiode" given by the current URL query parameters.
+            # Thus, we must use a connector that does not filter on the default
+            # "virkningsperiode".
+            c = get_connector(
+                virkningfra="-infinity",
+                virkningtil="infinity",
+                validity="present",
+            )
             reader = ItSystemBindingReader()
             it_system_binding_task = reader.get(
                 c,
