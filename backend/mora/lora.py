@@ -175,7 +175,7 @@ def exotics_to_str(value):
     if isinstance(value, bool) or isinstance(value, uuid.UUID):
         return str(value)
     elif isinstance(value, list) or isinstance(value, set):
-        return list(map(exotics_to_str, filter(lambda elem: elem is not None, value)))
+        return list(map(exotics_to_str, value))
     elif isinstance(value, int) or isinstance(value, str):
         return value
     else:
