@@ -46,8 +46,11 @@ class TestClassesQuery:
                         uuid
                         user_key
                         facet_uuid
+                        example
+                        owner
                         org_uuid
                         name
+                        full_name
                         parent_uuid
                         published
                         scope
