@@ -26,7 +26,6 @@ h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
 
 def pytest_runtest_setup(item):
-    print(os.environ.items())
     os.environ["PYTEST_RUNNING"] = "True"
 
 
