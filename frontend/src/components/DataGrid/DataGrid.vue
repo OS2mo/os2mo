@@ -120,7 +120,6 @@ SPDX-License-Identifier: MPL-2.0
         },
         methods: {
             sortBy: function(key) {
-                console.log('sorting', key, 'sortkey', this.sortKey, this.sortOrders)
                 if (key) {
                     this.sortKey = key
                     this.sortOrders[key] = this.sortOrders[key] * -1

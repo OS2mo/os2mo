@@ -5,6 +5,50 @@ import Service from './HttpCommon'
 import { EventBus, Events } from '@/EventBus'
 import store from '@/store'
 
+const identfyItAssociationData = function(data) {
+
+  // When creating an IT association, we must scrub the data to conform to 
+  // the special snowflake API request format that is supported by the backend.
+
+  if (Array.isArray(data) && data[0].it) {
+
+    // Probably data for creating a new IT association
+    return data.map(d => {
+      return {
+        type: "association",
+        person: { uuid: d.person.uuid },
+        org_unit: { uuid: d.org_unit.uuid },
+        org: { uuid: d.org.uuid },
+        primary: { uuid: d.primary.uuid },
+        validity: { from: d.validity.from, to: d.validity.to },
+        job_function: { uuid: d.job_function.uuid },
+        it: { uuid: d.it.uuid }
+      }
+    })
+
+  } else if (data.data && data.data.it) {
+
+    // Probably data for editing an IT association
+    return { 
+      type: "association", 
+      uuid: data.data.uuid, 
+      data: {
+        person: { uuid: data.data.person.uuid },
+        job_function: { uuid: data.data.job_function.uuid },
+        org_unit: { uuid: data.data.org_unit.uuid },
+        it: { uuid: data.data.it.uuid },
+        validity: { from: data.data.validity.from, to: data.data.validity.to },
+        primary: { uuid: data.data.primary.uuid }
+      }
+    }
+
+  } else {
+
+    // Nothing special. Just patch it through.
+    return data
+  }
+}  
+
 export default {
 
   /**
@@ -33,25 +77,6 @@ export default {
       })
   },
 
-  // new (employee) {
-  //   return Service.post('/e/create', employee)
-  //     .then(response => {
-  //       let employeeUuid = response.data
-  //       if (Array.isArray(response.data)) {
-  //         employeeUuid = response.data[0]
-  //       }
-  //       if (response.data.error) {
-  //         return response.data
-  //       }
-  //       store.commit('log/newWorkLog', { type: 'EMPLOYEE_CREATE', value: employeeUuid })
-  //       return employeeUuid
-  //     })
-  //     .catch(error => {
-  //       store.commit('log/newError', { type: 'ERROR', value: error.response.data })
-  //       return error.response.data
-  //     })
-  // },
-
   /**
    * Create a new employee
    * @param {String} uuid - employee uuid
@@ -72,7 +97,8 @@ export default {
   },
 
   create (create) {
-    return this.createEntry(create)
+
+    return this.createEntry(identfyItAssociationData(create))
       .then(response => {
         if (response.data.error) {
           return response.data
@@ -88,7 +114,7 @@ export default {
    * @returns {Object} employeee uuid
    */
   edit (edit) {
-    return Service.post('/details/edit', edit)
+    return Service.post('/details/edit', identfyItAssociationData(edit))
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response.data

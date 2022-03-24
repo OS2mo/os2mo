@@ -2,6 +2,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
+
     <mo-collapse
       class="detail-future"
       :title="$t('common.future')"
@@ -56,6 +57,7 @@ SPDX-License-Identifier: MPL-2.0
       :entry-component="entryComponent"
       v-if="!hideCreate"
     />
+
   </div>
 </template>
 

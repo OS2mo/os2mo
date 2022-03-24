@@ -93,6 +93,7 @@ def get_global_configuration():
     configuration = conf_db.get_configuration()
     configuration.update(
         confdb_autocomplete_use_new_api=settings.confdb_autocomplete_use_new_api,
+        show_it_associations_tab=settings.show_it_associations_tab,
     )
     return configuration
 

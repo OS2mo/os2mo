@@ -135,6 +135,14 @@ export default {
         contents = `${engagementName}, ${orgUnitName}`
       } else if (this.column === 'owner_inference_priority') {
         contents = display_method(contents)
+      } else if (this.field === 'itsystem') {
+        // This is not ideal:
+        // We check for special case and transform content post load.
+        // We should just be able to load the correct data in th first place.
+        contents = contents.map((c) => {
+          c.itsystem = c.itsystem.user_key
+          return c
+        })
       }
 
       if (!contents) {

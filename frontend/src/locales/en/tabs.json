@@ -6,6 +6,7 @@
     "roles": "Roles",
     "it": "IT",
     "association": "@:shared.association",
+    "itassociation": "@:shared.itassociation",
     "leave": "Leave",
     "manager": "Manager",
     "owner": "Owner"

@@ -85,6 +85,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                     "user_key": "goofy-moofy",
                     "uuid": funcid,
                     "validity": {"from": "2018-09-01", "to": None},
+                    "primary": None,
                 }
             ],
             amqp_topics={"employee.it.create": 1},
@@ -172,6 +173,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                     "user_key": "root",
                     "uuid": funcid,
                     "validity": {"from": "2018-09-01", "to": None},
+                    "primary": None,
                 }
             ],
             amqp_topics={"org_unit.it.create": 1},
@@ -590,6 +592,7 @@ class Reading(tests.cases.LoRATestCase):
                     "user_key": "donald",
                     "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
                     "validity": {"from": "2017-01-01", "to": None},
+                    "primary": None,
                 },
             ],
         )
@@ -634,6 +637,7 @@ class Reading(tests.cases.LoRATestCase):
                     "user_key": "fwaf",
                     "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
                     "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+                    "primary": None,
                 },
             ],
         )
@@ -679,6 +683,7 @@ class Reading(tests.cases.LoRATestCase):
                     "user_key": "fwaf",
                     "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
                     "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+                    "primary": None,
                 },
             ],
         )
@@ -718,6 +723,7 @@ class Reading(tests.cases.LoRATestCase):
                     "user_key": "fwaf",
                     "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
                     "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+                    "primary": None,
                 },
             ],
         )
