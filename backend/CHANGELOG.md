@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.2.0 - 2022-03-24
+------------------
+
+[#45758] Implement "IT associations", a type of associations which couple an "IT User" and an "Association"
+
 4.1.1 - 2022-03-17
 ------------------
 
