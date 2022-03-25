@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.12.0 - 2022-03-25
+-------------------
+
+[#49205] Remove full name from class
+
 5.11.0 - 2022-03-23
 -------------------
 
