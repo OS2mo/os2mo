@@ -23,7 +23,6 @@ class ClassRead(MOBase):
 
     type_: str = Field("class", alias="type", description="The object type")
     name: str = Field(description="Name/title of the class.")
-    full_name: str = Field(description="Full name of the class.")
     user_key: str = Field(description="Short, unique key.")
     facet_uuid: UUID = Field(description="UUID of the related facet.")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
