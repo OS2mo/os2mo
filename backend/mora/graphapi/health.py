@@ -21,7 +21,7 @@ from structlog import get_logger
 from mora import conf_db
 from mora import config
 from mora.exceptions import HTTPException
-from mora.http import client
+from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import pools
 
@@ -50,7 +50,7 @@ async def _is_endpoint_reachable(url: AnyUrl) -> bool:
         bool: True if reachable. False if not.
     """
     try:
-        r = await client.get(url)
+        r = await clients.mo.get(url)
         r.raise_for_status()
         return True
     except HTTPStatusError as err:

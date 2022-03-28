@@ -28,6 +28,8 @@ from structlog import get_logger
 from structlog.contextvars import merge_contextvars
 from structlog.processors import JSONRenderer
 
+from mora.triggers.internal.amqp_trigger import setup_pools
+
 from . import service
 from . import triggers
 from .api.v1 import reading_endpoints
@@ -48,8 +50,7 @@ from mora.auth.keycloak.router import keycloak_router
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
-from mora.http import client
-from mora.http import lora_client
+from mora.http import clients
 from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
@@ -276,10 +277,14 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
 
+    @app.on_event("startup")
+    async def open_httpx_client():
+        await clients.init_clients()
+        await setup_pools()
+
     @app.on_event("shutdown")
     async def close_httpx_client():
-        await client.aclose()
-        await lora_client.aclose()
+        await clients.close_clients()
         await triggers.internal.amqp_trigger.close_amqp()
 
     if not is_under_test():

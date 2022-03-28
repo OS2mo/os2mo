@@ -9,7 +9,7 @@ from mora.config import Settings
 import tests.cases
 
 
-class Tests(tests.cases.AsyncTestCase):
+class AsyncTests(tests.cases.AsyncTestCase):
     maxDiff = None
 
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
