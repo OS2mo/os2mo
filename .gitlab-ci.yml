@@ -965,6 +965,8 @@ Deploy pages:
   extends:
     - .docs-base
     - .docs:rules:deploy-master-docs
+  needs:
+    - Build master docs
   image: alpine:latest
   script:
     - cp -r $CI_PROJECT_DIR/site public
