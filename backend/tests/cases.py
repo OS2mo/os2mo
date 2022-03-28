@@ -11,6 +11,7 @@ import requests
 import httpx
 from starlette.testclient import TestClient
 from structlog import get_logger
+from asgi_lifespan import LifespanManager
 
 from mora import app
 from mora import conf_db
@@ -60,6 +61,9 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self.app = self.create_app()
+        self.lifespanmanager = LifespanManager(self.app)
+        await self.lifespanmanager.__aenter__()
+
         self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
 
         # Bypass Keycloak per default
@@ -68,6 +72,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await super().asyncTearDown()
         await self.client.aclose()
+        await self.lifespanmanager.__aexit__()
 
     def create_app(self, overrides=None):
         # make sure the configured organisation is always reset
@@ -514,19 +519,20 @@ class _BaseTestCase(TestCase):
         )
 
     def request(self, path, **kwargs):
-        if "json" in kwargs:
-            # "In the face of ambiguity, refuse the temptation to guess."
-            # ...so check that the arguments we override don't exist
-            assert kwargs.keys().isdisjoint({"method", "data"})
+        with self.client as client:
+            if "json" in kwargs:
+                # "In the face of ambiguity, refuse the temptation to guess."
+                # ...so check that the arguments we override don't exist
+                assert kwargs.keys().isdisjoint({"method", "data"})
 
-            # kwargs['method'] = 'POST'
-            kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
-            kwargs.setdefault("headers", dict()).update(
-                {"Content-Type": "application/json"}
-            )
-            return self.client.post(path, **kwargs)
+                # kwargs['method'] = 'POST'
+                kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
+                kwargs.setdefault("headers", dict()).update(
+                    {"Content-Type": "application/json"}
+                )
+                return client.post(path, **kwargs)
 
-        return self.client.get(path, **kwargs)
+            return client.get(path, **kwargs)
 
     @staticmethod
     def __sort_inner_lists(obj):

@@ -1,14 +1,27 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from dataclasses import dataclass
 from httpx import AsyncClient
 
 from mora import config
 
 
-client = AsyncClient(timeout=config.get_settings().httpx_timeout)
+@dataclass
+class Clients:
+    mo: AsyncClient = AsyncClient()
+    lora: AsyncClient = AsyncClient()
+
+    async def init_clients(self):
+        self.mo = AsyncClient(timeout=config.get_settings().httpx_timeout)
+        # TODO: Setup AuthenticatedAsyncHTTPXClient when dependencies are fixed
+        self.lora = AsyncClient(
+            base_url=config.get_settings().lora_url,
+            timeout=config.get_settings().httpx_timeout,
+        )
+
+    async def close_clients(self):
+        await self.mo.aclose()
+        await self.lora.aclose()
 
 
-# TODO: Setup AuthenticatedAsyncHTTPXClient when dependencies are fixed
-lora_client = AsyncClient(
-    base_url=config.get_settings().lora_url, timeout=config.get_settings().httpx_timeout
-)
+clients: Clients = Clients()

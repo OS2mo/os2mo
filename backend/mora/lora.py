@@ -42,6 +42,8 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+from .http import clients
+
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -141,8 +143,22 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
+async def _httpx_check_response(r):
+    if 400 <= r.status_code < 600:
+        try:
+            cause = r.json()
+            msg = cause["message"]
+        except (ValueError, KeyError):
+            cause = None
+            msg = r.text
+
+        raise_on_status(status_code=r.status_code, msg=msg, cause=cause)
+
+    return r
+
+
 async def _check_response(r):
-    if 400 <= r.status < 600:  # equivalent to requests.response.ok
+    if 400 <= r.status < 600:
         try:
             cause = await r.json()
             msg = cause["message"]
@@ -701,14 +717,13 @@ class HttpxScope(BaseScope):
             await _check_response(response)
 
     async def update(self, obj, uuid):
-        async with ClientSession() as session:
-            url = "{}/{}".format(self.base_path, uuid)
-            response = await session.patch(url, json=obj)
-            if response.status == 404:
-                logger.warning("could not update nonexistent LoRa object", url=url)
-            else:
-                await _check_response(response)
-                return (await response.json()).get("uuid", uuid)
+        url = f"{self.path}/{uuid}"
+        response = await clients.lora.patch(url, json=obj)
+        if response.status_code == 404:
+            logger.warning("could not update nonexistent LoRa object", url=url)
+        else:
+            await _httpx_check_response(response)
+            return response.json().get("uuid", uuid)
 
     async def get_effects(self, obj, relevant, also=None, **params):
         reg = (

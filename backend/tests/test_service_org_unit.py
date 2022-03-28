@@ -30,10 +30,10 @@ from mora.triggers.internal.http_trigger import register
 from tests import util
 
 
-class TestAddressLookup(tests.cases.TestCase):
+class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2018-03-15")
     @util.MockAioresponses()
-    def test_unit_past(self, mock):
+    async def test_unit_past(self, mock):
         unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
         reg = {
@@ -167,7 +167,7 @@ class TestAddressLookup(tests.cases.TestCase):
         )
 
         with util.patch_query_args({"validity": "past"}):
-            self.assertRequestResponse(
+            await self.assertRequestResponse(
                 "/service/ou/" + unitid + "/details/org_unit?validity=past",
                 [],
             )
