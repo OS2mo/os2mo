@@ -26,8 +26,6 @@ class Tests(tests.cases.AsyncTestCase):
             status_code=500,
         )
 
-    # TODO: AssertionError: Lists differ: ['file1', 'file2'] != []
-    @util.override_config(Settings(query_export_dir=""))
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
     @mock.patch("mora.service.exports.os.path.isfile")
     @mock.patch("mora.service.exports.os.listdir")
@@ -38,11 +36,11 @@ class Tests(tests.cases.AsyncTestCase):
         def mocked_isfile(filename):
             return filename in filenames
 
-        mock_listdir.return_value = filenames + ["dir"]
+        with util.override_config(Settings(query_export_dir="")):
+            mock_listdir.return_value = filenames + ["dir"]
+            mock_isfile.side_effect = mocked_isfile
 
-        mock_isfile.side_effect = mocked_isfile
-
-        await self.assertRequestResponse("/service/exports/", filenames)
+            await self.assertRequestResponse("/service/exports/", filenames)
 
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
     async def test_get_export_file_raises_on_invalid_dir(self):
