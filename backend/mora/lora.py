@@ -712,9 +712,9 @@ class HttpxScope(BaseScope):
                 return (await r.json())["uuid"]
 
     async def delete(self, uuid):
-        async with ClientSession() as session:
-            response = await session.delete("{}/{}".format(self.base_path, uuid))
-            await _check_response(response)
+        url = f"{self.path}/{uuid}"
+        response = await clients.lora.delete(url)
+        await _httpx_check_response(response)
 
     async def update(self, obj, uuid):
         url = f"{self.path}/{uuid}"
