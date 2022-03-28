@@ -365,7 +365,7 @@ Build test frontend:
       --target frontend
 
 Build Tempotest:
-  extends: .build:test-image
+  extends: .build-base
   # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
@@ -374,6 +374,11 @@ Build Tempotest:
       --context=$CI_PROJECT_DIR/tempotest
       --dockerfile=$CI_PROJECT_DIR/tempotest/Dockerfile
       --destination=$TEMPOTEST_IMAGE_SHA
+  rules:
+    - <<: *if-schedule
+      when: never
+    - when: on_success
+
 
 Build Keycloak-realm:
   extends: .build:test-image
