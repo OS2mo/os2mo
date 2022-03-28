@@ -1215,11 +1215,10 @@ class AsyncReadingMinimal(tests.cases.AsyncLoRATestCase):
             "create_organisationfunktion_email_andersand.json",
         )
 
-        r = await self.assertRequest(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/address",
-        )
-
-        self.assertEqual(None, r[0]["address_type"])
+        with pytest.raises(ValueError, match="NoneType"):
+            await self.assertRequest(
+                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a" "/details/address",
+            )
 
 
 @pytest.mark.usefixtures("sample_structures")
