@@ -9,13 +9,13 @@ from mora.config import Settings
 import tests.cases
 
 
-class Tests(tests.cases.TestCase):
+class Tests(tests.cases.AsyncTestCase):
     maxDiff = None
 
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
-    def test_list_export_files_raises_on_invalid_dir(self):
+    async def test_list_export_files_raises_on_invalid_dir(self):
         """Ensure we handle missing export dir"""
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/exports/",
             {
                 "description": "Directory does not exist.",
@@ -26,27 +26,26 @@ class Tests(tests.cases.TestCase):
             status_code=500,
         )
 
-    @util.override_config(Settings(query_export_dir=""))
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
     @mock.patch("mora.service.exports.os.path.isfile")
     @mock.patch("mora.service.exports.os.listdir")
-    def test_list_export_files_returns_filenames(self, mock_listdir, mock_isfile):
+    async def test_list_export_files_returns_filenames(self, mock_listdir, mock_isfile):
         """Ensure that we only return filenames from the export directory"""
         filenames = ["file1", "file2"]
 
         def mocked_isfile(filename):
             return filename in filenames
 
-        mock_listdir.return_value = filenames + ["dir"]
+        with util.override_config(Settings(query_export_dir="")):
+            mock_listdir.return_value = filenames + ["dir"]
+            mock_isfile.side_effect = mocked_isfile
 
-        mock_isfile.side_effect = mocked_isfile
-
-        self.assertRequestResponse("/service/exports/", filenames)
+            await self.assertRequestResponse("/service/exports/", filenames)
 
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
-    def test_get_export_file_raises_on_invalid_dir(self):
+    async def test_get_export_file_raises_on_invalid_dir(self):
         """Ensure we handle missing export dir"""
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/exports/whatever",
             {
                 "description": "Directory does not exist.",
@@ -59,9 +58,9 @@ class Tests(tests.cases.TestCase):
 
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
     @mock.patch("mora.service.exports.os.path.isfile", lambda x: False)
-    def test_get_export_file_raises_on_file_not_found(self):
+    async def test_get_export_file_raises_on_file_not_found(self):
         """Ensure we handle nonexistent files"""
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/exports/whatever",
             {
                 "description": "Not found.",
@@ -76,10 +75,10 @@ class Tests(tests.cases.TestCase):
     @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
     @mock.patch("mora.service.exports.os.path.isfile", lambda x: True)
     @mock.patch("mora.service.exports.FileResponse")
-    def test_get_export_file_returns_file(self, mock_send_file):
+    async def test_get_export_file_returns_file(self, mock_send_file):
         """Ensure we return a file if found"""
 
         mock_send_file.return_value = "I am a file"
 
-        self.assertRequestResponse("/service/exports/whatever", "I am a file")
+        await self.assertRequestResponse("/service/exports/whatever", "I am a file")
         mock_send_file.assert_called_once()

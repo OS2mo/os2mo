@@ -89,11 +89,9 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                 },
             )
 
-
-class TestAddressLookup(tests.cases.TestCase):
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
-    def test_autocomplete_no_municipality(self, mock):
+    async def test_autocomplete_no_municipality(self, mock):
         url = URL("http://mox/organisation/organisation")
         mock.get(
             url,
@@ -127,7 +125,7 @@ class TestAddressLookup(tests.cases.TestCase):
             },
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/00000000-0000-0000-0000-000000000000/"
             "address_autocomplete/?q=42",
             {
@@ -152,7 +150,7 @@ class TestAddressLookup(tests.cases.TestCase):
 
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
-    def test_autocomplete_invalid_municipality(self, mock):
+    async def test_autocomplete_invalid_municipality(self, mock):
         url = URL("http://mox/organisation/organisation")
         mock.get(
             url,
@@ -193,7 +191,7 @@ class TestAddressLookup(tests.cases.TestCase):
             },
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/00000000-0000-0000-0000-000000000000/"
             "address_autocomplete/?q=42",
             {
@@ -218,14 +216,14 @@ class TestAddressLookup(tests.cases.TestCase):
 
     @freezegun.freeze_time("2016-06-06")
     @util.MockAioresponses(passthrough=["http://localhost"])
-    def test_autocomplete_missing_org(self, mock):
+    async def test_autocomplete_missing_org(self, mock):
         url = URL("http://mox/organisation/organisation")
         mock.get(
             url,
             payload={"results": []},
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/00000000-0000-0000-0000-000000000000/"
             "address_autocomplete/?q=42",
             {
@@ -250,7 +248,7 @@ class TestAddressLookup(tests.cases.TestCase):
 
     @freezegun.freeze_time("2017-07-28")
     @util.MockAioresponses(("dawa-autocomplete.json",))
-    def test_autocomplete_global(self, mock):
+    async def test_autocomplete_global(self, mock):
         found = [
             {
                 "location": {
@@ -320,13 +318,13 @@ class TestAddressLookup(tests.cases.TestCase):
             },
         ]
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
             "address_autocomplete/?q=Strandlodsvej+25M&global=1",
             found,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
             "address_autocomplete/?q=Strandlodsvej+25M&global=true",
             found,
@@ -334,7 +332,7 @@ class TestAddressLookup(tests.cases.TestCase):
 
     @freezegun.freeze_time("2017-07-28")
     @util.MockAioresponses()
-    def test_autocomplete_local(self, mock):
+    async def test_autocomplete_local(self, mock):
         url = URL("http://mox/organisation/organisation")
 
         def callback(url, json, **kwargs):
@@ -416,7 +414,7 @@ class TestAddressLookup(tests.cases.TestCase):
             callback=callback,
         )
 
-        self.assertRequestResponse(
+        await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
             "address_autocomplete/?q=Strandlodsvej+25M",
             [],
