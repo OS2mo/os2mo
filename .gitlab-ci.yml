@@ -766,7 +766,6 @@ Performance Tests:
 .stop-review:
   extends:
     - .post-qa-base
-  needs: []
   image: curlimages/curl:7.81.0
   variables:
     GIT_STRATEGY: none  # We do not need the source code
@@ -966,6 +965,8 @@ Deploy pages:
   extends:
     - .docs-base
     - .docs:rules:deploy-master-docs
+  needs:
+    - Build master docs
   image: alpine:latest
   script:
     - cp -r $CI_PROJECT_DIR/site public
