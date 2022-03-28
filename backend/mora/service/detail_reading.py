@@ -20,14 +20,21 @@ creating and editing relations for employees and organisational units:
 from __future__ import generator_stop
 
 import collections
-from typing import Any, Optional
+from datetime import date, datetime
+from functools import partial
+from typing import Any, Optional, Union
 from uuid import UUID
 
-from datetime import datetime
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 
 from . import handlers
 from .. import common
+from mora import util
+from mora.lora import ValidityLiteral, validity_tuple
+from mora.graphapi.shim import execute_graphql, flatten_data, MOAddress
+
 
 router = APIRouter()
 
@@ -96,6 +103,252 @@ async def list_details(type, id: UUID):
     r["org_unit"] = bool(scope.path == "organisation/organisationenhed" and reg)
 
     return r
+
+
+def filter_by_validity(validity: ValidityLiteral, element: dict):
+    # This is **not** a complete filter that follows all rules of MO and Lora.
+    # If validity is past and the element ends after today -> False
+    # If validity is future and the element started before today -> False
+
+    now = util.parsedatetime(util.now())
+
+    start = element["validity"]["from"]
+    end = element["validity"]["to"]
+
+    if validity == "past":
+        return end is not None and util.parsedatetime(end) < now
+    if validity == "future":
+        return util.parsedatetime(start) > now
+
+    return True
+
+
+@router.get(
+    "/e/{eid}/details/address",
+    response_model=list[MOAddress],
+    response_model_exclude_unset=True,
+)
+async def list_addresses_employee(
+    eid: UUID,
+    only_primary_uuid: Optional[bool] = None,
+    at: Optional[Union[date, datetime]] = None,
+    validity: Optional[ValidityLiteral] = None,
+):
+    """GraphQL shim"""
+    if only_primary_uuid:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    name
+                    value
+                    value2
+                    validity {
+                      from
+                      to
+                    }
+                    address_type_uuid
+                    employee_uuid
+                  }
+                }
+              }
+            }
+        """
+    else:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    name
+                    value
+                    value2
+                    validity {
+                      from
+                      to
+                    }
+                    address_type {
+                      user_key
+                      uuid
+                      name
+                      scope
+                      example
+                      owner
+                      top_level_facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                    }
+                    employee {
+                      givenname
+                      surname
+                      name
+                      nickname
+                      nickname_surname
+                      nickname_givenname
+                      uuid
+                      seniority
+                    }
+                  }
+                }
+              }
+            }
+        """
+    args = {"uuid": eid}
+    if at is not None:
+        args["from_date"] = at
+    if validity is not None:
+        start, end = validity_tuple(validity)
+        args["from_date"] = start
+        args["to_date"] = end
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(args),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+
+    flat = flatten_data(r.data["employees"])
+    if len(flat) == 0:
+        return []
+
+    data = one(flat)["addresses"]
+
+    for element in data:
+        # the old api calls it "person" instead of "employee"
+        if only_primary_uuid:
+            element["person"] = {"uuid": element.pop("employee_uuid")}
+            element["address_type"] = {"uuid": element.pop("address_type_uuid")}
+        else:
+            element["person"] = element.pop("employee")
+
+    return list(filter(partial(filter_by_validity, validity), data))
+
+
+@router.get(
+    "/ou/{orgid}/details/address",
+    response_model=list[MOAddress],
+    response_model_exclude_unset=True,
+)
+async def list_addresses_ou(
+    orgid: UUID,
+    only_primary_uuid: Optional[bool] = None,
+    at: Optional[Union[date, datetime]] = None,
+    validity: Optional[ValidityLiteral] = None,
+):
+    """GraphQL shim"""
+    if only_primary_uuid:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    name
+                    value
+                    value2
+                    validity {
+                      from
+                      to
+                    }
+                    address_type_uuid
+                    org_unit_uuid
+                  }
+                }
+              }
+            }
+        """
+    else:
+        query = """
+            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+              org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+                objects {
+                  addresses {
+                    uuid
+                    user_key
+                    href
+                    name
+                    validity {
+                      from
+                      to
+                    }
+                    value
+                    value2
+                    address_type {
+                      facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      top_level_facet {
+                        user_key
+                        uuid
+                        description
+                      }
+                      uuid
+                      user_key
+                      name
+                      scope
+                      example
+                      owner
+                    }
+                    org_unit {
+                      name
+                      user_key
+                      uuid
+                      validity {
+                        from
+                        to
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """
+    args = {"uuid": orgid}
+    if at is not None:
+        args["from_data"] = at
+    if validity is not None:
+        start, end = validity_tuple(validity)
+        args["from_date"] = start
+        args["to_date"] = end
+    r = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(args),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+
+    flat = flatten_data(r.data["org_units"])
+    if len(flat) == 0:
+        return []
+
+    data = one(flat)["addresses"]
+
+    for element in data:
+        if only_primary_uuid:
+            element["address_type"] = {"uuid": element.pop("address_type_uuid")}
+            element["org_unit"] = {"uuid": element.pop("org_unit_uuid")}
+        else:
+            element["org_unit"] = element["org_unit"][0]
+
+    return list(filter(partial(filter_by_validity, validity), data))
 
 
 @router.get(

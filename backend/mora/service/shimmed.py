@@ -17,14 +17,12 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import ilen
 from more_itertools import one
-from pydantic import root_validator
-from ramodels.mo import EmployeeRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data
+from mora.graphapi.shim import flatten_data, MOEmployee
 from mora.service.employee import router as employee_router
 from mora.service.itsystem import router as it_router
 from mora.service.org import router as org_router
@@ -32,18 +30,6 @@ from mora.service.org import router as org_router
 # --------------------------------------------------------------------------------------
 # Shimmed endpoints
 # --------------------------------------------------------------------------------------
-
-
-class MOEmployee(EmployeeRead):
-    name: str
-    nickname: str
-    org: OrganisationRead
-    validity: Optional[Any]  # not part of the "old" MO response
-
-    @root_validator(pre=True)
-    def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
-        # noop overriding parent method - we need name & nickname
-        return values
 
 
 @employee_router.get(
