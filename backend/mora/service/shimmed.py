@@ -6,6 +6,7 @@
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from typing import Literal
 from typing import Optional
@@ -17,15 +18,20 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import ilen
 from more_itertools import one
+from ramodels.mo import OpenValidity
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 
 from mora import exceptions
+from mora.common import _create_graphql_connector
+from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.shim import flatten_data, MOEmployee
+from mora.graphapi.shim import flatten_data
+from mora.graphapi.shim import MOEmployee
 from mora.service.employee import router as employee_router
 from mora.service.itsystem import router as it_router
 from mora.service.org import router as org_router
+
 
 # --------------------------------------------------------------------------------------
 # Shimmed endpoints
@@ -309,38 +315,52 @@ async def get_org_children(
     org_unit_hierarchy: Optional[UUID] = None,
 ) -> list[OrganisationUnitCount]:
     """Obtain the list of nested units within an organisation."""
+    # This sucks! We should port this parent functionality to our
+    # GraphQL loaders instead
+    if at is not None:
+        if isinstance(at, date):
+            at = datetime.combine(at, datetime.min.time())
+        set_graphql_dates(
+            OpenValidity(from_date=at, to_date=at + timedelta(milliseconds=1))
+        )
+    connector = _create_graphql_connector()
+    children = await connector.organisationenhed.load_uuids(
+        overordnet=parentid,
+        gyldighed="Aktiv",
+    )
     query = """
     query OrganisationChildrenQuery(
-      $from_date: DateTime,
-      $engagements: Boolean!,
-      $associations: Boolean!,
-      $hierarchy: Boolean!) {
-        org_units(from_date: $from_date) {
-          objects {
-            name
-            user_key
-            uuid
-            parent_uuid
-            children {
-              uuid
+        $uuids: [UUID!]
+        $from_date: DateTime,
+        $engagements: Boolean!,
+        $associations: Boolean!,
+        $hierarchy: Boolean!) {
+            org_units(uuids: $uuids, from_date: $from_date) {
+                objects {
+                    name
+                    user_key
+                    uuid
+                    validity {
+                        from
+                        to
+                    }
+                    children {
+                        uuid
+                        org_unit_hierarchy @include(if: $hierarchy)
+                    }
+                    associations @include(if: $associations) {
+                        uuid
+                    }
+                    engagements @include(if: $engagements) {
+                        uuid
+                    }
+                }
             }
-            validity {
-              from
-              to
-            }
-            org_unit_hierarchy @include(if: $hierarchy)
-            associations @include(if: $associations) {
-              uuid
-            }
-            engagements @include(if: $engagements) {
-              uuid
-            }
-          }
         }
-      }
     """
     count = count or set()
     variables = {
+        "uuids": children,
         "engagements": "engagement" in count,
         "associations": "association" in count,
         "hierarchy": bool(org_unit_hierarchy),
@@ -351,23 +371,17 @@ async def get_org_children(
         variable_values=jsonable_encoder(variables),
     )
 
-    # Filter by parent uuid
-    ou_data = flatten_data(response.data["org_units"])
-    org_units: list[dict[str, Any]] = list(
-        filter_data(ou_data, "parent_uuid", str(parentid))
-    )
-
+    org_units = flatten_data(response.data["org_units"])
     if not org_units:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(parentid))
 
-    # Filter by hierarchy
-    if org_unit_hierarchy is not None:
-        org_units = list(
-            filter_data(org_units, "org_unit_hierarchy", str(org_unit_hierarchy))
-        )
-
     for unit in org_units:
-        unit |= {"child_count": len(unit.pop("children"))}
+        ou_children = unit.pop("children")
+        if org_unit_hierarchy is not None:
+            ou_children = list(
+                filter_data(ou_children, "org_unit_hierarchy", str(org_unit_hierarchy))
+            )
+        unit |= {"child_count": len(ou_children)}
         unit |= (
             {"engagement_count": len(unit.pop("engagements", []))}
             if "engagement" in count
@@ -378,6 +392,5 @@ async def get_org_children(
             if "association" in count
             else dict()
         )
-        unit.pop("parent_uuid", "")
 
     return org_units
