@@ -28,13 +28,14 @@ def test_app(**overrides: Any):
     return app
 
 
-@pytest.fixture(scope="class")
-def serviceapi_test():
+@pytest.fixture
+def service_client():
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    yield TestClient(test_app())
+    with TestClient(test_app()) as client:
+        yield client
 
 
 @pytest.fixture(scope="class")

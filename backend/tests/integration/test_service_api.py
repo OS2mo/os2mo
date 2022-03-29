@@ -19,8 +19,8 @@ from fastapi.testclient import TestClient
 @pytest.mark.usefixtures("sample_structures")
 @pytest.mark.serial
 class TestOrganisationEndpoints:
-    def test_list_organisation(self, serviceapi_test: TestClient):
-        response = serviceapi_test.get("/service/o/")
+    def test_list_organisation(self, service_client: TestClient):
+        response = service_client.get("/service/o/")
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -30,8 +30,8 @@ class TestOrganisationEndpoints:
             }
         ]
 
-    def test_get_organisation(self, serviceapi_test: TestClient):
-        response = serviceapi_test.get(
+    def test_get_organisation(self, service_client: TestClient):
+        response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
         )
         assert response.status_code == 200
@@ -49,8 +49,8 @@ class TestOrganisationEndpoints:
             "child_count": 2,
         }
 
-    def test_get_children(self, serviceapi_test: TestClient):
-        response = serviceapi_test.get(
+    def test_get_children(self, service_client: TestClient):
+        response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
         )
         assert response.status_code == 200
@@ -77,8 +77,8 @@ class TestOrganisationEndpoints:
             },
         ]
 
-    def test_get_children_with_counts(self, serviceapi_test: TestClient):
-        response = serviceapi_test.get(
+    def test_get_children_with_counts(self, service_client: TestClient):
+        response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             params={"count": {"engagement", "association"}},
         )
@@ -110,8 +110,8 @@ class TestOrganisationEndpoints:
             },
         ]
 
-    def test_get_children_with_hierarchy(self, serviceapi_test: TestClient):
-        response = serviceapi_test.get(
+    def test_get_children_with_hierarchy(self, service_client: TestClient):
+        response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             params={"org_unit_hierarchy": uuid4()},
         )
