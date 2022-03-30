@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.12.1 - 2022-03-30
+-------------------
+
+[#49533] Allow actor types and references in EffectiveTime
+
 5.12.0 - 2022-03-25
 -------------------
 
