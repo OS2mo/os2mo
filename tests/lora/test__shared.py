@@ -244,8 +244,16 @@ def effective_time_strat(draw):
         "from_date": valid_inf_dt(),
         "to_date": valid_inf_dt(),
     }
+    optional = {
+        "from_included": st.none() | st.booleans(),
+        "to_included": st.none() | st.booleans(),
+        "actor_type": st.none() | st.text(),
+        "actor_ref": st.none() | st.uuids(),
+    }
     st_dict = draw(
-        st.fixed_dictionaries(required).filter(lambda d: d["from_date"] < d["to_date"])
+        st.fixed_dictionaries(required, optional=optional).filter(  # type: ignore
+            lambda d: d["from_date"] < d["to_date"]
+        )
     )
     return st_dict
 
