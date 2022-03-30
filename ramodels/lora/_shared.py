@@ -200,6 +200,12 @@ class EffectiveTime(RABase):
     to_included: Optional[bool] = Field(
         description="Whether to_date is included in the interval."
     )
+    actor_type: Optional[str] = Field(
+        alias="aktoertypekode", description="Actor type indicator, e.g. Bruger"
+    )
+    actor_ref: Optional[UUID] = Field(
+        alias="aktoerref", description="Actor UUID reference."
+    )
 
     @root_validator
     def check_from_lt_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
