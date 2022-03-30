@@ -19,9 +19,6 @@ CMD ["yarn", "dev"]
 
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9 AS dist
 
-ARG COMMIT_TAG
-ENV COMMIT_TAG=${COMMIT_TAG}
-
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
 LABEL org.opencontainers.image.licenses="MPL-2.0"

@@ -225,7 +225,7 @@ default:
 
 # Sync
 #######
-dont-interrupt-me:
+Don't Interrupt:
   stage: sync
   image: alpine:latest
   interruptible: false
@@ -237,6 +237,7 @@ dont-interrupt-me:
     - echo "See https://docs.gitlab.com/ee/ci/yaml/#interruptible for more information."
   rules:
     - <<: *if-default-branch-refs
+    - <<: *if-tag
     - <<: *if-schedule
     - <<: *if-merge-request-labels-dont-interrupt
     - when: manual
@@ -376,6 +377,8 @@ Build Tempotest:
       --destination=$TEMPOTEST_IMAGE_SHA
   rules:
     - <<: *if-schedule
+      when: never
+    - <<: *if-tag-semver
       when: never
     - when: on_success
 
