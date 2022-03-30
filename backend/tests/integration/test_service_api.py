@@ -118,5 +118,28 @@ class TestOrganisationEndpoints:
         # This was not tested previously and we only use it in Aarhus
         # Unsure whether we acutally have fixture data for this?
         # Tested locally and it works as expected
+        # Random UUID gives child count = 0 because no children belong to the
+        # hierarchy
         assert response.status_code == 200
-        assert response.json() == []
+        assert response.json() == [
+            {
+                "child_count": 0,
+                "name": "Overordnet Enhed",
+                "user_key": "root",
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "validity": {
+                    "from": "2016-01-01T00:00:00+01:00",
+                    "to": None,
+                },
+            },
+            {
+                "child_count": 0,
+                "name": "Lønorganisation",
+                "user_key": "løn",
+                "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+                "validity": {
+                    "from": "2017-01-01T00:00:00+01:00",
+                    "to": None,
+                },
+            },
+        ]

@@ -38,9 +38,10 @@ from strawberry.types import Info
 
 from mora import config
 from mora import lora
-from mora.service.address_handler import multifield_text, dar
 from mora.graphapi.health import health_map
 from mora.graphapi.models import HealthRead
+from mora.service.address_handler import dar
+from mora.service.address_handler import multifield_text
 
 # --------------------------------------------------------------------------------------
 # Schema

@@ -75,7 +75,7 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
             info: Info, uuids: Optional[list[UUID]] = None
         ):
             """Resolve queries with no validity, i.e. class/facet/itsystem."""
-            dates = set_date_interval(None, None)  # from -inf to inf
+            dates = get_date_interval(None, None)  # from -inf to inf
             set_graphql_dates(dates)
             if uuids is not None:
                 return await get_by_uuid(info.context[loader], uuids)
@@ -105,7 +105,7 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
             The default behaviour of from_date and to_date, i.e. both being
             UNSET, is equivalent to validity=present in the service API.
         """
-        dates = set_date_interval(from_date, to_date)  # from -inf to inf
+        dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
         if uuids is not None:
             return await get_by_uuid(info.context[loader], uuids)
@@ -263,10 +263,10 @@ class Query:
 # --------------------------------------------------------------------------------------
 
 
-def set_date_interval(
-    from_date: Optional[datetime], to_date: Optional[datetime]
+def get_date_interval(
+    from_date: Optional[datetime] = UNSET, to_date: Optional[datetime] = UNSET
 ) -> OpenValidityModel:
-    """Set the date interval for GraphQL queries to support bitemporal lookups.
+    """Get the date interval for GraphQL queries to support bitemporal lookups.
 
     Args:
         from_date: The lower bound of the request interval
