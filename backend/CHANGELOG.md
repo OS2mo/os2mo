@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.2.3 - 2022-03-30
+------------------
+
+[#49533] Load org unit children using UUIDs directly from connector
+
 4.2.2 - 2022-03-28
 ------------------
 
