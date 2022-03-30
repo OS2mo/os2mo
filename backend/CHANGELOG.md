@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.2.4 - 2022-03-30
+------------------
+
+[#49533] Deploy new version to see if COMMIT_TAG is fixed
+
 4.2.3 - 2022-03-30
 ------------------
 
