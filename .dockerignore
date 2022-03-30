@@ -4,7 +4,6 @@
 *.DS_Store
 .dockerignore
 .editorconfig
-.git
 .github
 .gitignore
 .readthedocs.yml

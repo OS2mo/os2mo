@@ -337,6 +337,11 @@ Build OS2MO:
       --destination=${IMAGE_SHA}
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  rules:
+    - <<: *if-schedule
+      when: never
+    - when: on_success
+
 
 Build frontend:
   extends: .build:release-image
@@ -366,15 +371,11 @@ Build test frontend:
       --target frontend
 
 Build Tempotest:
-  extends: .build-base
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR/tempotest
-      --dockerfile=$CI_PROJECT_DIR/tempotest/Dockerfile
-      --destination=$TEMPOTEST_IMAGE_SHA
+  extends: .build-docker
+  variables:
+    CONTEXT: $CI_PROJECT_DIR/tempotest
+    DOCKERFILE: $CI_PROJECT_DIR/tempotest/Dockerfile
+    CI_IMAGE: $TEMPOTEST_IMAGE_SHA
   rules:
     - <<: *if-schedule
       when: never

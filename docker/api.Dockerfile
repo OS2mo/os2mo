@@ -1,6 +1,19 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
+FROM python:3.9 as versioner
+
+RUN pip install --no-cache-dir poetry==1.1.8
+
+WORKDIR /opt
+COPY .git ./
+COPY backend/poetry.lock backend/pyproject.toml ./
+
+RUN poetry version --short > VERSION
+RUN git rev-parse --verify HEAD > HASH
+RUN cat VERSION HASH
+
+
 FROM node:10 AS frontend
 
 WORKDIR /app/frontend
@@ -80,7 +93,5 @@ RUN install -g mora -o mora -d /log
 USER mora:mora
 
 # Add build version to the environment last to avoid build cache misses
-ARG COMMIT_TAG
-ARG COMMIT_SHA
-ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
-    COMMIT_SHA=${COMMIT_SHA}
+COPY --from=versioner /opt/VERSION .
+COPY --from=versioner /opt/HASH .

@@ -37,3 +37,9 @@ echo "Waiting for rabbitmq"
 python3 -m mora.cli wait-for-rabbitmq --seconds 30 || exit
 echo "OK"
 echo ""
+
+COMMIT_TAG=$(cat /app/VERSION)
+export COMMIT_TAG
+
+COMMIT_SHA=$(cat /app/HASH)
+export COMMIT_SHA
