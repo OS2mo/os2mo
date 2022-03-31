@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.12.2 - 2022-03-31
+-------------------
+
+[#47920] Fix Klasse data model to include an optional description
+
 5.12.1 - 2022-03-30
 -------------------
 
