@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.2.5 - 2022-03-31
+------------------
+
+[#49533] Fix class loading errors via new RAModels version
+
 4.2.4 - 2022-03-30
 ------------------
 
