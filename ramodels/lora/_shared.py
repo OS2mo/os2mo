@@ -522,6 +522,9 @@ class KlasseProperties(RABase):
         alias="virkning", description="Effective time of the properties."
     )
     example: Optional[str] = Field(alias="eksempel", description="Example usage.")
+    description: Optional[str] = Field(
+        alias="beskrivelse", description="Description of the Klasse."
+    )
 
 
 class KlasseRelations(RABase):
