@@ -88,16 +88,21 @@ include:
 workflow:
   rules:
     - <<: *if-tag
+      variables:
+        # Override the IMAGE_SHA variable on tag pipelines to avoid both the default
+        # branch pipeline and tag pipeline overriding each other's images arbitrarily when
+        # they are both running at the same time on master.
+        IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     - <<: *if-default-branch-refs
       variables:
-        # These values cannot be changed without also modifying salt-automation/config-updater
+        # Review values cannot be changed without also modifying salt-automation/config-updater
         REVIEW_SLUG: "review-os2mo-master-$CI_COMMIT_SHORT_SHA"
         REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-master?commit_sha=$CI_COMMIT_SHA"
         REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-master?commit_sha=$CI_COMMIT_SHA"
         REVIEW_DELETE_TF_STATE_URL: "$REVIEW_CONFIG_UPDATER_URL/delete-master-tf-state?commit_sha=$CI_COMMIT_SHA"
     - <<: *if-merge-request
       variables:
-        # These values cannot be changed without also modifying salt-automation/config-updater
+        # Review values cannot be changed without also modifying salt-automation/config-updater
         REVIEW_SLUG: "review-os2mo-mr${CI_MERGE_REQUEST_IID}"
         REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
         REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
@@ -158,8 +163,31 @@ default:
     - name: ${IMAGE_SHA}
       alias: mo
 
+.services:mo-base:
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+    LORA_URL: "http://mox/"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
+    GRAPHQL_AUTH: "false"
+
 .services:start-mo:
   extends:
+    - .services:mo-base
     - .services:start-all
   needs:
     - !reference [".services:start-all", needs]
@@ -168,52 +196,13 @@ default:
     - !reference [".services:start-all", services]
     - name: ${IMAGE_SHA}
       alias: mo
-  variables:
-    PYTHONASYNCIODEBUG: "1"
-    ENVIRONMENT: "testing"
-    DUMMY_MODE: "true"
-    LORA_URL: "http://mox/"
-
-    KEYCLOAK_SCHEMA: "http"
-    KEYCLOAK_PORT: 8080
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
-    KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-    CONF_DB_HOST: "mox-db"
-    CONF_DB_PORT: "5432"
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-
-    AMQP_ENABLE: "false"
-    QUERY_EXPORT_DIR: "/queries"
-    GRAPHQL_AUTH: "false"
-    GRAPHQL_ENABLE: "true"
 
 .services:use-mo:
+  extends:
+    - .services:mo-base
   needs:
     - Build OS2MO
   image: $IMAGE_SHA
-  variables:
-    PYTHONASYNCIODEBUG: "1"
-    ENVIRONMENT: "testing"
-    DUMMY_MODE: "true"
-    LORA_URL: "http://mox/"
-
-    KEYCLOAK_SCHEMA: "http"
-    KEYCLOAK_PORT: 8080
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
-    KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-    CONF_DB_HOST: "mox-db"
-    CONF_DB_PORT: "5432"
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-
-    AMQP_ENABLE: "false"
-    QUERY_EXPORT_DIR: "/queries"
-    GRAPHQL_AUTH: "false"
 
 .services:use-frontend:
   needs:
