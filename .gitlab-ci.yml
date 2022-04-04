@@ -158,8 +158,31 @@ default:
     - name: ${IMAGE_SHA}
       alias: mo
 
+.services:mo-base:
+  variables:
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+    LORA_URL: "http://mox/"
+
+    KEYCLOAK_SCHEMA: "http"
+    KEYCLOAK_PORT: 8080
+    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
+    KEYCLOAK_VERIFY_AUDIENCE: "false"
+
+    CONF_DB_HOST: "mox-db"
+    CONF_DB_PORT: "5432"
+    CONF_DB_NAME: mora
+    CONF_DB_USER: mora
+    CONF_DB_PASSWORD: mora
+
+    AMQP_ENABLE: "false"
+    QUERY_EXPORT_DIR: "/queries"
+    GRAPHQL_AUTH: "false"
+
 .services:start-mo:
   extends:
+    - .services:mo-base
     - .services:start-all
   needs:
     - !reference [".services:start-all", needs]
@@ -168,52 +191,13 @@ default:
     - !reference [".services:start-all", services]
     - name: ${IMAGE_SHA}
       alias: mo
-  variables:
-    PYTHONASYNCIODEBUG: "1"
-    ENVIRONMENT: "testing"
-    DUMMY_MODE: "true"
-    LORA_URL: "http://mox/"
-
-    KEYCLOAK_SCHEMA: "http"
-    KEYCLOAK_PORT: 8080
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
-    KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-    CONF_DB_HOST: "mox-db"
-    CONF_DB_PORT: "5432"
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-
-    AMQP_ENABLE: "false"
-    QUERY_EXPORT_DIR: "/queries"
-    GRAPHQL_AUTH: "false"
-    GRAPHQL_ENABLE: "true"
 
 .services:use-mo:
+  extends:
+    - .services:mo-base
   needs:
     - Build OS2MO
   image: $IMAGE_SHA
-  variables:
-    PYTHONASYNCIODEBUG: "1"
-    ENVIRONMENT: "testing"
-    DUMMY_MODE: "true"
-    LORA_URL: "http://mox/"
-
-    KEYCLOAK_SCHEMA: "http"
-    KEYCLOAK_PORT: 8080
-    KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
-    KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-    CONF_DB_HOST: "mox-db"
-    CONF_DB_PORT: "5432"
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-
-    AMQP_ENABLE: "false"
-    QUERY_EXPORT_DIR: "/queries"
-    GRAPHQL_AUTH: "false"
 
 .services:use-frontend:
   needs:
