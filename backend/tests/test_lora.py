@@ -2,14 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 import re
 
+import respx
 import freezegun
+from httpx import Response
 import tests.cases
 from aioresponses import aioresponses
 from mora import config
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util
-from more_itertools import last
 from more_itertools import one
 from parameterized import parameterized
 from yarl import URL
@@ -18,14 +19,12 @@ from . import util
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
-class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
-    @util.MockAioresponses()
-    async def test_get_effects(self, m):
-        lora_url = config.get_settings().lora_url
-        url = URL(f"{lora_url}organisation/organisationenhed")
-        m.get(
-            url,
-            payload={
+class AsyncTests(tests.cases.AsyncLoRATestCase):
+    @respx.mock
+    async def test_get_effects(self):
+        respx.get(
+            "/organisation/organisationenhed",
+            json={
                 "results": [
                     [
                         {
@@ -64,6 +63,16 @@ class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
                     ]
                 ]
             },
+        ).mock(
+            return_value=Response(
+                200,
+                json={
+                    "uuid": ["00000000-0000-0000-0000-000000000000"],
+                    "virkningfra": "2010-06-01T02:00:00+02:00",
+                    "virkningtil": "infinity",
+                    "konsolider": "True",
+                },
+            )
         )
 
         c = lora.Connector(validity="future")
@@ -198,17 +207,6 @@ class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
             ],
         )
 
-        call_args = one(m.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2010-06-01T02:00:00+02:00",
-                "virkningtil": "infinity",
-                "konsolider": "True",
-            },
-        )
-
     @parameterized.expand(
         [
             (400, 400, "E_INVALID_INPUT"),
@@ -218,144 +216,119 @@ class AsyncTests(tests.cases.IsolatedAsyncioTestCase):
             (500, 500, "E_UNKNOWN"),
         ]
     )
-    @util.MockAioresponses()
-    async def test_errors_json(self, status_in, status_out, error_key, m):
-        c = lora.Connector()
-        url = URL("http://mox/organisation/organisationenhed")
-
-        m.get(
-            url,
-            payload={
-                "message": "go away",
-            },
-            status=status_in,
-        )
-
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
-            await c.organisationenhed.get("42")
-
-        call_args = last(m.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
+    @respx.mock
+    async def test_errors_json(self, status_in, status_out, error_key):
+        respx.get(
+            "/organisation/organisationenhed",
+            json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
                 "virkningtil": "2010-06-01T02:00:00.000001+02:00",
                 "konsolider": "True",
             },
-        )
-
-        self.assertEqual(
-            {
-                "error": True,
-                "status": status_out,
-                "error_key": error_key,
-                "description": "go away",
-            },
-            ctxt.exception.detail,
-        )
-
-    @parameterized.expand(
-        [
-            (400, 400, "E_INVALID_INPUT"),
-            (401, 401, "E_UNAUTHORIZED"),
-            (403, 403, "E_FORBIDDEN"),
-            (426, 500, "E_UNKNOWN"),
-            (500, 500, "E_UNKNOWN"),
-        ]
-    )
-    @util.MockAioresponses()
-    async def test_errors_text(self, status_in, status_out, error_key, m):
-        c = lora.Connector()
-        url = URL("http://mox/organisation/organisationenhed")
-
-        m.get(
-            url,
-            body="I hate you",
-            status=status_in,
-        )
-
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
-            await c.organisationenhed.get("42")
-
-        call_args = last(m.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
-                "uuid": ["42"],
-                "virkningfra": "2010-06-01T02:00:00+02:00",
-                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
-                "konsolider": "True",
-            },
-        )
-
-        self.assertEqual(
-            {
-                "error": True,
-                "status": status_out,
-                "error_key": error_key,
-                "description": "I hate you",
-            },
-            ctxt.exception.detail,
-        )
-
-    @util.MockAioresponses()
-    async def test_error_debug(self, m):
-        # with util.override_lora_url():
-        url = URL("http://mox/organisation/organisationenhed")
-        m.get(
-            url,
-            payload={
-                "message": "go away",
-                "something": "other",
-            },
-            status=500,
+        ).mock(
+            return_value=Response(
+                status_in,
+                json={
+                    "message": "go away",
+                },
+            )
         )
 
         with self.assertRaises(exceptions.HTTPException) as ctxt:
             await lora.Connector().organisationenhed.get("42")
 
-        call_args = one(m.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
+        assert ctxt.exception.detail == {
+            "error": True,
+            "status": status_out,
+            "error_key": error_key,
+            "description": "go away",
+        }
+
+    @parameterized.expand(
+        [
+            (400, 400, "E_INVALID_INPUT"),
+            (401, 401, "E_UNAUTHORIZED"),
+            (403, 403, "E_FORBIDDEN"),
+            (426, 500, "E_UNKNOWN"),
+            (500, 500, "E_UNKNOWN"),
+        ]
+    )
+    @respx.mock
+    async def test_errors_text(self, status_in, status_out, error_key):
+        respx.get(
+            "/organisation/organisationenhed",
+            json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
                 "virkningtil": "2010-06-01T02:00:00.000001+02:00",
                 "konsolider": "True",
             },
+        ).mock(
+            return_value=Response(
+                status_in,
+                text="I hate you",
+            )
         )
 
-        self.assertEqual(
-            {
-                "error": True,
-                "status": 500,
-                "error_key": "E_UNKNOWN",
-                "description": "go away",
-            },
-            ctxt.exception.detail,
-        )
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            await lora.Connector().organisationenhed.get("42")
 
-    @util.MockAioresponses()
-    async def test_finding_nothing(self, m):
-        c = lora.Connector()
-        url = URL("http://mox/organisation/organisationenhed")
-        m.get(
-            url,
-            payload={"results": []},
-        )
+        assert ctxt.exception.detail == {
+            "error": True,
+            "status": status_out,
+            "error_key": error_key,
+            "description": "I hate you",
+        }
 
-        self.assertIsNone(await c.organisationenhed.get("42"))
-        call_args = one(m.requests["GET", url])
-        self.assertEqual(
-            call_args.kwargs["json"],
-            {
+    @respx.mock
+    async def test_error_debug(self):
+        respx.get(
+            "/organisation/organisationenhed",
+            json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
                 "virkningtil": "2010-06-01T02:00:00.000001+02:00",
                 "konsolider": "True",
             },
+        ).mock(
+            return_value=Response(
+                500,
+                json={
+                    "message": "go away",
+                    "something": "other",
+                },
+            )
         )
+
+        with self.assertRaises(exceptions.HTTPException) as ctxt:
+            await lora.Connector().organisationenhed.get("42")
+
+        assert ctxt.exception.detail == {
+            "error": True,
+            "status": 500,
+            "error_key": "E_UNKNOWN",
+            "description": "go away",
+        }
+
+    @respx.mock
+    async def test_finding_nothing(self):
+        respx.get(
+            "/organisation/organisationenhed",
+            json={
+                "uuid": ["42"],
+                "virkningfra": "2010-06-01T02:00:00+02:00",
+                "virkningtil": "2010-06-01T02:00:00.000001+02:00",
+                "konsolider": "True",
+            },
+        ).mock(
+            return_value=Response(
+                200,
+                json={"results": []},
+            )
+        )
+
+        self.assertIsNone(await lora.Connector().organisationenhed.get("42"))
 
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @aioresponses()

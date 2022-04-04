@@ -15,7 +15,7 @@ from parameterized import parameterized
 from . import util
 
 
-class AsyncTestIsDateRangeValid(tests.cases.IsolatedAsyncioTestCase):
+class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
     async def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
             await validator._is_date_range_valid(

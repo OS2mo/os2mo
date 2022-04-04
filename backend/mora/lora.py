@@ -6,6 +6,7 @@ import asyncio
 import json
 import re
 import uuid
+import httpx
 from asyncio import gather
 from collections import defaultdict
 from datetime import datetime
@@ -144,7 +145,7 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-async def _httpx_check_response(r):
+async def _httpx_check_response(r: httpx.Response) -> httpx.Response:
     if 400 <= r.status_code < 600:
         try:
             cause = r.json()
