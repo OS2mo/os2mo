@@ -662,6 +662,8 @@ Vue-unit-test:
   tags:
     - deploy
   #rules:
+  #  - <<: *if-schedule
+  #    when: never
   #  - <<: *if-default-branch-refs
   #  - <<: *if-merge-request-labels-run-review-app
   #  - <<: *if-merge-request-labels-run-qa
@@ -676,6 +678,8 @@ Deploy Review Master:
     url: "https://review-os2mo-master-$CI_COMMIT_SHORT_SHA.moraci.magentahosted.dk"
     on_stop: Stop Review Master
   rules:
+    - <<: *if-schedule
+      when: never
     - <<: *if-default-branch-refs
 Deploy Review MR:
   extends:
@@ -697,6 +701,8 @@ Deploy Review MR:
 .qa-base:
   stage: qa
   rules:
+    - <<: *if-schedule
+      when: never
     - <<: *if-default-branch-refs
     - <<: *if-merge-request-labels-run-qa
     - <<: *if-merge-request
@@ -774,6 +780,8 @@ Performance Tests:
   tags:
     - deploy
   #rules:
+  #  - <<: *if-schedule
+  #    when: never
   #  - <<: *if-default-branch-refs
   #  - <<: *if-merge-request
   #    when: manual
@@ -784,6 +792,8 @@ Stop Review Master:
   environment:
     name: "review/review-os2mo-master-$CI_COMMIT_SHORT_SHA"
   rules:
+    - <<: *if-schedule
+      when: never
     - <<: *if-default-branch-refs
 Stop Review MR:
   extends:
@@ -819,6 +829,8 @@ Delete Review Terraform State Master:
   needs:
     - Stop Review Master
   rules:
+    - <<: *if-schedule
+      when: never
     - <<: *if-default-branch-refs
 Delete Review Terraform State MR:
   extends:
