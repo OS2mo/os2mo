@@ -30,11 +30,12 @@ function loadLocaleMessages() {
   return messages
 }
 
-export default new VueI18n({
+const i18n = new VueI18n({
   locale: localStorage.moLocale || process.env.VUE_APP_I18N_LOCALE || "da",
   fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || "da",
   messages: loadLocaleMessages(),
 });
+export default i18n
 
 export function getDatepickerLocales() {
   return {
@@ -53,7 +54,7 @@ const translation_prefix_length = translation_prefix.length
  * as such should be translated
 */
 export function has_translation_prefix(value) {
-    return value.substr(0, translation_prefix_length) === translation_prefix
+    return value.substring(0, translation_prefix_length) === translation_prefix
 }
 
 
