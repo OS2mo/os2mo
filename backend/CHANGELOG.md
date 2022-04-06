@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.3.0 - 2022-04-06
+------------------
+
+[#49705] Change auth on /service/exports/{filename} to be cookie-based
+
 4.2.7 - 2022-04-06
 ------------------
 
