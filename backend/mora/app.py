@@ -232,6 +232,12 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             tags=["Service." + name],
             dependencies=[Depends(auth)],
         )
+    for name, router in service.no_auth_routers.items():
+        app.include_router(
+            router,
+            prefix="/service",
+            tags=["Service." + name],
+        )
 
     if settings.graphql_enable:
         gql_router = setup_graphql(settings.graphiql_enable)

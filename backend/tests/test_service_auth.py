@@ -52,6 +52,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
             "/indsigt",
             "/service/keycloak.json",
             "/service/token",
+            "/service/exports/{file_name}",
             "/service/{rest_of_path:path}",
             "/testing/testcafe-db-setup",
             "/testing/testcafe-db-teardown",
