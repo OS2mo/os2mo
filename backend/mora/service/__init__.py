@@ -31,7 +31,6 @@ routers = {
     "DetailReading": detail_reading.router,
     "DetailWriting": detail_writing.router,
     "Employee": employee.router,
-    "Exports": exports.router,
     "Facet": facet.router,
     "Insight": insight.router,
     "ITSystem": itsystem.router,
@@ -41,4 +40,7 @@ routers = {
     "Related": related.router,
     "Configuration": configuration.router,
     "Validate": validate.router,
+}
+no_auth_routers = {
+    "Exports": exports.router,
 }

@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
       </h4>
       <span v-for="(q, index) in queries" :key="index">
         <icon name="download"/>
-      <a :href="downloadLink(q)">{{q}}</a>
+        <a :href="downloadLink(q)">{{q}}</a>
       </span>
     </div>
   </div>

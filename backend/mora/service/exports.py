@@ -2,21 +2,31 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import os
+from typing import Optional
 
 from fastapi import APIRouter
+from fastapi import Cookie
+from fastapi import Depends
+from fastapi import HTTPException
+from fastapi import Response
 from fastapi.responses import FileResponse
+from fastapi.security import OAuth2PasswordBearer
 
+from mora.auth.keycloak.oidc import auth
 from .. import exceptions, config
 
 router = APIRouter()
 
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")
+
+
 @router.get(
     "/exports/",
     responses={"500": {"description": "Directory does not exist"}},
+    dependencies=[Depends(auth)],
 )
-# @util.restrictargs()
-def list_export_files():
+def list_export_files(response: Response, token: str = Depends(oauth2_scheme)):
     """
     List the available exports
 
@@ -33,6 +43,15 @@ def list_export_files():
         "export2.xlsx"
       ]
     """
+    response.set_cookie(
+        key="MO_FILE_DOWNLOAD",
+        value=token,
+        secure=True,
+        httponly=True,
+        samesite="strict",
+        path="/service/exports/",
+    )
+
     settings = config.get_settings()
     export_dir = settings.query_export_dir
     if not os.path.isdir(export_dir):
@@ -44,12 +63,20 @@ def list_export_files():
     return files
 
 
+async def _check_auth_cookie(auth_cookie=Optional[str]) -> None:
+    if auth_cookie is None:
+        raise HTTPException(status_code=401, detail="Missing download cookie!")
+    await auth(str(auth_cookie))
+
+
 @router.get(
     "/exports/{file_name}",
     responses={"500": {"description": "Directory does not exist"}},
 )
-# @util.restrictargs()
-def get_export_file(file_name: str):
+async def get_export_file(
+    file_name: str,
+    mo_file_download: Optional[str] = Cookie(None, alias="MO_FILE_DOWNLOAD"),
+):
     """
     Fetch a export file with a given name
 
@@ -59,6 +86,8 @@ def get_export_file(file_name: str):
 
     :return: The file corresponding to the given export file name
     """
+    await _check_auth_cookie(mo_file_download)
+
     settings = config.get_settings()
     export_dir = settings.query_export_dir
     if not os.path.isdir(export_dir):
