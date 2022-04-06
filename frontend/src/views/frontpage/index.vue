@@ -16,12 +16,14 @@ SPDX-License-Identifier: MPL-2.0
     </div>
     <div class="version">
       <div>
-        <a href="https://os2mo.readthedocs.io/en/development/news.html">
-          {{this.mo_version}}</a>
+        <a href="https://rammearkitektur.docs.magenta.dk/os2mo/news.html">
+          {{this.mo_version}}
+        </a>
       </div>
       <div>
-        <a href="https://mox.readthedocs.io/en/development/dev/news/">
-          {{this.lora_version}}</a>
+        <a href="https://mox.readthedocs.io/en/master/dev/news.html">
+          {{this.lora_version}}
+        </a>
       </div>
     </div>
   </div>
