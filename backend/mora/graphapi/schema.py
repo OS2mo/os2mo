@@ -14,6 +14,7 @@ from typing import TypeVar
 from uuid import UUID
 
 import strawberry
+from more_itertools import only
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -686,6 +687,7 @@ class OrganisationUnit:
                 parent_uuid = parent.parent_uuid
                 tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
                 result, parent = await asyncio.gather(*tasks)
+                parent = only(parent.objects, default=None)
         return result
 
     @strawberry.field(description="Related addresses")
