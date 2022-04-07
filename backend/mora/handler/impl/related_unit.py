@@ -49,7 +49,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
         if is_graphql():
             return {
                 **base_obj,
-                "org_unit_uuid": org_units_uuid,
+                "org_unit_uuids": org_units_uuid,
             }
 
         only_primary_uuid = util.get_args_flag("only_primary_uuid")

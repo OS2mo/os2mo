@@ -505,7 +505,8 @@ GraphAPI-test:
     - .backend-test-base
   script:
     - pytest
-      -k "graphapi"
+      backend/tests/graphapi
+      backend/tests/graphapi-shim/
       -p no:cacheprovider
       --color=yes
       --show-capture=no
@@ -519,6 +520,34 @@ GraphAPI-test:
     when: always
     paths:
       - $CI_PROJECT_DIR/coverage-html
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
+GraphAPI-Integration-test:
+  extends:
+    - .backend-test-base
+    - .services:start-all
+  needs:
+    - !reference [".backend-test-base", needs]
+    - !reference [".services:start-all", needs]
+  parallel: 4
+  script:
+    - pytest
+      backend/tests/integration/
+      -k "graphapi"
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=no
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=mora
+      --group $CI_NODE_INDEX
+      --splits $CI_NODE_TOTAL
+      --splitting-algorithm least_duration
+      --durations-path backend/tests/.test_durations
+  artifacts:
+    when: always
+    paths:
       - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
