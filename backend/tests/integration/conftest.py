@@ -6,6 +6,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -18,8 +20,8 @@ from tests.cases import fake_auth
 # --------------------------------------------------------------------------------------
 
 
-def test_app():
-    app = create_app()
+def test_app(overrides: dict[str, Any]):
+    app = create_app(overrides)
     app.dependency_overrides[auth] = fake_auth
     return app
 
@@ -30,4 +32,14 @@ def serviceapi_test():
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    yield TestClient(test_app())
+    yield TestClient(test_app({}))
+
+
+@pytest.fixture(scope="class")
+def graphapi_test():
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    with TestClient(test_app({"graphql_enable": True})) as client:
+        yield client
