@@ -6,14 +6,10 @@ import os
 import re
 from copy import deepcopy
 from json import dumps
-
-from mora.config import Settings
 from typing import Union
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 from urllib.parse import parse_qsl
-from starlette_context import _request_scope_context_storage
-from starlette_context import context
-from strawberry.dataloader import DataLoader
 
 import aioresponses
 import jinja2
@@ -21,9 +17,14 @@ import requests
 import requests_mock
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
+from starlette_context import _request_scope_context_storage
+from starlette_context import context
+from strawberry.dataloader import DataLoader
 from yarl import URL
 
-from mora import lora, config
+from mora import config
+from mora import lora
+from mora.config import Settings
 from mora.exceptions import ImproperlyConfigured
 from mora.service.address_handler.dar import load_addresses
 
@@ -103,6 +104,8 @@ async def load_sample_structures(minimal=False):
     classes = {
         # org_unit_type
         "afdeling": "32547559-cfc1-4d97-94c6-70b192eff825",
+        # leave_type
+        "barselsorlov": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
     }
 
     facets = {

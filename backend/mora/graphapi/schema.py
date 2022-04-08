@@ -14,6 +14,8 @@ from typing import TypeVar
 from uuid import UUID
 
 import strawberry
+from more_itertools import one
+from more_itertools import only
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -523,14 +525,16 @@ class Leave:
 
     @strawberry.field(description="Related employee")
     async def employee(self, root: LeaveRead, info: Info) -> list["Employee"]:
-        return (await info.context["employee_loader"].load(root.employee_uuid)).objects
+        loader: DataLoader = info.context["employee_loader"]
+        return (await loader.load(root.employee_uuid)).objects
 
     @strawberry.field(description="Related engagement")
     async def engagement(self, root: LeaveRead, info: Info) -> Optional["Engagement"]:
         loader: DataLoader = info.context["engagement_loader"]
         if root.engagement_uuid is None:
             return None
-        return await loader.load(root.engagement_uuid)
+        engagement = await loader.load(root.engagement_uuid)
+        return only(engagement.objects)
 
 
 # Manager
@@ -560,7 +564,7 @@ class Manager:
     @strawberry.field(description="Manager responsibilities")
     async def responsibilities(self, root: ManagerRead, info: Info) -> list["Class"]:
         loader: DataLoader = info.context["class_loader"]
-        if root.responsibility_uuids is None:  # TODO: just a list please
+        if root.responsibility_uuids is None:
             return []
         return await loader.load_many(root.responsibility_uuids)
 
@@ -686,6 +690,7 @@ class OrganisationUnit:
                 parent_uuid = parent.parent_uuid
                 tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
                 result, parent = await asyncio.gather(*tasks)
+                parent = only(parent.objects, default=None)
         return result
 
     @strawberry.field(description="Related addresses")
@@ -749,7 +754,8 @@ class RelatedUnit:
         self, root: RelatedUnitRead, info: Info
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load_many(root.org_unit_uuids)
+        results = await loader.load_many(root.org_unit_uuids)
+        return [one(result.objects) for result in results]
 
 
 # Role
