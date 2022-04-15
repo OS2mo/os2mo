@@ -9,7 +9,7 @@ BASEURL = "http://localhost:8081/auth"
 
 token_url = BASEURL + f"/realms/{REALM}/protocol/openid-connect/token"
 payload = {
-    "client_id": "mo",
+    "client_id": "mo-frontend",
     "username": "bruce",
     "password": "bruce",
     "grant_type": "password",
