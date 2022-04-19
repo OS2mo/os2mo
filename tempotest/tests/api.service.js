@@ -11,7 +11,7 @@ function engagement() {
   group('engagement', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -28,7 +28,7 @@ function association() {
   group('association', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -41,7 +41,7 @@ function itSystem() {
   group('itSystem', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -54,7 +54,7 @@ function role() {
   group('role', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -67,7 +67,7 @@ function manager() {
   group('manager', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -80,7 +80,7 @@ function leave() {
   group('leave', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -93,7 +93,7 @@ function address() {
   group('address', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/details/create',
+      http.url`/service/details/create`,
       ...asJSON({
         uuid,
         todo,
@@ -106,7 +106,7 @@ function employee() {
   group('employee', () => {
     const uuid = uuidv4();
     client.post(
-      '/service/e/create',
+      http.url`/service/e/create`,
       ...asJSON({
         uuid,
         givenname: 'Alice',

@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 import { group } from 'k6';
+import http from 'k6/http';
 import { client } from '../util.js';
 
 function version() {
-  client.get('/version/');
+  client.get(http.url`/version/`);
 }
 
 function health() {
-  client.get('/health/');
+  client.get(http.url`/health/`);
 }
 
 function live() {
-  client.get('/health/live');
+  client.get(http.url`/health/live`);
 }
 
 function org() {
-  client.get('/service/o/');
+  client.get(http.url`/service/o/`);
 }
 
 export default function apiServiceMetaTests() {
