@@ -7,12 +7,14 @@ from typing import List
 
 import aiohttp
 from fastapi.encoders import jsonable_encoder
+from httpx import HTTPStatusError
+
 from mora import config
-from mora.async_util import async_session
+from mora.http import client
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
-from pydantic import parse_obj_as
+from pydantic import parse_obj_as, ValidationError
 from structlog import get_logger
 
 
@@ -48,24 +50,31 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
         trigger_dict=trigger_dict,
         timeout=timeout,
     )
-    client_timeout = aiohttp.ClientTimeout(total=timeout)
-    async with async_session() as session:
-        # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
-        payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
-        async with session.post(
-            trigger_url, timeout=client_timeout, json=payload
-        ) as response:
-            payload = await response.json()
-            logger.debug(
-                "http_sender received", payload=payload, trigger_url=trigger_url
-            )
-            if response.status != 200:
-                raise HTTPTriggerException(payload["detail"])
-            return payload
+
+    # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
+    request_payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
+
+    # TODO: handle client exceptions
+    try:
+        response = await client.post(
+            trigger_url, json=request_payload, timeout=timeout
+        )
+        response.raise_for_status()
+
+        response_payload = response.json()
+        logger.debug(
+            "http_sender received", payload=response_payload, trigger_url=trigger_url
+        )
+
+        return response_payload
+
+    except HTTPStatusError as err:
+        logger.error("Trigger HTTP error", err=err)
+        raise HTTPTriggerException(err.response.text)
 
 
 async def fetch_endpoint_trigger(
-    session, endpoint: str, timeout: int = 10
+    endpoint: str, timeout: int = 10
 ) -> List[MOTriggerRegister]:
     """Fetch the trigger configuration from endpoint.
 
@@ -97,23 +106,25 @@ async def fetch_endpoint_trigger(
     full_url = endpoint + "/triggers"
 
     logger.debug("Sending request to", full_url=full_url)
-    client_timeout = aiohttp.ClientTimeout(total=timeout)
+
     try:
-        async with session.get(full_url, timeout=client_timeout) as response:
-            try:
-                trigger_configuration = parse_obj_as(
-                    List[MOTriggerRegister], await response.json()
-                )
-                return trigger_configuration
-            except aiohttp.client_exceptions.ContentTypeError as exc:
-                logger.error(
-                    "Unable to parse response from (not JSON?)", full_url=full_url
-                )
-                logger.error(reponse_text=await response.text())
-                raise exc
-    except asyncio.exceptions.TimeoutError as exc:
-        logger.error("Timeout while connecting to", full_url=full_url)
-        raise exc
+        response = await client.get(full_url, timeout=timeout)
+        response.raise_for_status()
+
+        trigger_configuration = parse_obj_as(
+            List[MOTriggerRegister], response.json()
+        )
+        return trigger_configuration
+    except HTTPStatusError as err:
+        logger.critical("Error calling", url=full_url, err=err)
+        raise err
+    except ValidationError as err:
+        logger.critical(
+            "Unable to parse response from (not JSON?)",
+            full_url=full_url,
+            err=err
+        )
+        raise err
 
 
 async def fetch_endpoint_triggers(
@@ -129,16 +140,13 @@ async def fetch_endpoint_triggers(
         dictionary of endpoint to trigger configuration.
     """
 
-    async with async_session() as session:
-        tasks = map(
-            partial(fetch_endpoint_trigger, session, timeout=timeout), endpoints
-        )
-        # TODO: Could do this as an async generator with `.as_completed()`?
-        trigger_configs = await asyncio.gather(*tasks)
-        trigger_tuples = zip(endpoints, trigger_configs)
-        # Filter out Nones
-        trigger_tuples = filter(lambda tup: tup[1] is not None, trigger_tuples)
-        return dict(trigger_tuples)
+    tasks = map(partial(fetch_endpoint_trigger, timeout=timeout), endpoints)
+    # TODO: Could do this as an async generator with `.as_completed()`?
+    trigger_configs = await asyncio.gather(*tasks)
+    trigger_tuples = zip(endpoints, trigger_configs)
+    # Filter out Nones
+    trigger_tuples = filter(lambda tup: tup[1] is not None, trigger_tuples)
+    return dict(trigger_tuples)
 
 
 async def register(app) -> bool:
