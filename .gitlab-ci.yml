@@ -651,7 +651,7 @@ Vue-unit-test:
   stage: review
   needs:
     - Build OS2MO
-  image: debian:bullseye
+  image: debian:bookworm
   variables:
     GIT_STRATEGY: none  # We do not need the source code
   before_script:
@@ -659,7 +659,7 @@ Vue-unit-test:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_DEPLOY_URL
@@ -864,7 +864,7 @@ Upload Performance Test Results:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_UNDEPLOY_URL
@@ -911,7 +911,7 @@ Stop Review MR:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_DELETE_TF_STATE_URL
