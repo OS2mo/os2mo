@@ -10,16 +10,16 @@ function version() {
   client.get(http.url`/version/`);
 }
 
-function health() {
-  client.get(http.url`/health/`);
-}
-
 function live() {
   client.get(http.url`/health/live`);
 }
 
 function org() {
   client.get(http.url`/service/o/`);
+}
+
+function health() {
+  client.get(http.url`/health/`);
 }
 
 export default function apiServiceMetaTests() {
