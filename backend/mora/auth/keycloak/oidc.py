@@ -18,7 +18,7 @@ logger = get_logger()
 
 async def noauth() -> Token:
     """Noop auth provider."""
-    return Token(azp="mo-frontend")
+    return Token(azp="mo-frontend", uuid="00000000-0000-0000-0000-000000000000")
 
 
 keycloak_auth = get_auth_dependency(
