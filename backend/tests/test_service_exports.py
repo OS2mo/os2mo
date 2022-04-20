@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Optional
+from pathlib import Path
 
 import mock
 from fastapi import Request
@@ -29,8 +30,8 @@ class AuthTests(tests.cases.AsyncTestCase):
         # Bypass Oauth2 per default
         self.app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
 
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
-    @mock.patch("mora.service.exports.os.listdir")
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "iterdir")
     async def test_list_export_files_sets_cookie(self, mock_listdir):
         """Ensure that list sets a token."""
         response = await self.request("/service/exports/")
@@ -43,8 +44,8 @@ class AuthTests(tests.cases.AsyncTestCase):
             "Secure",
         }
 
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
-    @mock.patch("mora.service.exports.os.path.isfile", lambda x: True)
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: True)
     @mock.patch("mora.service.exports.FileResponse")
     async def test_get_export_reads_cookie(self, mock_send_file):
         """Ensure that get reads our token and attempts to validate it."""
@@ -83,7 +84,7 @@ class FileTests(tests.cases.AsyncTestCase):
         # Bypass Oauth2 per default
         self.app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
 
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
+    @mock.patch.object(Path, "is_dir", lambda x: False)
     async def test_list_export_files_raises_on_invalid_dir(self):
         """Ensure we handle missing export dir"""
         await self.assertRequestResponse(
@@ -97,24 +98,24 @@ class FileTests(tests.cases.AsyncTestCase):
             status_code=500,
         )
 
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
-    @mock.patch("mora.service.exports.os.path.isfile")
-    @mock.patch("mora.service.exports.os.listdir")
-    async def test_list_export_files_returns_filenames(self, mock_listdir, mock_isfile):
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "iterdir")
+    async def test_list_export_files_returns_filenames(self, mock_listdir):
         """Ensure that we only return filenames from the export directory"""
         filenames = ["file1", "file2"]
 
-        def mocked_isfile(filename):
+        def mocked_isfile(self):
+            filename = str(self)
             return filename in filenames
 
-        with util.override_config(Settings(query_export_dir="")):
-            mock_listdir.return_value = filenames + ["dir"]
-            mock_isfile.side_effect = mocked_isfile
+        mock_listdir.return_value = filenames + ["dir"]
 
-            await self.assertRequestResponse("/service/exports/", filenames)
+        with mock.patch.object(Path, "is_file", mocked_isfile):
+            with util.override_config(Settings(query_export_dir="")):
+                await self.assertRequestResponse("/service/exports/", filenames)
 
     @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: False)
+    @mock.patch.object(Path, "is_dir", lambda x: False)
     async def test_get_export_file_raises_on_invalid_dir(self):
         """Ensure we handle missing export dir"""
         await self.assertRequestResponse(
@@ -129,8 +130,8 @@ class FileTests(tests.cases.AsyncTestCase):
         )
 
     @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
-    @mock.patch("mora.service.exports.os.path.isfile", lambda x: False)
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: False)
     async def test_get_export_file_raises_on_file_not_found(self):
         """Ensure we handle nonexistent files"""
         await self.assertRequestResponse(
@@ -146,8 +147,8 @@ class FileTests(tests.cases.AsyncTestCase):
         )
 
     @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
-    @mock.patch("mora.service.exports.os.path.isdir", lambda x: True)
-    @mock.patch("mora.service.exports.os.path.isfile", lambda x: True)
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: True)
     @mock.patch("mora.service.exports.FileResponse")
     async def test_get_export_file_returns_file(self, mock_send_file):
         """Ensure we return a file if found"""
@@ -156,3 +157,69 @@ class FileTests(tests.cases.AsyncTestCase):
 
         await self.assertRequestResponse("/service/exports/whatever", "I am a file")
         mock_send_file.assert_called_once()
+
+
+class FileUploadTests(tests.cases.AsyncTestCase):
+    maxDiff = None
+
+    @mock.patch.object(Path, "is_dir", lambda x: False)
+    async def test_folder_missing(self):
+        """Ensure we handle missing export dir."""
+        response = await self.client.post(
+            "/service/exports/filename.csv", files=dict(file=b"bar")
+        )
+        assert response.status_code == 500
+        assert response.json() == {
+            "description": "Directory does not exist.",
+            "error": True,
+            "error_key": "E_DIR_NOT_FOUND",
+            "status": 500,
+        }
+
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: True)
+    async def test_file_exists(self):
+        """Ensure that we cannot upload files if they already exist."""
+        open_mock = mock.mock_open()
+        with mock.patch("mora.service.exports.open", open_mock, create=True):
+            response = await self.client.post(
+                "/service/exports/filename.csv", files=dict(file=b"bar")
+            )
+            assert response.status_code == 409
+            assert response.json() == {
+                "description": "File already exists.",
+                "error": True,
+                "error_key": "E_ALREADY_EXISTS",
+                "filename": "filename.csv",
+                "status": 409,
+            }
+
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: True)
+    async def test_file_exists_but_forced(self):
+        """Ensure that we can upload files with force, even if a file exists."""
+        open_mock = mock.mock_open()
+        with mock.patch.object(Path, "open", open_mock, create=True):
+            response = await self.client.post(
+                "/service/exports/filename.csv?force=true", files=dict(file=b"bar")
+            )
+            assert response.status_code == 200
+            assert response.json() == "OK"
+
+        open_mock.assert_called_once_with("wb")
+        open_mock().write.assert_called_once_with(b"bar")
+
+    @mock.patch.object(Path, "is_dir", lambda x: True)
+    @mock.patch.object(Path, "is_file", lambda x: False)
+    async def test_successful_file_upload(self):
+        """Ensure that we can upload files."""
+        open_mock = mock.mock_open()
+        with mock.patch.object(Path, "open", open_mock, create=True):
+            response = await self.client.post(
+                "/service/exports/filename.csv", files=dict(file=b"bar")
+            )
+            assert response.status_code == 200
+            assert response.json() == "OK"
+
+        open_mock.assert_called_once_with("wb")
+        open_mock().write.assert_called_once_with(b"bar")

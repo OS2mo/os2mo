@@ -122,6 +122,7 @@ class ErrorCodes(Enum):
     E_SAML_AUTH_ERROR = 500, "Internal auth error."
     E_INTERNAL_ERROR = 500, "Internal error."
     E_NOT_FOUND = 404, "Not found."
+    E_ALREADY_EXISTS = 409, "File already exists."
     E_NO_SUCH_ENDPOINT = 404, "No such endpoint."
     E_UNKNOWN = 500, "Unknown Error."
     E_DIR_NOT_FOUND = 500, "Directory does not exist."

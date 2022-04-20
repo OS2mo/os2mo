@@ -59,7 +59,10 @@ def keycloak_router():
         }
         async with ClientSession() as session:
             response = await session.post(token_url, data=payload)
-            token = (await response.json())["access_token"]
+            payload = await response.json()
+            if response.status >= 400:
+                raise HTTPException(status_code=response.status, detail=payload)
+            token = payload["access_token"]
             return {"access_token": token, "token_type": "Bearer"}
 
     return router

@@ -35,7 +35,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
     # all excluded endpoints must be explicitly specified in the list
 
     def setUp(self) -> None:
-        self.no_auth_endpoints = (
+        self.no_auth_endpoints = {
             "/health/",
             "/health/live",
             "/health/ready",
@@ -57,8 +57,16 @@ class TestEndpointAuthDependency(unittest.TestCase):
             "/testing/testcafe-db-setup",
             "/testing/testcafe-db-teardown",
             "/metrics",
-        )
-        self.all_routes = main.app.routes
+        }
+        # List of endpoints to not evaluate
+        skip_endpoints = {
+            # This URL has both a protected and unprotected endpoint
+            "/service/exports/{file_name}",
+        }
+        routes = main.app.routes
+        routes = filter(lambda route: route.path not in skip_endpoints, routes)
+        self.all_routes = routes
+
         self.auth_coroutine = auth
 
     def test_ensure_endpoints_depend_on_oidc_auth_function(self):
