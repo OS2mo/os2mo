@@ -147,6 +147,8 @@ class Settings(BaseSettings):
     confdb_show_level: bool = True
     confdb_show_primary_engagement: bool = False
     confdb_show_primary_association: bool = False
+
+    # Show the refresh button for org-units
     confdb_show_org_unit_button: bool = False
     confdb_inherit_manager: bool = True
     confdb_association_dynamic_facets: str = ""
