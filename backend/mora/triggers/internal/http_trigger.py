@@ -8,7 +8,6 @@ from typing import List
 import aiohttp
 from fastapi.encoders import jsonable_encoder
 from mora import config
-from mora.async_util import async_session
 from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
@@ -49,7 +48,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
         timeout=timeout,
     )
     client_timeout = aiohttp.ClientTimeout(total=timeout)
-    async with async_session() as session:
+    async with aiohttp.ClientSession() as session:
         # TODO: Consider changing trigger_dict to MOTriggerPayload throughout
         payload = jsonable_encoder(MOTriggerPayload(**trigger_dict).dict())
         async with session.post(
@@ -129,7 +128,7 @@ async def fetch_endpoint_triggers(
         dictionary of endpoint to trigger configuration.
     """
 
-    async with async_session() as session:
+    async with aiohttp.ClientSession() as session:
         tasks = map(
             partial(fetch_endpoint_trigger, session, timeout=timeout), endpoints
         )
