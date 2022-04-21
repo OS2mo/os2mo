@@ -905,24 +905,45 @@ Release Frontend version:
 
 # Deploy
 #########
-Deploy to Dev:
+# Flux
+Deploy to Flux Dev:
   extends: .release-to-dev
   needs:
     - Release API version
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-dev
 
-Deploy to Test:
+Deploy to Flux Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-test
 
-Deploy to Prod:
+Deploy to Flux Prod:
   extends: .release-to-prod
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-prod
+
+# Salt
+Deploy to Salt Dev:
+  extends: .release-to-dev
+  needs:
+    - Release API version
+  variables:
+    ENDPOINT: os2mo/salt/os2mo/update-dev
+
+Deploy to Salt Test:
+  extends: .release-to-test
+  needs: []
+  variables:
+    ENDPOINT: os2mo/salt/os2mo/update-test
+
+Deploy to Salt Prod:
+  extends: .release-to-prod
+  needs: []
+  variables:
+    ENDPOINT: os2mo/salt/os2mo/update-prod
 
 
 # Docs
