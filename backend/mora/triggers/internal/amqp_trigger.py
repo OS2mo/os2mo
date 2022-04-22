@@ -58,8 +58,7 @@ async def setup_pools() -> None:
 
 async def get_connection():
     return await aio_pika.connect_robust(
-        host=config.get_settings().amqp_host,
-        port=config.get_settings().amqp_port,
+        config.get_settings().amqp_url,
     )
 
 
