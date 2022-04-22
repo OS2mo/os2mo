@@ -88,9 +88,7 @@ class Settings(BaseSettings):
     amqp_os2mo_exchange: str = "os2mo"
 
     @root_validator
-    def amqp_host_and_port_deprecated(
-        cls, values: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def amqp_host_and_port_deprecated(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         if values["amqp_host"] or values["amqp_port"]:
             logger.warning(
                 "'amqp_host' and 'amqp_port' are deprecated, use 'amqp_url' instead!"
