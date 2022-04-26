@@ -376,33 +376,19 @@ services:
       start_period: 300s
 
   amqp-metrics:
-    image: magentaaps/os2mo-amqp-trigger-metrics:latest
+    # image: magentaaps/os2mo-amqp-trigger-metrics:latest
+    build:
+      context: ../os2mo-amqp-trigger-metrics
+      dockerfile: Dockerfile
     environment:
-      AMQP_HOST: msg_broker
-      AMQP_PASSWORD: guest
+      AMQP_URL: amqp://guest:guest@msg_broker:5672/
     ports:
       - "127.0.0.1:8012:8000"
     depends_on:
-      mo:
-        condition: service_healthy
       msg_broker:
         condition: service_healthy
     profiles:
       - amqp-metrics
-
-  amqp-consumer:
-    image: magentaaps/os2mo-amqp-trigger-example:latest
-    environment:
-      AMQP_HOST: msg_broker
-      AMQP_PASSWORD: guest
-      AMQP_ROUTING_KEYS: "*.*.*"
-    depends_on:
-      mo:
-        condition: service_healthy
-      msg_broker:
-        condition: service_healthy
-    profiles:
-      - amqp-consumer
 
 volumes:
   keycloak-volume:

@@ -23,7 +23,6 @@ from mora import config
 from mora.exceptions import HTTPException
 from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
-from mora.triggers.internal.amqp_trigger import pools
 
 # --------------------------------------------------------------------------------------
 # Health endpoints
@@ -71,18 +70,6 @@ async def amqp() -> Optional[bool]:
     """
     if not config.get_settings().amqp_enable:
         return None
-
-    try:
-        async with pools.connection_pool.acquire() as connection:  # type: ignore
-            if not connection:
-                logger.critical("AMQP connection not found")
-                return False
-
-            if connection.is_closed:
-                logger.critical("AMQP connection is closed")
-                return False
-    except AMQPError:
-        return False
 
     return True
 

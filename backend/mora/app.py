@@ -28,8 +28,6 @@ from structlog import get_logger
 from structlog.contextvars import merge_contextvars
 from structlog.processors import JSONRenderer
 
-from mora.triggers.internal.amqp_trigger import setup_pools
-
 from . import service
 from . import triggers
 from .api.v1 import reading_endpoints
@@ -273,10 +271,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     # `flaskr/static` directory.
     serviceplatformen.check_config()
 
-    @app.on_event("startup")
-    async def register_triggers():
-        await triggers.register(app)
-
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
     app.add_exception_handler(FastAPIHTTPException, fallback_handler)
@@ -286,9 +280,9 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
 
     @app.on_event("startup")
-    async def open_httpx_client():
+    async def register_triggers():
+        await triggers.register(app)
         await clients.init_clients()
-        await setup_pools()
 
     @app.on_event("shutdown")
     async def close_httpx_client():
