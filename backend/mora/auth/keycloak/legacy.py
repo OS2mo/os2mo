@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from functools import lru_cache
 from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, create_engine
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 from structlog import get_logger
@@ -49,7 +50,15 @@ def _get_engine():
     connection_url = _get_connection_url()
     logger.debug("Open connection to database")
     try:
-        engine = create_engine(connection_url, pool_size=30, max_overflow=60)
+        # Create exactly one database connection per MO worker process.
+        # In case this worker process has already created a database connection, reuse
+        # that connection.
+        engine = create_engine(
+            connection_url,
+            execution_options={"isolation_level": "AUTOCOMMIT"},
+            pool_size=1,
+            max_overflow=0,
+        )
         return engine
     except Exception:
         logger.error("Database connection error")
@@ -61,5 +70,7 @@ def validate_session(session_id: str) -> bool:
     store_id = f"session:{session_id}"
     engine = _get_engine()
     with Session(engine) as session:
-        result = session.query(SessionModel).filter(SessionModel.session_id == store_id)
-    return result.count() > 0
+        # Issue a "SELECT EXISTS(...)" query (which is slightly faster than a
+        # "SELECT COUNT() ...".)
+        result = session.query(exists().where(SessionModel.session_id == store_id))
+        return result.scalar()
