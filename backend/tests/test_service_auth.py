@@ -184,6 +184,7 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
         )
 
 
+@pytest.mark.usefixtures("service_client")
 class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints

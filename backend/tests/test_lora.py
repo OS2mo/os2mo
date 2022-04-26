@@ -20,55 +20,75 @@ from . import util
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_get_effects(self):
-        respx.get(
-            "/organisation/organisationenhed",
-            json={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "tilstande": {
-                                        "organisationenhedgyldighed": [
-                                            {
-                                                "gyldighed": v,
-                                                "virkning": {
-                                                    "from": mora_util.to_lora_time(
-                                                        t1,
-                                                    ),
-                                                    "from_included": True,
-                                                    "to": mora_util.to_lora_time(
-                                                        t2,
-                                                    ),
-                                                    "to_included": False,
-                                                },
-                                            }
-                                            for t1, t2, v in [
-                                                ("01-01-1950", "01-01-2100", "Aktiv"),
-                                                ("01-01-2100", "01-01-2300", "Inaktiv"),
-                                                ("01-01-2300", "01-01-2500", "Aktiv"),
-                                                ("01-01-2500", "01-01-2700", "Inaktiv"),
-                                                ("01-01-2700", "01-01-2900", "Aktiv"),
-                                                ("01-01-2900", "01-01-3100", "Inaktiv"),
-                                                ("01-01-3100", "01-01-3300", "Aktiv"),
-                                            ]
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
-                    ]
-                ]
-            },
-        ).mock(
+        respx.get("/organisation/organisationenhed").mock(
             return_value=Response(
                 200,
                 json={
-                    "uuid": ["00000000-0000-0000-0000-000000000000"],
-                    "virkningfra": "2010-06-01T02:00:00+02:00",
-                    "virkningtil": "infinity",
-                    "konsolider": "True",
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "tilstande": {
+                                            "organisationenhedgyldighed": [
+                                                {
+                                                    "gyldighed": v,
+                                                    "virkning": {
+                                                        "from": mora_util.to_lora_time(
+                                                            t1,
+                                                        ),
+                                                        "from_included": True,
+                                                        "to": mora_util.to_lora_time(
+                                                            t2,
+                                                        ),
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                                for t1, t2, v in [
+                                                    (
+                                                        "01-01-1950",
+                                                        "01-01-2100",
+                                                        "Aktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2100",
+                                                        "01-01-2300",
+                                                        "Inaktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2300",
+                                                        "01-01-2500",
+                                                        "Aktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2500",
+                                                        "01-01-2700",
+                                                        "Inaktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2700",
+                                                        "01-01-2900",
+                                                        "Aktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2900",
+                                                        "01-01-3100",
+                                                        "Inaktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-3100",
+                                                        "01-01-3300",
+                                                        "Aktiv",
+                                                    ),
+                                                ]
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
+                    ]
                 },
             )
         )
