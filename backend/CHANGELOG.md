@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.6.0 - 2022-04-26
+------------------
+
+[#49955] Limit database connection usage in `mora.auth.keycloak.legacy` to one database connection per MO worker process.
+
 4.5.1 - 2022-04-26
 ------------------
 
