@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.12.3 - 2022-04-26
+-------------------
+
+[#49849] Fix bug in seniority parsing
+
 5.12.2 - 2022-03-31
 -------------------
 
