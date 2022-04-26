@@ -2,17 +2,17 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import unittest
+import json
 
 import freezegun
+import respx
 import tests.cases
-import yarl
 from mora import config
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
 from parameterized import parameterized
-
-from . import util
+from httpx import Response
 
 
 class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
@@ -81,10 +81,10 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
         ]
     )
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
-    @util.MockAioresponses(override_lora=False)
-    async def test_validity_ranges(self, expect, validities, m):
+    @respx.mock
+    async def test_validity_ranges(self, expect, validities):
         settings = config.get_settings()
-        url = yarl.URL(f"{settings.lora_url}organisation/organisationenhed")
+        url = f"{settings.lora_url}organisation/organisationenhed"
         c = lora.Connector(
             virkningfra="2000-01-01", virkningtil="3000-01-01"
         ).organisationenhed
@@ -120,10 +120,9 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
                 ]
             ]
         }
-        m.get(
+        route = respx.get(
             url,
-            payload=payload,
-        )
+        ).mock(Response(200, json=payload))
 
         self.assertIs(
             expect,
@@ -136,9 +135,8 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
             ),
         )
 
-        call_args = m.requests["GET", url][0]
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2000-01-01T00:00:00+01:00",
