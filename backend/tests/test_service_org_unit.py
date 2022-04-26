@@ -5,12 +5,13 @@ from uuid import UUID
 
 import freezegun
 import pytest
+import respx
+import json
+from httpx import Response
 from mock import call
 from mock import patch
-from more_itertools import one
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
-from yarl import URL
 
 import tests.cases
 from mora import lora
@@ -32,8 +33,8 @@ from tests import util
 
 class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2018-03-15")
-    @util.MockAioresponses()
-    async def test_unit_past(self, mock):
+    @respx.mock
+    async def test_unit_past(self):
         unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
         reg = {
@@ -149,21 +150,23 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
         }
 
-        url = URL("http://mox/organisation/organisationenhed")
-        mock.get(
-            url,
-            payload={
-                "results": [
-                    [
-                        {
-                            "id": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc",
-                            "registreringer": [
-                                reg,
-                            ],
-                        }
+        url = "http://mox/organisation/organisationenhed"
+        route = respx.get(url).mock(
+            return_value=Response(
+                200,
+                json={
+                    "results": [
+                        [
+                            {
+                                "id": "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc",
+                                "registreringer": [
+                                    reg,
+                                ],
+                            }
+                        ]
                     ]
-                ]
-            },
+                },
+            )
         )
 
         with util.patch_query_args({"validity": "past"}):
@@ -172,9 +175,8 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                 [],
             )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": [unitid],
                 "virkningfra": "-infinity",

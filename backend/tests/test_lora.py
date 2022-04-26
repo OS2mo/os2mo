@@ -1,19 +1,17 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import re
+import json
 
 import respx
 import freezegun
 from httpx import Response
 import tests.cases
-from aioresponses import aioresponses
 from mora import config
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util
-from more_itertools import one
 from parameterized import parameterized
-from yarl import URL
 
 from . import util
 
@@ -331,51 +329,81 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertIsNone(await lora.Connector().organisationenhed.get("42"))
 
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
-    @aioresponses()
-    async def test_get_effects_2(self, m):
+    @respx.mock
+    async def test_get_effects_2(self):
         lora_url = config.get_settings().lora_url
-        url = URL(f"{lora_url}organisation/organisationenhed")
-        m.get(
-            url,
-            payload={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "tilstande": {
-                                        "organisationenhedgyldighed": [
-                                            {
-                                                "gyldighed": v,
-                                                "virkning": {
-                                                    "from": mora_util.to_lora_time(
-                                                        t1,
+        url = f"{lora_url}organisation/organisationenhed"
+        route = respx.get(url).mock(
+            return_value=Response(
+                200,
+                json={
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "tilstande": {
+                                            "organisationenhedgyldighed": [
+                                                {
+                                                    "gyldighed": v,
+                                                    "virkning": {
+                                                        "from": mora_util.to_lora_time(
+                                                            t1,
+                                                        ),
+                                                        "from_included": True,
+                                                        "to": mora_util.to_lora_time(
+                                                            t2,
+                                                        ),
+                                                        "to_included": False,
+                                                    },
+                                                }
+                                                for t1, t2, v in [
+                                                    (
+                                                        "01-01-1950",
+                                                        "01-01-2100",
+                                                        "Aktiv",
                                                     ),
-                                                    "from_included": True,
-                                                    "to": mora_util.to_lora_time(
-                                                        t2,
+                                                    (
+                                                        "01-01-2100",
+                                                        "01-01-2300",
+                                                        "Inaktiv",
                                                     ),
-                                                    "to_included": False,
-                                                },
-                                            }
-                                            for t1, t2, v in [
-                                                ("01-01-1950", "01-01-2100", "Aktiv"),
-                                                ("01-01-2100", "01-01-2300", "Inaktiv"),
-                                                ("01-01-2300", "01-01-2500", "Aktiv"),
-                                                ("01-01-2500", "01-01-2700", "Inaktiv"),
-                                                ("01-01-2700", "01-01-2900", "Aktiv"),
-                                                ("01-01-2900", "01-01-3100", "Inaktiv"),
-                                                ("01-01-3100", "01-01-3300", "Aktiv"),
+                                                    (
+                                                        "01-01-2300",
+                                                        "01-01-2500",
+                                                        "Aktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2500",
+                                                        "01-01-2700",
+                                                        "Inaktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2700",
+                                                        "01-01-2900",
+                                                        "Aktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-2900",
+                                                        "01-01-3100",
+                                                        "Inaktiv",
+                                                    ),
+                                                    (
+                                                        "01-01-3100",
+                                                        "01-01-3300",
+                                                        "Aktiv",
+                                                    ),
+                                                ]
                                             ]
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
                     ]
-                ]
-            },
+                },
+            )
         )
 
         c = lora.Connector(validity="future")
@@ -510,9 +538,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             ],
         )
 
-        call_args = one(m.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2001-01-01T01:00:00+01:00",

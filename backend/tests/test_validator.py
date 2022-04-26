@@ -120,9 +120,7 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
                 ]
             ]
         }
-        route = respx.get(
-            url,
-        ).mock(Response(200, json=payload))
+        route = respx.get(url).mock(Response(200, json=payload))
 
         self.assertIs(
             expect,
