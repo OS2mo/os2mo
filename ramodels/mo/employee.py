@@ -51,6 +51,13 @@ class EmployeeBase(MOBase):
         description="Surname part of nickname of the employee."
     )
 
+    @validator("seniority", pre=True)
+    def parse_datetime(cls, seniority: Any) -> Any:
+        try:
+            return datetime.fromisoformat(seniority).date()
+        except (ValueError, TypeError):
+            return seniority
+
 
 class EmployeeRead(EmployeeBase):
     validity: OpenValidity = Field(description="Validity of the employee.")
