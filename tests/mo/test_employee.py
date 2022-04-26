@@ -74,7 +74,7 @@ def base_strat(draw):
         "type": st.just("employee"),
         "cpr_no": st.none() | valid_cprs(),
         "user_key": st.none() | st.text(),
-        "seniority": st.none() | st.dates(),
+        "seniority": st.none() | st.dates() | st.datetimes().map(str),
     }
     st_dict = st.fixed_dictionaries(required, optional=optional)  # type: ignore
     return draw(st_dict)
