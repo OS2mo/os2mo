@@ -1015,7 +1015,8 @@ Build master docs:
     - .build-docs
     - .docs:rules:deploy-master-docs
 
-Deploy pages:
+# To release to GitLab Pages, the job must be called 'pages'
+pages:
   extends:
     - .docs-base
     - .docs:rules:deploy-master-docs
