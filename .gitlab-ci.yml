@@ -877,6 +877,7 @@ Upload Performance Test Results:
   #  - <<: *if-schedule
   #    when: never
   #  - <<: *if-default-branch-refs
+  #    when: always
   #  - <<: *if-merge-request
   #    when: manual
   #    allow_failure: true
@@ -889,6 +890,7 @@ Stop Review Master:
     - <<: *if-schedule
       when: never
     - <<: *if-default-branch-refs
+      when: always
 Stop Review MR:
   extends:
     - .stop-review
