@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.6.1 - 2022-04-29
+------------------
+
+[#49705] Fix broken file-download auth when using legacy backend.
+
 4.6.0 - 2022-04-26
 ------------------
 
