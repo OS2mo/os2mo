@@ -26,7 +26,6 @@ variables:
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}
   FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend-test:${CI_COMMIT_SHA}
-  TEMPOTEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/tempotest:${CI_COMMIT_SHA}
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
@@ -354,24 +353,6 @@ Build test frontend:
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
       --target frontend
 
-Build Tempotest:
-  extends: .build-base
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR/tempotest
-      --dockerfile=$CI_PROJECT_DIR/tempotest/Dockerfile
-      --destination=$TEMPOTEST_IMAGE_SHA
-  rules:
-    - <<: *if-schedule
-      when: never
-    - <<: *if-tag-semver
-      when: never
-    - when: on_success
-
-
 Build Keycloak-realm:
   extends: .build:test-image
   image:
@@ -670,7 +651,7 @@ Vue-unit-test:
   stage: review
   needs:
     - Build OS2MO
-  image: debian:bullseye
+  image: debian:bookworm
   variables:
     GIT_STRATEGY: none  # We do not need the source code
   before_script:
@@ -678,7 +659,7 @@ Vue-unit-test:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_DEPLOY_URL
@@ -750,7 +731,7 @@ Create Performance Test Keycloak Token:
     TF_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-$REVIEW_SLUG"
     TF_VAR_keycloak_admin_password: $REVIEW_KEYCLOAK_ADMIN_PASSWORD
     TF_VAR_keycloak_url: "$REVIEW_URL"
-    TF_VAR_keycloak_tempotest_client_secret: $REVIEW_TEMPOTEST_CLIENT_SECRET
+    TF_VAR_keycloak_tempotest_client_secret: $TEMPOTEST_CLIENT_SECRET
   before_script:
     - cd tempotest/
     - gitlab-terraform init
@@ -766,21 +747,105 @@ Performance Tests:
   needs:
     - Create Performance Test Keycloak Token
   image:
-    name: $TEMPOTEST_IMAGE_SHA
+    name: grafana/k6:0.37.0
     entrypoint: [""]
   tags:
     - high-mem  # we don't want other jobs impacting the test results
-  script: "/k6 run /script.js --summary-export=load-performance.json"
+  before_script:
+    - cd tempotest/
+  script:
+    - k6 run script.js
+      --out=csv=load-performance.csv
+      --summary-export=load-performance.json
+      --system-tags="status,method,name,group,check,error,error_code,scenario,expected_response"
   variables:
     MO_URL: "$REVIEW_URL"
     AUTH_SERVER: "$REVIEW_URL/auth"
     CLIENT_ID: "tempotest"
-    CLIENT_SECRET: "$REVIEW_TEMPOTEST_CLIENT_SECRET"
-    UPLOAD_TO_GRAFANA_SOMETHING: "false"
+    CLIENT_SECRET: "$TEMPOTEST_CLIENT_SECRET"
   artifacts:
+    name: "tempotest"
+    expire_in: 1 month
     when: always
+    paths:
+      - tempotest/load-performance.csv
     reports:
-      load_performance: load-performance.json
+      load_performance: tempotest/load-performance.json
+
+Upload Performance Test Results:
+  extends:
+    - .qa-base
+  needs:
+    - Performance Tests
+  image:
+    name: postgres:14
+    entrypoint: [""]
+  before_script:
+    - mkdir ~/.postgresql
+    # grafana_events_db google_sql_ssl_cert.clients_shared.server_ca_cert
+    - |
+      cat << EOT > ~/.postgresql/root.crt
+      -----BEGIN CERTIFICATE-----
+      MIIDfzCCAmegAwIBAgIBADANBgkqhkiG9w0BAQsFADB3MS0wKwYDVQQuEyQwNzZm
+      MzVhMS03MjdkLTRlNzQtOWViNy1iOTBkYTA0Mjk4ZWMxIzAhBgNVBAMTGkdvb2ds
+      ZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUsIEluYzELMAkG
+      A1UEBhMCVVMwHhcNMjIwNDIxMDgzOTI0WhcNMzIwNDE4MDg0MDI0WjB3MS0wKwYD
+      VQQuEyQwNzZmMzVhMS03MjdkLTRlNzQtOWViNy1iOTBkYTA0Mjk4ZWMxIzAhBgNV
+      BAMTGkdvb2dsZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUs
+      IEluYzELMAkGA1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+      AQDJUTpRf6INuo20cJnphO9+9WGMtDxEUXkpWu7G7D6LfwVqeN0Sb+63yY8qpHBu
+      JUgLFFyGQ6jrpCEkVqHGVux6jZB7vY56SqvvEyk/9eEyOxsBt1vVTAa/Ka1K++cL
+      2XAxwcaVfFFF/EqFDjJeKfGZTtxcL0MpnyWjOVQ55AcF5aQiZJHHLys5Or5om/HV
+      SikJvp5pg/rTN9NWGHOgf0fv3p2AgXfAdfNLnYJO2/Ax62yiP77qBa6Nnq95qe9C
+      dkRXHVun03okDRltyEapIUUYxGaIYOP+1v0j02XoC6yJSLr+beIc3NLtKC3l2xoO
+      P1DcNM9v9v5Esx32U/yLNZfvAgMBAAGjFjAUMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+      DQYJKoZIhvcNAQELBQADggEBAFXe3bK2D1vnWdzp+b9namonpn6qwuCcro+bJTHE
+      QgacCIdCzIu8iODsBhX/VmyAggkYoc3qppmH7nkjeTbQYtGxorpRnHNwtPS6tF6C
+      iXIMwMOZmPHdyhUAyosARFWF6sIOGoKZkLh1kamQhE5jJd9kNr7wYD+pPYYFL1VY
+      WSYnz28Puo7QEsZwJNaqyDVm/RG2GB3q6eU9Dl/iaoJGSGnKb4kUz0LSiiuhM7tF
+      4LJasDJdMz0cuOMHVXi8mxs3p/do7d5OWdLuSiZZMqdltCsgsLa7aIL4jskWIsPR
+      f7LBO0OEEKekUK+aYaDWuE+Noi9wSm0h9JnxuHWYFyTgf1k=
+      -----END CERTIFICATE-----
+      EOT
+    # grafana_events_db google_sql_ssl_cert.clients_shared.cert
+    - |
+      cat << EOT > ~/.postgresql/postgresql.crt
+      -----BEGIN CERTIFICATE-----
+      MIIDbDCCAlSgAwIBAgIEIa6H8zANBgkqhkiG9w0BAQsFADCBhjEtMCsGA1UELhMk
+      NWIyMjdhYTktNDgzNC00ZDY3LWE4MmItNGZiMzE1ZDIxYWQ1MTIwMAYDVQQDEylH
+      b29nbGUgQ2xvdWQgU1FMIENsaWVudCBDQSBjbGllbnRzLXNoYXJlZDEUMBIGA1UE
+      ChMLR29vZ2xlLCBJbmMxCzAJBgNVBAYTAlVTMB4XDTIyMDQyMjEzMjg1NFoXDTMy
+      MDQxOTEzMjk1NFowPDEXMBUGA1UEAxMOY2xpZW50cy1zaGFyZWQxFDASBgNVBAoT
+      C0dvb2dsZSwgSW5jMQswCQYDVQQGEwJVUzCCASIwDQYJKoZIhvcNAQEBBQADggEP
+      ADCCAQoCggEBAKvYpWC+DI0ACWRRfmllGGzKgFCdg92iOUvV0wx0QiUh6oFhvy48
+      qhhCKth8jHlaQyM9x9101hQ2GxchBPxwfK/sKscIDG9wQH9HpmWdIzG6bMsHuw2n
+      4xEzWqUlFdqSUl2rXxQMy/HwHFbpKFZheAjR+Z5bU43JecMuo+lvOfmM3UMJhctW
+      vp8VtywUEV+6Xx5jwjj3b9ZbE95Itp7WPI8CfF1RRnMgNQKUxiPrA2wv/ySSF2Id
+      HoHYhv+GPsJwiIAHsrKt9FxkH/bMnqc2DQ3G98Ti4Z3m2Yf781ugZD+6qRFAGfI9
+      PrBOSx50hqkpOYXn05spNQstHEVzXmbTVzMCAwEAAaMrMCkwCQYDVR0TBAIwADAc
+      BgNVHREEFTATgRF2a0BtYWdlbnRhLWFwcy5kazANBgkqhkiG9w0BAQsFAAOCAQEA
+      ha+jR9z+nawVhx17RGu81dLY65dTh0P/dIpwKG8qClOTNOhvgKAyaYDarAZkM64I
+      BoVVg/GZT9YxzwpsiZQ2mGMdbx0F1wp4EI1ABebBVC59cbeDDjAs8MPVuPte6W67
+      XZ8PUoElJICliUUvxae2SXYg1tfIDG/gn4yDm/rXWM4orSAStEKP1pp3se8bdPXm
+      DfP0dO6ZCipNuT3UnZ7DUNYPXl72znXZ1dtlZhVcHP1+eVw3WcptfJZc0t0nJzhg
+      HCmkyDRw7+51C8Xm3gc/IwmDCFZdWfvVgVZTCYxgcpiCFeu/JAiWGPDpIiEGm6F0
+      YfeITRi7JKFul6ELGfi0RA==
+      -----END CERTIFICATE-----
+      EOT
+    # grafana_events_db google_sql_ssl_cert.clients_shared.private_key
+    - echo $TEMPOTEST_DATABASE_CLIENT_KEY | base64 --decode > ~/.postgresql/postgresql.key
+    - chmod 0600 ~/.postgresql/postgresql.key
+    - cd tempotest/
+  script:
+    - ./upload.sh load-performance.csv
+  after_script:
+    - rm ~/.postgresql/postgresql.key
+  variables:
+    PGHOST: grafana-events-db.internal.magentahosted.dk
+    PGDATABASE: events
+    PGUSER: os2mo_k6
+    PGPASSWORD: $TEMPOTEST_DATABASE_PASSWORD
+    PGSSLMODE: verify-ca
 
 
 # Post-QA
@@ -799,7 +864,7 @@ Performance Tests:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_UNDEPLOY_URL
@@ -846,7 +911,7 @@ Stop Review MR:
   script:
     - curl
       --silent
-      --fail
+      --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_DELETE_TF_STATE_URL
