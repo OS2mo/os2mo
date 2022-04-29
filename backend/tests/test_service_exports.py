@@ -103,12 +103,13 @@ class FileTests(tests.cases.AsyncTestCase):
     async def test_list_export_files_returns_filenames(self, mock_listdir):
         """Ensure that we only return filenames from the export directory"""
         filenames = ["file1", "file2"]
+        dirnames = ["dir"]
 
         def mocked_isfile(self):
             filename = str(self)
             return filename in filenames
 
-        mock_listdir.return_value = filenames + ["dir"]
+        mock_listdir.return_value = list(map(Path, filenames + dirnames))
 
         with mock.patch.object(Path, "is_file", mocked_isfile):
             with util.override_config(Settings(query_export_dir="")):

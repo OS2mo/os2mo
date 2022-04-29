@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer
 
 from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import validate_token
 from .. import exceptions, config
 
 router = APIRouter()
@@ -70,14 +71,15 @@ def list_export_files(response: Response, token: str = Depends(oauth2_scheme)):
 
     export_dir = get_export_dir()
     dir_contents = export_dir.iterdir()
-    files = list(filter(lambda file: (export_dir / file).is_file(), dir_contents))
-    return files
+    files = filter(lambda file: file.is_file(), dir_contents)
+    filenames = list(map(lambda file: file.name, files))
+    return filenames
 
 
 async def _check_auth_cookie(auth_cookie=Optional[str]) -> None:
     if auth_cookie is None:
         raise HTTPException(status_code=401, detail="Missing download cookie!")
-    await auth(str(auth_cookie))
+    await validate_token(str(auth_cookie))
 
 
 @router.get(
