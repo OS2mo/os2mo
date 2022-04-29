@@ -33,7 +33,19 @@ keycloak_auth = get_auth_dependency(
 )
 
 
-async def legacy_auth_adapter(request: Request):
+async def validate_token(token: str) -> Token:
+    """Validate a keycloak token.
+
+    Args:
+        The token to be validated.
+
+    Returns:
+        Whether the token was validated.
+    """
+    return await keycloak_auth(token)
+
+
+async def legacy_auth_adapter(request: Request) -> Token:
     """
     Legacy support for the old session database to allow for grace-period before
     switching to Keycloak auth
@@ -49,7 +61,7 @@ async def legacy_auth_adapter(request: Request):
         if validate_session(session_id):
             return await noauth()
     oauth2_scheme = await OAuth2PasswordBearer(tokenUrl="service/token")(request)
-    return await keycloak_auth(oauth2_scheme)
+    return await validate_token(oauth2_scheme)
 
 
 # TODO: Remove this, once a proper auth solution is in place,
