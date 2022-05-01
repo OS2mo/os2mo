@@ -35,7 +35,6 @@ from . import triggers
 from .api.v1 import reading_endpoints
 from .common import LoRaConnectorPlugin
 from .config import Environment
-from .config import is_under_test
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
@@ -122,7 +121,8 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
     :param exc:
     :return:
     """
-    if not config.is_production():
+    settings = config.get_settings()
+    if not settings.is_production():
         logger.info(
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
         )
@@ -132,7 +132,8 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
 
 
 async def http_exception_handler(request: Request, exc: HTTPException):
-    if not config.is_production():
+    settings = config.get_settings()
+    if not settings.is_production():
         logger.info("http_exception", stack=exc.stack, traceback=exc.traceback)
 
     return http_exception_to_json_response(exc=exc)
@@ -258,12 +259,13 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         meta_router(),
         tags=["Meta"],
     )
-    app.include_router(
-        static_content_router(),
-        tags=["Static"],
-    )
+    if settings.statics_enable:
+        app.include_router(
+            static_content_router(),
+            tags=["Static"],
+        )
 
-    if not config.is_production() and settings.testcafe_enable:
+    if not settings.is_production() and settings.testcafe_enable:
         app.include_router(setup_test_routing(), tags=["Testing"])
 
     # We serve index.html and favicon.ico here. For the other static files,
@@ -293,7 +295,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         await clients.close_clients()
         await triggers.internal.amqp_trigger.close_amqp()
 
-    if not is_under_test():
+    if not settings.is_under_test():
         app = setup_instrumentation(app)
         setup_metrics(app)
 

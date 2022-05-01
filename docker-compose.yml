@@ -18,8 +18,11 @@ services:
       - ./docker/nginx-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:
       - "127.0.0.1:5001:80"
+      - "127.0.0.1:5000:80"
     depends_on:
       mo:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
       frontend:
         condition: service_healthy
@@ -93,8 +96,6 @@ services:
 
       JAEGER_HOSTNAME: "otel-collector"
       JAEGER_SERVICE: OS2mo
-    ports:
-      - "127.0.0.1:5000:80"
     depends_on:
       mox:
         condition: service_healthy
@@ -222,8 +223,6 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:14.0.0
-    ports:
-      - "127.0.0.1:8081:8080"
     environment:
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: admin

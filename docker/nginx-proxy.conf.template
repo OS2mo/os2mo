@@ -5,11 +5,24 @@ server {
     listen  [::]:80;
     server_name  localhost;
 
-    location /service/ {
+    # MO Paths
+    location /openapi.json {
         proxy_pass http://mo;
     }
 
-    location /saml/ {
+    location /graphql {
+        proxy_pass http://mo;
+    }
+
+    location /metrics {
+        proxy_pass http://mo;
+    }
+
+    location /docs {
+        proxy_pass http://mo;
+    }
+
+    location /service/ {
         proxy_pass http://mo;
     }
 
@@ -17,6 +30,21 @@ server {
         proxy_pass http://mo;
     }
 
+    location /testing/ {
+        proxy_pass http://mo;
+    }
+
+    location /health/ {
+        proxy_pass http://mo;
+    }
+
+    # Keycloak
+    location /auth/ {
+        proxy_pass http://keycloak;
+    }
+
+    # Frontend
+    # (everything unmatched)
     location / {
         proxy_pass http://frontend;
     }
