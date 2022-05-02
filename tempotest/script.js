@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 import apiGraphqlMetaTests from './tests/api.graphql.meta.js';
+import apiServiceTests from './tests/api.service.js';
 import apiServiceMetaTests from './tests/api.service.meta.js';
 import { getAuthorizationHeader, client } from './util.js';
 
@@ -46,7 +47,7 @@ export default function main(data) {
   client.addHeader('Authorization', data.authorizationHeader);
 
   apiServiceMetaTests();
-  // apiServiceTests();
+  apiServiceTests();
   apiGraphqlMetaTests();
 }
 

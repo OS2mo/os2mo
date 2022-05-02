@@ -99,7 +99,7 @@ function address() {
 }
 
 function employee() {
-  group('/service/e/', () => {
+  group('employee', () => {
     const uuid = uuidv4();
     client.post(
       http.url`/service/e/create`,
@@ -112,8 +112,8 @@ function employee() {
   });
 }
 
-export default function apiServiceTests() {
-  group('api.service', () => {
+export default function apiServiceListTests() {
+  group('api.service.list', () => {
     employee();
   });
 }

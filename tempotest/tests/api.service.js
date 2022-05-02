@@ -7,6 +7,36 @@ import { group } from 'k6';
 import http from 'k6/http';
 import { asJSON, client } from '../util.js';
 
+function employee() {
+  return group('employee', () => {
+    const uuid = uuidv4();
+    client.post(
+      http.url`/service/e/create`,
+      ...asJSON({
+        uuid,
+        givenname: 'Alice',
+      }),
+    );
+    client.get(http.url`/service/e/${uuid}/`);
+    return uuid;
+  });
+}
+
+function address(employeeUuid) {
+  group('address', () => {
+    const uuid = uuidv4();
+    client.post(
+      http.url`/service/details/create`,
+      ...asJSON({
+        type: 'address',
+        uuid,
+        todo,
+      }),
+    );
+    client.get(http.url`/service/details/`);
+  });
+}
+
 function engagement() {
   group('engagement', () => {
     const uuid = uuidv4();
@@ -15,10 +45,6 @@ function engagement() {
       ...asJSON({
         uuid,
         todo,
-      }, {
-        tags: {
-          name: '',
-        },
       }),
     );
   });
@@ -89,35 +115,9 @@ function leave() {
   });
 }
 
-function address() {
-  group('address', () => {
-    const uuid = uuidv4();
-    client.post(
-      http.url`/service/details/create`,
-      ...asJSON({
-        uuid,
-        todo,
-      }),
-    );
-  });
-}
-
-function employee() {
-  group('employee', () => {
-    const uuid = uuidv4();
-    client.post(
-      http.url`/service/e/create`,
-      ...asJSON({
-        uuid,
-        givenname: 'Alice',
-      }),
-    );
-    client.get(http.url`/service/e/${uuid}/`);
-  });
-}
-
 export default function apiServiceTests() {
   group('api.service', () => {
-    employee();
+    const employeeUuid = employee();
+    address(employeeUuid);
   });
 }
