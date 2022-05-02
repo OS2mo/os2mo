@@ -17,7 +17,7 @@ logger = get_logger()
 
 def is_dummy_mode():
     settings = config.get_settings()
-    if not config.is_production():
+    if not settings.is_production():
         # force dummy during tests and development, and make it
         # configurable in production
         #

@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     dummy_mode: bool = False
     query_export_dir: str = "/queries"
     navlinks: List[NavLink] = []
+    # Enable auth-endpoints and auth
     os2mo_auth: bool = True
 
     # Legacy auth
@@ -59,18 +60,19 @@ class Settings(BaseSettings):
     session_db_port = "5432"
     session_db_name = "sessions"
 
-    # V1 API
-    v1_api_enable: bool = False
-
     # Bulked LoRa DataLoader fetching
     bulked_fetch: bool = True
 
+    # Endpoint switches
+    # Enable testing endpoints
+    testcafe_enable: bool = True
+    # Serve frontend
+    statics_enable: bool = False
+    # V1 API
+    v1_api_enable: bool = False
     # GraphQL settings
     graphql_enable: bool = True
     graphiql_enable: bool = False
-
-    # Testing settings
-    testcafe_enable: bool = True
 
     # HTTP Trigger settings
     http_endpoints: Optional[List[str]]
@@ -196,16 +198,14 @@ class Settings(BaseSettings):
     # MO UI displays an "IT associations" tab for employees, if this is set to True
     show_it_associations_tab: bool = False
 
+    def is_production(self) -> bool:
+        """Return whether we are running in a production environment"""
+        return self.environment is Environment.PRODUCTION
+
+    def is_under_test(self) -> bool:
+        return os.environ.get("PYTEST_RUNNING") is not None
+
 
 @lru_cache()
 def get_settings(*args, **kwargs) -> Settings:
     return Settings(*args, **kwargs)
-
-
-def is_production() -> bool:
-    """Return whether we are running in a production environment"""
-    return get_settings().environment is Environment.PRODUCTION
-
-
-def is_under_test() -> bool:
-    return os.environ.get("PYTEST_RUNNING") is not None

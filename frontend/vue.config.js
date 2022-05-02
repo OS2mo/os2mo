@@ -60,28 +60,6 @@ module.exports = {
   devServer: {
     disableHostCheck: true,
     progress: false,
-    port: 80,
-    proxy: {
-      '/openapi.json': {
-        target: process.env.BASE_URL || 'http://localhost:5000/',
-        changeOrigin: true
-      },
-      '/docs': {
-        target: process.env.BASE_URL || 'http://localhost:5000/',
-        changeOrigin: true
-      },
-      '/service': {
-        target: process.env.BASE_URL || 'http://localhost:5000/',
-        changeOrigin: true
-      },
-      '/api': {
-        target: process.env.BASE_URL || 'http://localhost:5000/',
-        changeOrigin: true
-      },
-      '/version': {
-        target: process.env.BASE_URL || 'http://localhost:5000/',
-        changeOrigin: true
-      }
-    }
+    port: 80
   }
 }

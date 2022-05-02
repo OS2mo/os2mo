@@ -164,7 +164,8 @@ class HTTPException(fastapiHTTPException):
             **extras,
         }
 
-        if not config.is_production():
+        settings = config.get_settings()
+        if not settings.is_production():
             if cause is None:
                 cause = self.__cause__ or self
             # just for debugging, remove or change as needed:
