@@ -184,8 +184,7 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
         )
 
 
-@pytest.mark.usefixtures("service_client")
-class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
+class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
     and one from the /api/v1 endpoints)
@@ -197,38 +196,38 @@ class TestAuthEndpointsReturn2xx(tests.cases.LoRATestCase):
         "graphiql_enable": True,
     }
 
-    def setUp(self):
-        super().setUp()
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
         # Enable the real Keycloak auth mechanism in order to perform Keycloak
         # integration tests
         self.app.dependency_overrides = dict()
 
     @pytest.mark.usefixtures("sample_structures_minimal")
-    def test_auth_service_org(self):
-        self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
+    async def test_auth_service_org(self):
+        await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
-    def test_auth_api_v1(self):
-        self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
+    async def test_auth_api_v1(self):
+        await self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
 
-    def test_auth_graphql(self):
+    async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
-        self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
+        await self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
 
         # POST (usual communication, always enabled)
-        self.assertRequest(
+        await self.assertRequest(
             "/graphql",
             HTTP_200_OK,
             set_auth_header=True,
             json={"query": "{ __typename }"},  # always implemented
         )
 
-    def test_client_secret_token(self):
+    async def test_client_secret_token(self):
         # Verify that a token obtained from a client secret (e.g. via the
         # DIPEX client) is working
 
         token = self.get_token(use_client_secret=True)
 
-        self.assertRequest(
+        await self.assertRequest(
             "/api/v1/it", HTTP_200_OK, headers={"Authorization": "Bearer " + token}
         )
 

@@ -55,6 +55,7 @@ def mock_requests(*args):
     )
 
 
+# Triggers the startup event `init_clients()` that sets base_url for respx/httpx
 @pytest.mark.usefixtures("service_client")
 class TestLoraDataLoader:
     @pytest.mark.asyncio
