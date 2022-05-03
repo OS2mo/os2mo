@@ -261,7 +261,7 @@ Pre-commit:
 Lint Dockerfiles:
   # TODO: Do this as part of pre-commit instead
   extends: .lint-base
-  image: hadolint/hadolint:2.9.3-debian
+  image: hadolint/hadolint:latest-debian
   before_script:
     - apt-get -y update
     - apt-get -y install --no-install-recommends git
