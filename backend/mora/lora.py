@@ -286,7 +286,12 @@ class Connector:
     def scope(self, type_: LoraObjectType) -> "Scope":
         if type_ in self.__scopes:
             return self.__scopes[type_]
-        if type_ in [LoraObjectType.org, LoraObjectType.org_unit, LoraObjectType.user]:
+        if type_ in [
+            LoraObjectType.org,
+            LoraObjectType.org_unit,
+            LoraObjectType.org_func,
+            LoraObjectType.user,
+        ]:
             return self.__scopes.setdefault(type_, HttpxScope(self, type_.value))
         return self.__scopes.setdefault(type_, Scope(self, type_.value))
 
