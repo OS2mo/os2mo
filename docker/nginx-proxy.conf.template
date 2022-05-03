@@ -40,7 +40,7 @@ server {
 
     # Keycloak
     location /auth/ {
-        proxy_pass http://keycloak;
+        proxy_pass http://keycloak:8080;
     }
 
     # Frontend
