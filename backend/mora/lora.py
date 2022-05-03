@@ -3,8 +3,10 @@
 from __future__ import generator_stop
 
 import asyncio
+import json
 import re
 import uuid
+import httpx
 from asyncio import gather
 from collections import defaultdict
 from datetime import datetime
@@ -143,7 +145,7 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
 
-async def _httpx_check_response(r):
+async def _httpx_check_response(r: httpx.Response) -> httpx.Response:
     if 400 <= r.status_code < 600:
         try:
             cause = r.json()
@@ -576,23 +578,27 @@ class HttpxScope(BaseScope):
 
         return results_for_calls
 
+    def encode_params(self, params: Dict[str, Any]) -> bytes:
+        return json.dumps(
+            jsonable_encoder(param_exotics_to_strings({**params}))
+        ).encode()
+
     async def fetch(self, **params):
-        async with ClientSession() as session:
-            response = await session.get(
-                self.base_path,
-                # We send the parameters as JSON through the body of the GET request to
-                # allow arbitrarily many, as opposed to being limited by the length of a
-                # URL if we were using query parameters.
-                json=jsonable_encoder(
-                    param_exotics_to_strings({**self.connector.defaults, **params})
-                ),
-            )
-            await _check_response(response)
-            try:
-                ret = (await response.json())["results"][0]
-                return ret
-            except IndexError:
-                return []
+        params = self.encode_params({**self.connector.defaults, **params})
+        response = await clients.lora.request(
+            method="GET",
+            url=self.path,
+            # We send the parameters as JSON through the body of the GET request to
+            # allow arbitrarily many, as opposed to being limited by the length of a
+            # URL if we were using query parameters.
+            content=params,
+        )
+        await _httpx_check_response(response)
+        try:
+            ret = response.json()["results"][0]
+            return ret
+        except IndexError:
+            return []
 
     async def get_all(self, changed_since: Optional[datetime] = None, **params):
         """Perform a search on given params and return the result.

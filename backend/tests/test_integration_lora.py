@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
+from functools import reduce
+import operator
 
+from httpx import Response
 import pytest
-from aioresponses import CallbackResult
-from yarl import URL
+import respx
+from respx.patterns import M
 
 from mora.lora import Connector
 
@@ -14,19 +17,31 @@ a2_b1 = {"a": 2, "b": 1}
 a2_b2 = {"a": 2, "b": 2}
 
 
-@pytest.fixture
-def mock_organisationenhed_requests(aioresponses):
-    def callback(url, json, **kwargs):
-        if json.get("list") is not None:
-            payload = {
+def construct_pattern(args: dict):
+    return M(path="/organisation/organisationenhed", **args)
+
+
+def mock_requests(*args):
+    patterns = map(construct_pattern, args)
+    pattern = reduce(operator.or_, patterns)
+
+    respx.route(pattern).mock(
+        return_value=Response(
+            200,
+            json={
                 "results": [
                     [
                         {"id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"},
                     ]
                 ],
-            }
-        else:
-            payload = {
+            },
+        )
+    )
+
+    respx.get("/organisation/organisationenhed").mock(
+        return_value=Response(
+            200,
+            json={
                 "results": [
                     [
                         a1_b1,
@@ -35,25 +50,19 @@ def mock_organisationenhed_requests(aioresponses):
                         a2_b2,
                     ]
                 ]
-            }
-        return CallbackResult(status=200, payload=payload)
-
-    url = URL("http://mox/organisation/organisationenhed")
-    aioresponses.get(
-        url,
-        callback=callback,
-        repeat=True,
+            },
+        )
     )
-    return lambda: [
-        r.kwargs["json"]
-        for r in aioresponses.requests.get(("GET", url))
-        if r.kwargs.get("json", {}).get("list")
-    ]
 
 
+# Triggers the startup event `init_clients()` that sets base_url for respx/httpx
+@pytest.mark.usefixtures("service_client")
 class TestLoraDataLoader:
     @pytest.mark.asyncio
-    async def test_load_single_param(self, mock_organisationenhed_requests):
+    @respx.mock
+    async def test_load_single_param(self):
+        mock_requests(dict(json__a=[1, 2]))
+
         c = Connector()
         load_a1, load_a2, load_a1_again = await asyncio.gather(
             c.organisationenhed.load(a=1),
@@ -61,13 +70,14 @@ class TestLoraDataLoader:
             c.organisationenhed.load(a=1),
         )
 
-        call_args = mock_organisationenhed_requests()[0]
-        assert call_args["a"] == [1, 2]
         assert load_a1 == load_a1_again == [a1_b1, a1_b2]
         assert load_a2 == [a2_b1, a2_b2]
 
     @pytest.mark.asyncio
-    async def test_load_merge_params(self, mock_organisationenhed_requests):
+    @respx.mock
+    async def test_load_merge_params(self):
+        mock_requests(dict(json__a=[1, 2]), dict(json__b=[1, 2]))
+
         c = Connector()
         load_a1, load_b1, load_a2, load_b2 = await asyncio.gather(
             c.organisationenhed.load(a=1),  # call 0
@@ -76,35 +86,31 @@ class TestLoraDataLoader:
             c.organisationenhed.load(b=2),  # call 1
         )
 
-        call_args = mock_organisationenhed_requests()[0]
-        assert call_args["a"] == [1, 2]
         assert load_a1 == [a1_b1, a1_b2]
         assert load_a2 == [a2_b1, a2_b2]
 
-        call_args = mock_organisationenhed_requests()[1]
-        assert call_args["b"] == [1, 2]
         assert load_b1 == [a1_b1, a2_b1]
         assert load_b2 == [a1_b2, a2_b2]
 
     @pytest.mark.asyncio
-    async def test_load_multi_params(self, mock_organisationenhed_requests):
+    @respx.mock
+    async def test_load_multi_params(self):
+        mock_requests(dict(json__a=[1]), dict(json__b=[1]))
+
         c = Connector()
         load_a1, load_a1_b1 = await asyncio.gather(
             c.organisationenhed.load(a=1),  # call 0
             c.organisationenhed.load(a=1, b=1),  # call 1
         )
 
-        call_args = mock_organisationenhed_requests()[0]
-        assert call_args["a"] == [1]
         assert load_a1 == [a1_b1, a1_b2]
-
-        call_args = mock_organisationenhed_requests()[1]
-        assert call_args["a"] == [1]
-        assert call_args["b"] == [1]
         assert load_a1_b1 == [a1_b1]
 
     @pytest.mark.asyncio
-    async def test_load_merge_multi_params(self, mock_organisationenhed_requests):
+    @respx.mock
+    async def test_load_merge_multi_params(self):
+        mock_requests(dict(json__a=[1]), dict(json__a=[1, 2]), dict(json__b=[1]))
+
         c = Connector()
         load_a1_b1, load_a1_b2, load_b1, load_a1, load_a2_b1 = await asyncio.gather(
             c.organisationenhed.load(a=1, b=1),  # call 0
@@ -114,17 +120,9 @@ class TestLoraDataLoader:
             c.organisationenhed.load(a=2, b=1),  # call 0
         )
 
-        call_args = mock_organisationenhed_requests()[0]
-        assert call_args["a"] == [1, 2]
-        assert call_args["b"] == [1, 2]
         assert load_a1_b1 == [a1_b1]
         assert load_a1_b2 == [a1_b2]
         assert load_a2_b1 == [a2_b1]
 
-        call_args = mock_organisationenhed_requests()[1]
-        assert call_args["b"] == [1]
         assert load_b1 == [a1_b1, a2_b1]
-
-        call_args = mock_organisationenhed_requests()[2]
-        assert call_args["a"] == [1]
         assert load_a1 == [a1_b1, a1_b2]
