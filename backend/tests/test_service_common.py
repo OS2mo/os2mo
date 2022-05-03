@@ -1,32 +1,33 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import json
 import freezegun
+import respx
+from httpx import Response
 import tests.cases
 from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util as mora_util
-from more_itertools import one
-from yarl import URL
-
-from . import util
 
 
-class AsyncTestClass(tests.cases.IsolatedAsyncioTestCase):
+class AsyncTestClass(tests.cases.AsyncTestCase):
     maxDiff = None
 
     @freezegun.freeze_time("2018-01-01")
-    @util.MockAioresponses()
-    async def test_history_missing(self, mock):
+    @respx.mock
+    async def test_history_missing(self):
         userid = "00000000-0000-0000-0000-000000000000"
 
-        url = URL("http://mox/organisation/bruger")
-        mock.get(
-            url,
-            payload={
-                "results": [],
-            },
+        url = "http://mox/organisation/bruger"
+        route = respx.get(url).mock(
+            return_value=Response(
+                200,
+                json={
+                    "results": [],
+                },
+            )
         )
 
         with self.assertRaises(exceptions.HTTPException) as cm:
@@ -36,9 +37,8 @@ class AsyncTestClass(tests.cases.IsolatedAsyncioTestCase):
                 "kaflaflibob",
             )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": [userid],
                 "virkningfra": "2018-01-01T00:00:00+01:00",

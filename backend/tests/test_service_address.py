@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import respx
+import httpx
+import json
+from httpx import Response
 import tests.cases
 from aioresponses import CallbackResult
 from mora import exceptions
@@ -89,57 +93,70 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                 },
             )
 
+    # FIXME: Still broken - Read FIXME below
+    # @util.MockAioresponses(passthrough=["http://localhost"])
     @freezegun.freeze_time("2016-06-06")
-    @util.MockAioresponses(passthrough=["http://localhost"])
-    async def test_autocomplete_no_municipality(self, mock):
-        url = URL("http://mox/organisation/organisation")
-        mock.get(
-            url,
-            payload={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "attributter": {
-                                        "organisationegenskaber": [
-                                            {
-                                                "brugervendtnoegle": "bvn",
-                                                "organisationsnavn": "onvn",
-                                            }
-                                        ]
-                                    },
-                                    "tilstande": {
-                                        "organisationgyldighed": [
-                                            {
-                                                "gyldighed": "Aktiv",
-                                            }
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
+    @respx.mock
+    async def test_autocomplete_no_municipality(self):
+        route = respx.get("/organisation/organisation").mock(
+            return_value=Response(
+                400,
+                json={
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "attributter": {
+                                            "organisationegenskaber": [
+                                                {
+                                                    "brugervendtnoegle": "bvn",
+                                                    "organisationsnavn": "onvn",
+                                                }
+                                            ]
+                                        },
+                                        "tilstande": {
+                                            "organisationgyldighed": [
+                                                {
+                                                    "gyldighed": "Aktiv",
+                                                }
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
                     ]
-                ]
-            },
+                },
+            )
         )
 
-        await self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
-            {
-                "error": True,
-                "error_key": "E_NO_LOCAL_MUNICIPALITY",
-                "description": "No local municipality found.",
-                "status": 400,
-            },
-            status_code=400,
+        respx.get(
+            "http://mo/service/o/00000000-0000-0000-0000-000000000000/"
+            "address_autocomplete/?q=42"
+        ).pass_through()
+
+        res = httpx.get(
+            "http://mo/service/o/00000000-0000-0000-0000-000000000000/"
+            "address_autocomplete/?q=42"
         )
 
-        call_args = one(mock.requests["GET", url])
+        assert res.json() == {
+            "error": True,
+            "error_key": "E_NO_LOCAL_MUNICIPALITY",
+            "description": "No local municipality found.",
+            "status": 400,
+        }
+        assert res.status_code == 400
+
+        print("hest idk", route.calls)
+
+        # call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            # call_args.kwargs["json"],
+            # FIXME: route isn't called - IndexError: list index out of range
+            route.calls[0].request.read(),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2016-06-06T00:00:00+02:00",
@@ -214,13 +231,12 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             },
         )
 
+    # @util.MockAioresponses(passthrough=["http://localhost"])
     @freezegun.freeze_time("2016-06-06")
-    @util.MockAioresponses(passthrough=["http://localhost"])
-    async def test_autocomplete_missing_org(self, mock):
-        url = URL("http://mox/organisation/organisation")
-        mock.get(
-            url,
-            payload={"results": []},
+    @respx.mock
+    async def test_autocomplete_missing_org(self):
+        route = respx.get("/organisation/organisation").mock(
+            return_value=Response(200, json={"results": []})
         )
 
         await self.assertRequestResponse(
@@ -235,9 +251,8 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             status_code=400,
         )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2016-06-06T00:00:00+02:00",
