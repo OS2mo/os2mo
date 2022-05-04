@@ -287,7 +287,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     @app.on_event("shutdown")
     async def close_httpx_client():
         await clients.close_clients()
-        await triggers.internal.amqp_trigger.close_amqp()
+        await triggers.internal.amqp_trigger.stop_amqp()
 
     if not settings.is_under_test():
         app = setup_instrumentation(app)

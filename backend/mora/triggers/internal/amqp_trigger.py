@@ -28,14 +28,14 @@ logger = get_logger()
 amqp_system = MOAMQPSystem()
 
 
-async def open_amqp():
+async def start_amqp():
     await amqp_system.start(
         amqp_url=config.get_settings().amqp_url,
         amqp_exchange=config.get_settings().amqp_os2mo_exchange,
     )
 
 
-async def close_amqp():
+async def stop_amqp():
     await amqp_system.stop()
 
 
@@ -98,7 +98,7 @@ async def register(app) -> bool:
         logger.debug("AMQP Triggers not enabled!")
         return False
 
-    await open_amqp()
+    await start_amqp()
 
     # Register trigger on everything
     ROLE_TYPES = [
