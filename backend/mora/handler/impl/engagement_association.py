@@ -12,6 +12,7 @@ from ...request_scoped.bulking import request_wide_bulk
 from ...service import facet
 from ...service import orgunit
 from .engagement import get_engagement
+from ...graphapi.middleware import is_graphql
 from mora import util
 
 ROLE_TYPE = mapping.ENGAGEMENT_ASSOCIATION_KEY
@@ -38,6 +39,13 @@ class EngagementAssociationReader(reading.OrgFunkReadingHandler):
         base_obj = create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
+        if is_graphql():
+            return {
+            **base_obj,
+            "org_unit_uuid": org_unit,
+            "engagement_uuid": engagement_uuid,
+            "engagement_association_type_uuid": association_type,
+            }
 
         if only_primary_uuid:
             engagement = {mapping.UUID: engagement_uuid}

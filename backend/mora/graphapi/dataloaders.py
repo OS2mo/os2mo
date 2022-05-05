@@ -34,7 +34,7 @@ from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import ClassRead
 from mora.graphapi.schema import EmployeeRead
-from mora.graphapi.schema import EngagementAssociation
+from mora.graphapi.schema import EngagementAssociationRead
 from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import FacetRead
 from mora.graphapi.schema import ITSystemRead
@@ -62,6 +62,7 @@ MOModel = TypeVar(
     AssociationRead,
     EmployeeRead,
     EngagementRead,
+    EngagementAssociationRead,
     ITUserRead,
     KLERead,
     LeaveRead,
@@ -132,6 +133,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
 get_org_units = partial(get_mo, model=OrganisationUnitRead)
 get_employees = partial(get_mo, model=EmployeeRead)
 get_engagements = partial(get_mo, model=EngagementRead)
+get_engagement_associations = partial(get_mo, model=EngagementAssociationRead)
 get_kles = partial(get_mo, model=KLERead)
 get_addresses = partial(get_mo, model=AddressRead)
 get_leaves = partial(get_mo, model=LeaveRead)
@@ -262,12 +264,6 @@ def lora_facets_to_mo_facets(
     lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
     return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
-async def get_test():
-    from uuid import uuid4
-    return [EngagementAssociation(org_unit_uuid=uuid4(), engagement_uuid=uuid4(),engagement_association_type_uuid=uuid4(), validity={"from": "2021-01-01"} )]
-
-async def load_test():
-    return "test data"
 
 async def get_facets() -> list[FacetRead]:
     c = get_connector()
@@ -489,6 +485,7 @@ async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
         "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
-        "test_getter": get_test,
-        "test_loader": DataLoader(load_fn=load_test)
+        "engagement_association_loader": DataLoader(load_fn=partial(load_mo, model=EngagementAssociationRead)),
+        "engagement_association_getter": get_engagement_associations,
+
     }

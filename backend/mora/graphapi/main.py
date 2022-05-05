@@ -161,9 +161,9 @@ class Query:
     
     # EngagementsAssociations
     # -----------
-    engagement_association: list[EngagementAssociation] = strawberry.field(
-        resolver=create_resolver("test_getter", "test_loader", static=True),
-        description="Get a list of test",
+    engagement_association: list[Response[EngagementAssociation]] = strawberry.field(
+        resolver=create_resolver("engagement_association_getter", "engagement_association_loader"),
+        description="Get a list of engagement associations",
     )
 
     # Facets

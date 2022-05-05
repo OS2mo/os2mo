@@ -44,7 +44,7 @@ from strawberry.types import Info
 from mora import config
 from mora import lora
 from mora.graphapi.health import health_map
-from mora.graphapi.models import EngagementAssociation
+from mora.graphapi.models import EngagementAssociationRead
 from mora.graphapi.models import HealthRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
@@ -67,7 +67,7 @@ class Response(Generic[MOObject]):
 @strawberry.experimental.pydantic.type(
     model=OrgUnitRef,
     all_fields=True,
-    description="Validity of objects with required from date",
+    description="Reference to the organisation unit",
 )
 class OrgUnitRef:
     pass
@@ -76,7 +76,7 @@ class OrgUnitRef:
 @strawberry.experimental.pydantic.type(
     model=EngagementRef,
     all_fields=True,
-    description="Validity of objects with required from date",
+    description="Reference to the engagement",
 )
 class EngagementRef:
     pass
@@ -85,7 +85,7 @@ class EngagementRef:
 @strawberry.experimental.pydantic.type(
     model=EngagementAssociationType,
     all_fields=True,
-    description="Validity of objects with required from date",
+    description="Reference to the engagement association type",
 )
 class EngagementAssociationType:
     pass
@@ -450,23 +450,43 @@ class Engagement:
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
+        
+    @strawberry.field(description="Related organisation unit")
+    async def engagement_association(
+        self, root: EngagementRead, info: Info
+    ) -> list["EngagementAssociation"]:
+        loader: DataLoader = info.context["engagement_association_loader"]
+        return (await loader.load(root.org_unit_uuid)).objects
+
 
 
 @strawberry.experimental.pydantic.type(
-    model=EngagementAssociation,
+    model=EngagementAssociationRead,
     all_fields=True,
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
-    test: str = "lol"
-
     @strawberry.field(description="Related organisation unit")
     async def org_unit(
-        self, root: EngagementRead, info: Info
+        self, root: EngagementAssociationRead, info: Info
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
 
+    @strawberry.field(description="Related engagement")
+    async def engagement(
+        self, root: EngagementAssociationRead, info: Info
+    ) -> list["Engagement"]:
+        loader: DataLoader = info.context["engagement_loader"]
+        return (await loader.load(root.engagement_uuid)).objects
+    
+    @strawberry.field(description="Related engagement association type")
+    async def engagement_association_type(
+        self, root: EngagementAssociationRead, info: Info
+    ) -> list["EngagementAssociationType"]:
+        # :thinking: :thinking: :thinking: :thinking: 
+        loader: DataLoader = info.context["class_loader"]
+        return (await loader.load(root.engagement_type_uuid))
 
 # Facet
 # -----

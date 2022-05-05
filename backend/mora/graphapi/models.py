@@ -74,12 +74,15 @@ from ramodels.mo._shared import Validity
 # --------------------------------------------------------------------------------------
 # Engagement models
 # --------------------------------------------------------------------------------------
-class EngagementAssociation(MOBase):
+class EngagementAssociationBase(MOBase):
     """A MO engagement association object."""
 
-    type_: str = Field(
-        "engagement_association", alias="type", description="The object type."
-    )
+    type_: str = Field("engagement_association", alias="type", description="The object type.")
+    validity: Validity = Field(description="Validity of the association object.")
+
+class EngagementAssociationRead(EngagementAssociationBase):
+    """A MO engagement association read object."""
+
     org_unit_uuid: UUID = Field(
         description=(
             "Reference to the organisation unit "
@@ -93,6 +96,31 @@ class EngagementAssociation(MOBase):
         )
     )
     engagement_association_type_uuid: UUID = Field(
+        description=(
+            "Reference to the engagement association type klasse "
+            "for the created engagement association object."
+        )
+    )
+
+class EngagementAssociation(MOBase):
+    """A MO engagement association object."""
+
+    type_: Literal["engagement_association"] = Field(
+        "engagement_association", alias="type", description="The object type."
+    )
+    org_unit: OrgUnitRef = Field(
+        description=(
+            "Reference to the organisation unit "
+            "for which the engagement association should be created."
+        )
+    )
+    engagement: EngagementRef = Field(
+        description=(
+            "Reference to the engagement "
+            "for which the engagement association should be created."
+        )
+    )
+    engagement_association_type: EngagementAssociationType = Field(
         description=(
             "Reference to the engagement association type klasse "
             "for the created engagement association object."
