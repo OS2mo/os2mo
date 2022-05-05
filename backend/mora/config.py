@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     # Enable testing endpoints
     testcafe_enable: bool = True
     # Serve frontend
-    statics_enable: bool = False
+    statics_enable: bool = True
     # V1 API
     v1_api_enable: bool = False
     # GraphQL settings
