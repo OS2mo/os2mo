@@ -24,9 +24,14 @@ from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
 from ramodels.mo._shared import OpenValidity as OpenValidityModel
 from ramodels.mo._shared import Validity as ValidityModel
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import EngagementAssociationType
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
+from mora.graphapi.models import EngagementAssociation
+# from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -56,6 +61,30 @@ MOObject = TypeVar("MOObject")
 class Response(Generic[MOObject]):
     uuid: UUID
     objects: list[MOObject]
+
+@strawberry.experimental.pydantic.type(
+    model=OrgUnitRef,
+    all_fields=True,
+    description="Validity of objects with required from date",
+)
+class OrgUnitRef:
+    pass
+
+@strawberry.experimental.pydantic.type(
+    model=EngagementRef,
+    all_fields=True,
+    description="Validity of objects with required from date",
+)
+class EngagementRef:
+    pass
+
+@strawberry.experimental.pydantic.type(
+    model=EngagementAssociationType,
+    all_fields=True,
+    description="Validity of objects with required from date",
+)
+class EngagementAssociationType:
+    pass
 
 
 # Validities
@@ -418,6 +447,13 @@ class Engagement:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
 
+@strawberry.experimental.pydantic.type(
+    model=EngagementAssociation,
+    all_fields=True,
+    description="Employee engagement in an organisation unit",
+)
+class EngagementAssociation:
+    test: str
 
 # Facet
 # -----

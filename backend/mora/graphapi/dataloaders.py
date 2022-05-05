@@ -261,6 +261,11 @@ def lora_facets_to_mo_facets(
     lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
     return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
+def get_test():
+    return "test data"
+
+def load_test():
+    return "test data"
 
 async def get_facets() -> list[FacetRead]:
     c = get_connector()
@@ -482,4 +487,6 @@ async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
         "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
+        "test_getter": get_test,
+        "test_loader": DataLoader(load_fn=load_test)
     }
