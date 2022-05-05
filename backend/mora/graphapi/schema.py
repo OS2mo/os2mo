@@ -22,16 +22,14 @@ from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
-from ramodels.mo._shared import OpenValidity as OpenValidityModel
-from ramodels.mo._shared import Validity as ValidityModel
-from ramodels.mo._shared import OrgUnitRef
-from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import EngagementAssociationType
+from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import OpenValidity as OpenValidityModel
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
-from mora.graphapi.models import EngagementAssociation
-# from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -46,9 +44,12 @@ from strawberry.types import Info
 from mora import config
 from mora import lora
 from mora.graphapi.health import health_map
+from mora.graphapi.models import EngagementAssociation
 from mora.graphapi.models import HealthRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
+
+# from ramodels.mo.details import EngagementAssociation
 
 # --------------------------------------------------------------------------------------
 # Schema
@@ -62,6 +63,7 @@ class Response(Generic[MOObject]):
     uuid: UUID
     objects: list[MOObject]
 
+
 @strawberry.experimental.pydantic.type(
     model=OrgUnitRef,
     all_fields=True,
@@ -70,6 +72,7 @@ class Response(Generic[MOObject]):
 class OrgUnitRef:
     pass
 
+
 @strawberry.experimental.pydantic.type(
     model=EngagementRef,
     all_fields=True,
@@ -77,6 +80,7 @@ class OrgUnitRef:
 )
 class EngagementRef:
     pass
+
 
 @strawberry.experimental.pydantic.type(
     model=EngagementAssociationType,
@@ -447,13 +451,22 @@ class Engagement:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
 
+
 @strawberry.experimental.pydantic.type(
     model=EngagementAssociation,
     all_fields=True,
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
-    test: str
+    test: str = "lol"
+
+    @strawberry.field(description="Related organisation unit")
+    async def org_unit(
+        self, root: EngagementRead, info: Info
+    ) -> list["OrganisationUnit"]:
+        loader: DataLoader = info.context["org_unit_loader"]
+        return (await loader.load(root.org_unit_uuid)).objects
+
 
 # Facet
 # -----

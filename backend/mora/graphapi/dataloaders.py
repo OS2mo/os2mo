@@ -34,6 +34,7 @@ from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import ClassRead
 from mora.graphapi.schema import EmployeeRead
+from mora.graphapi.schema import EngagementAssociation
 from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import FacetRead
 from mora.graphapi.schema import ITSystemRead
@@ -261,10 +262,11 @@ def lora_facets_to_mo_facets(
     lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
     return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
 
-def get_test():
-    return "test data"
+async def get_test():
+    from uuid import uuid4
+    return [EngagementAssociation(org_unit_uuid=uuid4(), engagement_uuid=uuid4(),engagement_association_type_uuid=uuid4(), validity={"from": "2021-01-01"} )]
 
-def load_test():
+async def load_test():
     return "test data"
 
 async def get_facets() -> list[FacetRead]:

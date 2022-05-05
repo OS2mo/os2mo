@@ -74,26 +74,25 @@ from ramodels.mo._shared import Validity
 # --------------------------------------------------------------------------------------
 # Engagement models
 # --------------------------------------------------------------------------------------
-
 class EngagementAssociation(MOBase):
     """A MO engagement association object."""
 
-    type_: Literal["engagement_association"] = Field(
+    type_: str = Field(
         "engagement_association", alias="type", description="The object type."
     )
-    org_unit: OrgUnitRef = Field(
+    org_unit_uuid: UUID = Field(
         description=(
             "Reference to the organisation unit "
             "for which the engagement association should be created."
         )
     )
-    engagement: EngagementRef = Field(
+    engagement_uuid: UUID = Field(
         description=(
             "Reference to the engagement "
             "for which the engagement association should be created."
         )
     )
-    engagement_association_type: EngagementAssociationType = Field(
+    engagement_association_type_uuid: UUID = Field(
         description=(
             "Reference to the engagement association type klasse "
             "for the created engagement association object."
