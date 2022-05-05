@@ -66,6 +66,7 @@ FIELDS = [
     "classes",
     "employees",
     "engagements",
+    "engagement_associations",
     "facets",
     "healths",
     "itsystems",
