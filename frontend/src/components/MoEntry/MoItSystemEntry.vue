@@ -1,14 +1,14 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div :id="identifier">
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
-    <div class="form-row">
+    <div class="form-row" style="align-items: flex-end">
+
       <mo-it-system-picker
         class="select-itSystem"
         v-model="entry.itsystem"
@@ -21,6 +21,13 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('input_fields.account_name')"
         required
       />
+
+      <mo-input-primary-check
+        style="margin-left: 1.25rem; margin-bottom: 1.33rem !important"
+        class="col"
+        v-model="entry.primary"
+      />
+      
     </div>
   </div>
 </template>
@@ -29,20 +36,25 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A it system entry component.
  */
-import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
-import { MoInputText, MoInputDateRange } from '@/components/MoInput'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import MoItSystemPicker from "@/components/MoPicker/MoItSystemPicker";
+import {
+  MoInputText,
+  MoInputDateRange,
+  MoInputPrimaryCheck,
+} from "@/components/MoInput";
+import MoEntryBase from "./MoEntryBase";
+import OrgUnitValidity from "@/mixins/OrgUnitValidity";
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
-  name: 'MoItSystemEntry',
+  name: "MoItSystemEntry",
   components: {
     MoInputText,
     MoInputDateRange,
-    MoItSystemPicker
+    MoInputPrimaryCheck,
+    MoItSystemPicker,
   },
 
   watch: {
@@ -50,12 +62,12 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'it'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "it";
+        this.$emit("input", newVal);
       },
-      deep: true
-    }
-  }
-}
+      deep: true,
+    },
+  },
+};
 </script>

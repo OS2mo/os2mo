@@ -6,5 +6,6 @@ import MoInputSelect from './MoInputSelect'
 import MoInputDate from './MoInputDate'
 import MoInputDateRange from './MoInputDateRange'
 import MoInputAutocomplete from './MoInputAutocomplete'
+import MoInputPrimaryCheck from './MoInputPrimaryCheck.vue'
 
-export { MoInputText, MoInputSelect, MoInputDate, MoInputDateRange, MoInputAutocomplete }
+export { MoInputText, MoInputSelect, MoInputDate, MoInputDateRange, MoInputAutocomplete, MoInputPrimaryCheck }
