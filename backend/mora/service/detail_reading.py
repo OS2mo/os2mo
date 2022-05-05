@@ -323,7 +323,7 @@ async def list_addresses_ou(
         """
     args = {"uuid": orgid}
     if at is not None:
-        args["from_data"] = at
+        args["from_date"] = at
     if validity is not None:
         start, end = validity_tuple(validity)
         args["from_date"] = start
