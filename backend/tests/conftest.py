@@ -1,25 +1,26 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import os
-
-from tests.cases import fake_auth
 from typing import Any
+
 import pytest
-from mora.auth.keycloak.oidc import auth
-from mora.app import create_app
-from fastapi.testclient import TestClient
 from aioresponses import aioresponses as aioresponses_
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
-
-from mora.api.v1.models import Validity
+from tests.cases import fake_auth
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
+
+from mora.api.v1.models import Validity
+from mora.app import create_app
+from mora.auth.keycloak.oidc import auth
 
 h_db = InMemoryExampleDatabase()
 h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
@@ -64,6 +65,7 @@ def mocked_context(monkeypatch) -> _Context:
 
 
 def test_app(**overrides: Any):
+    # mora.config.get_settings.cache_clear()
     app = create_app(overrides)
     app.dependency_overrides[auth] = fake_auth
     return app
@@ -75,8 +77,14 @@ def service_client():
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
+
     with TestClient(test_app()) as client:
         yield client
+
+
+@pytest.fixture
+def async_service_client():
+    return AsyncClient(app=test_app(), base_url="http://test")
 
 
 @pytest.fixture

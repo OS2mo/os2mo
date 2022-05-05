@@ -1,16 +1,58 @@
-# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
 
-import unittest
-
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 from mora.common import create_organisationsfunktion_payload
 
+# --------------------------------------------------------------------------------------
+# Tests
+# --------------------------------------------------------------------------------------
 
-class TestCreateOrgFunk(unittest.TestCase):
-    maxDiff = None
 
+class TestCreateOrgFunkPayload:
     def test_create_organisationfunktion_full(self):
-        output_org_funk = {
+        payload = create_organisationsfunktion_payload(
+            funktionsnavn="funktionsnavn",
+            valid_from="2016-01-01T00:00:00+01:00",
+            valid_to="2018-01-01T00:00:00+01:00",
+            brugervendtnoegle="brugervendtnoegle",
+            tilknyttedebrugere=[
+                "0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6",
+                "c20a1d60-33df-4dd3-9509-125e66b124eb",
+            ],
+            tilknyttedeorganisationer=["f494ad89-039d-478e-91f2-a63566554bd6"],
+            tilknyttedeenheder=[
+                "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
+                "3f2e320e-d265-4480-a4f6-b92e40cf91b3",
+            ],
+            funktionstype="62ec821f-4179-4758-bfdf-134529d186e9",
+            opgaver=[
+                {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                {"uuid": "8017363b-e836-41c1-8511-2287d8fbc8a2"},
+            ],
+        )
+        assert payload == output_org_funk(full=True)
+
+    def test_create_organisationfunktion_minimal(self):
+        payload = create_organisationsfunktion_payload(
+            funktionsnavn="funktionsnavn",
+            valid_from="2016-01-01T00:00:00+01:00",
+            valid_to="2018-01-01T00:00:00+01:00",
+            brugervendtnoegle="brugervendtnoegle",
+            tilknyttedebrugere=["0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6"],
+            tilknyttedeorganisationer=["f494ad89-039d-478e-91f2-a63566554bd6"],
+        )
+        assert payload == output_org_funk(full=False)
+
+
+def output_org_funk(full: bool):
+    if full:
+        return {
             "attributter": {
                 "organisationfunktionegenskaber": [
                     {
@@ -104,46 +146,8 @@ class TestCreateOrgFunk(unittest.TestCase):
                 ]
             },
         }
-
-        funktionsnavn = "funktionsnavn"
-        valid_from = "2016-01-01T00:00:00+01:00"
-        valid_to = "2018-01-01T00:00:00+01:00"
-        brugervendtnoegle = "brugervendtnoegle"
-        tilknyttedebrugere = [
-            "0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6",
-            "c20a1d60-33df-4dd3-9509-125e66b124eb",
-        ]
-        tilknyttedeorganisationer = ["f494ad89-039d-478e-91f2-a63566554bd6"]
-        tilknyttedeenheder = [
-            "a30f5f68-9c0d-44e9-afc9-04e58f52dfec",
-            "3f2e320e-d265-4480-a4f6-b92e40cf91b3",
-        ]
-        funktionstype = "62ec821f-4179-4758-bfdf-134529d186e9"
-        opgaver = [
-            {
-                "uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8",
-            },
-            {"uuid": "8017363b-e836-41c1-8511-2287d8fbc8a2"},
-        ]
-
-        self.assertDictEqual(
-            create_organisationsfunktion_payload(
-                funktionsnavn=funktionsnavn,
-                valid_from=valid_from,
-                valid_to=valid_to,
-                brugervendtnoegle=brugervendtnoegle,
-                tilknyttedebrugere=tilknyttedebrugere,
-                tilknyttedeorganisationer=tilknyttedeorganisationer,
-                tilknyttedeenheder=tilknyttedeenheder,
-                funktionstype=funktionstype,
-                opgaver=opgaver,
-            ),
-            output_org_funk,
-            "Org funktion not created correctly from FE req",
-        )
-
-    def test_create_organisationfunktion_minimal(self):
-        output_org_funk = {
+    else:
+        return {
             "attributter": {
                 "organisationfunktionegenskaber": [
                     {
@@ -189,23 +193,3 @@ class TestCreateOrgFunk(unittest.TestCase):
                 ]
             },
         }
-
-        funktionsnavn = "funktionsnavn"
-        valid_from = "2016-01-01T00:00:00+01:00"
-        valid_to = "2018-01-01T00:00:00+01:00"
-        brugervendtnoegle = "brugervendtnoegle"
-        tilknyttedebrugere = ["0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6"]
-        tilknyttedeorganisationer = ["f494ad89-039d-478e-91f2-a63566554bd6"]
-
-        self.assertDictEqual(
-            create_organisationsfunktion_payload(
-                funktionsnavn=funktionsnavn,
-                valid_from=valid_from,
-                valid_to=valid_to,
-                brugervendtnoegle=brugervendtnoegle,
-                tilknyttedebrugere=tilknyttedebrugere,
-                tilknyttedeorganisationer=tilknyttedeorganisationer,
-            ),
-            output_org_funk,
-            "Org funktion not created correctly from FE req",
-        )
