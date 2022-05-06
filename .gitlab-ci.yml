@@ -465,7 +465,7 @@ Unit-test:
   extends:
     - .backend-test-base
   script:
-    - pytest backend/tests
+    - pytest backend/tests/legacy
       -p no:cacheprovider
       -m "not serial"
       -k "not graphapi"
@@ -541,7 +541,7 @@ Integration-test:
     - !reference [".services:start-all", needs]
   parallel: 6
   script:
-    - pytest backend/tests
+    - pytest backend/tests/
       -m "serial"
       -p no:cacheprovider
       --color=yes

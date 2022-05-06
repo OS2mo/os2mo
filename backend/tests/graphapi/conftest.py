@@ -22,6 +22,8 @@ import pytest
 from aioresponses import aioresponses as aioresp
 from aioresponses.core import URL
 from fastapi.testclient import TestClient
+from tests.legacy.cases import fake_auth
+from tests.legacy.util import patch_is_graphql
 
 from mora import util as mora_util
 from mora.app import create_app
@@ -30,8 +32,6 @@ from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.main import get_loaders
 from mora.graphapi.main import get_schema
 from mora.lora import LoraObjectType
-from tests.cases import fake_auth
-from tests.util import patch_is_graphql
 
 # --------------------------------------------------------------------------------------
 # Shared fixtures

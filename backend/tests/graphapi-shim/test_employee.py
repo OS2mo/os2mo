@@ -17,8 +17,8 @@ from mora.service.employee import EmployeeDetails
 from mora.service.employee import get_one_employee
 from mora.service.shimmed.employee import get_employee
 from tests.graphapi.test_organisation import mock_organisation
-from tests.util import patch_is_graphql
-from tests.util import patch_query_args
+from tests.legacy.util import patch_is_graphql
+from tests.legacy.util import patch_query_args
 
 
 def gen_employee(

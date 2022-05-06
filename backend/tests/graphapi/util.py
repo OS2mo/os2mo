@@ -6,8 +6,8 @@ from strawberry.types import ExecutionResult
 
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.main import get_schema
-from tests.util import patch_is_graphql
-from tests.util import patch_query_args
+from tests.legacy.util import patch_is_graphql
+from tests.legacy.util import patch_query_args
 
 
 async def execute(query: str, values: Optional[dict] = None) -> ExecutionResult:

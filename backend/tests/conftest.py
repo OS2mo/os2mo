@@ -21,14 +21,14 @@ from hypothesis.database import InMemoryExampleDatabase
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
+from .legacy.cases import fake_auth
+from .legacy.hypothesis_utils import validity_model_strat
+from .legacy.util import _mox_testing_api
+from .legacy.util import load_sample_structures
 from mora.api.v1.models import Validity
+from mora.http import clients
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
-from mora.http import clients
-from tests.cases import fake_auth
-from tests.hypothesis_utils import validity_model_strat
-from tests.util import _mox_testing_api
-from tests.util import load_sample_structures
 
 # --------------------------------------------------------------------------------------
 # Configs + fixtures
