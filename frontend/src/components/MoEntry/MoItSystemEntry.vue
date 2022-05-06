@@ -8,7 +8,6 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="form-row" style="align-items: flex-end">
-
       <mo-it-system-picker
         class="select-itSystem"
         v-model="entry.itsystem"
@@ -22,12 +21,13 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
         required
       />
 
+      
       <mo-input-primary-check
         style="margin-left: 1.25rem; margin-bottom: 1.33rem !important"
         class="col"
         v-model="entry.primary"
       />
-      
+
     </div>
   </div>
 </template>
